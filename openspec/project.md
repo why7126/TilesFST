@@ -19,6 +19,14 @@ note: 适用于瓷砖信息管理平台项目模板
 - 前端：React19、TypeScript、Tailwind、shadcn/ui、Axios、Orval、pnpm
 - 小程序：微信小程序
 
+## 研发规则
+
+- 需求来源：`issues/requirements`
+- BUG来源：`issues/bugs`
+- 研发变更：`openspec/changes`
+- 正式能力：`openspec/specs`
+
+
 ## AI执行约束
 
 AI必须先阅读本文件和对应 OpenSpec Change，再进行代码修改。

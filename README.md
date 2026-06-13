@@ -111,7 +111,7 @@ python scripts/validate-directory-structure.py
 ```
 
 
-## V4 新增能力
+## 新增能力
 
 - 新增根目录 `.env.example`，统一管理本地开发、Docker Compose、MinIO、SQLite、图片/视频上传相关环境变量。
 - 新增 `data/` 目录，用于本地SQLite、上传缓存、视频处理产物、样例素材和运行时数据。
@@ -133,7 +133,7 @@ cp .env.example .env
 
 ### MinIO 单桶策略
 
-V5 将 MinIO 从多 Bucket 策略调整为：
+将 MinIO 从多 Bucket 策略调整为：
 
 ```text
 一个项目一个 Bucket
@@ -148,7 +148,7 @@ MINIO_BUCKET=tile-info-platform
 
 ### 端口策略
 
-V5 保留开发常用端口：
+保留开发常用端口：
 
 ```text
 Backend: 8000

@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install backend deps
+        run: uv sync --project src/backend --group dev
+      - name: Run pytest
+        run: uv run --project src/backend pytest
+      - name: Validate test framework
+        run: python scripts/validate-test-framework.py
+
+  lint-standards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate directory structure
+        run: python scripts/validate-directory-structure.py
+      - name: Validate design system
+        run: python scripts/validate-design-system.py
+      - name: Validate API standard
+        run: python scripts/validate-api-standard.py

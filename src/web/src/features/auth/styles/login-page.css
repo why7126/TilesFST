@@ -1,0 +1,494 @@
+/**
+ * Login page — ported from user-login.html
+ * Colors reference globals.css Design Tokens (--color-*).
+ * Tile gradient stops use scoped variables (login-page.css only).
+ */
+
+.login-shell {
+  --login-page: var(--color-page);
+  --login-deep: var(--color-deep);
+  --login-surface: var(--color-surface);
+  --login-text: var(--color-text-primary);
+  --login-muted: var(--color-text-secondary);
+  --login-weak: var(--color-text-muted);
+  --login-ghost: var(--color-text-subtle);
+  --login-gold: var(--color-brand-gold);
+  --login-line: var(--color-border-default);
+  --login-line-strong: var(--color-border-emphasis);
+  --login-line-hover: var(--color-border-strong);
+  --login-gold-muted: var(--color-brand-gold-muted);
+  --login-surface-stat: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  --login-tile-calacatta-a: color-mix(in srgb, var(--color-surface) 55%, var(--color-page));
+  --login-tile-calacatta-b: color-mix(in srgb, var(--color-deep) 80%, var(--color-page));
+  --login-tile-calacatta-c: color-mix(in srgb, var(--color-surface) 70%, var(--color-brand-gold) 15%);
+  --login-tile-dark-a: color-mix(in srgb, var(--color-deep) 90%, var(--color-page));
+  --login-tile-dark-b: color-mix(in srgb, var(--color-surface) 60%, var(--color-deep));
+  --login-tile-gold-a: color-mix(in srgb, var(--color-brand-gold) 75%, var(--color-deep));
+  --login-tile-gold-b: color-mix(in srgb, var(--color-deep) 85%, var(--color-page));
+  --login-tile-gold-c: color-mix(in srgb, var(--color-brand-gold) 80%, var(--color-surface));
+
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background:
+    radial-gradient(circle at 24% 18%, var(--login-gold-muted), transparent 28%),
+    linear-gradient(135deg, var(--login-page), var(--login-deep));
+  color: var(--login-text);
+  box-sizing: border-box;
+}
+
+.login-shell *,
+.login-shell *::before,
+.login-shell *::after {
+  box-sizing: border-box;
+}
+
+.login-shell .brand-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 56px;
+  border-right: 0.5px solid var(--login-line);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    linear-gradient(180deg, var(--color-bg-overlay), transparent 32%),
+    radial-gradient(circle at 74% 78%, color-mix(in srgb, var(--login-gold) 16%, transparent), transparent 28%),
+    var(--login-page);
+}
+
+.login-shell .brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, white 3.5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, white 2.5%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.85), transparent 78%);
+  pointer-events: none;
+}
+
+.login-shell .brand-top,
+.login-shell .brand-content,
+.login-shell .brand-bottom {
+  position: relative;
+  z-index: 1;
+}
+
+.login-shell .logo {
+  letter-spacing: 0.16em;
+  color: var(--login-gold);
+  font-family: var(--font-brand, Georgia, 'Times New Roman', serif);
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.login-shell .brand-kicker {
+  margin: 0 0 20px;
+  color: var(--login-gold);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.login-shell .brand-title {
+  max-width: 520px;
+  margin: 0;
+  font-size: 42px;
+  line-height: 1.18;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--login-text);
+}
+
+.login-shell .brand-desc {
+  max-width: 460px;
+  margin: 22px 0 0;
+  color: var(--login-muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.login-shell .stats-card {
+  margin-top: 40px;
+  width: 460px;
+  border: 0.5px solid var(--login-line-strong);
+  background: var(--login-surface-stat);
+  backdrop-filter: blur(20px);
+  border-radius: 3px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.login-shell .stat {
+  padding: 18px 20px;
+  border-right: 0.5px solid var(--login-line);
+}
+
+.login-shell .stat:last-child {
+  border-right: 0;
+}
+
+.login-shell .stat strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--login-gold);
+}
+
+.login-shell .stat span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--login-weak);
+}
+
+.login-shell .material-board {
+  position: absolute;
+  right: 48px;
+  bottom: 48px;
+  width: 320px;
+  height: 320px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  opacity: 0.96;
+  transform: rotate(-2deg);
+  z-index: 1;
+}
+
+.login-shell .tile {
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 0.5px solid var(--color-border-chip);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 0.28);
+}
+
+.login-shell .tile.large {
+  grid-row: span 2;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, white 12%, transparent), transparent 18%, color-mix(in srgb, white 8%, transparent) 28%, transparent 46%),
+    linear-gradient(45deg, var(--login-tile-calacatta-a), var(--login-tile-calacatta-b) 48%, var(--login-tile-calacatta-c));
+}
+
+.login-shell .tile.dark {
+  background:
+    linear-gradient(135deg, transparent 0 38%, color-mix(in srgb, white 14%, transparent) 39% 40%, transparent 41%),
+    linear-gradient(45deg, var(--login-tile-dark-a), var(--login-tile-dark-b));
+}
+
+.login-shell .tile.gold {
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, white 35%, transparent), transparent 10%),
+    linear-gradient(135deg, var(--login-tile-gold-a), var(--login-tile-gold-b) 52%, var(--login-tile-gold-c));
+}
+
+.login-shell .tile label {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, white 70%, transparent);
+}
+
+.login-shell .form-panel {
+  position: relative;
+  min-height: 100vh;
+  padding: 56px 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--login-gold) 8%, transparent), transparent 24%),
+    var(--login-page);
+}
+
+.login-shell .language {
+  position: absolute;
+  right: 72px;
+  top: 36px;
+  border: 0.5px solid var(--login-line-strong);
+  border-radius: 2px;
+  padding: 9px 12px;
+  color: var(--login-muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.login-shell .language:hover {
+  color: var(--login-text);
+}
+
+.login-shell .login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-shell .eyebrow {
+  color: var(--login-gold);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.login-shell .login-card h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--login-text);
+}
+
+.login-shell .sub {
+  margin: 14px 0 0;
+  color: var(--login-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.login-shell .login-form {
+  margin-top: 48px;
+}
+
+.login-shell .field {
+  margin-bottom: 28px;
+}
+
+.login-shell .label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.login-shell .field-label {
+  color: color-mix(in srgb, var(--login-text) 72%, transparent);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.login-shell .field-input {
+  width: 100%;
+  height: 64px;
+  border: 1px solid var(--login-line-strong);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--login-text);
+  padding: 0 18px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  font-family: inherit;
+}
+
+.login-shell .field-input::placeholder {
+  color: var(--login-ghost);
+}
+
+.login-shell .field-input:focus {
+  border-color: var(--login-gold);
+  background: color-mix(in srgb, white 1.5%, transparent);
+}
+
+.login-shell .field-input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.login-shell .form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -2px 0 28px;
+}
+
+.login-shell .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--login-muted);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-shell .check-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.login-shell .box {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  border: 1px solid var(--login-line-hover);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--login-gold);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.login-shell .check-input:checked + .box {
+  background: var(--login-gold-muted);
+}
+
+.login-shell .login-link {
+  color: var(--login-gold);
+  text-decoration: none;
+  font-size: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.login-shell .login-link:hover {
+  color: var(--login-text);
+}
+
+.login-shell .login-error {
+  margin-bottom: 28px;
+  font-size: 14px;
+  color: var(--color-error);
+}
+
+.login-shell .field-error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--color-error);
+}
+
+.login-shell .primary {
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--login-gold);
+  color: var(--login-page);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: filter 0.18s ease, transform 0.18s ease;
+  font-family: inherit;
+}
+
+.login-shell .primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.login-shell .primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-shell .third-party {
+  padding-top: 56px;
+}
+
+.login-shell .divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--login-weak);
+  font-size: 11px;
+}
+
+.login-shell .divider::before,
+.login-shell .divider::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--login-line);
+}
+
+.login-shell .wecom {
+  margin-top: 22px;
+  width: 100%;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: transparent;
+  border: 1px solid var(--login-line-strong);
+  border-radius: 2px;
+  color: var(--login-text);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.login-shell .wecom:hover {
+  border-color: var(--login-line-hover);
+}
+
+.login-shell .wecom img {
+  width: 22px;
+  height: 22px;
+}
+
+.login-shell .security {
+  margin-top: 36px;
+  color: var(--login-weak);
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+@media (max-width: 1023px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-shell .brand-panel {
+    display: none;
+  }
+
+  .login-shell .form-panel {
+    padding: 32px 24px;
+  }
+
+  .login-shell .language {
+    right: 24px;
+    top: 24px;
+  }
+
+  .login-shell .login-card {
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 639px) {
+  .login-shell .form-panel {
+    align-items: flex-start;
+    padding-top: 96px;
+  }
+
+  .login-shell .field-input {
+    height: 52px;
+  }
+
+  .login-shell .login-card h1 {
+    font-size: 28px;
+  }
+}

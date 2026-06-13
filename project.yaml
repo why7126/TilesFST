@@ -64,7 +64,7 @@ constraints:
   - .env.example必须与实际配置保持同步
   - data目录不得提交真实客户数据或运行时数据库
 
-# V5 object storage and ports
+# object storage and ports
 object_storage:
   strategy: single_bucket_with_prefix
   bucket: tile-info-platform
@@ -82,3 +82,14 @@ ports:
   web_container: 3000
   backend_host_default: 8000
   web_host_default: 3000
+
+governance:
+  requirement_source: issues/requirements
+  bug_source: issues/bugs
+  change_source: openspec/changes
+  iteration_source: iterations
+  forbidden_dirs:
+    - docs/product
+    - docs/prd
+    - docs/bugs
+    - docs/iterations

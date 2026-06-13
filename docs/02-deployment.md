@@ -88,7 +88,7 @@ data/tmp/
 
 生产环境不得直接使用示例密钥，必须通过部署平台注入真实环境变量。
 
-## V5 Docker Compose 端口策略
+## Docker Compose 端口策略
 
 默认开发端口：
 
@@ -99,7 +99,7 @@ MinIO API: 9000
 MinIO Console: 9001
 ```
 
-V5 采用：
+采用：
 
 ```text
 容器内部端口固定
@@ -113,9 +113,9 @@ HOST_PORT_BACKEND=18080
 HOST_PORT_WEB=13000
 ```
 
-## V5 MinIO 单桶策略
+## MinIO 单桶策略
 
-V5 使用一个项目一个 Bucket：
+使用一个项目一个 Bucket：
 
 ```env
 MINIO_BUCKET=tile-info-platform

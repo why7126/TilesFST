@@ -1,0 +1,11 @@
+[run]
+source = app
+omit =
+    */tests/*
+    */migrations/*
+    */.gitkeep
+
+[report]
+fail_under = 0
+show_missing = True
+skip_covered = False

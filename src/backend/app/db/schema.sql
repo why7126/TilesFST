@@ -26,3 +26,29 @@ CREATE TABLE IF NOT EXISTS tile_images (
   sort_order INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY(tile_id) REFERENCES tiles(id)
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  phone TEXT,
+  email TEXT,
+  password_hash TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'employee', 'store_owner')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled')),
+  last_login_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS login_logs (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  login_identifier TEXT NOT NULL,
+  result TEXT NOT NULL CHECK (result IN ('success', 'failed')),
+  failure_reason TEXT,
+  ip TEXT,
+  user_agent TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);

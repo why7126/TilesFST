@@ -1,1 +1,316 @@
+/**
+ * STONEX Design System — Global Styles
+ *
+ * Source: rules/ui-design.md §2 色彩系统
+ * Default theme: dark (industrial flagship)
+ * Light theme: .light | [data-theme="light"]
+ *
+ * All colors MUST be referenced via CSS variables — no Hex in components.
+ * Non-color tokens: ./tokens.generated.css (sync:tokens)
+ */
+
 @import "tailwindcss";
+@import "./tokens.generated.css";
+@config "../../tailwind.config.ts";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Color Tokens — Dark theme (default)
+   Selectors: :root | .dark | [data-theme="dark"]
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root,
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── Background ── */
+  --color-page: #18160f;
+  --color-surface: #211e16;
+  --color-secondary: #211e16;
+  --color-deep: #100f0a;
+  --color-bg-overlay: rgb(255 255 255 / 0.04);
+  --color-bg-badge-neutral: rgb(255 255 255 / 0.07);
+
+  /* ── Text ── */
+  --color-text-primary: #ede8df;
+  --color-text-secondary: rgb(237 232 223 / 0.5);
+  --color-text-muted: rgb(237 232 223 / 0.3);
+  --color-text-subtle: rgb(237 232 223 / 0.25);
+  --color-text-nav-link: rgb(237 232 223 / 0.45);
+  --color-text-brand: #c8a055;
+  --color-text-hot-sale: #e07050;
+  --color-text-on-brand: #18160f;
+
+  /* ── Brand (gold) ── */
+  --color-brand-gold: #c8a055;
+  --color-brand-gold-muted: rgb(200 160 85 / 0.12);
+  --color-brand-gold-border: rgb(200 160 85 / 0.5);
+  --color-brand-gold-badge: rgb(200 160 85 / 0.15);
+
+  /* ── Semantic ── */
+  --color-error: #e07050;
+  --color-hot-sale: #e07050;
+  --color-hot-sale-muted: rgb(196 80 50 / 0.15);
+
+  /* ── Border / divider ── */
+  --color-border-default: rgb(255 255 255 / 0.07);
+  --color-border-emphasis: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+  --color-border-hover: rgb(255 255 255 / 0.28);
+  --color-border-focus: rgb(200 160 85 / 0.7);
+  --color-border-chip: rgb(255 255 255 / 0.12);
+  --color-border-brand: rgb(200 160 85 / 0.5);
+
+  /* ── Interactive ── */
+  --color-accent-subtle: rgb(255 255 255 / 0.05);
+
+  /* ── shadcn/ui bridge (references semantic colors above) ── */
+  --background: var(--color-page);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-brand-gold);
+  --primary-foreground: var(--color-text-on-brand);
+  --secondary: var(--color-surface);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-accent-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: var(--color-text-primary);
+  --border: var(--color-border-strong);
+  --input: var(--color-border-strong);
+  --ring: var(--color-border-focus);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Color Tokens — Light theme (future)
+   Selectors: .light | [data-theme="light"]
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* ── Background ── */
+  --color-page: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-secondary: #ffffff;
+  --color-deep: #ede8df;
+  --color-bg-overlay: rgb(24 22 15 / 0.04);
+  --color-bg-badge-neutral: rgb(24 22 15 / 0.06);
+
+  /* ── Text ── */
+  --color-text-primary: #18160f;
+  --color-text-secondary: rgb(24 22 15 / 0.65);
+  --color-text-muted: rgb(24 22 15 / 0.45);
+  --color-text-subtle: rgb(24 22 15 / 0.35);
+  --color-text-nav-link: rgb(24 22 15 / 0.55);
+  --color-text-brand: #a8843f;
+  --color-text-hot-sale: #c45a3a;
+  --color-text-on-brand: #18160f;
+
+  /* ── Brand (gold) ── */
+  --color-brand-gold: #a8843f;
+  --color-brand-gold-muted: rgb(168 132 63 / 0.12);
+  --color-brand-gold-border: rgb(168 132 63 / 0.45);
+  --color-brand-gold-badge: rgb(168 132 63 / 0.15);
+
+  /* ── Semantic ── */
+  --color-error: #c45a3a;
+  --color-hot-sale: #c45a3a;
+  --color-hot-sale-muted: rgb(196 90 58 / 0.12);
+
+  /* ── Border / divider ── */
+  --color-border-default: rgb(24 22 15 / 0.08);
+  --color-border-emphasis: rgb(24 22 15 / 0.12);
+  --color-border-strong: rgb(24 22 15 / 0.18);
+  --color-border-hover: rgb(24 22 15 / 0.28);
+  --color-border-focus: rgb(168 132 63 / 0.65);
+  --color-border-chip: rgb(24 22 15 / 0.12);
+  --color-border-brand: rgb(168 132 63 / 0.45);
+
+  /* ── Interactive ── */
+  --color-accent-subtle: rgb(24 22 15 / 0.05);
+
+  /* ── shadcn/ui bridge ── */
+  --background: var(--color-page);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-brand-gold);
+  --primary-foreground: var(--color-text-on-brand);
+  --secondary: var(--color-surface);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-accent-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: var(--color-text-primary);
+  --border: var(--color-border-strong);
+  --input: var(--color-border-strong);
+  --ring: var(--color-border-focus);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tailwind v4 — semantic utility mapping
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@custom-variant dark (&:is(.dark *, [data-theme="dark"] *));
+
+@theme inline {
+  /* Background */
+  --color-page: var(--color-page);
+  --color-surface: var(--color-surface);
+  --color-secondary: var(--color-secondary);
+  --color-deep: var(--color-deep);
+  --color-bg-overlay: var(--color-bg-overlay);
+  --color-bg-badge-neutral: var(--color-bg-badge-neutral);
+
+  /* Text */
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+  --color-text-nav-link: var(--color-text-nav-link);
+  --color-text-brand: var(--color-text-brand);
+  --color-text-hot-sale: var(--color-text-hot-sale);
+  --color-text-on-brand: var(--color-text-on-brand);
+
+  /* Brand */
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-gold-muted: var(--color-brand-gold-muted);
+  --color-brand-gold-border: var(--color-brand-gold-border);
+  --color-brand-gold-badge: var(--color-brand-gold-badge);
+
+  /* Semantic */
+  --color-error: var(--color-error);
+  --color-hot-sale: var(--color-hot-sale);
+  --color-hot-sale-muted: var(--color-hot-sale-muted);
+  --color-accent-subtle: var(--color-accent-subtle);
+
+  /* Border */
+  --color-border-default: var(--color-border-default);
+  --color-border-emphasis: var(--color-border-emphasis);
+  --color-border-strong: var(--color-border-strong);
+  --color-border-hover: var(--color-border-hover);
+  --color-border-focus: var(--color-border-focus);
+  --color-border-chip: var(--color-border-chip);
+  --color-border-brand: var(--color-border-brand);
+
+  /* Radius (from tokens.generated.css) */
+  --radius-industrial: var(--radius-industrial);
+  --radius-card: var(--radius-card);
+  --radius-badge: var(--radius-badge);
+  --radius-chip: var(--radius-chip);
+
+  /* Typography (from tokens.generated.css) */
+  --font-brand: var(--font-brand);
+  --tracking-brand: var(--tracking-brand);
+  --tracking-section: var(--tracking-section);
+  --tracking-eyebrow: var(--tracking-eyebrow);
+  --tracking-badge: var(--tracking-badge);
+
+  /* shadcn/ui */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: var(--radius-industrial);
+  --radius-md: var(--radius-industrial);
+  --radius-lg: var(--radius-card);
+  --radius-xl: var(--radius-card);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-page text-foreground antialiased;
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  }
+}
+
+@layer utilities {
+  .text-hot-sale {
+    color: var(--color-hot-sale);
+  }
+
+  .border-default {
+    border-color: var(--color-border-default);
+  }
+
+  .border-emphasis {
+    border-color: var(--color-border-emphasis);
+  }
+
+  .border-strong {
+    border-color: var(--color-border-strong);
+  }
+
+  .border-hover {
+    border-color: var(--color-border-hover);
+  }
+
+  .border-focus {
+    border-color: var(--color-border-focus);
+  }
+
+  .border-chip {
+    border-color: var(--color-border-chip);
+  }
+
+  .border-brand {
+    border-color: var(--color-border-brand);
+  }
+
+  .rounded-industrial {
+    border-radius: var(--radius-industrial);
+  }
+
+  .rounded-card {
+    border-radius: var(--radius-card);
+  }
+
+  .tracking-brand {
+    letter-spacing: var(--tracking-brand);
+  }
+
+  .tracking-section {
+    letter-spacing: var(--tracking-section);
+  }
+
+  .tracking-eyebrow {
+    letter-spacing: var(--tracking-eyebrow);
+  }
+
+  .font-brand {
+    font-family: var(--font-brand);
+  }
+
+  .shadow-none-token {
+    box-shadow: var(--shadow-none);
+  }
+}

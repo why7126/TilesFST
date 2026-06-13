@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     minio_prefix_video_cover: str = Field(default="videos/covers/", alias="MINIO_PREFIX_VIDEO_COVER")
     minio_prefix_video_transcoded: str = Field(default="videos/transcoded/", alias="MINIO_PREFIX_VIDEO_TRANSCODED")
 
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_access_token_expire_minutes: int = Field(default=120, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
+    jwt_remember_me_expire_days: int = Field(default=7, alias="JWT_REMEMBER_ME_EXPIRE_DAYS")
+    admin_username: str = Field(default="admin", alias="ADMIN_USERNAME")
+    admin_initial_password: str | None = Field(default=None, alias="ADMIN_INITIAL_PASSWORD")
+
     class Config:
         env_file = ".env"
         extra = "ignore"

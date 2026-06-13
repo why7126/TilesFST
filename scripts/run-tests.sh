@@ -1,3 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-(cd src/backend && uv run pytest)
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+uv run --project src/backend pytest

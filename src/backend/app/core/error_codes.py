@@ -1,0 +1,28 @@
+"""Centralized API error codes."""
+
+from __future__ import annotations
+
+# Success
+SUCCESS = 0
+
+# System (1xxxx)
+SYSTEM_ERROR = 10001
+
+# Auth (2xxxx)
+UNAUTHORIZED = 20001
+INVALID_CREDENTIALS = 20002
+USER_DISABLED = 20003
+FORBIDDEN = 20004
+
+# Business (3xxxx)
+TILE_NOT_FOUND = 30001
+TILE_CONFLICT = 30002
+
+# Parameter (4xxxx)
+INVALID_PARAMETER = 40001
+INVALID_PAGINATION = 40002
+
+# External / storage (5xxxx)
+STORAGE_UNAVAILABLE = 50001
+FILE_TYPE_NOT_ALLOWED = 50002
+FILE_SIZE_EXCEEDED = 50003

@@ -1,28 +1,46 @@
 ---
-purpose: 技术文档
-content: 系统架构与模块划分
-source: AI自动生成初稿，项目团队确认
-update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
-note: 适用于瓷砖信息管理平台项目模板
+title: 系统架构
+purpose: 描述系统模块、前后端分层、对象存储、数据流和AI开发边界
+content: 项目模板文档
+source: AI自动生成，人工确认
+update_method: 相关流程或内容变化时更新
+owner: 项目文档负责人
+status: draft
+note: 企业初始化模板
 ---
 
 # 系统架构
 
-
-## 架构概览
+## 1. 总体架构
 
 ```text
-Web展示端 / 微信小程序 / 管理端Web
+Web端 / 微信小程序 / 管理端
         ↓
 FastAPI Backend
         ↓
 SQLite + MinIO
 ```
 
-## 模块划分
+## 2. 后端分层
 
-- 产品展示模块
-- 产品管理模块
-- 分类规格模块
-- 图片上传模块
-- 用户权限模块
+```text
+api → schemas → services → repositories → models
+```
+
+## 3. 媒体资源链路
+
+```text
+上传文件
+  ↓
+后端校验
+  ↓
+MinIO单桶存储
+  ↓
+SQLite保存元数据
+  ↓
+前端展示
+```
+
+## 4. AI边界
+
+AI必须基于 `issues/` 与 `openspec/` 开发，不允许直接凭空修改 `src/`。

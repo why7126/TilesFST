@@ -20,13 +20,13 @@ services:
 
   web:
     build:
-      context: ./src/web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/web/Dockerfile
     container_name: tile-info-platform-web
     env_file:
       - .env
     ports:
-      - "${HOST_PORT_WEB:-3000}:3000"
+      - "${HOST_PORT_WEB:-3000}:80"
     depends_on:
       - backend
     networks:
