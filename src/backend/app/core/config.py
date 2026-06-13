@@ -1,0 +1,43 @@
+"""Application configuration.
+
+V5:
+- Use one MinIO bucket per project.
+- Use object prefixes to separate resource categories.
+- Keep internal ports stable, allow host port override in docker-compose.
+"""
+
+from pydantic import Field
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    app_name: str = Field(default="tile-info-platform", alias="APP_NAME")
+    app_env: str = Field(default="development", alias="APP_ENV")
+    app_debug: bool = Field(default=True, alias="APP_DEBUG")
+    app_secret_key: str = Field(default="change-me-in-local-env", alias="APP_SECRET_KEY")
+
+    backend_host: str = Field(default="0.0.0.0", alias="BACKEND_HOST")
+    backend_port: int = Field(default=8000, alias="BACKEND_PORT")
+
+    sqlite_database_url: str = Field(default="sqlite:////app/data/sqlite/tile-info-platform.db", alias="SQLITE_DATABASE_URL")
+
+    minio_endpoint: str = Field(default="minio:9000", alias="MINIO_ENDPOINT")
+    minio_access_key: str = Field(default="minioadmin", alias="MINIO_ACCESS_KEY")
+    minio_secret_key: str = Field(default="minioadmin", alias="MINIO_SECRET_KEY")
+    minio_secure: bool = Field(default=False, alias="MINIO_SECURE")
+    minio_bucket: str = Field(default="tile-info-platform", alias="MINIO_BUCKET")
+
+    minio_prefix_original: str = Field(default="original/", alias="MINIO_PREFIX_ORIGINAL")
+    minio_prefix_thumbnails: str = Field(default="thumbnails/", alias="MINIO_PREFIX_THUMBNAILS")
+    minio_prefix_processed: str = Field(default="processed/", alias="MINIO_PREFIX_PROCESSED")
+    minio_prefix_temp: str = Field(default="tmp/", alias="MINIO_PREFIX_TEMP")
+    minio_prefix_video: str = Field(default="videos/", alias="MINIO_PREFIX_VIDEO")
+    minio_prefix_video_cover: str = Field(default="videos/covers/", alias="MINIO_PREFIX_VIDEO_COVER")
+    minio_prefix_video_transcoded: str = Field(default="videos/transcoded/", alias="MINIO_PREFIX_VIDEO_TRANSCODED")
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
+
+
+settings = Settings()

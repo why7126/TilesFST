@@ -1,0 +1,4 @@
+{
+  "pages": ["pages/index/index", "pages/tile-detail/index"],
+  "window": {"navigationBarTitleText": "瓷砖信息"}
+}

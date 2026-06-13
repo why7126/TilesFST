@@ -1,0 +1,25 @@
+---
+purpose: 产品总览
+content: 产品定位、目标用户、核心功能、业务价值
+source: project.yaml + AI自动生成
+update_method: 产品定位或业务范围变化时更新，人工确认
+note: 面向产品、研发、测试、交付统一理解业务
+---
+
+# 产品总览
+
+## 产品定位
+
+{{ project.description }}
+
+## 目标用户
+
+{% for user in business.target_users %}
+- {{ user }}
+{% endfor %}
+
+## 核心功能
+
+{% for item in business.core_features %}
+- {{ item }}
+{% endfor %}

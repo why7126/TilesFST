@@ -1,0 +1,18 @@
+[project]
+name = "tile-info-backend"
+version = "0.1.0"
+description = "FastAPI backend for tile information platform"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.115.0",
+    "pydantic>=2.8.0",
+    "sqlalchemy>=2.0.0",
+    "minio>=7.2.0",
+    "python-multipart>=0.0.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0.0", "httpx>=0.27.0", "ruff>=0.6.0"]
+
+[tool.ruff]
+line-length = 100

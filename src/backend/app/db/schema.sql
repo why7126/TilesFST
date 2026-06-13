@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS tile_categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS tiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  model TEXT NOT NULL,
+  category_id INTEGER,
+  color TEXT,
+  size TEXT,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(category_id) REFERENCES tile_categories(id)
+);
+
+CREATE TABLE IF NOT EXISTS tile_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tile_id INTEGER NOT NULL,
+  object_key TEXT NOT NULL,
+  url TEXT NOT NULL,
+  is_main INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY(tile_id) REFERENCES tiles(id)
+);
