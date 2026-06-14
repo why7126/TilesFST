@@ -107,15 +107,19 @@ const FeaturedCard = React.forwardRef<HTMLElement, FeaturedCardProps>(
 
     if (onClick) {
       return (
-        <button
+        <Button
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
+          variant="ghost"
           onClick={onClick}
-          className={cn(surfaceClass, 'w-full text-left')}
+          className={cn(
+            surfaceClass,
+            'h-auto w-full justify-start p-0 text-left font-normal hover:bg-surface',
+          )}
           {...props}
         >
           {body}
-        </button>
+        </Button>
       );
     }
 

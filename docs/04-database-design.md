@@ -1,73 +1,180 @@
 ---
 purpose: 数据库文档
-content: SQLite表结构设计
-source: AI自动生成初稿，项目团队确认
-update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
-note: 适用于瓷砖信息管理平台项目模板
+content: SQLite 表结构、约束、种子数据与迁移说明
+source: src/backend/app/db/schema.sql / Sprint 001 auth
+update_method: schema 变更时同步更新 schema.sql 与本文件
+note: 运行时数据库路径见 SQLITE_DATABASE_URL / .env.example
 ---
 
 # 数据库设计
 
+## 1. 概述
 
-## 核心表
+| 项目 | 说明 |
+|---|---|
+| 引擎 | SQLite 3 |
+| Schema 源 | `src/backend/app/db/schema.sql` |
+| 初始化 | 应用启动 `init_database()` 执行 schema |
+| ORM | SQLAlchemy 2.x（`src/backend/app/models/`） |
+| 对象存储 | MinIO（图片/视频文件，非 SQLite） |
 
-- `tiles`：瓷砖主表
-- `tile_categories`：分类表
-- `tile_specs`：规格表
-- `tile_images`：图片表
-- `users`：用户表（认证与角色）
-- `login_logs`：登录日志表（预留）
+设计原则：结构化业务数据存 SQLite；媒体二进制存 MinIO，SQLite 存元数据与 object_key。
 
-### users 表
+---
 
-| 字段 | 类型 | 说明 |
+## 2. ER 关系（当前）
+
+```text
+tile_categories 1 ── * tiles 1 ── * tile_images
+
+users 1 ── * login_logs（预留，本期无写入）
+
+（users 与 tiles 无直接外键，权限通过 JWT role 控制）
+```
+
+---
+
+## 3. 表清单
+
+| 表 | Sprint 001 | 说明 |
 |---|---|---|
-| id | TEXT PK | 用户 UUID |
-| username | TEXT UNIQUE | 登录用户名 |
-| phone | TEXT | 手机号（预留） |
-| email | TEXT | 邮箱（预留） |
-| password_hash | TEXT | bcrypt 哈希 |
-| display_name | TEXT | 显示名称 |
-| role | TEXT | `admin` / `employee` / `store_owner` |
-| status | TEXT | `active` / `disabled` |
-| last_login_at | TEXT | 最近登录时间 |
-| created_at | TEXT | 创建时间 |
-| updated_at | TEXT | 更新时间 |
+| users | ✓ 使用中 | 认证与角色 |
+| login_logs | ✓ 已建表 | 登录审计预留 |
+| tile_categories | 桩 | 分类 |
+| tiles | 桩 | 瓷砖主表 |
+| tile_images | 桩 | 瓷砖图片元数据 |
 
-### login_logs 表（预留）
+---
 
-| 字段 | 说明 |
+## 4. users（Sprint 001）
+
+管理端账号密码登录。OpenSpec：`openspec/specs/auth/spec.md`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID 字符串 |
+| username | TEXT | NOT NULL, UNIQUE | 登录名 |
+| phone | TEXT | NULL | 预留（多标识登录） |
+| email | TEXT | NULL | 预留 |
+| password_hash | TEXT | NOT NULL | bcrypt（passlib） |
+| display_name | TEXT | NOT NULL | 显示名称 |
+| role | TEXT | NOT NULL, CHECK | `admin` \| `employee` \| `store_owner` |
+| status | TEXT | NOT NULL, DEFAULT `active`, CHECK | `active` \| `disabled` |
+| last_login_at | TEXT | NULL | ISO8601 UTC |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+**角色说明**
+
+| role | 用途 |
 |---|---|
-| id | 日志 ID |
-| user_id | 用户 ID |
-| login_identifier | 脱敏登录标识 |
-| result | `success` / `failed` |
-| failure_reason | 失败原因 |
-| ip | 登录 IP |
-| user_agent | 客户端信息 |
-| created_at | 创建时间 |
+| admin | 系统管理员；种子用户默认角色 |
+| employee | 企业内部员工 |
+| store_owner | 店主（预留；管理端 API 拒绝） |
 
-## 设计原则
+**索引：** `username` UNIQUE（表级约束）
 
-SQLite 存储结构化数据，MinIO 存储图片文件。
+**种子数据：** `src/backend/app/db/seed.py`
 
+- 当 `ADMIN_INITIAL_PASSWORD` 已配置且不存在 `username=admin` 时，创建 admin 用户
+- 默认用户名：`admin`；显示名：`系统管理员`
 
-## 媒体资产表建议
+---
 
-建议新增 `tile_media` 表统一管理图片、视频和文档：
+## 5. login_logs（预留）
 
-| 字段 | 说明 |
+Sprint 001 仅建表，**无业务写入**。供后续登录审计 change 使用。
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| user_id | TEXT | FK → users.id, NULL | 用户 ID（失败时可为空） |
+| login_identifier | TEXT | NOT NULL | 登录标识（脱敏） |
+| result | TEXT | NOT NULL, CHECK | `success` \| `failed` |
+| failure_reason | TEXT | NULL | 失败原因 |
+| ip | TEXT | NULL | 客户端 IP |
+| user_agent | TEXT | NULL | User-Agent |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+ORM：`src/backend/app/models/user.py` → `LoginLog`
+
+---
+
+## 6. tile_categories
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| name | TEXT | NOT NULL, UNIQUE | 分类名称 |
+
+---
+
+## 7. tiles
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| name | TEXT | NOT NULL | 瓷砖名称 |
+| model | TEXT | NOT NULL | 型号 |
+| category_id | INTEGER | FK → tile_categories.id | 可空 |
+| color | TEXT | NULL | 颜色 |
+| size | TEXT | NULL | 规格尺寸 |
+| description | TEXT | NULL | 描述 |
+| status | TEXT | NOT NULL, DEFAULT `draft` | 上下架状态 |
+| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | |
+| updated_at | TEXT | DEFAULT CURRENT_TIMESTAMP | |
+
+---
+
+## 8. tile_images
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| tile_id | INTEGER | NOT NULL, FK → tiles.id | |
+| object_key | TEXT | NOT NULL | MinIO 对象键 |
+| url | TEXT | NOT NULL | 访问 URL |
+| is_main | INTEGER | NOT NULL, DEFAULT 0 | 1=主图 |
+| sort_order | INTEGER | NOT NULL, DEFAULT 0 | 排序 |
+
+---
+
+## 9. 媒体资产（规划）
+
+`tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，未持久化到 SQLite。
+
+参考：`rules/media.md`、`docs/06-video-asset-management.md`
+
+---
+
+## 10. 迁移与本地数据
+
+| 场景 | 做法 |
 |---|---|
-| id | 媒体ID |
-| tile_id | 瓷砖ID |
-| media_type | image/video/document |
-| bucket_name | MinIO存储桶 |
-| object_key | 对象Key |
-| mime_type | MIME类型 |
-| file_size | 文件大小 |
-| width | 图片/视频宽度 |
-| height | 图片/视频高度 |
-| duration | 视频时长 |
-| cover_object_key | 视频封面对象Key |
-| sort_order | 排序 |
-| created_at | 创建时间 |
+| 本地开发 | `data/sqlite/`（见 `rules/data-management.md`） |
+| Docker | 卷挂载 + `SQLITE_DATABASE_URL` |
+| Schema 变更 | 修改 `schema.sql` + OpenSpec change；生产需迁移脚本（待引入 Alembic 或等价方案） |
+
+**禁止提交：** 运行时 `.db` 文件、真实客户数据（见 `data/README.md`）
+
+---
+
+## 11. 与 API 的对应
+
+| 表 | 主要 API |
+|---|---|
+| users | `POST /api/v1/auth/login`、`GET /api/v1/auth/me` |
+| tiles / tile_images | `GET /api/v1/tiles`、`POST /api/v1/admin/tiles`（桩） |
+
+索引：`docs/03-api-index.md`
+
+---
+
+## 12. 维护规则
+
+Schema 变更时 MUST：
+
+1. 更新 `src/backend/app/db/schema.sql`
+2. 更新 ORM `src/backend/app/models/`
+3. 更新本文件
+4. 通过 OpenSpec change 进入开发（`rules/database.md`）

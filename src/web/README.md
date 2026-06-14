@@ -82,5 +82,5 @@ pnpm test         # 单元测试
 - 路由：`/admin/login`
 - Golden reference：`issues/requirements/REQ-0001-user-login/prototype/web/user-login.png`
 - 品牌字体：`font-brand`（Cormorant Garamond，见 `index.html` + `globals.css`）
-- 组件树：`LoginFormPanel` / `LoginHeader` / `LoginForm` / `ThirdPartyLoginSection`
+- 组件树：`LoginFormPanel` / `LoginHeader` / `LoginForm`
 - 登录页专用样式：`src/features/auth/styles/login-page.css`（自 `user-login.html` port）

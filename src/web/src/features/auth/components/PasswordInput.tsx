@@ -3,6 +3,7 @@ import { useId, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { cn } from '@/shared/lib/cn';
+import { Button } from '@/shared/ui/button';
 
 interface PasswordInputProps {
   id?: string;
@@ -53,14 +54,16 @@ export function PasswordInput({
           aria-describedby={errorId}
           className={cn('pl-11 pr-12', error && 'border-error', className)}
         />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={() => setVisible((current) => !current)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted transition-colors hover:text-primary"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
           aria-label={visible ? '隐藏密码' : '显示密码'}
         >
           {visible ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
-        </button>
+        </Button>
       </div>
       {error ? (
         <p id={errorId} className="text-xs text-error" role="alert">

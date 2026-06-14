@@ -3,6 +3,7 @@ import type { AdminEditPageContent } from '@shared/templates/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 
@@ -54,11 +55,10 @@ export function AdminEditPage({ content, onSubmit, onCancel, className }: AdminE
                 <Label htmlFor={field.id} className="text-[13px] text-secondary">
                   {field.label}
                 </Label>
-                <textarea
+                <Textarea
                   id={field.id}
                   defaultValue={field.defaultValue}
                   placeholder={field.placeholder}
-                  className="min-h-32 w-full rounded-industrial border border-border-strong bg-transparent px-4 py-3 text-[13px] text-primary placeholder:text-muted hover:border-border-hover focus-visible:border-border-focus focus-visible:outline-none"
                 />
               </div>
             );

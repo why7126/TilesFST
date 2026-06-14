@@ -14,12 +14,12 @@ export function AuthBrandPanel() {
   return (
     <section className="brand-panel" aria-label="品牌视觉区">
       <div className="brand-top">
-        <p className="logo">STONEX</p>
+        <p className="logo">TilesFST</p>
       </div>
 
       <div className="brand-content">
         <p className="brand-kicker">TILE DATA OPERATING SYSTEM</p>
-        <h2 className="brand-title">瓷砖信息管理平台</h2>
+        <h2 className="brand-title">瓷砖信息管理后台</h2>
         <p className="brand-desc">
           面向企业内部员工的瓷砖数据维护后台，集中管理产品图册、规格参数、价格体系、上下架状态与门店展示信息。
         </p>

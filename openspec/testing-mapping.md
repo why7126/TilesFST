@@ -17,7 +17,7 @@ REQ-xxxx:
     - tests/integration/api/test_xxx.py::test_name
 ```
 
-## Sprint-00 基础设施
+## Sprint-000 基础设施
 
 ```yaml
 REQ-0000-build-design-system:
@@ -43,7 +43,7 @@ REQ-0000-build-test-standard:
     - scripts/validate-test-framework.py
 ```
 
-## Sprint-01
+## Sprint-001
 
 ```yaml
 REQ-0001-user-login:

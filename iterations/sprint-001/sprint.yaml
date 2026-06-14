@@ -1,0 +1,28 @@
+sprint_id: sprint-001
+status: completed
+start_date: 2026-06-13
+end_date: 2026-06-14
+accepted_date: 2026-06-14
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0001-user-login
+  - REQ-0002-product-brand-login-simplify
+  - REQ-0003-login-left-panel-refine
+
+bugs: []
+
+changes:
+  - add-user-login
+  - add-design-system
+  - refactor-login-ui
+  - align-login-prototype
+  - fix-login-pixel-fidelity
+  - update-tilesfst-login-simplify
+  - fix-login-left-panel-refine
+
+estimated_story_points: 36
+estimated_person_days: 29.5

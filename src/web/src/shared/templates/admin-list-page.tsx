@@ -55,11 +55,12 @@ export function AdminListPage<T extends { id: string }>({
 
         <div className="divide-y divide-border-default bg-page">
           {rows.map((row) => (
-            <button
+            <Button
               key={row.id}
               type="button"
+              variant="ghost"
               onClick={() => onRowClick?.(row)}
-              className="grid w-full px-4 py-3 text-left text-[13px] text-primary transition-colors hover:bg-accent"
+              className="grid h-auto w-full rounded-none px-4 py-3 text-left text-[13px] font-normal text-primary hover:bg-accent"
               style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
             >
               {columns.map((column) => (
@@ -67,7 +68,7 @@ export function AdminListPage<T extends { id: string }>({
                   {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key] ?? '')}
                 </span>
               ))}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

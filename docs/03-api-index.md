@@ -1,53 +1,123 @@
 ---
 purpose: 接口文档
-content: API索引和接口维护规则
-source: AI自动生成初稿，项目团队确认
-update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
-note: 适用于瓷砖信息管理平台项目模板
+content: API 索引、认证接口、错误码与 Orval 维护规则
+source: Sprint 001 实现 / OpenSpec auth & api-governance
+update_method: API 新增或变更时同步更新；变更后运行 Orval
+note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/error-codes.md`
 ---
 
-# API接口索引
+# API 接口索引
 
+## 1. 通用约定
 
-## 1. API分组
+### 1.1 基础路径
 
-| 分组 | 路径前缀 | 说明 |
-|---|---|---|
-| 认证 | `/api/v1/auth` | 登录、当前用户、退出 |
-| 瓷砖信息 | `/api/v1/tiles` | 瓷砖列表、详情、维护 |
-| 媒体资源 | `/api/v1/media` | 图片、视频上传和查询 |
-| 管理端 | `/api/v1/admin` | 管理端维护接口 |
+```text
+/api/v1
+```
 
-## 2. 认证接口
+### 1.2 统一响应结构（认证等已实现 envelope 的接口）
 
-| 方法 | 路径 | 说明 |
-|---|---|---|
-| POST | `/api/v1/auth/login` | 账号密码登录，返回 JWT 与用户信息 |
-| GET | `/api/v1/auth/me` | 获取当前登录用户（需 Bearer Token） |
-| POST | `/api/v1/auth/logout` | 退出登录（需 Bearer Token） |
-
-### 登录请求示例
+成功：
 
 ```json
 {
-  "username": "admin",
-  "password": "********",
-  "remember_me": true
+  "code": 0,
+  "message": "success",
+  "data": { }
 }
 ```
 
-### 登录成功响应
+错误：
+
+```json
+{
+  "code": 40101,
+  "message": "账号或密码错误",
+  "data": null
+}
+```
+
+### 1.3 认证头
+
+需登录接口：
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### 1.4 OpenAPI 与前端客户端
+
+| 资源 | 路径 |
+|---|---|
+| OpenAPI JSON | `/openapi.json` |
+| Swagger UI | `/docs` |
+| 健康检查 | `GET /health`（无 `/api/v1` 前缀） |
+
+前端类型与客户端：
+
+```bash
+./scripts/generate-openapi-client.sh
+```
+
+配置：`src/web/orval.config.ts` → 输出 `src/web/src/shared/api/generated.ts`
+
+---
+
+## 2. API 分组
+
+| 分组 | 路径前缀 | 认证 | 说明 | Sprint 001 状态 |
+|---|---|---|---|---|
+| 认证 | `/api/v1/auth` | 部分 | 登录、当前用户、退出 | ✓ 已实现 |
+| 瓷砖（展示） | `/api/v1/tiles` | 否 | 列表、详情 | 桩实现（返回空/示例） |
+| 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
+| 管理端上传 | `/api/v1/admin/uploads` | 否* | 图片上传 | 桩实现 |
+| 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
+
+\* `uploads` 路由当前未挂载 `require_admin_access`，后续 change 应补齐。
+
+---
+
+## 3. 认证接口（Sprint 001）
+
+实现：`src/backend/app/api/v1/auth.py`  
+OpenSpec：`openspec/specs/auth/spec.md`
+
+### 3.1 用户登录
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| POST | `/api/v1/auth/login` | 否 |
+
+**请求体**
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| username | string | 是 | 登录用户名 |
+| password | string | 是 | 密码 |
+| remember_me | boolean | 否 | 默认 `false`；`true` 时 token 有效期 7 天 |
+
+**成功响应 `data`**
+
+| 字段 | 说明 |
+|---|---|
+| access_token | JWT |
+| token_type | 固定 `Bearer` |
+| expires_in | 秒；默认 7200（2h），remember_me 为 604800（7d） |
+| user | `{ id, username, display_name, role, status }` |
+
+**示例**
 
 ```json
 {
   "code": 0,
   "message": "success",
   "data": {
-    "access_token": "string",
+    "access_token": "eyJ...",
     "token_type": "Bearer",
     "expires_in": 7200,
     "user": {
-      "id": "uuid",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "username": "admin",
       "display_name": "系统管理员",
       "role": "admin",
@@ -57,23 +127,116 @@ note: 适用于瓷砖信息管理平台项目模板
 }
 ```
 
-### 错误码
+**错误**
+
+| HTTP | code | message | 场景 |
+|---|---|---|---|
+| 400 | 40001 | 请求参数无效 | Pydantic 校验失败 |
+| 401 | 40101 | 账号或密码错误 | 凭证错误 |
+| 403 | 40301 | 账号已停用，请联系管理员 | status=`disabled` |
+
+### 3.2 当前用户
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/auth/me` | Bearer |
+
+**成功 `data`：** `{ id, username, display_name, role, status }`
+
+**错误**
 
 | HTTP | code | 场景 |
 |---|---|---|
-| 400 | 40001 | 参数无效 |
-| 401 | 40101 | 账号或密码错误 |
-| 401 | 40102 | 未登录或 token 无效 |
-| 403 | 40301 | 用户被禁用 |
-| 403 | 40302 | 无权限访问 |
+| 401 | 40102 | 未携带 token、token 无效或过期 |
+| 403 | 40301 | 用户已禁用 |
 
-## 3. OpenAPI
+### 3.3 退出登录
 
-FastAPI 自动生成 OpenAPI：
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| POST | `/api/v1/auth/logout` | Bearer |
 
-```text
-/openapi.json
-/docs
-```
+**成功 `data`：** `{ "success": true }`
 
-前端通过 Orval 生成类型和接口调用代码。
+客户端 MUST 清除本地 token。服务端 JWT 无状态，不维护服务端会话黑名单（本期）。
+
+---
+
+## 4. 角色与权限
+
+| role | 管理端 API | 说明 |
+|---|---|---|
+| admin | ✓ | 系统管理员 |
+| employee | ✓ | 企业内部员工 |
+| store_owner | ✗（40302） | 预留，本期拒绝管理端 |
+
+依赖：`require_admin_access`（`src/backend/app/core/deps.py`）
+
+---
+
+## 5. 瓷砖接口（桩 / 待 Sprint 002+）
+
+### 5.1 公开列表与详情
+
+| 方法 | 路径 | 响应模型 | 说明 |
+|---|---|---|---|
+| GET | `/api/v1/tiles` | `TileListItem[]` | 当前返回 `[]` |
+| GET | `/api/v1/tiles/{tile_id}` | `TileDetail` | 当前返回示例数据 |
+
+> 注：上述接口 **未** 使用 `{ code, message, data }` envelope，返回裸 Pydantic 模型；后续 `add-tile-catalog` change 应统一。
+
+### 5.2 管理端创建
+
+| 方法 | 路径 | 认证 | 说明 |
+|---|---|---|---|
+| POST | `/api/v1/admin/tiles` | admin/employee | 请求体 `TileCreate`，当前返回示例 `TileDetail` |
+
+---
+
+## 6. 上传接口（桩）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| POST | `/api/v1/admin/uploads` | `multipart/form-data`，字段 `file`；返回 `{ object_key, url }` |
+
+---
+
+## 7. 错误码速查（认证）
+
+运行时 code 定义：`src/backend/app/core/exceptions.py`
+
+| HTTP | code | 常量（exceptions） | 典型 message |
+|---|---|---|---|
+| 400 | 40001 | AuthInvalidRequestError | 请求参数无效 |
+| 401 | 40101 | AuthInvalidCredentialsError | 账号或密码错误 |
+| 401 | 40102 | AuthUnauthorizedError | 未登录或登录已过期 |
+| 403 | 40301 | AuthUserDisabledError | 账号已停用，请联系管理员 |
+| 403 | 40302 | AuthForbiddenError | 无权限访问 |
+
+完整登记与分段规则：`docs/error-codes.md`
+
+---
+
+## 8. 环境变量（认证相关）
+
+| 变量 | 说明 |
+|---|---|
+| `APP_SECRET_KEY` | JWT 签名密钥 |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | 默认 120 |
+| `JWT_REMEMBER_ME_EXPIRE_DAYS` | 默认 7 |
+| `ADMIN_INITIAL_PASSWORD` | 首次启动种子 admin 密码 |
+
+见根目录 `.env.example`
+
+---
+
+## 9. 维护规则
+
+API 变更时 MUST：
+
+1. 更新本文件
+2. 更新对应 `openspec/changes/*/specs/` 或归档到 `openspec/specs/`
+3. 运行 `./scripts/generate-openapi-client.sh`
+4. 补充 `tests/integration/api/` 或 `src/backend/tests/`
+
+遵循：`rules/api.md`、`docs/api-governance.md`

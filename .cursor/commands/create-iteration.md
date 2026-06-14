@@ -218,28 +218,25 @@ Tile Search
 
 ```text
 iterations/
-└── sprint-XX/
+└── sprint-xxx/
 ```
 
----
-
-生成：
+**MUST** 生成以下四件套（缺一不可；`sprint.yaml` 为机器可读事实源，`sprint.md` 为其人类可读展开）：
 
 ```text
 sprint.yaml
-
 sprint.md
-
 release-note.md
-
 acceptance-report.md
 ```
+
+若目录已存在但缺少 `sprint.yaml`，**MUST** 根据现有 `sprint.md` 与 trace 补建，不得仅更新 markdown。
 
 ---
 
 ## sprint.yaml
 
-格式：
+**MUST** 创建；格式：
 
 ```yaml
 sprint_id:
@@ -338,7 +335,7 @@ openspec/changes/*/trace.md
 
 ```yaml
 iteration:
-  sprint-XX
+  sprint-xxx
 ```
 
 ---

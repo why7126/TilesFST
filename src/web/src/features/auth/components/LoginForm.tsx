@@ -1,7 +1,6 @@
 import { FormEvent, useId, useState } from 'react';
 
 import { useAuth } from '../hooks/useAuth';
-import { ThirdPartyLoginSection } from './ThirdPartyLoginSection';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -52,7 +51,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             账号
           </label>
         </div>
-        <input
+        <input // ds-ok: login CSS port field-input
           id={accountId}
           name="username"
           type="text"
@@ -80,7 +79,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             密码
           </label>
         </div>
-        <input
+        <input // ds-ok: login CSS port field-input
           id={passwordId}
           name="password"
           type="password"
@@ -104,7 +103,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
       <div className="form-options">
         <label htmlFor={rememberId} className="check">
-          <input
+          <input // ds-ok: login CSS port checkbox
             id={rememberId}
             type="checkbox"
             className="check-input"
@@ -116,9 +115,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           </span>
           记住登录状态
         </label>
-        <button type="button" className="login-link">
-          忘记密码？
-        </button>
       </div>
 
       {error ? (
@@ -127,11 +123,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </p>
       ) : null}
 
-      <button type="submit" className="primary" disabled={isLoading} aria-busy={isLoading}>
+      <button // ds-ok: login CSS port primary
+        type="submit"
+        className="primary"
+        disabled={isLoading}
+        aria-busy={isLoading}
+      >
         {isLoading ? '登录中...' : '登录'}
       </button>
-
-      <ThirdPartyLoginSection />
     </form>
   );
 }

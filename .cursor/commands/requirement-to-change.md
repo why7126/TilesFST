@@ -684,7 +684,7 @@ status=planning
 
 ```yaml
 iteration:
-  sprint-01
+  sprint-001
 ```
 
 否则：

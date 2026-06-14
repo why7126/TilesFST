@@ -1,5 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 
+import { Button } from '@/shared/ui/button';
+
 import { useAuth } from '../../features/auth/hooks/useAuth';
 
 export function AdminLayout() {
@@ -12,23 +14,24 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#18160F] text-[#EDE8DF]">
-      <header className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+    <div className="min-h-screen bg-page text-primary">
+      <header className="flex items-center justify-between border-b border-border-emphasis px-6 py-4">
         <div>
-          <p className="text-sm tracking-[0.16em] text-[#C8A055]">STONEX</p>
-          <p className="text-xs text-[#EDE8DF]/50">瓷砖信息管理 · 管理端</p>
+          <p className="text-sm tracking-[0.16em] text-brand-gold">TilesFST</p>
+          <p className="text-xs text-secondary">瓷砖信息管理 · 管理端</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-[#EDE8DF]/70">{user?.display_name ?? user?.username}</span>
-          <button
+          <span className="text-secondary">{user?.display_name ?? user?.username}</span>
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => {
               void handleLogout();
             }}
-            className="rounded-[2px] border border-white/15 px-4 py-2 transition hover:border-[#C8A055]/50"
           >
             退出登录
-          </button>
+          </Button>
         </div>
       </header>
       <main className="p-6">

@@ -21,4 +21,4 @@
 
 ## 4. 状态
 
-`completed` — 认证与瓷砖/upload 路由已存在；Sprint-00 补全治理层。
+`completed` — 认证与瓷砖/upload 路由已存在；Sprint-000 补全治理层。

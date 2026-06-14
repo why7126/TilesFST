@@ -20,7 +20,7 @@ function AuthBootstrap({ children }: { children: ReactNode }) {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#18160F] text-[#EDE8DF]">
+      <div className="flex min-h-screen items-center justify-center bg-page text-primary">
         加载中...
       </div>
     );
@@ -31,10 +31,10 @@ function AuthBootstrap({ children }: { children: ReactNode }) {
 
 function HomePage() {
   return (
-    <main className="min-h-screen bg-[#18160F] p-6 text-[#EDE8DF]">
-      <h1 className="text-2xl font-normal">瓷砖信息管理平台</h1>
-      <p className="mt-2 text-sm text-[#EDE8DF]/50">Web 展示端入口</p>
-      <a href="/admin/login" className="mt-6 inline-block text-[#C8A055]">
+    <main className="min-h-screen bg-page p-6 text-primary">
+      <h1 className="text-2xl font-normal">TilesFST</h1>
+      <p className="mt-2 text-sm text-secondary">Web 展示端入口</p>
+      <a href="/admin/login" className="mt-6 inline-block text-brand-gold">
         进入管理端登录
       </a>
     </main>

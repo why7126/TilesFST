@@ -92,7 +92,7 @@
 
 ---
 
-## Step6 创建 Sprint-00
+## Step6 创建 Sprint-000
 
 创建：
 
@@ -103,4 +103,4 @@
 生成：
 
 * openspec/changes/*
-* iterations/sprint-00/*
+* iterations/sprint-000/*（**MUST** 含四件套：`sprint.yaml`、`sprint.md`、`release-note.md`、`acceptance-report.md`）

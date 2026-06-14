@@ -12,7 +12,7 @@ export function ProtectedRoute({ requireAdmin = false }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#18160F] text-[#EDE8DF]">
+      <div className="flex min-h-screen items-center justify-center bg-page text-primary">
         加载中...
       </div>
     );

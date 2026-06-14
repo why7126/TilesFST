@@ -43,13 +43,15 @@ export function DetailPage({
 
       <main className="mx-auto max-w-6xl px-7 py-8">
         {onBack ? (
-          <button
+          <Button
             type="button"
+            variant="link"
+            size="sm"
             onClick={onBack}
-            className="mb-6 text-[11px] text-secondary transition-colors hover:text-primary"
+            className="mb-6 h-auto p-0 text-[11px] text-secondary hover:text-primary"
           >
             ← {backLabel}
-          </button>
+          </Button>
         ) : null}
 
         <Card className="overflow-hidden">

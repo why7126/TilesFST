@@ -66,4 +66,27 @@ describe('LoginForm', () => {
     expect(document.querySelector('.field-input')).toBeInTheDocument();
     expect(document.querySelector('.primary')).toBeInTheDocument();
   });
+
+  it('does not render third-party login options', () => {
+    render(
+      <main className="login-shell">
+        <div className="login-card">
+          <LoginForm onSuccess={() => undefined} />
+        </div>
+      </main>,
+    );
+    expect(screen.queryByRole('button', { name: '企业微信登录' })).not.toBeInTheDocument();
+    expect(screen.queryByText('或使用企业身份登录')).not.toBeInTheDocument();
+  });
+
+  it('does not render forgot password entry', () => {
+    render(
+      <main className="login-shell">
+        <div className="login-card">
+          <LoginForm onSuccess={() => undefined} />
+        </div>
+      </main>,
+    );
+    expect(screen.queryByText('忘记密码？')).not.toBeInTheDocument();
+  });
 });

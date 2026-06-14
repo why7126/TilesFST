@@ -5,8 +5,8 @@ content: 基于 requirement.md 与项目目录结构维护
 source: AI根据 PRD 生成，项目团队确认
 update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: 产品负责人
-status: draft
-note: REQ-0001 用户登录
+status: resolved
+note: Sprint 001 验收通过（2026-06-14）
 ---
 
 # 需求追踪
@@ -18,7 +18,7 @@ requirement_id: REQ-0001
 requirement_name: 用户登录
 requirement_type: 基础能力 / 认证授权
 priority: P0
-status: in_progress
+status: resolved
 source: 瓷砖信息管理平台基础认证能力需求
 target_users:
   - 企业内部员工
@@ -28,7 +28,7 @@ target_clients:
   - web_admin: 本期实现
   - web_catalog: 本期预留
   - wechat_miniapp: 本期预留
-iteration: sprint-01
+iteration: sprint-001
 change_id: add-user-login
 related_changes:
   - add-design-system
@@ -56,12 +56,10 @@ related_changes:
 | Change — Design System | `openspec/changes/archive/2026-06-13-add-design-system/` | 已归档 |
 | Change — 登录 UI 重构 | `openspec/changes/archive/2026-06-13-refactor-login-ui/` | 已归档 |
 | Change — checklist 对齐 | `openspec/changes/archive/2026-06-13-align-login-prototype/` | 已归档 |
-| Change — PNG 像素级 | `openspec/changes/archive/2026-06-13-fix-login-pixel-fidelity/` | **已实现，待归档** |
-| Change 追踪 | `openspec/changes/add-user-login/trace.md` | 已创建 |
-| Change 追踪 — DS | `openspec/changes/add-design-system/trace.md` | 已创建 |
-| 目标 Spec | `openspec/specs/auth/`（归档后） | 未生效 |
-| 关联 Spec | `openspec/specs/web-client/spec.md`（归档后） | 未生效 |
-| 迭代 | `iterations/sprint-01/sprint.md` | 进行中（含 add-design-system） |
+| Change — PNG 像素级 | `openspec/changes/archive/2026-06-13-fix-login-pixel-fidelity/` | 已归档 |
+| 目标 Spec | `openspec/specs/auth/spec.md` | 已生效 |
+| 关联 Spec | `openspec/specs/web-client/spec.md` | 已生效 |
+| 迭代 | `iterations/sprint-001/sprint.md` | **completed（2026-06-14 验收通过）** |
 
 建议 Change 目录结构：
 
@@ -140,7 +138,7 @@ draft → approved → in_progress → resolved → closed
 | 日期 | 状态 | 说明 |
 |---|---|---|
 | 2026-06-13 | draft | 基于 PRD 与登录页原型补齐配套文档 |
-| 2026-06-13 | approved | 纳入 Sprint 01，OpenSpec add-user-login 规划完成 |
+| 2026-06-13 | approved | 纳入 Sprint 001，OpenSpec add-user-login 规划完成 |
 | 2026-06-13 | in_progress | add-user-login 实现完成，后端/前端/测试已交付 |
 | 2026-06-13 | in_progress | 同 Sprint 纳入 add-design-system；登录页 UI 对齐待 refactor-login-ui |
 | 2026-06-13 | in_progress | fix-login-pixel-fidelity 实现完成；视觉基准为 user-login.png |

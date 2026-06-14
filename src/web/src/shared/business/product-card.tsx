@@ -4,6 +4,7 @@ import * as React from 'react';
 import type { ProductCardData } from '@shared/business/types';
 import { cn } from '@/shared/lib/cn';
 import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
 
 import { ProductCardAction } from './product-card-action';
 
@@ -100,15 +101,20 @@ const ProductCard = React.forwardRef<HTMLElement, ProductCardProps>(
 
     if (onClick) {
       return (
-        <button
+        <Button
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
+          variant="ghost"
           onClick={onClick}
-          className={cn(cardSurfaceClass, 'w-full text-left', className)}
+          className={cn(
+            cardSurfaceClass,
+            'h-auto w-full justify-start p-0 text-left font-normal hover:bg-surface',
+            className,
+          )}
           {...props}
         >
           {body}
-        </button>
+        </Button>
       );
     }
 

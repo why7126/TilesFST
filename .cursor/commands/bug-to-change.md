@@ -859,7 +859,7 @@ iteration:
 
 ```yaml
 iteration:
-  sprint-xx
+  sprint-xxx
 ```
 
 ---

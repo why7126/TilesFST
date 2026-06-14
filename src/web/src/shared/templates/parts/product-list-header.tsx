@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { Button } from '@/shared/ui/button';
 
 export interface ProductListHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   resultCount: number;
@@ -21,9 +22,14 @@ export function ProductListHeader({
       <p className="text-[11px] text-muted">
         共 <span className="text-primary">{resultCount}</span> 个结果
       </p>
-      <button type="button" className="text-[11px] text-secondary transition-colors hover:text-primary">
+      <Button
+        type="button"
+        variant="link"
+        size="sm"
+        className="h-auto p-0 text-[11px] text-secondary hover:text-primary"
+      >
         {sortLabel}
-      </button>
+      </Button>
     </div>
   );
 }
