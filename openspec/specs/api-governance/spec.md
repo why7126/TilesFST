@@ -5,7 +5,7 @@ TBD - created by archiving change build-api-standard. Update Purpose after archi
 ## Requirements
 ### Requirement: Unified response envelope
 
-All public JSON APIs MUST return a unified envelope `{ code, message, data }` for success and error responses documented in `docs/api-governance.md`.
+All public JSON APIs MUST return a unified envelope `{ code, message, data }` for success and error responses documented in `docs/standards/api-governance.md`.
 
 #### Scenario: Successful JSON response shape
 
@@ -21,11 +21,11 @@ All public JSON APIs MUST return a unified envelope `{ code, message, data }` fo
 
 ### Requirement: Error code registry
 
-Business and authentication errors MUST use stable codes documented in `docs/error-codes.md` and implemented in `src/backend/app/core/error_codes.py`.
+Business and authentication errors MUST use stable codes documented in `docs/standards/error-codes.md` and implemented in `src/backend/app/core/error_codes.py`.
 
 #### Scenario: Auth error codes available
 
-- **WHEN** a developer inspects `error_codes.py` and `docs/error-codes.md`
+- **WHEN** a developer inspects `error_codes.py` and `docs/standards/error-codes.md`
 - **THEN** MUST find codes including `AUTH_INVALID_REQUEST`, `AUTH_INVALID_CREDENTIALS`, and `AUTH_USER_DISABLED`
 - **AND** API handlers MUST reference these codes rather than ad-hoc string literals
 

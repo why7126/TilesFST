@@ -1,41 +1,41 @@
-import { Outlet, useNavigate } from 'react-router-dom';
-
-import { Button } from '@/shared/ui/button';
+import { useCallback, useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { AdminSidebar } from '../../features/admin/components/AdminSidebar';
+import '../../features/admin/styles/admin-home.css';
+
+const PLACEHOLDER_MESSAGE = '功能建设中，将在后续迭代开放。';
 
 export function AdminLayout() {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/admin/login', { replace: true });
-  };
+  const showPlaceholder = useCallback(() => {
+    setNotice(PLACEHOLDER_MESSAGE);
+  }, []);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setNotice(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   return (
-    <div className="min-h-screen bg-page text-primary">
-      <header className="flex items-center justify-between border-b border-border-emphasis px-6 py-4">
-        <div>
-          <p className="text-sm tracking-[0.16em] text-brand-gold">TilesFST</p>
-          <p className="text-xs text-secondary">瓷砖信息管理 · 管理端</p>
+    <div className="admin-shell">
+      <AdminSidebar user={user} onLogout={logout} onPlaceholder={showPlaceholder} />
+      <main className="main-content" aria-label="首页内容">
+        <div className="content-inner">
+          {notice ? (
+            <p className="admin-notice" role="status" aria-live="polite">
+              {notice}
+            </p>
+          ) : null}
+          <Outlet context={{ onPlaceholder: showPlaceholder }} />
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-secondary">{user?.display_name ?? user?.username}</span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              void handleLogout();
-            }}
-          >
-            退出登录
-          </Button>
-        </div>
-      </header>
-      <main className="p-6">
-        <Outlet />
       </main>
     </div>
   );

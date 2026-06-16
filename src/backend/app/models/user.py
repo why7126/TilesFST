@@ -12,7 +12,7 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint("role IN ('admin', 'employee', 'store_owner')", name="ck_users_role"),
-        CheckConstraint("status IN ('active', 'disabled')", name="ck_users_status"),
+        CheckConstraint("status IN ('active', 'disabled', 'deleted')", name="ck_users_status"),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
@@ -20,9 +20,10 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
-    display_name: Mapped[str] = mapped_column(String, nullable=False)
+    display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False, default="active")
+    avatar_object_key: Mapped[str | None] = mapped_column(String, nullable=True)
     last_login_at: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[str] = mapped_column(String, nullable=False)
     updated_at: Mapped[str] = mapped_column(String, nullable=False)

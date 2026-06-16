@@ -7,7 +7,7 @@
 | Design System Token 与组件 | 通过 | 见 `openspec/specs/design-system/spec.md` |
 | `/design-system` 预览 | 通过 | 开发环境可访问 |
 | `validate-design-system.py` | 通过 | 可执行 |
-| API 治理文档 | 通过 | `docs/api-governance.md` 等 |
+| API 治理文档 | 通过 | `docs/standards/api-governance.md` 等 |
 | 统一返回与错误码 | 通过 | `common.py`、`error_codes.py` |
 | `validate-api-standard.py` | 通过 | 可执行（部分路由待补全 summary） |
 | Pytest 基线 | 通过 | 根目录 + backend tests |

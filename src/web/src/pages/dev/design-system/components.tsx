@@ -122,4 +122,5 @@ export const designSystemNav = [
   { href: '#ui-shadcn', label: 'shadcn 基础' },
   { href: '#ui-composite', label: '复合 UI' },
   { href: '#business-catalog', label: '业务组件' },
+  { href: '#admin-shell', label: 'Admin Shell' },
 ] as const;

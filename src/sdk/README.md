@@ -35,4 +35,4 @@ src/web/src/shared/api/generated.ts
 
 - API 变更 → 重新导出 OpenAPI → 重新 Orval → 更新测试
 - 禁止修改 `generated.ts`
-- 错误码语义见 `docs/error-codes.md`
+- 错误码语义见 `docs/standards/error-codes.md`

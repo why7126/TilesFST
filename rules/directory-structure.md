@@ -112,12 +112,15 @@ src/shared/
 
 ## 4. 文档归属规则
 
-- 产品需求放入 `docs/prd/`。
-- BUG分析放入 `docs/bugs/`。
-- 迭代文档放入 `iterations/sprint-xxx/`（**MUST** 含 `sprint.yaml` 四件套，见 `rules/document-governance.md` §4.1）；禁止放入已废弃的 `docs/iterations/`。
+- 主文档（`docs/00–07-*.md`）与总索引 `docs/README.md`。
+- API/测试等治理细则放入 `docs/standards/`（**禁止**在 `docs/` 根目录新增无序号治理 MD）。
+- 产品需求放入 `issues/requirements/REQ-*`（**禁止** `docs/prd/`）。
+- BUG 分析放入 `issues/bugs/BUG-*`（**禁止** `docs/bugs/`）。
+- 故障知识沉淀放入 `docs/knowledge-base/`。
+- 迭代文档放入 `iterations/sprint-xxx/`（**MUST** 含 `sprint.yaml` 四件套，见 `rules/document-governance.md` §4.1）；禁止 `docs/iterations/`。
 - 正式系统能力放入 `openspec/specs/`。
 - 开发中的变更放入 `openspec/changes/`。
-- 已完成变更放入 `openspec/archive/`。
+- 已完成变更放入 `openspec/changes/archive/`。
 
 ## 5. Docker与部署文件规则
 

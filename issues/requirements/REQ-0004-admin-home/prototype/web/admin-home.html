@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TILESFST - 管理后台首页 V5</title>
+  <style>
+    :root {
+      --page: #18160F;
+      --deep: #100F0A;
+      --card: #211E16;
+      --text: #EDE8DF;
+      --muted: rgba(237,232,223,.5);
+      --weak: rgba(237,232,223,.3);
+      --ghost: rgba(237,232,223,.25);
+      --gold: #C8A055;
+      --gold-bg: rgba(200,160,85,.12);
+      --line: rgba(255,255,255,.07);
+      --line-strong: rgba(255,255,255,.1);
+      --line-hover: rgba(255,255,255,.18);
+      --danger: #E07050;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--page); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .admin-shell { min-height: 100vh; display: grid; grid-template-columns: 264px 1fr; background: radial-gradient(circle at 88% 8%, rgba(200,160,85,.08), transparent 24%), linear-gradient(135deg, var(--page), var(--deep)); }
+    .sidebar { position: sticky; top: 0; height: 100vh; padding: 30px 18px 18px; border-right: .5px solid var(--line); background: radial-gradient(circle at 20% 8%, rgba(200,160,85,.10), transparent 30%), linear-gradient(180deg, rgba(255,255,255,.025), transparent 28%), rgba(16,15,10,.76); display: flex; flex-direction: column; overflow: hidden; }
+    .logo { padding: 0 14px 28px; color: var(--gold); font-family: Georgia, "Times New Roman", serif; font-size: 22px; letter-spacing: .16em; font-weight: 400; }
+    .nav-scroll { flex: 1; min-height: 0; overflow: auto; padding-right: 2px; }
+    .nav-section { margin-bottom: 26px; }
+    .nav-title { padding: 0 14px; margin: 0 0 10px; color: var(--weak); font-size: 10px; letter-spacing: .18em; font-weight: 500; }
+    .nav-item { height: 40px; margin-bottom: 4px; padding: 0 12px; border-radius: 3px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; text-decoration: none; border: .5px solid transparent; position: relative; }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,.035); border-color: var(--line); }
+    .nav-item.active { color: var(--gold); background: var(--gold-bg); border-color: rgba(200,160,85,.26); }
+    .nav-item.active::before { content: ""; width: 2px; height: 16px; background: var(--gold); border-radius: 2px; position: absolute; left: 0; }
+    .nav-icon { width: 16px; height: 16px; border: .5px solid currentColor; border-radius: 2px; opacity: .72; position: relative; }
+    .nav-icon::after { content: ""; position: absolute; width: 5px; height: 5px; right: 3px; bottom: 3px; border-radius: 1px; background: currentColor; opacity: .35; }
+    .sidebar-user { position: relative; margin-top: auto; padding: 16px 0 0; border-top: .5px solid var(--line); }
+    .user-trigger { width: 100%; min-height: 56px; padding: 10px 10px; display: grid; grid-template-columns: 34px 1fr 14px; gap: 10px; align-items: center; border: .5px solid transparent; border-radius: 3px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+    .user-trigger:hover, .user-trigger[aria-expanded="true"] { background: rgba(255,255,255,.035); border-color: var(--line); }
+    .avatar { width: 34px; height: 34px; border-radius: 3px; background: var(--gold-bg); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 12px; border: .5px solid rgba(200,160,85,.32); }
+    .user-name { display:block; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-email { display:block; margin-top: 3px; font-size: 11px; color: var(--weak); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chevron { color: var(--weak); font-size: 14px; transform: rotate(180deg); }
+    .user-dropdown { position: absolute; left: 0; right: 0; bottom: 76px; padding: 6px; border: .5px solid var(--line-strong); border-radius: 3px; background: rgba(33,30,22,.98); box-shadow: 0 22px 70px rgba(0,0,0,.42); backdrop-filter: blur(18px); }
+    .dropdown-item { height: 38px; padding: 0 10px; display: flex; align-items: center; gap: 9px; border-radius: 2px; color: var(--muted); text-decoration: none; font-size: 12px; }
+    .dropdown-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .dropdown-item.logout { color: var(--danger); }
+    .dropdown-icon { width: 14px; height: 14px; border: .5px solid currentColor; border-radius: 2px; opacity: .72; }
+    .dropdown-divider { height: .5px; background: var(--line); margin: 6px 4px; }
+    .main-content { min-width: 0; height: 100vh; padding: 48px 56px 72px; overflow: auto; }
+    .content-inner { max-width: 1080px; margin: 0 auto; }
+    .section { margin-top: 0; }
+    .section + .section { margin-top: 28px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px; }
+    .section-title { margin: 0; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+    .section-note { color: var(--weak); font-size: 11px; }
+    .metric-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-card, .quick-card, .table-card { border: .5px solid var(--line); background: rgba(33,30,22,.72); backdrop-filter: blur(18px); border-radius: 3px; }
+    .metric-card { padding: 20px; min-height: 118px; position: relative; overflow:hidden; }
+    .metric-card::after { content:""; position:absolute; right:-28px; top:-36px; width:90px; height:90px; border-radius:50%; background:rgba(200,160,85,.08); }
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-value { margin-top: 18px; color: var(--gold); font-size: 28px; line-height: 1; font-weight: 500; }
+    .metric-desc { margin-top: 10px; color: var(--weak); font-size: 11px; }
+    .quick-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .quick-card { min-height: 132px; padding: 18px; color: inherit; text-decoration: none; transition: border-color .18s ease, transform .18s ease, background .18s ease; }
+    .quick-card:hover { border-color: rgba(200,160,85,.5); transform: translateY(-1px); background: rgba(33,30,22,.86); }
+    .quick-icon { width: 32px; height: 32px; border-radius: 3px; border: .5px solid rgba(200,160,85,.32); background: var(--gold-bg); color: var(--gold); display:flex; align-items:center; justify-content:center; font-size: 16px; margin-bottom: 18px; }
+    .quick-title { font-size: 14px; font-weight: 500; }
+    .quick-desc { margin-top: 8px; color: var(--weak); font-size: 11px; line-height: 1.6; }
+    .table-card { overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 15px 18px; text-align: left; border-bottom: .5px solid var(--line); font-size: 12px; }
+    th { color: var(--weak); font-weight: 400; letter-spacing: .08em; }
+    td { color: var(--muted); }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    .name-cell { color: var(--text); }
+    .badge { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 1px; background: var(--gold-bg); color: var(--gold); font-size: 10px; letter-spacing: .04em; }
+    @media (max-width: 1023px) { .admin-shell { grid-template-columns: 1fr; } .sidebar { position: relative; width: 100%; height: auto; padding: 22px 20px; } .logo { padding-bottom: 18px; } .nav-scroll { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; overflow: visible; } .sidebar-user { display: none; } .main-content { height: auto; padding: 32px 24px 56px; } .metric-grid, .quick-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 639px) { .metric-grid, .quick-grid { grid-template-columns: 1fr; } th:nth-child(4), td:nth-child(4) { display:none; } .main-content { padding: 28px 18px 48px; } }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="logo">TILESFST</div>
+      <div class="nav-scroll">
+        <nav class="nav-section" aria-label="Operations">
+          <p class="nav-title">OPERATIONS</p>
+          <a class="nav-item active" href="#"><span class="nav-icon"></span>首页</a>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>瓷砖SKU</a>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>瓷砖品牌</a>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>瓷砖类目</a>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>Banner管理</a>
+        </nav>
+        <nav class="nav-section" aria-label="System">
+          <p class="nav-title">SYSTEM</p>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>用户管理</a>
+          <a class="nav-item" href="#"><span class="nav-icon"></span>系统设置</a>
+        </nav>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-dropdown" role="menu" aria-label="用户菜单下拉框">
+          <a class="dropdown-item" href="#" role="menuitem"><span class="dropdown-icon"></span>个人资料</a>
+          <a class="dropdown-item" href="#" role="menuitem"><span class="dropdown-icon"></span>密码修改</a>
+          <div class="dropdown-divider" role="separator"></div>
+          <a class="dropdown-item logout" href="#" role="menuitem"><span class="dropdown-icon"></span>退出登录</a>
+        </div>
+        <button class="user-trigger" type="button" aria-expanded="true" aria-haspopup="menu">
+          <span class="avatar">AU</span>
+          <span><span class="user-name">Admin User</span><span class="user-email">admin@tilesfst.com</span></span>
+          <span class="chevron">⌃</span>
+        </button>
+      </div>
+    </aside>
+    <main class="main-content" aria-label="首页内容">
+      <div class="content-inner">
+        <section class="section" aria-labelledby="metrics-title">
+          <div class="section-head"><h2 class="section-title" id="metrics-title">数据概览</h2><span class="section-note">核心主数据</span></div>
+          <div class="metric-grid">
+            <article class="metric-card"><div class="metric-label">SKU 总数</div><div class="metric-value">12,860</div><div class="metric-desc">已维护瓷砖商品</div></article>
+            <article class="metric-card"><div class="metric-label">品牌数量</div><div class="metric-value">128</div><div class="metric-desc">品牌资料库</div></article>
+            <article class="metric-card"><div class="metric-label">Banner 数量</div><div class="metric-value">36</div><div class="metric-desc">展示位素材</div></article>
+            <article class="metric-card"><div class="metric-label">用户数量</div><div class="metric-value">42</div><div class="metric-desc">后台授权账号</div></article>
+          </div>
+        </section>
+        <section class="section" aria-labelledby="quick-title">
+          <div class="section-head"><h2 class="section-title" id="quick-title">快捷操作</h2><span class="section-note">常用管理入口</span></div>
+          <div class="quick-grid">
+            <a class="quick-card" href="#"><div class="quick-icon">＋</div><div class="quick-title">新增 SKU</div><div class="quick-desc">创建新的瓷砖商品与规格信息</div></a>
+            <a class="quick-card" href="#"><div class="quick-icon">＋</div><div class="quick-title">新增品牌</div><div class="quick-desc">维护品牌名称、Logo 与简介</div></a>
+            <a class="quick-card" href="#"><div class="quick-icon">＋</div><div class="quick-title">新增类目</div><div class="quick-desc">配置瓷砖分类与展示层级</div></a>
+            <a class="quick-card" href="#"><div class="quick-icon">＋</div><div class="quick-title">新增 Banner</div><div class="quick-desc">创建首页或活动展示 Banner</div></a>
+          </div>
+        </section>
+        <section class="section" aria-labelledby="recent-title">
+          <div class="section-head"><h2 class="section-title" id="recent-title">最近更新</h2><span class="section-note">最近 7 天数据变更</span></div>
+          <div class="table-card"><table><thead><tr><th>更新时间</th><th>类型</th><th>名称</th><th>操作人</th></tr></thead><tbody>
+            <tr><td>2026-06-14 21:12</td><td><span class="badge">SKU</span></td><td class="name-cell">CALACATTA 900×1800</td><td>admin</td></tr>
+            <tr><td>2026-06-14 19:48</td><td><span class="badge">品牌</span></td><td class="name-cell">MARBLE PRO</td><td>admin</td></tr>
+            <tr><td>2026-06-14 18:06</td><td><span class="badge">Banner</span></td><td class="name-cell">六月新品推荐</td><td>operator01</td></tr>
+            <tr><td>2026-06-13 16:32</td><td><span class="badge">类目</span></td><td class="name-cell">仿古砖 / 深色系</td><td>admin</td></tr>
+            <tr><td>2026-06-13 11:20</td><td><span class="badge">系统</span></td><td class="name-cell">登录安全策略更新</td><td>system</td></tr>
+          </tbody></table></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

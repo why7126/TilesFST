@@ -57,9 +57,10 @@ users 1 ── * login_logs（预留，本期无写入）
 | phone | TEXT | NULL | 预留（多标识登录） |
 | email | TEXT | NULL | 预留 |
 | password_hash | TEXT | NOT NULL | bcrypt（passlib） |
-| display_name | TEXT | NOT NULL | 显示名称 |
+| display_name | TEXT | NULL | 昵称；空时展示回退 username |
 | role | TEXT | NOT NULL, CHECK | `admin` \| `employee` \| `store_owner` |
-| status | TEXT | NOT NULL, DEFAULT `active`, CHECK | `active` \| `disabled` |
+| status | TEXT | NOT NULL, DEFAULT `active`, CHECK | `active` \| `disabled` \| `deleted` |
+| avatar_object_key | TEXT | NULL | MinIO 头像 object_key |
 | last_login_at | TEXT | NULL | ISO8601 UTC |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |

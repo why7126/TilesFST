@@ -1,3 +1,4 @@
+import { AdminSection } from './design-system/admin-section';
 import { BusinessSection } from './design-system/business-section';
 import { designSystemNav } from './design-system/components';
 import { TokensSection } from './design-system/tokens-section';
@@ -49,6 +50,7 @@ export function DesignSystemPage() {
           <TokensSection />
           <UiSection />
           <BusinessSection />
+          <AdminSection />
 
           <footer className="border-t border-border-default pt-6 text-[11px] text-subtle">
             参考文档：rules/ui-design.md · src/shared/design-system/tokens/ ·

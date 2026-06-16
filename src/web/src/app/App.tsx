@@ -6,6 +6,7 @@ import { ProtectedRoute } from './router/ProtectedRoute';
 import { useAuthStore } from '../features/auth/store/auth-store';
 import { AdminLayout } from '../pages/admin/AdminLayout';
 import { DashboardPage } from '../pages/admin/DashboardPage';
+import { UserManagementPage } from '../pages/admin/UserManagementPage';
 import { ForbiddenPage } from '../pages/admin/ForbiddenPage';
 import { LoginPage } from '../pages/admin/LoginPage';
 import { DesignSystemPage } from '../pages/dev/DesignSystemPage';
@@ -53,6 +54,9 @@ export function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<DashboardPage />} />
+              <Route element={<ProtectedRoute requireAdmin />}>
+                <Route path="/admin/users" element={<UserManagementPage />} />
+              </Route>
             </Route>
           </Route>
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

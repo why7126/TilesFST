@@ -21,7 +21,7 @@ Backend tests MUST be runnable from repository root via `./scripts/run-tests.sh`
 
 ### Requirement: Test directory structure
 
-The repository MUST maintain a test pyramid with dedicated directories for unit, integration, and end-to-end tests documented in `docs/testing-governance.md`.
+The repository MUST maintain a test pyramid with dedicated directories for unit, integration, and end-to-end tests documented in `docs/standards/testing-governance.md`.
 
 #### Scenario: Core test directories exist
 
@@ -50,7 +50,7 @@ New Services and Routers introduced in OpenSpec Changes MUST include correspondi
 
 #### Scenario: Governance documentation states requirement
 
-- **WHEN** a developer reads `docs/testing-governance.md`
+- **WHEN** a developer reads `docs/standards/testing-governance.md`
 - **THEN** MUST find a rule that OpenSpec Change implementations MUST add matching tests
 - **AND** MUST NOT allow implementation-only changes without test coverage for new Services or Routers
 
@@ -67,7 +67,7 @@ The project MUST provide `scripts/validate-test-framework.py` to verify pytest c
 #### Scenario: Required governance docs checked
 
 - **WHEN** the validation script runs
-- **THEN** it MUST verify presence of `docs/testing-governance.md`, `docs/unit-test-standard.md`, `docs/frontend-test-standard.md`, and `.coveragerc`
+- **THEN** it MUST verify presence of `docs/standards/testing-governance.md`, `docs/standards/unit-test-standard.md`, `docs/standards/frontend-test-standard.md`, and `.coveragerc`
 
 ### Requirement: CI test workflow
 

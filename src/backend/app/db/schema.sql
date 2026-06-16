@@ -33,9 +33,10 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT,
   email TEXT,
   password_hash TEXT NOT NULL,
-  display_name TEXT NOT NULL,
+  display_name TEXT,
   role TEXT NOT NULL CHECK (role IN ('admin', 'employee', 'store_owner')),
-  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'deleted')),
+  avatar_object_key TEXT,
   last_login_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL

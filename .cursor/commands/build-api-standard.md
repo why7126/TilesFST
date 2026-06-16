@@ -1,619 +1,100 @@
-# Build API Standard
+---
+name: /build-api-standard
+id: build-api-standard
+category: Bootstrap
+description: 建立 API Governance（统一响应 / 错误码 / OpenAPI / Orval）
+---
 
-## 目标
+将 `rules/api.md` 落地为可执行 API 治理：文档、Schema、校验脚本与 FastAPI 分层约定。
 
-建立企业级 API Governance（API治理体系）。
+**关联 REQ**：`REQ-0000-build-api-standard`（`change_id: build-api-standard`，已归档见 `openspec/specs/api-governance/`）
 
-将：
-
-```text
-rules/api.md
-```
-
-转换为：
-
-```text
-可执行API规范
-OpenAPI规范
-FastAPI代码模板
-Orval客户端生成规范
-自动校验脚本
-```
-
-确保：
-
-```text
-后端
-OpenAPI
-前端
-测试
-```
-
-全部遵循统一标准。
+**Input**：`--verify` 仅校验
 
 ---
 
-# 必须读取
-
-执行前必须读取：
+## 必须读取
 
 ```text
 AGENTS.md
-
-project.yaml
-
 rules/api.md
-
 rules/security.md
-
 rules/testing.md
-
 rules/coding.md
-
-openspec/project.md
-```
-
-如果存在：
-
-```text
-src/backend/*
-src/web/*
-```
-
-也必须读取。
-
----
-
-# Step1 建立 API Governance
-
-生成：
-
-```text
-docs/api-governance.md
-```
-
-内容必须包含：
-
-## API设计原则
-
-REST First
-
-统一资源命名
-
-幂等性
-
-向后兼容
-
-OpenAPI First
-
----
-
-## URL规范
-
-例如：
-
-```text
-/api/v1/tiles
-
-/api/v1/tiles/{id}
-
-/api/v1/media
-```
-
-禁止：
-
-```text
-/getTiles
-
-/queryTileList
-
-/deleteById
-```
-
----
-
-## HTTP Method规范
-
-GET
-
-POST
-
-PUT
-
-PATCH
-
-DELETE
-
-对应使用场景。
-
----
-
-## API版本规范
-
-统一：
-
-```text
-/api/v1/*
-```
-
-未来：
-
-```text
-/api/v2/*
-```
-
----
-
-# Step2 建立统一返回结构
-
-生成：
-
-```text
-src/backend/app/schemas/common/
-```
-
-包含：
-
-```text
-response.py
-
-pagination.py
-
-error.py
-```
-
----
-
-统一返回：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {}
-}
-```
-
----
-
-分页返回：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {
-    "items": [],
-    "page": 1,
-    "page_size": 20,
-    "total": 100
-  }
-}
-```
-
----
-
-错误返回：
-
-```json
-{
-  "code": 40001,
-  "message": "invalid parameter"
-}
-```
-
----
-
-# Step3 建立错误码体系
-
-生成：
-
-```text
-docs/error-codes.md
-
-src/backend/app/core/error_codes.py
-```
-
-规则：
-
-```text
-0 成功
-
-1xxxx 系统错误
-
-2xxxx 认证授权
-
-3xxxx 业务错误
-
-4xxxx 参数错误
-
-5xxxx 外部依赖错误
-```
-
-示例：
-
-```python
-INVALID_PARAMETER = 40001
-UNAUTHORIZED = 20001
-TILE_NOT_FOUND = 30001
-```
-
----
-
-# Step4 建立 FastAPI代码结构
-
-生成：
-
-```text
-src/backend/app/
-```
-
-结构：
-
-```text
-api/
-core/
-models/
-schemas/
-services/
-repositories/
-```
-
-每个模块：
-
-```text
-modules/
-└── tiles/
-    ├── router.py
-    ├── service.py
-    ├── repository.py
-    ├── schema.py
-    └── model.py
-```
-
-禁止：
-
-```text
-全部写在router
-```
-
----
-
-# Step5 建立 OpenAPI First
-
-生成：
-
-```text
-docs/openapi-rules.md
-```
-
-要求：
-
-所有接口必须：
-
-```python
-response_model=
-summary=
-description=
-tags=
-```
-
-必须完整。
-
----
-
-生成：
-
-```text
-/openapi.json
-```
-
-作为：
-
-```text
-唯一API契约
-```
-
----
-
-# Step6 建立前端 Orval 规范
-
-生成：
-
-```text
+openspec/specs/api-governance/spec.md
+src/backend/app/**
 src/web/orval.config.ts
-```
-
-规则：
-
-```text
-OpenAPI
-    ↓
-Orval
-    ↓
-生成TypeScript类型
-    ↓
-生成Axios客户端
-```
-
-目录：
-
-```text
-src/web/src/generated/
-```
-
-禁止：
-
-```text
-手写接口类型
+docs/03-api-index.md
 ```
 
 ---
 
-# Step7 建立分页规范
+## 与 req / opsx 关系
 
-统一：
-
-```text
-page
-page_size
-```
-
-返回：
-
-```text
-items
-total
-```
-
-禁止：
-
-```text
-rows
-list
-records
-```
-
-混用。
+| 场景 | 做法 |
+|------|------|
+| 新业务 API | 对应业务 REQ 的 `/req-opsx` → `add-*` |
+| 治理规范变更 | 新 REQ + `/req-opsx`（MODIFIED `api-governance`） |
+| 接口实现后 | **MUST** 更新 OpenAPI + `scripts/generate-openapi-client.sh` |
 
 ---
 
-# Step8 建立查询规范
+## Step 1 — 治理文档
 
-支持：
-
-```text
-keyword
-
-sort_by
-
-sort_order
-
-page
-
-page_size
-```
-
-统一格式。
-
----
-
-# Step9 建立鉴权规范
-
-生成：
+核对/更新：
 
 ```text
-docs/authentication.md
-```
-
-统一：
-
-```text
-JWT
-```
-
-Header：
-
-```text
-Authorization: Bearer xxx
-```
-
-禁止：
-
-```text
-token=
-sessionId=
-```
-
-混用。
-
----
-
-# Step10 建立文件上传规范
-
-生成：
-
-```text
-docs/file-upload.md
-```
-
-统一：
-
-```text
-multipart/form-data
-```
-
-返回：
-
-```json
-{
-  "file_id": "",
-  "url": ""
-}
+docs/standards/api-governance.md
+docs/standards/error-codes.md
+docs/standards/openapi-rules.md
+docs/standards/authentication.md
+docs/standards/file-upload.md
+docs/03-api-index.md
 ```
 
 ---
 
-适用于：
+## Step 2 — 统一结构
 
 ```text
-图片
-
-视频
-
-附件
+src/backend/app/schemas/common/     # response, pagination, error
+src/backend/app/core/error_codes.py
+src/backend/app/api/v1/
 ```
+
+统一响应：`{ code, message, data }`；分页 `page` / `page_size` / `items` / `total`。
 
 ---
 
-# Step11 建立测试规范
+## Step 3 — OpenAPI First
 
-生成：
-
-```text
-tests/api/
-```
-
-要求：
-
-每个接口必须：
-
-```text
-成功测试
-
-失败测试
-
-权限测试
-
-边界测试
-```
+- 路由须 `response_model`、`summary`、`tags`
+- 导出 `src/web/openapi.json` 为契约
+- Orval → `src/web/src/shared/api/generated.ts`
 
 ---
 
-# Step12 建立自动校验
-
-生成：
+## Step 4 — 测试与校验
 
 ```text
+src/backend/tests/                  # 集成测试
 scripts/validate-api-standard.py
 ```
 
-检查：
-
-```text
-response_model
-
-tags
-
-summary
-
-description
-
-错误码
-
-分页结构
-
-返回结构
-```
-
-输出违规报告。
+每接口：成功、失败、权限、边界。
 
 ---
 
-# Step13 建立 OpenSpec Change
+## Step 5 — OpenSpec
 
-不存在则创建：
-
-```text
-openspec/changes/build-api-standard/
-```
-
-生成：
-
-```text
-proposal.md
-design.md
-tasks.md
-acceptance.md
-test-plan.md
-trace.md
-specs/api-governance/spec.md
-```
+已归档 **勿重建** `build-api-standard`。新治理需求走 `/req-opsx`。
 
 ---
 
-# Step14 更新文档
-
-更新：
+## 验收
 
 ```text
-AGENTS.md
-
-rules/api.md
-
-docs/api-governance.md
-
-docs/error-codes.md
-
-docs/openapi-rules.md
-
-docs/authentication.md
-
-docs/file-upload.md
-```
-
----
-
-# 验收标准
-
-完成后必须满足：
-
-```text
-□ API Governance文档已生成
-
-□ 统一返回结构已生成
-
-□ 错误码体系已生成
-
-□ FastAPI模板已生成
-
-□ OpenAPI规范已生成
-
-□ Orval配置已生成
-
-□ 分页规范已生成
-
-□ JWT规范已生成
-
-□ 文件上传规范已生成
-
-□ API测试框架已生成
-
-□ validate-api-standard.py可运行
-
-□ OpenSpec Change已创建
-```
-
----
-
-# 最终输出
-
-输出：
-
-```text
-1. API治理摘要
-
-2. API目录结构
-
-3. 错误码体系
-
-4. OpenAPI规范
-
-5. Orval规范
-
-6. 测试规范
-
-7. 自动校验规则
-
-8. 尚需人工确认的问题
+□ validate-api-standard.py pass
+□ Orval 生成无报错
+□ error_codes 与 rules/api.md 一致
 ```

@@ -3,7 +3,7 @@ purpose: 接口文档
 content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
-note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/error-codes.md`
+note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
 # API 接口索引
@@ -71,10 +71,29 @@ Authorization: Bearer <access_token>
 | 认证 | `/api/v1/auth` | 部分 | 登录、当前用户、退出 | ✓ 已实现 |
 | 瓷砖（展示） | `/api/v1/tiles` | 否 | 列表、详情 | 桩实现（返回空/示例） |
 | 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
-| 管理端上传 | `/api/v1/admin/uploads` | 否* | 图片上传 | 桩实现 |
+| 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
+| 管理端上传 | `/api/v1/admin/uploads` | 是（仅 admin） | 头像上传（桩：avatars 前缀） | 桩实现 |
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
-\* `uploads` 路由当前未挂载 `require_admin_access`，后续 change 应补齐。
+\* `uploads` 路由已挂载 `require_system_admin`；完整 MinIO 集成待后续 change。
+
+### 3.4 管理端用户（Sprint 002）
+
+实现：`src/backend/app/api/v1/admin_users.py`  
+OpenSpec：`openspec/changes/add-user-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/users` | Bearer（admin） |
+| POST | `/api/v1/admin/users` | Bearer（admin） |
+| GET | `/api/v1/admin/users/{id}` | Bearer（admin） |
+| PATCH | `/api/v1/admin/users/{id}` | Bearer（admin） |
+| POST | `/api/v1/admin/users/{id}/reset-password` | Bearer（admin） |
+| PATCH | `/api/v1/admin/users/{id}/status` | Bearer（admin） |
+
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`role`、`status`、`login_filter`。
+
+创建成功 `data` 含 `user` 与一次性 `initial_password`。
 
 ---
 
@@ -213,7 +232,7 @@ OpenSpec：`openspec/specs/auth/spec.md`
 | 403 | 40301 | AuthUserDisabledError | 账号已停用，请联系管理员 |
 | 403 | 40302 | AuthForbiddenError | 无权限访问 |
 
-完整登记与分段规则：`docs/error-codes.md`
+完整登记与分段规则：`docs/standards/error-codes.md`
 
 ---
 
@@ -239,4 +258,18 @@ API 变更时 MUST：
 3. 运行 `./scripts/generate-openapi-client.sh`
 4. 补充 `tests/integration/api/` 或 `src/backend/tests/`
 
-遵循：`rules/api.md`、`docs/api-governance.md`
+遵循：`rules/api.md`、`docs/standards/api-governance.md`
+
+## 10. 相关标准文档
+
+接口**清单**以本文为准；设计与治理细则见 `docs/standards/`：
+
+| 文档 | 说明 |
+|------|------|
+| [standards/api-governance.md](standards/api-governance.md) | REST、统一 envelope、OpenAPI First |
+| [standards/error-codes.md](standards/error-codes.md) | 错误码分段与登记表 |
+| [standards/openapi-rules.md](standards/openapi-rules.md) | FastAPI 注解要求 |
+| [standards/authentication.md](standards/authentication.md) | JWT 鉴权 |
+| [standards/file-upload.md](standards/file-upload.md) | 上传与 MinIO |
+
+总索引：[docs/README.md](README.md)

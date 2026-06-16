@@ -1,0 +1,29 @@
+sprint_id: sprint-002
+status: in_progress
+start_date: 2026-06-15
+end_date: 2026-06-28
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0004-admin-home
+  - REQ-0005-user-management
+  - REQ-0005-user-management-list-refine
+  - REQ-0003-login-remember-autofill
+  - REQ-0005-brand-management
+  - REQ-0005-tile-category-management
+
+bugs: []
+
+changes:
+  - add-admin-home
+  - add-user-management
+  - fix-user-management-list-refine
+  - add-login-remember-autofill
+  - add-brand-management
+  - add-tile-category-management
+
+estimated_story_points: 67
+estimated_person_days: 41

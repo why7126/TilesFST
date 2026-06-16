@@ -17,7 +17,7 @@ class AuthService:
         return UserProfile(
             id=user.id,
             username=user.username,
-            display_name=user.display_name,
+            display_name=user.display_name or user.username,
             role=user.role,
             status=user.status,
         )

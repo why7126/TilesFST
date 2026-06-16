@@ -1,0 +1,9 @@
+# REQ 序号注册表（/req-capture 维护）
+# next_id: 分配新 REQ 时使用，分配后递增
+next_id: 9
+entries: []
+# 示例：
+# - id: REQ-0008-brand-export
+#   title: 品牌列表导出
+#   status: captured
+#   created: 2026-06-16

@@ -10,6 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
+from app.db.migrations import apply_migrations
 
 _engine: Engine | None = None
 _SessionLocal: sessionmaker[Session] | None = None
@@ -63,6 +64,7 @@ def init_database() -> None:
             chunk = statement.strip()
             if chunk:
                 connection.execute(text(chunk))
+        apply_migrations(connection)
 
 
 def reset_engine() -> None:

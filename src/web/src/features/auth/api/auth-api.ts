@@ -1,5 +1,5 @@
 import axios, { type AxiosError } from 'axios';
-import { getApi } from '../../../shared/api/generated';
+import { getTilesFSTAPI } from '../../../shared/api/generated';
 import { clearStoredToken, getStoredToken } from '../utils/auth-token';
 import type { AuthErrorPayload } from '../types/auth.types';
 
@@ -25,7 +25,7 @@ apiClient.interceptors.response.use(
   },
 );
 
-export const api = getApi(apiClient);
+export const api = getTilesFSTAPI(apiClient);
 
 export function getErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {

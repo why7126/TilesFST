@@ -53,3 +53,11 @@ def require_admin_access(
     if current_user.role not in ADMIN_ROLES:
         raise AuthForbiddenError()
     return current_user
+
+
+def require_system_admin(
+    current_user: Annotated[UserRecord, Depends(get_current_user)],
+) -> UserRecord:
+    if current_user.role != "admin":
+        raise AuthForbiddenError()
+    return current_user
