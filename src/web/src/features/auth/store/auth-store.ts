@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { api, getErrorMessage, handleUnauthorized, isUnauthorizedError } from '../api/auth-api';
 import type { UserProfile } from '../types/auth.types';
 import { clearStoredToken, getStoredToken, setStoredToken } from '../utils/auth-token';
+import { clearLoginCredentials } from '../utils/login-credentials';
 
 interface AuthStore {
   user: UserProfile | null;
@@ -63,6 +64,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // ignore logout API errors
     } finally {
       clearStoredToken();
+      clearLoginCredentials();
       set({ user: null, token: null, isAuthenticated: false, error: null });
     }
   },

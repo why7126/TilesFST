@@ -26,6 +26,8 @@ note: 运行时数据库路径见 SQLITE_DATABASE_URL / .env.example
 
 ```text
 tile_categories 1 ── * tiles 1 ── * tile_images
+brands 1 ── * tiles
+tiles 1 ── * tile_videos
 
 users 1 ── * login_logs（预留，本期无写入）
 
@@ -41,7 +43,8 @@ users 1 ── * login_logs（预留，本期无写入）
 | users | ✓ 使用中 | 认证与角色 |
 | login_logs | ✓ 已建表 | 登录审计预留 |
 | tile_categories | 桩 | 分类 |
-| tiles | 桩 | 瓷砖主表 |
+| tiles | SKU 主表 | 瓷砖 SKU（扩展） |
+| tile_videos | 已实现 | SKU 关联视频元数据 |
 | tile_images | 桩 | 瓷砖图片元数据 |
 
 ---
@@ -101,29 +104,73 @@ ORM：`src/backend/app/models/user.py` → `LoginLog`
 
 ---
 
-## 6. tile_categories
+## 6. tile_categories（Sprint 002）
+
+OpenSpec：`openspec/changes/add-tile-category-management/`
 
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
 | id | INTEGER | PK AUTOINCREMENT | |
-| name | TEXT | NOT NULL, UNIQUE | 分类名称 |
+| parent_id | INTEGER | FK → tile_categories.id, NULL | 上级类目 |
+| name | TEXT | NOT NULL | 类目名称（max 30） |
+| code | TEXT | NOT NULL, UNIQUE | 类目编码（max 32） |
+| sort_order | INTEGER | NOT NULL | 排序权重（正整数） |
+| level | INTEGER | NOT NULL, CHECK 1–3 | 层级 |
+| description | TEXT | NULL | 描述（max 200） |
+| status | TEXT | NOT NULL, CHECK | `ENABLED` \| `DISABLED` |
+| sku_count | INTEGER | NOT NULL, DEFAULT 0 | 直接绑定 SKU 数 |
+| path | TEXT | NOT NULL | 层级路径文本 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+ORM：`src/backend/app/models/tile_category.py`  
+迁移：`migrations.py` → `_rebuild_tile_categories_table`（兼容旧 id+name 桩表）
 
 ---
 
-## 7. tiles
+## 6b. brands（Sprint 002）
+
+OpenSpec：`openspec/changes/add-brand-management/`
 
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
 | id | INTEGER | PK AUTOINCREMENT | |
-| name | TEXT | NOT NULL | 瓷砖名称 |
-| model | TEXT | NOT NULL | 型号 |
-| category_id | INTEGER | FK → tile_categories.id | 可空 |
-| color | TEXT | NULL | 颜色 |
-| size | TEXT | NULL | 规格尺寸 |
-| description | TEXT | NULL | 描述 |
-| status | TEXT | NOT NULL, DEFAULT `draft` | 上下架状态 |
-| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | |
-| updated_at | TEXT | DEFAULT CURRENT_TIMESTAMP | |
+| name | TEXT | NOT NULL, UNIQUE | 品牌名称（max 50） |
+| sort_order | INTEGER | NOT NULL | 展示排序（正整数） |
+| short_name | TEXT | NULL | 简称（max 30） |
+| english_name | TEXT | NULL | 英文名（max 80） |
+| logo_object_key | TEXT | NULL | MinIO Logo 对象键 |
+| description | TEXT | NULL | 介绍（max 500） |
+| status | TEXT | NOT NULL, CHECK | `ENABLED` \| `DISABLED` |
+| sku_count | INTEGER | NOT NULL, DEFAULT 0 | 关联 SKU 数（本期默认 0） |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+ORM：`src/backend/app/models/brand.py`  
+迁移：`src/backend/app/db/migrations.py` → `_ensure_brands_table`
+
+---
+
+## 7. tiles（SKU 主表）
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| name | TEXT | NOT NULL | SKU 名称 |
+| sku_code | TEXT | NOT NULL, UNIQUE | SKU 编码 |
+| brand_id | INTEGER | NOT NULL, FK → brands.id | 品牌 |
+| category_id | INTEGER | NOT NULL, FK → tile_categories.id | 类目 |
+| size | TEXT | NOT NULL | 规格尺寸 |
+| surface_finish | TEXT | NOT NULL | 表面工艺 |
+| color_family | TEXT | NULL | 主色系 |
+| reference_price | REAL | NULL | 参考价格（元） |
+| remark | TEXT | NULL | 备注 |
+| status | TEXT | NOT NULL | `PUBLISHED` \| `DRAFT` \| `NEEDS_COMPLETION` \| `DISABLED` |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+ORM：`src/backend/app/models/tile.py`  
+迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`
 
 ---
 
@@ -140,7 +187,22 @@ ORM：`src/backend/app/models/user.py` → `LoginLog`
 
 ---
 
-## 9. 媒体资产（规划）
+## 9. tile_videos
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| tile_id | INTEGER | NOT NULL, FK → tiles.id | |
+| object_key | TEXT | NOT NULL | MinIO 对象键 |
+| file_name | TEXT | NOT NULL | 原始文件名 |
+| file_size_bytes | INTEGER | NULL | 文件大小 |
+| duration_seconds | REAL | NULL | 时长（秒） |
+| sort_order | INTEGER | NOT NULL, DEFAULT 0 | 排序 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+---
+
+## 10. 媒体资产（规划）
 
 `tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，未持久化到 SQLite。
 
@@ -164,8 +226,11 @@ ORM：`src/backend/app/models/user.py` → `LoginLog`
 
 | 表 | 主要 API |
 |---|---|
-| users | `POST /api/v1/auth/login`、`GET /api/v1/auth/me` |
-| tiles / tile_images | `GET /api/v1/tiles`、`POST /api/v1/admin/tiles`（桩） |
+| users | `POST /api/v1/auth/login`、`GET /api/v1/auth/me`、`/api/v1/admin/users` |
+| brands | `/api/v1/admin/brands` |
+| tile_categories | `/api/v1/admin/tile-categories` |
+| tile_categories | `/api/v1/admin/tile-categories` |
+| tiles / tile_images / tile_videos | `/api/v1/admin/tile-skus`、`GET /api/v1/tiles`（展示桩） |
 
 索引：`docs/03-api-index.md`
 

@@ -1,5 +1,11 @@
-import { FormEvent, useId, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { FormEvent, useEffect, useId, useState } from 'react';
 
+import {
+  clearLoginCredentials,
+  loadLoginCredentials,
+  saveLoginCredentials,
+} from '../utils/login-credentials';
 import { useAuth } from '../hooks/useAuth';
 
 interface LoginFormProps {
@@ -14,7 +20,18 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
+
+  useEffect(() => {
+    const stored = loadLoginCredentials();
+    if (!stored) {
+      return;
+    }
+    setUsername(stored.username);
+    setPassword(stored.password);
+    setRememberMe(true);
+  }, []);
 
   const submit = async () => {
     clearError();
@@ -32,6 +49,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
     try {
       await login(username.trim(), password, rememberMe);
+      if (rememberMe) {
+        saveLoginCredentials(username.trim(), password);
+      } else {
+        clearLoginCredentials();
+      }
       onSuccess();
     } catch {
       // error state handled in store
@@ -79,21 +101,36 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             密码
           </label>
         </div>
-        <input // ds-ok: login CSS port field-input
-          id={passwordId}
-          name="password"
-          type="password"
-          className="field-input"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              void submit();
-            }
-          }}
-          placeholder="请输入登录密码"
-          aria-invalid={Boolean(fieldErrors.password)}
-        />
+        <div className="password-wrap">
+          <input // ds-ok: login CSS port field-input
+            id={passwordId}
+            name="password"
+            type={passwordVisible ? 'text' : 'password'}
+            className="field-input"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                void submit();
+              }
+            }}
+            placeholder="请输入登录密码"
+            aria-invalid={Boolean(fieldErrors.password)}
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            aria-label={passwordVisible ? '隐藏密码' : '显示密码'}
+            aria-pressed={passwordVisible}
+            onClick={() => setPasswordVisible((current) => !current)}
+          >
+            {passwordVisible ? (
+              <EyeOff className="password-toggle-icon" aria-hidden="true" />
+            ) : (
+              <Eye className="password-toggle-icon" aria-hidden="true" />
+            )}
+          </button>
+        </div>
         {fieldErrors.password ? (
           <p className="field-error" role="alert">
             {fieldErrors.password}

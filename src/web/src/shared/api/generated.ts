@@ -11,6 +11,48 @@ import type {
   AxiosResponse
 } from 'axios';
 
+export interface BrandAdminItem {
+  id: number;
+  name: string;
+  sort_order: number;
+  short_name?: string | null;
+  english_name?: string | null;
+  logo_object_key?: string | null;
+  logo_url?: string | null;
+  description?: string | null;
+  status: string;
+  sku_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseBrandAdminItem {
+  code?: number;
+  message?: string;
+  data?: BrandAdminItem | null;
+}
+
+export interface BrandAdminSummary {
+  total: number;
+  enabled_count: number;
+  disabled_count: number;
+  unlinked_sku_count: number;
+}
+
+export interface BrandAdminListData {
+  items: BrandAdminItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  summary: BrandAdminSummary;
+}
+
+export interface ApiResponseBrandAdminListData {
+  code?: number;
+  message?: string;
+  data?: BrandAdminListData | null;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -42,6 +84,13 @@ export interface ApiResponseLogoutData {
   data?: LogoutData | null;
 }
 
+export interface ApiResponseNoneType {
+  code?: number;
+  message?: string;
+  /** @nullable */
+  data?: null;
+}
+
 export interface ResetPasswordData {
   password: string;
 }
@@ -50,6 +99,138 @@ export interface ApiResponseResetPasswordData {
   code?: number;
   message?: string;
   data?: ResetPasswordData | null;
+}
+
+export interface TileCategoryAdminItem {
+  id: number;
+  parent_id?: number | null;
+  name: string;
+  code: string;
+  sort_order: number;
+  level: number;
+  description?: string | null;
+  status: string;
+  sku_count: number;
+  path: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseTileCategoryAdminItem {
+  code?: number;
+  message?: string;
+  data?: TileCategoryAdminItem | null;
+}
+
+export interface TileCategoryAdminSummary {
+  total: number;
+  enabled_count: number;
+  bound_sku_total: number;
+  max_level?: number;
+}
+
+export interface TileCategoryAdminListData {
+  items: TileCategoryAdminItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  summary: TileCategoryAdminSummary;
+}
+
+export interface ApiResponseTileCategoryAdminListData {
+  code?: number;
+  message?: string;
+  data?: TileCategoryAdminListData | null;
+}
+
+export type TileSkuAdminItemStatus = typeof TileSkuAdminItemStatus[keyof typeof TileSkuAdminItemStatus];
+
+
+export const TileSkuAdminItemStatus = {
+  PUBLISHED: 'PUBLISHED',
+  DRAFT: 'DRAFT',
+  NEEDS_COMPLETION: 'NEEDS_COMPLETION',
+  DISABLED: 'DISABLED',
+} as const;
+
+export type TileSkuAdminItemMaterialCompleteness = typeof TileSkuAdminItemMaterialCompleteness[keyof typeof TileSkuAdminItemMaterialCompleteness];
+
+
+export const TileSkuAdminItemMaterialCompleteness = {
+  complete: 'complete',
+  missing_main_image: 'missing_main_image',
+  missing_images: 'missing_images',
+  missing_videos: 'missing_videos',
+} as const;
+
+export interface TileSkuImageItem {
+  id: number;
+  object_key: string;
+  url: string;
+  is_main: boolean;
+  sort_order: number;
+}
+
+export interface TileSkuVideoItem {
+  id: number;
+  object_key: string;
+  url: string;
+  file_name: string;
+  file_size_bytes?: number | null;
+  duration_seconds?: number | null;
+  sort_order: number;
+}
+
+export interface TileSkuAdminItem {
+  id: number;
+  name: string;
+  sku_code: string;
+  brand_id: number;
+  brand_name: string;
+  category_id: number;
+  category_name: string;
+  size: string;
+  surface_finish: string;
+  color_family?: string | null;
+  reference_price?: number | null;
+  remark?: string | null;
+  status: TileSkuAdminItemStatus;
+  main_image_url?: string | null;
+  image_count?: number;
+  video_count?: number;
+  has_main_image?: boolean;
+  material_completeness: TileSkuAdminItemMaterialCompleteness;
+  images?: TileSkuImageItem[];
+  videos?: TileSkuVideoItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseTileSkuAdminItem {
+  code?: number;
+  message?: string;
+  data?: TileSkuAdminItem | null;
+}
+
+export interface TileSkuAdminSummary {
+  total: number;
+  published_count: number;
+  needs_completion_count: number;
+  draft_count: number;
+}
+
+export type TileSkuAdminListDataPagination = {[key: string]: number};
+
+export interface TileSkuAdminListData {
+  items: TileSkuAdminItem[];
+  pagination: TileSkuAdminListDataPagination;
+  summary: TileSkuAdminSummary;
+}
+
+export interface ApiResponseTileSkuAdminListData {
+  code?: number;
+  message?: string;
+  data?: TileSkuAdminListData | null;
 }
 
 export interface UploadResult {
@@ -120,8 +301,62 @@ export interface ApiResponseUserProfile {
   data?: UserProfile | null;
 }
 
+export interface TileCategoryTreeNode {
+  id: number;
+  name: string;
+  code: string;
+  level: number;
+  status: string;
+  sku_count: number;
+  children?: TileCategoryTreeNode[];
+}
+
+export interface ApiResponseListTileCategoryTreeNode {
+  code?: number;
+  message?: string;
+  data?: TileCategoryTreeNode[] | null;
+}
+
+export interface BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost {
+  file: Blob;
+}
+
 export interface BodyUploadImageApiV1AdminUploadsPost {
   file: Blob;
+}
+
+export interface BodyUploadTileImageApiV1AdminUploadsTileImagesPost {
+  file: Blob;
+}
+
+export interface BodyUploadTileVideoApiV1AdminUploadsTileVideosPost {
+  file: Blob;
+}
+
+export interface BrandCreateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 50
+     */
+  name: string;
+  sort_order: number;
+  short_name?: string | null;
+  english_name?: string | null;
+  logo_object_key?: string | null;
+  description?: string | null;
+}
+
+export interface BrandUpdateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 50
+     */
+  name: string;
+  sort_order: number;
+  short_name?: string | null;
+  english_name?: string | null;
+  logo_object_key?: string | null;
+  description?: string | null;
 }
 
 export type ValidationErrorCtx = { [key: string]: unknown };
@@ -144,6 +379,33 @@ export interface LoginRequest {
   /** @minLength 1 */
   password: string;
   remember_me?: boolean;
+}
+
+export interface TileCategoryCreateRequest {
+  parent_id?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 30
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  code: string;
+  sort_order: number;
+  description?: string | null;
+  status?: string;
+}
+
+export interface TileCategoryUpdateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 30
+     */
+  name: string;
+  sort_order: number;
+  description?: string | null;
 }
 
 export interface TileCreate {
@@ -178,6 +440,58 @@ export interface TileListItem {
   model: string;
   category?: string | null;
   main_image_url?: string | null;
+}
+
+export type TileSkuCreateRequestSaveMode = typeof TileSkuCreateRequestSaveMode[keyof typeof TileSkuCreateRequestSaveMode];
+
+
+export const TileSkuCreateRequestSaveMode = {
+  draft: 'draft',
+  create: 'create',
+} as const;
+
+export interface TileSkuImageInput {
+  object_key: string;
+  url: string;
+  is_main?: boolean;
+  sort_order?: number;
+}
+
+export interface TileSkuVideoInput {
+  object_key: string;
+  file_name: string;
+  file_size_bytes?: number | null;
+  duration_seconds?: number | null;
+  sort_order?: number;
+}
+
+export interface TileSkuCreateRequest {
+  save_mode?: TileSkuCreateRequestSaveMode;
+  name: string;
+  sku_code?: string | null;
+  brand_id?: number | null;
+  category_id?: number | null;
+  size?: string | null;
+  surface_finish?: string | null;
+  color_family?: string | null;
+  reference_price?: number | null;
+  remark?: string | null;
+  images?: TileSkuImageInput[];
+  videos?: TileSkuVideoInput[];
+}
+
+export interface TileSkuUpdateRequest {
+  name?: string | null;
+  sku_code?: string | null;
+  brand_id?: number | null;
+  category_id?: number | null;
+  size?: string | null;
+  surface_finish?: string | null;
+  color_family?: string | null;
+  reference_price?: number | null;
+  remark?: string | null;
+  images?: TileSkuImageInput[] | null;
+  videos?: TileSkuVideoInput[] | null;
 }
 
 export interface UserCreateRequest {
@@ -215,6 +529,71 @@ keyword?: string | null;
 role?: string | null;
 status?: string | null;
 login_filter?: string | null;
+};
+
+export type ListBrandsApiV1AdminBrandsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+keyword?: string | null;
+status?: string | null;
+};
+
+export type ListCategoriesApiV1AdminTileCategoriesGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+page_size?: number;
+keyword?: string | null;
+status?: string | null;
+level?: number | null;
+parent_id?: number | null;
+};
+
+export type ListTileSkusApiV1AdminTileSkusGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+keyword?: string | null;
+brand_id?: number | null;
+category_id?: number | null;
+status?: string | null;
+material_completeness?: ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness;
+};
+
+export type ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness = typeof ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness[keyof typeof ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness] | null;
+
+
+export const ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness = {
+  complete: 'complete',
+  missing_main_image: 'missing_main_image',
+  missing_images: 'missing_images',
+  missing_videos: 'missing_videos',
+} as const;
+
+export type UploadTileImageApiV1AdminUploadsTileImagesPostParams = {
+tile_id?: number | null;
+};
+
+export type UploadTileVideoApiV1AdminUploadsTileVideosPostParams = {
+tile_id?: number | null;
 };
 
 export type HealthCheckHealthGet200 = {[key: string]: string};
@@ -364,7 +743,270 @@ const updateUserStatusApiV1AdminUsersUserIdStatusPatch = (
   }
 
 /**
- * @summary 上传图片
+ * @summary 品牌列表
+ */
+const listBrandsApiV1AdminBrandsGet = (
+    params?: ListBrandsApiV1AdminBrandsGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/brands`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建品牌
+ */
+const createBrandApiV1AdminBrandsPost = (
+    brandCreateRequest: BrandCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brands`,
+      brandCreateRequest,options
+    );
+  }
+
+/**
+ * @summary 品牌详情
+ */
+const getBrandApiV1AdminBrandsBrandIdGet = (
+    brandId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/brands/${brandId}`,options
+    );
+  }
+
+/**
+ * @summary 更新品牌
+ */
+const updateBrandApiV1AdminBrandsBrandIdPut = (
+    brandId: number,
+    brandUpdateRequest: BrandUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/brands/${brandId}`,
+      brandUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除品牌
+ */
+const deleteBrandApiV1AdminBrandsBrandIdDelete = (
+    brandId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseNoneType>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/brands/${brandId}`,options
+    );
+  }
+
+/**
+ * @summary 启用品牌
+ */
+const enableBrandApiV1AdminBrandsBrandIdEnablePost = (
+    brandId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brands/${brandId}/enable`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 停用品牌
+ */
+const disableBrandApiV1AdminBrandsBrandIdDisablePost = (
+    brandId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brands/${brandId}/disable`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 类目树
+ */
+const getCategoryTreeApiV1AdminTileCategoriesTreeGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseListTileCategoryTreeNode>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-categories/tree`,options
+    );
+  }
+
+/**
+ * @summary 类目列表
+ */
+const listCategoriesApiV1AdminTileCategoriesGet = (
+    params?: ListCategoriesApiV1AdminTileCategoriesGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-categories`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建类目
+ */
+const createCategoryApiV1AdminTileCategoriesPost = (
+    tileCategoryCreateRequest: TileCategoryCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-categories`,
+      tileCategoryCreateRequest,options
+    );
+  }
+
+/**
+ * @summary 类目详情
+ */
+const getCategoryApiV1AdminTileCategoriesCategoryIdGet = (
+    categoryId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-categories/${categoryId}`,options
+    );
+  }
+
+/**
+ * @summary 更新类目
+ */
+const updateCategoryApiV1AdminTileCategoriesCategoryIdPut = (
+    categoryId: number,
+    tileCategoryUpdateRequest: TileCategoryUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/tile-categories/${categoryId}`,
+      tileCategoryUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除类目
+ */
+const deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete = (
+    categoryId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseNoneType>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/tile-categories/${categoryId}`,options
+    );
+  }
+
+/**
+ * @summary 启用类目
+ */
+const enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost = (
+    categoryId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-categories/${categoryId}/enable`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 停用类目
+ */
+const disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost = (
+    categoryId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileCategoryAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-categories/${categoryId}/disable`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary SKU 列表
+ */
+const listTileSkusApiV1AdminTileSkusGet = (
+    params?: ListTileSkusApiV1AdminTileSkusGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-skus`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建 SKU
+ */
+const createTileSkuApiV1AdminTileSkusPost = (
+    tileSkuCreateRequest: TileSkuCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-skus`,
+      tileSkuCreateRequest,options
+    );
+  }
+
+/**
+ * @summary SKU 详情
+ */
+const getTileSkuApiV1AdminTileSkusTileIdGet = (
+    tileId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-skus/${tileId}`,options
+    );
+  }
+
+/**
+ * @summary 更新 SKU
+ */
+const updateTileSkuApiV1AdminTileSkusTileIdPut = (
+    tileId: number,
+    tileSkuUpdateRequest: TileSkuUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/tile-skus/${tileId}`,
+      tileSkuUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除 SKU
+ */
+const deleteTileSkuApiV1AdminTileSkusTileIdDelete = (
+    tileId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseNoneType>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/tile-skus/${tileId}`,options
+    );
+  }
+
+/**
+ * @summary 上架 SKU
+ */
+const publishTileSkuApiV1AdminTileSkusTileIdPublishPost = (
+    tileId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-skus/${tileId}/publish`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 下架 SKU
+ */
+const unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost = (
+    tileId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSkuAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-skus/${tileId}/unpublish`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 上传头像
  */
 const uploadImageApiV1AdminUploadsPost = (
     bodyUploadImageApiV1AdminUploadsPost: BodyUploadImageApiV1AdminUploadsPost, options?: AxiosRequestConfig
@@ -374,6 +1016,54 @@ formData.append(`file`, bodyUploadImageApiV1AdminUploadsPost.file);
     return axiosInstance.post(
       `/api/v1/admin/uploads`,
       formData,options
+    );
+  }
+
+/**
+ * @summary 上传品牌 Logo
+ */
+const uploadBrandLogoApiV1AdminUploadsBrandLogosPost = (
+    bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost: BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
+formData.append(`file`, bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost.file);
+
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/brand-logos`,
+      formData,options
+    );
+  }
+
+/**
+ * @summary 上传 SKU 图片
+ */
+const uploadTileImageApiV1AdminUploadsTileImagesPost = (
+    bodyUploadTileImageApiV1AdminUploadsTileImagesPost: BodyUploadTileImageApiV1AdminUploadsTileImagesPost,
+    params?: UploadTileImageApiV1AdminUploadsTileImagesPostParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
+formData.append(`file`, bodyUploadTileImageApiV1AdminUploadsTileImagesPost.file);
+
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/tile-images`,
+      formData,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 上传 SKU 视频
+ */
+const uploadTileVideoApiV1AdminUploadsTileVideosPost = (
+    bodyUploadTileVideoApiV1AdminUploadsTileVideosPost: BodyUploadTileVideoApiV1AdminUploadsTileVideosPost,
+    params?: UploadTileVideoApiV1AdminUploadsTileVideosPostParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
+formData.append(`file`, bodyUploadTileVideoApiV1AdminUploadsTileVideosPost.file);
+
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/tile-videos`,
+      formData,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 
@@ -388,7 +1078,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,uploadImageApiV1AdminUploadsPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type LogoutApiV1AuthLogoutPostResult = AxiosResponse<ApiResponseLogoutData>
@@ -401,5 +1091,30 @@ export type GetUserApiV1AdminUsersUserIdGetResult = AxiosResponse<ApiResponseUse
 export type UpdateUserApiV1AdminUsersUserIdPatchResult = AxiosResponse<ApiResponseUserAdminItem>
 export type ResetPasswordApiV1AdminUsersUserIdResetPasswordPostResult = AxiosResponse<ApiResponseResetPasswordData>
 export type UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResult = AxiosResponse<ApiResponseUserAdminItem>
+export type ListBrandsApiV1AdminBrandsGetResult = AxiosResponse<ApiResponseBrandAdminListData>
+export type CreateBrandApiV1AdminBrandsPostResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type GetBrandApiV1AdminBrandsBrandIdGetResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type UpdateBrandApiV1AdminBrandsBrandIdPutResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type DeleteBrandApiV1AdminBrandsBrandIdDeleteResult = AxiosResponse<ApiResponseNoneType>
+export type EnableBrandApiV1AdminBrandsBrandIdEnablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type DisableBrandApiV1AdminBrandsBrandIdDisablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type GetCategoryTreeApiV1AdminTileCategoriesTreeGetResult = AxiosResponse<ApiResponseListTileCategoryTreeNode>
+export type ListCategoriesApiV1AdminTileCategoriesGetResult = AxiosResponse<ApiResponseTileCategoryAdminListData>
+export type CreateCategoryApiV1AdminTileCategoriesPostResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
+export type GetCategoryApiV1AdminTileCategoriesCategoryIdGetResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
+export type UpdateCategoryApiV1AdminTileCategoriesCategoryIdPutResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
+export type DeleteCategoryApiV1AdminTileCategoriesCategoryIdDeleteResult = AxiosResponse<ApiResponseNoneType>
+export type EnableCategoryApiV1AdminTileCategoriesCategoryIdEnablePostResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
+export type DisableCategoryApiV1AdminTileCategoriesCategoryIdDisablePostResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
+export type ListTileSkusApiV1AdminTileSkusGetResult = AxiosResponse<ApiResponseTileSkuAdminListData>
+export type CreateTileSkuApiV1AdminTileSkusPostResult = AxiosResponse<ApiResponseTileSkuAdminItem>
+export type GetTileSkuApiV1AdminTileSkusTileIdGetResult = AxiosResponse<ApiResponseTileSkuAdminItem>
+export type UpdateTileSkuApiV1AdminTileSkusTileIdPutResult = AxiosResponse<ApiResponseTileSkuAdminItem>
+export type DeleteTileSkuApiV1AdminTileSkusTileIdDeleteResult = AxiosResponse<ApiResponseNoneType>
+export type PublishTileSkuApiV1AdminTileSkusTileIdPublishPostResult = AxiosResponse<ApiResponseTileSkuAdminItem>
+export type UnpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPostResult = AxiosResponse<ApiResponseTileSkuAdminItem>
 export type UploadImageApiV1AdminUploadsPostResult = AxiosResponse<ApiResponseUploadResult>
+export type UploadBrandLogoApiV1AdminUploadsBrandLogosPostResult = AxiosResponse<ApiResponseUploadResult>
+export type UploadTileImageApiV1AdminUploadsTileImagesPostResult = AxiosResponse<ApiResponseUploadResult>
+export type UploadTileVideoApiV1AdminUploadsTileVideosPostResult = AxiosResponse<ApiResponseUploadResult>
 export type HealthCheckHealthGetResult = AxiosResponse<HealthCheckHealthGet200>

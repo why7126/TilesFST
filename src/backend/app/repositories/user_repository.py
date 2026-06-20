@@ -141,8 +141,6 @@ class UserRepository:
                 (
                   username LIKE :keyword
                   OR IFNULL(display_name, '') LIKE :keyword
-                  OR IFNULL(email, '') LIKE :keyword
-                  OR IFNULL(phone, '') LIKE :keyword
                 )
                 """
             )

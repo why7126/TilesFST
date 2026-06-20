@@ -3,7 +3,7 @@ requirement_id: REQ-0005-user-management-list-refine
 title: 管理后台用户管理列表页 UI 优化
 terminal: web-admin
 version: v1
-status: draft
+status: in_sprint
 owner: product
 source: 基于 REQ-0005-user-management 已实现页面的产品优化反馈
 parent_requirement: REQ-0005-user-management
@@ -114,7 +114,7 @@ parent_requirement: REQ-0005-user-management
 ```yaml
 requirement_id: REQ-0005-user-management-list-refine
 priority: P1
-status: draft
+status: in_sprint
 owner: 产品负责人
 iteration: sprint-002
 openspec_change: fix-user-management-list-refine

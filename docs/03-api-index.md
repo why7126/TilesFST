@@ -72,7 +72,10 @@ Authorization: Bearer <access_token>
 | 瓷砖（展示） | `/api/v1/tiles` | 否 | 列表、详情 | 桩实现（返回空/示例） |
 | 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
-| 管理端上传 | `/api/v1/admin/uploads` | 是（仅 admin） | 头像上传（桩：avatars 前缀） | 桩实现 |
+| 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
+| 管理端类目 | `/api/v1/admin/tile-categories` | 是（admin/employee） | 类目树、CRUD、启停、条件删除 | ✓ Sprint 002 |
+| 管理端 SKU | `/api/v1/admin/tile-skus` | 是（admin/employee） | SKU CRUD、上下架、素材、筛选 summary | ✓ Sprint 002 |
+| 管理端上传 | `/api/v1/admin/uploads` | 是 | 头像（admin）；品牌 Logo、SKU 图片/视频（admin/employee） | 桩实现 |
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
 \* `uploads` 路由已挂载 `require_system_admin`；完整 MinIO 集成待后续 change。
@@ -91,9 +94,73 @@ OpenSpec：`openspec/changes/add-user-management/`
 | POST | `/api/v1/admin/users/{id}/reset-password` | Bearer（admin） |
 | PATCH | `/api/v1/admin/users/{id}/status` | Bearer（admin） |
 
-列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`role`、`status`、`login_filter`。
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`（仅匹配 `username`、`display_name`）、`role`、`status`、`login_filter`。
 
 创建成功 `data` 含 `user` 与一次性 `initial_password`。
+
+### 3.5 管理端品牌（Sprint 002）
+
+实现：`src/backend/app/api/v1/admin_brands.py`  
+OpenSpec：`openspec/changes/add-brand-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/brands` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/brands` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/brands/{id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/brands/{id}` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/brands/{id}/enable` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/brands/{id}/disable` | Bearer（admin/employee） |
+| DELETE | `/api/v1/admin/brands/{id}` | Bearer（admin/employee） |
+
+列表查询参数：`page`、`page_size`（20/50/100）、`keyword`、`status`（`ENABLED`/`DISABLED`）。  
+响应 `data.summary`：`total`、`enabled_count`、`disabled_count`、`unlinked_sku_count`。
+
+删除规则：仅 `sku_count=0` 且 `status=DISABLED` 时允许；否则 `code=30012`。
+
+品牌 Logo 上传：`POST /api/v1/admin/uploads/brand-logos`（admin/employee；JPG/PNG/WebP）。
+
+### 3.6 管理端瓷砖类目（Sprint 002）
+
+实现：`src/backend/app/api/v1/admin_tile_categories.py`  
+OpenSpec：`openspec/changes/add-tile-category-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/tile-categories/tree` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/tile-categories` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-categories` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/tile-categories/{id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/tile-categories/{id}` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-categories/{id}/enable` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-categories/{id}/disable` | Bearer（admin/employee） |
+| DELETE | `/api/v1/admin/tile-categories/{id}` | Bearer（admin/employee） |
+
+列表参数：`page`、`page_size`（10/20/50）、`keyword`、`status`、`level`、`parent_id`（含子孙扁平分页）。  
+树节点 `sku_count` 为含子级汇总；列表行 `sku_count` 为当前节点直接绑定数。
+
+### 3.7 管理端瓷砖 SKU（Sprint 002）
+
+实现：`src/backend/app/api/v1/admin_tile_skus.py`  
+OpenSpec：`openspec/changes/add-tile-sku-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/tile-skus` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-skus` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/tile-skus/{id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/tile-skus/{id}` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-skus/{id}/publish` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-skus/{id}/unpublish` | Bearer（admin/employee） |
+| DELETE | `/api/v1/admin/tile-skus/{id}` | Bearer（admin/employee） |
+
+列表参数：`page`、`page_size`（10/20/50/100）、`keyword`、`brand_id`、`category_id`、`status`、`material_completeness`。  
+响应 `data.summary`：`total`、`published_count`、`needs_completion_count`、`draft_count`。
+
+创建请求 `save_mode`：`draft`（仅名称必填）| `create`（全必填）。  
+错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
+
+SKU 素材上传：`POST /api/v1/admin/uploads/tile-images`、`POST /api/v1/admin/uploads/tile-videos`（可选 `tile_id` 查询参数）。
 
 ---
 

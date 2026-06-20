@@ -5,9 +5,9 @@ content: 关联文档、影响分析、建议 Change、测试映射
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: draft
-note: OpenSpec add-tile-category-management 已创建（proposed）
-readiness: partially-ready
+status: in_sprint
+note: add-tile-category-management 已 archive（2026-06-20）；web-client spec 已含 BUG-0001 fix 场景
+readiness: ready
 ---
 
 # 需求追踪
@@ -42,7 +42,7 @@ requirement_id: REQ-0005-tile-category-management
 requirement_name: tile-category-management
 requirement_type: 管理端 / 主数据
 priority: P0
-status: draft
+status: in_sprint
 owner: product
 source: admin-home V5 + tile-category-management HTML V2 原型
 target_users:
@@ -58,7 +58,7 @@ suggested_change_id: add-tile-category-management
 openspec_changes:
   - change_id: add-tile-category-management
     type: add
-    status: proposed
+    status: archived
     iteration: sprint-002
     requirement_id: REQ-0005-tile-category-management
     strategy: css-port
@@ -209,11 +209,12 @@ impact:
 | 2026-06-16 | `/requirement-to-change` | 补齐 user-stories / business-flow / acceptance / trace / test-plan；增强 requirement 元数据 |
 | 2026-06-16 | `/requirement-to-opsx` | 创建 `add-tile-category-management` OpenSpec（proposal/design/specs/tasks/trace） |
 | 2026-06-16 | 纳入 sprint-002 | 更新 `sprint.yaml` / `sprint.md` / release-note / acceptance-report |
+| 2026-06-20 | `/opsx-apply` | 34/37 任务完成；BUG-0001 fix 已合入代码 |
+| 2026-06-20 | `/opsx-archive` | 归档至 `2026-06-20-add-tile-category-management`；specs 已 sync（含 fix 启停场景） |
 
 ---
 
 ## 10. 后续动作
 
-1. 导出 `tile-category-management.png`、`tile-category-management-add.png` 至 `prototype/web/`。
-2. **`/opsx-apply add-tile-category-management`** → 实现 + 测试 + Orval。
-3. 完成后 **`/opsx-archive add-tile-category-management`**。
+1. 导出 `tile-category-management.png`、`tile-category-management-add.png` 至 `prototype/web/`（可选 PNG sign-off）。
+2. ~~`/opsx-archive add-tile-category-management`~~ ✓ 已归档

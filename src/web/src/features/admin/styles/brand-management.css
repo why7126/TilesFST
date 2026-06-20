@@ -1,0 +1,220 @@
+/**
+ * Brand management page — ported from brand-management HTML (V7).
+ * Scoped under .admin-shell; colors use admin-home token aliases.
+ */
+
+.admin-shell .brand-filter-row {
+  display: grid;
+  grid-template-columns: 1fr 180px auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-shell .brand-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-shell .brand-mgmt-table th,
+.admin-shell .brand-mgmt-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.admin-shell .brand-mgmt-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .brand-mgmt-table td {
+  color: var(--admin-muted);
+}
+
+.admin-shell .brand-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-shell .brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 3px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 26%, transparent);
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  overflow: hidden;
+}
+
+.admin-shell .brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .brand-name {
+  color: var(--admin-text);
+  font-size: 13px;
+}
+
+.admin-shell .brand-sub {
+  color: var(--admin-weak);
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.admin-shell .sort-num {
+  color: var(--admin-text);
+}
+
+.admin-shell .badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 1px;
+  font-size: 10px;
+}
+
+.admin-shell .badge.enabled {
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+}
+
+.admin-shell .badge.disabled {
+  background: rgb(255 255 255 / 0.06);
+  color: var(--admin-weak);
+}
+
+.admin-shell .brand-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.admin-shell .brand-modal-card {
+  width: 720px;
+  max-width: 100%;
+  max-height: calc(100vh - 96px);
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-card) 98%, transparent);
+  box-shadow: 0 28px 100px rgb(0 0 0 / 0.55);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-shell .brand-modal-desc {
+  color: var(--admin-weak);
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
+.admin-shell .brand-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 14px;
+}
+
+.admin-shell .brand-form-full {
+  grid-column: 1 / -1;
+}
+
+.admin-shell .brand-form-item label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--admin-muted);
+  margin-bottom: 8px;
+}
+
+.admin-shell .req {
+  color: var(--admin-gold);
+}
+
+.admin-shell .brand-textarea {
+  width: 100%;
+  height: 132px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  color: var(--admin-text);
+  font-size: 13px;
+  padding: 12px;
+  line-height: 1.7;
+  resize: none;
+  outline: none;
+}
+
+.admin-shell .brand-upload {
+  height: 138px;
+  border: 0.5px dashed color-mix(in srgb, var(--admin-gold) 36%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-gold) 6%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--admin-muted);
+  cursor: pointer;
+}
+
+.admin-shell .brand-upload-icon {
+  width: 34px;
+  height: 34px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 36%, transparent);
+  border-radius: 3px;
+  color: var(--admin-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.admin-shell .form-error {
+  font-size: 11px;
+  color: var(--admin-danger);
+  margin-top: 6px;
+}
+
+.admin-shell .brand-pagination-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .jump-input {
+  width: 48px;
+  height: 30px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  color: var(--admin-text);
+  text-align: center;
+}
+
+@media (max-width: 1023px) {
+  .admin-shell .brand-filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .brand-filter-row,
+  .admin-shell .brand-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

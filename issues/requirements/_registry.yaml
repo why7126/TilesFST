@@ -1,9 +1,10 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 9
-entries: []
-# 示例：
-# - id: REQ-0008-brand-export
-#   title: 品牌列表导出
-#   status: captured
-#   created: 2026-06-16
+next_id: 8
+entries:
+  - id: REQ-0007-tile-category-management-refine
+    title: 瓷砖类目管理页 UI 优化（启停确认、去标题、分页对齐）
+    status: in_sprint
+    iteration: sprint-002
+    created: 2026-06-20
+    parent_requirement: REQ-0005-tile-category-management

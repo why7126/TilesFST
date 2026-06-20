@@ -12,14 +12,18 @@ from sqlalchemy.orm import Session
 class TileRecord:
     id: int
     name: str
-    model: str
+    sku_code: str
     category_id: int | None
-    color: str | None
+    color_family: str | None
     size: str | None
-    description: str | None
+    remark: str | None
     status: str
     created_at: str | None
     updated_at: str | None
+
+    @property
+    def model(self) -> str:
+        return self.sku_code
 
 
 class TileRepository:
@@ -30,11 +34,11 @@ class TileRepository:
         return TileRecord(
             id=row["id"],
             name=row["name"],
-            model=row["model"],
+            sku_code=row["sku_code"],
             category_id=row["category_id"],
-            color=row["color"],
+            color_family=row.get("color_family"),
             size=row["size"],
-            description=row["description"],
+            remark=row.get("remark"),
             status=row["status"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
@@ -53,9 +57,9 @@ class TileRepository:
     ) -> tuple[list[TileRecord], int]:
         offset = (page - 1) * page_size
         params: dict = {"limit": page_size, "offset": offset}
-        where = "WHERE status = 'published'"
+        where = "WHERE status = 'PUBLISHED'"
         if keyword:
-            where += " AND (name LIKE :kw OR model LIKE :kw)"
+            where += " AND (name LIKE :kw OR sku_code LIKE :kw)"
             params["kw"] = f"%{keyword}%"
 
         rows = (

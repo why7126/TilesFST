@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import AuthForbiddenError, AuthUnauthorizedError, AuthUserDisabledError
 from app.core.security import decode_access_token
 from app.db.session import get_db
+from app.repositories.brand_repository import BrandRepository
+from app.repositories.tile_category_repository import TileCategoryRepository
+from app.repositories.tile_sku_repository import TileSkuRepository
 from app.repositories.user_repository import UserRecord, UserRepository
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -21,6 +24,18 @@ ADMIN_ROLES = {"admin", "employee"}
 
 def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
     return UserRepository(db)
+
+
+def get_brand_repository(db: Session = Depends(get_db)) -> BrandRepository:
+    return BrandRepository(db)
+
+
+def get_tile_category_repository(db: Session = Depends(get_db)) -> TileCategoryRepository:
+    return TileCategoryRepository(db)
+
+
+def get_tile_sku_repository(db: Session = Depends(get_db)) -> TileSkuRepository:
+    return TileSkuRepository(db)
 
 
 def get_current_user(
@@ -61,3 +76,6 @@ def require_system_admin(
     if current_user.role != "admin":
         raise AuthForbiddenError()
     return current_user
+
+
+require_admin_user = require_admin_access

@@ -5,7 +5,7 @@ content: 基于 requirement.md 提炼
 source: AI 根据 PRD 生成，项目团队确认
 update_method: PRD 变更时同步更新
 owner: product
-status: draft
+status: approved
 note: REQ-0005-user-management-list-refine
 ---
 

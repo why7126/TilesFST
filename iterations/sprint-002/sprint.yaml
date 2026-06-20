@@ -14,8 +14,11 @@ requirements:
   - REQ-0003-login-remember-autofill
   - REQ-0005-brand-management
   - REQ-0005-tile-category-management
+  - REQ-0006-tile-sku-management
+  - REQ-0007-tile-category-management-refine
 
-bugs: []
+bugs:
+  - BUG-0001-tile-category-enable-missing
 
 changes:
   - add-admin-home
@@ -24,6 +27,9 @@ changes:
   - add-login-remember-autofill
   - add-brand-management
   - add-tile-category-management
+  - fix-tile-category-enable-action
+  - add-tile-sku-management
+  - fix-tile-category-management-refine
 
-estimated_story_points: 67
-estimated_person_days: 41
+estimated_story_points: 93
+estimated_person_days: 57

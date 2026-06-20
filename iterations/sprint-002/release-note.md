@@ -1,7 +1,7 @@
 ---
 title: Sprint 002 发布说明
 purpose: 记录 Sprint 002 交付能力与发布注意事项（初稿）
-content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management 及对应 OpenSpec Change
+content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management 及对应 OpenSpec Change
 source: AI 根据迭代范围生成，项目团队确认
 update_method: Sprint 完成或范围变更时更新
 owner: 项目负责人
@@ -16,8 +16,9 @@ note: Sprint 002 规划中；实现完成后更新为 published
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-002 |
-| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management |
-| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management |
+| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine |
+| 关联 BUG | BUG-0001-tile-category-enable-missing |
+| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、add-tile-sku-management |
 | 计划周期 | 2026-06-15 ~ 2026-06-28 |
 | 发布状态 | **规划中（Draft）** |
 
@@ -77,25 +78,41 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - CSS Port：`features/admin/styles/tile-category-management.css`
 - 后端 Admin Tile Categories API；扩展 `tile_categories` 表
 
+### Web 管理端瓷砖 SKU 管理（计划）
+
+- `/admin/tile-skus` SKU 列表：五维筛选、四指标卡、分页（10/20/50/100，默认 20）
+- 新增/编辑 SKU 弹窗（880px）；多图主图、多视频；参考价格（元）；无状态字段、默认草稿
+- 「保存草稿」与「创建SKU」双按钮；上下架/条件删除
+- `admin` 与 `employee` 可维护 SKU 主数据
+- CSS Port：`features/admin/styles/tile-sku-management.css`
+- 后端 Admin Tile SKU API；扩展 `tiles` 表 + `tile_videos`；图片/视频 MinIO 上传
+
 ## 优化项（计划）
 
 - 移除 `AdminLayout` 顶栏外露退出按钮，退出收纳至用户菜单下拉（**BREAKING** UI 相对 Sprint 001）
 - 用户管理列表页筛选与分页信息层级收紧（REQ-0005-user-management-list-refine）
+- 瓷砖类目管理页启停确认、去 section 标题、分页对齐用户管理 v2（REQ-0007-tile-category-management-refine）
 - 登录后工作台视觉与登录页暗色旗舰风统一
 
 ## BUG 修复
 
-无（本 Sprint 无 BUG 范围）。
+### BUG-0001 瓷砖类目停用行缺少「启用」入口
+
+- **问题**：`/admin/tile-categories` 停用且 SKU=0 的行无法通过 UI 重新启用
+- **修复**：操作列对齐品牌管理页；停用行始终展示「启用」；删除规则不变
+- **影响**：仅 Web 前端 + vitest；无 API/DB 变更
+- OpenSpec：已归档 `2026-06-20-fix-tile-category-enable-action`
 
 ## 兼容性影响
 
 | 影响面 | 说明 |
 |---|---|
-| 后端 API | REQ-0005 新增 Admin Users API；REQ-0005-brand-management 新增 Admin Brands API；REQ-0005-tile-category-management 新增 Admin Tile Categories API |
-| 数据库 | REQ-0005 需 `users` 表迁移；REQ-0005-brand-management 需 `brands` 表；REQ-0005-tile-category-management 需扩展 `tile_categories` 表 |
-| Orval | REQ-0005、REQ-0005-brand-management、REQ-0005-tile-category-management 完成后需重新生成 |
+| 后端 API | REQ-0005 新增 Admin Users API；REQ-0005-brand-management 新增 Admin Brands API；REQ-0005-tile-category-management 新增 Admin Tile Categories API；REQ-0006-tile-sku-management 新增 Admin Tile SKU API |
+| 数据库 | REQ-0005 需 `users` 表迁移；REQ-0005-brand-management 需 `brands` 表；REQ-0005-tile-category-management 需扩展 `tile_categories` 表；REQ-0006-tile-sku-management 需扩展 `tiles` 表 + `tile_videos` |
+| Orval | REQ-0005、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management 完成后需重新生成 |
 | REQ-0005-user-management-list-refine | 无 API 端点变更；keyword 查询范围收窄 |
 | REQ-0003-login-remember-autofill | 无 API/DB 变更 |
+| REQ-0007-tile-category-management-refine | 无 API/DB 变更 |
 | Docker | Web + Backend 镜像重建 |
 | REQ-0001 | 退出登录入口位置变更（行为不变）；冻结用户登录拒绝 |
 
@@ -106,13 +123,14 @@ note: Sprint 002 规划中；实现完成后更新为 published
 3. 登录成功后访问 `http://localhost:3000/admin/dashboard`
 4. 使用 `admin` 账号访问 `http://localhost:3000/admin/users` 验证用户管理（含列表 v2 筛选/分页）
 5. 使用 `admin` 或 `employee` 访问 `http://localhost:3000/admin/brands` 验证品牌管理
-6. 使用 `admin` 或 `employee` 访问 `http://localhost:3000/admin/tile-categories` 验证类目管理
-7. 视觉验收：1280×1024 并排 `admin-home.png`、`user-management-list.png`（v2 refine）、`user-management-modal.png`、`brand-management.html`、`tile-category-management.html`
+6. 使用 `admin` 或 `employee` 访问 `http://localhost:3000/admin/tile-categories` 验证类目管理（含停用类目「启用」按钮）
+7. 使用 `admin` 或 `employee` 访问 `http://localhost:3000/admin/tile-skus` 验证 SKU 管理
+8. 视觉验收：1280×1024 并排 `admin-home.png`、`user-management-list.png`（v2 refine）、`user-management-modal.png`、`brand-management.html`、`tile-category-management.html`、`tile-sku-management-list.html`
 
 ## 已知限制（计划保留）
 
 - Dashboard 指标与最近更新为 mock 数据
-- SKU / Banner 管理页未实现
+- Banner 管理页未实现
 - 个人资料、密码修改为占位
 - 用户自助注册、细粒度 RBAC 未实现
 - 移动端 Sidebar 仅基础降级（桌面为主验收视口）
@@ -125,4 +143,6 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - `openspec/changes/fix-user-management-list-refine/trace.md`
 - `openspec/changes/add-login-remember-autofill/trace.md`
 - `openspec/changes/add-brand-management/trace.md`
-- `openspec/changes/add-tile-category-management/trace.md`
+- `openspec/changes/archive/2026-06-20-add-tile-category-management/trace.md`
+- `openspec/changes/fix-tile-category-management-refine/trace.md`
+- `issues/requirements/REQ-0007-tile-category-management-refine/acceptance.md`

@@ -72,7 +72,7 @@
 
 .admin-shell .filter-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.1fr auto auto;
+  grid-template-columns: 1.5fr 1fr 1fr 1.1fr auto;
   gap: 10px;
   align-items: end;
 }
@@ -174,6 +174,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.admin-shell .user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .admin-shell .avatar {
@@ -278,14 +284,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-top: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 26%, transparent);
 }
 
-.admin-shell .page-left {
+.admin-shell .page-summary {
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .page-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+}
+
+.admin-shell .page-size-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--admin-weak);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .admin-shell .page-size {

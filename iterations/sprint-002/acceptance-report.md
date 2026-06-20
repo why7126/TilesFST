@@ -1,7 +1,7 @@
 ---
 title: Sprint 002 验收报告
 purpose: 记录 Sprint 002 验收结果与遗留项（模板）
-content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management acceptance.md 及对应 OpenSpec Change
+content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management acceptance.md 及对应 OpenSpec Change
 source: AI 根据迭代范围生成，Sprint 结束时由团队填写
 update_method: Sprint 验收完成后更新
 owner: 产品负责人
@@ -16,8 +16,9 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-002 |
-| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management |
-| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management |
+| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine |
+| 关联 BUG | BUG-0001-tile-category-enable-missing |
+| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、add-tile-sku-management |
 | 计划验收日期 | 2026-06-28 |
 | 验收结论 | **实现完成，待验收（Pending sign-off）** |
 | 验收人 | _待填写_ |
@@ -53,7 +54,7 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 ## REQ-0005 功能验收
 
 > 来源：`issues/requirements/REQ-0005-user-management/acceptance.md`  
-> 状态：**已实现**（`add-user-management` applied；待 PNG 人工验收与 archive）
+> 状态：**apply 完成**（34/36 tasks；6.1 DS 可选跳过；待 `/opsx-archive`）
 
 ### 2.1 访问与权限
 
@@ -65,8 +66,8 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 
 ### 2.3 布局与视觉
 
-- [ ] AC-029 ~ AC-031 Sidebar 激活、布局、list.png 并排
-- [ ] AC-043 ~ AC-045 弹窗 PNG、design-system 预览
+- [x] AC-029 ~ AC-031 Sidebar 激活、布局、HTML v1 结构对照（trace checklist pass）
+- [ ] AC-043 ~ AC-045 弹窗 PNG golden、design-system 预览（6.1 可选跳过）
 
 ### 2.4 接口与数据
 
@@ -96,19 +97,19 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 ## REQ-0003-login-remember-autofill 功能验收
 
 > 来源：`issues/requirements/REQ-0003-login-remember-autofill/acceptance.md`  
-> 状态：**未开始**（待 `add-login-remember-autofill` opsx-apply）
+> 状态：**apply 完成**（17/18；vitest + trace checklist；待 archive）
 
 ### 记住凭证与自动填充
 
-- [ ] AC-001 ~ AC-007 本地存储、自动填充、JWT 行为无回归
+- [x] AC-001 ~ AC-007 本地存储、自动填充、JWT 行为无回归
 
 ### 登出与密码显隐
 
-- [ ] AC-008 ~ AC-014 登出清除、显隐切换、a11y、CSS Port
+- [x] AC-008 ~ AC-014 登出清除、显隐切换、a11y、CSS Port
 
 ### 安全与回归
 
-- [ ] AC-015 ~ AC-019 vitest、build、左栏 refine 无回归
+- [x] AC-015 ~ AC-019 vitest、build、左栏 refine 无回归
 
 ## REQ-0005-brand-management 功能验收
 
@@ -143,6 +144,27 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 ### 技术与视觉
 
 - [ ] AC-037 ~ AC-043 CSS Port、测试、HTML 原型并排（PNG 待补）
+
+## REQ-0006-tile-sku-management 功能验收
+
+> 来源：`issues/requirements/REQ-0006-tile-sku-management/acceptance.md`  
+> 状态：**apply 完成**（32/35 tasks；待 `/opsx-archive`；HTML gate 结构对照 pass）
+
+### 访问、列表与筛选
+
+- [x] AC-001 ~ AC-021 布局、指标卡、五维筛选、表格列、价格格式、分页（页码 UI 简化，见 trace §12 partial）
+
+### 弹窗、媒体与上下架
+
+- [x] AC-022 ~ AC-039 880px 弹窗、多图主图、多视频、save_mode、publish/unpublish、删除规则
+
+### 接口、数据与技术
+
+- [x] AC-042 ~ AC-053 Admin Tile SKU API、schema 扩展、Orval、测试（10 pytest passed）
+
+### 视觉
+
+- [x] AC-054 ~ AC-056 HTML 原型结构对照（trace.md checklist）；PNG 可选未导出
 
 ## 技术验收（REQ-0004）
 
@@ -193,6 +215,13 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 - [ ] `tile_categories` 表扩展迁移已应用
 - [ ] Orval 客户端已重新生成
 
+### REQ-0006-tile-sku-management
+
+- [x] Admin Tile SKU CRUD + publish/unpublish API 可用（`test_admin_tile_skus.py` 10 passed）
+- [x] `tiles` 表扩展 + `tile_videos` 迁移已应用
+- [x] Orval 客户端已重新生成
+- [x] 图片/视频上传 API 端点（桩 object_key；MinIO 完整链路待后续 change）
+
 ## 测试验收
 
 - [x] `npx vitest run src/features/admin src/pages/admin` — 8 passed
@@ -223,38 +252,86 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|
-| §1–§7 实现与测试 | 31 | 31 | ✓ 大部分完成 |
-| §8–§11 部署/PNG/归档 | 5 | 0 | 进行中 |
+| §1–§7 实现与测试 | 31 | 31 | ✓ 完成 |
+| §8 Docker | 1 | 1 | ✓ Web 200 / API 401 |
+| §9 HTML/PNG gate | 3 | 3 | trace checklist pass |
+| §10 文档 | 3 | 3 | ✓ |
+| §6 DS（可选） | 1 | 0 | 跳过 |
+| §11 archive | 1 | 1 | ✓ archived 2026-06-20 |
 
 ### fix-user-management-list-refine
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|
-| — | 22 | 0 | 待 `/opsx-apply` |
+| §1–§2 后端 + 前端 v2 UI | 8 | 8 | ✓ 完成 |
+| §3–§4 测试与构建 | 5 | 5 | ✓ pytest 9 / vitest pass / build |
+| §5 HTML 视觉 gate | 4 | 3 | trace pass；5.3 PNG 可选 |
+| §6 文档与归档 | 3 | 3 | ✓ archived 2026-06-20 |
 
 ### add-login-remember-autofill
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|
-| — | 17 | 0 | 待 `/opsx-apply` |
+| §1–§5 实现与测试 | 16 | 16 | ✓ 完成 |
+| §6–§7 冒烟与归档 | 5 | 5 | ✓ archived 2026-06-20 |
 
 ### add-brand-management
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|
-| — | 34 | 0 | 待 `/opsx-apply` |
+| §1–§5 后端 + 前端实现 | 26 | 26 | ✓ 完成 |
+| §6 DS 预览（可选） | 1 | 0 | 跳过 |
+| §7–§8 测试与构建 | 3 | 3 | ✓ Docker 200/401 |
+| §9 HTML 视觉 gate | 3 | 3 | trace checklist pass |
+| §10 文档与归档 | 3 | 2 | 10.3 PNG 可选；10.4 待 archive |
 
 ### add-tile-category-management
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|
-| — | 38 | 0 | 待 `/opsx-apply` |
+| §1–§5 后端 + 前端实现 | 26 | 26 | ✓ 完成 |
+| §6 DS 预览（可选） | 1 | 0 | 跳过 |
+| §7–§8 测试与构建 | 3 | 3 | ✓ Docker 200/401 |
+| §9 HTML 视觉 gate | 3 | 2 | 9.1–9.2 pass；9.3 PNG 待补 |
+| §10 文档 | 3 | 3 | ✓ archived 2026-06-20 |
+
+### add-tile-sku-management
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1–§6 后端 + 前端 + 测试 | 28 | 28 | ✓ 完成 |
+| §7 Docker | 1 | 1 | ✓ Web 200 / API 401 |
+| §8 HTML 视觉 gate | 3 | 3 | trace checklist pass（2 partial 已记录） |
+| §9 文档 | 2 | 2 | ✓ |
+| §9.3 PNG（可选） | 1 | 0 | 跳过 |
+| §9.4 archive | 1 | 0 | 待 `/opsx-archive` |
+
+### fix-tile-category-management-refine（REQ-0007）
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 启停确认 | 3 | 0 | 待 `/opsx-apply` |
+| §2 布局精简 | 3 | 0 | 待 apply |
+| §3 分页 v2 | 3 | 0 | 待 apply |
+| §4 测试 | 5 | 0 | 待 apply |
+| §5 冒烟与视觉 | 3 | 0 | 待 apply |
+| §6 追溯与归档 | 2 | 0 | 待 apply + archive |
+
+### fix-tile-category-enable-action（BUG-0001）
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 前端修复 | 2 | 2 | 完成 |
+| §2 测试 | 3 | 3 | 完成 |
+| §3 冒烟 | 2 | 2 | 完成 |
+| §4 追溯与归档 | 3 | 3 | 已 archive（--skip-specs） |
 
 ## 问题清单
 
 | 编号 | 描述 | 严重程度 | 状态 |
 |---|---|---|---|
-| — | _Sprint 进行中填写_ | — | — |
+| I-01 | BUG-0001 类目停用行无「启用」按钮 | high | 已修复并 archive |
+| I-02 | REQ-0007 类目页 UI refine 待实现 | medium | 已纳入 sprint-002；待 fix change apply |
 
 ## 遗留风险
 
@@ -263,14 +340,19 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 | L-01 | PNG 视觉 sign-off | P0 | 待关闭 |
 | L-02 | `add-admin-home` 归档 | P0 | 待关闭 |
 | L-03 | REQ-0001 退出入口文档同步 | P1 | 待确认 |
-| L-04 | `add-user-management` opsx 创建与实现 | P0 | 待启动 |
+| L-04 | `add-user-management` 实现与归档 | P0 | **archived** 2026-06-20 |
 | L-05 | 用户管理 list/modal PNG sign-off | P0 | 待关闭 |
-| L-05b | fix-user-management-list-refine 实现与 v2 PNG sign-off | P1 | 待启动 |
-| L-06 | add-login-remember-autofill 实现与归档 | P1 | 待启动 |
-| L-07 | add-brand-management 实现与归档 | P0 | 待启动 |
-| L-08 | 品牌管理 HTML/PNG sign-off | P1 | 待关闭 |
-| L-09 | add-tile-category-management 实现与归档 | P0 | 待启动 |
-| L-10 | 类目管理 HTML/PNG sign-off | P1 | 待关闭 |
+| L-05b | fix-user-management-list-refine 实现与 v2 PNG sign-off | P1 | **archived**；主 spec 仍为 v1 baseline，v2 MODIFIED 待合入 |
+| L-06 | add-login-remember-autofill 实现与归档 | P1 | **archived** 2026-06-20 |
+| L-07 | add-brand-management 实现与归档 | P0 | **32/35 apply 完成**；待 archive |
+| L-08 | 品牌管理 HTML/PNG sign-off | P1 | HTML trace pass；PNG 可选 |
+| L-09 | add-tile-category-management 实现与归档 | P0 | **archived** 2026-06-20；specs synced |
+| L-10 | 类目管理 HTML/PNG sign-off | P1 | HTML trace pass；PNG 待补 |
+| L-11 | add-tile-sku-management 实现与归档 | P0 | **32/35 apply 完成**；待 archive |
+| L-12 | SKU 管理 HTML/PNG sign-off | P1 | HTML trace pass；PNG 可选 |
+| L-13 | Sprint-002 容量超支（57 人天 / 2 周） | P1 | 监控；含 REQ-0007 +2 人天 |
+| L-14 | BUG-0001 类目启用 UI 缺陷 | P0 | 已修复并 archive |
+| L-15 | fix-tile-category-management-refine 实现与归档 | P1 | 已纳入 sprint-002；待 apply |
 
 ## 验收结论
 

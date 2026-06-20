@@ -18,9 +18,9 @@ export const adminNavSections: AdminNavSection[] = [
     ariaLabel: 'Operations',
     items: [
       { id: 'home', label: '首页', path: '/admin/dashboard' },
-      { id: 'sku', label: '瓷砖 SKU' },
-      { id: 'brand', label: '瓷砖品牌' },
-      { id: 'category', label: '瓷砖类目' },
+      { id: 'sku', label: '瓷砖 SKU', path: '/admin/tile-skus' },
+      { id: 'brand', label: '瓷砖品牌', path: '/admin/brands' },
+      { id: 'category', label: '瓷砖类目', path: '/admin/tile-categories' },
       { id: 'banner', label: 'Banner 管理' },
     ],
   },

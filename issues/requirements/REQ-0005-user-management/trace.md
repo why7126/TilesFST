@@ -5,8 +5,8 @@ content: 基于 requirement.md 与项目目录结构维护
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: product
-status: applied
-note: add-user-management 已实现；待 PNG 验收与 /opsx-archive
+status: archived
+note: add-user-management 已 archive（2026-06-20）；列表 v2 见 fix-user-management-list-refine
 ---
 
 # 需求追踪
@@ -18,7 +18,7 @@ requirement_id: REQ-0005-user-management
 requirement_name: user-management
 requirement_type: 管理端 / 用户与权限
 priority: P0
-status: applied
+status: archived
 source: 基于 admin-home 与管理端用户体系扩展
 target_users:
   - 系统管理员（后台管理员）
@@ -36,7 +36,7 @@ related_changes:
 openspec_changes:
   - change_id: add-user-management
     type: add
-    status: applied
+    status: archived
     iteration: sprint-002
     requirement_id: REQ-0005-user-management
     strategy: css-port
@@ -97,6 +97,7 @@ openspec_changes:
 | 2026-06-15 | 纳入 sprint-002 | 更新 `iterations/sprint-002/` 四件套与本 trace |
 | 2026-06-15 | `/requirement-to-opsx` | 创建 `add-user-management` OpenSpec（CSS Port） |
 | 2026-06-15 | 子需求入库 | `REQ-0005-user-management-list-refine` 列表页六项 UI 优化 |
+| 2026-06-20 | opsx-archive | `add-user-management` 归档；spec 写入 `openspec/specs/user-management/` |
 
 ## 7. 后续动作
 

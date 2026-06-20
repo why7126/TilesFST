@@ -5,8 +5,9 @@ content: 关联父需求、原型与 OpenSpec
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: draft
-note: 子需求，优化 add-user-management 列表页
+status: in_sprint
+note: /req-review approved 2026-06-20
+readiness: ready
 ---
 
 # 需求追踪
@@ -18,7 +19,7 @@ requirement_id: REQ-0005-user-management-list-refine
 requirement_name: user-management-list-refine
 requirement_type: 管理端 / UI 优化
 priority: P1
-status: draft
+status: in_sprint
 parent_requirement: REQ-0005-user-management
 source: 产品对已实现用户管理列表页的六项 UI 优化
 target_users:
@@ -37,8 +38,14 @@ related_changes:
 openspec_changes:
   - change_id: fix-user-management-list-refine
     type: fix
-    status: proposed
+    status: archived
     requirement_id: REQ-0005-user-management-list-refine
+lifecycle:
+  captured: 2026-06-15
+  generated: 2026-06-15
+  completed: 2026-06-15
+  reviewed: 2026-06-20
+  approved: 2026-06-20
 ```
 
 ## 2. 优化项映射
@@ -71,6 +78,9 @@ openspec_changes:
 |---|---|---|
 | 2026-06-15 | 需求入库 | 新建 REQ-0005-user-management-list-refine 目录与六件套 |
 | 2026-06-16 | 纳入 sprint-002 | 同步 `iterations/sprint-002` 四件套 |
+| 2026-06-20 | 需求评审 | `/req-review` approved（REV-REQ-0005-list-refine-001） |
+| 2026-06-20 | sprint-apply | `fix-user-management-list-refine` 实现完成（18/20 tasks） |
+| 2026-06-20 | opsx-archive | 归档至 `openspec/changes/archive/2026-06-20-fix-user-management-list-refine/`（spec sync 待 add-user-management archive） |
 
 ## 5. 后续动作
 

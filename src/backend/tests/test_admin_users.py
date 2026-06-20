@@ -6,6 +6,7 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.seed import DEFAULT_ADMIN_USERNAME
@@ -158,3 +159,66 @@ def test_reset_password(client: TestClient) -> None:
     )
     assert response.status_code == 200
     assert len(response.json()["data"]["password"]) >= 12
+
+
+def test_keyword_matches_username_and_display_name_only(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    username = "kw_search_user"
+    display_name = "昵称搜索专用"
+    create = client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={"username": username, "display_name": display_name, "role": "employee"},
+    )
+    assert create.status_code == 200
+    user_id = create.json()["data"]["user"]["id"]
+
+    session = get_session_factory()()
+    try:
+        session.execute(
+            text("UPDATE users SET email = :email, phone = :phone WHERE id = :id"),
+            {
+                "email": "kw-only-email@example.com",
+                "phone": "13900001111",
+                "id": user_id,
+            },
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    by_username = client.get(
+        "/api/v1/admin/users",
+        headers=headers,
+        params={"keyword": "kw_search"},
+    )
+    assert by_username.status_code == 200
+    usernames = [item["username"] for item in by_username.json()["data"]["items"]]
+    assert username in usernames
+
+    by_display_name = client.get(
+        "/api/v1/admin/users",
+        headers=headers,
+        params={"keyword": "昵称搜索"},
+    )
+    assert by_display_name.status_code == 200
+    usernames = [item["username"] for item in by_display_name.json()["data"]["items"]]
+    assert username in usernames
+
+    by_email = client.get(
+        "/api/v1/admin/users",
+        headers=headers,
+        params={"keyword": "kw-only-email"},
+    )
+    assert by_email.status_code == 200
+    usernames = [item["username"] for item in by_email.json()["data"]["items"]]
+    assert username not in usernames
+
+    by_phone = client.get(
+        "/api/v1/admin/users",
+        headers=headers,
+        params={"keyword": "13900001111"},
+    )
+    assert by_phone.status_code == 200
+    usernames = [item["username"] for item in by_phone.json()["data"]["items"]]
+    assert username not in usernames

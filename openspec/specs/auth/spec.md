@@ -24,6 +24,12 @@ TBD - created by archiving change add-user-login. Update Purpose after archive.
 - **WHEN** 用户提供正确的凭证但用户 status 为 `disabled`
 - **THEN** 系统返回 HTTP 403，错误码 `AUTH_USER_DISABLED`，消息为「账号已停用，请联系管理员」
 
+#### Scenario: 用户已软删除
+
+- **WHEN** 用户提供正确的凭证但用户 status 为 `deleted`
+- **THEN** 系统 MUST 返回 HTTP 403，错误码 `AUTH_USER_DISABLED` 或 `AUTH_USER_DELETED`
+- **AND** 行为 MUST 与禁用用户一致（不允许登录）
+
 #### Scenario: 请求参数无效
 
 - **WHEN** 请求体缺少 username 或 password，或字段为空
@@ -80,18 +86,24 @@ TBD - created by archiving change add-user-login. Update Purpose after archive.
 
 ### Requirement: 用户数据模型
 
-系统 MUST 维护 `users` 表，支持以下角色：`admin`（系统管理员）、`employee`（企业内部员工）、`store_owner`（瓷砖零售店店主，本期预留）。
+系统 MUST 维护 `users` 表，支持以下角色：`admin`（系统管理员 / 后台管理员）、`employee`（企业内部员工 / 后台运营）、`store_owner`（瓷砖零售店店主 / 前台用户，本期预留）。用户 MUST 支持可选头像引用 `avatar_object_key`；`display_name`（昵称）MAY 为空，展示层回退 username。
 
 #### Scenario: 用户角色字段
 
 - **WHEN** 系统存储用户信息
 - **THEN** role 字段 MUST 为 `admin`、`employee` 或 `store_owner` 之一
-- **AND** status 字段 MUST 为 `active` 或 `disabled`
+- **AND** status 字段 MUST 为 `active`、`disabled` 或 `deleted` 之一
 
 #### Scenario: 用户名唯一
 
 - **WHEN** 系统创建用户
 - **THEN** username MUST 在表中唯一
+
+#### Scenario: 昵称可为空
+
+- **WHEN** 系统创建或更新用户且未提供 display_name
+- **THEN** 数据库 MAY 存储 NULL 或空字符串
+- **AND** API 响应与前端展示 MUST 回退为 username
 
 ### Requirement: 管理端角色访问控制
 
@@ -138,4 +150,23 @@ TBD - created by archiving change add-user-login. Update Purpose after archive.
 
 - **WHEN** 部署环境设置 `ADMIN_INITIAL_PASSWORD` 且数据库无 admin 用户
 - **THEN** 系统 MUST 创建 role 为 `admin` 的默认用户
+
+### Requirement: 管理端用户管理 API 访问控制
+
+系统 MUST 将 `/api/v1/admin/users` 及其子路径设为 **仅 `admin` 角色** 可访问的受保护管理端 API。`employee` 角色 MUST NOT 调用上述接口，即使其可访问其他管理端 API。
+
+#### Scenario: 管理员调用用户管理 API
+
+- **WHEN** `role=admin` 的用户携带有效 token 访问 `/api/v1/admin/users` 或子资源
+- **THEN** 系统 MUST 允许访问（subject to 业务校验）
+
+#### Scenario: 运营人员被拒绝
+
+- **WHEN** `role=employee` 的用户访问 `/api/v1/admin/users` 或子资源
+- **THEN** 系统 MUST 返回 HTTP 403
+
+#### Scenario: 前台用户被拒绝
+
+- **WHEN** `role=store_owner` 的用户访问上述路径
+- **THEN** 系统 MUST 返回 HTTP 403
 

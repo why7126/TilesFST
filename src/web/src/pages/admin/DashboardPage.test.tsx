@@ -1,11 +1,16 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { DashboardPage } from './DashboardPage';
 
 describe('DashboardPage', () => {
   it('renders four metrics, four quick actions, and recent updates table', () => {
-    render(<DashboardPage />);
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('SKU 总数')).toBeInTheDocument();
     expect(screen.getByText('品牌数量')).toBeInTheDocument();

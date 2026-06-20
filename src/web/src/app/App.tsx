@@ -5,7 +5,10 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './router/ProtectedRoute';
 import { useAuthStore } from '../features/auth/store/auth-store';
 import { AdminLayout } from '../pages/admin/AdminLayout';
+import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
+import { TileCategoryManagementPage } from '../pages/admin/TileCategoryManagementPage';
+import { TileSkuManagementPage } from '../pages/admin/TileSkuManagementPage';
 import { UserManagementPage } from '../pages/admin/UserManagementPage';
 import { ForbiddenPage } from '../pages/admin/ForbiddenPage';
 import { LoginPage } from '../pages/admin/LoginPage';
@@ -54,6 +57,9 @@ export function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<DashboardPage />} />
+              <Route path="/admin/brands" element={<BrandManagementPage />} />
+              <Route path="/admin/tile-categories" element={<TileCategoryManagementPage />} />
+              <Route path="/admin/tile-skus" element={<TileSkuManagementPage />} />
               <Route element={<ProtectedRoute requireAdmin />}>
                 <Route path="/admin/users" element={<UserManagementPage />} />
               </Route>

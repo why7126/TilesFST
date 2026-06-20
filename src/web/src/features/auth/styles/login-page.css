@@ -329,6 +329,47 @@ html:has(.login-shell) body {
   border-color: var(--color-error);
 }
 
+.login-shell .password-wrap {
+  position: relative;
+}
+
+.login-shell .password-wrap .field-input {
+  padding-right: 52px;
+}
+
+.login-shell .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--login-muted);
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.login-shell .password-toggle:hover {
+  color: var(--login-text);
+}
+
+.login-shell .password-toggle:focus-visible {
+  outline: 2px solid var(--login-gold);
+  outline-offset: 2px;
+}
+
+.login-shell .password-toggle-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .login-shell .form-options {
   display: flex;
   justify-content: flex-start;

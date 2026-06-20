@@ -32,7 +32,8 @@ function formatDate(value: string): string {
 }
 
 export function UserManagementPage() {
-  const [keyword, setKeyword] = useState('');
+  const [keywordDraft, setKeywordDraft] = useState('');
+  const [appliedKeyword, setAppliedKeyword] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
   const [loginFilter, setLoginFilter] = useState('');
@@ -55,7 +56,7 @@ export function UserManagementPage() {
         const result = await fetchUsers({
           page: currentPage,
           page_size: pageSize,
-          keyword: keyword.trim() || undefined,
+          keyword: appliedKeyword || undefined,
           role: role || undefined,
           status: status || undefined,
           login_filter: loginFilter || undefined,
@@ -67,7 +68,7 @@ export function UserManagementPage() {
         setLoading(false);
       }
     },
-    [keyword, role, status, loginFilter, page, pageSize],
+    [appliedKeyword, role, status, loginFilter, page, pageSize],
   );
 
   useEffect(() => {
@@ -75,18 +76,28 @@ export function UserManagementPage() {
   }, [loadUsers]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const next = keywordDraft.trim();
+      setAppliedKeyword(next);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [keywordDraft]);
+
+  useEffect(() => {
     if (!notice) return;
     const timer = window.setTimeout(() => setNotice(null), 3200);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const handleSearch = () => {
+  const handleKeywordEnter = () => {
+    setAppliedKeyword(keywordDraft.trim());
     setPage(1);
-    void loadUsers(1);
   };
 
   const handleReset = () => {
-    setKeyword('');
+    setKeywordDraft('');
+    setAppliedKeyword('');
     setRole('');
     setStatus('');
     setLoginFilter('');
@@ -150,8 +161,6 @@ export function UserManagementPage() {
   };
 
   const total = data?.total ?? 0;
-  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, total);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
@@ -181,15 +190,22 @@ export function UserManagementPage() {
             <span className="field-label">关键词</span>
             <input
               className="input"
-              placeholder="搜索用户名 / 昵称 / 邮箱"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="搜索用户名/昵称"
+              value={keywordDraft}
+              onChange={(e) => setKeywordDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleKeywordEnter()}
             />
           </label>
           <label>
             <span className="field-label">角色</span>
-            <select className="select" value={role} onChange={(e) => setRole(e.target.value)}>
+            <select
+              className="select"
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value);
+                setPage(1);
+              }}
+            >
               {ROLE_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.value}>
                   {opt.label}
@@ -199,7 +215,14 @@ export function UserManagementPage() {
           </label>
           <label>
             <span className="field-label">状态</span>
-            <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select
+              className="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.value}>
                   {opt.label}
@@ -212,7 +235,10 @@ export function UserManagementPage() {
             <select
               className="select"
               value={loginFilter}
-              onChange={(e) => setLoginFilter(e.target.value)}
+              onChange={(e) => {
+                setLoginFilter(e.target.value);
+                setPage(1);
+              }}
             >
               {LOGIN_FILTER_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.value}>
@@ -221,9 +247,6 @@ export function UserManagementPage() {
               ))}
             </select>
           </label>
-          <button type="button" className="btn primary" onClick={handleSearch}>
-            搜索
-          </button>
           <button type="button" className="btn" onClick={handleReset}>
             重置
           </button>
@@ -253,119 +276,92 @@ export function UserManagementPage() {
         </article>
       </section>
 
-      <section aria-label="用户列表">
-        <div className="section-head">
-          <h2 className="section-title">用户列表</h2>
-          <span className="section-note">共 {data?.summary.total ?? 0} 个用户</span>
-        </div>
-        <div className="table-card">
-          <div className="table-toolbar">
-            <div className="table-count">
-              当前显示 <strong>{loading ? '…' : `${start}-${end}`}</strong> / {total}
-            </div>
-            <span className="section-note">仅后台管理员可编辑用户</span>
-          </div>
-          <table className="user-mgmt-table">
-            <thead>
-              <tr>
-                <th>用户</th>
-                <th>角色</th>
-                <th>状态</th>
-                <th>最后登录</th>
-                <th>创建时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data?.items ?? []).map((user) => {
-                const isDeleted = user.status === 'deleted';
-                const canDelete = !user.last_login_at && !isDeleted;
-                return (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="user-cell">
-                        <span className="avatar">
-                          {getUserInitials(user.display_name, user.username)}
-                        </span>
-                        <span>
-                          <span className="user-main">{user.username}</span>
-                          <span className="user-sub">
-                            {user.display_name || user.email || '未设置昵称'}
-                          </span>
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={roleBadgeClass(user.role)}>{roleLabel(user.role)}</span>
-                    </td>
-                    <td>
-                      <span className={statusBadgeClass(user.status)}>
-                        {statusLabel(user.status)}
+      <section className="table-card" aria-label="用户列表">
+        <table className="user-mgmt-table">
+          <thead>
+            <tr>
+              <th>用户</th>
+              <th>角色</th>
+              <th>状态</th>
+              <th>最后登录</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(data?.items ?? []).map((user) => {
+              const isDeleted = user.status === 'deleted';
+              const canDelete = !user.last_login_at && !isDeleted;
+              return (
+                <tr key={user.id}>
+                  <td>
+                    <div className="user-cell">
+                      <span className="avatar">
+                        {getUserInitials(user.display_name, user.username)}
                       </span>
-                    </td>
-                    <td>{formatLoginTime(user.last_login_at)}</td>
-                    <td>{formatDate(user.created_at)}</td>
-                    <td>
-                      <div className="actions">
-                        <button
-                          type="button"
-                          className={`link-btn${isDeleted ? ' disabled' : ''}`}
-                          disabled={isDeleted}
-                          onClick={() => openEdit(user)}
-                        >
-                          编辑
-                        </button>
-                        <button
-                          type="button"
-                          className={`link-btn${isDeleted ? ' disabled' : ''}`}
-                          disabled={isDeleted}
-                          onClick={() => void handleResetPassword(user)}
-                        >
-                          重置密码
-                        </button>
-                        <button
-                          type="button"
-                          className={`link-btn danger${isDeleted ? ' disabled' : ''}`}
-                          disabled={isDeleted}
-                          onClick={() => void handleFreeze(user)}
-                        >
-                          {user.status === 'disabled' ? '解冻' : '冻结'}
-                        </button>
-                        <button
-                          type="button"
-                          className={`link-btn${canDelete ? ' danger' : ' disabled'}`}
-                          disabled={!canDelete}
-                          title={canDelete ? undefined : '已登录用户不可删除'}
-                          onClick={() => void handleDelete(user)}
-                        >
-                          删除
-                        </button>
+                      <div className="user-meta">
+                        <span className="user-main">{user.username}</span>
+                        <span className="user-sub">
+                          {user.display_name?.trim() ? user.display_name : '未设置昵称'}
+                        </span>
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div className="pagination">
-            <div className="page-left">
-              <span>每页</span>
-              <select
-                className="page-size"
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setPage(1);
-                }}
-              >
-                <option value={10}>10 条</option>
-                <option value={20}>20 条</option>
-                <option value={50}>50 条</option>
-              </select>
-              <span>
-                {start}-{end} / {total}
-              </span>
-            </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={roleBadgeClass(user.role)}>{roleLabel(user.role)}</span>
+                  </td>
+                  <td>
+                    <span className={statusBadgeClass(user.status)}>
+                      {statusLabel(user.status)}
+                    </span>
+                  </td>
+                  <td>{formatLoginTime(user.last_login_at)}</td>
+                  <td>{formatDate(user.created_at)}</td>
+                  <td>
+                    <div className="actions">
+                      <button
+                        type="button"
+                        className={`link-btn${isDeleted ? ' disabled' : ''}`}
+                        disabled={isDeleted}
+                        onClick={() => openEdit(user)}
+                      >
+                        编辑
+                      </button>
+                      <button
+                        type="button"
+                        className={`link-btn${isDeleted ? ' disabled' : ''}`}
+                        disabled={isDeleted}
+                        onClick={() => void handleResetPassword(user)}
+                      >
+                        重置密码
+                      </button>
+                      <button
+                        type="button"
+                        className={`link-btn danger${isDeleted ? ' disabled' : ''}`}
+                        disabled={isDeleted}
+                        onClick={() => void handleFreeze(user)}
+                      >
+                        {user.status === 'disabled' ? '解冻' : '冻结'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`link-btn${canDelete ? ' danger' : ' disabled'}`}
+                        disabled={!canDelete}
+                        title={canDelete ? undefined : '已登录用户不可删除'}
+                        onClick={() => void handleDelete(user)}
+                      >
+                        删除
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div className="pagination">
+          <div className="page-summary">共 {loading ? '…' : total} 个用户</div>
+          <div className="page-right">
             <div className="page-buttons">
               <button
                 type="button"
@@ -386,6 +382,22 @@ export function UserManagementPage() {
               >
                 ›
               </button>
+            </div>
+            <div className="page-size-wrap">
+              <span>每页显示</span>
+              <select
+                className="page-size"
+                value={pageSize}
+                aria-label="每页显示条数"
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                <option value={10}>10 条</option>
+                <option value={20}>20 条</option>
+                <option value={50}>50 条</option>
+              </select>
             </div>
           </div>
         </div>

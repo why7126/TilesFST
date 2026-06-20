@@ -5,8 +5,8 @@ content: 关联文档、影响分析、建议 Change、测试映射
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: draft
-note: OpenSpec add-login-remember-autofill 已创建（proposed）
+status: done
+note: add-login-remember-autofill archived（2026-06-20）
 readiness: ready
 ---
 
@@ -40,7 +40,7 @@ requirement_id: REQ-0003-login-remember-autofill
 requirement_name: login-remember-autofill
 requirement_type: 管理端 / 登录体验 Enhancement
 priority: P1
-status: draft
+status: done
 owner: 产品负责人
 source: 产品对管理端登录页交互优化（记住凭证自动填充 + 密码显隐）
 target_users:
@@ -55,7 +55,7 @@ suggested_change_id: add-login-remember-autofill
 openspec_changes:
   - change_id: add-login-remember-autofill
     type: add
-    status: proposed
+    status: archived
     iteration: sprint-002
     requirement_id: REQ-0003-login-remember-autofill
     strategy: login-css-port-extension
@@ -182,6 +182,7 @@ impact:
 | 2026-06-15 | `/requirement-to-change` | 统一编号、补 trace 分析、test-plan |
 | 2026-06-15 | `/requirement-to-opsx` | 创建 `add-login-remember-autofill` OpenSpec |
 | 2026-06-15 | 纳入 sprint-002 | 更新 `iterations/sprint-002/` 四件套与本 trace |
+| 2026-06-20 | opsx-archive | 归档至 `openspec/changes/archive/2026-06-20-add-login-remember-autofill/` |
 
 ---
 

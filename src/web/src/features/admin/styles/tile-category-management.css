@@ -1,0 +1,291 @@
+/**
+ * Tile category management — ported from tile-category-management HTML V2.
+ */
+
+.admin-shell .cat-section {
+  margin-top: 18px;
+}
+
+.admin-shell .cat-filter-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 0.8fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-shell .cat-filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-shell .cat-work-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 12px;
+}
+
+.admin-shell .tree-card {
+  padding: 14px 12px;
+  min-height: 484px;
+  border: 0.5px solid var(--admin-line);
+  background: var(--admin-card-bg);
+  backdrop-filter: blur(18px);
+  border-radius: 3px;
+}
+
+.admin-shell .tree-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 6px;
+}
+
+.admin-shell .tree-title {
+  font-size: 13px;
+}
+
+.admin-shell .tree-node {
+  width: 100%;
+  min-height: 34px;
+  margin: 2px 0;
+  padding: 0 8px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  border: 0.5px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-shell .tree-node:hover {
+  color: var(--admin-text);
+  background: rgb(255 255 255 / 0.025);
+}
+
+.admin-shell .tree-node.active {
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  border-color: color-mix(in srgb, var(--admin-gold) 24%, transparent);
+}
+
+.admin-shell .tree-node .dot {
+  width: 13px;
+  height: 13px;
+  border: 0.5px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.76;
+  flex-shrink: 0;
+}
+
+.admin-shell .tree-node.level-2 {
+  padding-left: 28px;
+}
+
+.admin-shell .tree-node.level-3 {
+  padding-left: 48px;
+}
+
+.admin-shell .tree-count {
+  margin-left: auto;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .cat-table-toolbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .toolbar-title {
+  font-size: 13px;
+}
+
+.admin-shell .toolbar-desc {
+  margin-left: 8px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .cat-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-shell .cat-mgmt-table th,
+.admin-shell .cat-mgmt-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.admin-shell .cat-mgmt-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .cat-mgmt-table td {
+  color: var(--admin-muted);
+}
+
+.admin-shell .cat-mgmt-table tbody tr:hover {
+  background: rgb(255 255 255 / 0.025);
+}
+
+.admin-shell .cat-name {
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+.admin-shell .cat-path {
+  display: block;
+  margin-top: 5px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .cat-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 1px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.admin-shell .cat-badge.ok {
+  background: rgb(143 174 120 / 0.12);
+  color: var(--admin-ok, #8fae78);
+}
+
+.admin-shell .cat-badge.off {
+  background: rgb(237 232 223 / 0.06);
+  color: var(--admin-weak);
+}
+
+.admin-shell .cat-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-shell .category-modal {
+  width: 560px;
+  max-width: calc(100vw - 48px);
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-card) 98%, transparent);
+  box-shadow: 0 30px 100px rgb(0 0 0 / 0.58);
+  overflow: hidden;
+}
+
+.admin-shell .cat-modal-row {
+  margin-bottom: 16px;
+}
+
+.admin-shell .cat-modal-row label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--admin-weak);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .cat-modal-help {
+  margin-top: 6px;
+  color: var(--admin-weak);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-shell .cat-textarea {
+  width: 100%;
+  min-height: 82px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  color: var(--admin-text);
+  padding: 11px;
+  font-size: 12px;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+}
+
+.admin-shell .switch-line {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-shell .switch {
+  width: 34px;
+  height: 18px;
+  border-radius: 99px;
+  background: var(--admin-gold-bg);
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 36%, transparent);
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+}
+
+.admin-shell .switch.off {
+  background: rgb(255 255 255 / 0.06);
+  border-color: var(--admin-line-strong);
+}
+
+.admin-shell .switch::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  right: 2px;
+  top: 1px;
+  border-radius: 50%;
+  background: var(--admin-gold);
+  transition: transform 0.15s ease;
+}
+
+.admin-shell .switch.off::after {
+  right: auto;
+  left: 2px;
+  background: var(--admin-weak);
+}
+
+.admin-shell .input.readonly {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1023px) {
+  .admin-shell .cat-filter-grid,
+  .admin-shell .cat-work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .tree-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .cat-filter-actions {
+    flex-direction: column;
+  }
+}

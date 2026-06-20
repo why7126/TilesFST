@@ -1,3 +1,10 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 1
-entries: []
+next_id: 2
+entries:
+  - id: BUG-0001-tile-category-enable-missing
+    title: 瓷砖类目停用行缺少启用入口
+    status: done
+    severity: high
+    created: 2026-06-20
+    related_requirement: REQ-0005-tile-category-management
+    iteration: sprint-002

@@ -41,7 +41,7 @@ requirement_id: REQ-0005-brand-management
 requirement_name: brand-management
 requirement_type: 管理端 / 主数据
 priority: P0
-status: proposed
+status: in_sprint
 owner: product
 source: admin-home V5 + brand-management HTML V7 原型
 target_users:
@@ -57,7 +57,7 @@ suggested_change_id: add-brand-management
 openspec_changes:
   - change_id: add-brand-management
     type: add
-    status: proposed
+    status: applied
     iteration: sprint-002
     requirement_id: REQ-0005-brand-management
     strategy: css-port

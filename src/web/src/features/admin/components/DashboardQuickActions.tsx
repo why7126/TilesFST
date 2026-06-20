@@ -1,7 +1,7 @@
 import { dashboardQuickActions } from '../data/dashboard-mock';
 
 interface DashboardQuickActionsProps {
-  onActionClick: () => void;
+  onActionClick: (actionId: string) => void;
 }
 
 export function DashboardQuickActions({ onActionClick }: DashboardQuickActionsProps) {
@@ -15,7 +15,12 @@ export function DashboardQuickActions({ onActionClick }: DashboardQuickActionsPr
       </div>
       <div className="quick-grid">
         {dashboardQuickActions.map((action) => (
-          <button key={action.id} type="button" className="quick-card" onClick={onActionClick}>
+          <button
+            key={action.id}
+            type="button"
+            className="quick-card"
+            onClick={() => onActionClick(action.id)}
+          >
             <div className="quick-icon" aria-hidden>
               ＋
             </div>
