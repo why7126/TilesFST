@@ -45,9 +45,10 @@ lifecycle:
 openspec_changes:
   - change_id: fix-tile-category-management-refine
     type: fix
-    status: applied
+    status: archived
     requirement_id: REQ-0007-tile-category-management-refine
     iteration: sprint-002
+    archived_at: 2026-06-22
 ```
 
 ## 2. Readiness
@@ -101,8 +102,8 @@ openspec_changes:
 | 2026-06-20 | `/req-opsx` | 创建 `fix-tile-category-management-refine` |
 | 2026-06-20 | `/sprint-propose` | 纳入 sprint-002 |
 | 2026-06-20 | `/opsx-apply` | 实现 O-01～O-04；vitest 5/5、build 通过 |
+| 2026-06-22 | `/opsx-archive` | 归档至 `2026-06-22-fix-tile-category-management-refine`；web-client spec 已同步 |
 
 ## 6. 后续动作
 
-1. `/opsx-archive fix-tile-category-management-refine`
-2. （可选）导出 `tile-category-management-list-refine.png`
+1. （可选）导出 `tile-category-management-list-refine.png`
