@@ -31,16 +31,18 @@ note: 本文档用于指导视频相关需求、开发、测试和验收
 视频原文件存储在 MinIO：
 
 ```text
-bucket: tile-videos
-key: tiles/{tile_id}/videos/{video_id}/source.mp4
+bucket: tile-info-platform
+key: videos/default/tiles/{tile_id}/<object_id>.mp4
 ```
 
 视频封面存储在：
 
 ```text
-bucket: tile-videos
-key: tiles/{tile_id}/videos/{video_id}/cover.jpg
+bucket: tile-info-platform
+key: videos/covers/default/tiles/{tile_id}/<object_id>.jpg
 ```
+
+项目采用一个 Bucket + 标准前缀策略，图片、视频、封面、转码产物均通过 `MINIO_BUCKET` 与 `MINIO_PREFIX_*` 环境变量管理。
 
 ## 4. 数据库元数据
 

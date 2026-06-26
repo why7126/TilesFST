@@ -28,9 +28,9 @@ note: 适用于瓷砖信息管理平台项目模板
 
 | 服务 | 容器名 | 端口 | 说明 |
 |---|---|---|---|
-| backend | tile-info-backend | 8000 | FastAPI 后端服务 |
-| web | tile-info-web | 3000 | React Web 展示端与管理端 |
-| minio | tile-info-minio | 9000 / 9001 | 对象存储与控制台 |
+| backend | tile-info-platform-backend | 8000 | FastAPI 后端服务 |
+| web | tile-info-platform-web | 3000 | React Web 展示端与管理端 |
+| minio | tile-info-platform-minio | 9000 / 9001 | 对象存储与控制台 |
 
 ### 启动命令
 
@@ -47,7 +47,35 @@ note: 适用于瓷砖信息管理平台项目模板
 ### 数据持久化
 
 - SQLite 数据文件挂载到 `./data/sqlite/`。
-- MinIO 数据使用 Docker Volume：`minio-data`。
+- MinIO 数据映射到 `./data/minio/`，为本地 Docker 下对象存储持久化卷；桶内对象增长属预期行为。
+- 业务媒体上传正式写入 MinIO `MINIO_BUCKET`，**不**写入 `data/uploads/`。
+- `data/processed/`、`data/tmp/` 仍挂载供处理后产物与临时文件使用。
+
+### Legacy uploads 清理
+
+若曾在对象存储迁移（BUG-0006）前使用本地上传，宿主机 `data/uploads/` 可能残留无数据库引用的孤儿文件。清理方式：
+
+```bash
+python scripts/clean_legacy_uploads.py
+python scripts/clean_legacy_uploads.py --apply
+```
+
+说明见 `data/README.md` 与 `docs/07-object-storage-strategy.md` §3。
+
+### 默认管理员与密码恢复
+
+Docker Compose 通过根目录 `.env` 向后端注入默认管理员相关变量：
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_INITIAL_PASSWORD=change-me-on-first-run
+ADMIN_RESET_PASSWORD_ON_STARTUP=false
+```
+
+- 空数据库首次启动时，如果 `ADMIN_INITIAL_PASSWORD` 已配置，系统会创建 `ADMIN_USERNAME` 对应的 `admin` 角色账号，密码以 bcrypt 哈希写入 `users.password_hash`。
+- `./data/sqlite/` 是持久化目录。数据库中已存在默认管理员时，普通服务重启不会自动覆盖该账号密码，也不会因为修改 `.env` 中的 `ADMIN_INITIAL_PASSWORD` 而静默重置密码。
+- 若本地开发、演示或受控运维场景需要恢复默认管理员密码，可临时设置 `ADMIN_RESET_PASSWORD_ON_STARTUP=true` 并重启后端。恢复完成后应立即改回 `false`，避免后续重启再次覆盖管理员密码。
+- 恢复流程不会在日志、接口响应或文档中输出明文密码；生产环境应使用安全的运维流程和密钥管理系统注入真实密码。
 
 ### 配置文件
 
@@ -81,7 +109,8 @@ Docker Compose 会使用：
 .env.example
 src/backend/.env.docker
 data/sqlite/
-data/uploads/
+data/minio/          # MinIO 持久化卷（正式业务媒体落盘）
+data/uploads/        # 历史兼容目录；迁移后不应新增业务文件
 data/processed/
 data/tmp/
 ```

@@ -81,7 +81,13 @@ openspec/changes/add-user-login/
     └── rollout.md
 ```
 
-## 4. 功能需求追踪
+## 4. 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0005-login-fails-after-service-restart | high | applied | fix-admin-login-service-restart | 服务重启后正确账号密码无法登录 |
+
+## 5. 功能需求追踪
 
 | 编号 | 需求摘要 | 用户故事 | 验收章节 |
 |---|---|---|---|
@@ -101,7 +107,7 @@ openspec/changes/add-user-login/
 | FR-014 | 已登录访问登录页跳转首页 | US-001 | acceptance §1.5 |
 | FR-015 | 权限不足展示无权限 | US-002, US-003 | acceptance §1.4 |
 
-## 5. 接口追踪
+## 6. 接口追踪
 
 | 方法 | 路径 | PRD 章节 | 文档同步 |
 |---|---|---|---|
@@ -109,14 +115,14 @@ openspec/changes/add-user-login/
 | GET | `/api/v1/auth/me` | requirement §10.2 | `docs/03-api-index.md`（待更新） |
 | POST | `/api/v1/auth/logout` | requirement §10.3 | `docs/03-api-index.md`（待更新） |
 
-## 6. 数据模型追踪
+## 7. 数据模型追踪
 
 | 表名 | PRD 章节 | 文档同步 | 本期实现 |
 |---|---|---|---|
 | `users` | requirement §11.1 | `docs/04-database-design.md`（待更新） | 是 |
 | `login_logs` | requirement §11.2 | `docs/04-database-design.md`（待更新） | 预留 |
 
-## 7. 实现路径追踪（候选）
+## 8. 实现路径追踪（候选）
 
 | 层级 | 候选路径 |
 |---|---|
@@ -129,7 +135,7 @@ openspec/changes/add-user-login/
 | 后端 Repository | `src/backend/app/repositories/user_repository.py` |
 | 后端 Security | `src/backend/app/core/security.py` |
 
-## 8. 状态流转
+## 9. 状态流转
 
 ```text
 draft → approved → in_progress → resolved → closed
@@ -142,8 +148,14 @@ draft → approved → in_progress → resolved → closed
 | 2026-06-13 | in_progress | add-user-login 实现完成，后端/前端/测试已交付 |
 | 2026-06-13 | in_progress | 同 Sprint 纳入 add-design-system；登录页 UI 对齐待 refactor-login-ui |
 | 2026-06-13 | in_progress | fix-login-pixel-fidelity 实现完成；视觉基准为 user-login.png |
+| 2026-06-26 09:54:07 | trace sync | 补充 `BUG-0005-login-fails-after-service-restart` 反向关联索引 |
+| 2026-06-26 20:49:27 | trace sync | 同步 `BUG-0005-login-fails-after-service-restart` 状态为 pending_review |
+| 2026-06-26 20:57:56 | trace sync | 同步 `BUG-0005-login-fails-after-service-restart` 状态为 approved |
+| 2026-06-26 21:07:06 | trace sync | 同步 `BUG-0005-login-fails-after-service-restart` 状态为 in_sprint |
+| 2026-06-26 21:17:49 | trace sync | 同步 `BUG-0005-login-fails-after-service-restart` 关联 Change 为 `fix-admin-login-service-restart` |
+| 2026-06-26 23:17:00 | trace sync | 同步 `BUG-0005-login-fails-after-service-restart` 状态为 applied |
 
-## 9. 待确认项
+## 10. 待确认项
 
 以下问题在 PRD §18 中列出，确认后需回写 `requirement.md` 与本追踪文档：
 
@@ -155,7 +167,7 @@ draft → approved → in_progress → resolved → closed
 - [ ] 是否需要本期接入企业微信登录？
 - [ ] 首批管理员账号如何初始化：脚本、后台创建还是数据库种子？
 
-## 10. 测试追踪
+## 11. 测试追踪
 
 | 类型 | 范围 | 状态 |
 |---|---|---|

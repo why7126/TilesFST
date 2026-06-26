@@ -10,7 +10,6 @@ services:
       - "${HOST_PORT_BACKEND:-8000}:8000"
     volumes:
       - ./data/sqlite:/app/data/sqlite
-      - ./data/uploads:/app/data/uploads
       - ./data/processed:/app/data/processed
       - ./data/tmp:/app/data/tmp
     depends_on:

@@ -70,9 +70,9 @@ tests/fixtures/
 
 ```text
 data/runtime/
-data/uploads/
 data/processed/
 data/tmp/
+data/minio/     # MinIO 持久化卷（本地 Docker）
 ```
 
-上述目录默认不提交Git。
+`data/uploads/` 为对象存储迁移前的历史本地上传兼容目录；BUG-0006 后业务上传 MUST 写入 MinIO，不得新增 uploads 业务文件。清理 orphans 见 `scripts/clean_legacy_uploads.py` 与 `data/README.md`。

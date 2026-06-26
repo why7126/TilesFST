@@ -33,7 +33,9 @@ def api_client(tmp_sqlite_url: str, monkeypatch: pytest.MonkeyPatch) -> Generato
 
     reset_engine()
     settings.sqlite_database_url = tmp_sqlite_url
+    settings.admin_username = "admin"
     settings.admin_initial_password = "AdminPass123!"
+    settings.admin_reset_password_on_startup = False
     settings.app_secret_key = "test-secret-key"
     init_database()
 

@@ -85,11 +85,11 @@ pnpm dev
 ./scripts/docker-down.sh
 ```
 
-默认 MinIO 账号密码仅用于本地开发：
+默认 MinIO 账号密码见 `.env.example`，仅用于本地开发：
 
 ```text
 账号：minioadmin
-密码：minioadmin123
+密码：minioadmin
 ```
 
 生产环境必须修改默认账号密码，并使用独立环境变量管理。

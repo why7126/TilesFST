@@ -68,6 +68,18 @@ blocker | critical | high | medium | low
 
 修复后若有复用价值，可更新 `docs/knowledge-base/incidents/`（由 bug-opsx tasks 提醒）。
 
-## 7. 参考命令
+## 7. 父需求反向追溯
+
+BUG 的 `related_requirement` 不只是单向引用。若 `related_requirement` 非空，AI 在以下阶段 MUST 同步更新父需求 `issues/requirements/<REQ-ID>/trace.md` 的 `## 关联缺陷` 索引表：
+
+- `/bug-complete` 或 `/bug-review` 确认父需求后。
+- `/bug-opsx` 创建或确认修复 Change 后。
+- BUG 纳入 Sprint、完成 `/opsx-apply`、完成 `/opsx-archive` 或状态变化后。
+
+父需求 trace 中只记录索引级信息：`BUG`、`严重等级`、`状态`、`关联 Change`、`说明`。MUST NOT 在需求 trace 中复制 BUG 复现步骤、根因全文、日志或截图。
+
+`trace.md` 的 `lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` 的秒级格式：`YYYY-MM-DD HH:mm:ss`（默认 `Asia/Shanghai`）。
+
+## 8. 参考命令
 
 `.cursor/commands/bug-*.md`

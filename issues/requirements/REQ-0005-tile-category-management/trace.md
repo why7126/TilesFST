@@ -169,7 +169,15 @@ impact:
 
 ---
 
-## 7. 视觉验收 Trace Checklist
+## 7. 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0001-tile-category-enable-missing | high | done | fix-tile-category-enable-action | 停用类目行缺少启用入口修复 |
+
+---
+
+## 8. 视觉验收 Trace Checklist
 
 - [ ] Sidebar 激活「瓷砖类目」
 - [ ] 无导出、无批量
@@ -184,7 +192,7 @@ impact:
 
 ---
 
-## 8. 工作量与 Sprint 建议
+## 9. 工作量与 Sprint 建议
 
 | 项 | 预估 |
 |---|---|
@@ -201,7 +209,7 @@ impact:
 
 ---
 
-## 9. 变更记录
+## 10. 变更记录
 
 | 日期 | 动作 | 说明 |
 |---|---|---|
@@ -211,10 +219,11 @@ impact:
 | 2026-06-16 | 纳入 sprint-002 | 更新 `sprint.yaml` / `sprint.md` / release-note / acceptance-report |
 | 2026-06-20 | `/opsx-apply` | 34/37 任务完成；BUG-0001 fix 已合入代码 |
 | 2026-06-20 | `/opsx-archive` | 归档至 `2026-06-20-add-tile-category-management`；specs 已 sync（含 fix 启停场景） |
+| 2026-06-26 09:06:05 | trace sync | 补充 `BUG-0001-tile-category-enable-missing` 反向关联索引 |
 
 ---
 
-## 10. 后续动作
+## 11. 后续动作
 
 1. 导出 `tile-category-management.png`、`tile-category-management-add.png` 至 `prototype/web/`（可选 PNG sign-off）。
 2. ~~`/opsx-archive add-tile-category-management`~~ ✓ 已归档

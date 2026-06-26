@@ -1,7 +1,7 @@
 ---
 title: Sprint 002 发布说明
 purpose: 记录 Sprint 002 交付能力与发布注意事项（初稿）
-content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management 及对应 OpenSpec Change
+content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue 及对应 OpenSpec Change
 source: AI 根据迭代范围生成，项目团队确认
 update_method: Sprint 完成或范围变更时更新
 owner: 项目负责人
@@ -16,9 +16,9 @@ note: Sprint 002 规划中；实现完成后更新为 published
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-002 |
-| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine |
-| 关联 BUG | BUG-0001-tile-category-enable-missing |
-| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、add-tile-sku-management |
+| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm |
+| 关联 BUG | BUG-0001-tile-category-enable-missing、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue |
+| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、fix-brand-ui-consistency、fix-brand-image-display-layout-shift、fix-brand-logo-upload-progress、fix-object-storage-upload-not-minio、fix-brand-logo-display-after-storage-fix、fix-admin-login-service-restart、fix-brand-status-confirm、fix-object-storage-legacy-upload-residue、add-tile-sku-management |
 | 计划周期 | 2026-06-15 ~ 2026-06-28 |
 | 发布状态 | **规划中（Draft）** |
 
@@ -92,6 +92,8 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - 移除 `AdminLayout` 顶栏外露退出按钮，退出收纳至用户菜单下拉（**BREAKING** UI 相对 Sprint 001）
 - 用户管理列表页筛选与分页信息层级收紧（REQ-0005-user-management-list-refine）
 - 瓷砖类目管理页启停确认、去 section 标题、分页对齐用户管理 v2（REQ-0007-tile-category-management-refine）
+- 品牌列表页启停操作二次确认（REQ-0008-brand-status-confirm）
+- 品牌管理页分页与 Logo 文件选择控件对齐用户管理页/管理端表单模式（BUG-0002）
 - 登录后工作台视觉与登录页暗色旗舰风统一
 
 ## BUG 修复
@@ -103,6 +105,55 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - **影响**：仅 Web 前端 + vitest；无 API/DB 变更
 - OpenSpec：已归档 `2026-06-20-fix-tile-category-enable-action`
 
+### BUG-0002 品牌管理 UI 一致性修复
+
+- **问题**：`/admin/brands` 底部分页与用户管理页分页不一致；新增/编辑品牌弹窗 Logo 选择文件控件与管理端整体表单风格不一致
+- **计划修复**：分页对齐用户管理页；Logo 文件选择控件对齐管理端图片上传控件模式
+- **影响**：仅 Web 管理端 UI；无 API/DB/Orval/MinIO 策略变更
+- OpenSpec：`fix-brand-ui-consistency`
+
+### BUG-0003 品牌图片显示失败与 Tips 布局波动
+
+- **问题**：`/admin/brands` 上传品牌 Logo 后，列表页和编辑弹窗无法正常展示；状态变更 Tips 临时插入页面顶部导致上下波动
+- **修复结果**：补齐品牌 Logo 可访问媒体 URL/代理策略；品牌页状态提示改为不推挤页面主体的固定 toast
+- **影响**：Web 管理端品牌页、品牌弹窗、媒体访问链路；API 响应结构未变化，无需同步 OpenAPI 与 Orval
+- OpenSpec：`fix-brand-image-display-layout-shift`
+
+### BUG-0004 品牌 Logo 上传进度反馈缺失
+
+- **问题**：编辑品牌弹窗点击「更换 Logo」并选择图片后，缺少上传进度反馈，Logo 预览不更新
+- **修复结果**：补齐品牌 Logo 上传状态机、进度条、成功后预览更新、失败重试和同文件重选能力
+- **影响**：Web 管理端品牌弹窗；仅前端上传封装增加进度回调，无 API schema / DB / Orval 变更
+- OpenSpec：`fix-brand-logo-upload-progress`
+
+### BUG-0005 服务重启后正确账号密码无法登录
+
+- **问题**：本地或 Docker 服务重启后，进入 `/admin/login` 使用正确管理员账号密码仍提示「账号或密码错误」
+- **修复结果**：默认管理员 seed 保持首次创建和重启不覆盖；新增显式 `ADMIN_RESET_PASSWORD_ON_STARTUP` 恢复策略；补齐根目录 `.env.example`、部署文档、数据库说明和后端认证回归测试
+- **影响**：后端初始化/运行时数据治理与文档；登录接口响应 schema 未变化，无需 Orval
+- OpenSpec：`fix-admin-login-service-restart`（applied，待 `/opsx-archive`）
+
+### BUG-0006 对象存储上传未写入 MinIO
+
+- **问题**：MinIO 服务与 `tile-info-platform` 桶已初始化，但头像、品牌 Logo、SKU 图片、SKU 视频等业务上传仍写入本地 `UPLOAD_DIR`，MinIO Console 中无业务对象
+- **修复结果**：后端上传已写入 `MINIO_BUCKET=tile-info-platform`，头像、品牌 Logo、SKU 图片、SKU 视频使用标准前缀，`/media/{object_key}` 从 MinIO 受控读取
+- **影响**：后端媒体上传与读取链路；上传成功响应 schema 与 URL 语义不变，无需 Orval；已完成 Docker Compose 闭环验证
+- OpenSpec：`fix-object-storage-upload-not-minio`（archived，2026-06-26 14:20:50）
+
+### BUG-0007 对象存储修复后品牌 Logo 仍不显示
+
+- **问题**：对象存储写入问题修复后，品牌列表页和品牌编辑弹窗仍无法显示品牌 Logo
+- **修复结果**：Web 开发代理与 Docker Nginx 已补齐 `/media` 反代，品牌 Logo `logo_url` 可从后端受控读取并在列表页、编辑弹窗展示
+- **影响**：Web 管理端品牌列表与品牌编辑弹窗；API 响应字段未变化，无需同步 OpenAPI 与 Orval
+- OpenSpec：`fix-brand-logo-display-after-storage-fix`（archived，2026-06-26 20:21:43）
+
+### BUG-0008 对象存储 legacy uploads 双目录残留
+
+- **问题**：BUG-0006 修复后 `data/uploads` 仍存本地上传孤儿文件，与 MinIO 持久化卷并存
+- **修复结果**：新增 `scripts/clean_legacy_uploads.py`；移除 `UPLOAD_DIR` 配置与 Docker uploads 挂载；更新 data/部署/对象存储文档；本地清理 6 个孤儿 PNG
+- **影响**：本地 Docker 运维；无 API schema 变更，无需 Orval
+- OpenSpec：`fix-object-storage-legacy-upload-residue`（archived，2026-06-27 00:11:29）
+
 ## 兼容性影响
 
 | 影响面 | 说明 |
@@ -113,6 +164,14 @@ note: Sprint 002 规划中；实现完成后更新为 published
 | REQ-0005-user-management-list-refine | 无 API 端点变更；keyword 查询范围收窄 |
 | REQ-0003-login-remember-autofill | 无 API/DB 变更 |
 | REQ-0007-tile-category-management-refine | 无 API/DB 变更 |
+| REQ-0008-brand-status-confirm | 无 API/DB/Orval 变更；仅 Web 管理端启停确认弹窗 |
+| BUG-0002-brand-ui-inconsistency | 无 API/DB/Orval 变更；仅 Web 管理端 UI |
+| BUG-0003-brand-image-display-layout-shift | 已补齐 `/media/{object_key}` 访问链路；上传与品牌响应 schema 未变化，无需 Orval |
+| BUG-0004-brand-logo-upload-progress-missing | 仅 Web 管理端 UI + 前端上传封装进度回调；无 API schema / DB / Orval 变更 |
+| BUG-0005-login-fails-after-service-restart | 已完成后端默认管理员初始化/显式恢复策略、根目录 `.env.example`、部署与数据库说明；登录接口 schema 未变化，无需 Orval |
+| BUG-0006-object-storage-upload-not-minio | 后端媒体上传已写入 MinIO 单桶；Docker Compose 闭环通过；上传成功 schema 不变，无需 Orval；已同步 `.env.example`、媒体与部署文档 |
+| BUG-0007-brand-logo-not-displayed-after-storage-fix | 已完成 `fix-brand-logo-display-after-storage-fix` archive；Web `/media` 反代闭环通过，API schema 未变化，无需 Orval |
+| BUG-0008-object-storage-legacy-upload-residue | 已完成 legacy uploads 清理脚本、UPLOAD_DIR 收敛与文档；无 API schema 变更，无需 Orval |
 | Docker | Web + Backend 镜像重建 |
 | REQ-0001 | 退出登录入口位置变更（行为不变）；冻结用户登录拒绝 |
 
@@ -143,6 +202,14 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - `openspec/changes/fix-user-management-list-refine/trace.md`
 - `openspec/changes/add-login-remember-autofill/trace.md`
 - `openspec/changes/add-brand-management/trace.md`
+- `openspec/changes/fix-brand-ui-consistency/trace.md`
+- `issues/bugs/BUG-0003-brand-image-display-layout-shift/acceptance.md`
+- `issues/bugs/BUG-0004-brand-logo-upload-progress-missing/acceptance.md`
+- `issues/bugs/BUG-0005-login-fails-after-service-restart/acceptance.md`
+- `issues/bugs/BUG-0006-object-storage-upload-not-minio/acceptance.md`
+- `issues/bugs/BUG-0007-brand-logo-not-displayed-after-storage-fix/acceptance.md`
+- `openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/trace.md`
+- `openspec/changes/fix-brand-logo-upload-progress/trace.md`
 - `openspec/changes/archive/2026-06-20-add-tile-category-management/trace.md`
 - `openspec/changes/fix-tile-category-management-refine/trace.md`
 - `issues/requirements/REQ-0007-tile-category-management-refine/acceptance.md`

@@ -75,10 +75,10 @@ Authorization: Bearer <access_token>
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端类目 | `/api/v1/admin/tile-categories` | 是（admin/employee） | 类目树、CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端 SKU | `/api/v1/admin/tile-skus` | 是（admin/employee） | SKU CRUD、上下架、素材、筛选 summary | ✓ Sprint 002 |
-| 管理端上传 | `/api/v1/admin/uploads` | 是 | 头像（admin）；品牌 Logo、SKU 图片/视频（admin/employee） | 桩实现 |
+| 管理端上传 | `/api/v1/admin/uploads` | 是 | 头像（admin）；品牌 Logo、SKU 图片/视频（admin/employee） | ✓ Sprint 002，MinIO 单桶存储 |
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
-\* `uploads` 路由已挂载 `require_system_admin`；完整 MinIO 集成待后续 change。
+\* `uploads` 路由通过后端鉴权接口写入 `MINIO_BUCKET`，不允许前端直连未授权 MinIO。
 
 ### 3.4 管理端用户（Sprint 002）
 
@@ -279,11 +279,26 @@ OpenSpec：`openspec/specs/auth/spec.md`
 
 ---
 
-## 6. 上传接口（桩）
+## 6. 上传接口
 
-| 方法 | 路径 | 说明 |
+上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 保持 `{ object_key, url }`。
+
+| 方法 | 路径 | 认证 | 对象前缀 | 说明 |
+|---|---|---|---|---|
+| POST | `/api/v1/admin/uploads` | admin | `original/default/avatars/` | 头像上传 |
+| POST | `/api/v1/admin/uploads/brand-logos` | admin/employee | `original/default/brands/logos/` | 品牌 Logo 上传 |
+| POST | `/api/v1/admin/uploads/tile-images` | admin/employee | `original/default/tiles/{tile_id|pending}/images/` | SKU 图片上传 |
+| POST | `/api/v1/admin/uploads/tile-videos` | admin/employee | `videos/default/tiles/{tile_id|pending}/` | SKU 视频上传 |
+
+媒体读取保持 `/media/{object_key}` URL 语义，由后端从 MinIO 受控读取。
+
+上传错误：
+
+| HTTP | code | 场景 |
 |---|---|---|
-| POST | `/api/v1/admin/uploads` | `multipart/form-data`，字段 `file`；返回 `{ object_key, url }` |
+| 400 | 50002 | 文件类型不允许 |
+| 400 | 50003 | 文件大小超限 |
+| 502 | 50001 | MinIO 不可用、Bucket 初始化失败或对象写入失败 |
 
 ---
 
@@ -310,7 +325,9 @@ OpenSpec：`openspec/specs/auth/spec.md`
 | `APP_SECRET_KEY` | JWT 签名密钥 |
 | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | 默认 120 |
 | `JWT_REMEMBER_ME_EXPIRE_DAYS` | 默认 7 |
-| `ADMIN_INITIAL_PASSWORD` | 首次启动种子 admin 密码 |
+| `ADMIN_USERNAME` | 默认管理员用户名，默认 `admin` |
+| `ADMIN_INITIAL_PASSWORD` | 首次启动种子 admin 密码；显式恢复时作为新密码来源 |
+| `ADMIN_RESET_PASSWORD_ON_STARTUP` | 默认 `false`；显式恢复默认管理员密码时临时启用 |
 
 见根目录 `.env.example`
 

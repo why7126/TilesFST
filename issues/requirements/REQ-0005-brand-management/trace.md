@@ -164,7 +164,17 @@ impact:
 
 ---
 
-## 7. 视觉验收 Trace Checklist
+## 7. 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0003-brand-image-display-layout-shift | high | done | fix-brand-image-display-layout-shift | 品牌 Logo 展示与提示布局修复 |
+| BUG-0004-brand-logo-upload-progress-missing | medium | applied | fix-brand-logo-upload-progress | 编辑品牌弹窗更换 Logo 后未上传且缺少上传进度反馈 |
+| BUG-0007-brand-logo-not-displayed-after-storage-fix | high | done | fix-brand-logo-display-after-storage-fix | 对象存储修复后品牌列表页和编辑页仍不显示 Logo |
+
+---
+
+## 8. 视觉验收 Trace Checklist
 
 - [ ] Sidebar 激活「瓷砖品牌」
 - [ ] 无导出、无批量、无多余标题行
@@ -177,7 +187,7 @@ impact:
 
 ---
 
-## 8. 工作量与 Sprint 建议
+## 9. 工作量与 Sprint 建议
 
 | 项 | 预估 |
 |---|---|
@@ -193,7 +203,7 @@ impact:
 
 ---
 
-## 9. 变更记录
+## 10. 变更记录
 
 | 日期 | 动作 | 说明 |
 |---|---|---|
@@ -201,10 +211,26 @@ impact:
 | 2026-06-16 | `/requirement-to-change` | 补齐 user-stories / business-flow / acceptance / trace / test-plan |
 | 2026-06-16 | `/requirement-to-opsx` | 创建 `add-brand-management` OpenSpec |
 | 2026-06-16 | 纳入 sprint-002 | 更新 `iterations/sprint-002/` 四件套与本 trace |
+| 2026-06-26 09:06:05 | trace sync | 补充 `BUG-0003-brand-image-display-layout-shift` 反向关联索引 |
+| 2026-06-26 09:25:19 | trace sync | 补充 `BUG-0004-brand-logo-upload-progress-missing` 反向关联索引 |
+| 2026-06-26 09:26:54 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 状态为 draft |
+| 2026-06-26 09:30:02 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 状态为 pending_review |
+| 2026-06-26 09:33:59 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 状态为 approved |
+| 2026-06-26 09:35:50 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 状态为 in_sprint |
+| 2026-06-26 09:39:00 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 关联 Change `fix-brand-logo-upload-progress` |
+| 2026-06-26 09:47:15 | trace sync | 同步 `BUG-0004-brand-logo-upload-progress-missing` 状态为 applied |
+| 2026-06-26 14:51:17 | trace sync | 补充 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 反向关联索引 |
+| 2026-06-26 15:09:08 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 draft |
+| 2026-06-26 15:17:41 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 pending_review |
+| 2026-06-26 15:21:00 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 approved |
+| 2026-06-26 15:24:16 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 in_sprint |
+| 2026-06-26 15:28:42 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 关联 Change `fix-brand-logo-display-after-storage-fix` |
+| 2026-06-26 16:15:50 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 applied |
+| 2026-06-26 20:21:43 | trace sync | 同步 `BUG-0007-brand-logo-not-displayed-after-storage-fix` 状态为 done，并记录 Change 已归档 |
 
 ---
 
-## 10. 后续动作
+## 11. 后续动作
 
 1. 导出 `brand-management.png`、`brand-management-modal.png` 至 `prototype/web/`。
 2. **`/opsx-apply add-brand-management`** → 实现 + 测试 + Orval。

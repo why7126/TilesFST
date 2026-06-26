@@ -1,7 +1,7 @@
 sprint_id: sprint-002
 status: in_progress
-start_date: 2026-06-15
-end_date: 2026-06-28
+start_date: 2026-06-15 00:00:00
+end_date: 2026-06-28 23:59:59
 
 capacity:
   developers: 2
@@ -16,9 +16,17 @@ requirements:
   - REQ-0005-tile-category-management
   - REQ-0006-tile-sku-management
   - REQ-0007-tile-category-management-refine
+  - REQ-0008-brand-status-confirm
 
 bugs:
   - BUG-0001-tile-category-enable-missing
+  - BUG-0002-brand-ui-inconsistency
+  - BUG-0003-brand-image-display-layout-shift
+  - BUG-0004-brand-logo-upload-progress-missing
+  - BUG-0005-login-fails-after-service-restart
+  - BUG-0006-object-storage-upload-not-minio
+  - BUG-0007-brand-logo-not-displayed-after-storage-fix
+  - BUG-0008-object-storage-legacy-upload-residue
 
 changes:
   - add-admin-home
@@ -30,6 +38,14 @@ changes:
   - fix-tile-category-enable-action
   - add-tile-sku-management
   - fix-tile-category-management-refine
+  - fix-brand-ui-consistency
+  - fix-brand-image-display-layout-shift
+  - fix-brand-logo-upload-progress
+  - fix-object-storage-upload-not-minio
+  - fix-brand-logo-display-after-storage-fix
+  - fix-brand-status-confirm
+  - fix-admin-login-service-restart
+  - fix-object-storage-legacy-upload-residue
 
-estimated_story_points: 93
-estimated_person_days: 57
+estimated_story_points: 121
+estimated_person_days: 73.75

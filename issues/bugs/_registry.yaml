@@ -1,5 +1,5 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 2
+next_id: 9
 entries:
   - id: BUG-0001-tile-category-enable-missing
     title: 瓷砖类目停用行缺少启用入口
@@ -7,4 +7,61 @@ entries:
     severity: high
     created: 2026-06-20
     related_requirement: REQ-0005-tile-category-management
+    iteration: sprint-002
+  - id: BUG-0002-brand-ui-inconsistency
+    title: 品牌管理分页与Logo选择文件控件UI不一致
+    status: done
+    severity: medium
+    created: 2026-06-25
+    related_requirement: null
+    related_change: fix-brand-ui-consistency
+    iteration: sprint-002
+  - id: BUG-0003-brand-image-display-layout-shift
+    title: 品牌图片上传后不显示且状态提示导致页面上下波动
+    status: done
+    severity: high
+    created: "2026-06-25 20:11:22"
+    related_requirement: REQ-0005-brand-management
+    related_change: fix-brand-image-display-layout-shift
+    iteration: sprint-002
+  - id: BUG-0004-brand-logo-upload-progress-missing
+    title: 编辑品牌弹窗更换Logo后未上传且缺少上传进度反馈
+    status: applied
+    severity: medium
+    created: "2026-06-26 09:25:19"
+    related_requirement: REQ-0005-brand-management
+    related_change: fix-brand-logo-upload-progress
+    iteration: sprint-002
+  - id: BUG-0005-login-fails-after-service-restart
+    title: 服务重启后正确账号密码无法登录
+    status: in_sprint
+    severity: high
+    created: "2026-06-26 09:54:07"
+    related_requirement: REQ-0001-user-login
+    related_change: fix-admin-login-service-restart
+    iteration: sprint-002
+  - id: BUG-0006-object-storage-upload-not-minio
+    title: 上传链路未写入 MinIO 对象存储
+    status: done
+    severity: high
+    created: "2026-06-26 10:09:12"
+    related_requirement: null
+    related_change: fix-object-storage-upload-not-minio
+    iteration: sprint-002
+  - id: BUG-0007-brand-logo-not-displayed-after-storage-fix
+    title: 对象存储修复后品牌Logo仍不显示
+    status: done
+    severity: high
+    created: "2026-06-26 14:51:17"
+    related_requirement: REQ-0005-brand-management
+    related_change: fix-brand-logo-display-after-storage-fix
+    iteration: sprint-002
+  - id: BUG-0008-object-storage-legacy-upload-residue
+    title: 对象存储修复后本地uploads双目录残留与历史数据清理缺失
+    status: done
+    severity: medium
+    created: "2026-06-26 23:49:23"
+    related_requirement: null
+    related_bug: BUG-0006-object-storage-upload-not-minio
+    related_change: fix-object-storage-legacy-upload-residue
     iteration: sprint-002

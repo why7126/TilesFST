@@ -104,6 +104,16 @@ scripts/generate-openapi-client.sh
 
 AI 生成代码或文档时，必须在输出中说明遵循了哪些 `rules/` 文件。
 
+### 3.1 文档时间记录格式
+
+AI 新增或更新任何项目文档时，所有时间记录 MUST 精确到秒，统一使用：
+
+```text
+YYYY-MM-DD HH:mm:ss
+```
+
+默认时区为 `Asia/Shanghai`。适用范围包括 YAML Frontmatter、trace lifecycle、变更记录、评审记录、Sprint 起止时间、里程碑、验收报告、发布说明、OpenSpec 归档记录等。纯目录名、文件名、版本号、需求/BUG 编号中的日期片段可保持既有命名规则。
+
 ## 4. AI 开发流程
 
 ```text

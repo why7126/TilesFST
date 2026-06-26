@@ -80,6 +80,28 @@ AI 在以下场景必须创建或更新 `docs/`：
 - AI 更新文档时必须保留 Obsidian YAML Frontmatter。
 - 文档中不确定内容必须标注为 `待确认`，不能编造。
 
+### 2.3 时间记录格式（MUST）
+
+所有文档中的时间记录 MUST 精确到秒，统一使用 24 小时制：
+
+```text
+YYYY-MM-DD HH:mm:ss
+```
+
+适用范围包括但不限于：
+
+- YAML Frontmatter 中的创建、更新、归档、评审、发布时间。
+- `issues/requirements/`、`issues/bugs/` 中的 `lifecycle`、变更记录、评审记录。
+- `iterations/` 中的 Sprint 起止时间、里程碑、验收与发布记录。
+- `openspec/changes/`、`openspec/specs/`、archive trace 中的创建、应用、同步、归档记录。
+- `docs/`、`rules/`、`README` 中描述历史事件、更新时间或治理动作的字段与表格。
+
+除外规则：
+
+- 纯目录名、文件名、版本号、需求/BUG 编号中的日期片段 MAY 保持既有命名规则。
+- 引用外部标准、第三方原文或历史原始记录时 MAY 保留原格式，但 MUST 在新增项目内记录时补充本项目标准时间。
+- 若未特别声明时区，默认使用项目本地时区 `Asia/Shanghai`。
+
 ## 3. issues 目录生成与更新逻辑
 
 `issues/` 是原始需求与BUG池，不等同于开发任务。
@@ -169,8 +191,8 @@ iterations/sprint-xxx/
 ```yaml
 sprint_id: sprint-xxx
 status: planning | in_progress | completed
-start_date: YYYY-MM-DD
-end_date: YYYY-MM-DD
+start_date: YYYY-MM-DD HH:mm:ss
+end_date: YYYY-MM-DD HH:mm:ss
 
 capacity:
   developers: <int>

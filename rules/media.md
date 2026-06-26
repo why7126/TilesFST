@@ -24,21 +24,21 @@ note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 
 媒体文件必须通过后端授权上传到 MinIO，不允许前端绕过后端直接写入未授权对象存储。
 
-推荐存储桶：
+项目默认存储桶：
 
 ```text
-tile-images
-tile-videos
-tile-documents
+MINIO_BUCKET=tile-info-platform
 ```
 
-推荐对象Key：
+推荐对象前缀：
 
 ```text
-tiles/{tile_id}/images/{image_id}.{ext}
-tiles/{tile_id}/videos/{video_id}/source.{ext}
-tiles/{tile_id}/videos/{video_id}/cover.{ext}
-tiles/{tile_id}/documents/{document_id}.{ext}
+original/              原始图片、文件
+videos/                原始视频
+videos/covers/         视频封面
+videos/transcoded/     转码后视频
+processed/             处理后资源
+thumbnails/            缩略图
 ```
 
 ## 3. 视频规范

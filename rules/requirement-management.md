@@ -85,6 +85,28 @@ related_requirements: []
 
 每次命令结束追加 `## 变更记录`。
 
-## 7. 参考命令
+## 7. 需求 ↔ BUG 反向关联
+
+当 BUG 文档中的 `related_requirement` 指向某个需求时，该需求的 `trace.md` MUST 维护索引级 `## 关联缺陷` 章节。该章节只记录缺陷索引，不重复 BUG 全文。
+
+推荐格式：
+
+```markdown
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0003-brand-image-display-layout-shift | high | done | fix-brand-image-display-layout-shift | 品牌 Logo 展示与提示布局修复 |
+```
+
+同步时机：
+
+- BUG 创建或完善后确定 `related_requirement` 时，MUST 在父需求 `trace.md` 增加或更新对应行。
+- BUG 进入 Sprint、完成 `/opsx-apply`、完成 `/opsx-archive` 或状态变化时，MUST 同步更新父需求 `trace.md` 中该 BUG 的 `状态` 与 `关联 Change`。
+- 若 BUG 的 `related_requirement` 为 `null`，不得强行写入需求 trace；除非后续评审明确补齐父需求。
+
+`lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` 的秒级格式：`YYYY-MM-DD HH:mm:ss`（默认 `Asia/Shanghai`）。
+
+## 8. 参考命令
 
 `.cursor/commands/req-*.md`

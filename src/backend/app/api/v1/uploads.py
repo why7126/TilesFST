@@ -4,6 +4,7 @@ from app.core.deps import require_admin_access, require_system_admin
 from app.core.exceptions import AppError
 from app.core.error_codes import FILE_TYPE_NOT_ALLOWED
 from app.repositories.user_repository import UserRecord
+from app.modules.media.storage import build_upload_object_key, save_upload_file
 from app.schemas.common import ApiResponse
 from app.schemas.media import UploadResult
 
@@ -44,8 +45,8 @@ async def upload_image(
     _: UserRecord = Depends(require_system_admin),
 ) -> ApiResponse[UploadResult]:
     _validate_image_type(file.content_type)
-    safe_name = (file.filename or "avatar").replace("/", "_")
-    object_key = f"avatars/{safe_name}"
+    object_key = build_upload_object_key("original", "avatars", file.content_type)
+    await save_upload_file(file, object_key)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -62,8 +63,8 @@ async def upload_brand_logo(
     _: UserRecord = Depends(require_admin_access),
 ) -> ApiResponse[UploadResult]:
     _validate_image_type(file.content_type)
-    safe_name = (file.filename or "logo").replace("/", "_")
-    object_key = f"brands/logos/{safe_name}"
+    object_key = build_upload_object_key("original", "brands/logos", file.content_type)
+    await save_upload_file(file, object_key)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -81,9 +82,9 @@ async def upload_tile_image(
     _: UserRecord = Depends(require_admin_access),
 ) -> ApiResponse[UploadResult]:
     _validate_image_type(file.content_type)
-    safe_name = (file.filename or "image").replace("/", "_")
-    prefix = f"tiles/{tile_id}/images" if tile_id else "tiles/pending/images"
-    object_key = f"{prefix}/{safe_name}"
+    resource_type = f"tiles/{tile_id}/images" if tile_id else "tiles/pending/images"
+    object_key = build_upload_object_key("original", resource_type, file.content_type)
+    await save_upload_file(file, object_key)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -101,9 +102,9 @@ async def upload_tile_video(
     _: UserRecord = Depends(require_admin_access),
 ) -> ApiResponse[UploadResult]:
     _validate_video_type(file.content_type)
-    safe_name = (file.filename or "video.mp4").replace("/", "_")
-    prefix = f"tiles/{tile_id}/videos" if tile_id else "tiles/pending/videos"
-    object_key = f"{prefix}/{safe_name}"
+    resource_type = f"tiles/{tile_id}" if tile_id else "tiles/pending"
+    object_key = build_upload_object_key("videos", resource_type, file.content_type)
+    await save_upload_file(file, object_key)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )

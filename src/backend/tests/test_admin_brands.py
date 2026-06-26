@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
+from app.modules.media.storage import get_media_storage_client, resolve_media_path
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 
@@ -161,3 +163,164 @@ def test_store_owner_forbidden_on_brands_api(client: TestClient) -> None:
     store_headers = _auth_headers(client, "store_brand_test", password)
     response = client.get("/api/v1/admin/brands", headers=store_headers)
     assert response.status_code == 403
+
+
+def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    upload = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.webp", b"webp-logo", "image/webp")},
+    )
+    assert upload.status_code == 200
+    data = upload.json()["data"]
+    assert data["object_key"].startswith("original/default/brands/logos/")
+    assert data["url"] == f"/media/{data['object_key']}"
+    assert data["object_key"] in get_media_storage_client().objects
+
+    media = client.get(data["url"])
+    assert media.status_code == 200
+    assert media.content == b"webp-logo"
+
+
+def test_upload_brand_logo_rejects_invalid_mime(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.gif", b"gif-logo", "image/gif")},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 50002
+
+
+def test_upload_brand_logo_rejects_oversized_file(client: TestClient, monkeypatch) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    monkeypatch.setattr(settings, "max_upload_size_mb", 0)
+    response = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.webp", b"webp-logo", "image/webp")},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 50003
+
+
+def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    cases = [
+        (
+            "/api/v1/admin/uploads",
+            ("avatar.png", b"avatar", "image/png"),
+            "original/default/avatars/",
+        ),
+        (
+            "/api/v1/admin/uploads/brand-logos",
+            ("logo.webp", b"logo", "image/webp"),
+            "original/default/brands/logos/",
+        ),
+        (
+            "/api/v1/admin/uploads/tile-images",
+            ("tile.jpg", b"tile-image", "image/jpeg"),
+            "original/default/tiles/pending/images/",
+        ),
+        (
+            "/api/v1/admin/uploads/tile-videos",
+            ("tile.mp4", b"tile-video", "video/mp4"),
+            "videos/default/tiles/pending/",
+        ),
+    ]
+
+    storage = get_media_storage_client()
+    for url, file_tuple, prefix in cases:
+        response = client.post(url, headers=headers, files={"file": file_tuple})
+        assert response.status_code == 200
+        object_key = response.json()["data"]["object_key"]
+        assert object_key.startswith(prefix)
+        assert object_key in storage.objects
+
+
+def test_upload_returns_storage_unavailable_when_minio_write_fails(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    storage = get_media_storage_client()
+    storage.fail_put = True
+
+    response = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.webp", b"webp-logo", "image/webp")},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["code"] == 50001
+
+
+def test_media_route_rejects_path_traversal_object_key(client: TestClient) -> None:
+    response = client.get("/media/original/default/brands/logos/%2E%2E/secret.webp")
+    assert response.status_code == 400
+    assert response.json()["code"] == 40040
+
+
+def test_media_path_rejects_absolute_and_parent_segments() -> None:
+    for object_key in ("../secret.webp", "/absolute/secret.webp", "original/../secret.webp"):
+        try:
+            resolve_media_path(object_key)
+        except Exception as exc:
+            assert getattr(exc, "status_code", None) == 400
+        else:
+            raise AssertionError(f"object key should be rejected: {object_key}")
+
+
+def test_brand_list_returns_accessible_logo_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    upload = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.png", b"png-logo", "image/png")},
+    )
+    upload_data = upload.json()["data"]
+    create = client.post(
+        "/api/v1/admin/brands",
+        headers=headers,
+        json={
+            "name": "Logo Brand",
+            "sort_order": 10,
+            "logo_object_key": upload_data["object_key"],
+        },
+    )
+    assert create.status_code == 200
+
+    response = client.get("/api/v1/admin/brands", headers=headers, params={"keyword": "Logo Brand"})
+    assert response.status_code == 200
+    item = response.json()["data"]["items"][0]
+    assert item["logo_url"] == upload_data["url"]
+    assert client.get(item["logo_url"]).status_code == 200
+
+
+def test_brand_detail_returns_accessible_logo_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    upload = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("detail-logo.webp", b"detail-logo", "image/webp")},
+    )
+    upload_data = upload.json()["data"]
+    create = client.post(
+        "/api/v1/admin/brands",
+        headers=headers,
+        json={
+            "name": "Logo Detail Brand",
+            "sort_order": 10,
+            "logo_object_key": upload_data["object_key"],
+        },
+    )
+    assert create.status_code == 200
+    brand_id = create.json()["data"]["id"]
+
+    response = client.get(f"/api/v1/admin/brands/{brand_id}", headers=headers)
+    assert response.status_code == 200
+    item = response.json()["data"]
+    assert item["logo_url"] == upload_data["url"]
+    media = client.get(item["logo_url"])
+    assert media.status_code == 200
+    assert media.content == b"detail-logo"

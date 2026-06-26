@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     backend_port: int = Field(default=8000, alias="BACKEND_PORT")
 
     sqlite_database_url: str = Field(default="sqlite:////app/data/sqlite/tile-info-platform.db", alias="SQLITE_DATABASE_URL")
+    max_upload_size_mb: int = Field(default=50, alias="MAX_UPLOAD_SIZE_MB")
 
     minio_endpoint: str = Field(default="minio:9000", alias="MINIO_ENDPOINT")
     minio_access_key: str = Field(default="minioadmin", alias="MINIO_ACCESS_KEY")
@@ -40,6 +41,10 @@ class Settings(BaseSettings):
     jwt_remember_me_expire_days: int = Field(default=7, alias="JWT_REMEMBER_ME_EXPIRE_DAYS")
     admin_username: str = Field(default="admin", alias="ADMIN_USERNAME")
     admin_initial_password: str | None = Field(default=None, alias="ADMIN_INITIAL_PASSWORD")
+    admin_reset_password_on_startup: bool = Field(
+        default=False,
+        alias="ADMIN_RESET_PASSWORD_ON_STARTUP",
+    )
 
     class Config:
         env_file = ".env"

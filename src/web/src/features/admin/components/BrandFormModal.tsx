@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { BrandAdminItem } from '@/shared/api/generated';
 
 import { createBrand, updateBrand, uploadBrandLogo } from '../api/brands-api';
+
+type LogoUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
 
 interface BrandFormModalProps {
   open: boolean;
@@ -21,13 +23,18 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
   const [description, setDescription] = useState('');
   const [logoKey, setLogoKey] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploadState, setLogoUploadState] = useState<LogoUploadState>('idle');
+  const [logoUploadProgress, setLogoUploadProgress] = useState(0);
+  const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setLogoUploadState('idle');
+    setLogoUploadProgress(0);
+    setLogoUploadError(null);
     if (mode === 'edit' && brand) {
       setName(brand.name);
       setSortOrder(String(brand.sort_order));
@@ -51,16 +58,32 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
 
   const handleLogoChange = async (file: File | undefined) => {
     if (!file) return;
+    setError(null);
+    setLogoUploadError(null);
+    setLogoUploadState('uploading');
+    setLogoUploadProgress(8);
     try {
-      const result = await uploadBrandLogo(file);
+      const result = await uploadBrandLogo(file, (progress) => {
+        setLogoUploadProgress(progress);
+      });
       setLogoKey(result.object_key);
       setLogoUrl(result.url);
+      setLogoUploadProgress(100);
+      setLogoUploadState('uploaded');
     } catch (err) {
-      setError(getErrorMessage(err, 'Logo 上传失败'));
+      const message = getErrorMessage(err, 'Logo 上传失败');
+      setLogoUploadState('failed');
+      setLogoUploadProgress(0);
+      setLogoUploadError(message);
+      setError(message);
     }
   };
 
   const handleSubmit = async () => {
+    if (logoUploadState === 'uploading') {
+      setError('Logo 上传中，请稍后保存');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const sort = Number.parseInt(sortOrder, 10);
@@ -99,6 +122,8 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
       setSubmitting(false);
     }
   };
+
+  const isLogoUploading = logoUploadState === 'uploading';
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
@@ -165,28 +190,80 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
             </div>
             <div className="brand-form-item brand-form-full">
               <span className="field-label">品牌Logo</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                onChange={(e) => void handleLogoChange(e.target.files?.[0])}
-              />
-              <button
-                type="button"
-                className="brand-upload"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {logoUrl ? (
-                  <img src={logoUrl} alt="" className="brand-logo" />
-                ) : (
-                  <>
-                    <span className="brand-upload-icon">＋</span>
-                    <span>点击上传或拖拽 Logo 到此处</span>
-                  </>
-                )}
-                <span className="form-help">支持 JPG / PNG / WebP，建议 1:1 方形图</span>
-              </button>
+              <div className="avatar-upload brand-logo-upload">
+                <div className="brand-logo-meta">
+                  <span className="brand-logo-preview">
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt=""
+                        onError={(event) => {
+                          event.currentTarget
+                            .closest('.brand-logo-preview')
+                            ?.classList.add('is-fallback');
+                        }}
+                        onLoad={(event) => {
+                          event.currentTarget
+                            .closest('.brand-logo-preview')
+                            ?.classList.remove('is-fallback');
+                        }}
+                      />
+                    ) : null}
+                    <span className="brand-logo-fallback">LOGO</span>
+                  </span>
+                  <span>
+                    <span className="user-main">
+                      {logoUrl ? '已上传 Logo' : '品牌 Logo'}
+                    </span>
+                    <span className="user-sub">支持 JPG / PNG / WebP，建议 1:1 方形图</span>
+                    {isLogoUploading ? (
+                      <span className="brand-logo-status">
+                        <span
+                          className="brand-logo-progress"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={logoUploadProgress}
+                        >
+                          <span
+                            className="brand-logo-progress-bar"
+                            style={{ width: `${logoUploadProgress}%` }}
+                          />
+                        </span>
+                        <span className="brand-logo-progress-text">
+                          上传中 {logoUploadProgress}%
+                        </span>
+                      </span>
+                    ) : null}
+                    {logoUploadState === 'uploaded' ? (
+                      <span className="brand-logo-upload-success">Logo 已更新</span>
+                    ) : null}
+                    {logoUploadState === 'failed' && logoUploadError ? (
+                      <span className="brand-logo-upload-error" role="alert">
+                        {logoUploadError}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <label
+                  className={`btn${isLogoUploading ? ' disabled' : ''}`}
+                  aria-disabled={isLogoUploading}
+                >
+                  {isLogoUploading ? '上传中' : logoUrl ? '更换 Logo' : '选择 Logo'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={isLogoUploading}
+                    hidden
+                    onChange={(e) => {
+                      const input = e.currentTarget;
+                      void handleLogoChange(input.files?.[0]).finally(() => {
+                        input.value = '';
+                      });
+                    }}
+                  />
+                </label>
+              </div>
             </div>
             <div className="brand-form-item brand-form-full">
               <label htmlFor="brand-desc">品牌介绍</label>
@@ -208,7 +285,12 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
           <button type="button" className="btn" onClick={onClose} disabled={submitting}>
             取消
           </button>
-          <button type="button" className="btn primary" onClick={() => void handleSubmit()} disabled={submitting}>
+          <button
+            type="button"
+            className="btn primary"
+            onClick={() => void handleSubmit()}
+            disabled={submitting || isLogoUploading}
+          >
             保存品牌
           </button>
         </div>

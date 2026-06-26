@@ -28,7 +28,6 @@ export function BrandManagementPage() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [jumpPage, setJumpPage] = useState('1');
   const [data, setData] = useState<BrandAdminListData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
@@ -37,6 +36,7 @@ export function BrandManagementPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingBrand, setEditingBrand] = useState<BrandAdminItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BrandAdminItem | null>(null);
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<BrandAdminItem | null>(null);
 
   const loadBrands = useCallback(
     async (overridePage?: number) => {
@@ -50,7 +50,6 @@ export function BrandManagementPage() {
           status: status || undefined,
         });
         setData(result);
-        setJumpPage(String(currentPage));
       } catch (err) {
         setNotice(getErrorMessage(err, '加载品牌列表失败'));
       } finally {
@@ -105,15 +104,21 @@ export function BrandManagementPage() {
     setFormOpen(true);
   };
 
-  const handleToggleStatus = async (brand: BrandAdminItem) => {
+  const openStatusConfirm = (brand: BrandAdminItem) => {
+    setStatusConfirmTarget(brand);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!statusConfirmTarget) return;
     try {
-      if (brand.status === 'DISABLED') {
-        await enableBrand(brand.id);
+      if (statusConfirmTarget.status === 'DISABLED') {
+        await enableBrand(statusConfirmTarget.id);
         setNotice('品牌已启用');
       } else {
-        await disableBrand(brand.id);
+        await disableBrand(statusConfirmTarget.id);
         setNotice('品牌已停用');
       }
+      setStatusConfirmTarget(null);
       void loadBrands();
     } catch (err) {
       setNotice(getErrorMessage(err, '操作失败'));
@@ -134,19 +139,16 @@ export function BrandManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  const handleJump = () => {
-    const next = Number.parseInt(jumpPage, 10);
-    if (!Number.isFinite(next) || next < 1 || next > totalPages) return;
-    setPage(next);
-  };
+  const statusConfirmIsEnable = statusConfirmTarget?.status === 'DISABLED';
 
   return (
     <>
       {notice ? (
-        <p className="admin-notice" role="status" aria-live="polite">
-          {notice}
-        </p>
+        <div className="admin-toast-region" aria-live="polite" aria-atomic="true">
+          <p className="admin-toast" role="status">
+            {notice}
+          </p>
+        </div>
       ) : null}
 
       <section className="page-hero">
@@ -233,10 +235,19 @@ export function BrandManagementPage() {
                     <div className="brand-cell">
                       <div className="brand-logo">
                         {brand.logo_url ? (
-                          <img src={brand.logo_url} alt="" />
-                        ) : (
-                          getBrandInitials(brand.name)
-                        )}
+                          <img
+                            src={brand.logo_url}
+                            alt=""
+                            onError={(event) => {
+                              event.currentTarget
+                                .closest('.brand-logo')
+                                ?.classList.add('is-fallback');
+                            }}
+                          />
+                        ) : null}
+                        <span className="brand-logo-fallback">
+                          {getBrandInitials(brand.name)}
+                        </span>
                       </div>
                       <div>
                         <div className="brand-name">{brand.name}</div>
@@ -264,7 +275,7 @@ export function BrandManagementPage() {
                       <button
                         type="button"
                         className="link-btn muted"
-                        onClick={() => void handleToggleStatus(brand)}
+                        onClick={() => openStatusConfirm(brand)}
                       >
                         {brand.status === 'DISABLED' ? '启用' : '停用'}
                       </button>
@@ -292,50 +303,45 @@ export function BrandManagementPage() {
           </tbody>
         </table>
         <div className="pagination">
-          <div className="page-left">
-            <span>共 {total} 条</span>
-            <button
-              type="button"
-              className="page-btn"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ‹
-            </button>
-            <button type="button" className="page-btn active">
-              {page}
-            </button>
-            <button
-              type="button"
-              className="page-btn"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              ›
-            </button>
-          </div>
-          <div className="brand-pagination-right">
-            <span>跳至</span>
-            <input
-              className="jump-input"
-              value={jumpPage}
-              onChange={(e) => setJumpPage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleJump()}
-            />
-            <span>页</span>
-            <span style={{ marginLeft: 10 }}>每页显示</span>
-            <select
-              className="page-size"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+          <div className="page-summary">共 {total} 条品牌</div>
+          <div className="page-right">
+            <div className="page-buttons">
+              <button
+                type="button"
+                className="page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                ‹
+              </button>
+              <button type="button" className="page-btn active">
+                {page}
+              </button>
+              <button
+                type="button"
+                className="page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                ›
+              </button>
+            </div>
+            <div className="page-size-wrap">
+              <span>每页显示</span>
+              <select
+                className="page-size"
+                value={pageSize}
+                aria-label="每页显示条数"
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                <option value={20}>20 条</option>
+                <option value={50}>50 条</option>
+                <option value={100}>100 条</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -350,6 +356,51 @@ export function BrandManagementPage() {
           void loadBrands();
         }}
       />
+
+      {statusConfirmTarget ? (
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onClick={() => setStatusConfirmTarget(null)}
+        >
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="status-brand-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-head">
+              <span id="status-brand-title" className="modal-title">
+                {statusConfirmIsEnable ? '启用品牌' : '停用品牌'}
+              </span>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="关闭"
+                onClick={() => setStatusConfirmTarget(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="page-desc">
+                {statusConfirmIsEnable
+                  ? `确认启用品牌「${statusConfirmTarget.name}」？`
+                  : `确认停用品牌「${statusConfirmTarget.name}」？停用后前台将不再展示该品牌。`}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn" onClick={() => setStatusConfirmTarget(null)}>
+                取消
+              </button>
+              <button type="button" className="btn primary" onClick={() => void handleStatusConfirm()}>
+                {statusConfirmIsEnable ? '确认启用' : '确认停用'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {deleteTarget ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>

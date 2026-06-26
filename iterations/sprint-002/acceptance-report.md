@@ -1,7 +1,7 @@
 ---
 title: Sprint 002 验收报告
 purpose: 记录 Sprint 002 验收结果与遗留项（模板）
-content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management acceptance.md 及对应 OpenSpec Change
+content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue acceptance.md 及对应 OpenSpec Change
 source: AI 根据迭代范围生成，Sprint 结束时由团队填写
 update_method: Sprint 验收完成后更新
 owner: 产品负责人
@@ -16,9 +16,9 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-002 |
-| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine |
-| 关联 BUG | BUG-0001-tile-category-enable-missing |
-| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、add-tile-sku-management |
+| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm |
+| 关联 BUG | BUG-0001-tile-category-enable-missing、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue |
+| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、fix-brand-ui-consistency、fix-brand-image-display-layout-shift、fix-brand-logo-upload-progress、fix-object-storage-upload-not-minio、fix-brand-logo-display-after-storage-fix、fix-admin-login-service-restart、fix-brand-status-confirm、fix-object-storage-legacy-upload-residue、add-tile-sku-management |
 | 计划验收日期 | 2026-06-28 |
 | 验收结论 | **实现完成，待验收（Pending sign-off）** |
 | 验收人 | _待填写_ |
@@ -71,7 +71,7 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 
 ### 2.4 接口与数据
 
-- [x] AC-032 ~ AC-038 Admin Users API、Orval、DB（MinIO 上传为桩）
+- [x] AC-032 ~ AC-038 Admin Users API、Orval、DB（MinIO 上传由 BUG-0006 修复覆盖）
 
 ### 2.5 技术
 
@@ -127,6 +127,120 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 ### 技术与视觉
 
 - [ ] AC-033 ~ AC-039 CSS Port、测试、HTML 原型并排（PNG 待补）
+
+## BUG-0002 品牌管理 UI 一致性验收
+
+> 来源：`issues/bugs/BUG-0002-brand-ui-inconsistency/acceptance.md`
+> 状态：**in_sprint，已纳入 sprint-002**（待 `fix-brand-ui-consistency` opsx-apply）
+
+- [ ] AC-001 品牌列表分页与用户管理页分页保持一致
+- [ ] AC-002 品牌分页不再使用割裂的局部视觉结构
+- [ ] AC-003 品牌 Logo 选择文件控件符合管理端表单风格
+- [ ] AC-004 Logo 空态、预览态和帮助文案一致
+- [ ] AC-005 品牌查询、分页、新增/编辑、Logo 上传和保存功能不回退
+- [ ] AC-006 满足 Design System 约束，无裸 Hex 或未登记局部色值
+- [ ] AC-007 补充回归测试与验收记录
+
+## BUG-0003 品牌图片显示与提示布局验收
+
+> 来源：`issues/bugs/BUG-0003-brand-image-display-layout-shift/acceptance.md`
+> 状态：**done，已归档**（`fix-brand-image-display-layout-shift` archived）
+
+- [x] AC-001 品牌 Logo 上传后返回可访问 URL
+- [x] AC-002 品牌列表正常展示已上传 Logo，加载失败有稳定空态
+- [x] AC-003 品牌编辑弹窗正常回显已上传 Logo，更换后即时更新
+- [x] AC-004 品牌启用/停用提示不造成页面上下波动
+- [x] AC-005 删除、创建、更新等提示不造成页面主体位移
+- [x] AC-006 修复符合媒体与对象存储安全规范
+- [x] AC-007 品牌查询、分页、新增/编辑、启停、删除等既有功能不回归
+- [x] AC-008 测试覆盖图片展示与提示稳定性；必要时同步 OpenAPI 与 Orval
+- [x] AC-009 满足 Design System 约束，无裸 Hex 或未登记局部色值
+
+## BUG-0004 品牌 Logo 上传进度反馈验收
+
+> 来源：`issues/bugs/BUG-0004-brand-logo-upload-progress-missing/acceptance.md`
+> 状态：**apply 完成，待 archive**（`fix-brand-logo-upload-progress` applied）
+
+- [x] AC-001 选择 Logo 后必须触发上传
+- [x] AC-002 上传过程中必须展示进度反馈
+- [x] AC-003 上传成功后必须更新弹窗预览
+- [x] AC-004 上传失败时必须展示错误和重试入口
+- [x] AC-005 重新选择同一文件也应可触发上传
+- [x] AC-006 修复不得破坏既有品牌管理功能
+- [x] AC-007 修复必须符合媒体与安全规范
+- [x] AC-008 测试必须覆盖上传进度与预览更新
+- [x] AC-009 Design System 约束必须满足
+
+## BUG-0005 服务重启后登录失败验收
+
+> 来源：`issues/bugs/BUG-0005-login-fails-after-service-restart/acceptance.md`
+> 状态：**apply 完成，待 archive**（`fix-admin-login-service-restart` applied，2026-06-26 23:17:00）
+
+- [x] AC-001 首次启动空数据库时默认管理员可登录
+- [x] AC-002 服务重启后已有管理员账号仍可按既有密码登录
+- [x] AC-003 已存在 admin 且初始密码变化时必须有明确策略
+- [x] AC-004 密码恢复不得绕过安全边界
+- [x] AC-005 Docker Compose 环境变量说明必须一致
+- [x] AC-006 错误提示保持一致但排障信息可定位
+- [x] AC-007 必须补充回归测试
+- [x] AC-008 不得破坏既有认证能力
+
+## BUG-0006 对象存储上传未写入 MinIO 验收
+
+> 来源：`issues/bugs/BUG-0006-object-storage-upload-not-minio/acceptance.md`
+> 状态：**已 archive**（`fix-object-storage-upload-not-minio` archived，2026-06-26 14:20:50）
+
+- [x] AC-001 上传成功后必须写入 MinIO 单桶
+- [x] AC-002 对象 Key 必须使用标准前缀
+- [x] AC-003 上传链路必须通过后端授权与校验
+- [x] AC-004 上传响应必须保持 API 兼容
+- [x] AC-005 媒体读取必须从 MinIO 受控读取
+- [x] AC-006 Docker Compose 验证必须覆盖 MinIO
+- [x] AC-007 测试必须覆盖对象存储写入
+- [x] AC-008 不得破坏既有上传业务
+- [x] AC-009 文档与规范必须同步
+
+## BUG-0007 对象存储修复后品牌 Logo 仍不显示验收
+
+> 来源：`issues/bugs/BUG-0007-brand-logo-not-displayed-after-storage-fix/acceptance.md`
+> 状态：**done，已归档**（`fix-brand-logo-display-after-storage-fix` archived，2026-06-26 20:21:43）
+
+- [x] AC-001 品牌列表展示 Logo
+- [x] AC-002 品牌编辑弹窗回显 Logo
+- [x] AC-003 新上传 Logo 可见
+- [x] AC-004 MinIO 对象读取闭环
+- [x] AC-005 历史数据兼容
+- [x] AC-006 回归品牌管理功能
+- [x] AC-007 测试覆盖
+- [x] AC-008 规范约束
+
+## BUG-0008 对象存储 legacy uploads 双目录残留验收
+
+> 来源：`issues/bugs/BUG-0008-object-storage-legacy-upload-residue/acceptance.md`
+> 状态：**done，已归档**（`fix-object-storage-legacy-upload-residue` archived，2026-06-27 00:11:29）
+
+- [x] AC-001 历史 uploads 孤儿文件已清理或纳入脚本
+- [x] AC-002 新上传不得再写入 data/uploads
+- [x] AC-003 文档澄清 data/minio 与 data/uploads 职责
+- [x] AC-004 UPLOAD_DIR 配置与挂载收敛
+- [x] AC-005 品牌 Logo 展示无回归
+- [x] AC-006 可选一致性检查工具
+- [x] AC-007 测试与 CI
+
+## REQ-0008-brand-status-confirm 功能验收
+
+> 来源：`issues/requirements/REQ-0008-brand-status-confirm/acceptance.md`
+> 状态：**done，已归档**（`fix-brand-status-confirm` archived，2026-06-26 21:24:30）
+
+### 启停二次确认
+
+- [x] AC-001 ~ AC-010 与 REQ-0008 §1 一致（vitest 覆盖启停确认流程）
+
+### 无障碍、回归与自动化
+
+- [x] AC-011 ~ AC-021 vitest 5/5 + build 通过
+- [x] AC-023 OpenSpec archive 完成；web-client spec 已合并「品牌列表启停二次确认」
+- [ ] AC-022 可选 PNG golden reference（非阻塞）
 
 ## REQ-0005-tile-category-management 功能验收
 
@@ -188,7 +302,7 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 - [x] Admin Users CRUD API 可用（`test_admin_users.py` 8 passed）
 - [x] `users` 表迁移已应用
 - [x] Orval 客户端已重新生成
-- [ ] 头像上传经 MinIO 授权链路（桩实现，待完整 MinIO change）
+- [x] 头像上传经 MinIO 授权链路（由 BUG-0006 修复覆盖）
 
 ### REQ-0005-user-management-list-refine
 
@@ -207,7 +321,34 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 - [ ] Admin Brands CRUD API 可用
 - [ ] `brands` 表迁移已应用
 - [ ] Orval 客户端已重新生成
-- [ ] Logo 上传经 MinIO 授权链路
+- [x] Logo 上传经 MinIO 授权链路（由 BUG-0006 修复覆盖）
+
+### BUG-0002-brand-ui-inconsistency
+
+- [x] 无 API / DB / Orval / MinIO 策略变更
+- [x] 品牌管理页分页与用户管理页分页并排验收
+- [x] 品牌 Logo 控件与用户头像上传控件并排验收
+
+### BUG-0003-brand-image-display-layout-shift
+
+- [x] 品牌 Logo 上传 URL 可被浏览器加载
+- [x] 品牌列表与编辑弹窗 Logo 展示/回显正常
+- [x] 品牌状态提示不推挤页面主体
+- [x] 媒体访问策略符合 MinIO 单桶与后端授权规范
+
+### BUG-0004-brand-logo-upload-progress-missing
+
+- [x] 更换 Logo 后触发上传并展示进度反馈
+- [x] 上传成功后弹窗预览更新，保存后回显最新 Logo
+- [x] 上传失败展示错误与重试入口
+- [x] 同文件重选可重试
+
+### BUG-0006-object-storage-upload-not-minio
+
+- [x] 上传后对象写入 `MINIO_BUCKET=tile-info-platform`
+- [x] 图片与视频对象使用标准前缀（`original/`、`videos/`、`videos/covers/`）
+- [x] `/media/{object_key}` 或等价 URL 可受控读取 MinIO 对象
+- [x] Docker Compose 环境可完成上传到 MinIO 的闭环验证
 
 ### REQ-0005-tile-category-management
 
@@ -220,11 +361,13 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 - [x] Admin Tile SKU CRUD + publish/unpublish API 可用（`test_admin_tile_skus.py` 10 passed）
 - [x] `tiles` 表扩展 + `tile_videos` 迁移已应用
 - [x] Orval 客户端已重新生成
-- [x] 图片/视频上传 API 端点（桩 object_key；MinIO 完整链路待后续 change）
+- [x] 图片/视频上传 API 端点（MinIO 完整链路由 BUG-0006 修复覆盖）
 
 ## 测试验收
 
 - [x] `npx vitest run src/features/admin src/pages/admin` — 8 passed
+- [x] `cd src/web && ./node_modules/.bin/vitest run src/features/admin/components/BrandFormModal.test.tsx src/pages/admin/BrandManagementPage.test.tsx` — 7 passed
+- [x] `cd src/web && ./node_modules/.bin/vite build` — success（存在既有 Tailwind at-rule minify warning）
 - [x] `cd src/backend && uv run pytest tests/test_admin_users.py` — 8 passed
 - [x] `npm run build` — success
 - [x] `docker compose build web` — success
@@ -326,12 +469,59 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 | §3 冒烟 | 2 | 2 | 完成 |
 | §4 追溯与归档 | 3 | 3 | 已 archive（--skip-specs） |
 
+### fix-brand-logo-upload-progress（BUG-0004）
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 准备与门禁 | 4 | 4 | 完成 |
+| §2 Web 上传状态与进度反馈 | 5 | 5 | 完成 |
+| §3 预览、失败与重试 | 5 | 5 | 完成 |
+| §4 API 封装与兼容性 | 4 | 4 | 完成；无 schema / DB 变更 |
+| §5 测试 | 7 | 7 | Vitest 7 passed；Web build success |
+| §6 验收与追溯 | 5 | 5 | 完成；待 archive |
+
+### fix-brand-status-confirm（REQ-0008）
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 启停确认弹窗 | 4 | 4 | ✓ archived 2026-06-26 |
+| §2 测试与归档 | 2 | 2 | ✓ archived |
+
+### fix-object-storage-upload-not-minio（BUG-0006）
+
+> 已完成 OpenSpec Change apply 与 archive，正式 spec 已同步。
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 准备与门禁 | 5 | 5 | 完成 |
+| §2 MinIO 存储适配 | 6 | 6 | 完成 |
+| §3 受控读取 / URL 策略 | 5 | 5 | 完成 |
+| §4 API、配置与文档同步 | 6 | 6 | 完成 |
+| §5 测试 | 7 | 7 | 完成 |
+| §6 验收与追溯 | 5 | 5 | 完成 |
+
+### fix-admin-login-service-restart（BUG-0005）
+
+| 任务组 | 总数 | 完成 | 状态 |
+|---|---|---|---|
+| §1 准备与门禁 | 4 | 4 | 完成 |
+| §2 后端初始化与恢复策略 | 6 | 6 | 完成 |
+| §3 环境变量与文档 | 5 | 5 | 完成；无 API schema 变更，无需 Orval |
+| §4 测试 | 6 | 6 | pytest 30 passed；ruff passed |
+| §5 验收与追溯 | 4 | 4 | 完成；待 archive |
+
 ## 问题清单
 
 | 编号 | 描述 | 严重程度 | 状态 |
 |---|---|---|---|
 | I-01 | BUG-0001 类目停用行无「启用」按钮 | high | 已修复并 archive |
 | I-02 | REQ-0007 类目页 UI refine 待实现 | medium | 已纳入 sprint-002；待 fix change apply |
+| I-03 | BUG-0004 品牌 Logo 更换缺少上传进度与预览更新 | medium | 已完成 `fix-brand-logo-upload-progress` apply；待 archive |
+| I-04 | BUG-0005 服务重启后正确账号密码无法登录 | high | 已完成 `fix-admin-login-service-restart` apply；待 `/opsx-archive` |
+| I-05 | BUG-0006 上传链路未写入 MinIO 对象存储 | high | 已完成 `fix-object-storage-upload-not-minio` archive |
+| I-06 | BUG-0007 对象存储修复后品牌 Logo 仍不显示 | high | 已完成 `fix-brand-logo-display-after-storage-fix` archive |
+| I-07 | REQ-0008 品牌启停二次确认 | medium | 已 archive `2026-06-26-fix-brand-status-confirm` |
+| I-08 | BUG-0008 legacy uploads 双目录残留 | medium | 已完成 `fix-object-storage-legacy-upload-residue` archive |
 
 ## 遗留风险
 
@@ -350,9 +540,14 @@ note: Sprint 002 未开始验收；实现完成后逐项勾选
 | L-10 | 类目管理 HTML/PNG sign-off | P1 | HTML trace pass；PNG 待补 |
 | L-11 | add-tile-sku-management 实现与归档 | P0 | **32/35 apply 完成**；待 archive |
 | L-12 | SKU 管理 HTML/PNG sign-off | P1 | HTML trace pass；PNG 可选 |
-| L-13 | Sprint-002 容量超支（57 人天 / 2 周） | P1 | 监控；含 REQ-0007 +2 人天 |
+| L-13 | Sprint-002 容量超支（69 人天 / 2 周） | P1 | 监控；含 REQ-0007 +2 人天、BUG-0002 +2 人天、BUG-0006 +3 人天、BUG-0007 +2 人天 |
 | L-14 | BUG-0001 类目启用 UI 缺陷 | P0 | 已修复并 archive |
 | L-15 | fix-tile-category-management-refine 实现与归档 | P1 | 已纳入 sprint-002；待 apply |
+| L-16 | BUG-0004 品牌 Logo 上传进度反馈修复 | P1 | **applied** 2026-06-26 09:47:15；待 archive |
+| L-17 | BUG-0005 服务重启后登录失败修复 | P1 | **applied** 2026-06-26 23:17:00；待 archive |
+| L-18 | BUG-0006 对象存储上传未写入 MinIO 修复 | P1 | **archived** 2026-06-26 14:20:50 |
+| L-19 | BUG-0007 对象存储修复后品牌 Logo 仍不显示修复 | P1 | **archived** 2026-06-26 20:21:43 |
+| L-20 | fix-brand-status-confirm 实现与归档 | P1 | **archived** 2026-06-26 21:24:30 |
 
 ## 验收结论
 

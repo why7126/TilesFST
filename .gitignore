@@ -1,17 +1,26 @@
+# OS / editor
+.DS_Store
+
+# Local environment
 .env
 .env.local
 .venv/
+
+# Python
 __pycache__/
 *.pyc
+.pytest_cache/
+coverage/
+
+# Node / frontend build
 node_modules/
 dist/
 build/
-.DS_Store
+
+# Local databases and object-store runtime files
 *.sqlite3
 *.db
 .minio/
-coverage/
-.pytest_cache/
 
 # Runtime data: keep directory structure, ignore generated data and uploaded media
 /data/runtime/**
@@ -27,14 +36,3 @@ coverage/
 !/data/**/.gitkeep
 !/data/README.md
 !/data/samples/**
-
-# Local environment
-.env
-
-# Runtime data
-data/sqlite/*
-data/minio/*
-data/uploads/*
-data/processed/*
-data/tmp/*
-!data/**/.gitkeep

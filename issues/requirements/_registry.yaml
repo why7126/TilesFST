@@ -1,7 +1,13 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 8
+next_id: 9
 entries:
+  - id: REQ-0008-brand-status-confirm
+    title: 品牌列表页启停操作二次确认
+    status: done
+    iteration: sprint-002
+    created: 2026-06-26
+    parent_requirement: REQ-0005-brand-management
   - id: REQ-0007-tile-category-management-refine
     title: 瓷砖类目管理页 UI 优化（启停确认、去标题、分页对齐）
     status: in_sprint

@@ -80,8 +80,10 @@ users 1 ── * login_logs（预留，本期无写入）
 
 **种子数据：** `src/backend/app/db/seed.py`
 
-- 当 `ADMIN_INITIAL_PASSWORD` 已配置且不存在 `username=admin` 时，创建 admin 用户
-- 默认用户名：`admin`；显示名：`系统管理员`
+- 当 `ADMIN_INITIAL_PASSWORD` 已配置且不存在 `ADMIN_USERNAME` 对应用户时，创建 role 为 `admin` 的默认用户。
+- 默认用户名：`admin`；显示名：`系统管理员`。
+- 已存在默认管理员时，普通服务重启或重复 seed 不会静默覆盖 `password_hash`。
+- 仅当显式设置 `ADMIN_RESET_PASSWORD_ON_STARTUP=true` 时，启动 seed 才会使用 `ADMIN_INITIAL_PASSWORD` 的 bcrypt 哈希更新默认管理员 `password_hash`；该流程不新增字段、不存储明文密码、不改变角色或账号状态。
 
 ---
 
