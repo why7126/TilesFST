@@ -28,5 +28,13 @@ note: 企业初始化模板
 
 - `.env.example`
 - Docker Compose
-- 后端上传限制
-- OpenSpec验收标准
+- Nginx `client_max_body_size`（Web 镜像 `src/web/nginx.conf`）
+- 后端 `MAX_IMAGE_SIZE_MB` / `MAX_VIDEO_SIZE_MB` 与 MIME 白名单
+- Web 镜像重建（`docker compose build web`）
+
+**Sprint 002 案例**：`BUG-0020` — Docker Web `localhost:3000` 上传 MP4 返回 **413**，根因为 Nginx 默认 ~1MB 限制，与后端 env 未对齐。详见 `best-practices/admin-media-upload-chain.md`。
+
+## 关联
+
+- OpenSpec：`openspec/specs/object-storage/spec.md`
+- 上传标准：`docs/standards/file-upload.md`

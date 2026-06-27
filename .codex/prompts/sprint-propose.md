@@ -73,18 +73,30 @@ iterations/**                   # 避免 sprint 编号冲突
 
 ## Step 2 — 纳入前检查
 
-### 评审门禁（MUST — 新 Sprint 严格执行）
+### 评审门禁（MUST — 无例外）
 
-纳入 `sprint.yaml` 的 **requirements[]** / **bugs[]** 每项：
+纳入 Sprint **正式规划** 或执行开发前，REQ/BUG **MUST** 已完成评审：
 
 ```text
 issues/requirements/<REQ>/trace.md  → status ∈ { approved, in_sprint }
 issues/bugs/<BUG>/trace.md        → status ∈ { approved, in_sprint }
 ```
 
-**未评审**（`draft`、`pending_review`、`captured` 等）→ **不得**写入 `sprint.yaml`；记入 `sprint.md`「延后项」，提示 `/req-review` 或 `/bug-review`。
+**未评审**（`draft`、`pending_review`、`captured`、`enriching` 等）时 **MUST**：
 
-**历史 Sprint 回填**（如 sprint-002 已含 draft REQ）：输出 **WARN**，建议补 `review.md` + `--approve`；不自动剔除。
+| 禁止 | 说明 |
+|------|------|
+| 写入 `sprint.yaml` | 不得加入 `requirements[]` / `bugs[]` |
+| 写入 Sprint 目标 / Scope / 里程碑 / 工作量合计 | 不得出现在 `sprint.md` 正式范围 |
+| 写入 release / acceptance 关联范围 | 四件套正式条目 |
+| 更新 `trace.md` `iteration` | 不得设为 sprint-xxx |
+| `/req-opsx` / `/bug-opsx` / `/sprint-apply` | 不得执行 |
+
+**允许**：仅记入 `sprint.md` §「延后项（待评审）」+ 提示 `/req-review` 或 `/bug-review --approve`。
+
+用户显式要求「纳入 sprint-xxx」时也 **MUST** 先拒绝写入规划；**无**「历史回填 WARN 仍写入 yaml」例外。
+
+若发现既有 Sprint 已含未评审项：**输出 WARN**，将其移出 `sprint.yaml` 与正式 Scope，改入延后项，并提示补评审。
 
 **优先级**：P0 BUG > P0 REQ > P1 …
 
@@ -166,8 +178,8 @@ iterations/sprint-xxx/
 ```yaml
 sprint_id: sprint-xxx
 status: planning          # 启动开发后改为 in_progress
-start_date: YYYY-MM-DD
-end_date: YYYY-MM-DD
+start_date: YYYY-MM-DD HH:mm:ss
+end_date: YYYY-MM-DD HH:mm:ss
 
 capacity:
   developers: <int>
@@ -183,10 +195,10 @@ estimated_person_days: <number>
 
 ### sprint.md（MUST 含）
 
-- Sprint 目标
-- Scope 表（REQ / BUG / Change + 优先级 + 状态）
+- Sprint 目标（**MUST** 覆盖 `sprint.yaml` 中全部 `requirements` / `bugs`：**编号列表** + 各 `### REQ/BUG-xxxx 要点` 小节，含严重等级/现象/根因/修复范围/OpenSpec 状态）
+- Scope 表（REQ / BUG / Change + 优先级 + 状态；Scope archived 时间戳 MUST `YYYY-MM-DD HH:mm:ss`，由 workflow-sync 维护）
 - 工作量估算表
-- 里程碑
+- 里程碑（「目标日期」列 MUST `YYYY-MM-DD HH:mm:ss`）
 - 风险
 - **依赖** ASCII 树
 - 发布计划
@@ -194,7 +206,7 @@ estimated_person_days: <number>
 
 ### release-note.md / acceptance-report.md
 
-按 `rules/document-governance.md` §4.1 模板生成初稿。
+按 `rules/document-governance.md` §4.1 模板生成初稿。四件套 Markdown **MUST** 含 Frontmatter 字段 `created_at`、`updated_at`（`YYYY-MM-DD HH:mm:ss`）；后续任意修改只更新 `updated_at`。
 
 ---
 
@@ -244,6 +256,7 @@ openspec/changes/*/trace.md      # 若 change 已存在
 | 不得绕过 OpenSpec | 新能力须先 REQ + Change，再纳入 sprint |
 | 编号唯一 | 不覆盖已有 sprint 目录（除非用户确认续写） |
 | 容量透明 | 超容量须在 sprint.md 风险表标注 |
+| 不得绕过评审门禁 | 未 approved/in_sprint 的 REQ/BUG 不得写入 Sprint 规划或 trace.iteration |
 | 不写 src | 本命令只建迭代文档，实现用 `/sprint-apply` |
 
 ---
@@ -255,3 +268,17 @@ openspec/changes/*/trace.md      # 若 change 已存在
 - 单 Change 提议：`/opsx-propose`
 - 开发编排：`/sprint-apply`
 - 批量归档：`/sprint-archive`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event sprint.propose --sprint <sprint-id>
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

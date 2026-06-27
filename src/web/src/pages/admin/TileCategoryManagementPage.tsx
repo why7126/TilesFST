@@ -12,6 +12,7 @@ import {
   fetchCategories,
   fetchCategoryTree,
 } from '@/features/admin/api/tile-categories-api';
+import { AdminToast } from '@/features/admin/components/AdminToast';
 import { CategoryFormModal } from '@/features/admin/components/CategoryFormModal';
 import { CategoryTree } from '@/features/admin/components/CategoryTree';
 import {
@@ -178,11 +179,7 @@ export function TileCategoryManagementPage() {
 
   return (
     <>
-      {notice ? (
-        <p className="admin-notice" role="status" aria-live="polite">
-          {notice}
-        </p>
-      ) : null}
+      <AdminToast message={notice} />
 
       <section className="page-hero">
         <div>

@@ -93,7 +93,7 @@ class TileSkuCreateRequest(BaseModel):
     size: str | None = None
     surface_finish: str | None = None
     color_family: str | None = None
-    reference_price: float | None = None
+    reference_price: float = 0.0
     remark: str | None = None
     images: list[TileSkuImageInput] = Field(default_factory=list)
     videos: list[TileSkuVideoInput] = Field(default_factory=list)

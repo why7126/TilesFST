@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0002 品牌管理 UI 一致性问题
 content: 记录品牌列表分页与添加品牌弹窗 Logo 选择控件的一致性缺陷
@@ -7,6 +8,7 @@ status: done
 note: 已完成 /opsx-apply 与 /opsx-archive，修复已归档
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -32,13 +34,12 @@ lifecycle:
   reviewed: 2026-06-25
   approved: 2026-06-25
   applied: 2026-06-25
-  archived: 2026-06-25
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-brand-ui-consistency
     type: fix
     status: archived
-    bug_id: BUG-0002-brand-ui-inconsistency
-```
+    bug_id: BUG-0002-brand-ui-inconsistency```
 
 ## 2. Readiness
 

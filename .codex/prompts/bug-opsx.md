@@ -31,9 +31,11 @@ openspec list --json
 
 ---
 
-## Step 0.5 — 评审门禁（MUST）
+## Step 0.5 — 评审门禁（MUST — 无例外）
 
-`trace.md` `status === approved`（或 `in_sprint`/`done`）否则 **停止** → `/bug-review`
+`trace.md` `status ∈ { approved, in_sprint, done }` 否则 **立即停止** → `/bug-review BUG-xxxx --approve`。
+
+未评审 **不得** `/bug-opsx`、**不得**写入 Sprint 正式规划（见 `rules/bug-management.md` §4.1）。
 
 ---
 
@@ -106,3 +108,17 @@ tasks 末项提醒：`docs/knowledge-base/incidents/`（若适用）
 
 - `.cursor/commands/req-opsx.md`（结构对照）
 - `.cursor/commands/opsx-apply.md`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change <change-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

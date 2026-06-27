@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0008 对象存储修复后本地 uploads 双目录残留与历史数据清理缺失
 content: 记录 BUG-0006 修复后 data/uploads 孤儿文件、UPLOAD_DIR 挂载与文档澄清未收敛的问题
@@ -7,6 +8,7 @@ status: done
 note: 已完成 fix-object-storage-legacy-upload-residue archive
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -36,12 +38,11 @@ lifecycle:
   in_sprint: 2026-06-26 23:56:57
   opsx_created: 2026-06-27 00:00:20
   applied: 2026-06-27 00:04:00
-  archived: 2026-06-27 00:11:29
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-object-storage-legacy-upload-residue
     type: fix
-    status: archived
-```
+    status: archived```
 
 ## 2. Readiness
 

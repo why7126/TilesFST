@@ -30,6 +30,7 @@
 | 保存草稿 vs 创建SKU | design D8：校验级别不同，均默认 DRAFT |
 | PNG 缺失 | HTML 为 gate；PNG 可选，不阻塞 |
 | sku_code vs model | 新增 sku_code，迁移 model |
+| PNG golden | 2026-06-27 从 `prototype/web/*.png` 复制至 `prototype/images/`（可选任务 8.4/9.3） |
 
 ## 视觉 Diff Checklist（1440×1024）
 

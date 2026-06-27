@@ -101,3 +101,17 @@ After completing all artifacts, summarize:
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, ask if user wants to continue it or create a new one
 - Verify each artifact file exists after writing before proceeding to next
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event opsx.propose --change <change-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

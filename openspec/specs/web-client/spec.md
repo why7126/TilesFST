@@ -735,3 +735,569 @@ Web 客户端 MUST 提供瓷砖品牌管理页，路由为 `/admin/brands`，视
 - **WHEN** 未登录用户访问 `/admin/brands`
 - **THEN** 前端 MUST 跳转至 `/admin/login`
 
+### Requirement: SKU 弹窗内容溢出与滚动修复
+
+Web 客户端 MUST 修复 `/admin/tile-skus` 新增/编辑 SKU 弹窗（`TileSkuFormModal`）的内容溢出缺陷：当表单内容高度超过视口允许的最大弹窗高度时，弹窗 MUST 保持页眉与页脚固定可见，且主体内容区 MUST 提供垂直滚动以访问全部字段与操作按钮。修复 MUST NOT 修改 SKU API、数据库结构、权限边界、Orval 生成接口或 MinIO 对象存储策略。
+
+#### Scenario: 矮视口下弹窗主体可滚动
+
+- **WHEN** 已登录 `admin` 或 `employee` 在视口高度 ≤900px 时打开「新增SKU」或「编辑SKU」弹窗
+- **THEN** 弹窗 `.modal-body`（或等价内容 wrapper）MUST 支持垂直滚动
+- **AND** 用户 MUST 能滚动至 SKU 图片、SKU 视频与备注说明字段
+
+#### Scenario: 页眉页脚固定可见
+
+- **WHEN** 弹窗内容超出可视高度且用户滚动主体区域
+- **THEN** 标题、副标题与关闭按钮 MUST 保持可见
+- **AND** 「取消 / 保存草稿 / 创建SKU（或保存）」footer MUST 保持可见且可点击
+
+#### Scenario: 弹窗尺寸约束不变
+
+- **WHEN** 用户打开 SKU 弹窗
+- **THEN** 弹窗宽度 MUST 仍为 880px（`max-width: 100%` 响应式除外）
+- **AND** 弹窗 `max-height` MUST NOT 超过视口（如 `calc(100vh - 64px)`）
+
+#### Scenario: 关闭交互不回退
+
+- **WHEN** 用户在弹窗内滚动
+- **THEN** ESC、点击遮罩、点击 × MUST 仍可正常关闭弹窗
+- **AND** MUST NOT 因滚动导致意外关闭
+
+#### Scenario: SKU 表单功能保持可用
+
+- **WHEN** 用户在修复后的弹窗中填写并保存
+- **THEN** 保存草稿、创建 SKU、编辑更新、图片/视频上传 MUST 继续可用
+- **AND** MUST NOT 变更 API 请求参数或响应结构
+
+### Requirement: SKU 列表分页与表格结构 UI 一致性修复
+
+Web 客户端 MUST 修复 `/admin/tile-skus` 瓷砖 SKU 列表页的分页与表格卡片结构 UI 一致性缺陷：列表底部分页 MUST 与用户管理页分页保持相同的 DOM 结构与视觉语言；表格卡片内 MUST NOT 出现与页面级标题重复的二级标题行（如「SKU 列表」）。修复 MUST NOT 修改 SKU API、数据库结构、权限边界、Orval 生成接口或 MinIO 对象存储策略。
+
+#### Scenario: SKU 列表分页对齐用户管理页
+
+- **WHEN** 已登录 `admin` 或 `employee` 分别访问「瓷砖 SKU」与「用户管理」列表页
+- **THEN** 两个页面底部分页区域 MUST 使用相同 DOM 结构：`page-summary` + `page-right` + `page-buttons` + `page-size-wrap`
+- **AND** 布局、按钮尺寸、边框、圆角、字号、激活态和每页显示控件 MUST 视觉一致
+
+#### Scenario: SKU 分页 MUST NOT 使用废弃 brand 局部结构
+
+- **WHEN** 用户查看 SKU 列表底部分页
+- **THEN** MUST NOT 出现 `page-left` 或 `brand-pagination-right` 类名/结构
+- **AND** 总数摘要 MUST 独立于翻页按钮组（`page-summary`）
+
+#### Scenario: 表格卡片内无重复标题行
+
+- **WHEN** 用户访问 SKU 列表页
+- **THEN** `table-card` 内 MUST NOT 渲染 `table-head`、`table-title`「SKU 列表」或等价卡片内二级标题
+- **AND** 表格 MUST 直接以 `<table>` 表头开始（与用户管理页一致）
+
+#### Scenario: SKU 列表分页功能不回退
+
+- **WHEN** 用户在 SKU 列表页切换页码或修改每页条数（10 / 20 / 50 / 100）
+- **THEN** 列表 MUST 正确刷新，`total` 与当前筛选结果一致
+- **AND** 切换每页条数后 page=1，筛选条件 MUST 保留
+
+#### Scenario: SKU 列表 CRUD 与筛选保持可用
+
+- **WHEN** 用户执行查询、重置、新增 SKU、编辑、上下架或删除
+- **THEN** 原有功能 MUST 继续可用
+- **AND** MUST NOT 变更 API 请求参数或响应结构
+
+### Requirement: 管理端 Sidebar 展开/收起
+
+Web 客户端 MUST 在管理端 `AdminLayout` 包裹的全部 `/admin/*`  authenticated 页面支持 Sidebar **expanded** 与 **collapsed** 两种状态。状态 MUST 由 `AdminLayout`（或等价 Context）统一管理并传入 `AdminSidebar`；首次访问 MUST 默认为 **expanded**。用户切换后 MUST 将偏好写入 `localStorage`（key：`admin-sidebar-collapsed`）；刷新或路由切换后 MUST 恢复一致。折叠交互 MUST 仅在视口宽度 **>1023px** 生效；≤1023px MUST 沿用现有 responsive 布局且 MUST NOT 展示或 MUST 禁用折叠 chevron。MUST NOT 变更店主端 `Sidebar` 筛选栏。切换 Sidebar 状态 MUST NOT 改变 nav 路由行为、卸载当前页面或丢失 `AdminLayout` 内 notice 等局部 UI 状态。
+
+#### Scenario: 状态持久化
+
+- **WHEN** 用户在桌面端收起 Sidebar 并刷新页面或导航至其他 `/admin/*` 路由
+- **THEN** Sidebar MUST 保持 collapsed
+- **AND** `localStorage['admin-sidebar-collapsed']` MUST 反映该偏好
+
+#### Scenario: 默认 expanded
+
+- **WHEN** 用户首次访问且无 localStorage 记录
+- **THEN** Sidebar MUST 为 expanded（264px）
+
+#### Scenario: 移动端不启用折叠
+
+- **WHEN** 视口宽度 ≤1023px
+- **THEN** MUST NOT 与桌面 collapsed 72px 模型冲突
+- **AND** 折叠 chevron MUST 隐藏或禁用
+
+#### Scenario: 导航行为无回归
+
+- **WHEN** 用户在 collapsed 态点击 nav 项
+- **THEN** MUST 与 expanded 态相同执行 `navigate` 或 placeholder 逻辑
+
+#### Scenario: 自动化测试
+
+- **WHEN** 运行 vitest 覆盖 AdminLayout 或 AdminSidebar
+- **THEN** MUST 断言 chevron 切换 `data-sidebar-state` 或等价 class
+- **AND** MUST 断言 `aria-expanded` 与 localStorage 读写
+
+### Requirement: 产品版本常量与 Web 端展示
+
+Web 客户端 MUST 在 `src/shared/` 维护单一产品版本常量（如 `PRODUCT_VERSION = 'v0.0.1'`），管理端与店主端 MUST 引用同一导出。产品版本 MUST 由发版时人工更新该常量；MUST NOT 从 `package.json`、`pyproject.toml`、FastAPI `version` 或 CI/Git 构建信息读取。Web 客户端 MUST NOT 在登录页、页脚或关于页展示产品版本（本期 Out）。Web 客户端 MUST NOT 展示 API / OpenAPI / 后端版本号作为产品版本。
+
+#### Scenario: 单一事实源
+
+- **WHEN** 开发者查看产品版本定义
+- **THEN** MUST 存在且仅存在一处 `src/shared/` 产品版本常量导出
+- **AND** 管理端 `AdminSidebar` 与店主端 `Sidebar` MUST import 同一常量
+
+#### Scenario: 禁止自动版本源
+
+- **WHEN** 实现读取展示用版本号
+- **THEN** MUST NOT 使用 npm package version、FastAPI app version 或 git sha 作为 `PRODUCT_VERSION` 展示值
+
+### Requirement: 店主端侧边栏产品版本展示
+
+店主端使用筛选侧栏的页面（如经 `LandingPage`、`ListPage` 与 `CatalogBody` 渲染的模板）MUST 在 `Sidebar` **最上方**（第一个筛选 section 之上）展示品牌名与产品版本 pill。布局语义 MUST 与管理端一致：品牌名左、版本 pill 紧邻右侧；版本值 MUST 等于 `PRODUCT_VERSION`。版本 MUST 在侧栏内展示；MUST NOT 仅在顶栏 `SiteNav` 展示而侧栏缺失。
+
+#### Scenario: 店主端侧栏顶部版本
+
+- **WHEN** 用户访问店主端带侧栏页面（如首页或目录列表）
+- **THEN** 侧栏最上方 MUST 可见品牌名（默认 STONEX 或 DS 等价）与版本 pill
+- **AND** pill 文案 MUST 等于 `PRODUCT_VERSION`
+
+#### Scenario: 筛选区无回归
+
+- **WHEN** 用户查看店主端侧栏筛选 checkbox 区
+- **THEN** 筛选 section 标题与选项 MUST 正常展示
+- **AND** brand-head MUST NOT 挤压或遮挡筛选交互
+
+#### Scenario: 店主端版本 pill 样式
+
+- **WHEN** 开发者查看店主端版本 pill 实现
+- **THEN** MUST 复用与管理端相同的 badge 组件或等价 semantic token 类
+- **AND** TSX MUST NOT 包含裸 Hex
+
+### Requirement: 产品版本 pill 视觉一致性修复（Web 客户端）
+
+Web 客户端 MUST 修复跨端产品版本 pill 的视觉一致性缺陷（BUG-0013）：管理端与店主端 MUST 共用同一 badge 组件或 variant，pill 样式 MUST 对齐 REQ-0010 原型与 `rules/ui-design.md` §8。pill MUST 含 `padding: 2px 7px` 等价、`font-weight: 500`、`tracking-badge`（或 prototype 0.04em）；MUST 使用 semantic token，MUST NOT 含裸 Hex。Vitest MUST 断言渲染的版本元素含 pill 关键 class（如边框与 muted 文字），不仅断言版本字符串。修复 MUST NOT 变更 `PRODUCT_VERSION` 单一事实源、登录页/页脚版本展示策略或 API。
+
+#### Scenario: 跨端 badge 组件复用
+
+- **WHEN** 开发者查看管理端 `AdminSidebar` 与店主端 `Sidebar` brand-head 实现
+- **THEN** 两端 MUST 使用同一 `ProductVersionBadge`（或 `Badge` version variant）实现
+- **AND** MUST NOT 在两端分别维护 divergent ad-hoc pill 样式
+
+#### Scenario: 店主端 pill 与管理端视觉一致
+
+- **WHEN** 用户访问店主端带侧栏页面（如 `LandingPage` / `ListPage`）
+- **THEN** 侧栏顶部版本 pill MUST 与管理端 pill 视觉一致
+- **AND** 版本值 MUST 仍等于 `PRODUCT_VERSION`
+
+#### Scenario: 店主端原型并排验收
+
+- **WHEN** 开发者在 1280×1024 下将店主端与 `product-version-sidebar-catalog.html` 并排对比
+- **THEN** brand-head 内版本 pill MUST 与原型语义一致
+- **AND** 筛选 section MUST 无回归
+
+#### Scenario: Vitest 样式断言
+
+- **WHEN** 运行 `cd src/web && pnpm test` 中与版本 badge 相关用例
+- **THEN** 测试 MUST 断言 pill 元素含边框与 muted 文字等关键 class
+- **AND** MUST 继续 import `PRODUCT_VERSION` 断言文案，MUST NOT duplicate 硬编码版本字符串
+
+### Requirement: SKU 弹窗副标题 UI 一致性修复
+
+Web 客户端 MUST 修复 `/admin/tile-skus` 新增/编辑 SKU 弹窗（`TileSkuFormModal`）副标题与品牌新增弹窗的 UI 不一致问题：副标题 MUST 使用与管理端共享的 `.modal-desc` 样式（12px、`var(--admin-weak)`、上间距 8px）；弹窗头部 MUST 支持标题 + 副标题自适应高度。修复 MUST NOT 修改 SKU API、数据库、Orval 或 BUG-0011 弹窗滚动布局。
+
+#### Scenario: SKU 弹窗使用共享 modal-desc
+
+- **WHEN** 用户打开 SKU 新增或编辑弹窗
+- **THEN** 标题下方副标题 MUST 使用 class `modal-desc`
+- **AND** MUST NOT 使用未定义样式的 `modal-subtitle`
+
+#### Scenario: 副标题 Typography 与品牌弹窗一致
+
+- **WHEN** 并排对比 SKU 与品牌新增弹窗
+- **THEN** 两弹窗副标题字号、颜色、行高与标题间距 MUST 视觉一致
+
+#### Scenario: 弹窗头部自适应副标题
+
+- **WHEN** 弹窗标题区包含副标题
+- **THEN** `.modal-head` MUST 使用 `min-height: 64px` 与 `height: auto`
+- **AND** 副标题 MUST 完整可见
+
+#### Scenario: AC-023 副标题语义保留
+
+- **WHEN** 用户阅读 SKU 新增弹窗副标题
+- **THEN** 文案 MUST 说明弹窗内不提供状态选择
+
+#### Scenario: 弹窗滚动与表单不回退
+
+- **WHEN** 副标题修复合并后
+- **THEN** BUG-0011 矮视口滚动与 BUG-0012 字段规则 MUST 保持可用
+
+### Requirement: SKU 弹窗表单字段规则修复
+
+Web 客户端 MUST 修复 `/admin/tile-skus` 新增/编辑 SKU 弹窗（`TileSkuFormModal`）的表单字段规则，对齐 UAT 产品决策（[BUG-0012](issues/bugs/BUG-0012-tile-sku-modal-form-field-rules/)）：**表面工艺非必填**、**参考价格（元）必填且新建默认 0**。修复 MUST 同步前后端校验，且 MUST NOT 回退 BUG-0011 弹窗滚动布局或 BUG-0009 列表 UI。
+
+#### Scenario: 表面工艺非必填
+
+- **WHEN** 用户打开新增或编辑 SKU 弹窗
+- **THEN** 「表面工艺」Label MUST NOT 显示必填星号
+- **AND** 留空表面工艺、填齐其它必填项后点击「创建 SKU」或「保存」 MUST 成功提交
+
+#### Scenario: 参考价格必填且新建默认零
+
+- **WHEN** 用户打开「新增 SKU」弹窗
+- **THEN** 「参考价格（元）」输入框 MUST 默认值为 `0`
+- **AND** Label MUST 显示必填星号
+- **AND** Label 文案 MUST 仍为「参考价格（元）」
+
+#### Scenario: 参考价格空值被拦截
+
+- **WHEN** 用户清空参考价格并尝试创建或保存
+- **THEN** 前端 MUST 展示校验错误且不关闭弹窗
+- **AND** MUST NOT 向 API 发送 `reference_price: null`
+
+#### Scenario: 参考价格零元列表展示
+
+- **WHEN** SKU 保存后 `reference_price` 为 `0`
+- **THEN** 列表「参考价格」列 MUST 显示 `¥ 0.00`
+- **AND** MUST NOT 显示「—」
+
+#### Scenario: 弹窗布局与滚动不回退
+
+- **WHEN** 修复完成后在矮视口打开 SKU 弹窗
+- **THEN** 880px 宽度、主体可滚动、头尾固定 MUST 仍满足 BUG-0011 验收
+
+#### Scenario: Orval 类型同步
+
+- **WHEN** 后端 OpenAPI 更新 reference_price 必填语义
+- **THEN** 团队 MUST 运行 `./scripts/generate-openapi-client.sh` 并提交生成客户端
+
+### Requirement: 管理端瓷砖 SKU 管理页
+
+Web 客户端 MUST 提供瓷砖 SKU 管理页，路由为 `/admin/tile-skus`，视觉 MUST 高保真对齐 `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html` 与 `tile-sku-create-modal.html` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1120px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
+
+#### Scenario: SKU 页布局
+
+- **WHEN** 已登录 `admin` 或 `employee` 访问 `/admin/tile-skus`
+- **THEN** 页面 MUST 展示 page-head（eyebrow「OPERATIONS / SKU」、标题「瓷砖SKU」、说明、「＋ 新增SKU」）
+- **AND** MUST 展示 4 指标卡（SKU总数/已上架/待完善/草稿）、五维筛选区、SKU 表格与分页
+
+#### Scenario: 筛选与分页
+
+- **WHEN** 用户输入关键词或选择筛选项并点击查询或回车
+- **THEN** 系统 MUST 重置页码为 1 并重新加载列表
+- **AND** 分页左侧 MUST 显示「共 {total} 条」
+- **AND** 分页 MUST 支持页码与每页 10/20/50/100 条；默认 20；切换 page_size MUST 重置页码为 1
+
+#### Scenario: 列表列与价格格式
+
+- **WHEN** 用户查看 SKU 表格
+- **THEN** 列 MUST 包含：SKU信息、品牌/类目、规格/工艺、参考价格、素材、状态、更新时间、操作
+- **AND** 参考价格 MUST 格式化为 `¥ 268.00` 样式（两位小数）
+
+#### Scenario: 列表行上下架操作
+
+- **WHEN** 列表行 `status` 为 `PUBLISHED`
+- **THEN** 操作列 MUST 展示「编辑」与「下架」
+- **AND** 「删除」MUST 展示但置灰，并提示已上架不可删
+- **WHEN** 列表行 `status` 为 `DISABLED`（已下架）
+- **THEN** 操作列 MUST 展示「编辑」与「恢复」（或等价「上架」文案）
+- **AND** 点击 MUST 调用 `POST /api/v1/admin/tile-skus/{id}/publish` 并刷新列表
+- **WHEN** 列表行 `status` 为 `DRAFT` 或 `NEEDS_COMPLETION`
+- **THEN** 操作列 MUST 展示「编辑」与「上架」
+- **AND** publish 按钮 MUST NOT 因 `canDeleteTileSku` 或 delete 按钮状态而被隐藏
+
+#### Scenario: 新增编辑弹窗
+
+- **WHEN** 用户点击「新增SKU」或行内「编辑」
+- **THEN** MUST 打开宽 880px 弹窗，遮罩半透明，头尾固定、主体可滚动
+- **AND** 字段顺序 MUST 为：SKU名称、SKU编码、所属品牌、所属类目、规格尺寸、表面工艺、主色系、参考价格（元）、SKU图片、SKU视频、备注说明
+- **AND** MUST NOT 展示状态字段
+- **AND** 标题 MUST 含「创建后默认草稿」提示
+- **AND** 底部 MUST 为：取消、保存草稿、创建SKU
+
+#### Scenario: 多图主图与多视频
+
+- **WHEN** 用户在弹窗管理素材
+- **THEN** MUST 支持多张图片缩略图网格、主图标签与「设为主图」
+- **AND** MUST 支持多个视频文件卡片（名称、大小、删除、继续添加）
+- **AND** 视频 MUST NOT 为必填
+
+#### Scenario: 保存草稿与创建 SKU
+
+- **WHEN** 用户点击「保存草稿」
+- **THEN** MUST 以宽松校验提交（至少 SKU 名称）
+- **WHEN** 用户点击「创建SKU」
+- **THEN** MUST 校验全部必填项；成功 Toast「SKU创建成功，已保存为草稿」
+
+#### Scenario: SKU 管理 CSS Port
+
+- **WHEN** 开发者查看 SKU 管理页源码
+- **THEN** 视觉样式 MUST 主要来自 `features/admin/styles/tile-sku-management.css`（或等价 port CSS）
+- **AND** 颜色 MUST 通过 `var(--color-*)` 引用 `globals.css`
+- **AND** TSX MUST NOT 包含裸 Hex
+
+#### Scenario: 未登录访问
+
+- **WHEN** 未登录用户访问 `/admin/tile-skus`
+- **THEN** 前端 MUST 跳转至 `/admin/login`
+
+### Requirement: 管理端列表页操作反馈 Toast 布局统一
+
+Web 客户端 MUST 在管理端以下四个列表页对「操作成功/失败且约 3.2 秒后自动消失」的全局反馈使用固定位置 toast（`.admin-toast-region` + `.admin-toast` 或等价共享组件），MUST NOT 在 `page-hero` 或主体内容上方插入文档流 `.admin-notice` 占位节点。toast 样式 MUST 来自管理端共享样式（如 `admin-home.css`），四页视觉与行为 MUST 一致。弹窗内 inline 表单错误 MAY 继续使用 inline 错误文案；`AdminLayout` 侧栏占位 notice 不在本 requirement 范围。修复 MUST NOT 回归品牌 Logo 展示、上传进度及四页 CRUD、筛选、分页、权限边界。
+
+涵盖路由：
+
+- `/admin/brands`（瓷砖品牌）
+- `/admin/users`（用户管理）
+- `/admin/tile-categories`（瓷砖类目）
+- `/admin/tile-skus`（瓷砖 SKU）
+
+#### Scenario: 用户管理列表操作反馈不推挤页面
+
+- **WHEN** `admin` 在 `/admin/users` 执行冻结、解冻、删除、重置密码、新建/编辑用户成功或列表加载失败等会触发全局反馈的操作
+- **THEN** 系统 MUST 展示 fixed toast 反馈
+- **AND** 反馈出现和消失 MUST NOT 改变 page-hero、指标卡、筛选区、表格或分页的纵向位置
+- **AND** MUST NOT 在列表页主体顶部使用文档流 `.admin-notice` 承载该反馈
+
+#### Scenario: 瓷砖类目列表操作反馈不推挤页面
+
+- **WHEN** `admin` 或 `employee` 在 `/admin/tile-categories` 执行启用、停用、删除、保存类目成功或列表加载失败等会触发全局反馈的操作
+- **THEN** 系统 MUST 展示 fixed toast 反馈
+- **AND** 反馈出现和消失 MUST NOT 推挤 page-hero、筛选区、表格或分页
+- **AND** MUST NOT 在列表页主体顶部使用文档流 `.admin-notice` 承载该反馈
+
+#### Scenario: 瓷砖 SKU 列表操作反馈不推挤页面
+
+- **WHEN** `admin` 或 `employee` 在 `/admin/tile-skus` 执行上架、下架、删除、保存 SKU 成功或列表加载失败等会触发全局反馈的操作
+- **THEN** 系统 MUST 展示 fixed toast 反馈
+- **AND** 反馈出现和消失 MUST NOT 推挤 page-hero、指标卡、筛选区、表格或分页
+- **AND** MUST NOT 在列表页主体顶部使用文档流 `.admin-notice` 承载该反馈
+
+#### Scenario: 瓷砖品牌列表 toast 共享实现且不回归
+
+- **WHEN** `admin` 或 `employee` 在 `/admin/brands` 执行启用、停用、删除、保存品牌或加载失败等会触发全局反馈的操作
+- **THEN** 系统 MUST 继续使用 fixed toast，行为与 BUG-0003 / `fix-brand-image-display-layout-shift` 验收一致
+- **AND** toast 样式 MUST 来自管理端共享样式，MUST NOT 仅私有于 `brand-management.css`
+- **AND** 品牌 Logo 展示、上传进度、启停确认弹窗 MUST NOT 回归
+
+#### Scenario: 四页 toast 视觉与行为一致
+
+- **WHEN** 对比四页成功 toast（如「品牌已启用」「用户已冻结」「类目已启用」「SKU 已上架」）
+- **THEN** 位置、圆角、边框、背景、字号、阴影 MUST 一致
+- **AND** 自动消失时长 MUST 为 3200ms
+- **AND** MUST 保留 `aria-live="polite"` 与 `role="status"` 可访问性语义
+
+#### Scenario: Design System 约束
+
+- **WHEN** 修复修改 Web UI 样式
+- **THEN** MUST 使用既有管理端 CSS 变量与 semantic token
+- **AND** MUST NOT 新增裸 Hex 或与 `rules/ui-design.md` 冲突的提示样式
+
+### Requirement: 用户列表状态变更二次确认
+
+Web 客户端 MUST 在 `/admin/users` 用户管理列表页为行内「冻结」「解冻」与「删除」操作提供二次确认，以降低误触风险。冻结/解冻确认 MUST 复用与同项目类目/品牌启停确认相同的 modal 结构（`modal-backdrop` + `modal-card` + head/body/footer）。删除确认 MUST 使用与同页/类目/品牌删除一致的 modal 结构，MUST NOT 使用 `window.confirm`。用户点击「冻结」「解冻」或「删除」时 MUST NOT 直接调用 status API；MUST 先展示确认弹窗，仅在用户点击确认主按钮后调用 API。重置密码 confirm 见「用户重置密码二次确认」requirement。本能力 MUST NOT 修改用户 API、数据库、权限边界或 Orval 生成接口。
+
+#### Scenario: 冻结须先确认
+
+- **WHEN** `admin` 在用户列表行点击「冻结」
+- **THEN** MUST 展示冻结确认弹窗，MUST NOT 直接调用 `PATCH /api/v1/admin/users/{id}/status`
+- **AND** 弹窗标题 MUST 为「冻结用户」或等价文案
+- **AND** 正文 MUST 含用户名及冻结后果（如禁止登录）
+
+#### Scenario: 解冻须先确认
+
+- **WHEN** `admin` 在用户列表行点击「解冻」
+- **THEN** MUST 展示解冻确认弹窗，MUST NOT 直接调用 status API
+- **AND** 正文 MUST 含用户名
+
+#### Scenario: 删除须使用 DS modal
+
+- **WHEN** `admin` 对可删除用户点击「删除」
+- **THEN** MUST 展示删除确认 modal，MUST NOT 使用 `window.confirm`
+- **AND** 正文 MUST 含用户名及不可恢复提示
+
+#### Scenario: 确认弹窗按钮与取消
+
+- **WHEN** 用户状态变更确认弹窗展示
+- **THEN** 底部 MUST 含「取消」与确认主按钮（如「确认冻结」「确认解冻」「删除用户」）
+- **WHEN** 用户点击「取消」、遮罩或 ×
+- **THEN** MUST 关闭弹窗且 MUST NOT 调用 API 或改变用户状态
+
+#### Scenario: 确认后调用 API 并刷新
+
+- **WHEN** 用户在冻结确认弹窗点击确认
+- **THEN** MUST 调用 status API 将用户设为 `disabled` 并 Toast「用户已冻结」，刷新列表
+- **WHEN** 用户在解冻确认弹窗点击确认
+- **THEN** MUST 调用 status API 将用户设为 `active` 并 Toast「用户已恢复正常」，刷新列表
+- **WHEN** 用户在删除确认弹窗点击确认
+- **THEN** MUST 软删除用户并 Toast「用户已删除」，刷新列表
+
+#### Scenario: 无障碍与样式
+
+- **WHEN** 用户状态变更确认弹窗展示
+- **THEN** MUST 设置 `role="dialog"`、`aria-modal="true"`，标题 MUST 有 `aria-labelledby`
+- **AND** TSX MUST NOT 包含裸 Hex；样式 MUST 复用既有 modal 与 user-management CSS
+
+#### Scenario: 用户管理其他能力不回退
+
+- **WHEN** `admin` 执行查询、分页、新建/编辑用户或重置密码
+- **THEN** 既有功能 MUST 保持可用
+- **AND** 仅 `admin` MUST 可访问用户管理写操作
+
+### Requirement: SKU 列表上下架二次确认
+
+Web 客户端 MUST 在 `/admin/tile-skus` 瓷砖 SKU 列表页为行内「上架」「下架」与「恢复」（或等价上架文案）操作提供二次确认。确认 MUST 复用与同页「删除 SKU」确认框相同的 modal 结构。用户点击上述操作时 MUST NOT 直接调用 publish/unpublish API；MUST 先展示确认弹窗，仅在用户点击确认主按钮后调用 API。本能力 MUST NOT 修改 SKU API、数据库、权限边界或 Orval 生成接口。
+
+#### Scenario: 下架须先确认
+
+- **WHEN** `admin` 或 `employee` 在已上架 SKU 行点击「下架」
+- **THEN** MUST 展示下架确认弹窗，MUST NOT 直接调用 `POST /api/v1/admin/tile-skus/{id}/unpublish`
+- **AND** 正文 MUST 含 SKU 名称
+
+#### Scenario: 上架或恢复须先确认
+
+- **WHEN** 用户在草稿/待完善/已停用 SKU 行点击「上架」或「恢复」
+- **THEN** MUST 展示上架确认弹窗，MUST NOT 直接调用 `POST /api/v1/admin/tile-skus/{id}/publish`
+- **AND** 正文 MUST 含 SKU 名称
+
+#### Scenario: SKU 上下架确认弹窗按钮与取消
+
+- **WHEN** SKU 上下架确认弹窗展示
+- **THEN** 底部 MUST 含「取消」与确认主按钮
+- **WHEN** 用户点击「取消」、遮罩或 ×
+- **THEN** MUST 关闭弹窗且 MUST NOT 调用 publish/unpublish API
+
+#### Scenario: 确认后调用 API 并刷新
+
+- **WHEN** 用户在下架确认弹窗点击确认
+- **THEN** MUST 调用 unpublish API 并 Toast「SKU 已下架」，刷新列表
+- **WHEN** 用户在上架/恢复确认弹窗点击确认
+- **THEN** MUST 调用 publish API 并 Toast「SKU 已上架」（或等价），刷新列表
+
+#### Scenario: SKU 删除确认独立
+
+- **WHEN** 用户点击行内「删除」
+- **THEN** MUST 仍使用独立「删除 SKU」确认弹窗
+- **AND** 上下架 confirm state MUST NOT 与删除 confirm state 共用
+
+#### Scenario: SKU 管理其他能力不回退
+
+- **WHEN** 用户执行查询、分页、新增/编辑 SKU 或删除 SKU
+- **THEN** 既有功能 MUST 保持可用
+- **AND** BUG-0011 弹窗滚动、BUG-0014 恢复按钮可见性 MUST NOT 回归
+
+### Requirement: 用户重置密码二次确认
+
+Web 客户端 MUST 在 `/admin/users` 用户管理列表页为行内「重置密码」操作提供二次确认。确认 MUST 复用与同项目类目/品牌启停及同页冻结确认相同的 modal 结构（`modal-backdrop` + `modal-card` + head/body/footer）。用户点击「重置密码」时 MUST NOT 使用 `window.confirm`；MUST NOT 直接调用 `POST /api/v1/admin/users/{id}/reset-password`；MUST 先展示确认弹窗，仅在用户点击确认主按钮后调用 API。确认成功后 MUST 继续打开既有结果弹窗展示一次性随机密码（REQ-0005 AC-022）。本能力 MUST NOT 修改用户 API、数据库、权限边界或 Orval 生成接口。
+
+#### Scenario: 重置密码须先确认
+
+- **WHEN** `admin` 在用户列表行点击「重置密码」
+- **THEN** MUST 展示重置密码确认弹窗，MUST NOT 直接调用 `POST /api/v1/admin/users/{id}/reset-password`
+- **AND** MUST NOT 调用 `window.confirm`
+- **AND** 弹窗标题 MUST 为「重置密码」或等价文案
+- **AND** 正文 MUST 含用户名及重置后果（如将生成新随机密码）
+
+#### Scenario: 确认弹窗按钮与取消
+
+- **WHEN** 重置密码确认弹窗展示
+- **THEN** 底部 MUST 含「取消」与主按钮「确认重置」（或等价）
+- **WHEN** 用户点击「取消」、遮罩或 ×
+- **THEN** MUST 关闭弹窗且 MUST NOT 调用 reset-password API
+- **AND** MUST NOT 打开结果密码展示弹窗
+
+#### Scenario: 确认后调用 API 并展示结果
+
+- **WHEN** 用户在重置密码确认弹窗点击「确认重置」
+- **THEN** MUST 调用 reset-password API
+- **AND** MUST Toast「密码已重置」（或等价）
+- **AND** MUST 打开结果弹窗展示一次性密码与复制按钮
+- **AND** 关闭结果弹窗后 MUST NOT 再次展示同一密码
+
+#### Scenario: 无障碍与样式
+
+- **WHEN** 重置密码确认弹窗展示
+- **THEN** MUST 设置 `role="dialog"`、`aria-modal="true"`，标题 MUST 有 `aria-labelledby`
+- **AND** 正文 MUST 使用 `page-desc`（或等价 semantic class）
+- **AND** TSX MUST NOT 包含裸 Hex；样式 MUST 复用既有 modal 与 user-management CSS
+
+#### Scenario: 用户管理其他 confirm 不回退
+
+- **WHEN** 本修复已合并
+- **THEN** 同页冻结/解冻/删除 confirm MUST 保持 BUG-0016 行为
+- **AND** 品牌/类目启停 confirm MUST NOT 回归
+
+### Requirement: Docker Web 反代必须允许大文件上传
+
+Docker Compose 部署的 Web 容器（Nginx 反代 `/api/` 至 backend）MUST 配置 `client_max_body_size` 不小于 `max(MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB)`。当运营或部署人员调大 `.env` 中图片或视频上传上限时，MUST 同步提高 Nginx `client_max_body_size` 并重建 Web 镜像，否则大文件上传 MAY 在代理层失败并返回 413。
+
+#### Scenario: Nginx body 限制与 env 对齐
+
+- **GIVEN** 根目录 `.env` 中 `MAX_VIDEO_SIZE_MB=500` 且 `MAX_IMAGE_SIZE_MB=20`
+- **WHEN** 检查 `src/web/nginx.conf` 随本 change 部署后的配置
+- **THEN** `client_max_body_size` MUST ≥ 500MB（或项目文档声明的等价值）
+- **AND** `docs/standards/file-upload.md` MUST 说明该对齐关系
+
+#### Scenario: 重建 Web 镜像后大文件上传可用
+
+- **GIVEN** 已修改 `nginx.conf` 并完成 Web 镜像重建与容器重启
+- **WHEN** 用户经 `localhost:3000` 上传大于 1MB 的合法 MP4
+- **THEN** 请求 MUST 到达后端 FastAPI
+- **AND** 成功时 MUST 返回 JSON 统一响应结构（非 Nginx 默认 HTML 413 页）
+
+### Requirement: SKU 弹窗商品视频上传状态与即时回显修复
+
+Web 客户端 MUST 修复 `/admin/tile-skus` 新增/编辑 SKU 弹窗（`TileSkuFormModal`）「商品视频」区块的上传反馈缺陷。用户选择 MP4 后，系统 MUST 立即触发授权上传，MUST 在视频区内展示 `idle → uploading → uploaded / failed` 状态与可感知进度或等价文案，MUST 在上传成功后 **同一弹窗会话内** 立即追加文件卡片（`.sku-video-card` 或等价）展示文件名与大小，MUST 在上传失败时在视频区内展示明确错误。修复 MUST NOT 修改 SKU API、数据库结构、权限边界、Orval 生成接口或 MinIO 对象存储策略；MUST NOT 回归 BUG-0011 弹窗主体滚动能力。
+
+#### Scenario: 选择 MP4 后立即触发上传
+
+- **GIVEN** `admin` 或 `employee` 已打开 SKU 新增或编辑弹窗并位于「商品视频」区块
+- **WHEN** 用户点击「上传视频」并选择合法 MP4
+- **THEN** Web 客户端 MUST 立即触发 `POST /api/v1/admin/uploads/tile-videos`
+- **AND** MUST NOT 要求用户先保存 SKU 后才开始上传
+
+#### Scenario: 上传过程中展示可感知状态
+
+- **GIVEN** 用户已选择 MP4 文件
+- **WHEN** 上传正在进行
+- **THEN** 「商品视频」区块 MUST 展示上传中状态（进度条、百分比或等价文案）
+- **AND** 状态 MUST 经过 `idle → uploading → uploaded / failed`
+- **AND** 上传中 SHOULD 禁用「上传视频」重复触发
+- **AND** 上传中 MUST 禁止提交保存（对齐 `BrandFormModal` Logo 行为）
+
+#### Scenario: 上传成功后即时回显视频预览
+
+- **GIVEN** 视频上传接口返回 200 且含有效 `object_key` 与可访问 `url`
+- **WHEN** 上传完成且用户未关闭弹窗
+- **THEN** 「商品视频」区块 MUST 立即出现视频卡片，含 **16:9 视频预览/播放器**（`<video>`，`preload="metadata"`，`controls`）
+- **AND** 卡片 MUST 展示文件名与大小（或占位「—」）
+- **AND** 卡片 MUST 提供「移除」入口
+- **AND** 区域 SHOULD 展示简短成功提示（如「视频已添加」）
+
+#### Scenario: 上传失败在视频区内可见且可重试
+
+- **GIVEN** 上传失败、网络异常或非 MP4 文件
+- **WHEN** 上传流程结束
+- **THEN** 「商品视频」区块 MUST 进入 `failed` 状态并展示明确错误信息
+- **AND** MUST NOT 仅依赖弹窗顶部 notice 作为唯一反馈
+- **AND** 用户 MUST 可重新选择文件重试
+
+#### Scenario: 支持继续添加多个视频
+
+- **GIVEN** 已有一个视频文件卡片
+- **WHEN** 用户再次上传另一个 MP4 并成功
+- **THEN** 新卡片 MUST 追加到列表
+- **AND** 先前卡片 MUST 保留
+
+#### Scenario: SKU 弹窗滚动与图片能力不回退
+
+- **WHEN** 用户在使用修复后的 SKU 弹窗
+- **THEN** `.modal-body` 垂直滚动 MUST 仍可用（BUG-0011）
+- **AND** SKU 图片上传与主图逻辑 MUST 无回归
+- **AND** MUST NOT 变更 API 请求参数或响应结构
+
+#### Scenario: Design System 约束
+
+- **WHEN** 修复修改 SKU 弹窗视频上传控件
+- **THEN** 进度条、按钮禁用态、错误与成功文案 MUST 使用 semantic token 或既有管理端样式
+- **AND** MUST NOT 新增裸 Hex 或与 `rules/ui-design.md` 冲突的局部色值
+

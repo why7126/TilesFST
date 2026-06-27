@@ -80,18 +80,20 @@ iterations/**                   # 避免 sprint 编号冲突
 
 ## Step 2 — 纳入前检查
 
-### 评审门禁（MUST — 新 Sprint 严格执行）
+### 评审门禁（MUST — 无例外）
 
-纳入 `sprint.yaml` 的 **requirements[]** / **bugs[]** 每项：
+纳入 Sprint **正式规划** 或执行开发前，REQ/BUG **MUST** 已完成评审：
 
 ```text
 issues/requirements/<REQ>/trace.md  → status ∈ { approved, in_sprint }
 issues/bugs/<BUG>/trace.md        → status ∈ { approved, in_sprint }
 ```
 
-**未评审**（`draft`、`pending_review`、`captured` 等）→ **不得**写入 `sprint.yaml`；记入 `sprint.md`「延后项」，提示 `/req-review` 或 `/bug-review`。
+**未评审**时 **MUST** 禁止：写入 `sprint.yaml`、Sprint 目标/Scope/里程碑/工作量、release/acceptance 正式范围、更新 `trace.iteration`、执行 `/req-opsx` `/bug-opsx` `/sprint-apply`。
 
-**历史 Sprint 回填**（如 sprint-002 已含 draft REQ）：输出 **WARN**，建议补 `review.md` + `--approve`；不自动剔除。
+**仅可**记入 `sprint.md`「延后项（待评审）」。用户显式要求纳入时也 **MUST** 先拒绝。**无**历史回填 WARN 例外。
+
+若既有 Sprint 含未评审项：**WARN** 并移出正式范围。
 
 **优先级**：P0 BUG > P0 REQ > P1 …
 
@@ -173,8 +175,8 @@ iterations/sprint-xxx/
 ```yaml
 sprint_id: sprint-xxx
 status: planning          # 启动开发后改为 in_progress
-start_date: YYYY-MM-DD
-end_date: YYYY-MM-DD
+start_date: YYYY-MM-DD HH:mm:ss
+end_date: YYYY-MM-DD HH:mm:ss
 
 capacity:
   developers: <int>
@@ -190,10 +192,10 @@ estimated_person_days: <number>
 
 ### sprint.md（MUST 含）
 
-- Sprint 目标
-- Scope 表（REQ / BUG / Change + 优先级 + 状态）
+- Sprint 目标（**MUST** 覆盖 `sprint.yaml` 中全部 `requirements` / `bugs`：**编号列表** + 各 `### REQ/BUG-xxxx 要点` 小节，含严重等级/现象/根因/修复范围/OpenSpec 状态）
+- Scope 表（REQ / BUG / Change + 优先级 + 状态；Scope 表 archived 时间戳 MUST `YYYY-MM-DD HH:mm:ss`，由 workflow-sync 维护）
 - 工作量估算表
-- 里程碑
+- 里程碑（「目标日期」列 MUST `YYYY-MM-DD HH:mm:ss`）
 - 风险
 - **依赖** ASCII 树
 - 发布计划
@@ -262,3 +264,17 @@ openspec/changes/*/trace.md      # 若 change 已存在
 - 单 Change 提议：`/opsx-propose`
 - 开发编排：`/sprint-apply`
 - 批量归档：`/sprint-archive`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event sprint.propose --sprint <sprint-id>
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

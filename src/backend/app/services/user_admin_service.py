@@ -24,6 +24,12 @@ VALID_ROLES = frozenset({"admin", "employee", "store_owner"})
 VALID_STATUSES = frozenset({"active", "disabled", "deleted"})
 
 
+def _avatar_url(object_key: str | None) -> str | None:
+    if not object_key:
+        return None
+    return f"/media/{object_key}"
+
+
 class UserAdminService:
     def __init__(self, repo: UserRepository) -> None:
         self._repo = repo
@@ -37,6 +43,7 @@ class UserAdminService:
             role=user.role,
             status=user.status,
             avatar_object_key=user.avatar_object_key,
+            avatar_url=_avatar_url(user.avatar_object_key),
             email=user.email,
             phone=user.phone,
             last_login_at=user.last_login_at,

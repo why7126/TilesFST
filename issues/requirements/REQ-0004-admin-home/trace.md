@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: 记录 REQ-0004 管理后台首页的来源、关联文档、迭代与 OpenSpec 追踪
 content: 基于 requirement.md 与项目目录结构维护
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: 产品负责人
-status: archived
+status: done
 note: add-admin-home 已归档至 openspec/changes/archive/2026-06-15-add-admin-home
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -18,7 +20,7 @@ requirement_id: REQ-0004
 requirement_name: admin-home
 requirement_type: 管理端 / 工作台 UI
 priority: P0
-status: applied
+status: done
 source: 管理端登录后工作台入口 V5 精简版
 target_users:
   - 企业内部员工
@@ -40,8 +42,7 @@ openspec_changes:
     iteration: sprint-002
     requirement_id: REQ-0004-admin-home
     strategy: css-port
-    archive_path: openspec/changes/archive/2026-06-15-add-admin-home
-```
+    archive_path: openspec/changes/archive/2026-06-15-add-admin-home```
 
 ## 2. 关联文档
 

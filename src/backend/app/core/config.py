@@ -20,7 +20,17 @@ class Settings(BaseSettings):
     backend_port: int = Field(default=8000, alias="BACKEND_PORT")
 
     sqlite_database_url: str = Field(default="sqlite:////app/data/sqlite/tile-info-platform.db", alias="SQLITE_DATABASE_URL")
-    max_upload_size_mb: int = Field(default=50, alias="MAX_UPLOAD_SIZE_MB")
+
+    max_image_size_mb: int = Field(default=20, alias="MAX_IMAGE_SIZE_MB")
+    max_video_size_mb: int = Field(default=500, alias="MAX_VIDEO_SIZE_MB")
+    allowed_image_types: str = Field(
+        default="image/jpeg,image/png,image/webp,image/jpg",
+        alias="ALLOWED_IMAGE_TYPES",
+    )
+    allowed_video_types: str = Field(
+        default="video/mp4,video/quicktime,video/x-msvideo",
+        alias="ALLOWED_VIDEO_TYPES",
+    )
 
     minio_endpoint: str = Field(default="minio:9000", alias="MINIO_ENDPOINT")
     minio_access_key: str = Field(default="minioadmin", alias="MINIO_ACCESS_KEY")
@@ -49,6 +59,19 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         extra = "ignore"
+
+    def allowed_image_type_set(self) -> frozenset[str]:
+        return frozenset(
+            part.strip() for part in self.allowed_image_types.split(",") if part.strip()
+        )
+
+    def allowed_video_type_set(self) -> frozenset[str]:
+        return frozenset(
+            part.strip() for part in self.allowed_video_types.split(",") if part.strip()
+        )
+
+    def max_proxy_body_size_mb(self) -> int:
+        return max(self.max_image_size_mb, self.max_video_size_mb)
 
 
 settings = Settings()

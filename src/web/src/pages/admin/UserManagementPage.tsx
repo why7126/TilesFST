@@ -9,6 +9,7 @@ import {
   updateUserStatus,
 } from '@/features/admin/api/users-api';
 import { ResetPasswordDialog } from '@/features/admin/components/ResetPasswordDialog';
+import { AdminToast } from '@/features/admin/components/AdminToast';
 import { UserFormModal } from '@/features/admin/components/UserFormModal';
 import { getUserInitials } from '@/features/admin/lib/user-display';
 import {
@@ -21,6 +22,7 @@ import {
   statusLabel,
 } from '@/features/admin/lib/user-labels';
 import '@/features/admin/styles/user-management.css';
+import '@/features/admin/styles/brand-management.css';
 
 function formatLoginTime(value: string | null | undefined): string {
   if (!value) return '从未登录';
@@ -47,6 +49,11 @@ export function UserManagementPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingUser, setEditingUser] = useState<UserAdminItem | null>(null);
   const [resetPassword, setResetPassword] = useState<string | null>(null);
+  const [resetPasswordConfirmTarget, setResetPasswordConfirmTarget] = useState<UserAdminItem | null>(
+    null,
+  );
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<UserAdminItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserAdminItem | null>(null);
 
   const loadUsers = useCallback(
     async (overridePage?: number) => {
@@ -127,33 +134,45 @@ export function UserManagementPage() {
     void loadUsers();
   };
 
-  const handleResetPassword = async (user: UserAdminItem) => {
-    if (!window.confirm(`确认为用户 ${user.username} 重置密码？`)) return;
+  const openResetPasswordConfirm = (user: UserAdminItem) => {
+    setResetPasswordConfirmTarget(user);
+  };
+
+  const handleResetPasswordConfirm = async () => {
+    if (!resetPasswordConfirmTarget) return;
     try {
-      const password = await resetUserPassword(user.id);
+      const password = await resetUserPassword(resetPasswordConfirmTarget.id);
       setResetPassword(password);
       setNotice('密码已重置');
+      setResetPasswordConfirmTarget(null);
     } catch (err) {
       setNotice(getErrorMessage(err, '重置密码失败'));
     }
   };
 
-  const handleFreeze = async (user: UserAdminItem) => {
-    const next = user.status === 'disabled' ? 'active' : 'disabled';
+  const openStatusConfirm = (user: UserAdminItem) => {
+    setStatusConfirmTarget(user);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!statusConfirmTarget) return;
+    const next = statusConfirmTarget.status === 'disabled' ? 'active' : 'disabled';
     try {
-      await updateUserStatus(user.id, next);
+      await updateUserStatus(statusConfirmTarget.id, next);
       setNotice(next === 'disabled' ? '用户已冻结' : '用户已恢复正常');
+      setStatusConfirmTarget(null);
       void loadUsers();
     } catch (err) {
       setNotice(getErrorMessage(err, '操作失败'));
     }
   };
 
-  const handleDelete = async (user: UserAdminItem) => {
-    if (!window.confirm(`确认删除用户 ${user.username}？`)) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
     try {
-      await updateUserStatus(user.id, 'deleted');
+      await updateUserStatus(deleteTarget.id, 'deleted');
       setNotice('用户已删除');
+      setDeleteTarget(null);
       void loadUsers();
     } catch (err) {
       setNotice(getErrorMessage(err, '删除失败'));
@@ -162,14 +181,11 @@ export function UserManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const statusConfirmIsUnfreeze = statusConfirmTarget?.status === 'disabled';
 
   return (
     <>
-      {notice ? (
-        <p className="admin-notice" role="status" aria-live="polite">
-          {notice}
-        </p>
-      ) : null}
+      <AdminToast message={notice} />
 
       <section className="page-hero">
         <div>
@@ -297,7 +313,18 @@ export function UserManagementPage() {
                   <td>
                     <div className="user-cell">
                       <span className="avatar">
-                        {getUserInitials(user.display_name, user.username)}
+                        {user.avatar_url ? (
+                          <img
+                            src={user.avatar_url}
+                            alt=""
+                            onError={(event) => {
+                              event.currentTarget.closest('.avatar')?.classList.add('is-fallback');
+                            }}
+                          />
+                        ) : null}
+                        <span className="avatar-fallback">
+                          {getUserInitials(user.display_name, user.username)}
+                        </span>
                       </span>
                       <div className="user-meta">
                         <span className="user-main">{user.username}</span>
@@ -331,7 +358,7 @@ export function UserManagementPage() {
                         type="button"
                         className={`link-btn${isDeleted ? ' disabled' : ''}`}
                         disabled={isDeleted}
-                        onClick={() => void handleResetPassword(user)}
+                        onClick={() => openResetPasswordConfirm(user)}
                       >
                         重置密码
                       </button>
@@ -339,7 +366,7 @@ export function UserManagementPage() {
                         type="button"
                         className={`link-btn danger${isDeleted ? ' disabled' : ''}`}
                         disabled={isDeleted}
-                        onClick={() => void handleFreeze(user)}
+                        onClick={() => openStatusConfirm(user)}
                       >
                         {user.status === 'disabled' ? '解冻' : '冻结'}
                       </button>
@@ -348,7 +375,7 @@ export function UserManagementPage() {
                         className={`link-btn${canDelete ? ' danger' : ' disabled'}`}
                         disabled={!canDelete}
                         title={canDelete ? undefined : '已登录用户不可删除'}
-                        onClick={() => void handleDelete(user)}
+                        onClick={() => canDelete && setDeleteTarget(user)}
                       >
                         删除
                       </button>
@@ -415,6 +442,141 @@ export function UserManagementPage() {
         password={resetPassword}
         onClose={() => setResetPassword(null)}
       />
+
+      {statusConfirmTarget ? (
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onClick={() => setStatusConfirmTarget(null)}
+        >
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="status-user-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-head">
+              <span id="status-user-title" className="modal-title">
+                {statusConfirmIsUnfreeze ? '解冻用户' : '冻结用户'}
+              </span>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="关闭"
+                onClick={() => setStatusConfirmTarget(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="page-desc">
+                {statusConfirmIsUnfreeze
+                  ? `确认解冻用户「${statusConfirmTarget.username}」？`
+                  : `确认冻结用户「${statusConfirmTarget.username}」？冻结后该用户将无法登录。`}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn" onClick={() => setStatusConfirmTarget(null)}>
+                取消
+              </button>
+              <button type="button" className="btn primary" onClick={() => void handleStatusConfirm()}>
+                {statusConfirmIsUnfreeze ? '确认解冻' : '确认冻结'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteTarget ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-user-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-head">
+              <span id="delete-user-title" className="modal-title">
+                删除用户
+              </span>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="关闭"
+                onClick={() => setDeleteTarget(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="page-desc">
+                确认删除用户「{deleteTarget.username}」？此操作不可恢复。
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn" onClick={() => setDeleteTarget(null)}>
+                取消
+              </button>
+              <button type="button" className="btn primary" onClick={() => void handleDeleteConfirm()}>
+                删除用户
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {resetPasswordConfirmTarget ? (
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onClick={() => setResetPasswordConfirmTarget(null)}
+        >
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-password-user-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-head">
+              <span id="reset-password-user-title" className="modal-title">
+                重置密码
+              </span>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="关闭"
+                onClick={() => setResetPasswordConfirmTarget(null)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="page-desc">
+                确认为用户「{resetPasswordConfirmTarget.username}」重置密码？重置后将生成新随机密码。
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setResetPasswordConfirmTarget(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => void handleResetPasswordConfirm()}
+              >
+                确认重置
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

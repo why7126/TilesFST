@@ -1,13 +1,15 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0005-tile-category-management 分析与追溯（含 /requirement-to-change 产出）
 content: 关联文档、影响分析、建议 Change、测试映射
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: in_sprint
+status: done
 note: add-tile-category-management 已 archive（2026-06-20）；web-client spec 已含 BUG-0001 fix 场景
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -42,7 +44,7 @@ requirement_id: REQ-0005-tile-category-management
 requirement_name: tile-category-management
 requirement_type: 管理端 / 主数据
 priority: P0
-status: in_sprint
+status: done
 owner: product
 source: admin-home V5 + tile-category-management HTML V2 原型
 target_users:
@@ -68,8 +70,7 @@ related_requirements:
   - REQ-0005-brand-management
 related_changes:
   - add-admin-home
-  - add-user-management
-```
+  - add-user-management```
 
 ---
 
@@ -173,9 +174,7 @@ impact:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0001-tile-category-enable-missing | high | done | fix-tile-category-enable-action | 停用类目行缺少启用入口修复 |
-
----
+| BUG-0001-tile-category-enable-missing | high | done | fix-tile-category-enable-action | 瓷砖类目停用行缺少「启用」操作入口 |
 
 ## 8. 视觉验收 Trace Checklist
 

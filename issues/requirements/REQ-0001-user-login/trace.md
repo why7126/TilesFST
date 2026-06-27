@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: 记录 REQ-0001 用户登录的来源、关联文档、迭代、OpenSpec 与实现追踪
 content: 基于 requirement.md 与项目目录结构维护
 source: AI根据 PRD 生成，项目团队确认
 update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: 产品负责人
-status: resolved
+status: done
 note: Sprint 001 验收通过（2026-06-14）
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -18,7 +20,7 @@ requirement_id: REQ-0001
 requirement_name: 用户登录
 requirement_type: 基础能力 / 认证授权
 priority: P0
-status: resolved
+status: done
 source: 瓷砖信息管理平台基础认证能力需求
 target_users:
   - 企业内部员工
@@ -85,7 +87,7 @@ openspec/changes/add-user-login/
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0005-login-fails-after-service-restart | high | applied | fix-admin-login-service-restart | 服务重启后正确账号密码无法登录 |
+| BUG-0005-login-fails-after-service-restart | high | done | fix-admin-login-service-restart | 服务重启后正确账号密码无法登录管理端 |
 
 ## 5. 功能需求追踪
 

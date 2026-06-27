@@ -3,6 +3,10 @@ import { Outlet } from 'react-router-dom';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { AdminSidebar } from '../../features/admin/components/AdminSidebar';
+import {
+  readAdminSidebarCollapsed,
+  writeAdminSidebarCollapsed,
+} from '../../features/admin/lib/admin-sidebar-preference';
 import '../../features/admin/styles/admin-home.css';
 
 const PLACEHOLDER_MESSAGE = '功能建设中，将在后续迭代开放。';
@@ -10,9 +14,18 @@ const PLACEHOLDER_MESSAGE = '功能建设中，将在后续迭代开放。';
 export function AdminLayout() {
   const { user, logout } = useAuth();
   const [notice, setNotice] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => readAdminSidebarCollapsed());
 
   const showPlaceholder = useCallback(() => {
     setNotice(PLACEHOLDER_MESSAGE);
+  }, []);
+
+  const toggleSidebarCollapsed = useCallback(() => {
+    setSidebarCollapsed((previous) => {
+      const next = !previous;
+      writeAdminSidebarCollapsed(next);
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -25,8 +38,17 @@ export function AdminLayout() {
   }, [notice]);
 
   return (
-    <div className="admin-shell">
-      <AdminSidebar user={user} onLogout={logout} onPlaceholder={showPlaceholder} />
+    <div
+      className="admin-shell"
+      data-sidebar-state={sidebarCollapsed ? 'collapsed' : 'expanded'}
+    >
+      <AdminSidebar
+        user={user}
+        onLogout={logout}
+        onPlaceholder={showPlaceholder}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={toggleSidebarCollapsed}
+      />
       <main className="main-content" aria-label="首页内容">
         <div className="content-inner">
           {notice ? (

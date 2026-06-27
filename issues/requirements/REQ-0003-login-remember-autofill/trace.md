@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0003-login-remember-autofill 分析与追溯（含 /requirement-to-change 产出）
 content: 关联文档、影响分析、建议 Change、测试映射
@@ -8,6 +9,7 @@ owner: product
 status: done
 note: add-login-remember-autofill archived（2026-06-20）
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -62,8 +64,7 @@ openspec_changes:
 related_requirements:
   - REQ-0001-user-login
   - REQ-0002-product-brand-login-simplify
-  - REQ-0003-login-left-panel-refine
-```
+  - REQ-0003-login-left-panel-refine```
 
 ---
 

@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0006 上传链路未写入 MinIO 对象存储
 content: 记录 MinIO 桶已初始化但业务上传仍写本地文件系统，导致对象存储桶内无业务对象的问题
@@ -7,6 +8,7 @@ status: done
 note: 已完成 fix-object-storage-upload-not-minio archive
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -34,12 +36,11 @@ lifecycle:
   in_sprint: 2026-06-26 11:44:07
   opsx_created: 2026-06-26 13:47:54
   applied: 2026-06-26 14:06:45
-  archived: 2026-06-26 14:20:50
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-object-storage-upload-not-minio
     type: fix
-    status: archived
-```
+    status: archived```
 
 ## 2. Readiness
 

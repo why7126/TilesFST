@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0005 服务重启后正确账号密码无法登录
 content: 记录服务重启并刷新页面后，管理端登录页使用正确账号密码仍提示账号或密码错误的缺陷
 owner: product
-status: applied
-note: 已完成 OpenSpec Change fix-admin-login-service-restart 的 /opsx-apply；待 /opsx-archive
+status: done
+note: fix-admin-login-service-restart archived 2026-06-26
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -17,7 +19,7 @@ readiness: ready
 bug_id: BUG-0005-login-fails-after-service-restart
 bug_name: login-fails-after-service-restart
 severity: high
-status: in_sprint
+status: done
 iteration: sprint-002
 related_requirement: REQ-0001-user-login
 related_change: fix-admin-login-service-restart
@@ -32,12 +34,11 @@ lifecycle:
   approved: 2026-06-26 20:57:56
   in_sprint: 2026-06-26 21:07:06
   applied: 2026-06-26 23:17:00
-  archived: null
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-admin-login-service-restart
     type: fix
-    status: applied
-```
+    status: archived```
 
 ## 2. Readiness
 

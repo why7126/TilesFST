@@ -34,3 +34,17 @@ related_change:
 ## Next
 
 `/bug-complete BUG-xxxx`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event bug.generate --bug <BUG-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

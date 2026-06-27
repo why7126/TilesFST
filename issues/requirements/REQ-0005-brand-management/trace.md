@@ -1,13 +1,15 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0005-brand-management 分析与追溯（含 /requirement-to-change 产出）
 content: 关联文档、影响分析、建议 Change、测试映射
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: proposed
-note: 瓷砖品牌管理；OpenSpec add-brand-management 已创建
+status: done
+note: 2026-06-27 07:55:00 — OpenSpec add-brand-management 已 archive（2026-06-26）
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -41,7 +43,7 @@ requirement_id: REQ-0005-brand-management
 requirement_name: brand-management
 requirement_type: 管理端 / 主数据
 priority: P0
-status: in_sprint
+status: done
 owner: product
 source: admin-home V5 + brand-management HTML V7 原型
 target_users:
@@ -57,7 +59,7 @@ suggested_change_id: add-brand-management
 openspec_changes:
   - change_id: add-brand-management
     type: add
-    status: applied
+    status: archived
     iteration: sprint-002
     requirement_id: REQ-0005-brand-management
     strategy: css-port
@@ -66,8 +68,7 @@ related_requirements:
   - REQ-0005-user-management
 related_changes:
   - add-admin-home
-  - add-user-management
-```
+  - add-user-management```
 
 ---
 
@@ -168,11 +169,10 @@ impact:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0003-brand-image-display-layout-shift | high | done | fix-brand-image-display-layout-shift | 品牌 Logo 展示与提示布局修复 |
-| BUG-0004-brand-logo-upload-progress-missing | medium | applied | fix-brand-logo-upload-progress | 编辑品牌弹窗更换 Logo 后未上传且缺少上传进度反馈 |
-| BUG-0007-brand-logo-not-displayed-after-storage-fix | high | done | fix-brand-logo-display-after-storage-fix | 对象存储修复后品牌列表页和编辑页仍不显示 Logo |
-
----
+| BUG-0003-brand-image-display-layout-shift | high | done | fix-brand-image-display-layout-shift | 品牌图片上传后不显示且状态提示导致页面上下波动 |
+| BUG-0004-brand-logo-upload-progress-missing | medium | done | fix-brand-logo-upload-progress | 编辑品牌弹窗更换 Logo 后未上传且缺少上传进度反馈 |
+| BUG-0007-brand-logo-not-displayed-after-storage-fix | high | done | fix-brand-logo-display-after-storage-fix | 对象存储修复后品牌 Logo 仍不显示 |
+| BUG-0015-admin-list-status-tips-layout-shift | medium | done | fix-admin-list-status-toast-layout | 管理端列表页状态变更 Tips 推挤页面导致上下布局波动 |
 
 ## 8. 视觉验收 Trace Checklist
 

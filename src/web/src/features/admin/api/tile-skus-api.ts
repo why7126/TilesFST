@@ -63,10 +63,27 @@ export async function uploadTileImage(file: File, tileId?: number) {
   return response.data.data!;
 }
 
-export async function uploadTileVideo(file: File, tileId?: number) {
+export type UploadProgressHandler = (progress: number) => void;
+
+export async function uploadTileVideo(
+  file: File,
+  tileId?: number,
+  onProgress?: UploadProgressHandler,
+) {
   const response = await api.uploadTileVideoApiV1AdminUploadsTileVideosPost(
     { file },
     tileId ? { tile_id: tileId } : undefined,
+    {
+      onUploadProgress: (event) => {
+        if (!onProgress) return;
+        const total = event.total ?? 0;
+        if (total <= 0) {
+          onProgress(50);
+          return;
+        }
+        onProgress(Math.min(99, Math.max(1, Math.round((event.loaded / total) * 100))));
+      },
+    },
   );
   return response.data.data!;
 }

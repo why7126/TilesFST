@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0004 编辑品牌 Logo 更换后未上传且缺少上传进度反馈
 content: 记录编辑品牌弹窗选择新 Logo 后没有触发可感知上传、预览不更新、缺少进度条的缺陷
 owner: product
-status: applied
-note: 已完成 OpenSpec Change fix-brand-logo-upload-progress 的 /opsx-apply；待 /opsx-archive
+status: done
+note: fix-brand-logo-upload-progress archived 2026-06-26
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -17,7 +19,7 @@ readiness: ready
 bug_id: BUG-0004-brand-logo-upload-progress-missing
 bug_name: brand-logo-upload-progress-missing
 severity: medium
-status: in_sprint
+status: done
 iteration: sprint-002
 related_requirement: REQ-0005-brand-management
 related_change: fix-brand-logo-upload-progress
@@ -34,12 +36,11 @@ lifecycle:
   approved: 2026-06-26 09:33:59
   in_sprint: 2026-06-26 09:35:50
   applied: 2026-06-26 09:47:15
-  archived: null
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-brand-logo-upload-progress
     type: fix
-    status: applied
-```
+    status: archived```
 
 ## 2. Readiness
 

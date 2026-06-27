@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TILESFST — 管理端侧边栏收起态（REQ-0011）</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgb(237 232 223 / 0.5);
+      --weak: rgb(237 232 223 / 0.3);
+      --gold: #c8a055;
+      --gold-bg: rgb(200 160 85 / 0.12);
+      --line: rgb(255 255 255 / 0.07);
+      --line-strong: rgb(255 255 255 / 0.1);
+      --sidebar-width: 72px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .admin-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      background:
+        radial-gradient(circle at 88% 8%, rgb(200 160 85 / 0.08), transparent 24%),
+        linear-gradient(135deg, var(--page), var(--deep));
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 16px 8px 18px;
+      border-right: 0.5px solid var(--line);
+      background:
+        radial-gradient(circle at 20% 8%, rgb(200 160 85 / 0.1), transparent 30%),
+        linear-gradient(180deg, rgb(255 255 255 / 0.025), transparent 28%),
+        rgb(16 15 10 / 0.76);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      align-items: center;
+    }
+    .sidebar-head {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 0.5px solid var(--line);
+      margin-bottom: 14px;
+    }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 3px;
+      border: 0.5px solid rgb(200 160 85 / 0.32);
+      background: var(--gold-bg);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .sidebar-toggle {
+      width: 28px;
+      height: 28px;
+      border: 0.5px solid var(--line-strong);
+      border-radius: 2px;
+      background: rgb(255 255 255 / 0.03);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sidebar-toggle:hover { color: var(--text); }
+    .nav-scroll { flex: 1; width: 100%; min-height: 0; overflow: hidden; }
+    .nav-section { margin-bottom: 12px; }
+    .nav-title { display: none; }
+    .nav-item {
+      width: 100%;
+      height: 40px;
+      margin-bottom: 4px;
+      padding: 0;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      border: 0.5px solid transparent;
+      position: relative;
+      text-decoration: none;
+    }
+    .nav-item .label { display: none; }
+    .nav-item.active {
+      color: var(--gold);
+      background: var(--gold-bg);
+      border-color: rgb(200 160 85 / 0.26);
+    }
+    .nav-item.active::before {
+      content: "";
+      width: 2px;
+      height: 16px;
+      background: var(--gold);
+      border-radius: 2px;
+      position: absolute;
+      left: 0;
+    }
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      border: 0.5px solid currentColor;
+      border-radius: 2px;
+      opacity: 0.72;
+    }
+    .sidebar-user {
+      width: 100%;
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 0.5px solid var(--line);
+      display: flex;
+      justify-content: center;
+    }
+    .user-trigger {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 3px;
+      background: var(--gold-bg);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border: 0.5px solid rgb(200 160 85 / 0.32);
+    }
+    .main-content {
+      min-width: 0;
+      height: 100vh;
+      padding: 44px 56px;
+      overflow: auto;
+    }
+    .proto-note {
+      max-width: 720px;
+      padding: 14px 16px;
+      border: 0.5px solid var(--line);
+      border-radius: 3px;
+      background: rgb(33 30 22 / 0.72);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .proto-note a { color: var(--gold); }
+    h1 { font-size: 24px; font-weight: 400; margin: 18px 0 8px; }
+    p.lead { color: var(--weak); font-size: 13px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="admin-shell" data-sidebar-state="collapsed">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="sidebar-head">
+        <div class="brand-mark" title="TILESFST">TF</div>
+        <a class="sidebar-toggle" href="admin-sidebar-expanded.html" aria-label="展开侧边栏" title="展开侧边栏">›</a>
+      </div>
+      <div class="nav-scroll">
+        <nav class="nav-section" aria-label="Operations">
+          <p class="nav-title">OPERATIONS</p>
+          <a class="nav-item" href="#" aria-label="首页"><span class="nav-icon"></span><span class="label">首页</span></a>
+          <a class="nav-item active" href="#" aria-label="瓷砖品牌"><span class="nav-icon"></span><span class="label">瓷砖品牌</span></a>
+          <a class="nav-item" href="#" aria-label="瓷砖 SKU"><span class="nav-icon"></span><span class="label">瓷砖 SKU</span></a>
+          <a class="nav-item" href="#" aria-label="瓷砖类目"><span class="nav-icon"></span><span class="label">瓷砖类目</span></a>
+        </nav>
+        <nav class="nav-section" aria-label="System">
+          <p class="nav-title">SYSTEM</p>
+          <a class="nav-item" href="#" aria-label="用户管理"><span class="nav-icon"></span><span class="label">用户管理</span></a>
+          <a class="nav-item" href="#" aria-label="系统设置"><span class="nav-icon"></span><span class="label">系统设置</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-user">
+        <button class="user-trigger" type="button" aria-label="Admin User 菜单">
+          <span class="avatar">AU</span>
+        </button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="proto-note">
+        REQ-0011 原型 — <strong>收起态</strong>（72px）。隐藏产品名、版本 pill、nav 文案与用户信息，保留图标与 active accent。点击 › 跳转至
+        <a href="admin-sidebar-expanded.html">展开态原型</a>。Golden PNG 待导出至 <code>images/admin-sidebar-collapsed.png</code>。
+      </div>
+      <h1>瓷砖品牌</h1>
+      <p class="lead">主内容区较展开态更宽；实现时 grid 第一列 72px + width transition。</p>
+    </main>
+  </div>
+</body>
+</html>

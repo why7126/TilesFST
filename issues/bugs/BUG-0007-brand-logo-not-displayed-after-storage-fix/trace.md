@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0007 对象存储修复后品牌 Logo 仍不显示
 content: 记录品牌列表页和品牌编辑页在对象存储链路修复后仍无法展示 Logo 图片的问题
@@ -7,6 +8,7 @@ status: done
 note: 已完成 OpenSpec Change fix-brand-logo-display-after-storage-fix 的 /opsx-archive
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -35,13 +37,12 @@ lifecycle:
   approved: 2026-06-26 15:21:00
   in_sprint: 2026-06-26 15:24:16
   applied: 2026-06-26 16:15:50
-  archived: 2026-06-26 20:21:43
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-brand-logo-display-after-storage-fix
     type: fix
     status: archived
-    archived_to: openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix
-```
+    archived_to: openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix```
 
 ## 2. Readiness
 

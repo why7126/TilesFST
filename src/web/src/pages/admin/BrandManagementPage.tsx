@@ -12,6 +12,7 @@ import {
   fetchBrands,
 } from '@/features/admin/api/brands-api';
 import { BrandFormModal } from '@/features/admin/components/BrandFormModal';
+import { AdminToast } from '@/features/admin/components/AdminToast';
 import {
   BRAND_STATUS_OPTIONS,
   brandStatusBadgeClass,
@@ -143,13 +144,7 @@ export function BrandManagementPage() {
 
   return (
     <>
-      {notice ? (
-        <div className="admin-toast-region" aria-live="polite" aria-atomic="true">
-          <p className="admin-toast" role="status">
-            {notice}
-          </p>
-        </div>
-      ) : null}
+      <AdminToast message={notice} />
 
       <section className="page-hero">
         <div>

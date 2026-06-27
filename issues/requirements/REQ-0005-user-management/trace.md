@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: 记录 REQ-0005 管理后台用户管理的来源、关联文档与实现追踪
 content: 基于 requirement.md 与项目目录结构维护
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: product
-status: archived
+status: done
 note: add-user-management 已 archive（2026-06-20）；列表 v2 见 fix-user-management-list-refine
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -18,7 +20,7 @@ requirement_id: REQ-0005-user-management
 requirement_name: user-management
 requirement_type: 管理端 / 用户与权限
 priority: P0
-status: archived
+status: done
 source: 基于 admin-home 与管理端用户体系扩展
 target_users:
   - 系统管理员（后台管理员）
@@ -39,8 +41,7 @@ openspec_changes:
     status: archived
     iteration: sprint-002
     requirement_id: REQ-0005-user-management
-    strategy: css-port
-```
+    strategy: css-port```
 
 ## 2. 关联文档
 
@@ -104,3 +105,10 @@ openspec_changes:
 1. **`/opsx-apply add-user-management`** 实现代码与测试。
 2. PNG 并排验收，更新 `trace.md` checklist。
 3. Sprint 002 结束前 **`/opsx-archive add-user-management`**。
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0017-user-reset-password-confirm-ui-inconsistency | medium | done | fix-user-reset-password-confirm-ui | 用户重置密码二次确认弹窗与类目启用停用确认弹窗 UI 不一致 |
+| BUG-0019-user-modal-avatar-upload-display | high | done | fix-user-modal-avatar-upload-display | 用户弹窗与列表头像上传后未回显且更换功能未生效 |

@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
+import { PRODUCT_VERSION } from '@shared/product-version';
+
 import { AdminSidebar } from './AdminSidebar';
 
 const adminUser = {
@@ -35,5 +37,18 @@ describe('AdminSidebar', () => {
       </MemoryRouter>,
     );
     expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();
+  });
+
+  it('shows product version badge in brand head', () => {
+    render(
+      <MemoryRouter initialEntries={['/admin/dashboard']}>
+        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('TILESFST')).toBeInTheDocument();
+    const pill = screen.getByLabelText(`产品版本 ${PRODUCT_VERSION}`);
+    expect(pill).toHaveTextContent(PRODUCT_VERSION);
+    expect(pill).toHaveClass('version-pill');
+    expect(pill.className).toMatch(/text-muted/);
   });
 });

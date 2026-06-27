@@ -1,13 +1,15 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0005 用户管理列表页 UI 优化追踪
 content: 关联父需求、原型与 OpenSpec
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: in_sprint
-note: /req-review approved 2026-06-20
+status: done
+note: /req-review approved 2026-06-20；fix-user-management-list-refine archived 2026-06-20
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -19,7 +21,7 @@ requirement_id: REQ-0005-user-management-list-refine
 requirement_name: user-management-list-refine
 requirement_type: 管理端 / UI 优化
 priority: P1
-status: in_sprint
+status: done
 parent_requirement: REQ-0005-user-management
 source: 产品对已实现用户管理列表页的六项 UI 优化
 target_users:
@@ -45,8 +47,7 @@ lifecycle:
   generated: 2026-06-15
   completed: 2026-06-15
   reviewed: 2026-06-20
-  approved: 2026-06-20
-```
+  approved: 2026-06-20```
 
 ## 2. 优化项映射
 

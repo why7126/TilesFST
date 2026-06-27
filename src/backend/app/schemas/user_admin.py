@@ -19,6 +19,7 @@ class UserAdminItem(BaseModel):
     role: str
     status: str
     avatar_object_key: str | None = None
+    avatar_url: str | None = None
     email: str | None = None
     phone: str | None = None
     last_login_at: str | None = None

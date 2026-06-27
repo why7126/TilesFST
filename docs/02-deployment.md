@@ -92,6 +92,7 @@ ADMIN_RESET_PASSWORD_ON_STARTUP=false
 - 本地默认 MinIO 账号密码仅用于开发环境。
 - 生产环境必须更换密钥，并使用安全的配置管理方式。
 - SQLite 适合轻量级部署；如后续切换数据库，必须创建 OpenSpec Change。
+- **大文件上传（图片/视频）**：后端通过 `MAX_IMAGE_SIZE_MB`、`MAX_VIDEO_SIZE_MB` 与 `ALLOWED_*_TYPES` 限制（见根目录 `.env.example`）。Web 容器 Nginx 在 `src/web/nginx.conf` 中配置 `client_max_body_size`，须 ≥ `max(MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB)`（默认 `512m`）。修改 `nginx.conf` 后 MUST **重建并重启 Web 镜像**（`docker compose build web && docker compose up -d web`），仅重启 backend 不会更新 Nginx body 限制。详见 `docs/standards/file-upload.md`。
 
 
 ## V4 环境变量与数据目录

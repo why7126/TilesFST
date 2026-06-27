@@ -18,6 +18,7 @@ import {
   DividerText,
   IconInput,
   Pagination,
+  ProductVersionBadge,
   SearchBar,
   Sidebar,
 } from '@/shared/ui';
@@ -100,11 +101,12 @@ export function UiSection() {
           </DesignSubSection>
 
           <DesignSubSection title="Badge">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="inStock">现货</Badge>
               <Badge variant="new">新品</Badge>
               <Badge variant="hotSale">热销</Badge>
               <Badge variant="neutral">默认</Badge>
+              <ProductVersionBadge />
             </div>
           </DesignSubSection>
 

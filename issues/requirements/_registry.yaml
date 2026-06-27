@@ -1,7 +1,25 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 9
+next_id: 12
 entries:
+  - id: REQ-0011-admin-sidebar-expand-collapse
+    title: 管理端侧边栏展开/收起（参照 SoulKing 交互）
+    status: done
+    iteration: null
+    created: 2026-06-27
+    parent_requirement: REQ-0010-product-version-display
+  - id: REQ-0010-product-version-display
+    title: 前端产品版本号展示（人工维护）
+    status: done
+    iteration: null
+    created: 2026-06-27
+    parent_requirement:
+  - id: REQ-0009-tile-spec-management
+    title: 瓷砖规格管理页（导航入口 + 编辑）
+    status: captured
+    iteration: null
+    created: 2026-06-27
+    parent_requirement:
   - id: REQ-0008-brand-status-confirm
     title: 品牌列表页启停操作二次确认
     status: done
@@ -10,7 +28,7 @@ entries:
     parent_requirement: REQ-0005-brand-management
   - id: REQ-0007-tile-category-management-refine
     title: 瓷砖类目管理页 UI 优化（启停确认、去标题、分页对齐）
-    status: in_sprint
+    status: done
     iteration: sprint-002
     created: 2026-06-20
     parent_requirement: REQ-0005-tile-category-management

@@ -12,6 +12,8 @@ const badgeVariants = cva(
         new: 'bg-bg-badge-neutral text-secondary',
         hotSale: 'bg-hot-sale-muted text-hot-sale',
         neutral: 'border border-border-chip bg-transparent text-muted',
+        version:
+          'h-[18px] rounded-industrial border border-border-chip bg-surface/30 px-[7px] py-[2px] text-[10px] font-medium tracking-badge normal-case text-muted leading-none',
       },
     },
     defaultVariants: {

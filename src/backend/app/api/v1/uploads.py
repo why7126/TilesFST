@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, File, Query, UploadFile
 
+from app.core.config import settings
 from app.core.deps import require_admin_access, require_system_admin
 from app.core.exceptions import AppError
 from app.core.error_codes import FILE_TYPE_NOT_ALLOWED
@@ -10,14 +11,9 @@ from app.schemas.media import UploadResult
 
 router = APIRouter()
 
-ALLOWED_IMAGE_TYPES = frozenset(
-    {"image/jpeg", "image/png", "image/webp", "image/jpg"},
-)
-ALLOWED_VIDEO_TYPES = frozenset({"video/mp4"})
-
 
 def _validate_image_type(content_type: str | None) -> None:
-    if content_type not in ALLOWED_IMAGE_TYPES:
+    if content_type not in settings.allowed_image_type_set():
         raise AppError(
             status_code=400,
             code=FILE_TYPE_NOT_ALLOWED,
@@ -26,11 +22,11 @@ def _validate_image_type(content_type: str | None) -> None:
 
 
 def _validate_video_type(content_type: str | None) -> None:
-    if content_type not in ALLOWED_VIDEO_TYPES:
+    if content_type not in settings.allowed_video_type_set():
         raise AppError(
             status_code=400,
             code=FILE_TYPE_NOT_ALLOWED,
-            message="仅支持 MP4 格式",
+            message="仅支持允许的 MP4 等视频格式",
         )
 
 
@@ -46,7 +42,7 @@ async def upload_image(
 ) -> ApiResponse[UploadResult]:
     _validate_image_type(file.content_type)
     object_key = build_upload_object_key("original", "avatars", file.content_type)
-    await save_upload_file(file, object_key)
+    await save_upload_file(file, object_key, settings.max_image_size_mb)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -64,7 +60,7 @@ async def upload_brand_logo(
 ) -> ApiResponse[UploadResult]:
     _validate_image_type(file.content_type)
     object_key = build_upload_object_key("original", "brands/logos", file.content_type)
-    await save_upload_file(file, object_key)
+    await save_upload_file(file, object_key, settings.max_image_size_mb)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -84,7 +80,7 @@ async def upload_tile_image(
     _validate_image_type(file.content_type)
     resource_type = f"tiles/{tile_id}/images" if tile_id else "tiles/pending/images"
     object_key = build_upload_object_key("original", resource_type, file.content_type)
-    await save_upload_file(file, object_key)
+    await save_upload_file(file, object_key, settings.max_image_size_mb)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )
@@ -104,7 +100,7 @@ async def upload_tile_video(
     _validate_video_type(file.content_type)
     resource_type = f"tiles/{tile_id}" if tile_id else "tiles/pending"
     object_key = build_upload_object_key("videos", resource_type, file.content_type)
-    await save_upload_file(file, object_key)
+    await save_upload_file(file, object_key, settings.max_video_size_mb)
     return ApiResponse(
         data=UploadResult(object_key=object_key, url=f"/media/{object_key}"),
     )

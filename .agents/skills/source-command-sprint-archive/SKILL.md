@@ -237,3 +237,17 @@ openspec list --json
 - Sprint 创建：`.cursor/commands/sprint-propose.md`
 - 治理：`rules/document-governance.md` §4.2
 - AGENTS.md §4.1 Sprint 命令族
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event sprint.archive --sprint <sprint-id>
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

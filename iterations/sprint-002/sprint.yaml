@@ -1,5 +1,5 @@
 sprint_id: sprint-002
-status: in_progress
+status: completed
 start_date: 2026-06-15 00:00:00
 end_date: 2026-06-28 23:59:59
 
@@ -17,6 +17,8 @@ requirements:
   - REQ-0006-tile-sku-management
   - REQ-0007-tile-category-management-refine
   - REQ-0008-brand-status-confirm
+  - REQ-0010-product-version-display
+  - REQ-0011-admin-sidebar-expand-collapse
 
 bugs:
   - BUG-0001-tile-category-enable-missing
@@ -27,6 +29,17 @@ bugs:
   - BUG-0006-object-storage-upload-not-minio
   - BUG-0007-brand-logo-not-displayed-after-storage-fix
   - BUG-0008-object-storage-legacy-upload-residue
+  - BUG-0009-tile-sku-list-ui-inconsistency
+  - BUG-0011-tile-sku-modal-content-overflow
+  - BUG-0010-tile-sku-modal-subtitle-inconsistency
+  - BUG-0012-tile-sku-modal-form-field-rules
+  - BUG-0014-tile-sku-publish-action-missing
+  - BUG-0015-admin-list-status-tips-layout-shift
+  - BUG-0016-admin-list-status-action-confirm-missing
+  - BUG-0017-user-reset-password-confirm-ui-inconsistency
+  - BUG-0019-user-modal-avatar-upload-display
+  - BUG-0018-tile-sku-modal-video-upload-display
+  - BUG-0020-tile-sku-modal-video-upload-413
 
 changes:
   - add-admin-home
@@ -46,6 +59,19 @@ changes:
   - fix-brand-status-confirm
   - fix-admin-login-service-restart
   - fix-object-storage-legacy-upload-residue
+  - fix-tile-sku-modal-content-overflow
+  - fix-tile-sku-list-ui-inconsistency
+  - fix-tile-sku-modal-subtitle-inconsistency
+  - fix-tile-sku-modal-form-field-rules
+  - fix-tile-sku-publish-action-missing
+  - fix-tile-sku-modal-video-upload-display
+  - add-product-version-display
+  - add-admin-sidebar-collapse
+  - fix-admin-list-status-toast-layout
+  - fix-admin-list-status-action-confirm
+  - fix-user-reset-password-confirm-ui
+  - fix-user-modal-avatar-upload-display
+  - fix-tile-sku-modal-video-upload-413
 
-estimated_story_points: 121
-estimated_person_days: 73.75
+estimated_story_points: 150
+estimated_person_days: 98

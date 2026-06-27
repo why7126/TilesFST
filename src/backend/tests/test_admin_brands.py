@@ -196,7 +196,7 @@ def test_upload_brand_logo_rejects_invalid_mime(client: TestClient) -> None:
 
 def test_upload_brand_logo_rejects_oversized_file(client: TestClient, monkeypatch) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
-    monkeypatch.setattr(settings, "max_upload_size_mb", 0)
+    monkeypatch.setattr(settings, "max_image_size_mb", 0)
     response = client.post(
         "/api/v1/admin/uploads/brand-logos",
         headers=headers,
@@ -204,6 +204,30 @@ def test_upload_brand_logo_rejects_oversized_file(client: TestClient, monkeypatc
     )
     assert response.status_code == 400
     assert response.json()["code"] == 50003
+
+
+def test_upload_tile_video_rejects_oversized_file(client: TestClient, monkeypatch) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    monkeypatch.setattr(settings, "max_video_size_mb", 0)
+    response = client.post(
+        "/api/v1/admin/uploads/tile-videos",
+        headers=headers,
+        files={"file": ("tile.mp4", b"tile-video", "video/mp4")},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 50003
+
+
+def test_upload_tile_video_allows_configured_mime(client: TestClient, monkeypatch) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    monkeypatch.setattr(settings, "allowed_video_types", "video/quicktime")
+    response = client.post(
+        "/api/v1/admin/uploads/tile-videos",
+        headers=headers,
+        files={"file": ("tile.mov", b"tile-video", "video/quicktime")},
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["object_key"].endswith(".mov")
 
 
 def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> None:

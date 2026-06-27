@@ -251,6 +251,7 @@ export interface UserAdminItem {
   role: string;
   status: string;
   avatar_object_key?: string | null;
+  avatar_url?: string | null;
   email?: string | null;
   phone?: string | null;
   last_login_at?: string | null;
@@ -474,7 +475,7 @@ export interface TileSkuCreateRequest {
   size?: string | null;
   surface_finish?: string | null;
   color_family?: string | null;
-  reference_price?: number | null;
+  reference_price?: number;
   remark?: string | null;
   images?: TileSkuImageInput[];
   videos?: TileSkuVideoInput[];

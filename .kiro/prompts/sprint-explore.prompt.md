@@ -153,3 +153,4 @@ REQ-0001
 - 创建 Sprint：`.cursor/commands/sprint-propose.md`
 - 开发编排：`.cursor/commands/sprint-apply.md`
 - 批量归档：`.cursor/commands/sprint-archive.md`
+- 迭代经验复盘：`.cursor/commands/sprint-exps.md`

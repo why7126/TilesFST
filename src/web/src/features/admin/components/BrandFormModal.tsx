@@ -139,7 +139,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
             <span id="brand-form-title" className="modal-title">
               {mode === 'create' ? '新增品牌' : '编辑品牌'}
             </span>
-            <p className="brand-modal-desc">维护品牌基础资料、展示排序、Logo 与品牌介绍。</p>
+            <p className="modal-desc">维护品牌基础资料、展示排序、Logo 与品牌介绍。</p>
           </div>
           <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
             ×

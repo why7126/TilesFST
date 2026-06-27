@@ -151,6 +151,10 @@ describe('TileCategoryManagementPage', () => {
     await waitFor(() => {
       expect(enableCategoryMock).toHaveBeenCalledWith(2);
     });
+
+    expect(document.querySelector('.admin-toast-region')).toBeInTheDocument();
+    expect(document.querySelector('.admin-toast')).toHaveTextContent('类目已启用');
+    expect(document.querySelector('.admin-notice')).not.toBeInTheDocument();
   });
 
   it('opens disable confirm dialog before calling disableCategory', async () => {

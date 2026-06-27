@@ -41,10 +41,27 @@ interface ImageDraft {
 
 interface VideoDraft {
   object_key: string;
+  url: string;
   file_name: string;
   file_size_bytes?: number | null;
   duration_seconds?: number | null;
   sort_order: number;
+}
+
+type VideoUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+
+function resolveVideoUrl(video: Pick<VideoDraft, 'object_key' | 'url'>): string {
+  return video.url || `/media/${video.object_key}`;
+}
+
+function formatVideoSize(bytes?: number | null): string {
+  if (!bytes) {
+    return '—';
+  }
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  return `${Math.round(bytes / 1024)} KB`;
 }
 
 interface TileSkuFormModalProps {
@@ -71,8 +88,12 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const videoListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -88,6 +109,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setVideoUploadState('idle');
+    setVideoUploadProgress(0);
+    setVideoUploadError(null);
     if (mode === 'edit' && sku) {
       setName(sku.name);
       setSkuCode(sku.sku_code);
@@ -96,7 +120,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSize(sku.size);
       setSurfaceFinish(sku.surface_finish);
       setColorFamily(sku.color_family ?? '');
-      setReferencePrice(sku.reference_price != null ? String(sku.reference_price) : '');
+      setReferencePrice(
+        sku.reference_price != null ? String(sku.reference_price) : '0',
+      );
       setRemark(sku.remark ?? '');
       setImages(
         (sku.images ?? []).map((img, idx) => ({
@@ -109,6 +135,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setVideos(
         (sku.videos ?? []).map((vid, idx) => ({
           object_key: vid.object_key,
+          url: vid.url,
           file_name: vid.file_name,
           file_size_bytes: vid.file_size_bytes,
           duration_seconds: vid.duration_seconds,
@@ -123,7 +150,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSize('');
       setSurfaceFinish('');
       setColorFamily('');
-      setReferencePrice('');
+      setReferencePrice('0');
       setRemark('');
       setImages([]);
       setVideos([]);
@@ -132,7 +159,19 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
   if (!open) return null;
 
-  const validateCreateFields = (): boolean => {
+  const parseReferencePrice = (): number | null => {
+    const trimmed = referencePrice.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const price = Number.parseFloat(trimmed);
+    if (!Number.isFinite(price) || price < 0) {
+      return null;
+    }
+    return price;
+  };
+
+  const validateSubmitFields = (): boolean => {
     if (!name.trim()) {
       setError('SKU 名称不能为空');
       return false;
@@ -153,15 +192,15 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setError('规格尺寸不能为空');
       return false;
     }
-    if (!surfaceFinish.trim()) {
-      setError('表面工艺不能为空');
+    if (parseReferencePrice() === null) {
+      setError('参考价格不能为空');
       return false;
     }
     return true;
   };
 
   const buildPayload = () => {
-    const price = referencePrice.trim() ? Number.parseFloat(referencePrice) : null;
+    const price = parseReferencePrice() ?? 0;
     return {
       name: name.trim(),
       sku_code: skuCode.trim() || undefined,
@@ -170,7 +209,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       size: size.trim() || undefined,
       surface_finish: surfaceFinish.trim() || undefined,
       color_family: colorFamily.trim() || null,
-      reference_price: Number.isFinite(price!) ? price : null,
+      reference_price: price,
       remark: remark.trim() || null,
       images: images.map((img, idx) => ({
         object_key: img.object_key,
@@ -189,6 +228,10 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   };
 
   const handleSave = async (saveMode: 'draft' | 'create') => {
+    if (videoUploadState === 'uploading') {
+      setError('视频上传中，请稍后保存');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     if (saveMode === 'draft' && !name.trim()) {
@@ -196,7 +239,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSubmitting(false);
       return;
     }
-    if (saveMode === 'create' && !validateCreateFields()) {
+    if (saveMode === 'create' && !validateSubmitFields()) {
+      setSubmitting(false);
+      return;
+    }
+    if (mode === 'edit' && !validateSubmitFields()) {
       setSubmitting(false);
       return;
     }
@@ -237,21 +284,40 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
   const handleVideoUpload = async (file: File | undefined) => {
     if (!file) return;
+    setVideoUploadError(null);
+    setVideoUploadState('uploading');
+    setVideoUploadProgress(8);
     try {
-      const result = await uploadTileVideo(file, sku?.id);
+      const result = await uploadTileVideo(file, sku?.id, (progress) => {
+        setVideoUploadProgress(progress);
+      });
       setVideos((prev) => [
         ...prev,
         {
           object_key: result.object_key,
+          url: result.url,
           file_name: file.name,
           file_size_bytes: file.size,
           sort_order: prev.length,
         },
       ]);
+      setVideoUploadProgress(100);
+      setVideoUploadState('uploaded');
+      requestAnimationFrame(() => {
+        videoListRef.current?.lastElementChild?.scrollIntoView({
+          block: 'nearest',
+          behavior: 'smooth',
+        });
+      });
     } catch (err) {
-      setError(getErrorMessage(err, '视频上传失败'));
+      const message = getErrorMessage(err, '视频上传失败');
+      setVideoUploadState('failed');
+      setVideoUploadProgress(0);
+      setVideoUploadError(message);
     }
   };
+
+  const isVideoUploading = videoUploadState === 'uploading';
 
   const setMainImage = (index: number) => {
     setImages((prev) => prev.map((img, i) => ({ ...img, is_main: i === index })));
@@ -278,8 +344,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                 '编辑 SKU'
               )}
             </h2>
-            <p className="modal-subtitle">
-              录入基础资料、价格、图片和视频素材；弹窗内不提供状态选择
+            <p className="modal-desc">
+              维护 SKU 基础资料、参考价格、图片与视频素材；弹窗内不提供状态选择。
             </p>
           </div>
           <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
@@ -339,9 +405,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <input className="input" value={size} onChange={(e) => setSize(e.target.value)} />
             </div>
             <div className="brand-form-item">
-              <label>
-                表面工艺 <span className="req">*</span>
-              </label>
+              <label>表面工艺</label>
               <input
                 className="input"
                 value={surfaceFinish}
@@ -357,7 +421,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               />
             </div>
             <div className="brand-form-item">
-              <label>参考价格（元）</label>
+              <label>
+                参考价格（元） <span className="req">*</span>
+              </label>
               <input
                 className="input"
                 type="number"
@@ -415,52 +481,101 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             </div>
 
             <p className="sku-section-label">商品视频</p>
-            <div className="sku-form-full">
-              <div className="sku-video-list">
+            <div className="sku-form-full sku-video-section">
+              <div className="sku-video-list" ref={videoListRef}>
                 {videos.map((vid) => (
                   <div key={vid.object_key} className="sku-video-card">
-                    <div className="sku-video-icon">MP4</div>
-                    <div>
+                    <div className="sku-video-player-wrap">
+                      <video
+                        className="sku-video-player"
+                        src={resolveVideoUrl(vid)}
+                        controls
+                        preload="metadata"
+                        playsInline
+                        aria-label={vid.file_name}
+                      />
+                      <button
+                        type="button"
+                        className="sku-video-remove"
+                        onClick={() =>
+                          setVideos((prev) => prev.filter((v) => v.object_key !== vid.object_key))
+                        }
+                      >
+                        移除
+                      </button>
+                    </div>
+                    <div className="sku-video-caption">
                       <span className="sku-video-name">{vid.file_name}</span>
                       <span className="sku-video-meta">
-                        {vid.file_size_bytes
-                          ? `${Math.round(vid.file_size_bytes / 1024)} KB`
-                          : '—'}
+                        {formatVideoSize(vid.file_size_bytes)}
+                        {vid.duration_seconds != null
+                          ? ` · ${Math.round(vid.duration_seconds)}s`
+                          : ''}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      className="sku-remove"
-                      onClick={() =>
-                        setVideos((prev) => prev.filter((v) => v.object_key !== vid.object_key))
-                      }
-                    >
-                      移除
-                    </button>
                   </div>
                 ))}
               </div>
+              {isVideoUploading ? (
+                <div className="sku-video-upload-status">
+                  <span
+                    className="sku-video-progress"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={videoUploadProgress}
+                  >
+                    <span
+                      className="sku-video-progress-bar"
+                      style={{ width: `${videoUploadProgress}%` }}
+                    />
+                  </span>
+                  <span className="sku-video-progress-text">
+                    上传中 {videoUploadProgress}%
+                  </span>
+                </div>
+              ) : null}
+              {videoUploadState === 'uploaded' ? (
+                <span className="sku-video-upload-success">视频已添加</span>
+              ) : null}
+              {videoUploadState === 'failed' && videoUploadError ? (
+                <span className="sku-video-upload-error" role="alert">
+                  {videoUploadError}
+                </span>
+              ) : null}
               <button
                 type="button"
-                className="btn"
-                style={{ marginTop: 10 }}
+                className={`btn sku-video-upload-btn${isVideoUploading ? ' disabled' : ''}`}
+                aria-disabled={isVideoUploading}
+                disabled={isVideoUploading}
                 onClick={() => videoInputRef.current?.click()}
               >
-                上传视频
+                {isVideoUploading ? '上传中' : '上传视频'}
               </button>
               <input
                 ref={videoInputRef}
                 type="file"
                 accept="video/mp4"
                 hidden
-                onChange={(e) => void handleVideoUpload(e.target.files?.[0])}
+                disabled={isVideoUploading}
+                onChange={(e) => {
+                  const input = e.currentTarget;
+                  void handleVideoUpload(input.files?.[0]).finally(() => {
+                    input.value = '';
+                  });
+                }}
               />
             </div>
           </div>
         </div>
 
         <div className="modal-footer">
-          <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+          <button
+            type="button"
+            className="btn"
+            onClick={onClose}
+            disabled={submitting || isVideoUploading}
+          >
             取消
           </button>
           {mode === 'create' ? (
@@ -468,7 +583,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <button
                 type="button"
                 className="btn"
-                disabled={submitting}
+                disabled={submitting || isVideoUploading}
                 onClick={() => void handleSave('draft')}
               >
                 保存草稿
@@ -476,7 +591,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <button
                 type="button"
                 className="btn primary"
-                disabled={submitting}
+                disabled={submitting || isVideoUploading}
                 onClick={() => void handleSave('create')}
               >
                 创建 SKU
@@ -486,7 +601,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             <button
               type="button"
               className="btn primary"
-              disabled={submitting}
+              disabled={submitting || isVideoUploading}
               onClick={() => void handleSave('create')}
             >
               保存

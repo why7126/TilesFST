@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REQ-0010 — 管理端侧边栏版本展示</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --deep: #100f0a;
+      --gold: #c8a055;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.5);
+      --weak: rgba(237, 232, 223, 0.3);
+      --line: rgba(255, 255, 255, 0.07);
+      --line-strong: rgba(255, 255, 255, 0.1);
+      --gold-bg: rgba(200, 160, 85, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .admin-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 264px 1fr;
+      background: linear-gradient(135deg, var(--page), var(--deep));
+    }
+    .sidebar {
+      height: 100vh;
+      padding: 30px 18px 18px;
+      border-right: 0.5px solid var(--line);
+      background: rgba(16, 15, 10, 0.76);
+      display: flex;
+      flex-direction: column;
+    }
+    /* REQ-0010: brand-head replaces plain .logo */
+    .brand-head {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 14px 28px;
+    }
+    .product-name {
+      color: var(--gold);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      letter-spacing: 0.16em;
+      font-weight: 400;
+      line-height: 1;
+    }
+    .version-pill {
+      display: inline-flex;
+      align-items: center;
+      height: 18px;
+      padding: 0 7px;
+      border-radius: 2px;
+      border: 0.5px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .nav-scroll { flex: 1; }
+    .nav-title {
+      padding: 0 14px;
+      margin: 0 0 10px;
+      color: var(--weak);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+    .nav-item {
+      height: 40px;
+      margin-bottom: 4px;
+      padding: 0 12px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .nav-item.active {
+      color: var(--gold);
+      background: var(--gold-bg);
+    }
+    .main-content { padding: 42px 48px; }
+    .note {
+      max-width: 560px;
+      padding: 16px;
+      border: 0.5px solid var(--line);
+      border-radius: 3px;
+      background: rgba(33, 30, 22, 0.72);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .note strong { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="brand-head" aria-label="产品版本 v0.0.1">
+        <span class="product-name">TILESFST</span>
+        <span class="version-pill">v0.0.1</span>
+      </div>
+      <div class="nav-scroll">
+        <p class="nav-title">OPERATIONS</p>
+        <div class="nav-item active">首页</div>
+        <div class="nav-item">瓷砖 SKU</div>
+        <div class="nav-item">瓷砖品牌</div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="note">
+        <strong>REQ-0010 管理端原型</strong><br />
+        侧边栏顶部：<code>TILESFST</code> + 右侧版本 pill。布局参照
+        <code>sidebar-version-reference.png</code>（SoulKing 参考图）。实现时使用
+        <code>src/shared/</code> 单一常量，禁止读取 package.json / API version。
+      </div>
+    </main>
+  </div>
+</body>
+</html>

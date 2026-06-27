@@ -130,10 +130,16 @@
   overflow: hidden;
 }
 
-.admin-shell .brand-modal-desc {
-  color: var(--admin-weak);
-  font-size: 12px;
-  margin: 8px 0 0;
+.admin-shell .brand-modal-card .modal-head {
+  height: auto;
+  min-height: 64px;
+  padding: 16px 20px;
+  align-items: flex-start;
+}
+
+.admin-shell .brand-modal-card .modal-close {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .admin-shell .brand-form-grid {
@@ -268,27 +274,6 @@
 
 .admin-shell .brand-logo-upload-error {
   color: var(--admin-danger);
-}
-
-.admin-shell .admin-toast-region {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 60;
-  pointer-events: none;
-}
-
-.admin-shell .admin-toast {
-  min-width: 180px;
-  max-width: min(360px, calc(100vw - 48px));
-  margin: 0;
-  padding: 10px 14px;
-  border: 0.5px solid var(--admin-line-strong);
-  border-radius: 3px;
-  background: var(--admin-card-bg);
-  color: var(--admin-muted);
-  box-shadow: 0 18px 52px rgb(0 0 0 / 0.35);
-  font-size: 12px;
 }
 
 .admin-shell .form-error {

@@ -9,3 +9,13 @@ note: 适用于瓷砖信息管理平台项目模板
 # 发布规范
 
 发布前必须完成测试、OpenSpec校验、接口生成、变更归档和发布说明。
+
+## 发版检查清单（Web 产品版本）
+
+对外发布 Web 管理端或店主端时，若本次发版包含产品版本语义变更，MUST 人工更新：
+
+```text
+src/shared/product-version.ts  →  PRODUCT_VERSION（如 v0.0.1）
+```
+
+MUST NOT 依赖 `package.json` 或 FastAPI `version` 作为用户可见产品版本。

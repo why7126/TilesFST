@@ -55,6 +55,20 @@ iterations/sprint-xxx/sprint.md     ← 依赖树、优先级、里程碑
 
 ---
 
+## Step 0.5 — 评审门禁（MUST — 无例外）
+
+扫描 `sprint.yaml` 全部 `requirements[]` / `bugs[]` 及每个 change 关联 REQ/BUG：
+
+```text
+status MUST ∈ { approved, in_sprint }
+```
+
+任一未评审 → **立即停止**（含 `--dry-run` 外的 apply）；输出违规项列表；提示移出 Sprint 正式范围并完成 `/req-review` / `/bug-review --approve`。**不得** apply 任何 change。
+
+与 `rules/requirement-management.md` §4.1、`rules/bug-management.md` §4.1 一致。
+
+---
+
 ## Step 0 — 必须读取
 
 ```text
@@ -122,7 +136,7 @@ changes[]
 
 **Blocked 规则**（不满足则不可进入 apply，排队靠后）：
 
-1. 关联 REQ/BUG `status ∉ { approved, in_sprint }` → `blocked: not_reviewed`（提示 `/req-review` 或 `/bug-review`）
+1. 关联 REQ/BUG `status ∉ { approved, in_sprint }` → `blocked: not_reviewed`（**整命令应停止**；提示 `/req-review` / `/bug-review --approve` 并将该项移出 `sprint.yaml`）
 2. `openspec status` 有 artifact 非 done → `blocked: artifacts`
 3. 关联 REQ Readiness 为 Not Ready → `blocked: req_docs`（`--force-req-check` 时严格）
 4. **依赖未满足**（见 Step 2）
@@ -309,6 +323,7 @@ Run `/sprint-apply sprint-002 --dry-run` to refresh queue.
 | 不替代 opsx-apply | 编排层；单 change 实现逻辑与 opsx-apply 一致 |
 | 不绕过 OpenSpec | 无 change 目录 → 告警 `/req-opsx`，不直接开发 |
 | Sprint 外 change | 不在 `sprint.yaml` 的 change **不得**被本命令 apply |
+| 不绕过评审门禁 | Sprint 内 REQ/BUG 未 approved/in_sprint → **停止** apply |
 | 容量告警 | 若连续 3 个 change blocked，输出风险摘要并停止 |
 
 ---
@@ -354,3 +369,17 @@ ELigible add-tile-category-management   (parallel, check REQ readiness)
 - REQ → Change：`.cursor/commands/req-opsx.md`
 - Sprint 治理：`rules/document-governance.md` §4.1
 - 流程总览：`AGENTS.md` §4.1
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event sprint.apply --sprint <sprint-id>
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

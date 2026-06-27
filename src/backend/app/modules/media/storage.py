@@ -25,7 +25,21 @@ _EXTENSIONS_BY_TYPE = {
     "image/png": "png",
     "image/webp": "webp",
     "video/mp4": "mp4",
+    "video/quicktime": "mov",
+    "video/x-msvideo": "avi",
+    "video/webm": "webm",
+    "video/x-matroska": "mkv",
+    "video/x-m4v": "m4v",
 }
+
+
+def _extension_for_content_type(content_type: str | None) -> str:
+    if content_type in _EXTENSIONS_BY_TYPE:
+        return _EXTENSIONS_BY_TYPE[content_type]
+    guessed = mimetypes.guess_extension(content_type or "")
+    if guessed:
+        return guessed.lstrip(".")
+    return "bin"
 
 
 @dataclass(frozen=True)
@@ -130,7 +144,7 @@ def set_media_storage_client(client: MediaStorageClient | None) -> None:
 
 
 def build_upload_object_key(prefix: str, resource_type: str, content_type: str | None) -> str:
-    extension = _EXTENSIONS_BY_TYPE.get(content_type or "", "bin")
+    extension = _extension_for_content_type(content_type)
     return build_object_key(prefix, resource_type, extension)
 
 
@@ -156,10 +170,10 @@ def resolve_media_path(object_key: str) -> PurePosixPath:
         ) from exc
 
 
-async def save_upload_file(file: UploadFile, object_key: str) -> None:
+async def save_upload_file(file: UploadFile, object_key: str, max_size_mb: int) -> None:
     resolve_media_path(object_key)
     content = await file.read()
-    max_size_bytes = settings.max_upload_size_mb * 1024 * 1024
+    max_size_bytes = max_size_mb * 1024 * 1024
     if len(content) > max_size_bytes:
         raise AppError(status_code=400, code=FILE_SIZE_EXCEEDED, message="文件大小超限")
     get_media_storage_client().put_object(object_key, content, file.content_type)

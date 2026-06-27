@@ -104,24 +104,23 @@ scripts/generate-openapi-client.sh
 
 AI 生成代码或文档时，必须在输出中说明遵循了哪些 `rules/` 文件。
 
-### 3.1 文档时间记录格式
+### 3.1 文档时间与元数据
 
-AI 新增或更新任何项目文档时，所有时间记录 MUST 精确到秒，统一使用：
+AI 新增或更新任何项目文档时：
 
-```text
-YYYY-MM-DD HH:mm:ss
-```
+1. **所有时间属性字段** MUST 使用 `YYYY-MM-DD HH:mm:ss`（24 小时制，默认时区 `Asia/Shanghai`）。见 `rules/document-governance.md` §2.3。
+2. **AI 自动生成的 Markdown**（含 YAML Frontmatter）MUST 包含 `created_at` 与 `updated_at`；更新文档时只改 `updated_at`，不得改 `created_at`。见 `rules/document-governance.md` §2.4。
 
-默认时区为 `Asia/Shanghai`。适用范围包括 YAML Frontmatter、trace lifecycle、变更记录、评审记录、Sprint 起止时间、里程碑、验收报告、发布说明、OpenSpec 归档记录等。纯目录名、文件名、版本号、需求/BUG 编号中的日期片段可保持既有命名规则。
+适用范围包括 Frontmatter、`lifecycle`、变更记录、评审记录、Sprint 起止时间、里程碑、验收报告、发布说明、OpenSpec 归档记录等。纯目录名、文件名、版本号、需求/BUG 编号中的日期片段可保持既有命名规则。
 
 ## 4. AI 开发流程
 
 ```text
-需求 / BUG
+需求 / BUG（类型未决时先用 /capture）
 ↓
 issues/（requirements 或 bugs）
 ↓
-/req-capture … /req-review  或  /bug-capture … /bug-review
+/capture  或  /req-capture … /req-review  或  /bug-capture … /bug-review
 ↓
 /req-opsx 或 /bug-opsx  →  openspec/changes/
 ↓
@@ -130,6 +129,8 @@ issues/（requirements 或 bugs）
 /sprint-apply  或  /opsx-apply  →  src/
 ↓
 /sprint-archive  或  /opsx-archive
+↓
+/sprint-exps（可选）→  docs/knowledge-base/retrospectives/
 ```
 
 ### 4.1 OpenSpec CLI 与 Cursor 命令
@@ -150,6 +151,14 @@ python scripts/sync-agent-commands.py
 | Kiro | `.kiro/prompts/*.prompt.md` | 扁平 prompt 文件 |
 | Codex | `.codex/prompts/*.md` | 自定义 slash（deprecated，推荐 `.codex/skills/` 承载 OpenSpec 技能） |
 
+#### 统一入口（类型未决）
+
+| 阶段 | Cursor 命令 | 说明 |
+|------|-------------|------|
+| 智能收集 | `/capture` | 自动区分 REQ/BUG，按需拆分；分别走 req-capture / bug-capture 落盘 |
+
+类型已知时仍直接使用 `/req-capture` 或 `/bug-capture`。
+
 #### 需求域（req-*）
 
 | 阶段 | Cursor 命令 | 说明 |
@@ -158,7 +167,7 @@ python scripts/sync-agent-commands.py
 | 探索 | `/req-explore` | 只思考，默认不写文档 |
 | 生成 PRD | `/req-generate` | **仅** `requirement.md` |
 | 完善六件套 | `/req-complete` | user-stories、acceptance、prototype 等 |
-| 评审 | `/req-review` | **approved** 后方可 opsx / 进 Sprint |
+| 评审 | `/req-review` | **approved** 后方可 opsx、**写入 Sprint 正式规划** 与 sprint-apply |
 | **REQ → Change** | **`/req-opsx REQ-xxxx`** | 须 approved；CLI 生成 OpenSpec |
 
 #### 缺陷域（bug-*）
@@ -169,7 +178,7 @@ python scripts/sync-agent-commands.py
 | 探索 | `/bug-explore` | 只思考，默认不写文档 |
 | 生成 | `/bug-generate` | **仅** `bug.md` |
 | 完善 | `/bug-complete` | root-cause、acceptance 等 |
-| 评审 | `/bug-review` | approved 后方可 opsx / 进 Sprint |
+| 评审 | `/bug-review` | approved 后方可 opsx、**写入 Sprint 正式规划** 与 sprint-apply |
 | **BUG → Change** | **`/bug-opsx BUG-xxxx`** | 须 approved；默认 `fix-*` |
 
 #### Change 级（opsx-*）
@@ -186,10 +195,13 @@ python scripts/sync-agent-commands.py
 
 | 阶段 | Cursor 命令 | 说明 |
 |------|-------------|------|
-| **创建 Sprint** | **`/sprint-propose [sprint-xxx]`** | 四件套；**仅纳入 approved REQ/BUG** |
+| **创建 Sprint** | **`/sprint-propose [sprint-xxx]`** | 四件套；**仅纳入已评审（approved / in_sprint）REQ/BUG**；未评审仅可列「延后项（待评审）」 |
 | 探讨 | `/sprint-explore [sprint-xxx]` | 范围/依赖/容量 |
 | **开发** | **`/sprint-apply sprint-xxx`** | 排队 opsx-apply；校验已评审 |
 | **归档** | **`/sprint-archive sprint-xxx`** | 批量 opsx-archive |
+| **经验复盘** | **`/sprint-exps sprint-xxx`** | 总结迭代经验，沉淀 `docs/knowledge-base/retrospectives/` |
+
+推荐链：`/sprint-archive` → `/sprint-exps` → 下一 `/sprint-propose` 参考行动项。
 
 #### 基础设施（Bootstrap）
 
@@ -301,10 +313,10 @@ python scripts/validate-directory-structure.py
 
 ## 7. 新需求处理流程
 
-AI 收到新需求时必须：
+AI 收到新输入且**不确定是需求还是缺陷**时，先执行 **`/capture`**；若已明确为新需求，则：
 
 1. 检查 `issues/requirements/` 是否已有相关需求；
-2. 如无，执行 **`/req-capture`** 创建 `REQ-xxxx-name/`（含 `capture.md`）；
+2. 如无，执行 **`/req-capture`**（或经 `/capture` 已落盘则跳过）创建 `REQ-xxxx-name/`（含 `capture.md`）；
 3. 可选 **`/req-explore`** 探讨；
 4. **`/req-generate`** → `requirement.md`；
 5. **`/req-complete`** → 六件套（user-stories、business-flow、acceptance、trace、prototype）；
@@ -317,9 +329,9 @@ UI 类若策略未决，**MUST** `/opsx-explore` 或于 `req-opsx` 内选定 CSS
 
 ## 8. BUG处理流程
 
-AI 收到BUG时必须：
+AI 收到新输入且**不确定是需求还是缺陷**时，先执行 **`/capture`**；若已明确为缺陷，则：
 
-1. **`/bug-capture`** 创建 `issues/bugs/BUG-xxxx-name/`；
+1. **`/bug-capture`**（或经 `/capture` 已落盘则跳过）创建 `issues/bugs/BUG-xxxx-name/`；
 2. 可选 **`/bug-explore`**；
 3. **`/bug-generate`** → `bug.md`；
 4. **`/bug-complete`** → root-cause、workaround、acceptance、trace、logs/、screenshots/；

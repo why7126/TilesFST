@@ -3,6 +3,8 @@ purpose: 文档治理规范
 content: 规范 docs、issues、iterations、openspec 的生成、更新、同步与归档规则
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-27 08:30:00
 note: AI执行任何需求、BUG、技术改造前必须读取；本文件优先级高于普通文档说明
 ---
 
@@ -70,6 +72,7 @@ AI 在以下场景必须创建或更新 `docs/`：
 | API 治理/错误码/鉴权/上传规范变更 | `docs/standards/*.md` |
 | 测试治理/覆盖率规范变更 | `docs/standards/testing-governance.md` 等 |
 | 故障知识沉淀 | `docs/knowledge-base/incidents/` |
+| Sprint 迭代经验复盘 | `docs/knowledge-base/retrospectives/`（`/sprint-exps`） |
 | BUG 分析 | `issues/bugs/`（非 `docs/bugs/`） |
 | 迭代计划变化 | `iterations/sprint-xxx/`（非 `docs/iterations/`） |
 
@@ -82,15 +85,17 @@ AI 在以下场景必须创建或更新 `docs/`：
 
 ### 2.3 时间记录格式（MUST）
 
-所有文档中的时间记录 MUST 精确到秒，统一使用 24 小时制：
+所有文档中的**时间属性字段** MUST 精确到秒，统一使用 **24 小时制**：
 
 ```text
 YYYY-MM-DD HH:mm:ss
 ```
 
+> 说明：规范中的 `HH` 表示 24 小时制小时（00–23），与口语中的「hh:mm:ss」含义一致；禁止使用仅日期（`YYYY-MM-DD`）、毫秒时间戳或无时区说明的 ISO-8601 混写（除非引用外部原文并在旁注项目标准时间）。
+
 适用范围包括但不限于：
 
-- YAML Frontmatter 中的创建、更新、归档、评审、发布时间。
+- YAML Frontmatter 中的 `created_at`、`updated_at` 及创建、更新、归档、评审、发布时间。
 - `issues/requirements/`、`issues/bugs/` 中的 `lifecycle`、变更记录、评审记录。
 - `iterations/` 中的 Sprint 起止时间、里程碑、验收与发布记录。
 - `openspec/changes/`、`openspec/specs/`、archive trace 中的创建、应用、同步、归档记录。
@@ -101,6 +106,56 @@ YYYY-MM-DD HH:mm:ss
 - 纯目录名、文件名、版本号、需求/BUG 编号中的日期片段 MAY 保持既有命名规则。
 - 引用外部标准、第三方原文或历史原始记录时 MAY 保留原格式，但 MUST 在新增项目内记录时补充本项目标准时间。
 - 若未特别声明时区，默认使用项目本地时区 `Asia/Shanghai`。
+
+### 2.4 AI 自动生成 Markdown 元数据（MUST）
+
+凡由 AI Agent 或 workflow 命令**新建**的 Markdown 文档（含 YAML Frontmatter），Frontmatter **MUST** 包含：
+
+```yaml
+created_at: YYYY-MM-DD HH:mm:ss
+updated_at: YYYY-MM-DD HH:mm:ss
+```
+
+**更新规则：**
+
+| 动作 | `created_at` | `updated_at` |
+|------|--------------|--------------|
+| 新建 | 设为当前时间 | 设为当前时间 |
+| 任意后续修改 | **不得修改** | **MUST** 更新为当前时间 |
+
+**适用范围（自动生成 / AI 维护）：**
+
+| 目录 | 示例 |
+|------|------|
+| `issues/requirements/` | `capture.md`、`requirement.md`、`trace.md`、`acceptance.md` … |
+| `issues/bugs/` | `capture.md`、`bug.md`、`trace.md` … |
+| `iterations/` | `sprint.md`、`release-note.md`、`acceptance-report.md` |
+| `openspec/changes/` | `proposal.md`、`design.md`、`tasks.md`、`trace.md` … |
+| `openspec/specs/` | 归档合并后的 spec（AI 写入时） |
+| `docs/` | AI 新建或同步更新的长期文档 |
+| `rules/` | AI 辅助更新的治理规范 |
+
+**Legacy 字段映射（逐步废弃，新文档 MUST NOT 使用）：**
+
+| 旧字段 | 替代 |
+|--------|------|
+| `recorded_at` | `created_at` |
+| 仅 `update_method` 无时间 | 补充 `updated_at` |
+
+`python scripts/sync-workflow-status.py` 在写入衍生文档时会自动补全 / 刷新 `created_at` 与 `updated_at`（见 `rules/document-governance.md` §6.1）。
+
+**Frontmatter 最小模板：**
+
+```yaml
+---
+title: 文档标题
+purpose: 一句话用途
+created_at: YYYY-MM-DD HH:mm:ss
+updated_at: YYYY-MM-DD HH:mm:ss
+owner: 角色或负责人
+status: draft
+---
+```
 
 ## 3. issues 目录生成与更新逻辑
 
@@ -215,7 +270,7 @@ estimated_person_days: <number>
 | 新迭代创建 | `sprint.yaml`、`sprint.md`、`release-note.md`、`acceptance-report.md`（四件套） |
 | 需求进入迭代 | `sprint.yaml`、`sprint.md` |
 | 需求移出迭代 | `sprint.yaml`、`sprint.md` |
-| Change 创建或纳入 | `sprint.yaml`、`sprint.md`；REQ/BUG 须 **approved** |
+| Change 创建或纳入 | `sprint.yaml`、`sprint.md`；REQ/BUG 须 **approved** 或 **in_sprint**（须先完成 `/req-review` / `/bug-review`） |
 | Change 完成 / 归档 | `sprint.yaml`（status）、`sprint.md`、`release-note.md`、`acceptance-report.md` |
 | 发现风险 | `sprint.md`（风险章节） |
 | Sprint 结束 | `sprint.yaml`（`status: completed`）、`acceptance-report.md` |
@@ -282,6 +337,29 @@ AI 不得删除归档内容。
 | 管理端 | `openspec/changes/*/specs/tile-admin/spec.md`、权限说明 |
 | Change 归档 / Sprint 范围 | `iterations/sprint-xxx/sprint.yaml`、`sprint.md`、`release-note.md`、`acceptance-report.md` |
 | BUG修复 | `issues/bugs/*`、回归测试 |
+
+### 6.1 Workflow 状态同步（MUST）
+
+执行 `req-*`、`bug-*`、`opsx-*`、`sprint-*` 工作流命令后，**MUST** 运行：
+
+```bash
+python scripts/sync-workflow-status.py --event <event> [--sprint auto] [--change|--req|--bug <id>]
+```
+
+- 脚本路径：`scripts/sync-workflow-status.py`；Skill：`.agents/skills/workflow-sync/SKILL.md`
+- 机器维护区：`sprint.md` 中 `<!-- workflow-sync:scope-*:start/end -->` 标记块
+- **Scope 表时间格式（MUST）**：`sprint.md` Scope 表中「说明」（REQ/BUG）与「Sprint 目标」（Change）列内嵌的 archived 时间戳 MUST 为 `YYYY-MM-DD HH:mm:ss`；优先取自 issue `trace.md` 的 `lifecycle.archived` 或 archived change trace，回退 archive 目录日期前缀并补 `00:00:00`。
+- **里程碑时间格式（MUST）**：`sprint.md` §里程碑 表格「目标日期」列 MUST 使用 `YYYY-MM-DD HH:mm:ss`（`workflow-sync` 会将 legacy 仅日期行规范化为 `00:00:00` 秒级）。
+- **Sprint 目标完整性（MUST）**：`sprint.yaml` 中 `requirements` / `bugs` 每一项 MUST 在 `sprint.md` §Sprint 目标 中同步维护 **两处**：（1）顶部编号列表条目；（2）对应 `### REQ-xxxx / BUG-xxxx 要点` 小节。**未评审 REQ/BUG 不得出现在上述两处或 `sprint.yaml`**；仅可列于「延后项（待评审）」。纳入或移出迭代时两处同步更新（workflow-sync **不**自动维护该节，由 `/sprint-propose` 或范围变更命令负责）。
+- CI / 本地校验：`python scripts/sync-workflow-status.py --sprint auto --check`
+- **禁止** Agent 手工编辑 Scope 表与 `openspec_changes[].status`（sync 失败时修复脚本或 hotfix 后重跑）
+
+| 命令族 | 典型 `--event` |
+|--------|----------------|
+| req-* | `req.capture` … `req.opsx` |
+| bug-* | `bug.capture` … `bug.opsx` |
+| opsx-* | `opsx.propose` / `opsx.apply` / `opsx.archive` |
+| sprint-* | `sprint.propose` / `sprint.apply` / `sprint.archive` |
 
 ## 7. AI 执行顺序
 

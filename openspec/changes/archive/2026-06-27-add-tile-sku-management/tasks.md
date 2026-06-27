@@ -51,11 +51,11 @@
 - [x] 8.1 1440×1024 并排 `/admin/tile-skus` 与 `tile-sku-management-list.html`
 - [x] 8.2 打开新增/编辑弹窗并排 `tile-sku-create-modal.html`
 - [x] 8.3 填写 `openspec/changes/add-tile-sku-management/trace.md` checklist
-- [ ] 8.4（可选）导出 PNG 至 `prototype/images/` 供 golden reference
+- [x] 8.4（可选）导出 PNG 至 `prototype/images/` 供 golden reference
 
 ## 9. 文档与追溯
 
 - [x] 9.1 更新 `docs/03-api-index.md`、`docs/04-database-design.md`
 - [x] 9.2 更新 `issues/requirements/REQ-0006-tile-sku-management/trace.md`（openspec 关联）
-- [ ] 9.3 建议导出 `prototype/images/*.png`（**可选**）
-- [ ] 9.4 完成后 `/opsx-archive add-tile-sku-management`
+- [x] 9.3 建议导出 `prototype/images/*.png`（**可选**）
+- [x] 9.4 完成后 `/opsx-archive add-tile-sku-management`

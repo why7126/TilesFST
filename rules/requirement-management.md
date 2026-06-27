@@ -45,7 +45,22 @@ issues/requirements/
 
 | 命令 | 允许 status（入口） | 产出 |
 |------|---------------------|------|
-| `/req-capture` | — | capture.md、trace 壳 |
+| `/capture` | — | 类型未决时自动分类；REQ 部分同 `/req-capture`（见 §3.2） |
+| `/req-capture` | — | capture.md、trace 壳（可一次输入多条，按 §3.1 评估拆分） |
+
+### 3.2 `/capture` 与 req-capture
+
+用户不确定输入是需求还是缺陷时使用 `/capture`。AI **MUST** 先分类再落盘：判为需求的条目遵循 §3.1 拆分规则，产出与 `/req-capture` 相同，且 frontmatter 含 `captured_via: capture`、`classification_rationale`。一条消息可同时产生 REQ 与 BUG。
+
+### 3.1 `/req-capture` 多条输入与拆分
+
+用户可能在一条消息中描述多个需求。AI **MUST** 先评估再落盘：
+
+- **拆分**：不同业务能力/模块/端、独立优先级、独立 OpenSpec Change 或验收闭环，或用户显式并列枚举 → 每条独立 `REQ-NNNN-slug/`。
+- **合并**：同一功能域的一个交付单元，或将在同一份 `requirement.md` 展开的细节 → 单条 REQ。
+- **父需求 refinement**：对已有 REQ 的体验/策略补充 → 优先 `parent_requirement` 或更新原 REQ，而非随意新建 peer REQ。
+- **实为缺陷** → `/bug-capture`，不要 req-capture。
+- **禁止** umbrella REQ；创建多条时 Workflow Sync 对**每条**执行 `req.capture`。
 | `/req-explore` | captured, exploring | 默认无文件 |
 | `/req-generate` | captured, exploring | requirement.md → draft |
 | `/req-complete` | draft, enriching | 六件套 → pending_review |
@@ -54,8 +69,30 @@ issues/requirements/
 
 ## 4. 门禁
 
-- `/req-opsx`：**仅** `approved`
-- `/sprint-propose`、`/sprint-apply`：**仅** `approved` 或 `in_sprint`
+### 4.1 评审门禁（统一，MUST）
+
+以下动作 **MUST** 在 REQ `trace.md`（或 `requirement.md` frontmatter）`status ∈ { approved, in_sprint }` 后方可执行：
+
+| 动作 | 命令 |
+|------|------|
+| 创建 OpenSpec Change | `/req-opsx` |
+| 纳入 Sprint 规划 | `/sprint-propose` |
+| 迭代内开发 | `/sprint-apply`、`/opsx-apply` |
+
+**未评审**（`draft`、`pending_review`、`captured`、`enriching`、`exploring` 等）时：
+
+- **不得**写入 `sprint.yaml` 的 `requirements[]` / `bugs[]`
+- **不得**写入 `sprint.md` 的 Sprint 目标编号列表、§Scope 表、里程碑、工作量合计
+- **不得**写入 `release-note.md` / `acceptance-report.md` 的「关联需求/BUG」正式范围
+- **不得**将 REQ `trace.md` 的 `iteration` 设为 sprint-xxx
+- **仅可**记入 `sprint.md`「延后项（待评审）」并提示 `/req-review REQ-xxxx --approve`
+- 用户显式要求纳入 Sprint 时也 **MUST** 先拒绝写入规划，完成评审后再 `/sprint-propose`
+
+`in_sprint` 表示已评审通过且已纳入迭代；**不得**用 `in_sprint` 绕过 `approved` 评审。
+
+### 4.2 其他门禁
+
+- `/req-opsx`：**仅** `approved` 或已评审后的 `in_sprint`
 - 旧命令 `/requirement-to-opsx` 已删除 → `/req-opsx`
 
 ## 5. Readiness（req-opsx / req-complete）
@@ -68,12 +105,16 @@ issues/requirements/
 
 ## 6. trace.md 最小字段
 
+Frontmatter **MUST** 含 `created_at`、`updated_at`（格式见 `rules/document-governance.md` §2.3–§2.4）。
+
 ```yaml
 requirement_id: REQ-NNNN-slug
 status: captured
 priority: P1
+created_at: YYYY-MM-DD HH:mm:ss
+updated_at: YYYY-MM-DD HH:mm:ss
 lifecycle:
-  captured: null
+  captured: YYYY-MM-DD HH:mm:ss
   generated: null
   completed: null
   reviewed: null
@@ -83,7 +124,7 @@ openspec_changes: []
 related_requirements: []
 ```
 
-每次命令结束追加 `## 变更记录`。
+每次命令结束追加 `## 变更记录`（条目时间 MUST 为 `YYYY-MM-DD HH:mm:ss`）。
 
 ## 7. 需求 ↔ BUG 反向关联
 
@@ -106,6 +147,8 @@ related_requirements: []
 - 若 BUG 的 `related_requirement` 为 `null`，不得强行写入需求 trace；除非后续评审明确补齐父需求。
 
 `lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` 的秒级格式：`YYYY-MM-DD HH:mm:ss`（默认 `Asia/Shanghai`）。
+
+状态变更后 MUST 运行 `python scripts/sync-workflow-status.py`（见 `rules/document-governance.md` §6.1 与 `.agents/skills/workflow-sync/SKILL.md`）。同步脚本会刷新 `updated_at` 并补全缺失的 `created_at`。
 
 ## 8. 参考命令
 

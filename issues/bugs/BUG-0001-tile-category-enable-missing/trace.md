@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0001 瓷砖类目停用行缺少启用入口
 content: 关联 REQ、Change 与代码位置
@@ -7,6 +8,7 @@ status: done
 note: /opsx-apply + archive 完成（2026-06-20）
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -35,8 +37,7 @@ openspec_changes:
   - change_id: fix-tile-category-enable-action
     type: fix
     status: archived
-    bug_id: BUG-0001-tile-category-enable-missing
-```
+    bug_id: BUG-0001-tile-category-enable-missing```
 
 ## 2. Readiness
 

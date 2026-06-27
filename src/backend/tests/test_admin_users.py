@@ -222,3 +222,34 @@ def test_keyword_matches_username_and_display_name_only(client: TestClient) -> N
     assert by_phone.status_code == 200
     usernames = [item["username"] for item in by_phone.json()["data"]["items"]]
     assert username not in usernames
+
+
+def test_user_list_returns_accessible_avatar_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    upload = client.post(
+        "/api/v1/admin/uploads",
+        headers=headers,
+        files={"file": ("avatar.png", b"png-avatar", "image/png")},
+    )
+    assert upload.status_code == 200
+    upload_data = upload.json()["data"]
+    create = client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={
+            "username": "avatar_user_01",
+            "role": "employee",
+            "avatar_object_key": upload_data["object_key"],
+        },
+    )
+    assert create.status_code == 200
+
+    response = client.get(
+        "/api/v1/admin/users",
+        headers=headers,
+        params={"keyword": "avatar_user_01"},
+    )
+    assert response.status_code == 200
+    item = response.json()["data"]["items"][0]
+    assert item["avatar_url"] == upload_data["url"]
+    assert client.get(item["avatar_url"]).status_code == 200

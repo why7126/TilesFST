@@ -65,3 +65,17 @@ issues/requirements/<REQ-ID>/capture.md
 
 - 不写 `src/`、不 `openspec new change`
 - 不替代 `/req-generate`（若无 requirement.md 先 generate）
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event req.complete --req <REQ-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

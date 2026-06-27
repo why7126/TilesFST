@@ -1,5 +1,5 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 9
+next_id: 21
 entries:
   - id: BUG-0001-tile-category-enable-missing
     title: 瓷砖类目停用行缺少启用入口
@@ -26,7 +26,7 @@ entries:
     iteration: sprint-002
   - id: BUG-0004-brand-logo-upload-progress-missing
     title: 编辑品牌弹窗更换Logo后未上传且缺少上传进度反馈
-    status: applied
+    status: done
     severity: medium
     created: "2026-06-26 09:25:19"
     related_requirement: REQ-0005-brand-management
@@ -34,7 +34,7 @@ entries:
     iteration: sprint-002
   - id: BUG-0005-login-fails-after-service-restart
     title: 服务重启后正确账号密码无法登录
-    status: in_sprint
+    status: done
     severity: high
     created: "2026-06-26 09:54:07"
     related_requirement: REQ-0001-user-login
@@ -64,4 +64,91 @@ entries:
     related_requirement: null
     related_bug: BUG-0006-object-storage-upload-not-minio
     related_change: fix-object-storage-legacy-upload-residue
+    iteration: sprint-002
+  - id: BUG-0009-tile-sku-list-ui-inconsistency
+    title: SKU列表分页与用户管理页不一致且表头上方多余标题行
+    status: done
+    severity: medium
+    created: "2026-06-27 08:56:54"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: sprint-002
+  - id: BUG-0010-tile-sku-modal-subtitle-inconsistency
+    title: SKU弹窗副标题与新增品牌弹窗样式不一致
+    status: done
+    severity: medium
+    created: "2026-06-27 08:56:54"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: null
+  - id: BUG-0011-tile-sku-modal-content-overflow
+    title: SKU编辑弹窗内容超出显示范围且缺乏滚动条
+    status: done
+    severity: high
+    created: "2026-06-27 08:56:54"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: sprint-002
+  - id: BUG-0012-tile-sku-modal-form-field-rules
+    title: SKU弹窗表面工艺应非必填且参考价格必填默认0元
+    status: done
+    severity: medium
+    created: "2026-06-27 08:56:54"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: null
+  - id: BUG-0013-product-version-ui-inconsistency
+    title: 产品版本号 UI 与原型及 Design System 不一致
+    status: done
+    severity: medium
+    created: "2026-06-27 10:54:19"
+    related_requirement: REQ-0010-product-version-display
+    iteration: null
+  - id: BUG-0014-tile-sku-publish-action-missing
+    title: SKU列表已下架行缺少上架操作
+    status: done
+    severity: high
+    created: "2026-06-27 12:03:34"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: null
+  - id: BUG-0015-admin-list-status-tips-layout-shift
+    title: 管理端四列表页状态变更Tips推挤页面导致上下波动
+    status: done
+    severity: medium
+    created: "2026-06-27 12:03:34"
+    related_requirement: REQ-0005-brand-management
+    related_bug: BUG-0003-brand-image-display-layout-shift
+    iteration: null
+  - id: BUG-0016-admin-list-status-action-confirm-missing
+    title: 品牌/用户列表状态变更操作缺少二次确认弹窗
+    status: done
+    severity: medium
+    created: "2026-06-27 12:03:34"
+    related_requirement: REQ-0008-brand-status-confirm
+    iteration: null
+  - id: BUG-0017-user-reset-password-confirm-ui-inconsistency
+    title: 用户重置密码二次确认弹窗与类目启用停用弹窗UI不一致
+    status: done
+    severity: medium
+    created: "2026-06-27 12:03:34"
+    related_requirement: REQ-0005-user-management
+    iteration: null
+  - id: BUG-0018-tile-sku-modal-video-upload-display
+    title: SKU 弹窗上传视频后未即时回显文件卡片
+    status: done
+    severity: high
+    created: "2026-06-27 12:03:34"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: null
+  - id: BUG-0019-user-modal-avatar-upload-display
+    title: 用户弹窗头像上传后未回显且更换功能未生效
+    status: done
+    severity: high
+    created: "2026-06-27 13:02:22"
+    related_requirement: REQ-0005-user-management
+    related_bug: BUG-0007-brand-logo-not-displayed-after-storage-fix
+    iteration: null
+  - id: BUG-0020-tile-sku-modal-video-upload-413
+    title: SKU 弹窗视频上传返回 413 Request Entity Too Large
+    status: done
+    severity: high
+    created: "2026-06-27 14:01:38"
+    related_requirement: REQ-0006-tile-sku-management
+    related_bug: BUG-0018-tile-sku-modal-video-upload-display
     iteration: sprint-002

@@ -43,8 +43,10 @@ file: <binary>
 
 ## 限制
 
-- MIME 白名单：见 `.env.example`
-- 大小上限：见 `MAX_UPLOAD_SIZE_MB`
+- 图片 MIME 白名单：见 `ALLOWED_IMAGE_TYPES`；大小上限：`MAX_IMAGE_SIZE_MB`
+- 视频 MIME 白名单：见 `ALLOWED_VIDEO_TYPES`；大小上限：`MAX_VIDEO_SIZE_MB`
+- Docker Web（Nginx）`client_max_body_size` 须 ≥ `max(MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB)`（见 `src/web/nginx.conf`）
+- 修改 `src/web/nginx.conf` 后须 **重建 Web Docker 镜像** 并重启 `web` 服务，否则 `localhost:3000` 仍可能返回 413
 - 错误码：`50002`、`50003`、`50001`
 
 ## 相关

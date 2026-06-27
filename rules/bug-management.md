@@ -45,7 +45,21 @@ issues/bugs/
 
 | 命令 | 产出 |
 |------|------|
-| `/bug-capture` | capture.md、trace 壳 |
+| `/capture` | 类型未决时自动分类；BUG 部分同 `/bug-capture`（见 §3.2） |
+| `/bug-capture` | capture.md、trace 壳（可一次输入多条，按 §3.1 评估拆分） |
+
+### 3.2 `/capture` 与 bug-capture
+
+用户不确定输入是需求还是缺陷时使用 `/capture`。AI **MUST** 先分类再落盘：判为缺陷的条目遵循 §3.1 拆分规则，产出与 `/bug-capture` 相同，且 frontmatter 含 `captured_via: capture`、`classification_rationale`。一条消息可同时产生 REQ 与 BUG。
+
+### 3.1 `/bug-capture` 多条输入与拆分
+
+用户可能在一条消息中描述多个缺陷。AI **MUST** 先评估再落盘：
+
+- **拆分**：不同界面/层级、缺陷类型、修复面、严重度、交付优先级，或用户显式并列枚举 → 每条独立 `BUG-NNNN-slug/`。
+- **合并**：同一页面/弹窗且一次修复可闭环，或同一根因不可分割 → 单条 BUG；回复中一句话说明不拆理由。
+- **禁止** umbrella BUG（总记录 + 子 bullet）；每条 MUST 可独立走 explore → opsx → archive。
+- 创建多条时，`next_id` 连续递增；Workflow Sync 对**每条**执行 `bug.capture`。
 | `/bug-explore` | 默认无文件 |
 | `/bug-generate` | bug.md |
 | `/bug-complete` | root-cause、workaround、acceptance、trace |
@@ -54,8 +68,20 @@ issues/bugs/
 
 ## 4. 门禁
 
-- `/bug-opsx`：**仅** `approved`
-- Sprint：**P0 BUG** 优先于功能 REQ；纳入须 `approved` 或 `in_sprint`
+### 4.1 评审门禁（统一，MUST）
+
+与 `rules/requirement-management.md` §4.1 一致。BUG `trace.md` `status ∈ { approved, in_sprint }` 后方可：
+
+- `/bug-opsx`
+- 纳入 Sprint 规划（`/sprint-propose`）
+- `/sprint-apply`、`/opsx-apply`
+
+未评审 BUG **不得**写入 Sprint 四件套正式范围；仅可记入 `sprint.md`「延后项（待评审）」并提示 `/bug-review BUG-xxxx --approve`。
+
+### 4.2 其他门禁
+
+- `/bug-opsx`：**仅** `approved` 或已评审后的 `in_sprint`
+- Sprint：**P0 BUG** 优先于功能 REQ
 - 旧命令 `/bug-to-change` 已删除 → `/bug-opsx`
 
 ## 5. 严重等级
@@ -78,7 +104,11 @@ BUG 的 `related_requirement` 不只是单向引用。若 `related_requirement` 
 
 父需求 trace 中只记录索引级信息：`BUG`、`严重等级`、`状态`、`关联 Change`、`说明`。MUST NOT 在需求 trace 中复制 BUG 复现步骤、根因全文、日志或截图。
 
-`trace.md` 的 `lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` 的秒级格式：`YYYY-MM-DD HH:mm:ss`（默认 `Asia/Shanghai`）。
+`trace.md` 的 `lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` §2.3（`YYYY-MM-DD HH:mm:ss`）。
+
+Frontmatter **MUST** 含 `created_at`、`updated_at`；更新 trace 时刷新 `updated_at`，不得修改 `created_at`。
+
+状态变更后 MUST 运行 `python scripts/sync-workflow-status.py`（见 `rules/document-governance.md` §6.1 与 `.agents/skills/workflow-sync/SKILL.md`）。
 
 ## 8. 参考命令
 

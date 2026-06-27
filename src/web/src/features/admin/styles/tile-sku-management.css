@@ -155,6 +155,29 @@
   overflow: hidden;
 }
 
+.admin-shell .sku-modal-card .modal-head,
+.admin-shell .sku-modal-card .modal-footer {
+  flex-shrink: 0;
+}
+
+.admin-shell .sku-modal-card .modal-head {
+  height: auto;
+  min-height: 64px;
+  padding: 16px 20px;
+  align-items: flex-start;
+}
+
+.admin-shell .sku-modal-card .modal-close {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.admin-shell .sku-modal-card .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .admin-shell .default-note {
   display: inline-flex;
   align-items: center;
@@ -255,34 +278,52 @@
 }
 
 .admin-shell .sku-video-card {
-  height: 58px;
   border: 0.5px solid var(--admin-line-strong);
   border-radius: 3px;
   background: color-mix(in srgb, var(--admin-deep) 35%, transparent);
-  display: grid;
-  grid-template-columns: 36px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.admin-shell .sku-video-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 3px;
-  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 32%, transparent);
-  background: var(--admin-gold-bg);
-  color: var(--admin-gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.admin-shell .sku-video-player-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--admin-deep);
+}
+
+.admin-shell .sku-video-player {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: var(--admin-deep);
+}
+
+.admin-shell .sku-video-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-line-strong) 80%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 78%, transparent);
+  color: var(--admin-danger);
   font-size: 10px;
+  cursor: pointer;
+}
+
+.admin-shell .sku-video-caption {
+  padding: 8px 10px;
 }
 
 .admin-shell .sku-video-name {
   display: block;
   color: var(--admin-text);
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-shell .sku-video-meta {
@@ -290,6 +331,65 @@
   margin-top: 3px;
   color: var(--admin-weak);
   font-size: 10px;
+}
+
+.admin-shell .sku-video-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-shell .sku-video-upload-btn {
+  align-self: flex-start;
+}
+
+.admin-shell .sku-video-upload-btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-shell .sku-video-upload-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-shell .sku-video-progress {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  height: 5px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-line-strong) 72%, transparent);
+  overflow: hidden;
+}
+
+.admin-shell .sku-video-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--admin-gold);
+  transition: width 0.18s ease;
+}
+
+.admin-shell .sku-video-progress-text,
+.admin-shell .sku-video-upload-success,
+.admin-shell .sku-video-upload-error {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.admin-shell .sku-video-progress-text {
+  color: var(--admin-weak);
+}
+
+.admin-shell .sku-video-upload-success {
+  color: var(--admin-gold);
+}
+
+.admin-shell .sku-video-upload-error {
+  color: var(--admin-danger);
 }
 
 .admin-shell .sku-remove {

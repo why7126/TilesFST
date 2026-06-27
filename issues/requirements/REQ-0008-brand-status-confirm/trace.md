@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0008 品牌列表启停二次确认追踪
 content: 关联父需求、参考实现与 OpenSpec
@@ -7,6 +8,7 @@ status: done
 note: fix-brand-status-confirm 已 archive（2026-06-26 21:24:30）
 readiness: partially_ready
 iteration: sprint-002
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -47,8 +49,7 @@ openspec_changes:
     requirement_id: REQ-0008-brand-status-confirm
     iteration: sprint-002
     archived_at: 2026-06-26 21:24:30
-    archive_path: openspec/changes/archive/2026-06-26-fix-brand-status-confirm
-```
+    archive_path: openspec/changes/archive/2026-06-26-fix-brand-status-confirm```
 
 ## 2. Readiness
 
@@ -100,3 +101,9 @@ openspec_changes:
 | 2026-06-26 21:15:13 | `/req-opsx` | 创建 `fix-brand-status-confirm` |
 | 2026-06-26 21:19:05 | `/opsx-apply` | 实现启停确认弹窗；vitest 5/5、build 通过 |
 | 2026-06-26 21:24:30 | `/opsx-archive` | 归档至 `2026-06-26-fix-brand-status-confirm`；web-client spec 已同步 |
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0016-admin-list-status-action-confirm-missing | medium | done | fix-admin-list-status-action-confirm | 管理端用户/SKU 列表状态变更操作缺少二次确认弹窗 |

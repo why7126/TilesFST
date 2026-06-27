@@ -100,6 +100,19 @@ class TileSkuAdminService:
         surface_finish = (payload.surface_finish or "").strip() or "-"
         return sku_code, brand_id, category_id, size, surface_finish
 
+    @staticmethod
+    def _validate_reference_price(value: float | None) -> float:
+        if value is None:
+            raise AuthInvalidRequestError("参考价格不能为空")
+        if value < 0:
+            raise AuthInvalidRequestError("参考价格不能为负数")
+        return value
+
+    @staticmethod
+    def _normalize_surface_finish(value: str | None) -> str:
+        trimmed = (value or "").strip()
+        return trimmed or "-"
+
     def _validate_create_fields(self, payload: TileSkuCreateRequest) -> None:
         if not payload.name.strip():
             raise AuthInvalidRequestError("SKU 名称不能为空")
@@ -111,8 +124,7 @@ class TileSkuAdminService:
             raise AuthInvalidRequestError("请选择类目")
         if not (payload.size or "").strip():
             raise AuthInvalidRequestError("规格尺寸不能为空")
-        if not (payload.surface_finish or "").strip():
-            raise AuthInvalidRequestError("表面工艺不能为空")
+        self._validate_reference_price(payload.reference_price)
         if not self._repo.brand_exists(payload.brand_id):
             raise AuthInvalidRequestError("所选品牌不存在")
         if not self._repo.category_exists(payload.category_id):
@@ -226,11 +238,15 @@ class TileSkuAdminService:
             brand_id = payload.brand_id  # type: ignore[assignment]
             category_id = payload.category_id  # type: ignore[assignment]
             size = payload.size.strip()  # type: ignore[union-attr]
-            surface_finish = payload.surface_finish.strip()  # type: ignore[union-attr]
+            surface_finish = self._normalize_surface_finish(payload.surface_finish)
         else:
             sku_code, brand_id, category_id, size, surface_finish = self._resolve_draft_defaults(
                 payload
             )
+
+        reference_price = self._validate_reference_price(
+            payload.reference_price if payload.reference_price is not None else 0.0
+        )
 
         self._ensure_unique_sku_code(sku_code)
         images = self._normalize_images(payload.images)
@@ -248,7 +264,7 @@ class TileSkuAdminService:
             size=size,
             surface_finish=surface_finish,
             color_family=self._normalize_optional(payload.color_family, max_len=50),
-            reference_price=payload.reference_price,
+            reference_price=reference_price,
             remark=self._normalize_optional(payload.remark, max_len=500),
             status=status,
         )
@@ -271,7 +287,7 @@ class TileSkuAdminService:
         )
         size = payload.size.strip() if payload.size is not None else record.size
         surface_finish = (
-            payload.surface_finish.strip()
+            self._normalize_surface_finish(payload.surface_finish)
             if payload.surface_finish is not None
             else record.surface_finish
         )
@@ -282,14 +298,18 @@ class TileSkuAdminService:
             raise AuthInvalidRequestError("SKU 编码不能为空")
         if not size:
             raise AuthInvalidRequestError("规格尺寸不能为空")
-        if not surface_finish:
-            raise AuthInvalidRequestError("表面工艺不能为空")
         if not self._repo.brand_exists(brand_id):
             raise AuthInvalidRequestError("所选品牌不存在")
         if not self._repo.category_exists(category_id):
             raise AuthInvalidRequestError("所选类目不存在")
 
         self._ensure_unique_sku_code(sku_code, exclude_id=tile_id)
+
+        reference_price = self._validate_reference_price(
+            payload.reference_price
+            if payload.reference_price is not None
+            else record.reference_price
+        )
 
         status = record.status
         if record.status == "NEEDS_COMPLETION":
@@ -312,11 +332,7 @@ class TileSkuAdminService:
                 if payload.color_family is not None
                 else record.color_family
             ),
-            reference_price=(
-                payload.reference_price
-                if payload.reference_price is not None
-                else record.reference_price
-            ),
+            reference_price=reference_price,
             remark=(
                 self._normalize_optional(payload.remark, max_len=500)
                 if payload.remark is not None
@@ -344,8 +360,6 @@ class TileSkuAdminService:
             raise TileSkuPublishForbiddenError()
         if not record.size.strip() or record.size == "-":
             raise TileSkuPublishForbiddenError("规格尺寸不完整，无法上架")
-        if not record.surface_finish.strip() or record.surface_finish == "-":
-            raise TileSkuPublishForbiddenError("表面工艺不完整，无法上架")
         if record.sku_code.startswith("DRAFT-"):
             raise TileSkuPublishForbiddenError("请先完善 SKU 编码后再上架")
         updated = self._repo.update_status(tile_id, "PUBLISHED")

@@ -46,15 +46,18 @@ REQ 目录：requirement.md、user-stories.md、business-flow.md、acceptance.md
 
 ---
 
-## Step 0.5 — 评审门禁（MUST）
+## Step 0.5 — 评审门禁（MUST — 无例外）
 
 读 `trace.md`（或 requirement.md frontmatter）`status`：
 
 | status | 动作 |
 |--------|------|
 | `approved` | 继续 |
-| `pending_review` / `draft` / … | **停止** → `/req-review REQ-xxxx` |
-| `in_sprint` / `done` | 可继续（已评审过） |
+| `in_sprint` | 可继续（须已完成 `/req-review`） |
+| `done` | 可继续（追溯/补建 change） |
+| `pending_review` / `draft` / `captured` / `enriching` / … | **立即停止**；**不得**创建 change → `/req-review REQ-xxxx --approve` |
+
+与 `rules/requirement-management.md` §4.1 一致：未评审 **不得** `/req-opsx`，亦 **不得**因已写入 Sprint 规划而绕过。
 
 ---
 
@@ -148,7 +151,7 @@ openspec_changes:
 
 | 规则 | 说明 |
 |------|------|
-| 仅 approved | 未评审不得 opsx |
+| 仅 approved / in_sprint | 未评审 **不得** opsx；**不得**因 Sprint 规划已写入而绕过 |
 | 不替代 req-complete | 文档不全先 complete |
 | 不跳过 CLI | 禁止手写 change 目录 |
 | 不写 src | 实现用 opsx-apply |
@@ -160,3 +163,17 @@ openspec_changes:
 - `.cursor/commands/req-complete.md`
 - `.cursor/commands/opsx-apply.md`、`opsx-archive.md`、`opsx-explore.md`
 - 归档样例：`openspec/changes/archive/`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event req.opsx --req <REQ-id> --change <change-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

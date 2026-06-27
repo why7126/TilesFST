@@ -82,6 +82,60 @@ def _create_sku_payload(
     }
 
 
+def test_create_sku_without_surface_finish(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    payload = _create_sku_payload(
+        brand_id=brand_id, category_id=category_id, sku_code="SKU-NO-FINISH-001"
+    )
+    payload.pop("surface_finish")
+    response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+    assert response.status_code == 200
+    assert response.json()["data"]["surface_finish"] == "-"
+
+
+def test_create_sku_requires_reference_price(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    payload = _create_sku_payload(
+        brand_id=brand_id, category_id=category_id, sku_code="SKU-NO-PRICE-001"
+    )
+    payload["reference_price"] = None
+    response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+    assert response.status_code == 422
+
+
+def test_create_sku_with_zero_reference_price(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    payload = _create_sku_payload(
+        brand_id=brand_id, category_id=category_id, sku_code="SKU-ZERO-PRICE-001"
+    )
+    payload["reference_price"] = 0.0
+    response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+    assert response.status_code == 200
+    assert response.json()["data"]["reference_price"] == 0.0
+
+
+def test_publish_sku_with_empty_surface_finish(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    payload = _create_sku_payload(
+        brand_id=brand_id, category_id=category_id, sku_code="SKU-PUB-NO-FINISH-001"
+    )
+    payload.pop("surface_finish")
+    create_response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+    sku_id = create_response.json()["data"]["id"]
+
+    publish = client.post(f"/api/v1/admin/tile-skus/{sku_id}/publish", headers=headers)
+    assert publish.status_code == 200
+    assert publish.json()["data"]["status"] == "PUBLISHED"
+
+
 def test_admin_list_tile_skus(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     response = client.get("/api/v1/admin/tile-skus", headers=headers)

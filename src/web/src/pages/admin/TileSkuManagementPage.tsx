@@ -16,6 +16,7 @@ import {
   unpublishTileSku,
   type TileSkuListData,
 } from '@/features/admin/api/tile-skus-api';
+import { AdminToast } from '@/features/admin/components/AdminToast';
 import { TileSkuFormModal } from '@/features/admin/components/TileSkuFormModal';
 import {
   formatSkuDateTime,
@@ -48,6 +49,10 @@ export function TileSkuManagementPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingSku, setEditingSku] = useState<TileSkuAdminItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TileSkuAdminItem | null>(null);
+  const [statusConfirmTarget, setStatusConfirmTarget] = useState<TileSkuAdminItem | null>(null);
+  const [statusConfirmAction, setStatusConfirmAction] = useState<'publish' | 'unpublish' | null>(
+    null,
+  );
 
   useEffect(() => {
     void Promise.all([
@@ -136,23 +141,35 @@ export function TileSkuManagementPage() {
     }
   };
 
-  const handlePublish = async (item: TileSkuAdminItem) => {
-    try {
-      await publishTileSku(item.id);
-      setNotice('SKU 已上架');
-      void loadSkus();
-    } catch (err) {
-      setNotice(getErrorMessage(err, '上架失败'));
-    }
+  const openPublishConfirm = (item: TileSkuAdminItem) => {
+    setStatusConfirmTarget(item);
+    setStatusConfirmAction('publish');
   };
 
-  const handleUnpublish = async (item: TileSkuAdminItem) => {
+  const openUnpublishConfirm = (item: TileSkuAdminItem) => {
+    setStatusConfirmTarget(item);
+    setStatusConfirmAction('unpublish');
+  };
+
+  const closeStatusConfirm = () => {
+    setStatusConfirmTarget(null);
+    setStatusConfirmAction(null);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!statusConfirmTarget || !statusConfirmAction) return;
     try {
-      await unpublishTileSku(item.id);
-      setNotice('SKU 已下架');
+      if (statusConfirmAction === 'publish') {
+        await publishTileSku(statusConfirmTarget.id);
+        setNotice('SKU 已上架');
+      } else {
+        await unpublishTileSku(statusConfirmTarget.id);
+        setNotice('SKU 已下架');
+      }
+      closeStatusConfirm();
       void loadSkus();
     } catch (err) {
-      setNotice(getErrorMessage(err, '下架失败'));
+      setNotice(getErrorMessage(err, statusConfirmAction === 'publish' ? '上架失败' : '下架失败'));
     }
   };
 
@@ -170,14 +187,11 @@ export function TileSkuManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const statusConfirmIsPublish = statusConfirmAction === 'publish';
 
   return (
     <>
-      {notice ? (
-        <p className="admin-notice" role="status" aria-live="polite">
-          {notice}
-        </p>
-      ) : null}
+      <AdminToast message={notice} />
 
       <section className="page-hero sku-page-hero">
         <div>
@@ -287,10 +301,6 @@ export function TileSkuManagementPage() {
       </section>
 
       <section className="table-card" aria-label="SKU 列表">
-        <div className="table-head">
-          <div className="table-title">SKU 列表</div>
-          <div className="table-note">默认按更新时间倒序</div>
-        </div>
         <table className="sku-mgmt-table">
           <thead>
             <tr>
@@ -354,19 +364,19 @@ export function TileSkuManagementPage() {
                         <button
                           type="button"
                           className="link-btn muted"
-                          onClick={() => void handleUnpublish(item)}
+                          onClick={() => openUnpublishConfirm(item)}
                         >
                           下架
                         </button>
-                      ) : item.status !== 'DISABLED' ? (
+                      ) : (
                         <button
                           type="button"
                           className="link-btn muted"
-                          onClick={() => void handlePublish(item)}
+                          onClick={() => openPublishConfirm(item)}
                         >
-                          上架
+                          {item.status === 'DISABLED' ? '恢复' : '上架'}
                         </button>
-                      ) : null}
+                      )}
                       <button
                         type="button"
                         className={`link-btn${deletable ? ' danger' : ' disabled'}`}
@@ -389,43 +399,46 @@ export function TileSkuManagementPage() {
           </tbody>
         </table>
         <div className="pagination">
-          <div className="page-left">
-            <span>共 {total} 条</span>
-            <button
-              type="button"
-              className="page-btn"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ‹
-            </button>
-            <button type="button" className="page-btn active">
-              {page}
-            </button>
-            <button
-              type="button"
-              className="page-btn"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              ›
-            </button>
-          </div>
-          <div className="brand-pagination-right">
-            <span>每页显示</span>
-            <select
-              className="page-size"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
+          <div className="page-summary">共 {loading ? '…' : total} 条</div>
+          <div className="page-right">
+            <div className="page-buttons">
+              <button
+                type="button"
+                className="page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                ‹
+              </button>
+              <button type="button" className="page-btn active">
+                {page}
+              </button>
+              <button
+                type="button"
+                className="page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                ›
+              </button>
+            </div>
+            <div className="page-size-wrap">
+              <span>每页显示</span>
+              <select
+                className="page-size"
+                value={pageSize}
+                aria-label="每页显示条数"
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+              >
+                <option value={10}>10 条</option>
+                <option value={20}>20 条</option>
+                <option value={50}>50 条</option>
+                <option value={100}>100 条</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -440,6 +453,47 @@ export function TileSkuManagementPage() {
           void loadSkus();
         }}
       />
+
+      {statusConfirmTarget && statusConfirmAction ? (
+        <div className="modal-backdrop" role="presentation" onClick={closeStatusConfirm}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="status-sku-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-head">
+              <span id="status-sku-title" className="modal-title">
+                {statusConfirmIsPublish ? '上架 SKU' : '下架 SKU'}
+              </span>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="关闭"
+                onClick={closeStatusConfirm}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="page-desc">
+                {statusConfirmIsPublish
+                  ? `确认上架 SKU「${statusConfirmTarget.name}」？`
+                  : `确认下架 SKU「${statusConfirmTarget.name}」？下架后前台将不再展示该商品。`}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn" onClick={closeStatusConfirm}>
+                取消
+              </button>
+              <button type="button" className="btn primary" onClick={() => void handleStatusConfirm()}>
+                {statusConfirmIsPublish ? '确认上架' : '确认下架'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {deleteTarget ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>

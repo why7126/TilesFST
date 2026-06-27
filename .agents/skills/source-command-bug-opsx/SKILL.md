@@ -113,3 +113,17 @@ tasks 末项提醒：`docs/knowledge-base/incidents/`（若适用）
 
 - `.cursor/commands/req-opsx.md`（结构对照）
 - `.cursor/commands/opsx-apply.md`
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change <change-id> --sprint auto
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

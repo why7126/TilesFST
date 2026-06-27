@@ -1,13 +1,15 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0006 瓷砖SKU管理分析与追溯
 content: 关联文档、影响分析、建议 Change、原型映射
 source: AI 根据 PRD 生成，项目团队确认
 update_method: 状态或迭代变更时同步更新
 owner: product
-status: in_sprint
+status: done
 note: /req-review approved
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -25,7 +27,7 @@ readiness: ready
 | `prototype/web/tile-sku-management-list.html` | ✓ v4 |
 | `prototype/web/tile-sku-create-modal.html` | ✓ v4 |
 | `prototype/web/*-context.md` | ✓ v4 |
-| `prototype/images/*.png` | ○ 可选（Golden Reference，非必须） |
+| `prototype/images/*.png` | ✓ 2026-06-27 从 web 复制 golden reference（可选） |
 | 状态 / 优先级 / 来源 | ✓（见 §2） | — 评审已通过；v4 HTML 原型为视觉验收主依据；PNG 为可选增强，不阻塞 req-opsx / opsx-apply / archive。
 
 原型优先级（AGENTS.md / design.md）：
@@ -48,7 +50,7 @@ requirement_id: REQ-0006-tile-sku-management
 requirement_name: tile-sku-management
 requirement_type: 管理端 / 主数据
 priority: P0
-status: in_sprint
+status: done
 owner: product
 source: ui-design.md + admin-home 框架 + tile-sku v4 HTML 原型
 version: v4
@@ -66,7 +68,7 @@ suggested_change_id: add-tile-sku-management
 openspec_changes:
   - change_id: add-tile-sku-management
     type: add
-    status: applied
+    status: archived
     requirement_id: REQ-0006-tile-sku-management
     strategy: css-port
     iteration: sprint-002
@@ -83,8 +85,7 @@ lifecycle:
   generated: null
   completed: 2026-06-20
   reviewed: 2026-06-20
-  approved: 2026-06-20
-```
+  approved: 2026-06-20```
 
 ---
 
@@ -183,3 +184,15 @@ lifecycle:
 2. ~~**`/req-opsx REQ-0006-tile-sku-management`**~~ → 已创建 `add-tile-sku-management`（2026-06-20）
 3. **`/opsx-apply add-tile-sku-management`**（sprint-002 队列；依赖 brand + category apply 完成）
 4. 导出 `prototype/images/*.png`（**可选**；HTML 并排验收即可）
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0009-tile-sku-list-ui-inconsistency | medium | done | fix-tile-sku-list-ui-inconsistency | SKU列表分页与用户管理页不一致且表头上方多余标题行 |
+| BUG-0010-tile-sku-modal-subtitle-inconsistency | medium | done | fix-tile-sku-modal-subtitle-inconsistency | SKU弹窗副标题与品牌弹窗样式不一致 |
+| BUG-0011-tile-sku-modal-content-overflow | high | done | fix-tile-sku-modal-content-overflow | SKU新增/编辑弹窗内容溢出且无垂直滚动条 |
+| BUG-0012-tile-sku-modal-form-field-rules | medium | done | fix-tile-sku-modal-form-field-rules | SKU弹窗表面工艺与参考价格字段规则不符合产品预期 |
+| BUG-0014-tile-sku-publish-action-missing | high | done | fix-tile-sku-publish-action-missing | SKU 列表已下架行缺少「上架」操作入口 |
+| BUG-0018-tile-sku-modal-video-upload-display | high | done | fix-tile-sku-modal-video-upload-display | SKU弹窗商品视频上传后未即时回显文件卡片 |
+| BUG-0020-tile-sku-modal-video-upload-413 | high | done | fix-tile-sku-modal-video-upload-413 | SKU弹窗视频上传返回413 Request Entity Too Large |

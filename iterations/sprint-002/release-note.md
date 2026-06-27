@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: Sprint 002 发布说明
 purpose: 记录 Sprint 002 交付能力与发布注意事项（初稿）
 content: 基于 REQ-0004、REQ-0005、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue 及对应 OpenSpec Change
 source: AI 根据迭代范围生成，项目团队确认
 update_method: Sprint 完成或范围变更时更新
 owner: 项目负责人
-status: draft
-note: Sprint 002 规划中；实现完成后更新为 published
+status: published
+note: workflow-sync — Sprint completed；30/30 Change archived
+updated_at: 2026-06-27 15:52:00
 ---
 
 # Sprint 002 发布说明
@@ -16,13 +18,17 @@ note: Sprint 002 规划中；实现完成后更新为 published
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-002 |
-| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm |
-| 关联 BUG | BUG-0001-tile-category-enable-missing、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue |
-| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、fix-brand-ui-consistency、fix-brand-image-display-layout-shift、fix-brand-logo-upload-progress、fix-object-storage-upload-not-minio、fix-brand-logo-display-after-storage-fix、fix-admin-login-service-restart、fix-brand-status-confirm、fix-object-storage-legacy-upload-residue、add-tile-sku-management |
+| 关联需求 | REQ-0004-admin-home、REQ-0005-user-management、REQ-0005-user-management-list-refine、REQ-0003-login-remember-autofill、REQ-0005-brand-management、REQ-0005-tile-category-management、REQ-0006-tile-sku-management、REQ-0007-tile-category-management-refine、REQ-0008-brand-status-confirm、REQ-0010-product-version-display、REQ-0011-admin-sidebar-expand-collapse |
+| 关联 BUG | BUG-0001-tile-category-enable-missing、BUG-0002-brand-ui-inconsistency、BUG-0003-brand-image-display-layout-shift、BUG-0004-brand-logo-upload-progress-missing、BUG-0005-login-fails-after-service-restart、BUG-0006-object-storage-upload-not-minio、BUG-0007-brand-logo-not-displayed-after-storage-fix、BUG-0008-object-storage-legacy-upload-residue、BUG-0009-tile-sku-list-ui-inconsistency、BUG-0011-tile-sku-modal-content-overflow、BUG-0012-tile-sku-modal-form-field-rules、BUG-0014-tile-sku-publish-action-missing、BUG-0015-admin-list-status-tips-layout-shift、BUG-0016-admin-list-status-action-confirm-missing、BUG-0017-user-reset-password-confirm-ui-inconsistency、BUG-0018-tile-sku-modal-video-upload-display、BUG-0019-user-modal-avatar-upload-display、BUG-0020-tile-sku-modal-video-upload-413 |
+| 关联 Change | add-admin-home、add-user-management、fix-user-management-list-refine、add-login-remember-autofill、add-brand-management、add-tile-category-management、fix-tile-category-enable-action、fix-tile-category-management-refine、fix-brand-ui-consistency、fix-brand-image-display-layout-shift、fix-brand-logo-upload-progress、fix-object-storage-upload-not-minio、fix-brand-logo-display-after-storage-fix、fix-admin-login-service-restart、fix-brand-status-confirm、fix-object-storage-legacy-upload-residue、add-tile-sku-management、fix-tile-sku-modal-content-overflow、fix-tile-sku-list-ui-inconsistency、add-product-version-display、add-admin-sidebar-collapse、fix-tile-sku-modal-form-field-rules、fix-tile-sku-publish-action-missing、fix-admin-list-status-toast-layout、fix-admin-list-status-action-confirm、fix-user-reset-password-confirm-ui、fix-user-modal-avatar-upload-display |
 | 计划周期 | 2026-06-15 ~ 2026-06-28 |
-| 发布状态 | **规划中（Draft）** |
 
-## 新增功能（计划）
+<!-- workflow-sync:release-status:start -->
+| 发布状态 | **已发布（Published）** |
+<!-- workflow-sync:release-status:end -->
+| 发布状态 | **实现完成，待 sign-off（Ready for sign-off）** |
+
+## 新增功能（已交付）
 
 ### Web 管理端工作台首页
 
@@ -87,7 +93,14 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - CSS Port：`features/admin/styles/tile-sku-management.css`
 - 后端 Admin Tile SKU API；扩展 `tiles` 表 + `tile_videos`；图片/视频 MinIO 上传
 
-## 优化项（计划）
+### Web 端产品版本号展示（计划）
+
+- 管理端侧边栏顶部 `TILESFST` + 产品版本 pill（如 `v0.0.1`）
+- 店主端筛选侧栏顶部品牌名 + 同一版本 pill
+- 版本由 `src/shared/` 单一常量人工维护；不展示 API 版本
+- 仅 Web 前端；无 API / DB / Orval 变更
+
+## 优化项（已交付）
 
 - 移除 `AdminLayout` 顶栏外露退出按钮，退出收纳至用户菜单下拉（**BREAKING** UI 相对 Sprint 001）
 - 用户管理列表页筛选与分页信息层级收紧（REQ-0005-user-management-list-refine）
@@ -108,9 +121,9 @@ note: Sprint 002 规划中；实现完成后更新为 published
 ### BUG-0002 品牌管理 UI 一致性修复
 
 - **问题**：`/admin/brands` 底部分页与用户管理页分页不一致；新增/编辑品牌弹窗 Logo 选择文件控件与管理端整体表单风格不一致
-- **计划修复**：分页对齐用户管理页；Logo 文件选择控件对齐管理端图片上传控件模式
+- **修复结果**：分页对齐用户管理页；Logo 文件选择控件对齐管理端图片上传控件模式
 - **影响**：仅 Web 管理端 UI；无 API/DB/Orval/MinIO 策略变更
-- OpenSpec：`fix-brand-ui-consistency`
+- OpenSpec：`fix-brand-ui-consistency`（archived，2026-06-25）
 
 ### BUG-0003 品牌图片显示失败与 Tips 布局波动
 
@@ -124,14 +137,14 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - **问题**：编辑品牌弹窗点击「更换 Logo」并选择图片后，缺少上传进度反馈，Logo 预览不更新
 - **修复结果**：补齐品牌 Logo 上传状态机、进度条、成功后预览更新、失败重试和同文件重选能力
 - **影响**：Web 管理端品牌弹窗；仅前端上传封装增加进度回调，无 API schema / DB / Orval 变更
-- OpenSpec：`fix-brand-logo-upload-progress`
+- OpenSpec：`fix-brand-logo-upload-progress`（archived，2026-06-26）
 
 ### BUG-0005 服务重启后正确账号密码无法登录
 
 - **问题**：本地或 Docker 服务重启后，进入 `/admin/login` 使用正确管理员账号密码仍提示「账号或密码错误」
 - **修复结果**：默认管理员 seed 保持首次创建和重启不覆盖；新增显式 `ADMIN_RESET_PASSWORD_ON_STARTUP` 恢复策略；补齐根目录 `.env.example`、部署文档、数据库说明和后端认证回归测试
 - **影响**：后端初始化/运行时数据治理与文档；登录接口响应 schema 未变化，无需 Orval
-- OpenSpec：`fix-admin-login-service-restart`（applied，待 `/opsx-archive`）
+- OpenSpec：`fix-admin-login-service-restart`（archived，2026-06-26）
 
 ### BUG-0006 对象存储上传未写入 MinIO
 
@@ -154,6 +167,34 @@ note: Sprint 002 规划中；实现完成后更新为 published
 - **影响**：本地 Docker 运维；无 API schema 变更，无需 Orval
 - OpenSpec：`fix-object-storage-legacy-upload-residue`（archived，2026-06-27 00:11:29）
 
+### BUG-0016 用户/SKU 列表状态操作缺少二次确认（计划）
+
+- **问题**：用户冻结/解冻、SKU 上下架/恢复点击即生效；用户删除使用浏览器原生 confirm
+- **修复计划**：用户 freeze/unfreeze/delete 与 SKU publish/unpublish 增加 DS modal 确认；对齐品牌/类目模式
+- **影响**：仅 Web 管理端；无 API/DB/Orval
+- OpenSpec：`fix-admin-list-status-action-confirm`（待 `/bug-opsx`）
+
+### BUG-0019 用户弹窗头像上传后未回显（计划）
+
+- **问题**：用户弹窗/列表头像始终 initials；更换头像无预览与上传进度（底层上传 200 且已入库）
+- **修复计划**：补 `UserAdminItem.avatar_url`；`UserFormModal` 对齐品牌 Logo 状态机；列表头像 `<img>` 回显
+- **影响**：Web 管理端用户管理；需 OpenAPI + Orval
+- OpenSpec：`fix-user-modal-avatar-upload-display`（proposed；待 apply）
+
+### BUG-0018 SKU 弹窗商品视频上传后未即时回显（计划）
+
+- **问题**：SKU 弹窗「商品视频」上传 MP4 后无文件卡片/上传状态，用户无法确认成功
+- **修复计划**：`TileSkuFormModal` 视频区上传状态机 + 区域级成功/失败反馈 + 即时 `.sku-video-card` 回显；对齐 REQ-0006 AC-035 与品牌 Logo 模式
+- **影响**：仅 Web 管理端 SKU 弹窗；无 API schema/DB/Orval（可选上传进度回调）
+- OpenSpec：`fix-tile-sku-modal-video-upload-display`（approved；待 `/bug-opsx` → `/opsx-apply`）
+
+### BUG-0020 SKU 弹窗视频上传 413（计划）
+
+- **问题**：经 `localhost:3000` 上传大体积 MP4 返回 413；Nginx 默认 body ~1MB；env 上传限制未对齐
+- **修复计划**：`nginx.conf` `client_max_body_size`；`MAX_IMAGE/VIDEO_SIZE_MB` 与 `ALLOWED_*_TYPES` env 落地；文档与 pytest
+- **影响**：Web Nginx + 后端配置；无 API schema/DB/Orval；**须重建 Web 镜像**
+- OpenSpec：`fix-tile-sku-modal-video-upload-413`（approved；待 `/bug-opsx` → `/opsx-apply`）
+
 ## 兼容性影响
 
 | 影响面 | 说明 |
@@ -172,10 +213,13 @@ note: Sprint 002 规划中；实现完成后更新为 published
 | BUG-0006-object-storage-upload-not-minio | 后端媒体上传已写入 MinIO 单桶；Docker Compose 闭环通过；上传成功 schema 不变，无需 Orval；已同步 `.env.example`、媒体与部署文档 |
 | BUG-0007-brand-logo-not-displayed-after-storage-fix | 已完成 `fix-brand-logo-display-after-storage-fix` archive；Web `/media` 反代闭环通过，API schema 未变化，无需 Orval |
 | BUG-0008-object-storage-legacy-upload-residue | 已完成 legacy uploads 清理脚本、UPLOAD_DIR 收敛与文档；无 API schema 变更，无需 Orval |
+| BUG-0016-admin-list-status-action-confirm-missing | 无 API/DB/Orval 变更；仅 Web 管理端 confirm modal |
+| BUG-0018-tile-sku-modal-video-upload-display | 无 API schema/DB/Orval 变更；仅 Web SKU 弹窗视频上传 UI |
+| BUG-0020-tile-sku-modal-video-upload-413 | Nginx `client_max_body_size` + 后端 env 上传限制；无 API schema/DB/Orval；须重建 Web 镜像 |
 | Docker | Web + Backend 镜像重建 |
 | REQ-0001 | 退出登录入口位置变更（行为不变）；冻结用户登录拒绝 |
 
-## 升级说明（计划）
+## 升级说明
 
 1. `./scripts/docker-up.sh`
 2. 使用已有 admin 账号登录 `http://localhost:3000/admin/login`（可验证记住凭证与密码显隐）
@@ -186,7 +230,7 @@ note: Sprint 002 规划中；实现完成后更新为 published
 7. 使用 `admin` 或 `employee` 访问 `http://localhost:3000/admin/tile-skus` 验证 SKU 管理
 8. 视觉验收：1280×1024 并排 `admin-home.png`、`user-management-list.png`（v2 refine）、`user-management-modal.png`、`brand-management.html`、`tile-category-management.html`、`tile-sku-management-list.html`
 
-## 已知限制（计划保留）
+## 已知限制
 
 - Dashboard 指标与最近更新为 mock 数据
 - Banner 管理页未实现
@@ -196,20 +240,20 @@ note: Sprint 002 规划中；实现完成后更新为 published
 
 ## 关联验收
 
-- `iterations/sprint-002/acceptance-report.md`（Sprint 结束时填写）
-- `openspec/changes/add-admin-home/trace.md`（PNG checklist）
-- `openspec/changes/add-user-management/trace.md`
-- `openspec/changes/fix-user-management-list-refine/trace.md`
-- `openspec/changes/add-login-remember-autofill/trace.md`
-- `openspec/changes/add-brand-management/trace.md`
-- `openspec/changes/fix-brand-ui-consistency/trace.md`
+- `iterations/sprint-002/acceptance-report.md`（待人工 sign-off）
+- `openspec/changes/archive/2026-06-15-add-admin-home/trace.md`（PNG checklist）
+- `openspec/changes/archive/2026-06-20-add-user-management/trace.md`
+- `openspec/changes/archive/2026-06-20-fix-user-management-list-refine/trace.md`
+- `openspec/changes/archive/2026-06-20-add-login-remember-autofill/trace.md`
+- `openspec/changes/archive/2026-06-26-add-brand-management/trace.md`
+- `openspec/changes/archive/2026-06-25-fix-brand-ui-consistency/trace.md`
 - `issues/bugs/BUG-0003-brand-image-display-layout-shift/acceptance.md`
 - `issues/bugs/BUG-0004-brand-logo-upload-progress-missing/acceptance.md`
 - `issues/bugs/BUG-0005-login-fails-after-service-restart/acceptance.md`
 - `issues/bugs/BUG-0006-object-storage-upload-not-minio/acceptance.md`
 - `issues/bugs/BUG-0007-brand-logo-not-displayed-after-storage-fix/acceptance.md`
 - `openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/trace.md`
-- `openspec/changes/fix-brand-logo-upload-progress/trace.md`
+- `openspec/changes/archive/2026-06-26-fix-brand-logo-upload-progress/trace.md`
 - `openspec/changes/archive/2026-06-20-add-tile-category-management/trace.md`
-- `openspec/changes/fix-tile-category-management-refine/trace.md`
+- `openspec/changes/archive/2026-06-22-fix-tile-category-management-refine/trace.md`
 - `issues/requirements/REQ-0007-tile-category-management-refine/acceptance.md`

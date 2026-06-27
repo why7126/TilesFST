@@ -1,12 +1,14 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 需求追踪
 purpose: REQ-0007 瓷砖类目管理页 UI 优化追踪
 content: 关联父需求、原型与 OpenSpec
 owner: product
-status: in_sprint
-note: /req-review approved；纳入 sprint-002（2026-06-20）
+status: done
+note: fix-tile-category-management-refine archived 2026-06-22
 readiness: ready
 iteration: sprint-002
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 需求追踪
@@ -18,7 +20,7 @@ requirement_id: REQ-0007-tile-category-management-refine
 requirement_name: tile-category-management-refine
 requirement_type: 管理端 / UI 优化
 priority: P1
-status: in_sprint
+status: done
 iteration: sprint-002
 parent_requirement: REQ-0005-tile-category-management
 source: 产品反馈（类目页三项优化）
@@ -48,8 +50,7 @@ openspec_changes:
     status: archived
     requirement_id: REQ-0007-tile-category-management-refine
     iteration: sprint-002
-    archived_at: 2026-06-22
-```
+    archived_at: 2026-06-22```
 
 ## 2. Readiness
 

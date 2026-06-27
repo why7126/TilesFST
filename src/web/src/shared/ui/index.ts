@@ -10,6 +10,7 @@ export {
   CardTitle,
 } from './card';
 export { Pagination, type PaginationProps } from './pagination';
+export { ProductVersionBadge, type ProductVersionBadgeProps } from './product-version-badge';
 export { SearchBar, type SearchBarProps } from './search-bar';
 export { Sidebar, type SidebarFilterItem, type SidebarProps, type SidebarSection } from './sidebar';
 export { DividerText } from './divider-text';

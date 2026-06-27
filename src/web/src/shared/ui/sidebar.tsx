@@ -1,9 +1,12 @@
 import * as React from 'react';
 
+import { PRODUCT_VERSION } from '@shared/product-version';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/shared/lib/cn';
+import { ProductVersionBadge } from '@/shared/ui/product-version-badge';
 
 export interface SidebarFilterItem {
   id: string;
@@ -21,10 +24,23 @@ export interface SidebarSection {
 export interface SidebarProps extends React.HTMLAttributes<HTMLElement> {
   sections: SidebarSection[];
   footer?: React.ReactNode;
+  showBrandHead?: boolean;
+  brandHead?: React.ReactNode;
+}
+
+function CatalogSidebarBrandHead() {
+  return (
+    <div className="mb-6 flex flex-nowrap items-center gap-2 border-b border-border-default pb-4">
+      <span className="shrink-0 whitespace-nowrap font-brand text-sm uppercase tracking-brand text-primary">
+        ST<span className="text-brand-gold">ONE</span>X
+      </span>
+      <ProductVersionBadge className="shrink-0" />
+    </div>
+  );
 }
 
 const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
-  ({ className, sections, footer, ...props }, ref) => (
+  ({ className, sections, footer, showBrandHead = true, brandHead, ...props }, ref) => (
     <aside
       ref={ref}
       className={cn(
@@ -33,6 +49,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
       )}
       {...props}
     >
+      {showBrandHead ? (brandHead ?? <CatalogSidebarBrandHead />) : null}
       <div className="space-y-6">
         {sections.map((section, index) => (
           <div key={section.id}>

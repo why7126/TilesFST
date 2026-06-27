@@ -1,4 +1,5 @@
 ---
+created_at: 2026-06-27 08:42:28
 title: 缺陷追踪
 purpose: BUG-0003 品牌图片显示失败与状态提示布局波动
 content: 记录瓷砖品牌页上传图片后列表和编辑弹窗不显示、状态变更 Tips 推挤页面的缺陷
@@ -7,6 +8,7 @@ status: done
 note: 已完成 OpenSpec Change fix-brand-image-display-layout-shift 的 /opsx-archive
 iteration: sprint-002
 readiness: ready
+updated_at: 2026-06-27 15:52:00
 ---
 
 # 缺陷追踪
@@ -34,12 +36,11 @@ lifecycle:
   approved: 2026-06-25 22:19:51
   in_sprint: 2026-06-25 22:22:25
   applied: 2026-06-25 22:41:42
-  archived: 2026-06-26 08:43:24
+  archived: 2026-06-27 08:14:56
 openspec_changes:
   - change_id: fix-brand-image-display-layout-shift
     type: fix
-    status: archived
-```
+    status: archived```
 
 ## 2. Readiness
 

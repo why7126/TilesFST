@@ -126,7 +126,7 @@ changes[]
 
 **Blocked 规则**（不满足则不可进入 apply，排队靠后）：
 
-1. 关联 REQ/BUG `status ∉ { approved, in_sprint }` → `blocked: not_reviewed`（提示 `/req-review` 或 `/bug-review`）
+1. 关联 REQ/BUG `status ∉ { approved, in_sprint }` → **整命令停止**（`blocked: not_reviewed`）；移出 sprint.yaml 并 `/req-review` / `/bug-review --approve`
 2. `openspec status` 有 artifact 非 done → `blocked: artifacts`
 3. 关联 REQ Readiness 为 Not Ready → `blocked: req_docs`（`--force-req-check` 时严格）
 4. **依赖未满足**（见 Step 2）
@@ -358,3 +358,17 @@ ELigible add-tile-category-management   (parallel, check REQ readiness)
 - REQ → Change：`.cursor/commands/req-opsx.md`
 - Sprint 治理：`rules/document-governance.md` §4.1
 - 流程总览：`AGENTS.md` §4.1
+
+---
+
+## Final Step — Workflow Sync (MUST)
+
+Read `.agents/skills/workflow-sync/SKILL.md` and run:
+
+```bash
+python scripts/sync-workflow-status.py --event sprint.apply --sprint <sprint-id>
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print the **Workflow Sync Report** to the user.
+- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
