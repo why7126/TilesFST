@@ -1,8 +1,8 @@
 ## Why
 
-[BUG-0015-admin-list-status-tips-layout-shift](issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/) 已评审通过（REV-BUG-0015-001）。Web 管理端瓷砖品牌、用户管理、瓷砖类目、瓷砖 SKU 四个列表页在执行状态变更、CRUD 成功或 API 错误反馈时，用户/类目/SKU 三页仍使用文档流 `.admin-notice`，Tips 约 3.2s 后自动消失会推挤 hero、指标卡、筛选区与表格。品牌页在 [BUG-0003](issues/bugs/BUG-0003-brand-image-display-layout-shift/) / `fix-brand-image-display-layout-shift` 中已改为 fixed toast，但样式耦合在 `brand-management.css` 且未推广至其他列表页。
+[BUG-0015-admin-list-status-tips-layout-shift](issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/) 已评审通过（REV-BUG-0015-001）。Web 管理端瓷砖品牌、用户管理、瓷砖类目、瓷砖 SKU 四个列表页在执行状态变更、CRUD 成功或 API 错误反馈时，用户/类目/SKU 三页仍使用文档流 `.admin-notice`，Tips 约 3.2s 后自动消失会推挤 hero、指标卡、筛选区与表格。品牌页在 [BUG-0003](issues/bugs/archive/BUG-0003-brand-image-display-layout-shift/) / `fix-brand-image-display-layout-shift` 中已改为 fixed toast，但样式耦合在 `brand-management.css` 且未推广至其他列表页。
 
-根因见 `issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/root-cause.md`：自动消失反馈误用占位文档流节点；管理端缺少统一 toast 组件契约。本 change 以 `fix-*` 承载四页统一修复，禁止绕过 OpenSpec 直接改 `src/`。
+根因见 `issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/root-cause.md`：自动消失反馈误用占位文档流节点；管理端缺少统一 toast 组件契约。本 change 以 `fix-*` 承载四页统一修复，禁止绕过 OpenSpec 直接改 `src/`。
 
 ## What Changes
 

@@ -69,13 +69,19 @@ Authorization: Bearer <access_token>
 | 分组 | 路径前缀 | 认证 | 说明 | Sprint 001 状态 |
 |---|---|---|---|---|
 | 认证 | `/api/v1/auth` | 部分 | 登录、当前用户、退出 | ✓ 已实现 |
+| 个人资料 | `/api/v1/profile` | 是（admin/employee） | 当前用户资料 self-service、操作记录 | ✓ Sprint 003 |
+| 管理端个人设置 | `/api/v1/admin/profile` | 是（admin/employee） | 自助修改密码 | ✓ Sprint 003 |
 | 瓷砖（展示） | `/api/v1/tiles` | 否 | 列表、详情 | 桩实现（返回空/示例） |
 | 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
+| 管理端系统设置 | `/api/v1/admin/system-settings` | 是（仅 admin） | 分组配置 GET/PATCH/reset、审计 recent | ✓ Sprint 003 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
+| 管理端 Banner | `/api/v1/admin/banners` | 是（admin/employee） | Banner CRUD、上下线、条件删除、summary | ✓ Sprint 003 |
+| 管理端专题（只读） | `/api/v1/admin/topics` | 是（admin/employee） | 专题列表（Banner 跳转关联） | ✓ Sprint 003 |
 | 管理端类目 | `/api/v1/admin/tile-categories` | 是（admin/employee） | 类目树、CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端 SKU | `/api/v1/admin/tile-skus` | 是（admin/employee） | SKU CRUD、上下架、素材、筛选 summary | ✓ Sprint 002 |
-| 管理端上传 | `/api/v1/admin/uploads` | 是 | 头像（admin）；品牌 Logo、SKU 图片/视频（admin/employee） | ✓ Sprint 002，MinIO 单桶存储 |
+| 管理端规格 | `/api/v1/admin/tile-specs` | 是（admin/employee） | 瓷砖规格 CRUD、启停、条件删除、summary | ✓ Sprint 003 |
+| 管理端上传 | `/api/v1/admin/uploads` | 是 | 头像（admin/employee）；品牌 Logo、Banner 图、SKU 图片/视频（admin/employee） | ✓ Sprint 002/003，MinIO 单桶存储 |
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
 \* `uploads` 路由通过后端鉴权接口写入 `MINIO_BUCKET`，不允许前端直连未授权 MinIO。
@@ -98,6 +104,20 @@ OpenSpec：`openspec/changes/add-user-management/`
 
 创建成功 `data` 含 `user` 与一次性 `initial_password`。
 
+### 3.4.1 管理端系统设置（Sprint 003）
+
+实现：`src/backend/app/api/v1/admin_system_settings.py`  
+OpenSpec：`openspec/changes/add-system-settings/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/system-settings/{group}` | Bearer（admin） |
+| PATCH | `/api/v1/admin/system-settings/{group}` | Bearer（admin） |
+| POST | `/api/v1/admin/system-settings/{group}/reset` | Bearer（admin） |
+| GET | `/api/v1/admin/system-settings/audit/recent` | Bearer（admin） |
+
+`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组含只读 `minio_bucket`、`object_key_rule`。
+
 ### 3.5 管理端品牌（Sprint 002）
 
 实现：`src/backend/app/api/v1/admin_brands.py`  
@@ -119,6 +139,26 @@ OpenSpec：`openspec/changes/add-brand-management/`
 删除规则：仅 `sku_count=0` 且 `status=DISABLED` 时允许；否则 `code=30012`。
 
 品牌 Logo 上传：`POST /api/v1/admin/uploads/brand-logos`（admin/employee；JPG/PNG/WebP）。
+
+### 3.5b 管理端 Banner（Sprint 003）
+
+实现：`src/backend/app/api/v1/admin_banners.py`、`admin_topics.py`  
+OpenSpec：`openspec/changes/add-banner-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/banners` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/banners` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/banners/{id}/online` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/banners/{id}/offline` | Bearer（admin/employee） |
+| DELETE | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/topics` | Bearer（admin/employee） |
+
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。  
+响应 `data.summary`：`total`、`filtered_count`、`online_count`、`pending_count`。  
+Banner 图上传：`POST /api/v1/admin/uploads/banner-images`（`images/default/banners/...`）。
 
 ### 3.6 管理端瓷砖类目（Sprint 002）
 
@@ -161,6 +201,33 @@ OpenSpec：`openspec/changes/add-tile-sku-management/`
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
 
 SKU 素材上传：`POST /api/v1/admin/uploads/tile-images`、`POST /api/v1/admin/uploads/tile-videos`（可选 `tile_id` 查询参数）。
+
+创建/更新请求体含 `spec_id`（`save_mode=create` 必填；须为 ENABLED 规格）。  
+错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
+
+### 3.8 管理端瓷砖规格（Sprint 003）
+
+实现：`src/backend/app/api/v1/admin_tile_specs.py`  
+OpenSpec：`openspec/changes/add-tile-spec-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/tile-specs` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-specs` | Bearer（admin/employee） |
+| GET | `/api/v1/admin/tile-specs/{id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/tile-specs/{id}` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-specs/{id}/enable` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/tile-specs/{id}/disable` | Bearer（admin/employee） |
+| DELETE | `/api/v1/admin/tile-specs/{id}` | Bearer（admin/employee） |
+
+列表参数：`page`、`page_size`（10/20/50）、`keyword`（匹配 `display_name`）、`status`（`ENABLED`/`DISABLED`）。  
+响应 `data.summary`：`total`、`enabled_count`、`disabled_count`。  
+`display_name` 由服务端按 `{width_mm}×{length_mm}mm` 生成。
+
+删除规则：仅 `sku_count=0` 且 `status=DISABLED` 时允许；否则 `code=30042`。  
+错误码：`30040` 不存在、`30041` 尺寸重复、`30042` 删除禁止、`30043` 规格已停用。
+
+历史 SKU 迁移：`scripts/migrate_tile_spec_ids.py --dry-run` / `--apply`（匹配 `tiles.size` → `spec_id`）。
 
 ---
 
@@ -245,6 +312,41 @@ OpenSpec：`openspec/specs/auth/spec.md`
 **成功 `data`：** `{ "success": true }`
 
 客户端 MUST 清除本地 token。服务端 JWT 无状态，不维护服务端会话黑名单（本期）。
+
+### 个人资料 self-service（Sprint 003）
+
+实现：`src/backend/app/api/v1/profile.py`  
+OpenSpec：`openspec/changes/add-admin-profile-page/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/profile/me` | Bearer（admin/employee） |
+| PATCH | `/api/v1/profile/me` | Bearer（admin/employee） |
+| GET | `/api/v1/profile/me/activities` | Bearer（admin/employee） |
+
+PATCH 可更新：`display_name`（2–32）、`email`、`phone`、`remark`（≤200）、`avatar_object_key`。  
+禁止更新：`username`、`role`、`status`（extra=forbid → 422）。  
+`store_owner` → 403。
+
+校验错误码：`40013`（`PROFILE_VALIDATION_ERROR`）。
+
+activities 默认返回最近 **5** 条，按 `created_at` 降序。
+
+### 管理端修改密码（Sprint 003）
+
+实现：`src/backend/app/api/v1/admin_profile.py`  
+OpenSpec：`openspec/changes/add-admin-password-change/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| POST | `/api/v1/admin/profile/password` | Bearer（admin/employee） |
+
+**请求体：** `{ "old_password": string, "new_password": string }`  
+**成功 `data`：** `{ "success": true }`
+
+改密成功后 `users.token_version` 递增，JWT `tv` claim 失效旧 token；客户端 MUST 清除本地 token 并重新登录。
+
+校验错误码：`40020`（原密码错误）、`40021`（策略）、`40022`（弱密码）、`40023`（与原密码相同）、`42901`（限流）。
 
 ---
 

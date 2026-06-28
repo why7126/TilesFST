@@ -13,12 +13,12 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0005-brand-management/requirement.md` |
-| 验收 | `issues/requirements/REQ-0005-brand-management/acceptance.md` |
-| 列表 HTML | `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management.html` |
-| 列表 PNG | `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management.png`（待补齐） |
-| 弹窗 HTML | `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management-modal.html` |
-| 弹窗 PNG | `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management-modal.png`（待补齐） |
+| PRD | `issues/requirements/archive/REQ-0005-brand-management/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0005-brand-management/acceptance.md` |
+| 列表 HTML | `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management.html` |
+| 列表 PNG | `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management.png`（待补齐） |
+| 弹窗 HTML | `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management-modal.html` |
+| 弹窗 PNG | `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management-modal.png`（待补齐） |
 | Design | `openspec/changes/add-brand-management/design.md` |
 
 ## Conflict Resolution 记录

@@ -13,12 +13,12 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0005-user-management/requirement.md` |
-| 验收 | `issues/requirements/REQ-0005-user-management/acceptance.md` |
-| 列表 HTML | `issues/requirements/REQ-0005-user-management/prototype/web/user-management-list.html` |
-| 列表 PNG | `issues/requirements/REQ-0005-user-management/prototype/web/user-management-list.png` |
-| 弹窗 HTML | `issues/requirements/REQ-0005-user-management/prototype/web/user-management-modal.html` |
-| 弹窗 PNG | `issues/requirements/REQ-0005-user-management/prototype/web/user-management-modal.png` |
+| PRD | `issues/requirements/archive/REQ-0005-user-management/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0005-user-management/acceptance.md` |
+| 列表 HTML | `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-list.html` |
+| 列表 PNG | `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-list.png` |
+| 弹窗 HTML | `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-modal.html` |
+| 弹窗 PNG | `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-modal.png` |
 | Design | `openspec/changes/add-user-management/design.md` |
 
 ## Conflict Resolution 记录

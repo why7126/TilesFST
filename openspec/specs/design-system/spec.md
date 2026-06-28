@@ -190,6 +190,6 @@ Sprint-000 MUST register Design System governance artifacts linking rules, share
 
 #### Scenario: Sprint trace linkage
 
-- **WHEN** a developer reads `issues/requirements/REQ-0000-build-design-system/trace.md`
+- **WHEN** a developer reads `issues/requirements/archive/REQ-0000-build-design-system/trace.md`
 - **THEN** MUST find `change_id: build-design-system` and iteration `sprint-000`
 

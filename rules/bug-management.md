@@ -11,17 +11,32 @@ update_method: 命令族变更时同步更新
 ```text
 issues/bugs/
 ├── _registry.yaml
-└── BUG-NNNN-slug/
-    ├── capture.md
-    ├── bug.md
-    ├── root-cause.md
-    ├── workaround.md
-    ├── acceptance.md
-    ├── trace.md
-    ├── review.md
-    ├── logs/
-    └── screenshots/
+├── README.md
+├── plan/                      # 规划中并完成评审
+│   └── BUG-NNNN-slug/
+├── review/                    # 已评审通过，修复/验收中，未 OpenSpec archive
+│   └── BUG-NNNN-slug/
+├── archive/                   # 已修复并归档
+│   └── BUG-NNNN-slug/
+└── BUG-NNNN-slug/             # [遗留] 扁平路径，deprecated；勿新建
 ```
+
+单条 BUG 目录内文件：
+
+```text
+BUG-NNNN-slug/
+├── capture.md
+├── bug.md
+├── root-cause.md
+├── workaround.md
+├── acceptance.md
+├── trace.md
+├── review.md
+├── logs/
+└── screenshots/
+```
+
+**新建 MUST** 使用 `issues/bugs/plan/BUG-NNNN-slug/`。阶段含义、迁移时机见 `rules/issues-lifecycle.md`。
 
 禁止在 `docs/bugs/` 存放缺陷记录。
 

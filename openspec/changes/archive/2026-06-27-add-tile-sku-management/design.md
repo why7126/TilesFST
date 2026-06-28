@@ -3,11 +3,11 @@
 - **现状**：`admin-nav.ts` 中「瓷砖SKU」无 `path`；`tiles` 表仅有 name/model/category/color/size/description/status；`tile_images` 已有 `is_main`；无视频表与 SKU Admin API；Dashboard「新增 SKU」为占位 toast。
 - **依赖**：`add-admin-home`（`AdminLayout`）；`add-brand-management`（品牌下拉）；`add-tile-category-management`（类目下拉）；参考 `add-brand-management` 列表/弹窗 CSS Port 模式。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html`
-  2. `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-create-modal.html`
-  3. `issues/requirements/REQ-0006-tile-sku-management/prototype/images/*.png`（待导出）
-  4. `issues/requirements/REQ-0006-tile-sku-management/prototype/web/*-context.md`
-  5. `issues/requirements/REQ-0006-tile-sku-management/acceptance.md`
+  1. `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html`
+  2. `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-create-modal.html`
+  3. `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/images/*.png`（待导出）
+  4. `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/*-context.md`
+  5. `issues/requirements/archive/REQ-0006-tile-sku-management/acceptance.md`
   6. `rules/ui-design.md`
   7. `openspec/specs/`
 

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AdminUserMenu } from './AdminUserMenu';
@@ -13,10 +13,46 @@ describe('AdminUserMenu', () => {
     status: 'active',
   };
 
+  it('renders avatar image when avatarUrl is provided', () => {
+    render(
+      <MemoryRouter>
+        <AdminUserMenu
+          user={user}
+          avatarUrl="/media/images/default/user/avatars/demo.webp"
+          onLogout={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    const img = document.querySelector('.sidebar-user .avatar img') as HTMLImageElement;
+    expect(img).toBeTruthy();
+    expect(img).toHaveAttribute('src', '/media/images/default/user/avatars/demo.webp');
+  });
+
+  it('falls back to initials when avatar image fails to load', () => {
+    render(
+      <MemoryRouter>
+        <AdminUserMenu
+          user={user}
+          avatarUrl="/media/broken.webp"
+          onLogout={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    const img = document.querySelector('.sidebar-user .avatar img') as HTMLImageElement;
+    expect(img).toBeTruthy();
+    fireEvent.error(img);
+    expect(document.querySelector('.sidebar-user .avatar.is-fallback')).toBeTruthy();
+    expect(screen.getByText('AU')).toBeInTheDocument();
+  });
+
   it('renders user initials and email fallback', () => {
     render(
       <MemoryRouter>
-        <AdminUserMenu user={user} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+        <AdminUserMenu user={user} onLogout={vi.fn()} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
 
@@ -30,7 +66,7 @@ describe('AdminUserMenu', () => {
 
     render(
       <MemoryRouter>
-        <AdminUserMenu user={user} onLogout={onLogout} onPlaceholder={vi.fn()} />
+        <AdminUserMenu user={user} onLogout={onLogout} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
 
@@ -43,14 +79,39 @@ describe('AdminUserMenu', () => {
     expect(onLogout).toHaveBeenCalled();
   });
 
-  it('does not render standalone logout below trigger', () => {
+  it('navigates to profile page from user menu', () => {
     render(
-      <MemoryRouter>
-        <AdminUserMenu user={user} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+      <MemoryRouter initialEntries={['/admin/dashboard']}>
+        <Routes>
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminUserMenu user={user} onLogout={vi.fn()} onOpenPasswordChange={vi.fn()} />
+            }
+          />
+          <Route path="/admin/profile" element={<div>Profile Page</div>} />
+        </Routes>
       </MemoryRouter>,
     );
 
-    const triggers = screen.getAllByRole('button');
-    expect(triggers).toHaveLength(1);
+    fireEvent.click(screen.getByText('Admin User'));
+    fireEvent.click(screen.getByRole('menuitem', { name: '个人资料' }));
+
+    expect(screen.getByText('Profile Page')).toBeInTheDocument();
+  });
+
+  it('opens password change handler from user menu', () => {
+    const onOpenPasswordChange = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <AdminUserMenu user={user} onLogout={vi.fn()} onOpenPasswordChange={onOpenPasswordChange} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Admin User'));
+    fireEvent.click(screen.getByRole('menuitem', { name: '密码修改' }));
+
+    expect(onOpenPasswordChange).toHaveBeenCalled();
   });
 });

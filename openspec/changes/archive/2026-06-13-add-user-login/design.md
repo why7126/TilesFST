@@ -1,6 +1,6 @@
 ## Context
 
-- **需求来源**：`issues/requirements/REQ-0001-user-login/`（PRD、用户故事、业务流程、验收标准、Web 原型）。
+- **需求来源**：`issues/requirements/archive/REQ-0001-user-login/`（PRD、用户故事、业务流程、验收标准、Web 原型）。
 - **当前状态**：后端仅有瓷砖相关 API，无用户表与认证中间件；前端无登录页与路由守卫；`openspec/specs/` 为空。
 - **约束**：FastAPI + Pydantic + SQLite + React 19 + Tailwind + Orval；密码不得明文存储；API 遵循 `rules/api.md` 统一响应结构；UI 遵循暗色工业风 `rules/ui-design.md`。
 - **干系人**：企业内部员工、系统管理员（本期）；瓷砖零售店店主（数据模型预留，登录入口本期不开放）。

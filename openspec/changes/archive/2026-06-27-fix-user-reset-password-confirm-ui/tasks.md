@@ -19,8 +19,8 @@
 
 - [ ] 3.1 本地/Docker：`/admin/users` 重置密码 confirm 手工冒烟（待 archive 前；可选）
 - [x] 3.2 填写 `openspec/changes/fix-user-reset-password-confirm-ui/trace.md` checklist（≥8 项）
-- [x] 3.3 更新 `issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/trace.md`（`openspec_changes.status: applied`）
-- [x] 3.4 更新 `iterations/sprint-002/acceptance-report.md` BUG-0017 验收状态
+- [x] 3.3 更新 `issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/trace.md`（`openspec_changes.status: applied`）
+- [x] 3.4 更新 `iterations/archive/sprint-002/acceptance-report.md` BUG-0017 验收状态
 - [x] 3.5 完成后 `/opsx-archive fix-user-reset-password-confirm-ui`
 
 ## 4. 知识沉淀（可选）

@@ -1,6 +1,6 @@
 # fix-user-reset-password-confirm-ui — Acceptance
 
-来源：`issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`
+来源：`issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`
 
 ## 重置密码 confirm
 

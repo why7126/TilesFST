@@ -23,8 +23,8 @@
 
 - [ ] 4.1 本地/Docker：`/admin/users` 与 `/admin/tile-skus` 手工 confirm 流程（待 `/opsx-archive` 前人工冒烟）
 - [x] 4.2 填写 `openspec/changes/fix-admin-list-status-action-confirm/trace.md` checklist（≥8 项）
-- [x] 4.3 更新 `issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/trace.md`（`openspec_changes.status: applied`）
-- [x] 4.4 更新 `iterations/sprint-002/acceptance-report.md` BUG-0016 验收状态
+- [x] 4.3 更新 `issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/trace.md`（`openspec_changes.status: applied`）
+- [x] 4.4 更新 `iterations/archive/sprint-002/acceptance-report.md` BUG-0016 验收状态
 - [x] 4.5 完成后 `/opsx-archive fix-admin-list-status-action-confirm`
 
 ## 5. 知识沉淀（可选）

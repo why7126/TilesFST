@@ -15,7 +15,7 @@ archived_at: 2026-06-26 08:43:24
 
 | 项目 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0003-brand-image-display-layout-shift` |
+| BUG | `issues/bugs/archive/BUG-0003-brand-image-display-layout-shift` |
 | Sprint | `sprint-002` |
 | 严重等级 | high |
 | 评审 | `REV-BUG-0003-001`，approved |

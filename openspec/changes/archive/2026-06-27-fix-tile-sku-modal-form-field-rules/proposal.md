@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0012-tile-sku-modal-form-field-rules](issues/bugs/BUG-0012-tile-sku-modal-form-field-rules/) 已评审通过并纳入 `sprint-002`。UAT 阶段产品规则调整要求：SKU 新增/编辑弹窗「表面工艺」改**非必填**、「参考价格（元）」改**必填**且新建默认 **0 元**。当前实现仍按 REQ-0006 v4 旧 spec（工艺必填、价格选填）在前后端双重校验，且 `publish_sku` 拒绝空工艺，导致运营录入与验收预期不符。
+[BUG-0012-tile-sku-modal-form-field-rules](issues/bugs/archive/BUG-0012-tile-sku-modal-form-field-rules/) 已评审通过并纳入 `sprint-002`。UAT 阶段产品规则调整要求：SKU 新增/编辑弹窗「表面工艺」改**非必填**、「参考价格（元）」改**必填**且新建默认 **0 元**。当前实现仍按 REQ-0006 v4 旧 spec（工艺必填、价格选填）在前后端双重校验，且 `publish_sku` 拒绝空工艺，导致运营录入与验收预期不符。
 
 `add-tile-sku-management` 尚未归档；本缺陷 MUST 通过新的 `fix-*` change 修正校验规则并同步 REQ-0006 acceptance delta。
 
@@ -9,7 +9,7 @@
 - 前端 `TileSkuFormModal`：去掉表面工艺 `*` 与必填校验；参考价格加 `*`、新建默认 `0`、空值拦截。
 - 后端 `TileSkuAdminService`：create/update 移除 surface_finish 必填；reference_price 必填（含 `0.0`）；`publish_sku` 移除表面工艺完整性拦截。
 - OpenAPI / Pydantic 更新后运行 Orval。
-- 更新 `issues/requirements/REQ-0006-tile-sku-management/requirement.md` 字段定义与 `acceptance.md` AC-024、AC-015。
+- 更新 `issues/requirements/archive/REQ-0006-tile-sku-management/requirement.md` 字段定义与 `acceptance.md` AC-024、AC-015。
 - 补充前后端回归测试；记录 change `trace.md` 验收结论。
 
 ## Impact

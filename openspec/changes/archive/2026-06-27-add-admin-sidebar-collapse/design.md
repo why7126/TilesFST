@@ -3,12 +3,12 @@
 - **现状**：`.admin-shell { grid-template-columns: 264px 1fr }` 写死；`AdminSidebar` 无折叠 state；REQ-0010 `add-product-version-display` 可能已扩展 brand-head（产品名 + version pill）。
 - **依赖**：REQ-0004 Admin Shell；REQ-0010 头部（建议同 Sprint 内 REQ-0010 先行或并行 apply）。
 - **原型来源**（优先级，design.md 声明）：
-  1. `issues/requirements/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-expanded.html`
-  2. `issues/requirements/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-collapsed.html`
-  3. `issues/requirements/REQ-0011-admin-sidebar-expand-collapse/prototype/web/images/*.png`（Golden Reference — 待导出）
+  1. `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-expanded.html`
+  2. `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-collapsed.html`
+  3. `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/images/*.png`（Golden Reference — 待导出）
   4. SoulKing 参考图（`/req-capture` 附件）
-  5. `issues/requirements/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-collapse-context.md`
-  6. `issues/requirements/REQ-0011-admin-sidebar-expand-collapse/acceptance.md`
+  5. `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-collapse-context.md`
+  6. `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/acceptance.md`
   7. `rules/ui-design.md`
   8. `openspec/specs/admin-dashboard/spec.md`、`openspec/specs/web-client/spec.md`
 

@@ -3,10 +3,10 @@
 - **现状**：`BrandManagementPage.tsx` 中 `handleToggleStatus` 直接调用 `enableBrand` / `disableBrand`；删除使用 `deleteTarget` + 独立确认弹窗。
 - **父需求**：REQ-0005-brand-management；子需求 REQ-0008-brand-status-confirm（approved，sprint-002）。
 - **原型来源**（优先级）：
-  1. `issues/requirements/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`
-  2. `issues/requirements/REQ-0008-brand-status-confirm/acceptance.md`
-  3. `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management.html`（v1 基线，启停仍为直接 API）
-  4. `issues/requirements/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`（交互参考）
+  1. `issues/requirements/archive/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`
+  2. `issues/requirements/archive/REQ-0008-brand-status-confirm/acceptance.md`
+  3. `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management.html`（v1 基线，启停仍为直接 API）
+  4. `issues/requirements/archive/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`（交互参考）
   5. 已实现 `BrandManagementPage` 删除确认弹窗（modal 结构参考）
   6. `openspec/specs/web-client/spec.md`（基线 fix 能力）
 

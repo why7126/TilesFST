@@ -170,6 +170,21 @@ Read `.agents/skills/workflow-sync/SKILL.md` and run:
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
 ```
 
-- Exit code **MUST** be `0` before ending this command.
+- Exit code **MUST** be `0` before continuing.
 - Print the **Workflow Sync Report** to the user.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
+
+---
+
+## Final Step — Promote Issues (MUST)
+
+Read `rules/issues-lifecycle.md` §4.
+
+**After** workflow sync succeeds:
+
+```bash
+python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
+```
+
+- Exit code **MUST** be `0`.
+- Print script stdout (eligible issues + each `Promote Issue Stage` report).

@@ -35,5 +35,5 @@
 
 - [x] 5.1 更新本 change `trace.md` checklist
 - [x] 5.2 更新 `BUG-0005-login-fails-after-service-restart/trace.md` 中 change 状态
-- [x] 5.3 同步 `iterations/sprint-002` 中 BUG-0005 对应 Change 状态
+- [x] 5.3 同步 `iterations/archive/sprint-002` 中 BUG-0005 对应 Change 状态
 - [x] 5.4 评估是否需要更新 `docs/knowledge-base/incidents/`；如不需要，在 trace 中说明原因

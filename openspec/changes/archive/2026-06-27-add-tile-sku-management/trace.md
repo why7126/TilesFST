@@ -13,12 +13,12 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0006-tile-sku-management/requirement.md` |
-| 验收 | `issues/requirements/REQ-0006-tile-sku-management/acceptance.md` |
-| 列表 HTML | `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html` |
-| 列表 PNG | `issues/requirements/REQ-0006-tile-sku-management/prototype/images/tile-sku-management-list.png`（**可选**） |
-| 弹窗 HTML | `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-create-modal.html` |
-| 弹窗 PNG | `issues/requirements/REQ-0006-tile-sku-management/prototype/images/tile-sku-create-modal.png`（**可选**） |
+| PRD | `issues/requirements/archive/REQ-0006-tile-sku-management/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0006-tile-sku-management/acceptance.md` |
+| 列表 HTML | `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html` |
+| 列表 PNG | `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/images/tile-sku-management-list.png`（**可选**） |
+| 弹窗 HTML | `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-create-modal.html` |
+| 弹窗 PNG | `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/images/tile-sku-create-modal.png`（**可选**） |
 | Design | `openspec/changes/add-tile-sku-management/design.md` |
 
 ## Conflict Resolution 记录

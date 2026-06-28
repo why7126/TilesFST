@@ -3,11 +3,11 @@
 - **现状**：管理端 `AdminSidebar` 顶部 `.logo` 仅 `TILESFST`；店主端 `Sidebar`（`src/web/src/shared/ui/sidebar.tsx`）无品牌头；无 `PRODUCT_VERSION` 常量。
 - **依赖**：`REQ-0004-admin-home` Admin Shell；店主端 `LandingPage` / `ListPage` + `CatalogBody`。
 - **原型来源**（优先级，design.md 声明）：
-  1. `issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html`
-  2. `issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-sidebar-catalog.html`
-  3. `issues/requirements/REQ-0010-product-version-display/prototype/web/images/sidebar-version-reference.png`（Golden Reference — 布局参照）
-  4. `issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-display-context.md`
-  5. `issues/requirements/REQ-0010-product-version-display/acceptance.md`
+  1. `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html`
+  2. `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-sidebar-catalog.html`
+  3. `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/images/sidebar-version-reference.png`（Golden Reference — 布局参照）
+  4. `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-display-context.md`
+  5. `issues/requirements/archive/REQ-0010-product-version-display/acceptance.md`
   6. `rules/ui-design.md` §8 徽章
   7. `openspec/specs/admin-dashboard/spec.md`、`openspec/specs/web-client/spec.md`
 

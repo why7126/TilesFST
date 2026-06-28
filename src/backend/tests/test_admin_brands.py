@@ -174,7 +174,7 @@ def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> N
     )
     assert upload.status_code == 200
     data = upload.json()["data"]
-    assert data["object_key"].startswith("original/default/brands/logos/")
+    assert data["object_key"].startswith("images/default/brands/logos/")
     assert data["url"] == f"/media/{data['object_key']}"
     assert data["object_key"] in get_media_storage_client().objects
 
@@ -236,17 +236,17 @@ def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> N
         (
             "/api/v1/admin/uploads",
             ("avatar.png", b"avatar", "image/png"),
-            "original/default/avatars/",
+            "images/default/user/avatars/",
         ),
         (
             "/api/v1/admin/uploads/brand-logos",
             ("logo.webp", b"logo", "image/webp"),
-            "original/default/brands/logos/",
+            "images/default/brands/logos/",
         ),
         (
             "/api/v1/admin/uploads/tile-images",
             ("tile.jpg", b"tile-image", "image/jpeg"),
-            "original/default/tiles/pending/images/",
+            "images/default/tiles/pending/",
         ),
         (
             "/api/v1/admin/uploads/tile-videos",

@@ -13,7 +13,7 @@ created_at: 2026-06-26 21:17:49
 
 | 项目 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0005-login-fails-after-service-restart` |
+| BUG | `issues/bugs/archive/BUG-0005-login-fails-after-service-restart` |
 | Sprint | `sprint-002` |
 | 严重等级 | high |
 | 评审 | `REV-BUG-0005-001`，approved |

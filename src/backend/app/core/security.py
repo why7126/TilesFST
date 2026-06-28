@@ -19,15 +19,24 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
-def create_access_token(*, user_id: str, role: str, remember_me: bool = False) -> tuple[str, int]:
+def create_access_token(
+    *,
+    user_id: str,
+    role: str,
+    token_version: int = 0,
+    remember_me: bool = False,
+    access_expire_minutes: int | None = None,
+) -> tuple[str, int]:
     if remember_me:
         expires_delta = timedelta(days=settings.jwt_remember_me_expire_days)
     else:
-        expires_delta = timedelta(minutes=settings.jwt_access_token_expire_minutes)
+        minutes = access_expire_minutes or settings.jwt_access_token_expire_minutes
+        expires_delta = timedelta(minutes=minutes)
     expires_at = datetime.now(UTC) + expires_delta
     payload = {
         "sub": user_id,
         "role": role,
+        "tv": token_version,
         "exp": expires_at,
     }
     token = jwt.encode(payload, settings.app_secret_key, algorithm=settings.jwt_algorithm)

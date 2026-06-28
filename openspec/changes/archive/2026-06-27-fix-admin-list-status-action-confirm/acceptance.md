@@ -1,6 +1,6 @@
 # fix-admin-list-status-action-confirm — Acceptance
 
-来源：`issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md`
+来源：`issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md`
 
 ## 用户管理 confirm
 

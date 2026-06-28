@@ -27,9 +27,13 @@ note: 运行时数据库路径见 SQLITE_DATABASE_URL / .env.example
 ```text
 tile_categories 1 ── * tiles 1 ── * tile_images
 brands 1 ── * tiles
+tile_specs 1 ── * tiles
 tiles 1 ── * tile_videos
 
 users 1 ── * login_logs（预留，本期无写入）
+users 1 ── * profile_activity_logs（Sprint 003）
+users 1 ── * system_settings.updated_by（Sprint 003，可选 FK）
+users 1 ── * audit_logs.actor_user_id（Sprint 003，可选 FK）
 
 （users 与 tiles 无直接外键，权限通过 JWT role 控制）
 ```
@@ -42,7 +46,11 @@ users 1 ── * login_logs（预留，本期无写入）
 |---|---|---|
 | users | ✓ 使用中 | 认证与角色 |
 | login_logs | ✓ 已建表 | 登录审计预留 |
+| profile_activity_logs | ✓ Sprint 003 | 个人资料操作审计 |
+| system_settings | ✓ Sprint 003 | 系统设置 KV 持久化 |
+| audit_logs | ✓ Sprint 003 | 统一审计日志（含 system_settings） |
 | tile_categories | 桩 | 分类 |
+| tile_specs | ✓ Sprint 003 | 瓷砖规格主数据 |
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
 | tile_videos | 已实现 | SKU 关联视频元数据 |
 | tile_images | 桩 | 瓷砖图片元数据 |
@@ -64,6 +72,8 @@ users 1 ── * login_logs（预留，本期无写入）
 | role | TEXT | NOT NULL, CHECK | `admin` \| `employee` \| `store_owner` |
 | status | TEXT | NOT NULL, DEFAULT `active`, CHECK | `active` \| `disabled` \| `deleted` |
 | avatar_object_key | TEXT | NULL | MinIO 头像 object_key |
+| remark | TEXT | NULL | 个人工作说明（0–200 字，profile self-service） |
+| token_version | INTEGER | NOT NULL, DEFAULT 0 | JWT `tv` 版本；改密后递增使旧 token 失效 |
 | last_login_at | TEXT | NULL | ISO8601 UTC |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
@@ -103,6 +113,81 @@ Sprint 001 仅建表，**无业务写入**。供后续登录审计 change 使用
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
 ORM：`src/backend/app/models/user.py` → `LoginLog`
+
+---
+
+## 5.1 profile_activity_logs（Sprint 003）
+
+OpenSpec：`openspec/changes/add-admin-profile-page/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| user_id | TEXT | FK → users.id, NOT NULL | 用户 ID |
+| action_type | TEXT | NOT NULL | `profile_update` \| `avatar_update` \| `login` |
+| summary | TEXT | NOT NULL | 可读中文摘要 |
+| metadata | TEXT | NULL | JSON 扩展（可选） |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_profile_activity_logs_user_created (user_id, created_at DESC)`
+
+ORM：`ProfileActivityLog`；Repository：`profile_activity_repository.py`
+
+---
+
+## 5.2 password_change_attempts（Sprint 003）
+
+OpenSpec：`openspec/changes/add-admin-password-change/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| user_id | TEXT | FK → users.id, NOT NULL | 用户 ID |
+| success | INTEGER | NOT NULL | 1 成功 / 0 失败 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_password_change_attempts_user_created (user_id, created_at DESC)`
+
+用途：15 分钟内失败 ≥5 次或 24 小时内成功 ≥3 次触发限流（42901）。
+
+ORM：`PasswordChangeAttempt`；Repository：`password_change_repository.py`
+
+---
+
+## 5.3 system_settings（Sprint 003）
+
+OpenSpec：`openspec/changes/add-system-settings/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| key | TEXT | PK | 点分键，如 `basic.platform_name` |
+| value | TEXT | NOT NULL | JSON 或标量字符串 |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_by | TEXT | NULL FK → users.id | 最后修改人 |
+
+读取：`EffectiveSettingsService.get_effective(key)` = DB 覆盖值 ?? env ?? 代码默认。
+
+Repository：`system_settings_repository.py`
+
+---
+
+## 5.4 audit_logs（Sprint 003）
+
+OpenSpec：`openspec/changes/add-system-settings/`（与 REQ-0014 统一目标）
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| actor_user_id | TEXT | NULL FK → users.id | 操作人 |
+| domain | TEXT | NOT NULL | 如 `system_settings` |
+| action_type | TEXT | NOT NULL | 如 `settings_update`、`settings_reset` |
+| summary | TEXT | NOT NULL | 人类可读摘要 |
+| metadata | TEXT | NULL | JSON diff |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_audit_logs_domain_created (domain, created_at DESC)`
+
+Repository：`audit_log_repository.py`
 
 ---
 
@@ -153,7 +238,75 @@ ORM：`src/backend/app/models/brand.py`
 
 ---
 
-## 7. tiles（SKU 主表）
+## 6c. topics（Sprint 003）
+
+OpenSpec：`openspec/changes/add-banner-management/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| code | TEXT | NOT NULL, UNIQUE | 专题编码 |
+| title | TEXT | NOT NULL | 专题标题 |
+| status | TEXT | NOT NULL, CHECK | `ENABLED` \| `DISABLED` |
+| cover_object_key | TEXT | NULL | 封面 MinIO 键 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+迁移种子 ≥2 条 `ENABLED` 专题。ORM：`src/backend/app/models/topic.py`
+
+---
+
+## 6d. banners（Sprint 003）
+
+OpenSpec：`openspec/changes/add-banner-management/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| title | TEXT | NOT NULL | Banner 标题 |
+| display_client | TEXT | NOT NULL | `WEB_HOME` \| `MINIAPP_HOME` \| `TOPIC` |
+| position | TEXT | NOT NULL | 展示位置（与 display_client 组合校验） |
+| image_object_key | TEXT | NOT NULL | 图片 MinIO 键 |
+| image_source | TEXT | NOT NULL | `sku_main_image` \| `sku_gallery_image` \| `custom_upload` \| `topic_cover` |
+| sku_gallery_asset_id | INTEGER | FK → tile_images.id | SKU 图库引用 |
+| jump_type | TEXT | NOT NULL | `SKU_DETAIL` \| `EXTERNAL_LINK` \| `TOPIC_PAGE` \| `NO_JUMP` |
+| sku_id | INTEGER | FK → tiles.id | SKU 跳转目标 |
+| external_url | TEXT | NULL | HTTPS 外链 |
+| topic_id | INTEGER | FK → topics.id | 专题跳转目标 |
+| sort_order | INTEGER | NOT NULL, DEFAULT 100 | 排序 |
+| valid_from | TEXT | NULL | 生效开始 |
+| valid_to | TEXT | NULL | 生效结束 |
+| status | TEXT | NOT NULL, CHECK | `DRAFT` \| `ONLINE` \| `OFFLINE` \| `EXPIRED` |
+| remark | TEXT | NULL | 运营备注 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+UNIQUE `(display_client, position, title)`。ORM：`src/backend/app/models/banner.py`  
+迁移：`migrations.py` → `_ensure_banner_support`
+
+---
+
+## 7. tile_specs（规格主数据）
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| width_mm | INTEGER | NOT NULL | 宽度（mm） |
+| length_mm | INTEGER | NOT NULL | 长度（mm） |
+| unit | TEXT | NOT NULL, DEFAULT 'mm' | 单位 |
+| display_name | TEXT | NOT NULL | 展示名，如 `600×600mm` |
+| status | TEXT | NOT NULL | `ENABLED` \| `DISABLED` |
+| sku_count | INTEGER | NOT NULL, DEFAULT 0 | 绑定 SKU 数 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+UNIQUE `(width_mm, length_mm, unit)`。  
+ORM：`src/backend/app/models/tile_spec.py`  
+迁移：`src/backend/app/db/migrations.py` → `_ensure_tile_specs_support`
+
+---
+
+## 8. tiles（SKU 主表）
 
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
@@ -162,7 +315,8 @@ ORM：`src/backend/app/models/brand.py`
 | sku_code | TEXT | NOT NULL, UNIQUE | SKU 编码 |
 | brand_id | INTEGER | NOT NULL, FK → brands.id | 品牌 |
 | category_id | INTEGER | NOT NULL, FK → tile_categories.id | 类目 |
-| size | TEXT | NOT NULL | 规格尺寸 |
+| spec_id | INTEGER | NULL, FK → tile_specs.id | 规格（上架前须非空） |
+| size | TEXT | NOT NULL | 规格尺寸（与 spec display_name 同步） |
 | surface_finish | TEXT | NOT NULL | 表面工艺 |
 | color_family | TEXT | NULL | 主色系 |
 | reference_price | REAL | NULL | 参考价格（元） |
@@ -172,11 +326,11 @@ ORM：`src/backend/app/models/brand.py`
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 ORM：`src/backend/app/models/tile.py`  
-迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`
+迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`、`_ensure_tile_specs_support`
 
 ---
 
-## 8. tile_images
+## 9. tile_images
 
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
@@ -189,7 +343,7 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 9. tile_videos
+## 10. tile_videos
 
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
@@ -204,7 +358,7 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 10. 媒体资产（规划）
+## 11. 媒体资产（规划）
 
 `tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，未持久化到 SQLite。
 
@@ -212,7 +366,7 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 10. 迁移与本地数据
+## 12. 迁移与本地数据
 
 | 场景 | 做法 |
 |---|---|
@@ -224,21 +378,21 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 11. 与 API 的对应
+## 13. 与 API 的对应
 
 | 表 | 主要 API |
 |---|---|
 | users | `POST /api/v1/auth/login`、`GET /api/v1/auth/me`、`/api/v1/admin/users` |
 | brands | `/api/v1/admin/brands` |
 | tile_categories | `/api/v1/admin/tile-categories` |
-| tile_categories | `/api/v1/admin/tile-categories` |
+| tile_specs | `/api/v1/admin/tile-specs` |
 | tiles / tile_images / tile_videos | `/api/v1/admin/tile-skus`、`GET /api/v1/tiles`（展示桩） |
 
 索引：`docs/03-api-index.md`
 
 ---
 
-## 12. 维护规则
+## 14. 维护规则
 
 Schema 变更时 MUST：
 

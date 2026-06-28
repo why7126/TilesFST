@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0018-tile-sku-modal-video-upload-display](issues/bugs/BUG-0018-tile-sku-modal-video-upload-display/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 新增/编辑弹窗（`TileSkuFormModal`，`/admin/tile-skus`）中，用户在「商品视频」区块选择 MP4 并完成上传后，**同一弹窗会话内**无法感知上传进度、成功或失败，且文件卡片回显缺乏可感知锚点，表现为「上传后未显示 / 功能未生效」。
+[BUG-0018-tile-sku-modal-video-upload-display](issues/bugs/archive/BUG-0018-tile-sku-modal-video-upload-display/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 新增/编辑弹窗（`TileSkuFormModal`，`/admin/tile-skus`）中，用户在「商品视频」区块选择 MP4 并完成上传后，**同一弹窗会话内**无法感知上传进度、成功或失败，且文件卡片回显缺乏可感知锚点，表现为「上传后未显示 / 功能未生效」。
 
 根因已确认为前端 UX/反馈链路未闭环（非 MinIO 或上传 API 缺失）。`add-tile-sku-management` 实现了最小上传路径，但未落实 REQ-0006 **AC-035** 的「上传状态 + 文件卡片即时回显」；`fix-brand-logo-upload-progress`（BUG-0004）已在 `BrandFormModal` 建立状态机模板，SKU 视频区未横向同步。根据项目规则，已评审缺陷 MUST 使用新的 `fix-*` change 修复。
 

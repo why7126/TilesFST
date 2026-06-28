@@ -13,7 +13,7 @@ created_at: 2026-06-26 15:28:42
 
 | 项目 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0007-brand-logo-not-displayed-after-storage-fix` |
+| BUG | `issues/bugs/archive/BUG-0007-brand-logo-not-displayed-after-storage-fix` |
 | Sprint | `sprint-002` |
 | 严重等级 | high |
 | 评审 | `REV-BUG-0007-001`，approved |

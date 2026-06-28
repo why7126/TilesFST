@@ -31,8 +31,8 @@ updated_at: 2026-06-27 13:37:39
 
 | 文档 | 路径 |
 |---|---|
-| BUG | `issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/` |
-| acceptance | `issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md` |
+| BUG | `issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/` |
+| acceptance | `issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md` |
 | 类目 confirm 参考 | `src/web/src/pages/admin/TileCategoryManagementPage.tsx` |
 
 ## 变更记录

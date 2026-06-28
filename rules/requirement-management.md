@@ -11,16 +11,31 @@ update_method: 命令族变更时同步更新
 ```text
 issues/requirements/
 ├── _registry.yaml
-└── REQ-NNNN-slug/
-    ├── capture.md
-    ├── requirement.md
-    ├── user-stories.md
-    ├── business-flow.md
-    ├── acceptance.md
-    ├── trace.md
-    ├── review.md
-    └── prototype/{web,admin,miniapp}/
+├── README.md
+├── plan/                      # 规划中并完成评审（capture → approve 前/迁移前）
+│   └── REQ-NNNN-slug/
+├── review/                    # 已评审通过，开发/验收中，未 OpenSpec archive
+│   └── REQ-NNNN-slug/
+├── archive/                   # 已交付并归档
+│   └── REQ-NNNN-slug/
+└── REQ-NNNN-slug/             # [遗留] 扁平路径，deprecated；勿新建
 ```
+
+单条 REQ 目录内文件（与阶段无关）：
+
+```text
+REQ-NNNN-slug/
+├── capture.md
+├── requirement.md
+├── user-stories.md
+├── business-flow.md
+├── acceptance.md
+├── trace.md
+├── review.md
+└── prototype/{web,admin,miniapp}/
+```
+
+**新建 MUST** 使用 `issues/requirements/plan/REQ-NNNN-slug/`。阶段含义、迁移时机见 `rules/issues-lifecycle.md`。
 
 禁止在 `docs/product/`、`docs/prd/` 存放业务需求（见 `rules/document-governance.md`）。
 

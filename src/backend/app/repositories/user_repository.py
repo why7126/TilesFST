@@ -25,6 +25,8 @@ class UserRecord:
     status: str
     avatar_object_key: str | None
     last_login_at: str | None
+    remark: str | None
+    token_version: int
     created_at: str
     updated_at: str
 
@@ -52,6 +54,8 @@ class UserRepository:
             status=row["status"],
             avatar_object_key=row.get("avatar_object_key"),
             last_login_at=row.get("last_login_at"),
+            remark=row.get("remark"),
+            token_version=int(row.get("token_version") or 0),
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
@@ -100,10 +104,11 @@ class UserRepository:
                 """
                 INSERT INTO users (
                     id, username, phone, email, password_hash, display_name,
-                    role, status, avatar_object_key, last_login_at, created_at, updated_at
+                    role, status, avatar_object_key, token_version, last_login_at,
+                    created_at, updated_at
                 ) VALUES (
                     :id, :username, NULL, NULL, :password_hash, :display_name,
-                    :role, :status, :avatar_object_key, NULL, :created_at, :updated_at
+                    :role, :status, :avatar_object_key, 0, NULL, :created_at, :updated_at
                 )
                 """
             ),
@@ -268,6 +273,73 @@ class UserRepository:
                 "display_name": new_display,
                 "role": new_role,
                 "avatar_object_key": new_avatar,
+                "updated_at": now,
+            },
+        )
+        self._db.commit()
+        return self.get_by_id(user_id)
+
+    def update_profile(
+        self,
+        user_id: str,
+        *,
+        display_name: str,
+        email: str | None,
+        phone: str | None,
+        remark: str | None,
+        avatar_object_key: str | None,
+    ) -> UserRecord | None:
+        user = self.get_by_id(user_id)
+        if user is None:
+            return None
+
+        now = datetime.now(UTC).isoformat()
+        self._db.execute(
+            text(
+                """
+                UPDATE users
+                SET display_name = :display_name,
+                    email = :email,
+                    phone = :phone,
+                    remark = :remark,
+                    avatar_object_key = :avatar_object_key,
+                    updated_at = :updated_at
+                WHERE id = :id
+                """
+            ),
+            {
+                "id": user_id,
+                "display_name": display_name,
+                "email": email,
+                "phone": phone,
+                "remark": remark,
+                "avatar_object_key": avatar_object_key,
+                "updated_at": now,
+            },
+        )
+        self._db.commit()
+        return self.get_by_id(user_id)
+
+    def change_password(self, user_id: str, password_hash: str) -> UserRecord | None:
+        user = self.get_by_id(user_id)
+        if user is None:
+            return None
+        now = datetime.now(UTC).isoformat()
+        new_version = user.token_version + 1
+        self._db.execute(
+            text(
+                """
+                UPDATE users
+                SET password_hash = :password_hash,
+                    token_version = :token_version,
+                    updated_at = :updated_at
+                WHERE id = :id
+                """
+            ),
+            {
+                "id": user_id,
+                "password_hash": password_hash,
+                "token_version": new_version,
                 "updated_at": now,
             },
         )

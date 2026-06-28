@@ -96,7 +96,7 @@ scripts/docker-down.sh
 
 ## Step 6 — Sprint-000 与 REQ-0000 登记
 
-若 `iterations/sprint-000/` 不存在：
+若 `iterations/archive/sprint-000/` 不存在：
 
 1. **`/sprint-propose sprint-000`** — 纳入（须已 **approved** 或治理 REQ 标记 `done`）：
    - `REQ-0000-build-design-system`
@@ -122,7 +122,7 @@ scripts/docker-down.sh
 □ validate-api-standard.py 可运行
 □ validate-test-framework.py 可运行
 □ docker compose config 通过
-□ iterations/sprint-000 四件套存在
+□ iterations/archive/sprint-000 四件套存在
 □ openspec/specs 含 design-system、api-governance、testing
 ```
 

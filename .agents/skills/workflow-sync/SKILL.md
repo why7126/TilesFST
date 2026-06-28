@@ -64,7 +64,7 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 2. If exit code != 0, fix drift and re-run before ending the parent command.
 3. Do **not** hand-edit `sprint.md` Scope marker blocks; use the script.
 4. Marker blocks: `<!-- workflow-sync:scope-*:start/end -->`.
-5. Scope 表 archived 时间与 §里程碑「目标日期」MUST 为 `YYYY-MM-DD HH:mm:ss`（见 `rules/document-governance.md` §6.1）。
+5. Scope 表 archived 时间与 §里程碑「目标日期」MUST 为 `YYYY-MM-DD HH:mm:ss` 且时分秒 MUST 非 `00:00:00`（见 `rules/document-governance.md` §6.1）。
 6. §Sprint 目标 不在 sync 范围；纳入 REQ/BUG 时 MUST 同步更新 **编号列表** 与 **`### xxx 要点`** 两处。
 
 ## Refreshed artifacts

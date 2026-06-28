@@ -5,7 +5,7 @@
 1. `/admin/brands` 上传品牌 Logo 后，品牌列表页和品牌编辑弹窗均不能正常展示已上传图片。
 2. 品牌状态变更后，页面顶部 Tips 临时插入并在几秒后消失，导致页面主体上下波动。
 
-根因已在 `issues/bugs/BUG-0003-brand-image-display-layout-shift/root-cause.md` 中确认：品牌上传和品牌列表接口返回 `/media/{object_key}`，但当前后端未挂载可访问媒体服务或受控代理；同时 `admin-notice` 作为普通文档流节点条件渲染，自动消失时改变页面高度。
+根因已在 `issues/bugs/archive/BUG-0003-brand-image-display-layout-shift/root-cause.md` 中确认：品牌上传和品牌列表接口返回 `/media/{object_key}`，但当前后端未挂载可访问媒体服务或受控代理；同时 `admin-notice` 作为普通文档流节点条件渲染，自动消失时改变页面高度。
 
 品牌 Logo 是品牌主数据的关键展示字段。若上传后无法展示，运营无法确认素材是否生效；提示布局波动则影响连续维护品牌数据的操作稳定性。因此需要以 `fix-*` OpenSpec Change 承载修复，禁止绕过规范直接改代码。
 

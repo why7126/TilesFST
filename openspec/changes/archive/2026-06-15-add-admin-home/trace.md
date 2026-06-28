@@ -14,11 +14,11 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0004-admin-home/requirement.md` |
-| 验收 | `issues/requirements/REQ-0004-admin-home/acceptance.md` |
-| HTML Golden | `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.html` |
-| PNG Golden | `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.png` |
-| Context | `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home-context.md` |
+| PRD | `issues/requirements/archive/REQ-0004-admin-home/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0004-admin-home/acceptance.md` |
+| HTML Golden | `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.html` |
+| PNG Golden | `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.png` |
+| Context | `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home-context.md` |
 | Design | `openspec/changes/add-admin-home/design.md` |
 
 ## Conflict Resolution 记录

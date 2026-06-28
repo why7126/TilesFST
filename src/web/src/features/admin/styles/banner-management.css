@@ -1,0 +1,410 @@
+/**
+ * Banner management page — ported from banner-management HTML (V3/V4).
+ * Scoped under .admin-shell; colors use admin-home token aliases.
+ */
+
+.admin-shell .banner-filter-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.1fr auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-shell .banner-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-shell .banner-mgmt-table th,
+.admin-shell .banner-mgmt-table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.admin-shell .banner-mgmt-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .banner-mgmt-table td {
+  color: var(--admin-muted);
+}
+
+.admin-shell .banner-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-shell .banner-thumb {
+  width: 86px;
+  height: 38px;
+  border-radius: 2px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-text) 12%, transparent);
+  background: color-mix(in srgb, var(--admin-card) 80%, var(--admin-gold) 20%);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.admin-shell .banner-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .banner-main {
+  color: var(--admin-text);
+  font-size: 13px;
+}
+
+.admin-shell .banner-position {
+  color: var(--admin-weak);
+  font-size: 13px;
+}
+
+.admin-shell .badge.web {
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+}
+
+.admin-shell .badge.mini {
+  background: color-mix(in srgb, var(--color-info, #7ea7c8) 12%, transparent);
+  color: var(--color-info, #7ea7c8);
+}
+
+.admin-shell .badge.topic {
+  background: rgb(255 255 255 / 0.06);
+  color: var(--admin-muted);
+}
+
+.admin-shell .badge.ok {
+  background: color-mix(in srgb, var(--color-success, #9bbf87) 12%, transparent);
+  color: var(--color-success, #9bbf87);
+}
+
+.admin-shell .badge.draft {
+  background: rgb(255 255 255 / 0.06);
+  color: var(--admin-muted);
+}
+
+.admin-shell .badge.off {
+  background: color-mix(in srgb, var(--admin-danger) 14%, transparent);
+  color: var(--admin-danger);
+}
+
+.admin-shell .badge.pending {
+  background: color-mix(in srgb, var(--color-warning, #d8b76a) 12%, transparent);
+  color: var(--color-warning, #d8b76a);
+}
+
+.admin-shell .badge.link-sku {
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+}
+
+.admin-shell .badge.link-url {
+  background: color-mix(in srgb, var(--color-info, #7ea7c8) 12%, transparent);
+  color: var(--color-info, #7ea7c8);
+}
+
+.admin-shell .badge.link-cat {
+  background: color-mix(in srgb, var(--color-success, #9bbf87) 12%, transparent);
+  color: var(--color-success, #9bbf87);
+}
+
+.admin-shell .badge.link-none {
+  background: rgb(255 255 255 / 0.06);
+  color: var(--admin-muted);
+}
+
+.admin-shell .time-range {
+  line-height: 1.6;
+}
+
+.admin-shell .banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.admin-shell .banner-modal-card {
+  width: 880px;
+  max-width: 100%;
+  max-height: 92vh;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-card) 96%, transparent);
+  box-shadow: 0 34px 90px rgb(0 0 0 / 0.55);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-shell .banner-modal-card .modal-head,
+.admin-shell .banner-modal-card .modal-footer {
+  flex-shrink: 0;
+}
+
+.admin-shell .banner-modal-card .modal-head {
+  height: auto;
+  min-height: 64px;
+  padding: 16px 20px;
+  align-items: flex-start;
+}
+
+.admin-shell .banner-modal-card .modal-close {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.admin-shell .banner-modal-card .modal-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.admin-shell .banner-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-shell .banner-form-row {
+  margin-bottom: 0;
+}
+
+.admin-shell .banner-form-row.full {
+  grid-column: 1 / -1;
+}
+
+.admin-shell .banner-form-required {
+  color: var(--admin-danger);
+  margin-left: 3px;
+}
+
+.admin-shell .banner-form-help {
+  margin-top: 7px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .banner-upload-box {
+  height: 118px;
+  border: 0.5px dashed color-mix(in srgb, var(--admin-gold) 35%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  display: grid;
+  grid-template-columns: 188px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+}
+
+.admin-shell .banner-upload-preview {
+  height: 92px;
+  border-radius: 2px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-text) 10%, transparent);
+  background: color-mix(in srgb, var(--admin-card) 80%, var(--admin-gold) 20%);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-shell .banner-upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .banner-upload-desc {
+  margin-top: 8px;
+  color: var(--admin-weak);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.admin-shell .banner-source-strip {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.admin-shell .banner-source-card {
+  min-height: 62px;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 38%, transparent);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-shell .banner-source-card.active {
+  border-color: color-mix(in srgb, var(--admin-gold) 46%, transparent);
+  background: var(--admin-gold-bg);
+}
+
+.admin-shell .banner-source-thumb {
+  width: 46px;
+  height: 34px;
+  border-radius: 2px;
+  border: 0.5px solid var(--admin-line-strong);
+  background: color-mix(in srgb, var(--admin-card) 80%, var(--admin-gold) 20%);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.admin-shell .banner-source-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .banner-source-title {
+  display: block;
+  color: var(--admin-text);
+  font-size: 11px;
+}
+
+.admin-shell .banner-source-desc {
+  display: block;
+  margin-top: 3px;
+  color: var(--admin-weak);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.admin-shell .banner-jump-disabled {
+  padding: 12px;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 38%, transparent);
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .banner-form-grid .textarea,
+.admin-shell .banner-remark-textarea {
+  width: 100%;
+  height: 72px;
+  padding: 10px 12px;
+  resize: none;
+  line-height: 1.6;
+  font-size: 12px;
+}
+
+.admin-shell .banner-form-grid .textarea::placeholder,
+.admin-shell .banner-remark-textarea::placeholder {
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .searchable-select {
+  position: relative;
+}
+
+.admin-shell .searchable-select-input {
+  width: 100%;
+}
+
+.admin-shell .searchable-select-dropdown {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-card) 98%, transparent);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.admin-shell .searchable-select-option {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-muted);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-shell .searchable-select-option:hover,
+.admin-shell .searchable-select-option.is-selected {
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+  color: var(--admin-text);
+}
+
+.admin-shell .searchable-select-empty {
+  padding: 10px 12px;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .banner-validity-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-shell .banner-validity-segment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 240px;
+}
+
+.admin-shell .banner-validity-date {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.admin-shell .banner-validity-time {
+  width: 64px;
+  min-width: 64px;
+  height: 40px;
+  padding: 0 8px;
+}
+
+.admin-shell .banner-validity-colon {
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-shell .banner-validity-separator {
+  color: var(--admin-muted);
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1023px) {
+  .admin-shell .banner-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-shell .banner-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .banner-upload-box {
+    grid-template-columns: 1fr;
+  }
+}

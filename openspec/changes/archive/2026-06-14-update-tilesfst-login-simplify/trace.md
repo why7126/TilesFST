@@ -4,7 +4,7 @@
 
 | 项 | 值 |
 |---|---|
-| REQ | [REQ-0002-product-brand-login-simplify](../../../issues/requirements/REQ-0002-product-brand-login-simplify/) |
+| REQ | [REQ-0002-product-brand-login-simplify](../../../issues/requirements/archive/REQ-0002-product-brand-login-simplify/) |
 | Type | update（品牌）+ fix（登录结构/视口） |
 | 实现模式 | 追溯补登（代码先于 OpenSpec） |
 

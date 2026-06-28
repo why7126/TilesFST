@@ -3,7 +3,7 @@
 ## login-material-showcase.jpg
 
 - **用途**：Web 管理端登录页左侧品牌背景（`/admin/login`）
-- **来源**：自 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.png` 左栏裁切导出
+- **来源**：自 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png` 左栏裁切导出
 - **部署路径**：`src/web/public/images/login-material-showcase.jpg`
 - **说明**：脱敏设计稿素材，非真实客户摄影；可替换为正式展厅摄影图
 

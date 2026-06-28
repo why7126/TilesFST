@@ -2,7 +2,7 @@
 
 ### Requirement: 产品版本 pill 视觉一致性修复（管理端）
 
-Web 客户端 MUST 修复管理端 Sidebar brand-head 内产品版本 pill 的视觉一致性缺陷（BUG-0013）：版本 pill MUST 呈现可辨识的小号 badge 容器（可见边框、浅背景、弱化文字色），MUST NOT 退化为与主文字同色级的裸 sans-serif 文案。样式 MUST 对齐 `issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html` 与 Golden Reference PNG 的布局语义；MUST 使用 semantic token（`text-muted`/`text-subtle`、`border-border-chip` 或 `border-border-default`、浅背景 token），TSX/CSS MUST NOT 含裸 Hex。实现 SHOULD 扩展 `src/web/src/shared/ui/badge.tsx` 而非平行 ad-hoc 组件。修复 MUST NOT 变更 `PRODUCT_VERSION` 常量来源、Sidebar 导航项或 API。
+Web 客户端 MUST 修复管理端 Sidebar brand-head 内产品版本 pill 的视觉一致性缺陷（BUG-0013）：版本 pill MUST 呈现可辨识的小号 badge 容器（可见边框、浅背景、弱化文字色），MUST NOT 退化为与主文字同色级的裸 sans-serif 文案。样式 MUST 对齐 `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html` 与 Golden Reference PNG 的布局语义；MUST 使用 semantic token（`text-muted`/`text-subtle`、`border-border-chip` 或 `border-border-default`、浅背景 token），TSX/CSS MUST NOT 含裸 Hex。实现 SHOULD 扩展 `src/web/src/shared/ui/badge.tsx` 而非平行 ad-hoc 组件。修复 MUST NOT 变更 `PRODUCT_VERSION` 常量来源、Sidebar 导航项或 API。
 
 #### Scenario: 管理端版本 pill 可辨识
 

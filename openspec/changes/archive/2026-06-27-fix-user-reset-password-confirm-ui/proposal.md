@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0017-user-reset-password-confirm-ui-inconsistency](issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/) 已评审通过（REV-BUG-0017-001，sprint-002）。`/admin/users` 行内「重置密码」在调用 API 前使用浏览器原生 `window.confirm`，与同页冻结/删除 confirm modal 及 `TileCategoryManagementPage` 启停确认 DS modal 不一致，破坏管理端 Confirm Dialog 统一性。
+[BUG-0017-user-reset-password-confirm-ui-inconsistency](issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/) 已评审通过（REV-BUG-0017-001，sprint-002）。`/admin/users` 行内「重置密码」在调用 API 前使用浏览器原生 `window.confirm`，与同页冻结/删除 confirm modal 及 `TileCategoryManagementPage` 启停确认 DS modal 不一致，破坏管理端 Confirm Dialog 统一性。
 
 `fix-admin-list-status-action-confirm`（BUG-0016）**有意排除**重置密码 confirm；本 change **仅**修复重置**前**确认步骤。`ResetPasswordDialog`（展示一次性随机密码）**不在 scope**。
 

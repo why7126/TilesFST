@@ -13,9 +13,14 @@ from app.core.exceptions import AuthForbiddenError, AuthUnauthorizedError, AuthU
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.repositories.brand_repository import BrandRepository
+from app.repositories.banner_repository import BannerRepository
 from app.repositories.tile_category_repository import TileCategoryRepository
 from app.repositories.tile_sku_repository import TileSkuRepository
+from app.repositories.tile_spec_repository import TileSpecRepository
+from app.repositories.topic_repository import TopicRepository
+from app.repositories.system_settings_repository import SystemSettingsRepository
 from app.repositories.user_repository import UserRecord, UserRepository
+from app.services.effective_settings_service import EffectiveSettingsService
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -30,12 +35,24 @@ def get_brand_repository(db: Session = Depends(get_db)) -> BrandRepository:
     return BrandRepository(db)
 
 
+def get_banner_repository(db: Session = Depends(get_db)) -> BannerRepository:
+    return BannerRepository(db)
+
+
+def get_topic_repository(db: Session = Depends(get_db)) -> TopicRepository:
+    return TopicRepository(db)
+
+
 def get_tile_category_repository(db: Session = Depends(get_db)) -> TileCategoryRepository:
     return TileCategoryRepository(db)
 
 
 def get_tile_sku_repository(db: Session = Depends(get_db)) -> TileSkuRepository:
     return TileSkuRepository(db)
+
+
+def get_tile_spec_repository(db: Session = Depends(get_db)) -> TileSpecRepository:
+    return TileSpecRepository(db)
 
 
 def get_current_user(
@@ -59,6 +76,9 @@ def get_current_user(
         raise AuthUnauthorizedError()
     if user.status != "active":
         raise AuthUserDisabledError()
+    token_tv = payload.get("tv", 0)
+    if int(token_tv) != user.token_version:
+        raise AuthUnauthorizedError()
     return user
 
 
@@ -76,6 +96,10 @@ def require_system_admin(
     if current_user.role != "admin":
         raise AuthForbiddenError()
     return current_user
+
+
+def get_effective_settings_service(db: Session = Depends(get_db)) -> EffectiveSettingsService:
+    return EffectiveSettingsService(SystemSettingsRepository(db))
 
 
 require_admin_user = require_admin_access

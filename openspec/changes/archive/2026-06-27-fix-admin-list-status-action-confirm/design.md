@@ -1,15 +1,15 @@
 ## Context
 
-- **缺陷**：[BUG-0016-admin-list-status-action-confirm-missing](issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/)
+- **缺陷**：[BUG-0016-admin-list-status-action-confirm-missing](issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/)
 - **现状**：
   - `UserManagementPage.tsx`：`handleFreeze` 直调 `updateUserStatus`；`handleDelete` 使用 `window.confirm`。
   - `TileSkuManagementPage.tsx`：`handlePublish` / `handleUnpublish` 直调 API；同页删除已有 `deleteTarget` modal。
   - `BrandManagementPage` / `TileCategoryManagementPage`：启停/删除 confirm 已交付（Golden Reference）。
 - **父需求/参考**：REQ-0008、REQ-0007、REQ-0005-user-management、REQ-0006-tile-sku-management
 - **原型/context**：
-  1. `issues/requirements/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`
-  2. `issues/requirements/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`
-  3. `issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md`
+  1. `issues/requirements/archive/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`
+  2. `issues/requirements/archive/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`
+  3. `issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md`
 
 ## Conflict Resolution
 
@@ -79,4 +79,4 @@
 - **视口**：1280×1024（可选并排类目/品牌 confirm 参考）。
 - **Checklist**：见 `trace.md`（≥8 项）。
 - **回归**：`BrandManagementPage.test.tsx`、`TileCategoryManagementPage.test.tsx` 启停/删除用例 MUST 保持通过。
-- **来源**：`issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md` AC-001～AC-015。
+- **来源**：`issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md` AC-001～AC-015。

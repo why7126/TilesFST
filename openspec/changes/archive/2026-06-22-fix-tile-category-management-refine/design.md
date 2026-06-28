@@ -3,11 +3,11 @@
 - **现状**：`TileCategoryManagementPage.tsx` 启停直接 `handleToggleStatus` → API；检索/列表有 `section-head`；分页用 `cat-pager` +「当前显示 x-y / N 条」。
 - **父 change**：`add-tile-category-management`（archived）；`fix-tile-category-enable-action`（archived，启停按钮可见性已修复）。
 - **原型来源**（优先级）：
-  1. `issues/requirements/REQ-0007-tile-category-management-refine/prototype/web/tile-category-management-list-refine-context.md`
-  2. `issues/requirements/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`
-  3. `issues/requirements/REQ-0007-tile-category-management-refine/acceptance.md`
-  4. `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.html`（v1 基线，按 context diff）
-  5. `issues/requirements/REQ-0005-user-management-list-refine` 分页区（并排参考）
+  1. `issues/requirements/archive/REQ-0007-tile-category-management-refine/prototype/web/tile-category-management-list-refine-context.md`
+  2. `issues/requirements/archive/REQ-0007-tile-category-management-refine/prototype/web/tile-category-status-confirm-context.md`
+  3. `issues/requirements/archive/REQ-0007-tile-category-management-refine/acceptance.md`
+  4. `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.html`（v1 基线，按 context diff）
+  5. `issues/requirements/archive/REQ-0005-user-management-list-refine` 分页区（并排参考）
   6. `openspec/specs/web-client/spec.md`「管理端瓷砖类目管理页」（基线）
 
 ## Conflict Resolution

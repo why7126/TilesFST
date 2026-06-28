@@ -1,0 +1,74 @@
+sprint_id: sprint-003
+status: completed
+lifecycle_stage: archive
+start_date: 2026-06-28 10:03:15
+end_date: 2026-07-12 23:59:59
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0014-profile-page
+  - REQ-0015-password-change
+  - REQ-0009-tile-spec-management
+  - REQ-0012-object-storage-key-layout
+  - REQ-0016-banner-management
+  - REQ-0017-system-settings
+
+bugs:
+  - BUG-0021-sidebar-menu-icons-indistinguishable
+  - BUG-0022-profile-basic-info-redundant-role-status
+  - BUG-0023-profile-duplicate-save-buttons
+  - BUG-0024-change-password-error-wrong-field
+  - BUG-0025-change-password-toggle-button-misalignment
+  - BUG-0026-change-password-cancel-confirm-redundant
+  - BUG-0027-tile-spec-list-ui-inconsistency
+  - BUG-0028-tile-spec-modal-form-layout
+  - BUG-0029-tile-spec-list-not-refresh-after-create
+  - BUG-0030-banner-list-ui-inconsistency
+  - BUG-0031-banner-modal-image-section-label
+  - BUG-0032-banner-modal-upload-button-label
+  - BUG-0033-banner-modal-form-layout-overflow
+  - BUG-0034-banner-modal-link-selector-combined
+  - BUG-0035-banner-modal-sku-hero-image-no-effect
+  - BUG-0036-banner-modal-datetime-picker
+  - BUG-0037-tile-spec-status-confirm-ui-inconsistency
+  - BUG-0038-tile-sku-modal-spec-hint-styling
+  - BUG-0039-banner-list-display-position-column
+  - BUG-0040-banner-modal-width-too-narrow
+  - BUG-0041-sidebar-user-menu-avatar-missing
+  - BUG-0048-banner-modal-width-css-cascade-overridden
+  - BUG-0042-system-settings-page-title-v2-suffix
+  - BUG-0043-system-settings-duplicate-save-buttons
+  - BUG-0045-system-settings-media-format-options-limited
+  - BUG-0046-system-settings-reset-confirm-ui-inconsistency
+  - BUG-0047-system-settings-save-tip-layout-shift
+
+changes:
+  - add-admin-profile-page
+  - add-admin-password-change
+  - add-tile-spec-management
+  - update-object-storage-key-layout
+  - fix-sidebar-menu-icons-indistinguishable
+  - fix-profile-basic-info-redundant-role-status
+  - fix-profile-duplicate-save-buttons
+  - fix-change-password-modal-errors
+  - fix-tile-spec-admin-ui
+  - fix-tile-spec-status-confirm-ui
+  - add-banner-management
+  - fix-banner-admin-ui
+  - add-system-settings
+  - fix-tile-sku-modal-spec-hint-styling
+  - fix-banner-list-and-modal-ui
+  - fix-sidebar-user-menu-avatar
+  - fix-banner-modal-width-css-cascade
+  - fix-profile-activities-display-limit
+  - fix-system-settings-page-title-v2-suffix
+  - fix-system-settings-duplicate-save-buttons
+  - fix-system-settings-media-format-options
+  - fix-system-settings-reset-confirm-ui
+  - fix-system-settings-save-tip-layout-shift
+
+estimated_story_points: 80
+estimated_person_days: 54

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import '../styles/tile-sku-management.css';
+import '../styles/user-management.css';
 
 const cssPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -14,6 +15,7 @@ const tileSkuCss = readFileSync(cssPath, 'utf8');
 
 const fetchBrandsMock = vi.hoisted(() => vi.fn());
 const fetchCategoryTreeMock = vi.hoisted(() => vi.fn());
+const fetchTileSpecsMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/auth/api/auth-api', () => ({
   getErrorMessage: (_err: unknown, fallback: string) => fallback,
@@ -25,6 +27,10 @@ vi.mock('../api/brands-api', () => ({
 
 vi.mock('../api/tile-categories-api', () => ({
   fetchCategoryTree: (...args: unknown[]) => fetchCategoryTreeMock(...args),
+}));
+
+vi.mock('../api/tile-specs-api', () => ({
+  fetchTileSpecs: (...args: unknown[]) => fetchTileSpecsMock(...args),
 }));
 
 vi.mock('../api/tile-skus-api', () => ({
@@ -66,6 +72,9 @@ describe('TileSkuFormModal', () => {
   beforeEach(() => {
     fetchBrandsMock.mockResolvedValue({ items: [{ id: 1, name: '测试品牌' }] });
     fetchCategoryTreeMock.mockResolvedValue([{ id: 10, name: '墙砖', children: [] }]);
+    fetchTileSpecsMock.mockResolvedValue({
+      items: [{ id: 5, display_name: '600×600mm', width_mm: 600, length_mm: 600, status: 'ENABLED' }],
+    });
     uploadTileVideoMock.mockReset();
   });
 
@@ -105,7 +114,8 @@ describe('TileSkuFormModal', () => {
             brand_name: '测试品牌',
             category_id: 10,
             category_name: '墙砖',
-            size: '600×600',
+            spec_id: 5,
+            size: '600×600mm',
             surface_finish: '哑光',
             color_family: null,
             reference_price: 268,
@@ -200,6 +210,121 @@ describe('TileSkuFormModal', () => {
       expect(screen.getByText('demo.mp4')).toBeInTheDocument();
       expect(screen.getByText('视频已添加')).toBeInTheDocument();
     });
+  });
+
+  it('requires tile spec when creating SKU', async () => {
+    const { container } = renderModal({ mode: 'create' });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    const inputs = container.querySelectorAll('.brand-form-item .input');
+    fireEvent.change(inputs[0]!, { target: { value: '测试 SKU' } });
+    fireEvent.change(inputs[1]!, { target: { value: 'SKU-SPEC-001' } });
+
+    const selects = container.querySelectorAll('.brand-form-item .select');
+    fireEvent.change(selects[0]!, { target: { value: '1' } });
+    fireEvent.change(selects[1]!, { target: { value: '10' } });
+
+    fireEvent.click(screen.getByRole('button', { name: '创建 SKU' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('请选择瓷砖规格')).toBeInTheDocument();
+    });
+  });
+
+  it('shows form-help hint when editing historical SKU without spec_id', async () => {
+    const { container } = renderModal({
+      mode: 'edit',
+      sku: {
+        id: 100,
+        name: '历史 SKU',
+        sku_code: 'SKU-LEGACY-001',
+        brand_id: 1,
+        brand_name: '测试品牌',
+        category_id: 10,
+        category_name: '墙砖',
+        spec_id: null,
+        size: '800×800mm',
+        surface_finish: '哑光',
+        color_family: null,
+        reference_price: 100,
+        remark: null,
+        status: 'DRAFT',
+        main_image_url: null,
+        image_count: 0,
+        video_count: 0,
+        has_main_image: false,
+        material_completeness: 'missing_main_image',
+        images: [],
+        videos: [],
+        created_at: '2026-06-27T00:00:00Z',
+        updated_at: '2026-06-27T00:00:00Z',
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '编辑 SKU' })).toBeInTheDocument();
+    });
+
+    const hint = container.querySelector('.form-help');
+    expect(hint).toBeTruthy();
+    expect(hint).toHaveTextContent('历史 SKU 未匹配规格，请手动选择后保存');
+    expect(container.querySelector('.form-hint')).toBeNull();
+  });
+
+  it('hides spec mismatch hint after selecting a tile spec in edit mode', async () => {
+    const { container } = renderModal({
+      mode: 'edit',
+      sku: {
+        id: 100,
+        name: '历史 SKU',
+        sku_code: 'SKU-LEGACY-001',
+        brand_id: 1,
+        brand_name: '测试品牌',
+        category_id: 10,
+        category_name: '墙砖',
+        spec_id: null,
+        size: '800×800mm',
+        surface_finish: '哑光',
+        color_family: null,
+        reference_price: 100,
+        remark: null,
+        status: 'DRAFT',
+        main_image_url: null,
+        image_count: 0,
+        video_count: 0,
+        has_main_image: false,
+        material_completeness: 'missing_main_image',
+        images: [],
+        videos: [],
+        created_at: '2026-06-27T00:00:00Z',
+        updated_at: '2026-06-27T00:00:00Z',
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '编辑 SKU' })).toBeInTheDocument();
+    });
+
+    const specSelect = container.querySelectorAll('.brand-form-item .select')[2];
+    fireEvent.change(specSelect!, { target: { value: '5' } });
+
+    await waitFor(() => {
+      expect(container.querySelector('.form-help')).toBeNull();
+    });
+  });
+
+  it('does not show spec mismatch hint on create mode', async () => {
+    const { container } = renderModal({ mode: 'create' });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    expect(container.querySelector('.form-help')).toBeNull();
+    expect(screen.queryByText('历史 SKU 未匹配规格，请手动选择后保存')).toBeNull();
   });
 
   it('shows video section error when upload fails', async () => {

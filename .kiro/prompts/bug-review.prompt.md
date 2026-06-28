@@ -8,6 +8,24 @@ Flags：`--approve` | `--reject` | `--defer` | `--wont-fix`
 
 **Output**：`review.md`；status → `approved` | `rejected` | `deferred` | `wont_fix`
 
+## Step — 目录迁移（MUST，`--approve` 时）
+
+Read `rules/issues-lifecycle.md`。
+
+| Flag | 迁移 |
+|------|------|
+| `--approve` | `plan/` → `review/` |
+| `--reject` / `--defer` / `--wont-fix` | **跳过**（保留 `plan/`） |
+
+`--approve` 时 **MUST** 在 Workflow Sync **之前**运行：
+
+```bash
+python scripts/promote-issue-stage.py --bug <BUG-id> --to review --reason "/bug-review --approve"
+```
+
+- Exit code **MUST** be `0`（已在 `review/` 时可 no-op）。
+- 打印脚本 stdout（迁移路径、引用更新计数）。
+
 ## 评审清单
 
 - [ ] 可复现或根因充分

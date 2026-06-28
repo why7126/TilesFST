@@ -17,6 +17,7 @@ class TileSkuRecord:
     sku_code: str
     brand_id: int
     category_id: int
+    spec_id: int | None
     size: str
     surface_finish: str
     color_family: str | None
@@ -75,7 +76,7 @@ class TileSkuRepository:
     def _list_base_sql(self) -> str:
         return """
             SELECT
-              t.id, t.name, t.sku_code, t.brand_id, t.category_id,
+              t.id, t.name, t.sku_code, t.brand_id, t.category_id, t.spec_id,
               t.size, t.surface_finish, t.color_family, t.reference_price,
               t.remark, t.status, t.created_at, t.updated_at,
               b.name AS brand_name,
@@ -106,6 +107,7 @@ class TileSkuRepository:
             sku_code=row["sku_code"],
             brand_id=int(row["brand_id"]),
             category_id=int(row["category_id"]),
+            spec_id=int(row["spec_id"]) if row.get("spec_id") is not None else None,
             size=row["size"],
             surface_finish=row["surface_finish"],
             color_family=row.get("color_family"),
@@ -270,6 +272,7 @@ class TileSkuRepository:
         sku_code: str,
         brand_id: int,
         category_id: int,
+        spec_id: int | None,
         size: str,
         surface_finish: str,
         color_family: str | None,
@@ -282,10 +285,10 @@ class TileSkuRepository:
             text(
                 """
                 INSERT INTO tiles (
-                  name, sku_code, brand_id, category_id, size, surface_finish,
+                  name, sku_code, brand_id, category_id, spec_id, size, surface_finish,
                   color_family, reference_price, remark, status, created_at, updated_at
                 ) VALUES (
-                  :name, :sku_code, :brand_id, :category_id, :size, :surface_finish,
+                  :name, :sku_code, :brand_id, :category_id, :spec_id, :size, :surface_finish,
                   :color_family, :reference_price, :remark, :status, :created_at, :updated_at
                 )
                 """
@@ -295,6 +298,7 @@ class TileSkuRepository:
                 "sku_code": sku_code,
                 "brand_id": brand_id,
                 "category_id": category_id,
+                "spec_id": spec_id,
                 "size": size,
                 "surface_finish": surface_finish,
                 "color_family": color_family,
@@ -307,6 +311,8 @@ class TileSkuRepository:
         )
         tile_id = int(result.lastrowid)
         self._increment_sku_count(brand_id, category_id)
+        if spec_id is not None:
+            self._increment_spec_sku_count(spec_id)
         self._db.commit()
         record = self.get_by_id(tile_id)
         assert record is not None
@@ -320,6 +326,7 @@ class TileSkuRepository:
         sku_code: str,
         brand_id: int,
         category_id: int,
+        spec_id: int | None,
         size: str,
         surface_finish: str,
         color_family: str | None,
@@ -328,6 +335,7 @@ class TileSkuRepository:
         status: str,
         old_brand_id: int,
         old_category_id: int,
+        old_spec_id: int | None,
     ) -> TileSkuRecord:
         now = self._now()
         self._db.execute(
@@ -335,7 +343,8 @@ class TileSkuRepository:
                 """
                 UPDATE tiles SET
                   name = :name, sku_code = :sku_code, brand_id = :brand_id,
-                  category_id = :category_id, size = :size, surface_finish = :surface_finish,
+                  category_id = :category_id, spec_id = :spec_id, size = :size,
+                  surface_finish = :surface_finish,
                   color_family = :color_family, reference_price = :reference_price,
                   remark = :remark, status = :status, updated_at = :updated_at
                 WHERE id = :id
@@ -347,6 +356,7 @@ class TileSkuRepository:
                 "sku_code": sku_code,
                 "brand_id": brand_id,
                 "category_id": category_id,
+                "spec_id": spec_id,
                 "size": size,
                 "surface_finish": surface_finish,
                 "color_family": color_family,
@@ -362,6 +372,11 @@ class TileSkuRepository:
         if old_category_id != category_id:
             self._decrement_sku_count_category(old_category_id)
             self._increment_sku_count(0, category_id)
+        if old_spec_id != spec_id:
+            if old_spec_id is not None:
+                self._decrement_spec_sku_count(old_spec_id)
+            if spec_id is not None:
+                self._increment_spec_sku_count(spec_id)
         self._db.commit()
         record = self.get_by_id(tile_id)
         assert record is not None
@@ -378,12 +393,21 @@ class TileSkuRepository:
         assert record is not None
         return record
 
-    def delete_sku(self, tile_id: int, *, brand_id: int, category_id: int) -> None:
+    def delete_sku(
+        self,
+        tile_id: int,
+        *,
+        brand_id: int,
+        category_id: int,
+        spec_id: int | None,
+    ) -> None:
         self._db.execute(text("DELETE FROM tile_images WHERE tile_id = :id"), {"id": tile_id})
         self._db.execute(text("DELETE FROM tile_videos WHERE tile_id = :id"), {"id": tile_id})
         self._db.execute(text("DELETE FROM tiles WHERE id = :id"), {"id": tile_id})
         self._decrement_sku_count(brand_id)
         self._decrement_sku_count_category(category_id)
+        if spec_id is not None:
+            self._decrement_spec_sku_count(spec_id)
         self._db.commit()
 
     def list_images(self, tile_id: int) -> list[TileSkuImageRecord]:
@@ -523,6 +547,28 @@ class TileSkuRepository:
                 """
             ),
             {"id": category_id},
+        )
+
+    def _increment_spec_sku_count(self, spec_id: int) -> None:
+        self._db.execute(
+            text(
+                "UPDATE tile_specs SET sku_count = sku_count + 1, updated_at = :updated_at "
+                "WHERE id = :id"
+            ),
+            {"id": spec_id, "updated_at": self._now()},
+        )
+
+    def _decrement_spec_sku_count(self, spec_id: int) -> None:
+        self._db.execute(
+            text(
+                """
+                UPDATE tile_specs SET
+                  sku_count = CASE WHEN sku_count > 0 THEN sku_count - 1 ELSE 0 END,
+                  updated_at = :updated_at
+                WHERE id = :id
+                """
+            ),
+            {"id": spec_id, "updated_at": self._now()},
         )
 
     @staticmethod

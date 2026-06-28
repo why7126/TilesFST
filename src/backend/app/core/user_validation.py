@@ -6,6 +6,8 @@ import re
 import secrets
 import string
 
+from app.services.effective_settings_service import PasswordPolicy
+
 USERNAME_PATTERN = re.compile(r"^[a-z][a-z0-9._-]{3,31}$")
 CONSECUTIVE_SPECIAL = re.compile(r"(__|--|\.\.)")
 RESERVED_USERNAMES = frozenset(
@@ -45,18 +47,30 @@ def validate_username(username: str) -> str | None:
     return None
 
 
-def generate_random_password(length: int = 14) -> str:
-    """Generate a random password meeting complexity requirements."""
-    if length < 12:
-        length = 12
+def generate_random_password(
+    length: int | None = None,
+    policy: PasswordPolicy | None = None,
+) -> str:
+    """Generate a random password meeting effective complexity requirements."""
+    active_policy = policy or PasswordPolicy()
+    target_length = max(length or active_policy.min_length, active_policy.min_length, 12)
 
     while True:
-        chars = [secrets.choice(_PASSWORD_ALPHABET) for _ in range(length)]
+        chars = [secrets.choice(_PASSWORD_ALPHABET) for _ in range(target_length)]
         password = "".join(chars)
-        if (
-            any(c.islower() for c in password)
-            and any(c.isupper() for c in password)
-            and any(c.isdigit() for c in password)
-            and any(c in "!@#$%^&*-_=+" for c in password)
-        ):
+        if _meets_policy(password, active_policy):
             return password
+
+
+def _meets_policy(password: str, policy: PasswordPolicy) -> bool:
+    if len(password) < policy.min_length:
+        return False
+    if policy.require_uppercase and not any(c.isupper() for c in password):
+        return False
+    if policy.require_lowercase and not any(c.islower() for c in password):
+        return False
+    if policy.require_digit and not any(c.isdigit() for c in password):
+        return False
+    if policy.require_special and not any(c in "!@#$%^&*-_=+" for c in password):
+        return False
+    return True

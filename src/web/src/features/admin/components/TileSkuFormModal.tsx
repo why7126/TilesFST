@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
-import type { BrandAdminItem, TileCategoryTreeNode, TileSkuAdminItem } from '@/shared/api/generated';
+import type {
+  BrandAdminItem,
+  TileCategoryTreeNode,
+  TileSkuAdminItem,
+  TileSpecAdminItem,
+} from '@/shared/api/generated';
 
+import { fetchTileSpecs } from '../api/tile-specs-api';
 import { fetchBrands } from '../api/brands-api';
 import { fetchCategoryTree } from '../api/tile-categories-api';
 import {
@@ -77,6 +83,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [skuCode, setSkuCode] = useState('');
   const [brandId, setBrandId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [specId, setSpecId] = useState('');
   const [size, setSize] = useState('');
   const [surfaceFinish, setSurfaceFinish] = useState('');
   const [colorFamily, setColorFamily] = useState('');
@@ -86,6 +93,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [videos, setVideos] = useState<VideoDraft[]>([]);
   const [brands, setBrands] = useState<BrandAdminItem[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [tileSpecs, setTileSpecs] = useState<TileSpecAdminItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
@@ -100,9 +108,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     void Promise.all([
       fetchBrands({ page: 1, page_size: 100, status: 'ENABLED' }),
       fetchCategoryTree(),
-    ]).then(([brandData, tree]) => {
+      fetchTileSpecs({ page: 1, page_size: 100, status: 'ENABLED' }),
+    ]).then(([brandData, tree, specData]) => {
       setBrands(brandData.items);
       setCategories(buildCategoryOptions(tree));
+      setTileSpecs(specData.items);
     });
   }, [open]);
 
@@ -117,6 +127,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSkuCode(sku.sku_code);
       setBrandId(String(sku.brand_id));
       setCategoryId(String(sku.category_id));
+      setSpecId(sku.spec_id != null ? String(sku.spec_id) : '');
       setSize(sku.size);
       setSurfaceFinish(sku.surface_finish);
       setColorFamily(sku.color_family ?? '');
@@ -147,6 +158,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSkuCode('');
       setBrandId('');
       setCategoryId('');
+      setSpecId('');
       setSize('');
       setSurfaceFinish('');
       setColorFamily('');
@@ -188,8 +200,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setError('请选择类目');
       return false;
     }
-    if (!size.trim()) {
-      setError('规格尺寸不能为空');
+    if (!specId) {
+      setError('请选择瓷砖规格');
       return false;
     }
     if (parseReferencePrice() === null) {
@@ -206,6 +218,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       sku_code: skuCode.trim() || undefined,
       brand_id: brandId ? Number.parseInt(brandId, 10) : undefined,
       category_id: categoryId ? Number.parseInt(categoryId, 10) : undefined,
+      spec_id: specId ? Number.parseInt(specId, 10) : undefined,
       size: size.trim() || undefined,
       surface_finish: surfaceFinish.trim() || undefined,
       color_family: colorFamily.trim() || null,
@@ -400,9 +413,31 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             </div>
             <div className="brand-form-item">
               <label>
-                规格尺寸 <span className="req">*</span>
+                瓷砖规格 <span className="req">*</span>
               </label>
-              <input className="input" value={size} onChange={(e) => setSize(e.target.value)} />
+              <select
+                className="select"
+                value={specId}
+                onChange={(e) => {
+                  const nextId = e.target.value;
+                  setSpecId(nextId);
+                  const selected = tileSpecs.find((item) => String(item.id) === nextId);
+                  setSize(selected?.display_name ?? '');
+                }}
+              >
+                <option value="">请选择规格</option>
+                {tileSpecs.map((spec) => (
+                  <option key={spec.id} value={spec.id}>
+                    {spec.display_name}
+                  </option>
+                ))}
+                {mode === 'edit' && specId && !tileSpecs.some((item) => String(item.id) === specId) ? (
+                  <option value={specId}>{size || `规格 #${specId}`}</option>
+                ) : null}
+              </select>
+              {!specId && mode === 'edit' && sku && !sku.spec_id ? (
+                <p className="form-help">历史 SKU 未匹配规格，请手动选择后保存</p>
+              ) : null}
             </div>
             <div className="brand-form-item">
               <label>表面工艺</label>

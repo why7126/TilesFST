@@ -61,6 +61,48 @@ class UserInvalidStatusTransitionError(AppError):
         super().__init__(status_code=400, code=40012, message=message)
 
 
+class ProfileValidationError(AppError):
+    def __init__(self, message: str = "个人资料校验失败") -> None:
+        from app.core.error_codes import PROFILE_VALIDATION_ERROR
+
+        super().__init__(status_code=400, code=PROFILE_VALIDATION_ERROR, message=message)
+
+
+class PasswordOldIncorrectError(AppError):
+    def __init__(self, message: str = "原密码不正确") -> None:
+        from app.core.error_codes import PASSWORD_CHANGE_OLD_INCORRECT
+
+        super().__init__(status_code=400, code=PASSWORD_CHANGE_OLD_INCORRECT, message=message)
+
+
+class PasswordPolicyError(AppError):
+    def __init__(self, message: str = "新密码不符合安全策略") -> None:
+        from app.core.error_codes import PASSWORD_CHANGE_POLICY
+
+        super().__init__(status_code=400, code=PASSWORD_CHANGE_POLICY, message=message)
+
+
+class PasswordWeakError(AppError):
+    def __init__(self, message: str = "新密码过于常见，请更换") -> None:
+        from app.core.error_codes import PASSWORD_CHANGE_WEAK
+
+        super().__init__(status_code=400, code=PASSWORD_CHANGE_WEAK, message=message)
+
+
+class PasswordSameAsOldError(AppError):
+    def __init__(self, message: str = "新密码不能与原密码相同") -> None:
+        from app.core.error_codes import PASSWORD_CHANGE_SAME_AS_OLD
+
+        super().__init__(status_code=400, code=PASSWORD_CHANGE_SAME_AS_OLD, message=message)
+
+
+class PasswordChangeRateLimitError(AppError):
+    def __init__(self, message: str = "改密操作过于频繁，请稍后再试") -> None:
+        from app.core.error_codes import PASSWORD_CHANGE_RATE_LIMIT
+
+        super().__init__(status_code=429, code=PASSWORD_CHANGE_RATE_LIMIT, message=message)
+
+
 class BrandNotFoundError(AppError):
     def __init__(self, message: str = "品牌不存在") -> None:
         super().__init__(status_code=404, code=30010, message=message)
@@ -124,3 +166,71 @@ class TileSkuDeleteForbiddenError(AppError):
 class TileSkuPublishForbiddenError(AppError):
     def __init__(self, message: str = "SKU 不满足上架条件") -> None:
         super().__init__(status_code=409, code=30033, message=message)
+
+
+class TileSpecNotFoundError(AppError):
+    def __init__(self, message: str = "瓷砖规格不存在") -> None:
+        from app.core.error_codes import TILE_SPEC_NOT_FOUND
+
+        super().__init__(status_code=404, code=TILE_SPEC_NOT_FOUND, message=message)
+
+
+class TileSpecDuplicatedError(AppError):
+    def __init__(self, message: str = "该宽长规格已存在，请更换") -> None:
+        from app.core.error_codes import TILE_SPEC_DUPLICATED
+
+        super().__init__(status_code=409, code=TILE_SPEC_DUPLICATED, message=message)
+
+
+class TileSpecDeleteForbiddenError(AppError):
+    def __init__(self, message: str = "仅允许删除未关联SKU且已停用的规格") -> None:
+        from app.core.error_codes import TILE_SPEC_DELETE_FORBIDDEN
+
+        super().__init__(status_code=409, code=TILE_SPEC_DELETE_FORBIDDEN, message=message)
+
+
+class TileSpecDisabledError(AppError):
+    def __init__(self, message: str = "所选规格已停用，请选择启用规格") -> None:
+        from app.core.error_codes import TILE_SPEC_DISABLED
+
+        super().__init__(status_code=400, code=TILE_SPEC_DISABLED, message=message)
+
+
+class TileSpecInvalidSortOrderError(AppError):
+    def __init__(self, message: str = "排序权重必须为正整数") -> None:
+        super().__init__(status_code=400, code=40001, message=message)
+
+
+class BannerNotFoundError(AppError):
+    def __init__(self, message: str = "Banner 不存在") -> None:
+        from app.core.error_codes import BANNER_NOT_FOUND
+
+        super().__init__(status_code=404, code=BANNER_NOT_FOUND, message=message)
+
+
+class BannerTitleDuplicatedError(AppError):
+    def __init__(self, message: str = "同一展示端与位置下标题已存在") -> None:
+        from app.core.error_codes import BANNER_TITLE_DUPLICATED
+
+        super().__init__(status_code=409, code=BANNER_TITLE_DUPLICATED, message=message)
+
+
+class BannerJumpTargetInvalidError(AppError):
+    def __init__(self, message: str = "跳转目标配置无效") -> None:
+        from app.core.error_codes import BANNER_JUMP_TARGET_INVALID
+
+        super().__init__(status_code=400, code=BANNER_JUMP_TARGET_INVALID, message=message)
+
+
+class BannerDeleteForbiddenError(AppError):
+    def __init__(self, message: str = "已上线 Banner 不允许删除，请先下线") -> None:
+        from app.core.error_codes import BANNER_DELETE_FORBIDDEN
+
+        super().__init__(status_code=409, code=BANNER_DELETE_FORBIDDEN, message=message)
+
+
+class BannerExternalUrlInvalidError(AppError):
+    def __init__(self, message: str = "外部链接必须以 https:// 开头") -> None:
+        from app.core.error_codes import BANNER_EXTERNAL_URL_INVALID
+
+        super().__init__(status_code=400, code=BANNER_EXTERNAL_URL_INVALID, message=message)

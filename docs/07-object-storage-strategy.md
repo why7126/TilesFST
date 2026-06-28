@@ -27,24 +27,27 @@ MINIO_BUCKET=tile-info-platform
 
 | 前缀 | 用途 |
 |---|---|
-| `original/` | 原始图片、文件 |
+| `images/` | 图片类上传（头像、Logo、SKU 图等） |
+| `videos/` | 原始视频 |
+| `files/` | 文档类（预留） |
+| `audios/` | 音频类（预留） |
 | `thumbnails/` | 缩略图 |
 | `processed/` | 处理后的资源 |
 | `tmp/` | 临时文件 |
 | `imports/` | 批量导入文件 |
 | `exports/` | 导出文件 |
-| `videos/` | 原始视频 |
 | `videos/covers/` | 视频封面 |
 | `videos/transcoded/` | 转码后视频 |
+| `original/` | **Deprecated** — 存量迁移前遗留；新上传不得使用 |
 
-当前后端上传入口使用以下业务前缀：
+当前后端上传入口使用以下 Key 前缀（`resource_type` 见 `rules/object-storage.md`）：
 
-| 上传入口 | 对象前缀 |
+| 上传入口 | 对象 Key 前缀 |
 |---|---|
-| 头像 | `original/default/avatars/` |
-| 品牌 Logo | `original/default/brands/logos/` |
-| SKU 图片 | `original/default/tiles/{tile_id|pending}/images/` |
-| SKU 视频 | `videos/default/tiles/{tile_id|pending}/` |
+| 头像 | `images/default/user/avatars/` |
+| 品牌 Logo | `images/default/brands/logos/` |
+| SKU 图片 | `images/default/tiles/{tile_id\|pending}/` |
+| SKU 视频 | `videos/default/tiles/{tile_id\|pending}/` |
 
 上传响应保持 `{ object_key, url }`，其中 `url` 为后端受控读取地址 `/media/{object_key}`。
 

@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端登录页
 
-Web 客户端 MUST 提供管理端登录页，路由为 `/admin/login`，视觉风格 MUST 对齐 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.png` 暗色工业风设计。
+Web 客户端 MUST 提供管理端登录页，路由为 `/admin/login`，视觉风格 MUST 对齐 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png` 暗色工业风设计。
 
 #### Scenario: 登录页布局
 

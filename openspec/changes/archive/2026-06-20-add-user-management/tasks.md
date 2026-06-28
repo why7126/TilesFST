@@ -60,8 +60,8 @@
 ## 10. 文档与追溯
 
 - [x] 10.1 更新 `docs/04-database-design.md`、`docs/03-api-index.md`
-- [x] 10.2 更新 `issues/requirements/REQ-0005-user-management/trace.md`（status: applied）
-- [x] 10.3 更新 `iterations/sprint-002/acceptance-report.md`（实现完成，待验收勾选）
+- [x] 10.2 更新 `issues/requirements/archive/REQ-0005-user-management/trace.md`（status: applied）
+- [x] 10.3 更新 `iterations/archive/sprint-002/acceptance-report.md`（实现完成，待验收勾选）
 
 ## 11. 归档准备
 

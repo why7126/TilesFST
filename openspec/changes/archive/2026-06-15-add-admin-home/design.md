@@ -2,10 +2,10 @@
 
 - **现状**：`/admin/dashboard` 为占位卡片；`AdminLayout` 为顶栏 + 主内容，退出按钮外露于 header。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.html`
-  2. `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.png`（Golden Reference）
-  3. `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home-context.md`
-  4. `issues/requirements/REQ-0004-admin-home/acceptance.md`
+  1. `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.html`
+  2. `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.png`（Golden Reference）
+  3. `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home-context.md`
+  4. `issues/requirements/archive/REQ-0004-admin-home/acceptance.md`
   5. `rules/ui-design.md`
   6. `openspec/specs/`（已归档能力）
 - **登录页先例**：`fix-login-css-port` 已验证 CSS Port + token 映射路径；管理端首页 HTML 含完整 `<style>`，适合同策略。

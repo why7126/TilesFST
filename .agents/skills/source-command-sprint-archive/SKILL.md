@@ -184,8 +184,8 @@ openspec list --json
 ...
 
 ### Updated
-- iterations/sprint-002/sprint.yaml
-- iterations/sprint-002/acceptance-report.md
+- iterations/archive/sprint-002/sprint.yaml
+- iterations/archive/sprint-002/acceptance-report.md
 - issues/requirements/*/trace.md (N files)
 ```
 
@@ -248,6 +248,21 @@ Read `.agents/skills/workflow-sync/SKILL.md` and run:
 python scripts/sync-workflow-status.py --event sprint.archive --sprint <sprint-id>
 ```
 
-- Exit code **MUST** be `0` before ending this command.
+- Exit code **MUST** be `0` before continuing.
 - Print the **Workflow Sync Report** to the user.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
+
+---
+
+## Final Step — Promote Issues (MUST)
+
+Read `rules/issues-lifecycle.md` §4.
+
+**After** workflow sync succeeds:
+
+```bash
+python scripts/promote-issues-for-archive.py --sprint <sprint-id> --reason "/sprint-archive <sprint-id>"
+```
+
+- Exit code **MUST** be `0` before ending this command.
+- Print script stdout.

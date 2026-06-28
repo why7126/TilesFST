@@ -1,7 +1,7 @@
 ---
 title: 变更验收标准
 purpose: add-brand-management OpenSpec 可测试验收项
-content: 自 issues/requirements/REQ-0005-brand-management/acceptance.md 映射
+content: 自 issues/requirements/archive/REQ-0005-brand-management/acceptance.md 映射
 source: acceptance.md
 owner: product
 status: draft

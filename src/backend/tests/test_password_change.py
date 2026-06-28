@@ -1,0 +1,205 @@
+"""Password change API integration tests."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from fastapi.testclient import TestClient
+from jose import jwt
+from sqlalchemy import text
+
+from app.core.config import settings
+from app.db.seed import DEFAULT_ADMIN_USERNAME
+from app.db.session import get_session_factory
+from app.repositories.user_repository import UserRepository
+from tests.test_auth import _login, client  # noqa: F401
+
+
+def _auth_headers(client: TestClient, username: str, password: str) -> dict[str, str]:
+    data = _login(client, username, password)
+    return {"Authorization": f"Bearer {data['access_token']}"}
+
+
+def _create_employee() -> None:
+    session = get_session_factory()()
+    try:
+        repo = UserRepository(session)
+        if repo.get_by_username("operator01"):
+            return
+        repo.create_user(
+            username="operator01",
+            password="Operator123!",
+            display_name="运营一号",
+            role="employee",
+        )
+    finally:
+        session.close()
+
+
+def test_change_password_success(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={
+            "old_password": "AdminPass123!",
+            "new_password": "AdminPass456!",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["success"] is True
+
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "AdminPass456!", "remember_me": False},
+    )
+    assert login.status_code == 200
+
+    # restore password for other tests
+    headers2 = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
+    restore = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers2,
+        json={
+            "old_password": "AdminPass456!",
+            "new_password": "AdminPass123!",
+        },
+    )
+    assert restore.status_code == 200
+
+
+def test_change_password_old_incorrect(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "wrong-old", "new_password": "AdminPass456!"},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 40020
+
+
+def test_change_password_weak(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "AdminPass123!", "new_password": "password123"},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 40022
+
+
+def test_change_password_policy(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "AdminPass123!", "new_password": "short1"},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 40021
+
+
+def test_change_password_same_as_old(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "AdminPass123!", "new_password": "AdminPass123!"},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 40023
+
+
+def test_old_jwt_invalid_after_password_change(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    old_token = headers["Authorization"].removeprefix("Bearer ")
+
+    change = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "AdminPass123!", "new_password": "AdminPass789!"},
+    )
+    assert change.status_code == 200
+
+    me = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {old_token}"},
+    )
+    assert me.status_code == 401
+
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "AdminPass789!", "remember_me": False},
+    )
+    assert login.status_code == 200
+    new_headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
+    restore = client.post(
+        "/api/v1/admin/profile/password",
+        headers=new_headers,
+        json={"old_password": "AdminPass789!", "new_password": "AdminPass123!"},
+    )
+    assert restore.status_code == 200
+
+
+def test_login_token_contains_tv(client: TestClient) -> None:
+    data = _login(client, "admin", "AdminPass123!")
+    payload = jwt.decode(
+        data["access_token"],
+        settings.app_secret_key,
+        algorithms=[settings.jwt_algorithm],
+    )
+    assert "tv" in payload
+
+
+def test_employee_can_change_password(client: TestClient) -> None:
+    _create_employee()
+    headers = _auth_headers(client, "operator01", "Operator123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "Operator123!", "new_password": "Operator456!"},
+    )
+    assert response.status_code == 200
+
+
+def test_store_owner_forbidden(client: TestClient) -> None:
+    session = get_session_factory()()
+    try:
+        repo = UserRepository(session)
+        if not repo.get_by_username("owner01"):
+            repo.create_user(
+                username="owner01",
+                password="Owner12345!",
+                display_name="店主",
+                role="store_owner",
+            )
+    finally:
+        session.close()
+
+    headers = _auth_headers(client, "owner01", "Owner12345!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "Owner12345!", "new_password": "Owner56789!"},
+    )
+    assert response.status_code == 403
+
+
+def test_rate_limit_after_failed_attempts(client: TestClient) -> None:
+    headers = _auth_headers(client, "admin", "AdminPass123!")
+    for _ in range(5):
+        client.post(
+            "/api/v1/admin/profile/password",
+            headers=headers,
+            json={"old_password": "bad", "new_password": "AdminPass456!"},
+        )
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "AdminPass123!", "new_password": "AdminPass456!"},
+    )
+    assert response.status_code == 429
+    assert response.json()["code"] == 42901

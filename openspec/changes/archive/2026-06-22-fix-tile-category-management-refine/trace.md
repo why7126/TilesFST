@@ -12,7 +12,7 @@
 
 ## 视觉 Diff Checklist（1280×1024）
 
-对照 `issues/requirements/REQ-0007-tile-category-management-refine/prototype/web/tile-category-management-list-refine-context.md`。
+对照 `issues/requirements/archive/REQ-0007-tile-category-management-refine/prototype/web/tile-category-management-list-refine-context.md`。
 
 | # | 项 | Pass |
 |---|-----|------|

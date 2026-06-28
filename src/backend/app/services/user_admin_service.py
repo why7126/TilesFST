@@ -30,9 +30,17 @@ def _avatar_url(object_key: str | None) -> str | None:
     return f"/media/{object_key}"
 
 
+from app.services.effective_settings_service import EffectiveSettingsService
+
+
 class UserAdminService:
-    def __init__(self, repo: UserRepository) -> None:
+    def __init__(
+        self,
+        repo: UserRepository,
+        effective_settings: EffectiveSettingsService | None = None,
+    ) -> None:
         self._repo = repo
+        self._effective = effective_settings
 
     @staticmethod
     def to_item(user: UserRecord) -> UserAdminItem:
@@ -102,7 +110,8 @@ class UserAdminService:
         if self._repo.get_by_username(username):
             raise UserUsernameTakenError()
 
-        password = generate_random_password()
+        policy = self._effective.get_password_policy() if self._effective else None
+        password = generate_random_password(policy=policy)
         user = self._repo.create_user(
             username=username,
             password=password,
@@ -142,7 +151,8 @@ class UserAdminService:
         if user.status == "deleted":
             raise UserInvalidStatusTransitionError("已删除用户不可重置密码")
 
-        password = generate_random_password()
+        policy = self._effective.get_password_policy() if self._effective else None
+        password = generate_random_password(policy=policy)
         self._repo.update_password(user_id, password)
         return password
 

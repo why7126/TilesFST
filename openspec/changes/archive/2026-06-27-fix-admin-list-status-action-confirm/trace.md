@@ -32,9 +32,9 @@ updated_at: 2026-06-27 13:27:11
 
 | 文档 | 路径 |
 |---|---|
-| BUG | `issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/` |
-| acceptance | `issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md` |
-| 品牌 confirm context | `issues/requirements/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md` |
+| BUG | `issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/` |
+| acceptance | `issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/acceptance.md` |
+| 品牌 confirm context | `issues/requirements/archive/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md` |
 
 ## 变更记录
 

@@ -1,6 +1,6 @@
 ## Context
 
-- **缺陷**：[BUG-0017-user-reset-password-confirm-ui-inconsistency](issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/)
+- **缺陷**：[BUG-0017-user-reset-password-confirm-ui-inconsistency](issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/)
 - **现状**：
   - `UserManagementPage.tsx`：`handleResetPassword` 首行 `window.confirm` 后直调 `resetUserPassword`。
   - 同页 `statusConfirmTarget` / `deleteTarget` 已 DS modal 化（BUG-0016 / `fix-admin-list-status-action-confirm` archived）。
@@ -9,7 +9,7 @@
 - **Golden Reference**：
   1. 同页 `statusConfirmTarget` modal（`UserManagementPage.tsx`）
   2. `TileCategoryManagementPage.tsx` 启停 confirm（L423–466）
-  3. `issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`
+  3. `issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`
 
 ## Conflict Resolution
 
@@ -67,4 +67,4 @@
 - **视口**：1280×1024（可选并排类目启停 confirm）。
 - **Checklist**：见 `trace.md`（≥8 项）。
 - **回归**：`UserManagementPage.test.tsx` 冻结/删除用例；`BrandManagementPage` / `TileCategoryManagementPage` 启停用例 MUST pass。
-- **来源**：`issues/bugs/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`。
+- **来源**：`issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/acceptance.md`。

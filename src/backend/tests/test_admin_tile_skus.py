@@ -55,10 +55,24 @@ def _create_category(client: TestClient, headers: dict[str, str]) -> int:
     return response.json()["data"]["id"]
 
 
+def _create_spec(client: TestClient, headers: dict[str, str]) -> int:
+    suffix = uuid4().hex[:4]
+    width = 600 + int(suffix[:2], 16) % 200
+    length = 1200 + int(suffix[2:], 16) % 200
+    response = client.post(
+        "/api/v1/admin/tile-specs",
+        headers=headers,
+        json={"width_mm": width, "length_mm": length, "sort_order": 10},
+    )
+    assert response.status_code == 200
+    return response.json()["data"]["id"]
+
+
 def _create_sku_payload(
     *,
     brand_id: int,
     category_id: int,
+    spec_id: int,
     sku_code: str = "SKU-TEST-001",
     save_mode: str = "create",
 ) -> dict:
@@ -68,7 +82,7 @@ def _create_sku_payload(
         "sku_code": sku_code,
         "brand_id": brand_id,
         "category_id": category_id,
-        "size": "900×1800mm",
+        "spec_id": spec_id,
         "surface_finish": "亮光面",
         "reference_price": 268.0,
         "images": [
@@ -86,8 +100,9 @@ def test_create_sku_without_surface_finish(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-NO-FINISH-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-NO-FINISH-001"
     )
     payload.pop("surface_finish")
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -99,8 +114,9 @@ def test_create_sku_requires_reference_price(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-NO-PRICE-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-NO-PRICE-001"
     )
     payload["reference_price"] = None
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -111,8 +127,9 @@ def test_create_sku_with_zero_reference_price(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-ZERO-PRICE-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-ZERO-PRICE-001"
     )
     payload["reference_price"] = 0.0
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -124,8 +141,9 @@ def test_publish_sku_with_empty_surface_finish(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-PUB-NO-FINISH-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-PUB-NO-FINISH-001"
     )
     payload.pop("surface_finish")
     create_response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -158,6 +176,7 @@ def test_create_sku_draft_and_create(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
 
     draft_response = client.post(
         "/api/v1/admin/tile-skus",
@@ -172,7 +191,7 @@ def test_create_sku_draft_and_create(client: TestClient) -> None:
     create_response = client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
-        json=_create_sku_payload(brand_id=brand_id, category_id=category_id),
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
     )
     assert create_response.status_code == 200
     created = create_response.json()["data"]
@@ -185,8 +204,9 @@ def test_create_sku_needs_completion_without_main_image(client: TestClient) -> N
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-NO-MAIN-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-NO-MAIN-001"
     )
     payload.pop("images")
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -198,8 +218,9 @@ def test_duplicate_sku_code(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-DUPE-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-DUPE-001"
     )
     assert client.post("/api/v1/admin/tile-skus", headers=headers, json=payload).status_code == 200
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -211,11 +232,12 @@ def test_publish_and_unpublish_sku(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     create_response = client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
         json=_create_sku_payload(
-            brand_id=brand_id, category_id=category_id, sku_code="SKU-PUB-001"
+            brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-PUB-001"
         ),
     )
     sku_id = create_response.json()["data"]["id"]
@@ -233,8 +255,9 @@ def test_publish_forbidden_without_main_image(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, sku_code="SKU-PUB-FAIL-001"
+        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-PUB-FAIL-001"
     )
     payload.pop("images")
     create_response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
@@ -249,11 +272,12 @@ def test_delete_published_forbidden(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     create_response = client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
         json=_create_sku_payload(
-            brand_id=brand_id, category_id=category_id, sku_code="SKU-DEL-FAIL-001"
+            brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-DEL-FAIL-001"
         ),
     )
     sku_id = create_response.json()["data"]["id"]
@@ -268,11 +292,12 @@ def test_delete_draft_sku(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     create_response = client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
         json=_create_sku_payload(
-            brand_id=brand_id, category_id=category_id, sku_code="SKU-DEL-OK-001"
+            brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-DEL-OK-001"
         ),
     )
     sku_id = create_response.json()["data"]["id"]
@@ -285,11 +310,12 @@ def test_list_filter_by_material_completeness(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
     client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
         json=_create_sku_payload(
-            brand_id=brand_id, category_id=category_id, sku_code="SKU-FILTER-001"
+            brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-FILTER-001"
         ),
     )
     response = client.get(

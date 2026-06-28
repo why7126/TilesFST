@@ -28,16 +28,38 @@ MINIO_BUCKET=tile-info-platform
 ## 2. 标准对象前缀
 
 ```text
-original/              原始上传文件
+images/                图片类上传（头像、Logo、SKU 图、Banner 等）
+videos/                原始视频
+files/                 文档类（预留）
+audios/                音频类（预留）
 thumbnails/            图片缩略图
 processed/             处理后的图片或文件
 tmp/                   临时文件
 imports/               批量导入文件
 exports/               导出文件
-videos/                原始视频
 videos/covers/         视频封面
 videos/transcoded/     转码后视频
+original/              Deprecated — 仅存量对象；新上传 MUST NOT 使用
 ```
+
+## 2.1 Object Key 形态
+
+新上传对象 Key MUST 符合：
+
+```text
+{prefix}/{tenant}/{resource_type}/{uuid}.{ext}
+```
+
+示例：
+
+```text
+images/default/user/avatars/<uuid>.jpg
+images/default/brands/logos/<uuid>.webp
+images/default/tiles/pending/<uuid>.jpg
+videos/default/tiles/42/<uuid>.mp4
+```
+
+MUST NOT 在新 Key 中插入 `{YYYY}/{MM}` 日期分片。存量 `original/.../{YYYY}/{MM}/...` 通过 `scripts/migrate_object_keys.py` 一次性迁移。
 
 ## 3. AI必须遵守
 

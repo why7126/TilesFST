@@ -1,6 +1,6 @@
 ## Context
 
-[BUG-0015-admin-list-status-tips-layout-shift](issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/) 关联四份 REQ 与 archived change `fix-brand-image-display-layout-shift`（品牌 toast 先例）。当前代码线索：
+[BUG-0015-admin-list-status-tips-layout-shift](issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/) 关联四份 REQ 与 archived change `fix-brand-image-display-layout-shift`（品牌 toast 先例）。当前代码线索：
 
 | 页面 | 文件 | 当前模式 |
 |---|---|---|

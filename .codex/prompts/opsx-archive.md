@@ -163,6 +163,32 @@ Read `.agents/skills/workflow-sync/SKILL.md` and run:
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
 ```
 
-- Exit code **MUST** be `0` before ending this command.
+- Exit code **MUST** be `0` before continuing.
 - Print the **Workflow Sync Report** to the user.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
+
+---
+
+## Final Step — Promote Issues (MUST)
+
+Read `rules/issues-lifecycle.md` §4.
+
+**After** workflow sync succeeds, promote linked REQ/BUG from `review/` → `archive/` when eligible:
+
+```bash
+python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
+```
+
+**Promotion gate**（脚本自动判定，MUST NOT 手迁目录）：
+
+| 条件 | 说明 |
+|------|------|
+| 物理位置 | 当前在 `review/` 或遗留扁平路径 |
+| 关联 Change | 该 issue 的**全部** `openspec_changes` / `related_change` 均已 archive |
+| 逻辑状态 | `trace.md` `status` 为 `done`（由上一步 sync 写入） |
+
+- 多 Change REQ（如 add-* + fix-*）：**仅当全部 Change 已 archive** 才 promote；单 Change archive 后 skip 并继续。
+- 一个 fix-* 可关联多条 BUG：该 change archive 后，对每条 eligible BUG 分别 promote。
+- Exit code **MUST** be `0`（无 eligible issue 时 no-op 为 0）。
+- 打印脚本 stdout（Promote Issues For Archive 报告 + 各条 `Promote Issue Stage`）。
+- `--dry-run` 仅用于预检，不得替代正式归档步骤。

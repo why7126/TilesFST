@@ -15,7 +15,7 @@ updated_at: 2026-06-27 13:23:10
 
 | 类型 | 编号 |
 |---|---|
-| BUG | `issues/bugs/BUG-0019-user-modal-avatar-upload-display` |
+| BUG | `issues/bugs/archive/BUG-0019-user-modal-avatar-upload-display` |
 | REQ | `REQ-0005-user-management` |
 | 参照 BUG | BUG-0004、BUG-0007 |
 | 参照 Change | fix-brand-logo-upload-progress、fix-brand-logo-display-after-storage-fix |

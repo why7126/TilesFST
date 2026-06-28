@@ -10,11 +10,11 @@
 ### 原型优先级（MUST）
 
 ```text
-1. issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html
-2. issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-sidebar-catalog.html
-3. issues/requirements/REQ-0010-product-version-display/prototype/web/images/sidebar-version-reference.png
-4. issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-display-context.md
-5. issues/bugs/BUG-0013-product-version-ui-inconsistency/acceptance.md
+1. issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-sidebar-admin.html
+2. issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-sidebar-catalog.html
+3. issues/requirements/archive/REQ-0010-product-version-display/prototype/web/images/sidebar-version-reference.png
+4. issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-display-context.md
+5. issues/bugs/archive/BUG-0013-product-version-ui-inconsistency/acceptance.md
 6. rules/ui-design.md §8
 7. src/web/src/shared/ui/badge.tsx（DS 黄金参考）
 ```

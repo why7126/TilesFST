@@ -26,9 +26,9 @@ source: prototype/web/user-login.md + Sprint 001 验收遗留 L-01
 
 ```yaml
 iteration: sprint-001
-sprint_doc: iterations/sprint-001/sprint.md
-release_note: iterations/sprint-001/release-note.md
-acceptance_report: iterations/sprint-001/acceptance-report.md
+sprint_doc: iterations/archive/sprint-001/sprint.md
+release_note: iterations/archive/sprint-001/release-note.md
+acceptance_report: iterations/archive/sprint-001/acceptance-report.md
 ```
 
 ## UI 差距清单（refactor 前 → 后）

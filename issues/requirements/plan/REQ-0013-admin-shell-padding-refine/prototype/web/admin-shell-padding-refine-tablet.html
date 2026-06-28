@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1023">
+  <title>TILESFST — Shell padding tablet ≤1023（REQ-0013）</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgb(237 232 223 / 0.5);
+      --gold: #c8a055;
+      --line: rgb(255 255 255 / 0.07);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px;
+    }
+    .note {
+      padding: 12px 16px;
+      border-bottom: 0.5px solid var(--line);
+      background: rgb(200 160 85 / 0.08);
+      color: rgb(237 232 223 / 0.5);
+    }
+    .note a { color: #c8a055; }
+    .admin-shell {
+      min-height: calc(100vh - 52px);
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      padding: 18px 16px;
+      border-bottom: 0.5px solid var(--line);
+    }
+    .nav-scroll {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .nav-title {
+      margin: 0 0 8px;
+      color: rgb(237 232 223 / 0.3);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+    .nav-item {
+      height: 40px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      border-radius: 3px;
+    }
+    .main-content {
+      padding: 24px 20px 56px;
+    }
+    .content-inner {
+      max-width: min(1400px, 100%);
+      margin: 0 auto;
+      border: 0.5px solid var(--line);
+      border-radius: 3px;
+      padding: 16px;
+      min-height: 280px;
+    }
+    h1 { margin: 0; font-size: 20px; font-weight: 400; }
+    p { color: var(--muted); line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="note">
+    REQ-0013 — <strong>≤1023px</strong> · sidebar <code>18px 16px</code>（非 desktop 6px）· main <code>24px 20px 56px</code>。
+    chevron 隐藏 · user menu 隐藏（REQ-0011）。<a href="admin-shell-padding-refine-expanded.html">expanded</a>
+  </div>
+  <div class="admin-shell">
+    <aside class="sidebar">
+      <div class="nav-scroll">
+        <nav>
+          <p class="nav-title">OPERATIONS</p>
+          <div class="nav-item">首页</div>
+          <div class="nav-item">瓷砖 SKU</div>
+        </nav>
+        <nav>
+          <p class="nav-title">SYSTEM</p>
+          <div class="nav-item">用户管理</div>
+        </nav>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="content-inner">
+        <h1>用户管理</h1>
+        <p>平板断点：全宽侧栏 grid + 收紧 main padding；结构不变。</p>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

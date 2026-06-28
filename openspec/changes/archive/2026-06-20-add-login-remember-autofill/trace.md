@@ -13,10 +13,10 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0003-login-remember-autofill/requirement.md` |
-| 验收 | `issues/requirements/REQ-0003-login-remember-autofill/acceptance.md` |
-| 表单 context | `issues/requirements/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md` |
-| 登录基线 HTML | `issues/requirements/REQ-0001-user-login/prototype/web/user-login.html` |
+| PRD | `issues/requirements/archive/REQ-0003-login-remember-autofill/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0003-login-remember-autofill/acceptance.md` |
+| 表单 context | `issues/requirements/archive/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md` |
+| 登录基线 HTML | `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html` |
 
 ## Conflict Resolution 记录
 

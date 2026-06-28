@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.core.deps import get_user_repository, require_system_admin
+from app.core.deps import get_effective_settings_service, get_user_repository, require_system_admin
 from app.repositories.user_repository import UserRecord, UserRepository
 from app.schemas.common import ApiResponse
 from app.schemas.user_admin import (
@@ -18,6 +18,7 @@ from app.schemas.user_admin import (
     UserStatusUpdateRequest,
     UserUpdateRequest,
 )
+from app.services.effective_settings_service import EffectiveSettingsService
 from app.services.user_admin_service import UserAdminService
 
 router = APIRouter(dependencies=[Depends(require_system_admin)])
@@ -25,8 +26,9 @@ router = APIRouter(dependencies=[Depends(require_system_admin)])
 
 def get_user_admin_service(
     repo: Annotated[UserRepository, Depends(get_user_repository)],
+    effective: Annotated[EffectiveSettingsService, Depends(get_effective_settings_service)],
 ) -> UserAdminService:
-    return UserAdminService(repo)
+    return UserAdminService(repo, effective)
 
 
 @router.get("", response_model=ApiResponse[UserAdminListData], summary="用户列表")

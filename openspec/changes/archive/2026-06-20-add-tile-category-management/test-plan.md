@@ -2,7 +2,7 @@
 title: 测试计划
 purpose: add-tile-category-management 验收标准到测试用例映射
 content: AC → unit / integration / manual
-source: issues/requirements/REQ-0005-tile-category-management/test-plan.md
+source: issues/requirements/archive/REQ-0005-tile-category-management/test-plan.md
 owner: product
 status: draft
 note: 实现阶段由 /opsx-apply 执行
@@ -30,7 +30,7 @@ note: 实现阶段由 /opsx-apply 执行
 
 ## 2. 必测矩阵
 
-见 `issues/requirements/REQ-0005-tile-category-management/test-plan.md` §3–§4（删除规则、层级深度）。
+见 `issues/requirements/archive/REQ-0005-tile-category-management/test-plan.md` §3–§4（删除规则、层级深度）。
 
 ## 3. 建议测试文件
 

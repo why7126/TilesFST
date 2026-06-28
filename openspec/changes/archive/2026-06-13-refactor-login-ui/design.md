@@ -2,7 +2,7 @@
 
 - **当前状态**：登录页功能完整（校验、提交、loading、记住我、占位入口），但样式硬编码 Hex；`PasswordInput` 自定义实现；checkbox 为原生 `<input type="checkbox">`；企业微信为文字占位「企」。
 - **Design System**：`add-design-system` 已归档，正式 spec 位于 `openspec/specs/design-system/spec.md`；组件位于 `src/web/src/components/ui/` 与 `src/web/src/shared/ui/`。
-- **原型来源**：`issues/requirements/REQ-0001-user-login/prototype/web/user-login.md`、`user-login.png`。
+- **原型来源**：`issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.md`、`user-login.png`。
 - **约束**：遵循 `rules/ui-design.md`；不修改 `src/features/auth/store`、`auth-api`、后端接口。
 
 ## Goals / Non-Goals

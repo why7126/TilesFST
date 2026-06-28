@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0013-product-version-ui-inconsistency](issues/bugs/BUG-0013-product-version-ui-inconsistency/) 已评审通过。`add-product-version-display` 已在管理端与店主端挂载 `ProductVersionBadge`，但版本 pill 视觉未对齐 REQ-0010 原型、Golden Reference 与 Design System §8 徽章规范（AC-006、AC-013、AC-015 未达标）。根据项目规则，已交付能力上的 UI 验收缺口 MUST 使用新的 `fix-*` change 修复。
+[BUG-0013-product-version-ui-inconsistency](issues/bugs/archive/BUG-0013-product-version-ui-inconsistency/) 已评审通过。`add-product-version-display` 已在管理端与店主端挂载 `ProductVersionBadge`，但版本 pill 视觉未对齐 REQ-0010 原型、Golden Reference 与 Design System §8 徽章规范（AC-006、AC-013、AC-015 未达标）。根据项目规则，已交付能力上的 UI 验收缺口 MUST 使用新的 `fix-*` change 修复。
 
 ## What Changes
 

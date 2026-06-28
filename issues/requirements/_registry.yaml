@@ -1,7 +1,43 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 12
+next_id: 18
 entries:
+  - id: REQ-0017-system-settings
+    title: 管理端系统设置页面（侧栏入口 + 平台配置）
+    status: done
+    iteration: null
+    created: 2026-06-28
+    parent_requirement: REQ-0004-admin-home
+  - id: REQ-0016-banner-management
+    title: Banner 管理（列表 + 按跳转类型分化弹窗）
+    status: done
+    iteration: sprint-003
+    created: 2026-06-28
+    parent_requirement: REQ-0004-admin-home
+  - id: REQ-0015-password-change
+    title: 管理端修改密码（侧栏入口 + 居中弹窗）
+    status: done
+    iteration: sprint-003
+    created: 2026-06-28
+    parent_requirement: REQ-0004-admin-home
+  - id: REQ-0014-profile-page
+    title: 管理端个人资料页面（查看与维护自身资料）
+    status: done
+    iteration: sprint-003
+    created: 2026-06-28
+    parent_requirement: REQ-0004-admin-home
+  - id: REQ-0013-admin-shell-padding-refine
+    title: 管理端 Shell 内外边距收窄（侧栏 + 内容区）
+    status: pending_review
+    iteration: null
+    created: 2026-06-28
+    parent_requirement: REQ-0004-admin-home
+  - id: REQ-0012-object-storage-key-layout
+    title: 对象存储前缀与 Object Key 生成规则优化
+    status: done
+    iteration: null
+    created: 2026-06-27
+    parent_requirement:
   - id: REQ-0011-admin-sidebar-expand-collapse
     title: 管理端侧边栏展开/收起（参照 SoulKing 交互）
     status: done
@@ -16,7 +52,7 @@ entries:
     parent_requirement:
   - id: REQ-0009-tile-spec-management
     title: 瓷砖规格管理页（导航入口 + 编辑）
-    status: captured
+    status: done
     iteration: null
     created: 2026-06-27
     parent_requirement:

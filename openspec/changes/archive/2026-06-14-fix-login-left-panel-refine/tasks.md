@@ -23,13 +23,13 @@
 
 - [x] 4.1 1440×1024 目视 checklist（design.md 8 项）写入 `trace.md`
 - [x] 4.2 1280×720 复验无页面级纵向滚动（CSS 保持 `overflow: hidden` + fixed shell）
-- [x] 4.3 更新 `iterations/sprint-001/acceptance-report.md` REQ-0003 项
+- [x] 4.3 更新 `iterations/archive/sprint-001/acceptance-report.md` REQ-0003 项
 
 ### 5. 文档与追溯
 
-- [x] 5.1 更新 `issues/requirements/REQ-0003-login-left-panel-refine/trace.md` status
-- [x] 5.2 更新 `issues/requirements/REQ-0003-login-left-panel-refine/acceptance.md` 勾选
-- [x] 5.3 更新 `iterations/sprint-001/sprint.yaml` 登记 REQ-0003 与 change（已在纳入 sprint 时完成）
+- [x] 5.1 更新 `issues/requirements/archive/REQ-0003-login-left-panel-refine/trace.md` status
+- [x] 5.2 更新 `issues/requirements/archive/REQ-0003-login-left-panel-refine/acceptance.md` 勾选
+- [x] 5.3 更新 `iterations/archive/sprint-001/sprint.yaml` 登记 REQ-0003 与 change（已在纳入 sprint 时完成）
 
 ### 6. 归档准备
 

@@ -3,12 +3,12 @@
 - **现状**：`admin-nav.ts` 中「瓷砖品牌」无 `path`；无 `brands` 表与品牌 API；Dashboard「新增品牌」快捷操作为占位 toast。
 - **依赖**：`add-admin-home`（`AdminLayout`、`admin-home.css`）；`add-user-management`（列表/弹窗/分页 CSS Port 模式可参考）。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management.html`
-  2. `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management.png`（待导出）
-  3. `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management-modal.html`
-  4. `issues/requirements/REQ-0005-brand-management/prototype/web/brand-management-modal.png`（待导出）
+  1. `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management.html`
+  2. `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management.png`（待导出）
+  3. `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management-modal.html`
+  4. `issues/requirements/archive/REQ-0005-brand-management/prototype/web/brand-management-modal.png`（待导出）
   5. `prototype/web/*-context.md`
-  6. `issues/requirements/REQ-0005-brand-management/acceptance.md`
+  6. `issues/requirements/archive/REQ-0005-brand-management/acceptance.md`
   7. `rules/ui-design.md`
   8. `openspec/specs/`
 

@@ -48,7 +48,7 @@ REQ-0000-build-test-standard:
 ```yaml
 REQ-0001-user-login:
   acceptance:
-    - 见 issues/requirements/REQ-0001-user-login/acceptance.md
+    - 见 issues/requirements/archive/REQ-0001-user-login/acceptance.md
   tests:
     - src/backend/tests/test_auth.py
     - src/web/src/features/auth/**/*.test.tsx

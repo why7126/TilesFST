@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端瓷砖 SKU 管理页
 
-Web 客户端 MUST 提供瓷砖 SKU 管理页，路由为 `/admin/tile-skus`，视觉 MUST 高保真对齐 `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html` 与 `tile-sku-create-modal.html` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1120px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
+Web 客户端 MUST 提供瓷砖 SKU 管理页，路由为 `/admin/tile-skus`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html` 与 `tile-sku-create-modal.html` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1120px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
 
 #### Scenario: SKU 页布局
 

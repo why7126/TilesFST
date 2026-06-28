@@ -13,10 +13,10 @@ created_at: 2026-06-26 13:47:54
 
 | 项 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0006-object-storage-upload-not-minio` |
+| BUG | `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio` |
 | 严重等级 | high |
 | Sprint | sprint-002 |
-| 评审 | `issues/bugs/BUG-0006-object-storage-upload-not-minio/review.md` |
+| 评审 | `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio/review.md` |
 | 临时规避 | 仅可验证本地 `/media` 或 `data/uploads`，不能视为 MinIO 验收通过 |
 
 ## 2. Bug Analysis Report

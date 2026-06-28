@@ -1,0 +1,345 @@
+/**
+ * Profile page — ported from profile-page.html
+ * Colors reference globals.css Design Tokens via admin-home.css variables.
+ */
+
+.admin-shell .profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+}
+
+.admin-shell .profile-card,
+.admin-shell .side-card {
+  border: 0.5px solid var(--admin-line);
+  background: var(--admin-card-bg);
+  backdrop-filter: blur(18px);
+  border-radius: 3px;
+}
+
+.admin-shell .profile-card {
+  overflow: hidden;
+}
+
+.admin-shell .profile-card .card-head {
+  height: 58px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .profile-card .card-title,
+.admin-shell .side-card .card-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.admin-shell .profile-card .card-desc,
+.admin-shell .side-card .card-desc {
+  margin-top: 4px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .profile-body {
+  padding: 20px;
+}
+
+.admin-shell .identity-strip {
+  display: grid;
+  grid-template-columns: 86px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-deep) 32%, transparent);
+  margin-bottom: 18px;
+}
+
+.admin-shell .profile-avatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 4px;
+  border: 0.5px solid var(--admin-avatar-border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--admin-gold) 22%, transparent),
+    color-mix(in srgb, var(--admin-text) 6%, transparent)
+  );
+  color: var(--admin-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+}
+
+.admin-shell .profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .identity-name {
+  font-size: 18px;
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+.admin-shell .identity-meta {
+  margin-top: 8px;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-shell .identity-tags {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-shell .profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 14px;
+}
+
+.admin-shell .profile-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.admin-shell .profile-form-grid .field.readonly {
+  opacity: 0.72;
+}
+
+.admin-shell .profile-form-grid .field.readonly .input {
+  color: var(--admin-muted);
+  background: color-mix(in srgb, var(--admin-deep) 26%, transparent);
+}
+
+.admin-shell .profile-form-grid .field label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .profile-form-grid .input,
+.admin-shell .profile-form-grid .textarea {
+  width: 100%;
+  height: 36px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  color: var(--admin-text);
+  padding: 0 11px;
+  font-size: 12px;
+  outline: none;
+}
+
+.admin-shell .profile-form-grid .textarea {
+  height: 76px;
+  padding: 10px 11px;
+  resize: none;
+}
+
+.admin-shell .profile-form-grid .help {
+  margin-top: 7px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .profile-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .save-tip {
+  color: var(--color-success, #8ebb77);
+  font-size: 12px;
+}
+
+.admin-shell .save-tip.is-hidden {
+  visibility: hidden;
+}
+
+.admin-shell .profile-error {
+  margin-top: 12px;
+  color: var(--admin-danger);
+  font-size: 12px;
+}
+
+.admin-shell .side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-shell .side-card {
+  padding: 18px;
+}
+
+.admin-shell .info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.admin-shell .info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 13px;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .info-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.admin-shell .info-label {
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .info-value {
+  color: var(--admin-text);
+  font-size: 12px;
+  text-align: right;
+}
+
+.admin-shell .timeline {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-shell .timeline-item {
+  display: grid;
+  grid-template-columns: 9px 1fr;
+  gap: 10px;
+}
+
+.admin-shell .timeline-item .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--admin-gold);
+  margin-top: 5px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--admin-gold) 10%, transparent);
+}
+
+.admin-shell .timeline-title {
+  color: var(--admin-text);
+  font-size: 12px;
+}
+
+.admin-shell .timeline-meta {
+  margin-top: 4px;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .timeline-empty {
+  margin-top: 16px;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .profile-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.admin-shell .profile-page-head .eyebrow {
+  margin: 0 0 8px;
+  color: var(--admin-gold);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
+.admin-shell .profile-page-head .page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.admin-shell .profile-page-head .page-desc {
+  margin: 8px 0 0;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-shell .mini-badge {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--admin-text) 4.5%, transparent);
+  color: var(--admin-muted);
+  font-size: 10px;
+}
+
+.admin-shell .mini-badge.gold {
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+}
+
+.admin-shell .status.on {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 1px;
+  font-size: 10px;
+  background: color-mix(in srgb, var(--color-success, #8ebb77) 13%, transparent);
+  color: var(--color-success, #8ebb77);
+}
+
+.admin-shell .dropdown-item.active {
+  color: var(--admin-gold);
+  background: var(--admin-gold-bg);
+}
+
+@media (max-width: 1100px) {
+  .admin-shell .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .identity-strip {
+    grid-template-columns: 70px 1fr;
+  }
+
+  .admin-shell .identity-strip .btn {
+    grid-column: 1 / -1;
+    width: max-content;
+  }
+
+  .admin-shell .profile-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .admin-shell .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

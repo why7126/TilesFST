@@ -1,0 +1,117 @@
+/**
+ * Tile spec management — ported from tile-size-management*.html
+ */
+
+.admin-shell .tile-spec-filter-row {
+  display: grid;
+  grid-template-columns: 1fr 180px auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-shell .tile-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-shell .tile-spec-table th,
+.admin-shell .tile-spec-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.admin-shell .tile-spec-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .tile-spec-table td {
+  color: var(--admin-muted);
+}
+
+.admin-shell .size-name {
+  color: var(--admin-text);
+  font-size: 12px;
+}
+
+.admin-shell .size-sub {
+  color: var(--admin-weak);
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.admin-shell .tile-spec-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.admin-shell .tile-spec-modal-card {
+  width: 720px;
+  max-height: calc(100vh - 96px);
+}
+
+.admin-shell .tile-spec-modal-card .modal-body {
+  overflow-y: auto;
+}
+
+.admin-shell .tile-spec-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 14px;
+}
+
+.admin-shell .tile-spec-form-grid .form-full {
+  grid-column: 1 / -1;
+}
+
+.admin-shell .tile-spec-form-grid .input,
+.admin-shell .tile-spec-form-grid .textarea {
+  width: 100%;
+}
+
+.admin-shell .tile-spec-form-grid .textarea {
+  height: 112px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  color: var(--admin-text);
+  font-size: 13px;
+  padding: 12px;
+  line-height: 1.7;
+  resize: none;
+  outline: none;
+}
+
+.admin-shell .tile-spec-readonly {
+  min-height: 58px;
+  padding: 12px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 32%, transparent);
+  border-radius: 2px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 1023px) {
+  .admin-shell .tile-spec-filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .tile-spec-filter-row,
+  .admin-shell .tile-spec-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .tile-spec-modal-card {
+    width: 100%;
+  }
+}

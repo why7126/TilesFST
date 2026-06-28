@@ -24,6 +24,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False, default="active")
     avatar_object_key: Mapped[str | None] = mapped_column(String, nullable=True)
+    remark: Mapped[str | None] = mapped_column(Text, nullable=True)
+    token_version: Mapped[int] = mapped_column(nullable=False, default=0)
     last_login_at: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[str] = mapped_column(String, nullable=False)
     updated_at: Mapped[str] = mapped_column(String, nullable=False)
@@ -47,3 +49,23 @@ class LoginLog(Base):
     created_at: Mapped[str] = mapped_column(String, nullable=False)
 
     user: Mapped[User | None] = relationship(back_populates="login_logs")
+
+
+class ProfileActivityLog(Base):
+    __tablename__ = "profile_activity_logs"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False)
+    action_type: Mapped[str] = mapped_column(String, nullable=False)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    metadata_json: Mapped[str | None] = mapped_column("metadata", Text, nullable=True)
+    created_at: Mapped[str] = mapped_column(String, nullable=False)
+
+
+class PasswordChangeAttempt(Base):
+    __tablename__ = "password_change_attempts"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False)
+    success: Mapped[int] = mapped_column(nullable=False)
+    created_at: Mapped[str] = mapped_column(String, nullable=False)

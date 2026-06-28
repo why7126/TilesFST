@@ -5,9 +5,9 @@
 本 change 为 REQ-0002 产品策略变更，优先级：
 
 ```text
-1. issues/requirements/REQ-0002-product-brand-login-simplify/acceptance.md
-2. issues/requirements/REQ-0002-product-brand-login-simplify/requirement.md
-3. issues/requirements/REQ-0001-user-login/prototype/web/user-login.html（布局/CSS Port，品牌名与企微以 REQ-0002 为准）
+1. issues/requirements/archive/REQ-0002-product-brand-login-simplify/acceptance.md
+2. issues/requirements/archive/REQ-0002-product-brand-login-simplify/requirement.md
+3. issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html（布局/CSS Port，品牌名与企微以 REQ-0002 为准）
 4. rules/ui-design.md
 5. openspec/specs/web-client/spec.md（归档前）
 ```

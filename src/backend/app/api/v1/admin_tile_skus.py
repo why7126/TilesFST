@@ -6,8 +6,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.core.deps import get_tile_sku_repository, require_admin_user
+from app.core.deps import get_tile_sku_repository, get_tile_spec_repository, require_admin_user
 from app.repositories.tile_sku_repository import TileSkuRepository
+from app.repositories.tile_spec_repository import TileSpecRepository
 from app.schemas.common import ApiResponse
 from app.schemas.tile_sku_admin import (
     MaterialCompleteness,
@@ -23,8 +24,9 @@ router = APIRouter(dependencies=[Depends(require_admin_user)])
 
 def get_tile_sku_admin_service(
     repo: Annotated[TileSkuRepository, Depends(get_tile_sku_repository)],
+    spec_repo: Annotated[TileSpecRepository, Depends(get_tile_spec_repository)],
 ) -> TileSkuAdminService:
-    return TileSkuAdminService(repo)
+    return TileSkuAdminService(repo, spec_repo)
 
 
 @router.get("", response_model=ApiResponse[TileSkuAdminListData], summary="SKU 列表")

@@ -92,6 +92,8 @@ def derive_issue(
         if isinstance(cid, str):
             linked_change = cid
             break
+    if not linked_change and issue.related_changes:
+        linked_change = issue.related_changes[0]
     if not linked_change and issue.kind == "bug" and issue.related_change:
         linked_change = issue.related_change
 

@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端瓷砖类目管理页
 
-Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 与 `tile-category-management-add.html` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
+Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 与 `tile-category-management-add.html` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
 
 #### Scenario: 类目页布局
 

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1440">
+  <title>TILESFST — Shell padding refine expanded（REQ-0013）</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgb(237 232 223 / 0.5);
+      --weak: rgb(237 232 223 / 0.3);
+      --gold: #c8a055;
+      --gold-bg: rgb(200 160 85 / 0.12);
+      --line: rgb(255 255 255 / 0.07);
+      --line-strong: rgb(255 255 255 / 0.1);
+      --sidebar-width: 264px;
+      --admin-content-max-width: min(1400px, 100%);
+      --main-pt: 32px;
+      --main-px: 32px;
+      --main-pb: 72px;
+      --sidebar-px: 6px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--page);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 12px;
+    }
+    .note {
+      padding: 12px 16px;
+      border-bottom: 0.5px solid var(--line);
+      background: rgb(200 160 85 / 0.08);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .note strong { color: var(--gold); }
+    .note a { color: var(--gold); }
+    .admin-shell {
+      min-height: calc(100vh - 72px);
+      display: grid;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      background:
+        radial-gradient(circle at 88% 8%, rgb(200 160 85 / 0.08), transparent 24%),
+        linear-gradient(135deg, var(--page), var(--deep));
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: calc(100vh - 72px);
+      padding: 30px var(--sidebar-px) 18px;
+      border-right: 0.5px solid var(--line);
+      background: rgb(16 15 10 / 0.76);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-head {
+      position: relative;
+      padding: 0 6px 20px 8px;
+      margin-bottom: 8px;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 40px;
+    }
+    .brand-name {
+      color: var(--gold);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      letter-spacing: 0.16em;
+    }
+    .version-pill {
+      height: 18px;
+      padding: 0 7px;
+      border: 0.5px solid var(--line-strong);
+      border-radius: 2px;
+      font-size: 10px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+    }
+    .sidebar-toggle {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border: 0.5px solid var(--line-strong);
+      border-radius: 2px;
+      background: rgb(255 255 255 / 0.03);
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .nav-title {
+      margin: 0 0 8px;
+      padding: 0 8px;
+      color: var(--weak);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+    .nav-item {
+      height: 40px;
+      margin-bottom: 4px;
+      padding: 0 8px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      border: 0.5px solid transparent;
+    }
+    .nav-item.active {
+      color: var(--gold);
+      background: var(--gold-bg);
+      border-color: rgb(200 160 85 / 0.26);
+    }
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      border: 0.5px solid currentColor;
+      border-radius: 2px;
+      opacity: 0.72;
+      flex-shrink: 0;
+    }
+    .main-content {
+      padding: var(--main-pt) var(--main-px) var(--main-pb);
+      overflow: auto;
+    }
+    .content-inner {
+      max-width: var(--admin-content-max-width);
+      margin: 0 auto;
+    }
+    .gutter-rail {
+      position: relative;
+      border: 1px dashed rgb(224 112 80 / 0.55);
+      background: rgb(224 112 80 / 0.06);
+      min-height: 420px;
+      padding: 16px;
+    }
+    .gutter-label {
+      position: absolute;
+      font-size: 10px;
+      color: rgb(224 112 80 / 0.9);
+      letter-spacing: 0.06em;
+    }
+    .gutter-label.top { top: -24px; left: 0; }
+    .gutter-label.left { top: 8px; left: -8px; writing-mode: vertical-rl; }
+    .gutter-label.right { top: 8px; right: -8px; writing-mode: vertical-rl; }
+    .page-hero { margin-bottom: 16px; }
+    .eyebrow { color: var(--gold); font-size: 10px; letter-spacing: 0.18em; margin: 0 0 6px; }
+    .page-title { margin: 0; font-size: 22px; font-weight: 400; }
+    .table-card {
+      border: 0.5px solid var(--line);
+      border-radius: 3px;
+      background: rgb(33 30 22 / 0.72);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 0.5px solid var(--line); }
+    th { color: var(--weak); font-weight: 400; }
+  </style>
+</head>
+<body>
+  <div class="note">
+    REQ-0013 原型 — <strong>expanded desktop</strong>（Golden Reference，1440 / 1920 共用 token）。
+    Sidebar <code>30px 6px 18px</code> · Main <code>32px 32px 72px</code> · Content <code>min(1400px, 100%)</code>。
+    虚线框标注 gutter 验收区。对照页：
+    <a href="admin-shell-padding-refine-collapsed.html">collapsed</a> ·
+    <a href="admin-shell-padding-refine-tablet.html">≤1023</a>
+  </div>
+  <div class="admin-shell" data-sidebar-state="expanded">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="sidebar-head">
+        <div class="brand-row">
+          <span class="brand-name">TILESFST</span>
+          <span class="version-pill">v0.0.1</span>
+        </div>
+        <button type="button" class="sidebar-toggle" aria-label="收起侧边栏">‹</button>
+      </div>
+      <nav aria-label="Operations">
+        <p class="nav-title">OPERATIONS</p>
+        <div class="nav-item"><span class="nav-icon"></span>首页</div>
+        <div class="nav-item active"><span class="nav-icon"></span>瓷砖 SKU</div>
+        <div class="nav-item"><span class="nav-icon"></span>瓷砖品牌</div>
+        <div class="nav-item"><span class="nav-icon"></span>瓷砖类目</div>
+        <div class="nav-item"><span class="nav-icon"></span>Banner 管理</div>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <div class="content-inner">
+        <div class="gutter-rail">
+          <span class="gutter-label top">main padding-top 32px</span>
+          <span class="gutter-label left">gutter ≤128px @1920 · ≤32px @1440</span>
+          <span class="gutter-label right">gutter ≤128px @1920</span>
+          <div class="page-hero">
+            <p class="eyebrow">OPERATIONS / SKU</p>
+            <h1 class="page-title">瓷砖 SKU</h1>
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>SKU 信息</th><th>品牌 / 类目</th><th>规格 / 工艺</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Classic Marble</td><td>Marco / 大理石</td><td>800×800 · 哑光</td><td>已上架</td><td>编辑</td></tr>
+                <tr><td>Urban Grey</td><td>Marco / 仿古砖</td><td>600×1200 · 柔光</td><td>已上架</td><td>编辑</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

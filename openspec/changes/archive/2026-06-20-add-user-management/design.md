@@ -3,12 +3,12 @@
 - **现状**：`users` 表含 `admin`/`employee`/`store_owner` 与 `active`/`disabled`；无用户管理 API；`admin-nav.ts` 中「用户管理」无 `path`。
 - **依赖**：`add-admin-home` 已提供 `AdminLayout`、`AdminSidebar`、`admin-home.css`（待 archive）。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0005-user-management/prototype/web/user-management-list.html`
-  2. `issues/requirements/REQ-0005-user-management/prototype/web/user-management-list.png`
-  3. `issues/requirements/REQ-0005-user-management/prototype/web/user-management-modal.html`
-  4. `issues/requirements/REQ-0005-user-management/prototype/web/user-management-modal.png`
+  1. `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-list.html`
+  2. `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-list.png`
+  3. `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-modal.html`
+  4. `issues/requirements/archive/REQ-0005-user-management/prototype/web/user-management-modal.png`
   5. `prototype/web/*-context.md`
-  6. `issues/requirements/REQ-0005-user-management/acceptance.md`
+  6. `issues/requirements/archive/REQ-0005-user-management/acceptance.md`
   7. `rules/ui-design.md`
   8. `openspec/specs/`
 

@@ -26,6 +26,10 @@ export function DashboardPage() {
       navigate('/admin/tile-skus?action=create');
       return;
     }
+    if (actionId === 'banner') {
+      navigate('/admin/banners?action=create');
+      return;
+    }
     onPlaceholder();
   };
 

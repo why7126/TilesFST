@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端登录页 Design System 实现
 
-Web 客户端管理端登录页（`/admin/login`）MUST 使用 `openspec/specs/design-system/spec.md` 定义的 Design Token 与 shadcn/ui 基础组件实现，MUST NOT 在登录页相关组件中使用硬编码 Hex 色值，MUST 对齐 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.md` 布局与视觉规范。
+Web 客户端管理端登录页（`/admin/login`）MUST 使用 `openspec/specs/design-system/spec.md` 定义的 Design Token 与 shadcn/ui 基础组件实现，MUST NOT 在登录页相关组件中使用硬编码 Hex 色值，MUST 对齐 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.md` 布局与视觉规范。
 
 #### Scenario: 登录页使用 Design Token
 

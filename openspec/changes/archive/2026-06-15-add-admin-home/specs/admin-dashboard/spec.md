@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端工作台 Shell 布局
 
-Web 客户端 MUST 为已认证管理端用户提供 `/admin/dashboard` 工作台页面，采用固定 Sidebar + 右侧内容区布局，视觉 MUST 高保真对齐 `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.html` 的 CSS Port 策略。Sidebar 宽度 MUST 为 264px、高度 MUST 为 100vh（`position: sticky`），MUST NOT 随右侧内容高度拉伸或滚动；右侧内容区 MUST 为 100vh 且 `overflow: auto`，主内容最大宽度 MUST 为 1080px 居中。
+Web 客户端 MUST 为已认证管理端用户提供 `/admin/dashboard` 工作台页面，采用固定 Sidebar + 右侧内容区布局，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.html` 的 CSS Port 策略。Sidebar 宽度 MUST 为 264px、高度 MUST 为 100vh（`position: sticky`），MUST NOT 随右侧内容高度拉伸或滚动；右侧内容区 MUST 为 100vh 且 `overflow: auto`，主内容最大宽度 MUST 为 1080px 居中。
 
 #### Scenario: 桌面端 Shell 布局
 

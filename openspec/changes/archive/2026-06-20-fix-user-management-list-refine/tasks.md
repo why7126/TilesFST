@@ -27,11 +27,11 @@
 
 - [x] 5.1 1280×1024 并排对比实现页与 v2 `user-management-list.html` / 导出 PNG
 - [x] 5.2 填写 `openspec/changes/fix-user-management-list-refine/trace.md` checklist（≥15 项）
-- [ ] 5.3 更新 `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（重新导出）
+- [ ] 5.3 更新 `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（重新导出）
 - [x] 5.4 回归：modal 行为与 `user-management-modal.png` 无变化
 
 ## 6. 文档与追溯
 
-- [x] 6.1 更新 `issues/requirements/REQ-0005-user-management-list-refine/trace.md`：`openspec_changes` status
+- [x] 6.1 更新 `issues/requirements/archive/REQ-0005-user-management-list-refine/trace.md`：`openspec_changes` status
 - [x] 6.2 （可选）同步 `docs/03-api-index.md` keyword 参数说明
 - [x] 6.3 完成后执行 `/opsx-archive fix-user-management-list-refine`（建议 `add-user-management` 已 archive 或同批处理）

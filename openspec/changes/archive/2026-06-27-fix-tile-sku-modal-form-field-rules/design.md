@@ -91,5 +91,5 @@
 ## 原型优先级
 
 1. BUG-0012 `acceptance.md`
-2. `issues/requirements/REQ-0006-tile-sku-management/requirement.md`（更新后）
+2. `issues/requirements/archive/REQ-0006-tile-sku-management/requirement.md`（更新后）
 3. `tile-sku-create-modal.html`（字段顺序不变；必填标记以产品规则为准）

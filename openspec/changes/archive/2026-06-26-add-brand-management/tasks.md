@@ -59,6 +59,6 @@
 ## 10. 文档与追溯
 
 - [x] 10.1 更新 `docs/03-api-index.md`、`docs/04-database-design.md`
-- [x] 10.2 更新 `issues/requirements/REQ-0005-brand-management/trace.md`（status: applied）
+- [x] 10.2 更新 `issues/requirements/archive/REQ-0005-brand-management/trace.md`（status: applied）
 - [ ] 10.3 建议导出 `prototype/web/brand-management.png` 与 `brand-management-modal.png`（可选）
 - [ ] 10.4 完成后 `/opsx-archive add-brand-management`

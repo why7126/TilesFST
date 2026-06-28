@@ -26,9 +26,9 @@ source: rules/ui-design.md + 登录页 UI 差距分析
 
 ```yaml
 iteration: sprint-001
-sprint_doc: iterations/sprint-001/sprint.md
-release_note: iterations/sprint-001/release-note.md
-acceptance_report: iterations/sprint-001/acceptance-report.md
+sprint_doc: iterations/archive/sprint-001/sprint.md
+release_note: iterations/archive/sprint-001/release-note.md
+acceptance_report: iterations/archive/sprint-001/acceptance-report.md
 ```
 
 ## 目标

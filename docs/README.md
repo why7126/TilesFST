@@ -48,6 +48,6 @@ update_method: 新增 docs 顶层或 standards 文档时同步更新
 |------|------|
 | 需求 | `issues/requirements/REQ-*` |
 | 缺陷 | `issues/bugs/BUG-*` |
-| 迭代 | `iterations/sprint-xxx/` |
+| 迭代 | `iterations/change/sprint-xxx/`（进行中）、`iterations/archive/sprint-xxx/`（已归档） |
 
 禁止恢复 `docs/prd/`、`docs/bugs/`、`docs/iterations/`。

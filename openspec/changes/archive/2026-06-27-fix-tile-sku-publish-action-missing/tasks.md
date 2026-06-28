@@ -16,6 +16,6 @@
 
 ## 4. 追溯与归档
 
-- [x] 4.1 更新 `issues/bugs/BUG-0014-tile-sku-publish-action-missing/trace.md`（`status: done`；`openspec_changes.status: applied`）
+- [x] 4.1 更新 `issues/bugs/archive/BUG-0014-tile-sku-publish-action-missing/trace.md`（`status: done`；`openspec_changes.status: applied`）
 - [ ] 4.2 （可选）`docs/knowledge-base/incidents/` 沉淀「DISABLED 行勿排除 publish 按钮」
 - [x] 4.3 完成后 `/opsx-archive fix-tile-sku-publish-action-missing`

@@ -19,8 +19,8 @@ purpose: fix-user-management-list-refine 与 REQ、原型、验收映射
 
 ## 2. 原型优先级
 
-1. `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.html`（v2）
-2. `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`
+1. `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.html`（v2）
+2. `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`
 3. `user-management-list-context.md`
 4. `acceptance.md`
 5. `rules/ui-design.md`

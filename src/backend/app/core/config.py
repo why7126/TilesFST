@@ -24,11 +24,11 @@ class Settings(BaseSettings):
     max_image_size_mb: int = Field(default=20, alias="MAX_IMAGE_SIZE_MB")
     max_video_size_mb: int = Field(default=500, alias="MAX_VIDEO_SIZE_MB")
     allowed_image_types: str = Field(
-        default="image/jpeg,image/png,image/webp,image/jpg",
+        default="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/svg+xml,image/bmp,image/tiff,image/heic",
         alias="ALLOWED_IMAGE_TYPES",
     )
     allowed_video_types: str = Field(
-        default="video/mp4,video/quicktime,video/x-msvideo",
+        default="video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska,video/mpeg,video/3gpp",
         alias="ALLOWED_VIDEO_TYPES",
     )
 
@@ -38,7 +38,14 @@ class Settings(BaseSettings):
     minio_secure: bool = Field(default=False, alias="MINIO_SECURE")
     minio_bucket: str = Field(default="tile-info-platform", alias="MINIO_BUCKET")
 
-    minio_prefix_original: str = Field(default="original/", alias="MINIO_PREFIX_ORIGINAL")
+    minio_prefix_images: str = Field(default="images/", alias="MINIO_PREFIX_IMAGES")
+    minio_prefix_original: str = Field(
+        default="original/",
+        alias="MINIO_PREFIX_ORIGINAL",
+        description="Deprecated: legacy image prefix; new uploads MUST use MINIO_PREFIX_IMAGES.",
+    )
+    minio_prefix_files: str = Field(default="files/", alias="MINIO_PREFIX_FILES")
+    minio_prefix_audios: str = Field(default="audios/", alias="MINIO_PREFIX_AUDIOS")
     minio_prefix_thumbnails: str = Field(default="thumbnails/", alias="MINIO_PREFIX_THUMBNAILS")
     minio_prefix_processed: str = Field(default="processed/", alias="MINIO_PREFIX_PROCESSED")
     minio_prefix_temp: str = Field(default="tmp/", alias="MINIO_PREFIX_TEMP")

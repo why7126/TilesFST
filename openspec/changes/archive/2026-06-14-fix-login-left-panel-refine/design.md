@@ -1,6 +1,6 @@
 ## Context
 
-- **需求来源**：`issues/requirements/REQ-0003-login-left-panel-refine/`
+- **需求来源**：`issues/requirements/archive/REQ-0003-login-left-panel-refine/`
 - **前序 change**：`update-tilesfst-login-simplify`（REQ-0002）、`fix-login-pixel-fidelity`（REQ-0001 视觉）
 - **当前实现**：CSS Port + `AuthBrandPanel` / `LoginForm`；主标题为 TilesFST；忘记密码按钮可见 noop
 - **约束**：`rules/ui-design.md` 登录专章；REQ-0002 视口无滚动 MUST 保留
@@ -10,9 +10,9 @@
 本 REQ **无独立 prototype/**；视觉以 **REQ-0001 `user-login.html` 结构 + REQ-0003 acceptance** 为准：
 
 ```text
-1. issues/requirements/REQ-0003-login-left-panel-refine/acceptance.md
-2. issues/requirements/REQ-0003-login-left-panel-refine/requirement.md
-3. issues/requirements/REQ-0001-user-login/prototype/web/user-login.html（结构参考）
+1. issues/requirements/archive/REQ-0003-login-left-panel-refine/acceptance.md
+2. issues/requirements/archive/REQ-0003-login-left-panel-refine/requirement.md
+3. issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html（结构参考）
 4. rules/ui-design.md
 5. openspec/specs/web-client/spec.md（归档态，本 change MODIFIED）
 ```

@@ -5,7 +5,7 @@
 - `data/minio/tile-info-platform/` — MinIO 持久化卷（预期、有效对象落盘）
 - `data/uploads/original/...` — BUG-0006 修复前本地上传孤儿文件（无 DB 引用）
 
-根因见 `issues/bugs/BUG-0008-object-storage-legacy-upload-residue/root-cause.md`：存储迁移缺少 post-migration cleanup；`UPLOAD_DIR` Docker 挂载与配置未收敛；`data/README.md` 对两目录职责说明不足。
+根因见 `issues/bugs/archive/BUG-0008-object-storage-legacy-upload-residue/root-cause.md`：存储迁移缺少 post-migration cleanup；`UPLOAD_DIR` Docker 挂载与配置未收敛；`data/README.md` 对两目录职责说明不足。
 
 ## What Changes
 

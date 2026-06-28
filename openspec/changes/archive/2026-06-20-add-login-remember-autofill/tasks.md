@@ -30,7 +30,7 @@
 
 - [x] 6.1 手工冒烟：记住填充、未勾选清除、登出清除、显隐切换（vitest 26 passed + `/admin/login` 200）
 - [x] 6.2 填写 `openspec/changes/add-login-remember-autofill/trace.md` checklist
-- [x] 6.3 更新 `issues/requirements/REQ-0003-login-remember-autofill/trace.md`（status: applied）
+- [x] 6.3 更新 `issues/requirements/archive/REQ-0003-login-remember-autofill/trace.md`（status: applied）
 - [x] 6.4 回归确认左栏 `REQ-0003-login-left-panel-refine` 无变更
 
 ## 7. 归档准备

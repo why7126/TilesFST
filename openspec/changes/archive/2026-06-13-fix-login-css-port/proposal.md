@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- 从 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.html` 提取 `<style>`，落地为登录页专用 stylesheet（如 `login-page.css` 或 CSS Module），颜色引用 `globals.css` 的 `--color-*` token，**禁止**在 TSX 中硬编码 Hex。
+- 从 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html` 提取 `<style>`，落地为登录页专用 stylesheet（如 `login-page.css` 或 CSS Module），颜色引用 `globals.css` 的 `--color-*` token，**禁止**在 TSX 中硬编码 Hex。
 - React 组件仅负责 DOM 结构与 auth 交互；登录页表单控件改用 **原生 `<input>` / `<button>` + port CSS class**，不再依赖 shadcn `Input`/`Checkbox`/`Button` 默认皮相（auth 逻辑仍走 `LoginForm` / hooks / store）。
 - 左栏按 HTML 还原：品牌三区布局、统计卡、CSS 材质拼贴（非 JPG 全屏背景）；氛围层（网格线、radial glow）与 HTML 一致。
 - 右栏按 HTML 还原：420px 表单宽、64px 输入框、56px 金色主按钮、全宽企微入口、安全说明文案；**移除** notice 横幅与旧版权 footer。

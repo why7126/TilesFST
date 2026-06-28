@@ -14,7 +14,7 @@ applied_at: 2026-06-26 09:47:15
 
 | 项目 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0004-brand-logo-upload-progress-missing` |
+| BUG | `issues/bugs/archive/BUG-0004-brand-logo-upload-progress-missing` |
 | Sprint | `sprint-002` |
 | 严重等级 | medium |
 | 评审 | `REV-BUG-0004-001`，approved |

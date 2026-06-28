@@ -1,6 +1,6 @@
 ## Why
 
-**BUG-0001-tile-category-enable-missing**（`issues/bugs/BUG-0001-tile-category-enable-missing/`）：瓷砖类目管理页对 **停用且 SKU=0** 的行错误隐藏「启用」按钮，运营无法通过 UI 重新启用类目。后端 `POST /api/v1/admin/tile-categories/{id}/enable` 已实现；缺陷为 `TileCategoryManagementPage.tsx` 将 `canDeleteCategory` 与启停按钮展示错误绑定（`deletable ? null : 启用`）。本 change 为 **fix-*** 回归修复，对齐 `REQ-0005-tile-category-management` AC-015 与 `BrandManagementPage` 模式。
+**BUG-0001-tile-category-enable-missing**（`issues/bugs/archive/BUG-0001-tile-category-enable-missing/`）：瓷砖类目管理页对 **停用且 SKU=0** 的行错误隐藏「启用」按钮，运营无法通过 UI 重新启用类目。后端 `POST /api/v1/admin/tile-categories/{id}/enable` 已实现；缺陷为 `TileCategoryManagementPage.tsx` 将 `canDeleteCategory` 与启停按钮展示错误绑定（`deletable ? null : 启用`）。本 change 为 **fix-*** 回归修复，对齐 `REQ-0005-tile-category-management` AC-015 与 `BrandManagementPage` 模式。
 
 ## What Changes
 

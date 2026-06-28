@@ -1,6 +1,6 @@
 ## Why
 
-`add-user-login` 已交付认证功能，但 Web 前端仍使用硬编码 Tailwind 色值、缺少 shadcn/ui 与 Design Token 层，导致登录页与 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.md`、`rules/ui-design.md` 的「工业石材 · 暗色旗舰风」差距较大。AGENTS.md 强制要求 Tailwind + shadcn/ui，且后续 tile-catalog、tile-admin 等页面需要统一视觉语言。必须先建立可复用的 Design System，再作为各业务页面的消费基础。
+`add-user-login` 已交付认证功能，但 Web 前端仍使用硬编码 Tailwind 色值、缺少 shadcn/ui 与 Design Token 层，导致登录页与 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.md`、`rules/ui-design.md` 的「工业石材 · 暗色旗舰风」差距较大。AGENTS.md 强制要求 Tailwind + shadcn/ui，且后续 tile-catalog、tile-admin 等页面需要统一视觉语言。必须先建立可复用的 Design System，再作为各业务页面的消费基础。
 
 ## What Changes
 

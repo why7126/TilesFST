@@ -53,6 +53,25 @@ result: approved | rejected | deferred
 
 填写 `lifecycle.reviewed`、`lifecycle.approved`（若 approve）
 
+## Step 5 — 目录迁移（MUST，`--approve` 时）
+
+Read `rules/issues-lifecycle.md`。
+
+| Flag | 迁移 |
+|------|------|
+| `--approve` | `plan/` → `review/` |
+| `--reject` / `--defer` | **跳过**（保留 `plan/`） |
+
+`--approve` 时 **MUST** 在 Workflow Sync **之前**运行：
+
+```bash
+python scripts/promote-issue-stage.py --req <REQ-id> --to review --reason "/req-review --approve"
+```
+
+- Exit code **MUST** be `0`（已在 `review/` 时可 no-op）。
+- 打印脚本 stdout（迁移路径、引用更新计数）。
+- `--dry-run` 仅用于预检，不得作为命令结束状态。
+
 ## 门禁
 
 **仅 `approved`** 可执行 `/req-opsx`、`/sprint-propose` 纳入。

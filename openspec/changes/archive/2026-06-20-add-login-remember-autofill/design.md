@@ -3,10 +3,10 @@
 - **现状**：`LoginForm` 有「记住登录状态」复选框，仅影响 `remember_me` 与 token 存储；无凭证自动填充；密码无显隐。
 - **依赖**：`REQ-0001-user-login` CSS Port、`REQ-0003-login-left-panel-refine` 左栏（本 change **不改** 左栏）。
 - **原型来源**（优先级）：
-  1. `issues/requirements/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md`
-  2. `issues/requirements/REQ-0001-user-login/prototype/web/user-login.html`（布局壳层）
-  3. `issues/requirements/REQ-0001-user-login/prototype/web/user-login.png`（左栏与整体；密码显隐以 context 为准）
-  4. `issues/requirements/REQ-0003-login-remember-autofill/acceptance.md`
+  1. `issues/requirements/archive/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md`
+  2. `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html`（布局壳层）
+  3. `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png`（左栏与整体；密码显隐以 context 为准）
+  4. `issues/requirements/archive/REQ-0003-login-remember-autofill/acceptance.md`
   5. `rules/ui-design.md`
   6. `openspec/specs/web-client/spec.md`
 

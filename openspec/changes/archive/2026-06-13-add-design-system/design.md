@@ -1,7 +1,7 @@
 ## Context
 
 - **背景**：`src/web` 当前 `globals.css` 仅 `@import "tailwindcss"`；无 `components/ui/`；登录页等业务组件直接硬编码 `#18160F`、`#C8A055` 等色值。
-- **规范来源**：`rules/ui-design.md`（工业石材 · 暗色旗舰风 v1.0）、`issues/requirements/REQ-0001-user-login/prototype/web/user-login.md` §4 Design Token。
+- **规范来源**：`rules/ui-design.md`（工业石材 · 暗色旗舰风 v1.0）、`issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.md` §4 Design Token。
 - **技术栈约束**：React 19、TypeScript、Tailwind CSS v4、shadcn/ui、pnpm（本地）/ npm（Docker）。
 - **前置 Change**：`add-user-login` 功能已完成；本 Change 为 Path C Phase 1，后续 `refactor-login-ui` 为 Phase 2。
 

@@ -10,6 +10,10 @@ vi.mock('../../../features/auth/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
+vi.mock('../../../features/admin/api/profile-api', () => ({
+  fetchProfileMe: vi.fn().mockResolvedValue({ email: 'admin@tilesfst.com' }),
+}));
+
 describe('AdminLayout', () => {
   beforeEach(() => {
     localStorage.clear();

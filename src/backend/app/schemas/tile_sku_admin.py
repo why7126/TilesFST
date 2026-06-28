@@ -54,6 +54,7 @@ class TileSkuAdminItem(BaseModel):
     brand_name: str
     category_id: int
     category_name: str
+    spec_id: int | None = None
     size: str
     surface_finish: str
     color_family: str | None = None
@@ -90,6 +91,7 @@ class TileSkuCreateRequest(BaseModel):
     sku_code: str | None = None
     brand_id: int | None = None
     category_id: int | None = None
+    spec_id: int | None = None
     size: str | None = None
     surface_finish: str | None = None
     color_family: str | None = None
@@ -104,6 +106,7 @@ class TileSkuUpdateRequest(BaseModel):
     sku_code: str | None = None
     brand_id: int | None = None
     category_id: int | None = None
+    spec_id: int | None = None
     size: str | None = None
     surface_finish: str | None = None
     color_family: str | None = None

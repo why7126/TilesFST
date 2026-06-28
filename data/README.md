@@ -58,6 +58,21 @@ python scripts/clean_legacy_uploads.py --check-only
 2. 在 MinIO Console 或 `data/minio/tile-info-platform/{object_key}` 确认对象存在。
 3. **不要**以 `data/uploads` 是否有同名文件判断上传是否成功。
 
+示例 Key（REQ-0012 新布局）：
+
+```text
+images/default/brands/logos/<uuid>.webp
+images/default/user/avatars/<uuid>.png
+videos/default/tiles/pending/<uuid>.mp4
+```
+
+存量 `original/.../{YYYY}/{MM}/...` 布局迁移：
+
+```bash
+python scripts/migrate_object_keys.py --dry-run
+python scripts/migrate_object_keys.py --apply
+```
+
 ## 提交规则
 
 - 可以提交 `.gitkeep`、README、脱敏样例数据。

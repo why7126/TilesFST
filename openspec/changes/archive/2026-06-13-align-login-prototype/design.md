@@ -61,7 +61,7 @@
 
 ### D6：验收方式
 
-- **决策**：更新 `issues/requirements/REQ-0001-user-login/acceptance.md` 视觉项；Sprint acceptance-report 仅在实际对比通过后勾选。
+- **决策**：更新 `issues/requirements/archive/REQ-0001-user-login/acceptance.md` 视觉项；Sprint acceptance-report 仅在实际对比通过后勾选。
 - **检查点**：背景图、语言切换、企微图标、分屏比例、输入框高度 64px、按钮金色 CTA。
 
 ## Risks / Trade-offs

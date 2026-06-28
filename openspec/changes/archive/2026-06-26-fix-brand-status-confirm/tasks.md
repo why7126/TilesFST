@@ -20,6 +20,6 @@
 
 ## 4. 追溯与归档
 
-- [x] 4.1 更新 `issues/requirements/REQ-0008-brand-status-confirm/trace.md`（`openspec_changes.status: applied`）
-- [x] 4.2 更新 `iterations/sprint-002/acceptance-report.md` REQ-0008 验收状态
+- [x] 4.1 更新 `issues/requirements/archive/REQ-0008-brand-status-confirm/trace.md`（`openspec_changes.status: applied`）
+- [x] 4.2 更新 `iterations/archive/sprint-002/acceptance-report.md` REQ-0008 验收状态
 - [x] 4.3 完成后 `/opsx-archive fix-brand-status-confirm`

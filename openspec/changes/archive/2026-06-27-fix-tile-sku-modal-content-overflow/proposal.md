@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0011-tile-sku-modal-content-overflow](issues/bugs/BUG-0011-tile-sku-modal-content-overflow/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 新增/编辑弹窗（`TileSkuFormModal`）在常见视口下内容超出可视区域，且弹窗内无有效垂直滚动，底部字段（图片/视频/备注）与操作按钮不可达，阻塞 SKU 主数据创建与编辑。
+[BUG-0011-tile-sku-modal-content-overflow](issues/bugs/archive/BUG-0011-tile-sku-modal-content-overflow/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 新增/编辑弹窗（`TileSkuFormModal`）在常见视口下内容超出可视区域，且弹窗内无有效垂直滚动，底部字段（图片/视频/备注）与操作按钮不可达，阻塞 SKU 主数据创建与编辑。
 
 当前 `add-tile-sku-management` 尚未归档；REQ-0006 **AC-022** 与 add change 的 web-client spec 均要求「头尾固定、主体可滚动」，但实现遗漏 `.modal-body` 的 flex 滚动配置。根据项目规则，验收后发现的可用性缺陷 MUST 使用新的 `fix-*` change 修复。
 

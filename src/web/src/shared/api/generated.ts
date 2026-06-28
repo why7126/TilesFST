@@ -11,6 +11,56 @@ import type {
   AxiosResponse
 } from 'axios';
 
+export interface BannerAdminItem {
+  id: number;
+  title: string;
+  display_client: string;
+  position: string;
+  image_object_key: string;
+  image_url: string;
+  image_source: string;
+  sku_gallery_asset_id?: number | null;
+  jump_type: string;
+  sku_id?: number | null;
+  external_url?: string | null;
+  topic_id?: number | null;
+  sort_order: number;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  status: string;
+  time_status?: string | null;
+  remark?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseBannerAdminItem {
+  code?: number;
+  message?: string;
+  data?: BannerAdminItem | null;
+}
+
+export interface BannerAdminSummary {
+  total: number;
+  filtered_count: number;
+  online_count: number;
+  pending_count: number;
+}
+
+export interface BannerAdminListData {
+  items: BannerAdminItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  summary: BannerAdminSummary;
+}
+
+export interface ApiResponseBannerAdminListData {
+  code?: number;
+  message?: string;
+  data?: BannerAdminListData | null;
+}
+
 export interface BrandAdminItem {
   id: number;
   name: string;
@@ -53,6 +103,16 @@ export interface ApiResponseBrandAdminListData {
   data?: BrandAdminListData | null;
 }
 
+export interface ChangePasswordData {
+  success?: boolean;
+}
+
+export interface ApiResponseChangePasswordData {
+  code?: number;
+  message?: string;
+  data?: ChangePasswordData | null;
+}
+
 export interface UserProfile {
   id: string;
   username: string;
@@ -91,6 +151,27 @@ export interface ApiResponseNoneType {
   data?: null;
 }
 
+export interface ProfileMe {
+  id: string;
+  username: string;
+  display_name: string;
+  role: string;
+  status: string;
+  email?: string | null;
+  phone?: string | null;
+  remark?: string | null;
+  avatar_object_key?: string | null;
+  avatar_url?: string | null;
+  last_login_at?: string | null;
+  updated_at: string;
+}
+
+export interface ApiResponseProfileMe {
+  code?: number;
+  message?: string;
+  data?: ProfileMe | null;
+}
+
 export interface ResetPasswordData {
   password: string;
 }
@@ -99,6 +180,38 @@ export interface ApiResponseResetPasswordData {
   code?: number;
   message?: string;
   data?: ResetPasswordData | null;
+}
+
+export interface SystemSettingsAuditItem {
+  id: string;
+  actor_user_id?: string | null;
+  actor_display_name?: string | null;
+  action_type: string;
+  summary: string;
+  created_at: string;
+}
+
+export interface SystemSettingsAuditRecentData {
+  items: SystemSettingsAuditItem[];
+}
+
+export interface ApiResponseSystemSettingsAuditRecentData {
+  code?: number;
+  message?: string;
+  data?: SystemSettingsAuditRecentData | null;
+}
+
+export type SystemSettingsGroupResponseData = { [key: string]: unknown };
+
+export interface SystemSettingsGroupResponse {
+  group: string;
+  data?: SystemSettingsGroupResponseData;
+}
+
+export interface ApiResponseSystemSettingsGroupResponse {
+  code?: number;
+  message?: string;
+  data?: SystemSettingsGroupResponse | null;
 }
 
 export interface TileCategoryAdminItem {
@@ -189,6 +302,7 @@ export interface TileSkuAdminItem {
   brand_name: string;
   category_id: number;
   category_name: string;
+  spec_id?: number | null;
   size: string;
   surface_finish: string;
   color_family?: string | null;
@@ -231,6 +345,68 @@ export interface ApiResponseTileSkuAdminListData {
   code?: number;
   message?: string;
   data?: TileSkuAdminListData | null;
+}
+
+export interface TileSpecAdminItem {
+  id: number;
+  width_mm: number;
+  length_mm: number;
+  thickness_mm?: number | null;
+  unit: string;
+  display_name: string;
+  sort_order: number;
+  status: string;
+  sku_count: number;
+  remark?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseTileSpecAdminItem {
+  code?: number;
+  message?: string;
+  data?: TileSpecAdminItem | null;
+}
+
+export interface TileSpecAdminSummary {
+  total: number;
+  enabled_count: number;
+  disabled_count: number;
+  unlinked_sku_count: number;
+}
+
+export interface TileSpecAdminListData {
+  items: TileSpecAdminItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  summary: TileSpecAdminSummary;
+}
+
+export interface ApiResponseTileSpecAdminListData {
+  code?: number;
+  message?: string;
+  data?: TileSpecAdminListData | null;
+}
+
+export interface TopicAdminItem {
+  id: number;
+  code: string;
+  title: string;
+  status: string;
+  cover_object_key?: string | null;
+  cover_url?: string | null;
+}
+
+export interface TopicAdminListData {
+  items: TopicAdminItem[];
+  total: number;
+}
+
+export interface ApiResponseTopicAdminListData {
+  code?: number;
+  message?: string;
+  data?: TopicAdminListData | null;
 }
 
 export interface UploadResult {
@@ -302,6 +478,27 @@ export interface ApiResponseUserProfile {
   data?: UserProfile | null;
 }
 
+export type ApiResponseDictStrBoolData = {[key: string]: boolean} | null;
+
+export interface ApiResponseDictStrBool {
+  code?: number;
+  message?: string;
+  data?: ApiResponseDictStrBoolData;
+}
+
+export interface ProfileActivityItem {
+  id: string;
+  action_type: string;
+  summary: string;
+  created_at: string;
+}
+
+export interface ApiResponseListProfileActivityItem {
+  code?: number;
+  message?: string;
+  data?: ProfileActivityItem[] | null;
+}
+
 export interface TileCategoryTreeNode {
   id: number;
   name: string;
@@ -316,6 +513,52 @@ export interface ApiResponseListTileCategoryTreeNode {
   code?: number;
   message?: string;
   data?: TileCategoryTreeNode[] | null;
+}
+
+export interface BannerCreateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  title: string;
+  display_client: string;
+  position: string;
+  image_object_key: string;
+  image_source: string;
+  sku_gallery_asset_id?: number | null;
+  jump_type: string;
+  sku_id?: number | null;
+  external_url?: string | null;
+  topic_id?: number | null;
+  sort_order?: number;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  remark?: string | null;
+}
+
+export interface BannerUpdateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  title: string;
+  display_client: string;
+  position: string;
+  image_object_key: string;
+  image_source: string;
+  sku_gallery_asset_id?: number | null;
+  jump_type: string;
+  sku_id?: number | null;
+  external_url?: string | null;
+  topic_id?: number | null;
+  sort_order: number;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  remark?: string | null;
+}
+
+export interface BodyUploadBannerImageApiV1AdminUploadsBannerImagesPost {
+  file: Blob;
 }
 
 export interface BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost {
@@ -360,6 +603,13 @@ export interface BrandUpdateRequest {
   description?: string | null;
 }
 
+export interface ChangePasswordRequest {
+  /** @minLength 1 */
+  old_password: string;
+  /** @minLength 1 */
+  new_password: string;
+}
+
 export type ValidationErrorCtx = { [key: string]: unknown };
 
 export interface ValidationError {
@@ -380,6 +630,14 @@ export interface LoginRequest {
   /** @minLength 1 */
   password: string;
   remember_me?: boolean;
+}
+
+export interface ProfilePatchRequest {
+  display_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  remark?: string | null;
+  avatar_object_key?: string | null;
 }
 
 export interface TileCategoryCreateRequest {
@@ -472,6 +730,7 @@ export interface TileSkuCreateRequest {
   sku_code?: string | null;
   brand_id?: number | null;
   category_id?: number | null;
+  spec_id?: number | null;
   size?: string | null;
   surface_finish?: string | null;
   color_family?: string | null;
@@ -486,6 +745,7 @@ export interface TileSkuUpdateRequest {
   sku_code?: string | null;
   brand_id?: number | null;
   category_id?: number | null;
+  spec_id?: number | null;
   size?: string | null;
   surface_finish?: string | null;
   color_family?: string | null;
@@ -493,6 +753,40 @@ export interface TileSkuUpdateRequest {
   remark?: string | null;
   images?: TileSkuImageInput[] | null;
   videos?: TileSkuVideoInput[] | null;
+}
+
+export interface TileSpecCreateRequest {
+  /**
+     * @minimum 1
+     * @maximum 9999
+     */
+  width_mm: number;
+  /**
+     * @minimum 1
+     * @maximum 9999
+     */
+  length_mm: number;
+  thickness_mm?: number | null;
+  /** @minimum 1 */
+  sort_order: number;
+  remark?: string | null;
+}
+
+export interface TileSpecUpdateRequest {
+  /**
+     * @minimum 1
+     * @maximum 9999
+     */
+  width_mm: number;
+  /**
+     * @minimum 1
+     * @maximum 9999
+     */
+  length_mm: number;
+  thickness_mm?: number | null;
+  /** @minimum 1 */
+  sort_order: number;
+  remark?: string | null;
 }
 
 export interface UserCreateRequest {
@@ -532,6 +826,16 @@ status?: string | null;
 login_filter?: string | null;
 };
 
+export type GetRecentAuditApiV1AdminSystemSettingsAuditRecentGetParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+};
+
+export type PatchSettingsGroupApiV1AdminSystemSettingsGroupPatchBody = { [key: string]: unknown };
+
 export type ListBrandsApiV1AdminBrandsGetParams = {
 /**
  * @minimum 1
@@ -542,6 +846,27 @@ page?: number;
  * @maximum 100
  */
 page_size?: number;
+keyword?: string | null;
+status?: string | null;
+};
+
+export type ListBannersApiV1AdminBannersGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+keyword?: string | null;
+display_client?: string | null;
+status?: string | null;
+time_status?: string | null;
+};
+
+export type ListTopicsApiV1AdminTopicsGetParams = {
 keyword?: string | null;
 status?: string | null;
 };
@@ -589,6 +914,20 @@ export const ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness = {
   missing_videos: 'missing_videos',
 } as const;
 
+export type ListTileSpecsApiV1AdminTileSpecsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+keyword?: string | null;
+status?: string | null;
+};
+
 export type UploadTileImageApiV1AdminUploadsTileImagesPostParams = {
 tile_id?: number | null;
 };
@@ -632,6 +971,52 @@ const logoutApiV1AuthLogoutPost = (
     return axiosInstance.post(
       `/api/v1/auth/logout`,
       undefined,options
+    );
+  }
+
+/**
+ * @summary 获取当前用户个人资料
+ */
+const getProfileMeApiV1ProfileMeGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseProfileMe>> => {
+    return axiosInstance.get(
+      `/api/v1/profile/me`,options
+    );
+  }
+
+/**
+ * @summary 更新当前用户个人资料
+ */
+const patchProfileMeApiV1ProfileMePatch = (
+    profilePatchRequest: ProfilePatchRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseProfileMe>> => {
+    return axiosInstance.patch(
+      `/api/v1/profile/me`,
+      profilePatchRequest,options
+    );
+  }
+
+/**
+ * @summary 获取个人资料操作记录
+ */
+const getProfileActivitiesApiV1ProfileMeActivitiesGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseListProfileActivityItem>> => {
+    return axiosInstance.get(
+      `/api/v1/profile/me/activities`,options
+    );
+  }
+
+/**
+ * @summary 修改当前用户密码
+ */
+const changePasswordApiV1AdminProfilePasswordPost = (
+    changePasswordRequest: ChangePasswordRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseChangePasswordData>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/profile/password`,
+      changePasswordRequest,options
     );
   }
 
@@ -744,6 +1129,55 @@ const updateUserStatusApiV1AdminUsersUserIdStatusPatch = (
   }
 
 /**
+ * @summary 最近系统设置变更
+ */
+const getRecentAuditApiV1AdminSystemSettingsAuditRecentGet = (
+    params?: GetRecentAuditApiV1AdminSystemSettingsAuditRecentGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseSystemSettingsAuditRecentData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/system-settings/audit/recent`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 读取设置分组
+ */
+const getSettingsGroupApiV1AdminSystemSettingsGroupGet = (
+    group: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseSystemSettingsGroupResponse>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/system-settings/${group}`,options
+    );
+  }
+
+/**
+ * @summary 更新设置分组
+ */
+const patchSettingsGroupApiV1AdminSystemSettingsGroupPatch = (
+    group: string,
+    patchSettingsGroupApiV1AdminSystemSettingsGroupPatchBody: PatchSettingsGroupApiV1AdminSystemSettingsGroupPatchBody, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseSystemSettingsGroupResponse>> => {
+    return axiosInstance.patch(
+      `/api/v1/admin/system-settings/${group}`,
+      patchSettingsGroupApiV1AdminSystemSettingsGroupPatchBody,options
+    );
+  }
+
+/**
+ * @summary 恢复设置分组默认
+ */
+const resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost = (
+    group: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseSystemSettingsGroupResponse>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/system-settings/${group}/reset`,
+      undefined,options
+    );
+  }
+
+/**
  * @summary 品牌列表
  */
 const listBrandsApiV1AdminBrandsGet = (
@@ -824,6 +1258,103 @@ const disableBrandApiV1AdminBrandsBrandIdDisablePost = (
     return axiosInstance.post(
       `/api/v1/admin/brands/${brandId}/disable`,
       undefined,options
+    );
+  }
+
+/**
+ * @summary Banner 列表
+ */
+const listBannersApiV1AdminBannersGet = (
+    params?: ListBannersApiV1AdminBannersGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/banners`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建 Banner
+ */
+const createBannerApiV1AdminBannersPost = (
+    bannerCreateRequest: BannerCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/banners`,
+      bannerCreateRequest,options
+    );
+  }
+
+/**
+ * @summary Banner 详情
+ */
+const getBannerApiV1AdminBannersBannerIdGet = (
+    bannerId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/banners/${bannerId}`,options
+    );
+  }
+
+/**
+ * @summary 更新 Banner
+ */
+const updateBannerApiV1AdminBannersBannerIdPut = (
+    bannerId: number,
+    bannerUpdateRequest: BannerUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/banners/${bannerId}`,
+      bannerUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除 Banner
+ */
+const deleteBannerApiV1AdminBannersBannerIdDelete = (
+    bannerId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseNoneType>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/banners/${bannerId}`,options
+    );
+  }
+
+/**
+ * @summary 上线 Banner
+ */
+const onlineBannerApiV1AdminBannersBannerIdOnlinePost = (
+    bannerId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/banners/${bannerId}/online`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 下线 Banner
+ */
+const offlineBannerApiV1AdminBannersBannerIdOfflinePost = (
+    bannerId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBannerAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/banners/${bannerId}/offline`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 专题列表（只读）
+ */
+const listTopicsApiV1AdminTopicsGet = (
+    params?: ListTopicsApiV1AdminTopicsGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTopicAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/topics`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 
@@ -1007,6 +1538,90 @@ const unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost = (
   }
 
 /**
+ * @summary 瓷砖规格列表
+ */
+const listTileSpecsApiV1AdminTileSpecsGet = (
+    params?: ListTileSpecsApiV1AdminTileSpecsGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-specs`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建瓷砖规格
+ */
+const createTileSpecApiV1AdminTileSpecsPost = (
+    tileSpecCreateRequest: TileSpecCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-specs`,
+      tileSpecCreateRequest,options
+    );
+  }
+
+/**
+ * @summary 瓷砖规格详情
+ */
+const getTileSpecApiV1AdminTileSpecsSpecIdGet = (
+    specId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/tile-specs/${specId}`,options
+    );
+  }
+
+/**
+ * @summary 更新瓷砖规格
+ */
+const updateTileSpecApiV1AdminTileSpecsSpecIdPut = (
+    specId: number,
+    tileSpecUpdateRequest: TileSpecUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/tile-specs/${specId}`,
+      tileSpecUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除瓷砖规格
+ */
+const deleteTileSpecApiV1AdminTileSpecsSpecIdDelete = (
+    specId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseDictStrBool>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/tile-specs/${specId}`,options
+    );
+  }
+
+/**
+ * @summary 启用瓷砖规格
+ */
+const enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost = (
+    specId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-specs/${specId}/enable`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 停用瓷砖规格
+ */
+const disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost = (
+    specId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseTileSpecAdminItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/tile-specs/${specId}/disable`,
+      undefined,options
+    );
+  }
+
+/**
  * @summary 上传头像
  */
 const uploadImageApiV1AdminUploadsPost = (
@@ -1030,6 +1645,20 @@ formData.append(`file`, bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost.file)
 
     return axiosInstance.post(
       `/api/v1/admin/uploads/brand-logos`,
+      formData,options
+    );
+  }
+
+/**
+ * @summary 上传 Banner 图片
+ */
+const uploadBannerImageApiV1AdminUploadsBannerImagesPost = (
+    bodyUploadBannerImageApiV1AdminUploadsBannerImagesPost: BodyUploadBannerImageApiV1AdminUploadsBannerImagesPost, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
+formData.append(`file`, bodyUploadBannerImageApiV1AdminUploadsBannerImagesPost.file);
+
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/banner-images`,
       formData,options
     );
   }
@@ -1079,10 +1708,14 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type LogoutApiV1AuthLogoutPostResult = AxiosResponse<ApiResponseLogoutData>
+export type GetProfileMeApiV1ProfileMeGetResult = AxiosResponse<ApiResponseProfileMe>
+export type PatchProfileMeApiV1ProfileMePatchResult = AxiosResponse<ApiResponseProfileMe>
+export type GetProfileActivitiesApiV1ProfileMeActivitiesGetResult = AxiosResponse<ApiResponseListProfileActivityItem>
+export type ChangePasswordApiV1AdminProfilePasswordPostResult = AxiosResponse<ApiResponseChangePasswordData>
 export type ListTilesApiV1TilesGetResult = AxiosResponse<TileListItem[]>
 export type GetTileApiV1TilesTileIdGetResult = AxiosResponse<TileDetail>
 export type CreateTileApiV1AdminTilesPostResult = AxiosResponse<TileDetail>
@@ -1092,6 +1725,10 @@ export type GetUserApiV1AdminUsersUserIdGetResult = AxiosResponse<ApiResponseUse
 export type UpdateUserApiV1AdminUsersUserIdPatchResult = AxiosResponse<ApiResponseUserAdminItem>
 export type ResetPasswordApiV1AdminUsersUserIdResetPasswordPostResult = AxiosResponse<ApiResponseResetPasswordData>
 export type UpdateUserStatusApiV1AdminUsersUserIdStatusPatchResult = AxiosResponse<ApiResponseUserAdminItem>
+export type GetRecentAuditApiV1AdminSystemSettingsAuditRecentGetResult = AxiosResponse<ApiResponseSystemSettingsAuditRecentData>
+export type GetSettingsGroupApiV1AdminSystemSettingsGroupGetResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
+export type PatchSettingsGroupApiV1AdminSystemSettingsGroupPatchResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
+export type ResetSettingsGroupApiV1AdminSystemSettingsGroupResetPostResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
 export type ListBrandsApiV1AdminBrandsGetResult = AxiosResponse<ApiResponseBrandAdminListData>
 export type CreateBrandApiV1AdminBrandsPostResult = AxiosResponse<ApiResponseBrandAdminItem>
 export type GetBrandApiV1AdminBrandsBrandIdGetResult = AxiosResponse<ApiResponseBrandAdminItem>
@@ -1099,6 +1736,14 @@ export type UpdateBrandApiV1AdminBrandsBrandIdPutResult = AxiosResponse<ApiRespo
 export type DeleteBrandApiV1AdminBrandsBrandIdDeleteResult = AxiosResponse<ApiResponseNoneType>
 export type EnableBrandApiV1AdminBrandsBrandIdEnablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
 export type DisableBrandApiV1AdminBrandsBrandIdDisablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type ListBannersApiV1AdminBannersGetResult = AxiosResponse<ApiResponseBannerAdminListData>
+export type CreateBannerApiV1AdminBannersPostResult = AxiosResponse<ApiResponseBannerAdminItem>
+export type GetBannerApiV1AdminBannersBannerIdGetResult = AxiosResponse<ApiResponseBannerAdminItem>
+export type UpdateBannerApiV1AdminBannersBannerIdPutResult = AxiosResponse<ApiResponseBannerAdminItem>
+export type DeleteBannerApiV1AdminBannersBannerIdDeleteResult = AxiosResponse<ApiResponseNoneType>
+export type OnlineBannerApiV1AdminBannersBannerIdOnlinePostResult = AxiosResponse<ApiResponseBannerAdminItem>
+export type OfflineBannerApiV1AdminBannersBannerIdOfflinePostResult = AxiosResponse<ApiResponseBannerAdminItem>
+export type ListTopicsApiV1AdminTopicsGetResult = AxiosResponse<ApiResponseTopicAdminListData>
 export type GetCategoryTreeApiV1AdminTileCategoriesTreeGetResult = AxiosResponse<ApiResponseListTileCategoryTreeNode>
 export type ListCategoriesApiV1AdminTileCategoriesGetResult = AxiosResponse<ApiResponseTileCategoryAdminListData>
 export type CreateCategoryApiV1AdminTileCategoriesPostResult = AxiosResponse<ApiResponseTileCategoryAdminItem>
@@ -1114,8 +1759,16 @@ export type UpdateTileSkuApiV1AdminTileSkusTileIdPutResult = AxiosResponse<ApiRe
 export type DeleteTileSkuApiV1AdminTileSkusTileIdDeleteResult = AxiosResponse<ApiResponseNoneType>
 export type PublishTileSkuApiV1AdminTileSkusTileIdPublishPostResult = AxiosResponse<ApiResponseTileSkuAdminItem>
 export type UnpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPostResult = AxiosResponse<ApiResponseTileSkuAdminItem>
+export type ListTileSpecsApiV1AdminTileSpecsGetResult = AxiosResponse<ApiResponseTileSpecAdminListData>
+export type CreateTileSpecApiV1AdminTileSpecsPostResult = AxiosResponse<ApiResponseTileSpecAdminItem>
+export type GetTileSpecApiV1AdminTileSpecsSpecIdGetResult = AxiosResponse<ApiResponseTileSpecAdminItem>
+export type UpdateTileSpecApiV1AdminTileSpecsSpecIdPutResult = AxiosResponse<ApiResponseTileSpecAdminItem>
+export type DeleteTileSpecApiV1AdminTileSpecsSpecIdDeleteResult = AxiosResponse<ApiResponseDictStrBool>
+export type EnableTileSpecApiV1AdminTileSpecsSpecIdEnablePostResult = AxiosResponse<ApiResponseTileSpecAdminItem>
+export type DisableTileSpecApiV1AdminTileSpecsSpecIdDisablePostResult = AxiosResponse<ApiResponseTileSpecAdminItem>
 export type UploadImageApiV1AdminUploadsPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadBrandLogoApiV1AdminUploadsBrandLogosPostResult = AxiosResponse<ApiResponseUploadResult>
+export type UploadBannerImageApiV1AdminUploadsBannerImagesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadTileImageApiV1AdminUploadsTileImagesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadTileVideoApiV1AdminUploadsTileVideosPostResult = AxiosResponse<ApiResponseUploadResult>
 export type HealthCheckHealthGetResult = AxiosResponse<HealthCheckHealthGet200>

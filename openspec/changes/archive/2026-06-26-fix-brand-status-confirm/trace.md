@@ -13,7 +13,7 @@
 
 ## 视觉 Diff Checklist（1280×1024）
 
-对照 `issues/requirements/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`。
+对照 `issues/requirements/archive/REQ-0008-brand-status-confirm/prototype/web/brand-status-confirm-context.md`。
 
 | # | 项 | Pass |
 |---|-----|------|

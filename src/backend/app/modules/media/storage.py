@@ -148,6 +148,16 @@ def build_upload_object_key(prefix: str, resource_type: str, content_type: str |
     return build_object_key(prefix, resource_type, extension)
 
 
+def build_image_upload_object_key(resource_type: str, content_type: str | None) -> str:
+    prefix = settings.minio_prefix_images.rstrip("/")
+    return build_upload_object_key(prefix, resource_type, content_type)
+
+
+def build_video_upload_object_key(resource_type: str, content_type: str | None) -> str:
+    prefix = settings.minio_prefix_video.rstrip("/")
+    return build_upload_object_key(prefix, resource_type, content_type)
+
+
 def validate_object_key(object_key: str) -> PurePosixPath:
     key = object_key.strip()
     if not key or key.startswith("/") or "\\" in key or "//" in key:

@@ -5,18 +5,32 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, get_user_repository
+from app.core.deps import get_current_user, get_effective_settings_service, get_user_repository
+from app.db.session import get_db
+from app.repositories.profile_activity_repository import ProfileActivityRepository
 from app.repositories.user_repository import UserRecord, UserRepository
 from app.schemas.auth import LoginData, LoginRequest, LogoutData, UserProfile
 from app.schemas.common import ApiResponse
 from app.services.auth_service import AuthService
+from app.services.effective_settings_service import EffectiveSettingsService
 
 router = APIRouter()
 
 
-def get_auth_service(repo: Annotated[UserRepository, Depends(get_user_repository)]) -> AuthService:
-    return AuthService(repo)
+def get_profile_activity_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfileActivityRepository:
+    return ProfileActivityRepository(db)
+
+
+def get_auth_service(
+    repo: Annotated[UserRepository, Depends(get_user_repository)],
+    activity_repo: Annotated[ProfileActivityRepository, Depends(get_profile_activity_repository)],
+    effective: Annotated[EffectiveSettingsService, Depends(get_effective_settings_service)],
+) -> AuthService:
+    return AuthService(repo, activity_repo, effective)
 
 
 @router.post(

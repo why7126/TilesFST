@@ -20,8 +20,8 @@ updated_at: 2026-06-27 11:03:00
 
 | 检查项 | 路径 | 状态 |
 |---|---|---|
-| Expanded HTML | `issues/requirements/REQ-0011-.../prototype/web/admin-sidebar-expanded.html` | pass（结构对齐：sidebar-head、chevron、264px） |
-| Collapsed HTML | `issues/requirements/REQ-0011-.../prototype/web/admin-sidebar-collapsed.html` | pass（72px、brand-mark、icon-only nav/user） |
+| Expanded HTML | `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-expanded.html` | pass（结构对齐：sidebar-head、chevron、264px） |
+| Collapsed HTML | `issues/requirements/archive/REQ-0011-admin-sidebar-expand-collapse/prototype/web/admin-sidebar-collapsed.html` | pass（72px、brand-mark、icon-only nav/user） |
 | PNG expanded | `prototype/web/images/admin-sidebar-expanded.png` | 待导出（非阻塞） |
 | PNG collapsed | `prototype/web/images/admin-sidebar-collapsed.png` | 待导出（非阻塞） |
 | SoulKing 参考 | `/req-capture` 附件 | 参照 |

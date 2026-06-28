@@ -1,5 +1,5 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 21
+next_id: 50
 entries:
   - id: BUG-0001-tile-category-enable-missing
     title: 瓷砖类目停用行缺少启用入口
@@ -152,3 +152,224 @@ entries:
     related_requirement: REQ-0006-tile-sku-management
     related_bug: BUG-0018-tile-sku-modal-video-upload-display
     iteration: sprint-002
+  - id: BUG-0021-sidebar-menu-icons-indistinguishable
+    title: 侧边栏收起后各菜单图标相同无法区分
+    status: in_sprint
+    severity: medium
+    created: "2026-06-27 21:33:13"
+    related_requirement: REQ-0011-admin-sidebar-expand-collapse
+    iteration: null
+  - id: BUG-0022-profile-basic-info-redundant-role-status
+    title: 个人资料基础资料区所属角色与账号状态与账号安全卡片重复
+    status: done
+    severity: low
+    created: "2026-06-28 12:37:33"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0023-profile-duplicate-save-buttons
+    iteration: null
+  - id: BUG-0023-profile-duplicate-save-buttons
+    title: 个人资料页页头与表单底部重复保存修改按钮
+    status: done
+    severity: low
+    created: "2026-06-28 12:37:33"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0022-profile-basic-info-redundant-role-status
+    iteration: null
+  - id: BUG-0024-change-password-error-wrong-field
+    title: 修改密码弹窗新密码错误提示显示在原密码字段下方
+    status: done
+    severity: medium
+    created: "2026-06-28 12:47:55"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0025-change-password-toggle-button-misalignment
+    iteration: sprint-003
+    related_change: fix-change-password-modal-errors
+  - id: BUG-0025-change-password-toggle-button-misalignment
+    title: 修改密码弹窗错误提示出现后显示/隐藏按钮垂直错位
+    status: done
+    severity: medium
+    created: "2026-06-28 12:47:55"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0024-change-password-error-wrong-field
+    iteration: sprint-003
+    related_change: fix-change-password-modal-errors
+  - id: BUG-0026-change-password-cancel-confirm-redundant
+    title: 修改密码弹窗取消时出现多余浏览器二次确认
+    status: done
+    severity: low
+    created: "2026-06-28 12:49:31"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0024-change-password-error-wrong-field
+    iteration: sprint-003
+    related_change: fix-change-password-modal-errors
+  - id: BUG-0027-tile-spec-list-ui-inconsistency
+    title: 瓷砖规格列表分页与尺寸名称列字号与用户管理页不一致
+    status: done
+    severity: medium
+    created: "2026-06-28 13:13:16"
+    related_requirement: REQ-0009-tile-spec-management
+    iteration: sprint-003
+  - id: BUG-0028-tile-spec-modal-form-layout
+    title: 瓷砖规格弹窗尺寸名称位置/格式及备注字段宽度不符合规范
+    status: done
+    severity: medium
+    created: "2026-06-28 13:13:16"
+    related_requirement: REQ-0009-tile-spec-management
+    iteration: sprint-003
+  - id: BUG-0029-tile-spec-list-not-refresh-after-create
+    title: 瓷砖规格新增保存后列表未自动刷新
+    status: done
+    severity: high
+    created: "2026-06-28 13:13:16"
+    related_requirement: REQ-0009-tile-spec-management
+    iteration: sprint-003
+  - id: BUG-0030-banner-list-ui-inconsistency
+    title: Banner列表分页与用户管理页不一致且表头上方多余标题行
+    status: done
+    severity: medium
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0031-banner-modal-image-section-label
+    title: Banner弹窗图片模块首行自定义上传/SKU主图文案冗余
+    status: done
+    severity: low
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    related_bug: BUG-0032-banner-modal-upload-button-label
+    iteration: null
+  - id: BUG-0032-banner-modal-upload-button-label
+    title: Banner弹窗图片上传按钮文案应为选择或更换
+    status: done
+    severity: low
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    related_bug: BUG-0031-banner-modal-image-section-label
+    iteration: null
+  - id: BUG-0033-banner-modal-form-layout-overflow
+    title: Banner弹窗运营备注宽度不足且底部按钮超出弹窗无滚动
+    status: done
+    severity: high
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0034-banner-modal-link-selector-combined
+    title: Banner弹窗关联专题/SKU搜索框与下拉框应合并
+    status: done
+    severity: medium
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0035-banner-modal-sku-hero-image-no-effect
+    title: Banner弹窗点击使用SKU主图无任何效果
+    status: done
+    severity: high
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    related_bug: BUG-0032-banner-modal-upload-button-label
+    iteration: null
+  - id: BUG-0036-banner-modal-datetime-picker
+    title: Banner弹窗有效期DateTime选择器无法选择时分秒
+    status: done
+    severity: medium
+    created: "2026-06-28 16:04:18"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0037-tile-spec-status-confirm-ui-inconsistency
+    title: 瓷砖规格页启用/停用/删除确认弹窗与类目页UI/UE不一致
+    status: done
+    severity: medium
+    created: "2026-06-28 16:06:42"
+    related_requirement: REQ-0009-tile-spec-management
+    iteration: null
+  - id: BUG-0038-tile-sku-modal-spec-hint-styling
+    title: SKU弹窗规格字段下方提示字号过大且颜色不当
+    status: done
+    severity: low
+    created: "2026-06-28 16:59:15"
+    related_requirement: REQ-0006-tile-sku-management
+    iteration: sprint-003
+  - id: BUG-0039-banner-list-display-position-column
+    title: Banner列表第一列标题与展示位置挤在同一列
+    status: done
+    severity: medium
+    created: "2026-06-28 17:28:15"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0040-banner-modal-width-too-narrow
+    title: Banner弹窗宽度偏小未对齐SKU弹窗
+    status: done
+    severity: medium
+    created: "2026-06-28 17:28:15"
+    related_requirement: REQ-0016-banner-management
+    iteration: null
+  - id: BUG-0041-sidebar-user-menu-avatar-missing
+    title: 侧边栏底部用户菜单未显示用户头像
+    status: done
+    severity: medium
+    created: "2026-06-28 17:46:25"
+    related_requirement: REQ-0014-profile-page
+    related_bug: BUG-0019-user-modal-avatar-upload-display
+    iteration: null
+  - id: BUG-0042-system-settings-page-title-v2-suffix
+    title: 系统设置页眉标多余 V2 后缀
+    status: done
+    severity: low
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    iteration: null
+  - id: BUG-0043-system-settings-duplicate-save-buttons
+    title: 系统设置页页头与底部重复保存设置按钮
+    status: done
+    severity: low
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    related_bug: BUG-0023-profile-duplicate-save-buttons
+    iteration: null
+  - id: BUG-0044-system-settings-non-admin-access
+    title: 系统设置应对非 admin 不可见且不可访问
+    status: done
+    severity: high
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    related_change: add-system-settings
+    iteration: sprint-003
+  - id: BUG-0045-system-settings-media-format-options-limited
+    title: 系统设置媒体与存储图片/视频格式各仅 3 种
+    status: done
+    severity: medium
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    iteration: null
+  - id: BUG-0046-system-settings-reset-confirm-ui-inconsistency
+    title: 系统设置恢复默认二次确认弹窗 UI 不一致
+    status: done
+    severity: medium
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    related_bug: BUG-0037-tile-spec-status-confirm-ui-inconsistency
+    iteration: null
+  - id: BUG-0047-system-settings-save-tip-layout-shift
+    title: 系统设置保存成功提示导致下方内容位移
+    status: done
+    severity: medium
+    created: "2026-06-28 17:53:48"
+    related_requirement: REQ-0017-system-settings
+    related_bug: BUG-0015-admin-list-status-tips-layout-shift
+    iteration: null
+  - id: BUG-0048-banner-modal-width-css-cascade-overridden
+    title: Banner弹窗880px被modal-card层叠覆盖未生效
+    status: done
+    severity: medium
+    created: "2026-06-28 18:10:30"
+    related_requirement: REQ-0016-banner-management
+    related_bug: BUG-0040-banner-modal-width-too-narrow
+    iteration: null
+  - id: BUG-0049-profile-recent-activities-limit-five
+    title: 个人资料页最近操作记录仅显示5条未达规范20条
+    status: done
+    severity: medium
+    created: "2026-06-28 18:48:41"
+    related_requirement: REQ-0014-profile-page
+    related_change: fix-profile-activities-display-limit
+    iteration: sprint-003

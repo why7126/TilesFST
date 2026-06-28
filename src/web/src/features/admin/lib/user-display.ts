@@ -13,7 +13,11 @@ export function getUserDisplayName(displayName?: string | null, username?: strin
   return displayName || username || 'Admin User';
 }
 
-export function getUserEmail(username?: string | null): string {
+export function getUserEmail(username?: string | null, email?: string | null): string {
+  if (email?.trim()) {
+    return email.trim();
+  }
+
   if (!username) {
     return 'admin@tilesfst.com';
   }

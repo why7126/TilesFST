@@ -67,6 +67,202 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_brands_table(connection)
     _ensure_tile_categories_extended(connection)
     _ensure_tiles_sku_extended(connection)
+    _ensure_profile_support(connection)
+    _ensure_password_change_support(connection)
+    _ensure_tile_specs_support(connection)
+    _ensure_banner_support(connection)
+    _ensure_system_settings_support(connection)
+
+
+def _ensure_system_settings_support(connection: Connection) -> None:
+    if not _table_exists(connection, "system_settings"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE system_settings (
+                  key TEXT PRIMARY KEY,
+                  value TEXT NOT NULL,
+                  updated_at TEXT NOT NULL,
+                  updated_by TEXT NULL REFERENCES users(id)
+                )
+                """
+            )
+        )
+
+    if not _table_exists(connection, "audit_logs"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE audit_logs (
+                  id TEXT PRIMARY KEY,
+                  actor_user_id TEXT NULL REFERENCES users(id),
+                  domain TEXT NOT NULL,
+                  action_type TEXT NOT NULL,
+                  summary TEXT NOT NULL,
+                  metadata TEXT NULL,
+                  created_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX idx_audit_logs_domain_created
+                ON audit_logs(domain, created_at DESC)
+                """
+            )
+        )
+
+
+def _ensure_banner_support(connection: Connection) -> None:
+    from datetime import UTC, datetime
+
+    if not _table_exists(connection, "topics"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE topics (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  code TEXT NOT NULL UNIQUE,
+                  title TEXT NOT NULL,
+                  status TEXT NOT NULL CHECK (status IN ('ENABLED', 'DISABLED')),
+                  cover_object_key TEXT,
+                  created_at TEXT NOT NULL,
+                  updated_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+
+    topic_count = int(
+        connection.execute(text("SELECT COUNT(*) FROM topics")).scalar_one() or 0
+    )
+    if topic_count < 2:
+        now = datetime.now(UTC).isoformat()
+        seeds = [
+            ("TOPIC_GRAY_SPACE", "灰色系空间灵感", now),
+            ("TOPIC_ENGINEERING", "工程采购精选", now),
+        ]
+        for code, title, ts in seeds:
+            existing = connection.execute(
+                text("SELECT 1 FROM topics WHERE code = :code"),
+                {"code": code},
+            ).first()
+            if existing:
+                continue
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO topics (code, title, status, cover_object_key, created_at, updated_at)
+                    VALUES (:code, :title, 'ENABLED', NULL, :created_at, :updated_at)
+                    """
+                ),
+                {"code": code, "title": title, "created_at": ts, "updated_at": ts},
+            )
+
+    if _table_exists(connection, "banners"):
+        return
+
+    connection.execute(
+        text(
+            """
+            CREATE TABLE banners (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              display_client TEXT NOT NULL,
+              position TEXT NOT NULL,
+              image_object_key TEXT NOT NULL,
+              image_source TEXT NOT NULL,
+              sku_gallery_asset_id INTEGER,
+              jump_type TEXT NOT NULL,
+              sku_id INTEGER,
+              external_url TEXT,
+              topic_id INTEGER,
+              sort_order INTEGER NOT NULL DEFAULT 100,
+              valid_from TEXT,
+              valid_to TEXT,
+              status TEXT NOT NULL DEFAULT 'DRAFT'
+                CHECK (status IN ('DRAFT', 'ONLINE', 'OFFLINE', 'EXPIRED')),
+              remark TEXT,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              UNIQUE(display_client, position, title),
+              FOREIGN KEY(sku_id) REFERENCES tiles(id),
+              FOREIGN KEY(topic_id) REFERENCES topics(id),
+              FOREIGN KEY(sku_gallery_asset_id) REFERENCES tile_images(id)
+            )
+            """
+        )
+    )
+
+
+def _ensure_password_change_support(connection: Connection) -> None:
+    columns = _column_names(connection, "users")
+    if "token_version" not in columns:
+        connection.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0"
+            )
+        )
+
+    if _table_exists(connection, "password_change_attempts"):
+        return
+
+    connection.execute(
+        text(
+            """
+            CREATE TABLE password_change_attempts (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              success INTEGER NOT NULL CHECK (success IN (0, 1)),
+              created_at TEXT NOT NULL,
+              FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+    )
+    connection.execute(
+        text(
+            """
+            CREATE INDEX idx_password_change_attempts_user_created
+            ON password_change_attempts(user_id, created_at DESC)
+            """
+        )
+    )
+
+
+def _ensure_profile_support(connection: Connection) -> None:
+    columns = _column_names(connection, "users")
+    if "remark" not in columns:
+        connection.execute(text("ALTER TABLE users ADD COLUMN remark TEXT"))
+
+    if _table_exists(connection, "profile_activity_logs"):
+        return
+
+    connection.execute(
+        text(
+            """
+            CREATE TABLE profile_activity_logs (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              action_type TEXT NOT NULL,
+              summary TEXT NOT NULL,
+              metadata TEXT,
+              created_at TEXT NOT NULL,
+              FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+    )
+    connection.execute(
+        text(
+            """
+            CREATE INDEX idx_profile_activity_logs_user_created
+            ON profile_activity_logs(user_id, created_at DESC)
+            """
+        )
+    )
 
 
 def _tile_categories_table_sql(connection: Connection) -> str:
@@ -208,6 +404,37 @@ def _ensure_tiles_sku_extended(connection: Connection) -> None:
         return
     _rebuild_tiles_sku_table(connection)
     _ensure_tile_videos_table(connection)
+
+
+def _ensure_tile_specs_support(connection: Connection) -> None:
+    if not _table_exists(connection, "tile_specs"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE tile_specs (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  width_mm INTEGER NOT NULL CHECK (width_mm BETWEEN 1 AND 9999),
+                  length_mm INTEGER NOT NULL CHECK (length_mm BETWEEN 1 AND 9999),
+                  thickness_mm REAL,
+                  unit TEXT NOT NULL DEFAULT 'mm',
+                  display_name TEXT NOT NULL,
+                  sort_order INTEGER NOT NULL DEFAULT 100,
+                  status TEXT NOT NULL DEFAULT 'ENABLED'
+                    CHECK (status IN ('ENABLED', 'DISABLED')),
+                  sku_count INTEGER NOT NULL DEFAULT 0 CHECK (sku_count >= 0),
+                  remark TEXT,
+                  created_at TEXT NOT NULL,
+                  updated_at TEXT NOT NULL,
+                  UNIQUE(width_mm, length_mm, unit)
+                )
+                """
+            )
+        )
+
+    if _table_exists(connection, "tiles"):
+        tile_columns = _column_names(connection, "tiles")
+        if "spec_id" not in tile_columns:
+            connection.execute(text("ALTER TABLE tiles ADD COLUMN spec_id INTEGER"))
 
 
 def _ensure_tile_videos_table(connection: Connection) -> None:

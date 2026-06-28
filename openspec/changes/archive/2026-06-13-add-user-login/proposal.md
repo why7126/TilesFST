@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- 新增 Web 管理端登录页（`/admin/login`），视觉对齐 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.png` 暗色工业风原型。
+- 新增 Web 管理端登录页（`/admin/login`），视觉对齐 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png` 暗色工业风原型。
 - 新增后端认证 API：`POST /api/v1/auth/login`、`GET /api/v1/auth/me`、`POST /api/v1/auth/logout`。
 - 新增 `users` 表及密码哈希存储，预留 `store_owner` 角色与 `login_logs` 表结构。
 - 新增前端 `auth` feature：登录表单、登录态管理、管理端路由守卫、退出登录。
@@ -33,4 +33,4 @@
 | 数据库文档 | 更新 `docs/04-database-design.md` |
 | 测试 | 新增后端认证接口测试、前端登录与路由守卫测试 |
 | 部署 | 需数据库种子脚本初始化首批管理员账号 |
-| 需求追踪 | 关联 `issues/requirements/REQ-0001-user-login/` |
+| 需求追踪 | 关联 `issues/requirements/archive/REQ-0001-user-login/` |

@@ -1,6 +1,6 @@
 ---
 purpose: fix-admin-list-status-toast-layout OpenSpec 可测试验收项
-content: 自 issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/acceptance.md 映射
+content: 自 issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/acceptance.md 映射
 bug_id: BUG-0015-admin-list-status-tips-layout-shift
 status: proposed
 created_at: 2026-06-27 12:48:52

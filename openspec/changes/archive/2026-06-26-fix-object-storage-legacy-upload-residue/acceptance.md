@@ -7,7 +7,7 @@ updated_at: 2026-06-27 00:04:00
 
 # 验收标准
 
-来源：`issues/bugs/BUG-0008-object-storage-legacy-upload-residue/acceptance.md`
+来源：`issues/bugs/archive/BUG-0008-object-storage-legacy-upload-residue/acceptance.md`
 
 ## AC-001 legacy uploads 孤儿已清理
 

@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0009-tile-sku-list-ui-inconsistency](issues/bugs/BUG-0009-tile-sku-list-ui-inconsistency/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 列表页（`/admin/tile-skus`）底部分页 DOM 使用废弃的 `page-left` / `brand-pagination-right` 结构，与用户管理页及 BUG-0002 修复后的品牌管理页不一致；`table-card` 内存在多余的「SKU 列表」标题行，与 `page-hero` 及 REQ-0006 列表原型信息架构重复。
+[BUG-0009-tile-sku-list-ui-inconsistency](issues/bugs/archive/BUG-0009-tile-sku-list-ui-inconsistency/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 列表页（`/admin/tile-skus`）底部分页 DOM 使用废弃的 `page-left` / `brand-pagination-right` 结构，与用户管理页及 BUG-0002 修复后的品牌管理页不一致；`table-card` 内存在多余的「SKU 列表」标题行，与 `page-hero` 及 REQ-0006 列表原型信息架构重复。
 
 `add-tile-sku-management` 尚未归档；REQ-0006 **AC-051**（分页与表格模式复用）与 **AC-054**（列表原型并排）因此项未达标。根据项目规则，验收后发现的 UI 一致性缺陷 MUST 使用新的 `fix-*` change 修复。
 

@@ -32,5 +32,5 @@ Sprint 001 已完成 `align-login-prototype`（23/23 任务），但 `/admin/log
 | 样式 | `globals.css` 登录页字体 token；登录页 scoped override（仍禁止裸 Hex） |
 | Auth 逻辑 | **无影响** |
 | 规范文档 | `rules/ui-design.md` 登录页专章 |
-| Sprint 001 | `iterations/sprint-001/sprint.md`、`acceptance-report.md` |
+| Sprint 001 | `iterations/archive/sprint-001/sprint.md`、`acceptance-report.md` |
 | Docker | Web 镜像需包含更新静态资源 |

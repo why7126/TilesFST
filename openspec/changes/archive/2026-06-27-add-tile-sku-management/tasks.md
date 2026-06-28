@@ -56,6 +56,6 @@
 ## 9. 文档与追溯
 
 - [x] 9.1 更新 `docs/03-api-index.md`、`docs/04-database-design.md`
-- [x] 9.2 更新 `issues/requirements/REQ-0006-tile-sku-management/trace.md`（openspec 关联）
+- [x] 9.2 更新 `issues/requirements/archive/REQ-0006-tile-sku-management/trace.md`（openspec 关联）
 - [x] 9.3 建议导出 `prototype/images/*.png`（**可选**）
 - [x] 9.4 完成后 `/opsx-archive add-tile-sku-management`

@@ -28,9 +28,9 @@
 ## 5. 冒烟与验收
 
 - [x] 5.1 手工：四页各执行一次状态变更或 CRUD；确认 Tips 不推挤 hero/表格（Vitest 覆盖 toast DOM；Docker 联调建议补验）
-- [x] 5.2 对照 `issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/acceptance.md` AC-001～AC-013
+- [x] 5.2 对照 `issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/acceptance.md` AC-001～AC-013
 - [x] 5.3 填写本 change `trace.md` checklist
-- [x] 5.4 更新 `issues/bugs/BUG-0015-admin-list-status-tips-layout-shift/trace.md`（`openspec_changes.status: applied`）
+- [x] 5.4 更新 `issues/bugs/archive/BUG-0015-admin-list-status-tips-layout-shift/trace.md`（`openspec_changes.status: applied`）
 
 ## 6. 追溯与归档
 

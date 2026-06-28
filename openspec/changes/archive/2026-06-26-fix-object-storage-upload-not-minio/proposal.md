@@ -2,7 +2,7 @@
 
 `BUG-0006-object-storage-upload-not-minio` 已评审通过并纳入 `sprint-002`。当前 Docker Compose 环境中 MinIO 服务已启动，`minio-init` 也能创建 `tile-info-platform` 桶，但业务上传链路仍把头像、品牌 Logo、SKU 图片、SKU 视频等对象写入本地 `UPLOAD_DIR`，MinIO Console 中看不到业务对象。
 
-根因已在 `issues/bugs/BUG-0006-object-storage-upload-not-minio/root-cause.md` 中确认：后端上传接口统一调用 `save_upload_file()`，当前实现通过 `settings.upload_dir` 将 `object_key` 映射成本地路径并执行 `write_bytes()`；媒体读取接口也依赖本地文件系统 `FileResponse`。这与项目 MinIO 单桶策略、媒体上传安全规范和 Docker 演示部署目标不一致。
+根因已在 `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio/root-cause.md` 中确认：后端上传接口统一调用 `save_upload_file()`，当前实现通过 `settings.upload_dir` 将 `object_key` 映射成本地路径并执行 `write_bytes()`；媒体读取接口也依赖本地文件系统 `FileResponse`。这与项目 MinIO 单桶策略、媒体上传安全规范和 Docker 演示部署目标不一致。
 
 ## What Changes
 

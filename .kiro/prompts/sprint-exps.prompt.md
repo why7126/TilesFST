@@ -167,7 +167,7 @@ status: draft
 created_at: YYYY-MM-DD HH:mm:ss
 updated_at: YYYY-MM-DD HH:mm:ss
 owner: product
-related_iteration: iterations/sprint-002/
+related_iteration: iterations/archive/sprint-002/
 related_requirements:
   - REQ-xxxx
 related_bugs:

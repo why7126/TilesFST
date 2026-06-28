@@ -7,7 +7,7 @@ updated_at: 2026-06-27 13:14:25
 
 # 验收标准
 
-映射 `issues/bugs/BUG-0019-user-modal-avatar-upload-display/acceptance.md` AC-001～AC-012。
+映射 `issues/bugs/archive/BUG-0019-user-modal-avatar-upload-display/acceptance.md` AC-001～AC-012。
 
 ## 关键 Gate
 

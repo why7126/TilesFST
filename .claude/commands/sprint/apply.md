@@ -5,7 +5,7 @@ category: Workflow
 tags: [workflow]
 ---
 
-按 `iterations/sprint-xxx/` 索引，**依次**对 Sprint 内 OpenSpec Change 执行 `/opsx-apply` 等价流程：读取进度、跳过已完成、尊重依赖与优先级、blocked 时暂停并汇报。
+按 `iterations/change/sprint-xxx/`（或 `resolve_sprint_dir()`）索引，**依次**对 Sprint 内 OpenSpec Change 执行 `/opsx-apply` 等价流程：读取进度、跳过已完成、尊重依赖与优先级、blocked 时暂停并汇报。
 
 **本命令解决的核心问题**：
 
@@ -28,8 +28,9 @@ tags: [workflow]
 | `--skip-archive-prompt` | change 全完成后直接建议 archive，不自动执行 `/opsx-archive` |
 | `--parallel` | 输出可并行 change 分组，本命令仍**串行**执行第一个；并行需用户开多会话 |
 | `--force-req-check` | 对每个 REQ 重新跑 Readiness（缺文档则跳过并告警） |
+| `--skip-cross-cutting-gate` | 跳过横切 gate（仅 P0 热修；须在输出注明理由） |
 
-**Output**：Sprint Queue Report → 逐 change 实现进度 → Sprint 进度摘要；必要时更新 `acceptance-report.md` 中 OpenSpec Tasks 完成度。
+**Output**：Sprint Queue Report → 逐 change **横切 Apply Gate** → 实现进度 → Sprint 进度摘要；必要时更新 `acceptance-report.md` 中 OpenSpec Tasks 完成度。
 
 ---
 
@@ -39,8 +40,8 @@ tags: [workflow]
 /sprint-propose [sprint-xxx]     ← 创建迭代四件套
         │
         ▼
-iterations/sprint-xxx/sprint.yaml   ← changes[] 机器索引
-iterations/sprint-xxx/sprint.md     ← 依赖树、优先级、里程碑
+iterations/change/sprint-xxx/sprint.yaml   ← changes[] 机器索引
+iterations/change/sprint-xxx/sprint.md     ← 依赖树、优先级、里程碑
         │
         ├─ /sprint-explore            ← 可选：范围/依赖/容量探讨
         ├─ /req-opsx / /bug-opsx       ← Change 未创建时先补
@@ -77,16 +78,25 @@ openspec/project.md
 rules/global.md
 rules/document-governance.md   # sprint 四件套
 rules/directory-structure.md
+rules/ui-design.md             # UI 类 change apply 前
+docs/knowledge-base/README.md
 ```
 
 Sprint 目录（MUST 四件套齐全，缺一则 **Not Ready**，停止并提示 `/sprint-propose` 或补文件）：
 
 ```text
 iterations/<sprint-id>/sprint.yaml
-iterations/<sprint-id>/sprint.md
+iterations/<sprint-id>/sprint.md          # MUST 含 §知识库承接、§横切预防清单（/sprint-propose 写入）
 iterations/<sprint-id>/release-note.md
 iterations/<sprint-id>/acceptance-report.md
 ```
+
+**MUST** 解析 `sprint.md` 中：
+
+- **§知识库承接** — 上一 Sprint open 行动项与本 Sprint 承接方式
+- **§横切预防清单** — 本 Sprint 级 best-practices 链接与 gate 摘要
+
+若两节缺失（旧 Sprint）：**WARN** 并回退读取 `docs/knowledge-base/best-practices/` 全索引；建议补跑 `/sprint-propose` 续写。
 
 CLI 现状：
 
@@ -140,6 +150,7 @@ changes[]
 2. `openspec status` 有 artifact 非 done → `blocked: artifacts`
 3. 关联 REQ Readiness 为 Not Ready → `blocked: req_docs`（`--force-req-check` 时严格）
 4. **依赖未满足**（见 Step 2）
+5. **横切 gate 未通过**（见 Step 3.5）→ `blocked: cross_cutting_gate`（`add-*` UI 类；`fix-*` 默认 WARN 不 block，除非 `--force-req-check`）
 
 ---
 
@@ -212,7 +223,50 @@ changes:
 **Parallel hint:** add-login-remember-autofill, add-brand-management, ...
 ```
 
-`--dry-run` 到此 **停止**。
+`--dry-run` 到此 **停止**（含 Step 3.5 gate 预览列，见下）。
+
+---
+
+## Step 3.5 — 横切 Apply Gate（MUST — 每个 APPLY NEXT change）
+
+在修改 `src/` 或 tasks 之前，对即将 apply 的 change 执行与 `/opsx-apply` **Step 5** 相同的 Cross-cutting Apply Gate（见 `.cursor/commands/opsx-apply.md`）。
+
+**Sprint 额外输入**（优先于 change 级推断）：
+
+1. `sprint.md` **§横切预防清单** 中与本 change / 关联 REQ 匹配的 checkbox
+2. `sprint.md` **§知识库承接** 中与本 change 相关的 open 行动项（如 AdminListPage 未落地 → 列表 add-* 须显式对照用户管理基准）
+
+**输出**（MUST，写入 Queue Report 或紧接其后的 Gate Report）：
+
+```markdown
+## Cross-cutting Apply Gate
+
+**Change:** add-banner-management
+**Sprint:** sprint-004
+**Tags:** admin-list, admin-modal, media-upload
+**Refs:** docs/knowledge-base/best-practices/admin-list-page-consistency.md, …
+
+| Gate | Status | Evidence |
+|------|--------|----------|
+| acceptance.md §横切 AC (AC-XCUT) | pass/fail/warn | N 条已存在 |
+| design.md 引用 knowledge_base_refs | pass/fail/warn | … |
+| sprint.md §横切预防清单 | pass/warn | 节缺失则 warn |
+| best-practices 验收 gate 对照 | pending | apply 中逐项勾选 |
+
+**Verdict:** PROCEED | BLOCKED | WARN-PROCEED
+```
+
+**Verdict 规则**：
+
+| Change 类型 | 缺 §横切 AC 或 trace `knowledge_base_refs` | 缺 design 引用 |
+|-------------|---------------------------------------------|----------------|
+| `add-*` + UI 标签 | **BLOCKED** → 建议 `/req-complete` | **WARN**（首次 apply 可 PROCEED 但 MUST 在 design 补引用） |
+| `fix-*` | WARN | WARN |
+| 纯后端/API | **N/A** — 跳过 gate | N/A |
+
+`--skip-cross-cutting-gate`：仅当用户显式传入；输出 MUST 记录跳过理由；不得用于常规 `add-*` UI 首发。
+
+Gate **BLOCKED** 时：该 change 在 Queue 中 Action 改为 **WAIT (cross_cutting_gate)**，不进入 Step 4。
 
 ---
 
@@ -223,11 +277,13 @@ changes:
 1. 宣告：`Using change: <name> (sprint-apply orchestration)`
 
 2. 执行 `/opsx-apply` 等价步骤（见 `.cursor/commands/opsx-apply.md`）：
+   - **Step 5 横切 Apply Gate**（`/opsx-apply` 等价；未 `--skip-cross-cutting-gate`）
    - `openspec status --change "<name>" --json`
    - `openspec instructions apply --change "<name>" --json`
    - 读取 `contextFiles` 全部路径
    - 仅处理 **pending** tasks（`- [ ]`）
    - 每完成一项即标记 `- [x]`
+   - UI 实现 task 完成前：对照 Gate Report 勾选 best-practices gate（可在 session 输出中标记 ✓）
 
 3. **Pause 条件**（停在本 change，不自动切下一个）：
    - 任务描述不清
@@ -263,7 +319,11 @@ changes:
 
 **Not Ready** → 该 change 标记 `blocked: req_docs`，跳过并建议 `/req-complete` 或 `/req-opsx`。
 
-UI 类额外检查：`prototype/web/*.html` 存在但无 strategy 且 design 标 `Pending` → 建议 `/opsx-explore`。
+UI 类额外检查：
+
+- `prototype/web/*.html` 存在但无 strategy 且 design 标 `Pending` → 建议 `/opsx-explore`
+- **`acceptance.md` 含 §横切 AC（AC-XCUT-xxx）** — UI 标签命中时 MUST（与 Step 3.5 一致）；缺则 `blocked: cross_cutting_gate`
+- **`trace.md` 含 `knowledge_base_refs` / `cross_cutting_tags`** — 推荐；缺则 Step 3.5 WARN
 
 ---
 
@@ -324,6 +384,7 @@ Run `/sprint-apply sprint-002 --dry-run` to refresh queue.
 | 不绕过 OpenSpec | 无 change 目录 → 告警 `/req-opsx`，不直接开发 |
 | Sprint 外 change | 不在 `sprint.yaml` 的 change **不得**被本命令 apply |
 | 不绕过评审门禁 | Sprint 内 REQ/BUG 未 approved/in_sprint → **停止** apply |
+| 横切 gate | `add-*` UI change 缺 AC-XCUT → **blocked**；不得静默跳过 Step 3.5 |
 | 容量告警 | 若连续 3 个 change blocked，输出风险摘要并停止 |
 
 ---
@@ -361,12 +422,14 @@ ELigible add-tile-category-management   (parallel, check REQ readiness)
 
 ## 参考
 
-- 单 Change 实现：`.cursor/commands/opsx-apply.md`
+- 单 Change 实现：`.cursor/commands/opsx-apply.md`（Step 5 横切 gate）
 - 单 Change 归档：`.cursor/commands/opsx-archive.md`
-- Sprint 创建：`.cursor/commands/sprint-propose.md`
+- Sprint 创建：`.cursor/commands/sprint-propose.md`（§横切预防清单）
+- 需求横切 AC：`.cursor/commands/req-complete.md`
 - Sprint 探索：`.cursor/commands/sprint-explore.md`
 - Sprint 批量归档：`.cursor/commands/sprint-archive.md`
 - REQ → Change：`.cursor/commands/req-opsx.md`
+- 知识库：`docs/knowledge-base/README.md`、`docs/knowledge-base/best-practices/`
 - Sprint 治理：`rules/document-governance.md` §4.1
 - 流程总览：`AGENTS.md` §4.1
 

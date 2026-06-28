@@ -1,6 +1,6 @@
 # fix-brand-status-confirm — Acceptance
 
-来源：`issues/requirements/REQ-0008-brand-status-confirm/acceptance.md`
+来源：`issues/requirements/archive/REQ-0008-brand-status-confirm/acceptance.md`
 
 ## 启停二次确认
 

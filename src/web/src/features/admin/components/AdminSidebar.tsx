@@ -8,16 +8,22 @@ import { AdminUserMenu } from './AdminUserMenu';
 
 interface AdminSidebarProps {
   user: UserProfile | null;
+  profileEmail?: string | null;
+  profileAvatarUrl?: string | null;
   onLogout: () => Promise<void>;
   onPlaceholder: () => void;
+  onOpenPasswordChange: () => void;
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
 }
 
 export function AdminSidebar({
   user,
+  profileEmail,
+  profileAvatarUrl,
   onLogout,
   onPlaceholder,
+  onOpenPasswordChange,
   collapsed = false,
   onToggleCollapsed,
 }: AdminSidebarProps) {
@@ -28,7 +34,7 @@ export function AdminSidebar({
     if (section.id === 'system' && user?.role !== 'admin') {
       return {
         ...section,
-        items: section.items.filter((item) => item.id !== 'users'),
+        items: section.items.filter((item) => item.id !== 'users' && item.id !== 'settings'),
       };
     }
     return section;
@@ -71,6 +77,7 @@ export function AdminSidebar({
             <p className="nav-title">{section.title}</p>
             {section.items.map((item) => {
               const active = isAdminNavItemActive(location.pathname, item);
+              const Icon = item.icon;
 
               return (
                 <button
@@ -80,7 +87,7 @@ export function AdminSidebar({
                   aria-label={item.label}
                   onClick={() => handleNavClick(item.path)}
                 >
-                  <span className="nav-icon" aria-hidden="true" />
+                  <Icon className="nav-icon" size={16} strokeWidth={1.5} aria-hidden />
                   <span className="nav-label">{item.label}</span>
                 </button>
               );
@@ -88,7 +95,13 @@ export function AdminSidebar({
           </nav>
         ))}
       </div>
-      <AdminUserMenu user={user} onLogout={onLogout} onPlaceholder={onPlaceholder} />
+      <AdminUserMenu
+        user={user}
+        profileEmail={profileEmail}
+        avatarUrl={profileAvatarUrl}
+        onLogout={onLogout}
+        onOpenPasswordChange={onOpenPasswordChange}
+      />
     </aside>
   );
 }

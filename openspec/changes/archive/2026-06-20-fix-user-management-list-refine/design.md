@@ -3,11 +3,11 @@
 - **现状**：`UserManagementPage.tsx` 已实现 REQ-0005 v1 列表（6 列筛选含「搜索」、`section-head`、`table-toolbar`、用户列 email 回退、旧分页布局）；`user_repository.list_users` 的 keyword 匹配 username、display_name、email、phone。
 - **父 change**：`add-user-management`（in-progress）；弹窗、行操作、API 路由不变。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.html`（v2）
-  2. `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（待重新导出）
-  3. `issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list-context.md`
-  4. `issues/requirements/REQ-0005-user-management-list-refine/acceptance.md`
-  5. `issues/requirements/REQ-0005-user-management-list-refine/requirement.md`
+  1. `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.html`（v2）
+  2. `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（待重新导出）
+  3. `issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list-context.md`
+  4. `issues/requirements/archive/REQ-0005-user-management-list-refine/acceptance.md`
+  5. `issues/requirements/archive/REQ-0005-user-management-list-refine/requirement.md`
   6. `rules/ui-design.md`
   7. `openspec/changes/add-user-management/specs/user-management/spec.md`（基线 spec）
   8. Modal 仍引用 `REQ-0005-user-management/prototype/web/user-management-modal.*`（本 change 不修改）
@@ -69,6 +69,6 @@
 ## 验收 Gate
 
 - **视口**：1280×1024（或 1440 内容区 max-width 1080px 等比）。
-- **Golden Reference**：`issues/requirements/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（实现后须重新导出）。
+- **Golden Reference**：`issues/requirements/archive/REQ-0005-user-management-list-refine/prototype/web/user-management-list.png`（实现后须重新导出）。
 - **Checklist**：见 `trace.md`（≥15 项：筛选 5 列、无搜索按钮、placeholder、无 section-head、无 toolbar、用户两行、分页文案等）。
 - **回归**：modal PNG、`employee` 菜单隐藏、pytest/vitest/build 全绿。

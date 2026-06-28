@@ -60,5 +60,5 @@
 
 - [x] 8.1 Docker Compose 环境验证：种子 admin → 登录 → dashboard → 退出
 - [x] 8.2 验证错误账号、禁用账号、store_owner 拒绝场景
-- [x] 8.3 更新 `issues/requirements/REQ-0001-user-login/trace.md` OpenSpec 状态为 in_progress
+- [x] 8.3 更新 `issues/requirements/archive/REQ-0001-user-login/trace.md` OpenSpec 状态为 in_progress
 - [x] 8.4 运行 `python scripts/validate-directory-structure.py` 确认目录合规

@@ -47,6 +47,7 @@ describe('AdminSidebar collapse', () => {
           user={adminUser}
           onLogout={vi.fn()}
           onPlaceholder={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
           collapsed={false}
           onToggleCollapsed={onToggleCollapsed}
         />
@@ -68,6 +69,7 @@ describe('AdminSidebar collapse', () => {
           user={adminUser}
           onLogout={vi.fn()}
           onPlaceholder={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
           collapsed
           onToggleCollapsed={vi.fn()}
         />
@@ -86,6 +88,7 @@ describe('AdminSidebar collapse', () => {
           user={adminUser}
           onLogout={vi.fn()}
           onPlaceholder={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
           collapsed
           onToggleCollapsed={vi.fn()}
         />
@@ -102,6 +105,7 @@ describe('AdminSidebar collapse', () => {
           user={adminUser}
           onLogout={vi.fn()}
           onPlaceholder={vi.fn()}
+          onOpenPasswordChange={vi.fn()}
           collapsed={false}
           onToggleCollapsed={vi.fn()}
         />

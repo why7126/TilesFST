@@ -8,7 +8,7 @@ from typing import Any
 from .collect import IssueRecord, SprintRecord, parse_frontmatter, read_text
 from .constants import ROOT, SCOPE_MARKERS
 from .derive import DerivedChange, DerivedIssue
-from .timefmt import normalize_datetime, now_shanghai, touch_frontmatter
+from .timefmt import normalize_datetime, normalize_milestone_datetime, now_shanghai, touch_frontmatter
 
 
 @dataclass
@@ -131,7 +131,7 @@ def render_bugs_table(
 
 
 def normalize_milestone_table_dates(text: str) -> tuple[str, bool]:
-    """Normalize date-only 目标日期 cells under ## 里程碑 to YYYY-MM-DD HH:mm:ss."""
+    """Normalize 目标日期 cells under ## 里程碑 to YYYY-MM-DD HH:mm:ss with non-zero time."""
 
     section_match = re.search(r"(^## 里程碑\s*\n)(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
     if not section_match:
@@ -150,15 +150,15 @@ def normalize_milestone_table_dates(text: str) -> tuple[str, bool]:
             new_lines.append(line)
             continue
         date_cell = parts[-2].strip()
-        match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:\s+\d{2}:\d{2}:\d{2})?(.*)$", date_cell)
-        if not match:
+        date_match = re.match(r"^(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?)(.*)$", date_cell)
+        if not date_match:
             new_lines.append(line)
             continue
-        normalized = normalize_datetime(match.group(1))
+        normalized = normalize_milestone_datetime(date_match.group(1))
         if not normalized:
             new_lines.append(line)
             continue
-        suffix = match.group(2) or ""
+        suffix = date_match.group(2) or ""
         new_cell = f"{normalized}{suffix}"
         if new_cell != date_cell:
             changed = True

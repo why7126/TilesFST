@@ -15,7 +15,7 @@ archived_at: 2026-06-27 00:11:29
 
 | 项目 | 内容 |
 |---|---|
-| BUG | `issues/bugs/BUG-0008-object-storage-legacy-upload-residue` |
+| BUG | `issues/bugs/archive/BUG-0008-object-storage-legacy-upload-residue` |
 | Sprint | `sprint-002` |
 | 严重等级 | medium |
 | 评审 | `REV-BUG-0008-001`，approved |

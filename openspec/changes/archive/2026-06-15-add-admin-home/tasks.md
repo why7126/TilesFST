@@ -36,13 +36,13 @@
 
 ## 7. 视觉验收（PNG Golden Reference Gate）
 
-- [x] 7.1 1280×1024 视口并排对比 `/admin/dashboard` 与 `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.png`
+- [x] 7.1 1280×1024 视口并排对比 `/admin/dashboard` 与 `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.png`
 - [x] 7.2 填写 `openspec/changes/add-admin-home/trace.md` PNG checklist（≥18 项，全部 pass 或记录可接受偏差）
 - [x] 7.3 确认页面无：欢迎区、待办、数据质量、风险提醒、热门材质、门店同步、材质库存、V4 已删快捷操作
 
 ## 8. 文档与追溯
 
-- [x] 8.1 更新 `issues/requirements/REQ-0004-admin-home/trace.md`（change status: applied）
+- [x] 8.1 更新 `issues/requirements/archive/REQ-0004-admin-home/trace.md`（change status: applied）
 - [x] 8.2 更新 sprint acceptance-report（若已纳入 sprint-002）
 - [x] 8.3 归档前确认 delta spec MODIFIED「退出登录」标题与 `openspec/specs/web-client/spec.md` 一致
 

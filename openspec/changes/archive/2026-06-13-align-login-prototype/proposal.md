@@ -1,6 +1,6 @@
 ## Why
 
-Sprint 001 已完成 `add-user-login`、`add-design-system`、`refactor-login-ui` 三阶段交付，但 `/admin/login` 与 `issues/requirements/REQ-0001-user-login/prototype/web/user-login.png` 仍存在明显视觉差距：左侧背景为抽象 SVG 占位而非展厅实拍、企业微信为「企」字占位、语言切换缺少下拉箭头、间距与原型 §4.4 未精修。`refactor-login-ui` 解决的是 Design Token + shadcn 组件化，**不是**像素级原型还原。REQ-0001 验收项「页面视觉与原型一致」尚未真正通过，需在 Sprint 001 内补齐高保真视觉层。
+Sprint 001 已完成 `add-user-login`、`add-design-system`、`refactor-login-ui` 三阶段交付，但 `/admin/login` 与 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png` 仍存在明显视觉差距：左侧背景为抽象 SVG 占位而非展厅实拍、企业微信为「企」字占位、语言切换缺少下拉箭头、间距与原型 §4.4 未精修。`refactor-login-ui` 解决的是 Design Token + shadcn 组件化，**不是**像素级原型还原。REQ-0001 验收项「页面视觉与原型一致」尚未真正通过，需在 Sprint 001 内补齐高保真视觉层。
 
 ## What Changes
 

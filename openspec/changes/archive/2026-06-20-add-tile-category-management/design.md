@@ -3,12 +3,12 @@
 - **现状**：`admin-nav.ts` 中「瓷砖类目」无 `path`；`tile_categories` 表仅 `id`+`name` 桩；无类目 Admin API；Dashboard「新增类目」快捷操作为占位 toast。
 - **依赖**：`add-admin-home`（`AdminLayout`、`admin-home.css`）；`add-user-management` / `add-brand-management`（列表/弹窗/分页 CSS Port 模式可参考）。
 - **原型来源**（优先级，不可省略）：
-  1. `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.html`
-  2. `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.png`（待导出）
-  3. `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.html`
-  4. `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.png`（待导出）
+  1. `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.html`
+  2. `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.png`（待导出）
+  3. `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.html`
+  4. `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.png`（待导出）
   5. `prototype/web/prototype-context-list.md`、`prototype-context-add.md`
-  6. `issues/requirements/REQ-0005-tile-category-management/acceptance.md`
+  6. `issues/requirements/archive/REQ-0005-tile-category-management/acceptance.md`
   7. `rules/ui-design.md`
   8. `openspec/specs/`
 

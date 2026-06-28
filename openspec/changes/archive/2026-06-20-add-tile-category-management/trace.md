@@ -13,12 +13,12 @@
 
 | 文档 | 路径 |
 |---|---|
-| PRD | `issues/requirements/REQ-0005-tile-category-management/requirement.md` |
-| 验收 | `issues/requirements/REQ-0005-tile-category-management/acceptance.md` |
-| 列表 HTML | `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.html` |
-| 列表 PNG | `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management.png`（待补齐） |
-| 弹窗 HTML | `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.html` |
-| 弹窗 PNG | `issues/requirements/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.png`（待补齐） |
+| PRD | `issues/requirements/archive/REQ-0005-tile-category-management/requirement.md` |
+| 验收 | `issues/requirements/archive/REQ-0005-tile-category-management/acceptance.md` |
+| 列表 HTML | `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.html` |
+| 列表 PNG | `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.png`（待补齐） |
+| 弹窗 HTML | `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.html` |
+| 弹窗 PNG | `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management-add.png`（待补齐） |
 | Design | `openspec/changes/add-tile-category-management/design.md` |
 
 ## Conflict Resolution 记录

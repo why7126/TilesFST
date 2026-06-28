@@ -9,6 +9,54 @@ from typing import Any
 
 from .constants import ROOT
 
+# issues/requirements 与 issues/bugs 下的生命周期阶段子目录（见 rules/issues-lifecycle.md）
+ISSUE_STAGE_DIRS = frozenset({"plan", "review", "archive"})
+ISSUE_DIR_PREFIXES = ("REQ-", "BUG-")
+
+
+def is_issue_stage_dir(name: str) -> bool:
+    return name in ISSUE_STAGE_DIRS
+
+
+def is_issue_id_dir(name: str) -> bool:
+    return name.startswith(ISSUE_DIR_PREFIXES)
+
+
+def iter_issue_dirs(base: Path):
+    """Yield REQ/BUG issue directories (legacy flat or plan/review/archive)."""
+    if not base.is_dir():
+        return
+    for path in sorted(base.iterdir()):
+        if not path.is_dir() or path.name.startswith("_"):
+            continue
+        if is_issue_stage_dir(path.name):
+            for staged in sorted(path.iterdir()):
+                if staged.is_dir() and is_issue_id_dir(staged.name):
+                    yield staged
+        elif is_issue_id_dir(path.name):
+            yield path
+
+
+def resolve_issue_dir(base_rel: str, issue_id: str) -> Path | None:
+    """Resolve issue directory across legacy flat and staged layouts."""
+    base = ROOT / base_rel
+    for candidate in (
+        base / issue_id,
+        base / "plan" / issue_id,
+        base / "review" / issue_id,
+        base / "archive" / issue_id,
+    ):
+        if candidate.is_dir():
+            return candidate
+    matches = [
+        p
+        for p in iter_issue_dirs(base)
+        if p.name == issue_id or p.name.startswith(f"{issue_id}-") or issue_id in p.name
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
 
 @dataclass
 class TaskProgress:
@@ -37,6 +85,7 @@ class IssueRecord:
     priority: str = "P1"
     trace_status: str | None = None
     openspec_changes: list[dict[str, Any]] = field(default_factory=list)
+    related_changes: list[str] = field(default_factory=list)
     related_requirement: str | None = None
     related_change: str | None = None
 
@@ -189,21 +238,74 @@ def extract_archive_date(archive_dir: Path) -> str | None:
     return match.group(1) if match else None
 
 
-def lifecycle_archived_from_trace(trace_path: Path) -> str | None:
+LIFECYCLE_ARCHIVE_KEYS = ("archived", "opsx_archived")
+LIFECYCLE_FALLBACK_KEYS = ("completed", "reviewed", "approved")
+TRACE_DONE_STATUSES = frozenset({"archived", "done", "resolved", "closed"})
+
+
+def _lifecycle_timestamp(lifecycle: dict[str, Any], keys: tuple[str, ...]) -> str | None:
+    for key in keys:
+        value = lifecycle.get(key)
+        if value and str(value).strip().lower() not in {"null", "none"}:
+            return str(value).strip()
+    return None
+
+
+def _latest_changelog_timestamp(text: str) -> str | None:
+    latest: str | None = None
+    for match in re.finditer(
+        r"^\|\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})",
+        text,
+        re.MULTILINE,
+    ):
+        candidate = match.group(1)
+        if latest is None or candidate > latest:
+            latest = candidate
+    return latest
+
+
+def extract_trace_timestamp(trace_path: Path) -> str | None:
+    """Resolve the best available timestamp from a trace.md (issue or change)."""
+
     if not trace_path.exists():
         return None
     text = read_text(trace_path)
+    fm = parse_frontmatter(text)
     block = parse_yaml_block(text)
     if block:
         lifecycle = block.get("lifecycle")
         if isinstance(lifecycle, dict):
-            archived = lifecycle.get("archived")
-            if archived and str(archived).strip().lower() not in {"null", "none"}:
-                return str(archived).strip()
-    match = re.search(r"^\s*archived:\s*(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?)\s*$", text, re.MULTILINE)
-    if match:
-        return match.group(1).strip()
-    return None
+            explicit = _lifecycle_timestamp(lifecycle, LIFECYCLE_ARCHIVE_KEYS)
+            if explicit:
+                return explicit
+            fallback = _lifecycle_timestamp(lifecycle, LIFECYCLE_FALLBACK_KEYS)
+            if fallback:
+                return fallback
+        for key in (*LIFECYCLE_ARCHIVE_KEYS, *LIFECYCLE_FALLBACK_KEYS):
+            value = block.get(key)
+            if value and str(value).strip().lower() not in {"null", "none"}:
+                return str(value).strip()
+
+    for key in LIFECYCLE_ARCHIVE_KEYS:
+        match = re.search(
+            rf"^\s*{re.escape(key)}:\s*(\d{{4}}-\d{{2}}-\d{{2}}(?:\s+\d{{2}}:\d{{2}}:\d{{2}})?)\s*$",
+            text,
+            re.MULTILINE,
+        )
+        if match:
+            return match.group(1).strip()
+
+    status = (block or {}).get("status") or fm.get("status") or ""
+    if str(status).strip().lower() in TRACE_DONE_STATUSES:
+        updated_at = fm.get("updated_at")
+        if updated_at:
+            return updated_at.strip()
+
+    return _latest_changelog_timestamp(text)
+
+
+def lifecycle_archived_from_trace(trace_path: Path) -> str | None:
+    return extract_trace_timestamp(trace_path)
 
 
 def resolve_archive_timestamp(
@@ -213,23 +315,40 @@ def resolve_archive_timestamp(
     linked_bug: str | None,
     issues: dict[str, IssueRecord],
 ) -> str | None:
-    from .timefmt import normalize_datetime
+    from .timefmt import ARCHIVE_DATE_ONLY_FALLBACK, normalize_datetime
 
+    change_trace = archived_path / "trace.md"
     candidates: list[str | None] = [
-        lifecycle_archived_from_trace(archived_path / "trace.md"),
+        extract_trace_timestamp(change_trace),
     ]
     if linked_bug and linked_bug in issues:
-        candidates.append(lifecycle_archived_from_trace(issues[linked_bug].path / "trace.md"))
+        candidates.append(extract_trace_timestamp(issues[linked_bug].path / "trace.md"))
     if linked_req and linked_req in issues:
-        candidates.append(lifecycle_archived_from_trace(issues[linked_req].path / "trace.md"))
+        candidates.append(extract_trace_timestamp(issues[linked_req].path / "trace.md"))
     for issue in issues.values():
-        for oc in issue.openspec_changes:
-            if oc.get("change_id") == change_id:
-                candidates.append(lifecycle_archived_from_trace(issue.path / "trace.md"))
-                break
-    candidates.append(extract_archive_date(archived_path))
+        linked = any(oc.get("change_id") == change_id for oc in issue.openspec_changes)
+        if not linked and change_id in issue.related_changes:
+            linked = True
+        if not linked and issue.related_change == change_id:
+            linked = True
+        if linked:
+            candidates.append(extract_trace_timestamp(issue.path / "trace.md"))
+
+    dir_date = extract_archive_date(archived_path)
+    if dir_date:
+        candidates.append(dir_date)
+
+    change_time: str | None = None
+    if change_trace.exists():
+        updated_at = normalize_datetime(parse_frontmatter(read_text(change_trace)).get("updated_at"))
+        if updated_at and " " in updated_at:
+            change_time = updated_at.split(" ", 1)[1]
+
     for raw in candidates:
-        normalized = normalize_datetime(raw)
+        if not raw:
+            continue
+        default_time = change_time or ARCHIVE_DATE_ONLY_FALLBACK
+        normalized = normalize_datetime(raw, default_time=default_time)
         if normalized:
             return normalized
     return None
@@ -260,6 +379,7 @@ def load_issue_record(path: Path, kind: str) -> IssueRecord | None:
     openspec_changes: list[dict[str, Any]] = []
     related_requirement = None
     related_change = None
+    related_changes: list[str] = []
     if trace_path.exists():
         trace_text = read_text(trace_path)
         fm = parse_frontmatter(trace_text)
@@ -270,6 +390,9 @@ def load_issue_record(path: Path, kind: str) -> IssueRecord | None:
             raw_changes = block.get("openspec_changes") or []
             if isinstance(raw_changes, list):
                 openspec_changes = [c for c in raw_changes if isinstance(c, dict)]
+            raw_related_changes = block.get("related_changes") or []
+            if isinstance(raw_related_changes, list):
+                related_changes = [str(item).strip() for item in raw_related_changes if str(item).strip()]
             related_requirement = block.get("related_requirement")
             related_change = block.get("related_change")
 
@@ -281,6 +404,7 @@ def load_issue_record(path: Path, kind: str) -> IssueRecord | None:
         priority=str(priority),
         trace_status=trace_status,
         openspec_changes=openspec_changes,
+        related_changes=related_changes if kind == "req" else [],
         related_requirement=related_requirement if kind == "bug" else None,
         related_change=related_change if kind == "bug" else None,
     )
@@ -292,11 +416,7 @@ def load_all_issues() -> dict[str, IssueRecord]:
         (ROOT / "issues/requirements", "req"),
         (ROOT / "issues/bugs", "bug"),
     ):
-        if not base.exists():
-            continue
-        for path in sorted(base.iterdir()):
-            if not path.is_dir() or path.name.startswith("_"):
-                continue
+        for path in iter_issue_dirs(base):
             record = load_issue_record(path, kind)
             if record:
                 records[record.issue_id] = record
@@ -337,17 +457,20 @@ def infer_change_links(change_id: str, issues: dict[str, IssueRecord]) -> tuple[
 
 
 def normalize_issue_id(short_or_full: str, base_rel: str) -> str:
+    resolved = resolve_issue_dir(base_rel, short_or_full)
+    if resolved is not None:
+        return resolved.name
     base = ROOT / base_rel
     if (base / short_or_full).exists():
         return short_or_full
     prefix = short_or_full if short_or_full.count("-") >= 2 else None
     if not prefix:
         return short_or_full
-    for path in base.iterdir():
-        if path.is_dir() and path.name.startswith(short_or_full.split("-")[0] + "-"):
+    for path in iter_issue_dirs(base):
+        if path.name.startswith(short_or_full.split("-")[0] + "-"):
             if path.name.startswith(short_or_full) or short_or_full in path.name:
                 return path.name
-    matches = [p.name for p in base.iterdir() if p.is_dir() and short_or_full.split("-")[1] in p.name]
+    matches = [p.name for p in iter_issue_dirs(base) if short_or_full.split("-")[1] in p.name]
     return matches[0] if len(matches) == 1 else short_or_full
 
 
@@ -401,11 +524,30 @@ def load_change_record(change_id: str, issues: dict[str, IssueRecord], openspec_
     )
 
 
+def resolve_sprint_dir(sprint_id: str) -> Path | None:
+    """Resolve sprint directory under change/archive or legacy flat path."""
+    iterations = ROOT / "iterations"
+    for stage in ("change", "archive"):
+        candidate = iterations / stage / sprint_id
+        if (candidate / "sprint.yaml").exists():
+            return candidate
+    legacy = iterations / sprint_id
+    if (legacy / "sprint.yaml").exists():
+        return legacy
+    return None
+
+
 def list_sprint_ids() -> list[str]:
     iterations = ROOT / "iterations"
     if not iterations.exists():
         return []
-    return sorted(path.parent.name for path in iterations.glob("sprint-*/sprint.yaml"))
+    ids: set[str] = set()
+    for stage in ("change", "archive"):
+        for path in iterations.glob(f"{stage}/sprint-*/sprint.yaml"):
+            ids.add(path.parent.name)
+    for path in iterations.glob("sprint-*/sprint.yaml"):
+        ids.add(path.parent.name)
+    return sorted(ids)
 
 
 def find_sprints_for_issue(issue_id: str) -> list[str]:
@@ -494,10 +636,10 @@ def resolve_sprint_id(
 
 
 def load_sprint(sprint_id: str) -> SprintRecord | None:
-    sprint_path = ROOT / "iterations" / sprint_id
-    yaml_path = sprint_path / "sprint.yaml"
-    if not yaml_path.exists():
+    sprint_path = resolve_sprint_dir(sprint_id)
+    if sprint_path is None:
         return None
+    yaml_path = sprint_path / "sprint.yaml"
     block = parse_simple_yaml(read_text(yaml_path))
     return SprintRecord(
         sprint_id=sprint_id,

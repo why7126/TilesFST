@@ -5,7 +5,7 @@ category: Workflow
 tags: [workflow]
 ---
 
-对 `iterations/sprint-xxx/` 中 `sprint.yaml` 列出的 **全部 OpenSpec Change** 依次执行 `/opsx-archive` 等价流程：检查完成度、同步 delta spec、移入 `openspec/changes/archive/`。迭代验收文档一并收尾。
+对 `iterations/change/sprint-xxx/`（或 `resolve_sprint_dir()` 解析到的路径）中 `sprint.yaml` 列出的 **全部 OpenSpec Change** 依次执行 `/opsx-archive` 等价流程：检查完成度、同步 delta spec、移入 `openspec/changes/archive/`。迭代验收文档一并收尾；Sprint 目录 **MUST** 迁入 `iterations/archive/`。
 
 与 `/opsx-archive` 对标：**单 Change** 用 opsx-archive，**整 Sprint** 用 sprint-archive。
 
@@ -48,11 +48,13 @@ tags: [workflow]
 AGENTS.md
 rules/document-governance.md
 rules/directory-structure.md
+rules/iterations-lifecycle.md
 ```
 
 ```text
-iterations/<sprint-id>/sprint.yaml
-iterations/<sprint-id>/sprint.md          # 依赖树 → 归档顺序
+iterations/change/<sprint-id>/sprint.yaml   # 未归档 Sprint（优先）
+iterations/archive/<sprint-id>/sprint.yaml  # 已归档只读
+iterations/<sprint-id>/sprint.md            # 依赖树 → 归档顺序
 iterations/<sprint-id>/acceptance-report.md
 ```
 
@@ -153,10 +155,11 @@ openspec list --json
 
 全部 change archived 或用户确认接受遗留 blocked 项后：
 
-1. **`sprint.yaml`**：`status: completed`
+1. **`sprint.yaml`**：`status: completed`，`lifecycle_stage: archive`
 2. **`acceptance-report.md`**：填写验收结论、日期、验收人（模板节）
 3. **`release-note.md`**：`status: published`（或 draft → published）
 4. **`sprint.md`**：note 更新为 Sprint 已关闭
+5. **目录迁移**：`git mv iterations/change/sprint-xxx iterations/archive/sprint-xxx`（见 `rules/iterations-lifecycle.md`）
 
 若仍有 blocked change：**不得**自动标 completed；报告遗留清单。
 
@@ -180,8 +183,8 @@ openspec list --json
 ...
 
 ### Updated
-- iterations/sprint-002/sprint.yaml
-- iterations/sprint-002/acceptance-report.md
+- iterations/archive/sprint-002/sprint.yaml
+- iterations/archive/sprint-002/acceptance-report.md
 - issues/requirements/*/trace.md (N files)
 ```
 
@@ -245,6 +248,23 @@ Read `.agents/skills/workflow-sync/SKILL.md` and run:
 python scripts/sync-workflow-status.py --event sprint.archive --sprint <sprint-id>
 ```
 
-- Exit code **MUST** be `0` before ending this command.
+- Exit code **MUST** be `0` before continuing.
 - Print the **Workflow Sync Report** to the user.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
+
+---
+
+## Final Step — Promote Issues (MUST)
+
+Read `rules/issues-lifecycle.md` §4.
+
+**After** workflow sync succeeds, batch-promote Sprint 内 eligible REQ/BUG from `review/` → `archive/`:
+
+```bash
+python scripts/promote-issues-for-archive.py --sprint <sprint-id> --reason "/sprint-archive <sprint-id>"
+```
+
+门禁与 `/opsx-archive` 相同（全部关联 Change archived + `status: done`）。`--dry-run` 仅预检。
+
+- Exit code **MUST** be `0` before ending this command.
+- 打印脚本 stdout；若无 eligible issue，在回复中说明「无待 promote 条目」。

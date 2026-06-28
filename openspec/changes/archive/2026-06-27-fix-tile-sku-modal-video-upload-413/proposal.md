@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0020-tile-sku-modal-video-upload-413](issues/bugs/BUG-0020-tile-sku-modal-video-upload-413/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 弹窗经 Docker Web 入口（`http://localhost:3000`）上传商品视频时，`POST /api/v1/admin/uploads/tile-videos` 返回 **413 Request Entity Too Large**，典型 MP4 无法到达 FastAPI。根因为 Web 容器 Nginx 未配置 `client_max_body_size`（默认约 1MB），且图片/视频上传大小与 MIME 白名单未通过环境变量统一落地。该缺陷阻塞 REQ-0006 **AC-035** 在 Docker 演示路径下的端到端可上传性，与 BUG-0018（上传成功后的 UI 回显）为不同修复层。
+[BUG-0020-tile-sku-modal-video-upload-413](issues/bugs/archive/BUG-0020-tile-sku-modal-video-upload-413/) 已评审通过并纳入 `sprint-002`。瓷砖 SKU 弹窗经 Docker Web 入口（`http://localhost:3000`）上传商品视频时，`POST /api/v1/admin/uploads/tile-videos` 返回 **413 Request Entity Too Large**，典型 MP4 无法到达 FastAPI。根因为 Web 容器 Nginx 未配置 `client_max_body_size`（默认约 1MB），且图片/视频上传大小与 MIME 白名单未通过环境变量统一落地。该缺陷阻塞 REQ-0006 **AC-035** 在 Docker 演示路径下的端到端可上传性，与 BUG-0018（上传成功后的 UI 回显）为不同修复层。
 
 ## What Changes
 

@@ -32,5 +32,5 @@
 
 ## 6. 追溯与归档
 
-- [x] 6.1 更新 `issues/requirements/REQ-0007-tile-category-management-refine/trace.md`（`openspec_changes.status: applied`）
+- [x] 6.1 更新 `issues/requirements/archive/REQ-0007-tile-category-management-refine/trace.md`（`openspec_changes.status: applied`）
 - [x] 6.2 完成后 `/opsx-archive fix-tile-category-management-refine`

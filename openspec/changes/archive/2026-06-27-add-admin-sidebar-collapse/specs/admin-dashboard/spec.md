@@ -2,7 +2,7 @@
 
 ### Requirement: 管理端工作台 Shell 布局
 
-Web 客户端 MUST 为已认证管理端用户提供 `/admin/dashboard` 工作台页面，采用固定 Sidebar + 右侧内容区布局，视觉 MUST 高保真对齐 `issues/requirements/REQ-0004-admin-home/prototype/web/admin-home.html` 的 CSS Port 策略，并 MUST 支持桌面端（>1023px）Sidebar **展开/收起**两种宽度态。Sidebar **展开**宽度 MUST 为 264px、**收起**宽度 MUST 为 72px，由 CSS 变量 `--admin-sidebar-width` 驱动 `.admin-shell` 网格第一列；高度 MUST 为 100vh（`position: sticky`），MUST NOT 随右侧内容高度拉伸或滚动；右侧内容区 MUST 为 100vh 且 `overflow: auto`，主内容最大宽度 MUST 为 1080px 居中。宽度切换 MUST 有约 200–250ms 过渡；`prefers-reduced-motion: reduce` 时 MAY 禁用或缩短动画。
+Web 客户端 MUST 为已认证管理端用户提供 `/admin/dashboard` 工作台页面，采用固定 Sidebar + 右侧内容区布局，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0004-admin-home/prototype/web/admin-home.html` 的 CSS Port 策略，并 MUST 支持桌面端（>1023px）Sidebar **展开/收起**两种宽度态。Sidebar **展开**宽度 MUST 为 264px、**收起**宽度 MUST 为 72px，由 CSS 变量 `--admin-sidebar-width` 驱动 `.admin-shell` 网格第一列；高度 MUST 为 100vh（`position: sticky`），MUST NOT 随右侧内容高度拉伸或滚动；右侧内容区 MUST 为 100vh 且 `overflow: auto`，主内容最大宽度 MUST 为 1080px 居中。宽度切换 MUST 有约 200–250ms 过渡；`prefers-reduced-motion: reduce` 时 MAY 禁用或缩短动画。
 
 #### Scenario: 桌面端 Shell 布局
 

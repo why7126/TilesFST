@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0010-tile-sku-modal-subtitle-inconsistency](issues/bugs/BUG-0010-tile-sku-modal-subtitle-inconsistency/) 已评审通过。SKU 新增/编辑弹窗副标题曾使用无样式定义的 `modal-subtitle`，与品牌弹窗 `brand-modal-desc` 的 Typography 不一致，破坏管理端弹窗标题区视觉统一性。
+[BUG-0010-tile-sku-modal-subtitle-inconsistency](issues/bugs/archive/BUG-0010-tile-sku-modal-subtitle-inconsistency/) 已评审通过。SKU 新增/编辑弹窗副标题曾使用无样式定义的 `modal-subtitle`，与品牌弹窗 `brand-modal-desc` 的 Typography 不一致，破坏管理端弹窗标题区视觉统一性。
 
 ## What Changes
 

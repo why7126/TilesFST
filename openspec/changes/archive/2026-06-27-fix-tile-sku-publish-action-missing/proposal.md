@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0014-tile-sku-publish-action-missing](issues/bugs/BUG-0014-tile-sku-publish-action-missing/) 已评审通过。瓷砖 SKU 列表页（`/admin/tile-skus`）对 **已下架**（`status=DISABLED`）行错误隐藏「上架/恢复」操作，运营下架后无法从 UI 恢复上架。后端 `POST /api/v1/admin/tile-skus/{id}/publish` 已实现；缺陷为 `TileSkuManagementPage.tsx` 操作列对 `DISABLED` 显式渲染 `null`（`item.status !== 'DISABLED' ? 上架 : null`）。
+[BUG-0014-tile-sku-publish-action-missing](issues/bugs/archive/BUG-0014-tile-sku-publish-action-missing/) 已评审通过。瓷砖 SKU 列表页（`/admin/tile-skus`）对 **已下架**（`status=DISABLED`）行错误隐藏「上架/恢复」操作，运营下架后无法从 UI 恢复上架。后端 `POST /api/v1/admin/tile-skus/{id}/publish` 已实现；缺陷为 `TileSkuManagementPage.tsx` 操作列对 `DISABLED` 显式渲染 `null`（`item.status !== 'DISABLED' ? 上架 : null`）。
 
 `add-tile-sku-management` 尚未归档；REQ-0006 **AC-018**（操作列）、**AC-037**（上下架/恢复）因此项未达标。根据项目规则，验收后发现的功能缺失 MUST 使用新的 `fix-*` change 修复。
 

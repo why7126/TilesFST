@@ -25,4 +25,4 @@
 - **Backend**：仅 FastAPI 文档标题字符串。
 - **API / DB / Orval / Docker**：无行为变更。
 - **Spec**：`openspec/specs/web-client/spec.md` 归档时合并 delta。
-- **文档**：REQ-0002、`iterations/sprint-001`、`rules/ui-design.md` 登录专章企微条目（tasks 内更新）。
+- **文档**：REQ-0002、`iterations/archive/sprint-001`、`rules/ui-design.md` 登录专章企微条目（tasks 内更新）。

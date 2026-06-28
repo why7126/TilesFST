@@ -1,6 +1,6 @@
 ## Why
 
-[BUG-0016-admin-list-status-action-confirm-missing](issues/bugs/BUG-0016-admin-list-status-action-confirm-missing/) 已评审通过（REV-BUG-0016-001，sprint-002）。管理端 **用户管理** 与 **瓷砖 SKU** 列表页部分状态变更行内操作（冻结/解冻、删除、上架/下架/恢复）点击后直接调用 API，或仍使用 `window.confirm`，与已归档 REQ-0007/REQ-0008 及 `BrandManagementPage` / `TileCategoryManagementPage` 的 DS modal 二次确认模式不一致，存在误触风险。
+[BUG-0016-admin-list-status-action-confirm-missing](issues/bugs/archive/BUG-0016-admin-list-status-action-confirm-missing/) 已评审通过（REV-BUG-0016-001，sprint-002）。管理端 **用户管理** 与 **瓷砖 SKU** 列表页部分状态变更行内操作（冻结/解冻、删除、上架/下架/恢复）点击后直接调用 API，或仍使用 `window.confirm`，与已归档 REQ-0007/REQ-0008 及 `BrandManagementPage` / `TileCategoryManagementPage` 的 DS modal 二次确认模式不一致，存在误触风险。
 
 品牌启停/删除已在 `fix-brand-status-confirm` 闭环，**不在本 change scope**。重置密码 confirm UI 统一归 **BUG-0017**，本 change **MUST NOT** 修改重置密码交互。
 

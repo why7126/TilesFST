@@ -28,19 +28,19 @@ created: 2026-06-13
 
 | 文档 | 路径 |
 |---|---|
-| 需求 PRD | `issues/requirements/REQ-0001-user-login/requirement.md` |
-| 用户故事 | `issues/requirements/REQ-0001-user-login/user-stories.md` |
-| 业务流程 | `issues/requirements/REQ-0001-user-login/business-flow.md` |
-| 验收标准 | `issues/requirements/REQ-0001-user-login/acceptance.md` |
-| 需求追踪 | `issues/requirements/REQ-0001-user-login/trace.md` |
+| 需求 PRD | `issues/requirements/archive/REQ-0001-user-login/requirement.md` |
+| 用户故事 | `issues/requirements/archive/REQ-0001-user-login/user-stories.md` |
+| 业务流程 | `issues/requirements/archive/REQ-0001-user-login/business-flow.md` |
+| 验收标准 | `issues/requirements/archive/REQ-0001-user-login/acceptance.md` |
+| 需求追踪 | `issues/requirements/archive/REQ-0001-user-login/trace.md` |
 
 ## 迭代关联
 
 ```yaml
 iteration: sprint-001
-sprint_doc: iterations/sprint-001/sprint.md
-release_note: iterations/sprint-001/release-note.md
-acceptance_report: iterations/sprint-001/acceptance-report.md
+sprint_doc: iterations/archive/sprint-001/sprint.md
+release_note: iterations/archive/sprint-001/release-note.md
+acceptance_report: iterations/archive/sprint-001/acceptance-report.md
 related_changes:
   - add-design-system
   - refactor-login-ui

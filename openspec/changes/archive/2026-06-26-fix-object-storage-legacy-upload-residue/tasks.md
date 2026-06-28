@@ -44,7 +44,7 @@
 
 ## 7. 验收与追溯
 
-- [x] 7.1 对照 `issues/bugs/BUG-0008-object-storage-legacy-upload-residue/acceptance.md` 完成 AC-001 ~ AC-007
+- [x] 7.1 对照 `issues/bugs/archive/BUG-0008-object-storage-legacy-upload-residue/acceptance.md` 完成 AC-001 ~ AC-007
 - [x] 7.2 更新本 change `trace.md`、`acceptance.md`、`test-plan.md`
-- [x] 7.3 更新 BUG trace 与 `iterations/sprint-002` 中 BUG-0008 Change 状态
+- [x] 7.3 更新 BUG trace 与 `iterations/archive/sprint-002` 中 BUG-0008 Change 状态
 - [x] 7.4 评估 `docs/knowledge-base/incidents/`：清理策略已写入 data/docs，无需单独 incident 条目

@@ -12,7 +12,7 @@
 
 ## 视觉 Diff Checklist（1280×1024）
 
-对照 `issues/requirements/REQ-0010-product-version-display/prototype/web/product-version-display-context.md` 与 `sidebar-version-reference.png`。
+对照 `issues/requirements/archive/REQ-0010-product-version-display/prototype/web/product-version-display-context.md` 与 `sidebar-version-reference.png`。
 
 | # | 项 | Pass |
 |---|-----|------|

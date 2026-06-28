@@ -2,7 +2,7 @@
 
 - **前置 Change**：`align-login-prototype` 已实现（JPG 背景、LanguageSwitcher、WeCom SVG、spacing 数字），但视觉 fidelity 未达 PNG golden reference。
 - **差距根因**：DS/shadcn 抽象层 + checklist 验收，未做 PNG 并排像素对比；`align-login-prototype` design D4 企微图标、D6 验收方式执行不足。
-- **原型来源**：`issues/requirements/REQ-0001-user-login/prototype/web/user-login.png`、`user-login.md` §2–§4。
+- **原型来源**：`issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.png`、`user-login.md` §2–§4。
 - **规范**：`rules/ui-design.md`（将补充登录页专章）、`openspec/specs/design-system/spec.md`。
 - **约束**：auth store / hooks / API / 路由守卫冻结；继续禁止登录页 TSX 裸 Hex。
 

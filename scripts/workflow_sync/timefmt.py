@@ -8,13 +8,16 @@ from .collect import parse_frontmatter
 
 DATE_ONLY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 DATETIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+MIDNIGHT_PLACEHOLDER = "00:00:00"
+MILESTONE_END_OF_DAY = "23:59:59"
+ARCHIVE_DATE_ONLY_FALLBACK = MILESTONE_END_OF_DAY
 
 
 def now_shanghai() -> str:
     return datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def normalize_datetime(value: str | None, *, default_time: str = "00:00:00") -> str | None:
+def normalize_datetime(value: str | None, *, default_time: str = MIDNIGHT_PLACEHOLDER) -> str | None:
     """Normalize trace/archive timestamps to YYYY-MM-DD HH:mm:ss."""
 
     if value is None:
@@ -30,6 +33,19 @@ def normalize_datetime(value: str | None, *, default_time: str = "00:00:00") -> 
     if match:
         return f"{match.group(1)} {match.group(2)}"
     return None
+
+
+def normalize_milestone_datetime(value: str | None) -> str | None:
+    """Normalize milestone target dates; date-only and legacy midnight → end of day."""
+
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    if re.match(rf"^\d{{4}}-\d{{2}}-\d{{2}} {MIDNIGHT_PLACEHOLDER}$", raw):
+        return raw.replace(f" {MIDNIGHT_PLACEHOLDER}", f" {MILESTONE_END_OF_DAY}")
+    return normalize_datetime(raw, default_time=MILESTONE_END_OF_DAY)
 
 
 def touch_frontmatter(text: str, *, force_created: bool = False) -> tuple[str, bool]:

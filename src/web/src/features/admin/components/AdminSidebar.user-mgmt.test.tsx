@@ -24,7 +24,7 @@ describe('AdminSidebar', () => {
   it('shows 用户管理 for admin', () => {
     render(
       <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
     expect(screen.getByRole('button', { name: '用户管理' })).toBeInTheDocument();
@@ -33,16 +33,17 @@ describe('AdminSidebar', () => {
   it('hides 用户管理 for employee', () => {
     render(
       <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+        <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
     expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '系统设置' })).not.toBeInTheDocument();
   });
 
   it('shows product version badge in brand head', () => {
     render(
       <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} />
+        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
     expect(screen.getByText('TILESFST')).toBeInTheDocument();

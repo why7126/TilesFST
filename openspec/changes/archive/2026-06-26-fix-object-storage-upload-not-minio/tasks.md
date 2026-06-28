@@ -44,8 +44,8 @@
 
 ## 6. 验收与追溯
 
-- [x] 6.1 对照 `issues/bugs/BUG-0006-object-storage-upload-not-minio/acceptance.md` 完成 AC-001 ~ AC-009
+- [x] 6.1 对照 `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio/acceptance.md` 完成 AC-001 ~ AC-009
 - [x] 6.2 更新本 change `trace.md`，记录测试命令、Docker 验证与是否执行 Orval
 - [x] 6.3 更新 BUG trace 中 `fix-object-storage-upload-not-minio` 状态
-- [x] 6.4 更新 `iterations/sprint-002/` 中 BUG-0006 的 Change 关联与验收状态
+- [x] 6.4 更新 `iterations/archive/sprint-002/` 中 BUG-0006 的 Change 关联与验收状态
 - [x] 6.5 评估是否需要更新 `docs/knowledge-base/incidents/`；若不沉淀，说明理由

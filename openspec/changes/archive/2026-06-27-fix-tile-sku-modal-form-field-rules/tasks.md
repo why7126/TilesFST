@@ -27,7 +27,7 @@
 
 ## 5. REQ 文档与验收
 
-- [x] 5.1 更新 `issues/requirements/REQ-0006-tile-sku-management/requirement.md` 字段定义
+- [x] 5.1 更新 `issues/requirements/archive/REQ-0006-tile-sku-management/requirement.md` 字段定义
 - [x] 5.2 更新 `acceptance.md` AC-024、AC-015
 - [x] 5.3 按 BUG-0012 acceptance AC-001～AC-012 验收，记录于本 change `trace.md`
 - [x] 5.4 更新 `BUG-0012-tile-sku-modal-form-field-rules/trace.md` 中 `openspec_changes` 状态

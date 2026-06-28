@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-06-27 16:15:00
+updated_at: 2026-06-28 19:42:56
 ---
 
 # 知识库
@@ -30,12 +30,15 @@ updated_at: 2026-06-27 16:15:00
 | Sprint | 文档 | 状态 |
 |--------|------|------|
 | sprint-002 | [`retrospectives/sprint-002-retrospective.md`](retrospectives/sprint-002-retrospective.md) | draft |
+| sprint-003 | [`retrospectives/sprint-003-retrospective.md`](retrospectives/sprint-003-retrospective.md) | draft |
 
 ## 最佳实践索引
 
 | 主题 | 文档 | 来源 |
 |------|------|------|
-| 管理端列表页一致性 | [`best-practices/admin-list-page-consistency.md`](best-practices/admin-list-page-consistency.md) | sprint-002 复盘 |
+| 管理端列表页一致性 | [`best-practices/admin-list-page-consistency.md`](best-practices/admin-list-page-consistency.md) | sprint-002/003 复盘 |
+| 管理端表单页一致性 | [`best-practices/admin-form-page-consistency.md`](best-practices/admin-form-page-consistency.md) | sprint-003 复盘 |
+| 管理端弹窗宽度 CSS 层叠 | [`best-practices/admin-modal-width-css-cascade.md`](best-practices/admin-modal-width-css-cascade.md) | sprint-003 复盘 |
 | 管理端媒体上传全链路 | [`best-practices/admin-media-upload-chain.md`](best-practices/admin-media-upload-chain.md) | sprint-002 复盘 |
 
 ## 与 issues 的边界

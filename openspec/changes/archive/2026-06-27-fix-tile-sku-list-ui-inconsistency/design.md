@@ -87,7 +87,7 @@ MUST NOT 使用 `page-left`、`brand-pagination-right`。
 
 ## 原型优先级
 
-1. `issues/requirements/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html`
+1. `issues/requirements/archive/REQ-0006-tile-sku-management/prototype/web/tile-sku-management-list.html`
 2. `prototype/images/tile-sku-management-list.png`（可选）
 3. `UserManagementPage.tsx` 分页黄金参考
 4. BUG-0009 acceptance.md

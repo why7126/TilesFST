@@ -5,7 +5,7 @@ status: draft
 created_at: 2026-06-27 16:15:00
 updated_at: 2026-06-27 16:15:00
 owner: product
-related_iteration: iterations/sprint-002/
+related_iteration: iterations/archive/sprint-002/
 related_requirements:
   - REQ-0004-admin-home
   - REQ-0005-user-management
@@ -79,7 +79,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 | 指标 | 值 |
 |------|-----|
-| 周期 | 2026-06-15 ~ 2026-06-28（`iterations/sprint-002/sprint.yaml`） |
+| 周期 | 2026-06-15 ~ 2026-06-28（`iterations/archive/sprint-002/sprint.yaml`） |
 | 容量规划 | 150 SP / 98 人天；2 开发 + 1 测试 |
 | REQ | 11（registry/trace 均为 **done**） |
 | BUG | 19（Sprint 内；registry 均为 **done**） |

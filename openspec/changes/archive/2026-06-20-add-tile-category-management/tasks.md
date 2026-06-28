@@ -62,5 +62,5 @@
 ## 10. 文档
 
 - [x] 10.1 更新 `docs/03-api-index.md`、`docs/04-database-design.md`
-- [x] 10.2 更新 `issues/requirements/REQ-0005-tile-category-management/trace.md` change 状态
+- [x] 10.2 更新 `issues/requirements/archive/REQ-0005-tile-category-management/trace.md` change 状态
 - [ ] 10.3 sprint acceptance-report（若纳入迭代）

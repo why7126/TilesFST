@@ -5,10 +5,14 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './router/ProtectedRoute';
 import { useAuthStore } from '../features/auth/store/auth-store';
 import { AdminLayout } from '../pages/admin/AdminLayout';
+import { BannerManagementPage } from '../pages/admin/BannerManagementPage';
 import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
+import { ProfilePage } from '../pages/admin/ProfilePage';
 import { TileCategoryManagementPage } from '../pages/admin/TileCategoryManagementPage';
 import { TileSkuManagementPage } from '../pages/admin/TileSkuManagementPage';
+import { TileSpecManagementPage } from '../pages/admin/TileSpecManagementPage';
+import { SystemSettingsPage } from '../pages/admin/SystemSettingsPage';
 import { UserManagementPage } from '../pages/admin/UserManagementPage';
 import { ForbiddenPage } from '../pages/admin/ForbiddenPage';
 import { LoginPage } from '../pages/admin/LoginPage';
@@ -58,10 +62,15 @@ export function App() {
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<DashboardPage />} />
               <Route path="/admin/brands" element={<BrandManagementPage />} />
+              <Route path="/admin/banners" element={<BannerManagementPage />} />
               <Route path="/admin/tile-categories" element={<TileCategoryManagementPage />} />
+              <Route path="/admin/tile-specs" element={<TileSpecManagementPage />} />
               <Route path="/admin/tile-skus" element={<TileSkuManagementPage />} />
+              <Route path="/admin/profile" element={<ProfilePage />} />
               <Route element={<ProtectedRoute requireAdmin />}>
                 <Route path="/admin/users" element={<UserManagementPage />} />
+                <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
+                <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />
               </Route>
             </Route>
           </Route>

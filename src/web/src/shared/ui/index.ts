@@ -12,6 +12,7 @@ export {
 export { Pagination, type PaginationProps } from './pagination';
 export { ProductVersionBadge, type ProductVersionBadgeProps } from './product-version-badge';
 export { SearchBar, type SearchBarProps } from './search-bar';
+export { SearchableSelect, type SearchableSelectOption, type SearchableSelectProps } from './searchable-select';
 export { Sidebar, type SidebarFilterItem, type SidebarProps, type SidebarSection } from './sidebar';
 export { DividerText } from './divider-text';
 export { IconInput, type IconInputProps } from './icon-input';
