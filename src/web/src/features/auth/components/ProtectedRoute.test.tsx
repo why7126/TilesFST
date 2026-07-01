@@ -71,4 +71,40 @@ describe('ProtectedRoute', () => {
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
+
+  it('redirects non-admin users away from admin-only routes', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user: {
+        id: '2',
+        username: 'employee',
+        display_name: 'Employee',
+        role: 'employee',
+        status: 'active',
+      },
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: false,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/api-docs']}>
+        <Routes>
+          <Route path="/admin/forbidden" element={<div>Forbidden Page</div>} />
+          <Route element={<ProtectedRoute requireAdmin />}>
+            <Route path="/admin/api-docs" element={<div>API Docs</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Forbidden Page')).toBeInTheDocument();
+    expect(screen.queryByText('API Docs')).not.toBeInTheDocument();
+  });
 });

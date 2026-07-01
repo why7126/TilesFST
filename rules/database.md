@@ -3,14 +3,18 @@ purpose: 数据库规范
 content: SQLite表设计、迁移、索引、媒体元数据、软删除、审计字段规则
 source: AI自动生成初稿，项目团队确认
 update_method: 新增表、字段、索引、迁移或媒体元数据存储规则时更新
-note: 当前项目默认使用SQLite，后续如升级数据库必须创建OpenSpec Change
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-29 10:35:38
+note: 当前项目本地/演示默认 SQLite，生产支持 MySQL 8.0+
 ---
 
 # 数据库规范
 
 ## 1. 数据库定位
 
-当前项目使用 SQLite，适合单体部署、演示环境、小规模门店信息管理场景。
+当前项目本地开发与 Docker demo 默认使用 SQLite，适合单体部署、演示环境、小规模门店信息管理场景。
+
+生产环境使用 MySQL 8.0+，必须通过 `APP_ENV=production` + MySQL `DATABASE_URL` 显式启用。生产环境不得静默回退 SQLite。
 
 ## 2. 表设计要求
 
@@ -59,6 +63,14 @@ sort_order
 - 需要为常用筛选条件建立索引。
 - 不允许在业务代码中拼接SQL字符串。
 - 迁移脚本必须可重复执行或有版本记录。
+
+## 5.1 MySQL生产规则
+
+- `APP_ENV=production` 时 `DATABASE_URL` MUST 使用 `mysql` / `mysql+pymysql` dialect。
+- MySQL schema MUST 使用独立 `src/backend/app/db/schema.mysql.sql` 或 versioned migration，不得执行 `sqlite_master`、`PRAGMA` 或 SQLite-only DDL。
+- MySQL 字符集 MUST 为 `utf8mb4`，collation SHOULD 为 `utf8mb4_unicode_ci`。
+- MySQL 初始化 MUST 幂等，或通过 `schema_migrations` 记录版本。
+- 生产 Compose MUST NOT 内嵌 mysql 服务；应连接客户已有 MySQL。
 
 ## 6. AI更新规则
 

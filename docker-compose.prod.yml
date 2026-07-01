@@ -1,0 +1,151 @@
+# 生产 Docker Compose 编排：外部 MySQL + 自建 MinIO。
+# 维护要求：新增或修改 service、environment、ports、volumes、networks 时，必须同步补充注释并更新 .env.example / docs/02-deployment.md。
+services:
+  # 生产后端服务，必须使用 MySQL DATABASE_URL，禁止回退 SQLite。
+  backend:
+    # 后端镜像构建上下文限定在 src/backend。
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    # 生产后端固定容器名，便于部署脚本与日志检索。
+    container_name: tile-info-platform-backend-prod
+    # 生产环境变量显式列出；带 :? 的变量缺失时 Compose 会快速失败。
+    environment:
+      # 生产模式开关；后端会据此启用生产数据库校验。
+      APP_ENV: production
+      # 生产关闭调试，避免泄露错误栈与敏感上下文。
+      APP_DEBUG: "false"
+      # 应用签名密钥，必须由生产 .env 或密钥系统提供。
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY in production .env}
+      # 生产结构化数据必须写入外部 MySQL。
+      DATABASE_URL: ${DATABASE_URL:?Set production MySQL DATABASE_URL}
+      # 容器内监听全部网卡，供 Compose 网络和端口映射访问。
+      BACKEND_HOST: 0.0.0.0
+      # 容器内 FastAPI 固定端口；宿主机端口在 ports 中映射。
+      BACKEND_PORT: 8000
+      # 默认管理员用户名；仅首次建库或受控重置时使用。
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      # 默认管理员初始密码；生产必须显式提供非示例值。
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:?Set ADMIN_INITIAL_PASSWORD for first startup}
+      # 是否启动时重置默认管理员密码；生产默认 false。
+      ADMIN_RESET_PASSWORD_ON_STARTUP: ${ADMIN_RESET_PASSWORD_ON_STARTUP:-false}
+      # 自建 MinIO 在 Compose 网络内使用服务名访问。
+      MINIO_ENDPOINT: minio:9000
+      # MinIO 访问密钥；生产必须显式提供非默认值。
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set non-default MINIO_ACCESS_KEY}
+      # MinIO 秘密密钥；生产必须显式提供非默认值。
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set non-default MINIO_SECRET_KEY}
+      # Compose 内部明文访问自建 MinIO；如接入 TLS 反代需同步调整。
+      MINIO_SECURE: ${MINIO_SECURE:-false}
+      # 项目单桶名；桶内通过前缀区分资源。
+      MINIO_BUCKET: ${MINIO_BUCKET:-tile-info-platform}
+      # 图片对象前缀。
+      MINIO_PREFIX_IMAGES: ${MINIO_PREFIX_IMAGES:-images/}
+      # 旧版原始对象前缀，仅兼容存量对象。
+      MINIO_PREFIX_ORIGINAL: ${MINIO_PREFIX_ORIGINAL:-original/}
+      # 文档对象前缀（预留）。
+      MINIO_PREFIX_FILES: ${MINIO_PREFIX_FILES:-files/}
+      # 音频对象前缀（预留）。
+      MINIO_PREFIX_AUDIOS: ${MINIO_PREFIX_AUDIOS:-audios/}
+      # 缩略图对象前缀。
+      MINIO_PREFIX_THUMBNAILS: ${MINIO_PREFIX_THUMBNAILS:-thumbnails/}
+      # 处理产物对象前缀。
+      MINIO_PREFIX_PROCESSED: ${MINIO_PREFIX_PROCESSED:-processed/}
+      # 临时对象前缀。
+      MINIO_PREFIX_TEMP: ${MINIO_PREFIX_TEMP:-tmp/}
+      # 视频原文件对象前缀。
+      MINIO_PREFIX_VIDEO: ${MINIO_PREFIX_VIDEO:-videos/}
+      # 视频封面对象前缀。
+      MINIO_PREFIX_VIDEO_COVER: ${MINIO_PREFIX_VIDEO_COVER:-videos/covers/}
+      # 视频转码产物对象前缀。
+      MINIO_PREFIX_VIDEO_TRANSCODED: ${MINIO_PREFIX_VIDEO_TRANSCODED:-videos/transcoded/}
+      # 图片上传大小上限（MB），须与 Web Nginx body 限制协调。
+      MAX_IMAGE_SIZE_MB: ${MAX_IMAGE_SIZE_MB:-20}
+      # 视频上传大小上限（MB），须与 Web Nginx body 限制协调。
+      MAX_VIDEO_SIZE_MB: ${MAX_VIDEO_SIZE_MB:-500}
+      # 允许上传的图片 MIME 类型。
+      ALLOWED_IMAGE_TYPES: ${ALLOWED_IMAGE_TYPES:-image/jpeg,image/jpg,image/png,image/webp,image/gif,image/svg+xml,image/bmp,image/tiff,image/heic}
+      # 允许上传的视频 MIME 类型。
+      ALLOWED_VIDEO_TYPES: ${ALLOWED_VIDEO_TYPES:-video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska,video/mpeg,video/3gpp}
+    # 宿主机端口可通过 HOST_PORT_BACKEND 覆盖；容器内端口固定 8000。
+    ports:
+      - "${HOST_PORT_BACKEND:-8000}:8000"
+    # 生产不挂载 SQLite；仅保留处理产物与临时目录。
+    volumes:
+      - ./data/processed:/app/data/processed
+      - ./data/tmp:/app/data/tmp
+    # 后端依赖自建 MinIO 服务可解析；MySQL 为外部前置依赖。
+    depends_on:
+      - minio
+    networks:
+      - tile-info-platform-prod
+
+  # 生产 Web 容器，托管已构建静态资源并反代后端 API。
+  web:
+    # Web 构建需要项目根上下文，以便复制共享设计系统与业务类型。
+    build:
+      context: .
+      dockerfile: src/web/Dockerfile
+    container_name: tile-info-platform-web-prod
+    # 宿主机端口可通过 HOST_PORT_WEB 覆盖；容器内 Nginx 固定 80。
+    ports:
+      - "${HOST_PORT_WEB:-3000}:80"
+    # Web 依赖 backend 服务用于 API 反代。
+    depends_on:
+      - backend
+    networks:
+      - tile-info-platform-prod
+
+  # 自建 MinIO 服务，生产对象数据使用 Docker named volume 持久化。
+  minio:
+    # 生产建议后续固定镜像版本；当前保持与本地编排一致。
+    image: minio/minio:latest
+    container_name: tile-info-platform-minio-prod
+    # /data 为对象数据目录，9001 为控制台端口。
+    command: server /data --console-address ":9001"
+    # Root 凭据必须由生产 .env 显式提供。
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?Set non-default MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?Set non-default MINIO_SECRET_KEY}
+    # 可按部署环境覆盖宿主机端口；容器内端口保持 MinIO 默认值。
+    ports:
+      - "${HOST_PORT_MINIO_API:-9000}:9000"
+      - "${HOST_PORT_MINIO_CONSOLE:-9001}:9001"
+    # 生产对象数据使用 named volume，避免与源码目录混放。
+    volumes:
+      - minio-data:/data
+    networks:
+      - tile-info-platform-prod
+
+  # 生产 MinIO 初始化任务：创建项目单桶并关闭匿名访问。
+  minio-init:
+    # mc 客户端镜像只负责一次性初始化。
+    image: minio/mc:latest
+    container_name: tile-info-platform-minio-init-prod
+    depends_on:
+      - minio
+    # 初始化所需凭据与桶名；缺少密钥时快速失败。
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set non-default MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set non-default MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-tile-info-platform}
+    # 初始化脚本保持幂等，并将桶匿名访问策略设为 none。
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 $${MINIO_ACCESS_KEY} $${MINIO_SECRET_KEY};
+      mc mb --ignore-existing local/$${MINIO_BUCKET};
+      mc anonymous set none local/$${MINIO_BUCKET};
+      echo 'Production MinIO bucket initialized: '$${MINIO_BUCKET};
+      "
+    networks:
+      - tile-info-platform-prod
+
+volumes:
+  # 生产自建 MinIO 对象数据卷；备份策略需由运维单独制定。
+  minio-data:
+
+networks:
+  # 生产 Compose 内部 bridge 网络。
+  tile-info-platform-prod:
+    driver: bridge

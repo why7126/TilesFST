@@ -34,7 +34,9 @@ export function AdminSidebar({
     if (section.id === 'system' && user?.role !== 'admin') {
       return {
         ...section,
-        items: section.items.filter((item) => item.id !== 'users' && item.id !== 'settings'),
+        items: section.items.filter(
+          (item) => item.id !== 'users' && item.id !== 'settings' && item.id !== 'api-docs',
+        ),
       };
     }
     return section;

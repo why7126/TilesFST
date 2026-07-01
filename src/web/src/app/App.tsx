@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './router/ProtectedRoute';
 import { useAuthStore } from '../features/auth/store/auth-store';
 import { AdminLayout } from '../pages/admin/AdminLayout';
+import { ApiDocsPage } from '../pages/admin/ApiDocsPage';
 import { BannerManagementPage } from '../pages/admin/BannerManagementPage';
 import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
@@ -69,6 +70,7 @@ export function App() {
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route element={<ProtectedRoute requireAdmin />}>
                 <Route path="/admin/users" element={<UserManagementPage />} />
+                <Route path="/admin/api-docs" element={<ApiDocsPage />} />
                 <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
                 <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />
               </Route>

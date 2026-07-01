@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0022 接口文档页面原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --secondary: rgba(237, 232, 223, 0.55);
+      --muted: rgba(237, 232, 223, 0.34);
+      --faint: rgba(237, 232, 223, 0.22);
+      --gold: #c8a055;
+      --gold-soft: rgba(200, 160, 85, 0.12);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --danger: #e07050;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--page);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+    }
+
+    .admin-shell {
+      display: grid;
+      grid-template-columns: 264px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 20px;
+      background: linear-gradient(180deg, rgba(16, 15, 10, 0.95), rgba(33, 30, 22, 0.96));
+      border-right: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+
+    .brand-name {
+      font-size: 13px;
+      letter-spacing: 0.16em;
+    }
+
+    .nav-title {
+      margin: 24px 0 10px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      height: 38px;
+      padding: 0 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--secondary);
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .nav-item.active {
+      border-color: rgba(200, 160, 85, 0.42);
+      background: var(--gold-soft);
+      color: var(--text);
+    }
+
+    .main {
+      padding: 28px;
+      min-width: 0;
+    }
+
+    .page-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .desc {
+      max-width: 760px;
+      margin: 10px 0 0;
+      color: var(--secondary);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .btn {
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .btn.primary {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: var(--page);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .metric,
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface);
+    }
+
+    .metric {
+      padding: 15px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .metric-value {
+      margin-top: 6px;
+      font-size: 22px;
+      color: var(--gold);
+    }
+
+    .filter-bar {
+      display: grid;
+      grid-template-columns: 1fr 132px 160px 160px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .input,
+    .select {
+      height: 40px;
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 13px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    code {
+      color: var(--text);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 0 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      color: var(--secondary);
+      font-size: 11px;
+    }
+
+    .badge.gold {
+      border-color: rgba(200, 160, 85, 0.5);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .badge.danger {
+      border-color: rgba(224, 112, 80, 0.45);
+      color: var(--danger);
+    }
+
+    .badge.muted {
+      color: var(--faint);
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .swagger-box {
+      padding: 16px;
+    }
+
+    .swagger-placeholder {
+      margin-top: 14px;
+      padding: 18px;
+      border: 1px dashed var(--border-strong);
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--secondary);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .page-right {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .admin-shell {
+        grid-template-columns: 72px 1fr;
+      }
+
+      .brand-name,
+      .nav-title,
+      .nav-label {
+        display: none;
+      }
+
+      .summary-grid,
+      .filter-bar,
+      .docs-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-hero {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="sidebar" aria-label="后台导航">
+      <div class="brand">
+        <div class="brand-mark">TF</div>
+        <div class="brand-name">TILESFST</div>
+      </div>
+      <p class="nav-title">OPERATIONS</p>
+      <button class="nav-item"><span aria-hidden="true">□</span><span class="nav-label">首页</span></button>
+      <button class="nav-item"><span aria-hidden="true">□</span><span class="nav-label">瓷砖 SKU</span></button>
+      <button class="nav-item"><span aria-hidden="true">□</span><span class="nav-label">Banner 管理</span></button>
+      <p class="nav-title">SYSTEM</p>
+      <button class="nav-item"><span aria-hidden="true">□</span><span class="nav-label">用户管理</span></button>
+      <button class="nav-item"><span aria-hidden="true">□</span><span class="nav-label">系统设置</span></button>
+      <button class="nav-item active"><span aria-hidden="true">□</span><span class="nav-label">接口文档</span></button>
+    </aside>
+
+    <main class="main">
+      <section class="page-hero">
+        <div>
+          <p class="eyebrow">SYSTEM / API DOCS</p>
+          <h1>接口文档</h1>
+          <p class="desc">
+            汇总运行时 OpenAPI、Swagger 调试入口与 Orval 方法映射。生产环境保留查看能力，但隐藏 Try It Out，避免误操作生产数据。
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn">OpenAPI JSON</button>
+          <button class="btn primary">Swagger UI</button>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="接口摘要">
+        <div class="metric"><div class="metric-label">接口总数</div><div class="metric-value">42</div></div>
+        <div class="metric"><div class="metric-label">受保护接口</div><div class="metric-value">31</div></div>
+        <div class="metric"><div class="metric-label">Orval 映射</div><div class="metric-value">28</div></div>
+        <div class="metric"><div class="metric-label">非 /api/v1 路由</div><div class="metric-value">2</div></div>
+      </section>
+
+      <section class="filter-bar" aria-label="接口筛选">
+        <input class="input" value="admin" aria-label="搜索接口">
+        <select class="select" aria-label="HTTP Method"><option>全部 Method</option></select>
+        <select class="select" aria-label="模块"><option>全部模块</option></select>
+        <select class="select" aria-label="认证要求"><option>全部认证</option></select>
+      </section>
+
+      <section class="panel" aria-label="接口目录">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">接口目录</h2>
+            <div class="panel-note">显示 OpenAPI schema 与系统路由补充，支持按 Orval 方法名检索。</div>
+          </div>
+          <span class="badge gold">生产环境仅查看</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>模块</th>
+              <th>认证</th>
+              <th>Orval 方法名</th>
+              <th>Schema</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge gold">GET</span></td>
+              <td><code>/api/v1/admin/users</code><br><span class="panel-note">用户列表</span></td>
+              <td>admin-users</td>
+              <td><span class="badge danger">仅 admin</span></td>
+              <td><code>getAdminUsers</code></td>
+              <td><span class="badge gold">OpenAPI</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge gold">POST</span></td>
+              <td><code>/api/v1/admin/uploads/brand-logos</code><br><span class="panel-note">品牌 Logo 上传</span></td>
+              <td>uploads</td>
+              <td><span class="badge">admin/employee</span></td>
+              <td><code>uploadBrandLogo</code></td>
+              <td><span class="badge gold">OpenAPI</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge">GET</span></td>
+              <td><code>/health</code><br><span class="panel-note">健康检查，无 /api/v1 前缀</span></td>
+              <td>system-route</td>
+              <td><span class="badge">公开</span></td>
+              <td><span class="badge muted">未生成</span></td>
+              <td><span class="badge muted">补充</span></td>
+            </tr>
+            <tr>
+              <td><span class="badge">GET</span></td>
+              <td><code>/media/{object_key:path}</code><br><span class="panel-note">媒体直出路由</span></td>
+              <td>media-route</td>
+              <td><span class="badge">受存储策略控制</span></td>
+              <td><span class="badge muted">未生成</span></td>
+              <td><span class="badge muted">include_in_schema=false</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="page-right">共 42 条 · 1 / 5 · 每页 10 条</div>
+      </section>
+
+      <section class="docs-grid">
+        <div class="panel swagger-box">
+          <h2 class="panel-title">Swagger 在线调试</h2>
+          <div class="swagger-placeholder">
+            当前环境：production<br>
+            Swagger 文档可查看；Try It Out 已隐藏或禁用。非生产环境可在此区域使用在线调试。
+          </div>
+        </div>
+        <div class="panel swagger-box">
+          <h2 class="panel-title">文档来源</h2>
+          <div class="swagger-placeholder">
+            OpenAPI JSON 是运行时契约；Swagger UI 用于查看与调试；Orval 方法名来自 generated.ts；docs/03-api-index.md 是长期接口索引。
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

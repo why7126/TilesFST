@@ -1,0 +1,26 @@
+sprint_id: sprint-004
+status: in_progress
+lifecycle_stage: change
+start_date: 2026-06-29 10:03:38
+end_date: 2026-07-13 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0018-production-mysql-deployment
+  - REQ-0019-admin-superuser-protection
+  - REQ-0022-admin-api-docs-menu
+
+bugs:
+  - BUG-0050-user-create-validation-message-unclear
+
+changes:
+  - add-production-mysql-deployment
+  - update-admin-superuser-protection
+  - fix-user-create-validation-message-unclear
+  - add-admin-api-docs-menu
+
+estimated_story_points: 58
+estimated_person_days: 43.0

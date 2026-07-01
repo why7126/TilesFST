@@ -443,6 +443,18 @@ AI新增或修改以下内容时必须同步更新 `.env.example`：
 - 图片/视频MIME类型
 - 视频处理开关
 
+AI新增或修改以下配置时，必须同步维护邻近注释，说明用途、取值范围、默认值含义或安全边界：
+
+```text
+docker-compose*.yml
+src/backend/Dockerfile
+src/web/Dockerfile
+.env
+.env.example
+src/backend/.env.example
+src/backend/.env.docker
+```
+
 `.env` 文件禁止提交。
 
 ## 14. 视频与媒体资产规范

@@ -5,7 +5,7 @@ TBD - created by archiving change build-api-standard. Update Purpose after archi
 ## Requirements
 ### Requirement: Unified response envelope
 
-All public JSON APIs MUST return a unified envelope `{ code, message, data }` for success and error responses documented in `docs/standards/api-governance.md`.
+All public JSON APIs MUST return a unified envelope `{ code, message, data }` for success and error responses documented in `docs/standards/api-governance.md`. Request body validation errors that are returned to Web clients MUST also use this envelope, instead of exposing a raw framework-default error body as the only response structure.
 
 #### Scenario: Successful JSON response shape
 
@@ -19,15 +19,35 @@ All public JSON APIs MUST return a unified envelope `{ code, message, data }` fo
 - **THEN** the body MUST include `code`, `message`, and MAY include `data` as null or error detail
 - **AND** `code` MUST match a registered business or auth error code
 
+#### Scenario: Request validation error response shape
+
+- **WHEN** a Web client submits an invalid JSON request body to a public API
+- **THEN** the response body MUST include `code`, `message`, and `data`
+- **AND** `message` MUST be suitable for display or mapping by the Web client
+- **AND** the response body MUST NOT only expose FastAPI/Pydantic default `detail` as the user-facing error contract
+
+#### Scenario: User create username validation response
+
+- **WHEN** `POST /api/v1/admin/users` receives `username="abc"`
+- **THEN** the response MUST follow the unified envelope
+- **AND** the response message MUST identify the username length problem
+
 ### Requirement: Error code registry
 
-Business and authentication errors MUST use stable codes documented in `docs/standards/error-codes.md` and implemented in `src/backend/app/core/error_codes.py`.
+Business and authentication errors MUST use stable codes documented in `docs/standards/error-codes.md` and implemented in `src/backend/app/core/error_codes.py`. This registry MUST include a stable business error for protected system account operations, recommended as `30060` with HTTP 403 and message equivalent to `系统保底管理员账号不允许执行该操作`.
 
 #### Scenario: Auth error codes available
 
 - **WHEN** a developer inspects `error_codes.py` and `docs/standards/error-codes.md`
 - **THEN** MUST find codes including `AUTH_INVALID_REQUEST`, `AUTH_INVALID_CREDENTIALS`, and `AUTH_USER_DISABLED`
 - **AND** API handlers MUST reference these codes rather than ad-hoc string literals
+
+#### Scenario: Protected account error code registered
+
+- **WHEN** a developer inspects `src/backend/app/core/error_codes.py` and `docs/standards/error-codes.md`
+- **THEN** MUST find a stable error code for protected system account operations
+- **AND** the documented HTTP status MUST be 403
+- **AND** user-management and admin profile password handlers MUST reference this code rather than ad-hoc numbers
 
 #### Scenario: Validation script checks error registry
 
@@ -36,7 +56,7 @@ Business and authentication errors MUST use stable codes documented in `docs/sta
 
 ### Requirement: OpenAPI metadata
 
-Public routes MUST declare OpenAPI metadata including `response_model`, `summary`, and `tags` so `openapi.json` is suitable for Orval client generation.
+Public routes MUST declare OpenAPI metadata including `response_model`, `summary`, and `tags` so `openapi.json` is suitable for Orval client generation. User management response schemas MUST expose `is_protected` and `protected_reason`; protected account 403 branches SHOULD be documented in route descriptions or response metadata where supported.
 
 #### Scenario: Route metadata present
 
@@ -44,6 +64,12 @@ Public routes MUST declare OpenAPI metadata including `response_model`, `summary
 - **THEN** the operation MUST include a human-readable `summary`
 - **AND** MUST be grouped under an appropriate `tags` entry
 - **AND** MUST declare `response_model` for typed client generation
+
+#### Scenario: User schemas expose protected fields
+
+- **WHEN** OpenAPI is exported after this change
+- **THEN** user list and detail response schemas MUST include `is_protected` and `protected_reason`
+- **AND** Orval generation MUST produce corresponding TypeScript fields
 
 #### Scenario: SDK generation documentation
 

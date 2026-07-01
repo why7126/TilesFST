@@ -8,7 +8,9 @@ from app.core.exceptions import (
     PasswordPolicyError,
     PasswordSameAsOldError,
     PasswordWeakError,
+    UserProtectedAccountError,
 )
+from app.core.protected_account import is_protected_username
 from app.core.password_validation import validate_new_password, validate_password_policy
 from app.core.security import hash_password, verify_password
 from app.repositories.password_change_repository import PasswordChangeRepository
@@ -40,6 +42,9 @@ class PasswordChangeService:
         old_password: str,
         new_password: str,
     ) -> ChangePasswordData:
+        if is_protected_username(user.username):
+            raise UserProtectedAccountError()
+
         if self._attempts.count_recent_failures(
             user.id,
             minutes=self.FAIL_WINDOW_MINUTES,

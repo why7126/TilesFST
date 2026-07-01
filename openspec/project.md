@@ -3,6 +3,8 @@ purpose: OpenSpec项目上下文
 content: 项目背景、技术栈、AI约束
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-29 10:35:38
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -15,7 +17,7 @@ note: 适用于瓷砖信息管理平台项目模板
 
 ## 技术栈
 
-- 后端：Python3.12、FastAPI、Pydantic、uv、SQLite、MinIO
+- 后端：Python3.12、FastAPI、Pydantic、uv、SQLite（本地开发 / demo）、MySQL 8.0+（生产）、MinIO
 - 前端：React19、TypeScript、Tailwind、shadcn/ui、Axios、Orval、pnpm
 - 小程序：微信小程序
 

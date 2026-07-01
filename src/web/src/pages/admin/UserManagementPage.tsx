@@ -307,7 +307,16 @@ export function UserManagementPage() {
           <tbody>
             {(data?.items ?? []).map((user) => {
               const isDeleted = user.status === 'deleted';
-              const canDelete = !user.last_login_at && !isDeleted;
+              const isProtected = Boolean(user.is_protected);
+              const protectedReason = user.protected_reason ?? '系统保底管理员账号不允许执行该操作';
+              const protectedTitle = isProtected ? protectedReason : undefined;
+              const editDisabled = isDeleted || isProtected;
+              const canDelete = !user.last_login_at && !isDeleted && !isProtected;
+              const deleteTitle = isProtected
+                ? protectedReason
+                : canDelete
+                  ? undefined
+                  : '已登录用户不可删除';
               return (
                 <tr key={user.id}>
                   <td>
@@ -348,25 +357,28 @@ export function UserManagementPage() {
                     <div className="actions">
                       <button
                         type="button"
-                        className={`link-btn${isDeleted ? ' disabled' : ''}`}
-                        disabled={isDeleted}
-                        onClick={() => openEdit(user)}
+                        className={`link-btn${editDisabled ? ' disabled' : ''}`}
+                        disabled={editDisabled}
+                        title={protectedTitle}
+                        onClick={() => !editDisabled && openEdit(user)}
                       >
                         编辑
                       </button>
                       <button
                         type="button"
-                        className={`link-btn${isDeleted ? ' disabled' : ''}`}
-                        disabled={isDeleted}
-                        onClick={() => openResetPasswordConfirm(user)}
+                        className={`link-btn${editDisabled ? ' disabled' : ''}`}
+                        disabled={editDisabled}
+                        title={protectedTitle}
+                        onClick={() => !editDisabled && openResetPasswordConfirm(user)}
                       >
                         重置密码
                       </button>
                       <button
                         type="button"
-                        className={`link-btn danger${isDeleted ? ' disabled' : ''}`}
-                        disabled={isDeleted}
-                        onClick={() => openStatusConfirm(user)}
+                        className={`link-btn danger${editDisabled ? ' disabled' : ''}`}
+                        disabled={editDisabled}
+                        title={protectedTitle}
+                        onClick={() => !editDisabled && openStatusConfirm(user)}
                       >
                         {user.status === 'disabled' ? '解冻' : '冻结'}
                       </button>
@@ -374,7 +386,7 @@ export function UserManagementPage() {
                         type="button"
                         className={`link-btn${canDelete ? ' danger' : ' disabled'}`}
                         disabled={!canDelete}
-                        title={canDelete ? undefined : '已登录用户不可删除'}
+                        title={deleteTitle}
                         onClick={() => canDelete && setDeleteTarget(user)}
                       >
                         删除

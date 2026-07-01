@@ -3,6 +3,8 @@ purpose: 接口文档
 content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-01 08:48:56
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -75,6 +77,7 @@ Authorization: Bearer <access_token>
 | 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
 | 管理端系统设置 | `/api/v1/admin/system-settings` | 是（仅 admin） | 分组配置 GET/PATCH/reset、审计 recent | ✓ Sprint 003 |
+| 管理端接口文档 | `/api/v1/admin/api-docs` | 是（仅 admin） | 运行时接口目录、OpenAPI/Swagger/Orval 映射、非 `/api/v1` 路由清单 | ✓ Sprint 004 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端 Banner | `/api/v1/admin/banners` | 是（admin/employee） | Banner CRUD、上下线、条件删除、summary | ✓ Sprint 003 |
 | 管理端专题（只读） | `/api/v1/admin/topics` | 是（admin/employee） | 专题列表（Banner 跳转关联） | ✓ Sprint 003 |
@@ -102,7 +105,22 @@ OpenSpec：`openspec/changes/add-user-management/`
 
 列表查询参数：`page`、`page_size`（10/20/50）、`keyword`（仅匹配 `username`、`display_name`）、`role`、`status`、`login_filter`。
 
+用户对象含 `is_protected` 与 `protected_reason`。当 `is_protected=true` 时，前端 MUST 保持编辑、重置密码、冻结/解冻、删除按钮可见但禁用，并以 `protected_reason` 作为提示。
+
 创建成功 `data` 含 `user` 与一次性 `initial_password`。
+
+创建用户校验：
+
+| 场景 | HTTP | code | message |
+|---|---:|---:|---|
+| 用户名长度不足或超长 | 400 | 40010 | 用户名长度须为 4–32 位 |
+| 用户名格式非法 | 400 | 40010 | 用户名须以小写字母开头，仅含小写字母、数字、_、-、. |
+| 用户名连续特殊符号 | 400 | 40010 | 用户名不允许连续特殊符号 |
+| 用户名为系统保留字 | 400 | 40010 | 用户名为系统保留字 |
+| 用户名重复 | 409 | 40910 | 用户名已存在 |
+| 系统保底管理员账号被编辑、重置密码或变更状态 | 403 | 30060 | 系统保底管理员账号不允许执行该操作 |
+
+用户名规则由后端业务校验统一返回 `{ code, message, data }`，不得仅返回 FastAPI 默认 422 `detail`。
 
 ### 3.4.1 管理端系统设置（Sprint 003）
 
@@ -117,6 +135,38 @@ OpenSpec：`openspec/changes/add-system-settings/`
 | GET | `/api/v1/admin/system-settings/audit/recent` | Bearer（admin） |
 
 `group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组含只读 `minio_bucket`、`object_key_rule`。
+
+### 3.4.2 管理端接口文档（Sprint 004）
+
+实现：`src/backend/app/api/v1/admin_api_docs.py`  
+OpenSpec：`openspec/changes/add-admin-api-docs-menu/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/api-docs` | Bearer（admin） |
+
+响应 `data.routes` 汇总 FastAPI 运行时路由，覆盖：
+
+- `/api/v1/*` 下所有业务接口；
+- `/health` 健康检查；
+- `/media/{object_key:path}` 媒体直出路由（`include_in_schema=false`，不生成 Orval 方法）；
+- `/openapi.json`、`/docs`、`/redoc` 等 FastAPI 文档相关非 `/api/v1` 路由。
+
+单条路由字段：`method`、`path`、`tag`、`summary`、`auth_requirement`、`included_in_openapi`、`operation_id`、`orval_method_name`、`source`、`missing_orval_reason`。
+
+前端页面：`/admin/api-docs`，仅 `admin` 可访问；入口位于管理端 SYSTEM 分组「系统设置」下方。
+
+OpenAPI/Orval 关系：
+
+- OpenAPI JSON：`/openapi.json` 与 `src/web/openapi.json`；
+- Swagger UI：`/docs`；
+- Orval 配置：`src/web/orval.config.ts`；
+- 前端生成客户端：`src/web/src/shared/api/generated.ts`；
+- 已纳入 OpenAPI 且具备 `operationId` 的接口展示 camelCase Orval 方法名；schema 外路由展示「未生成」及原因。
+
+Swagger 在线调试策略：`APP_ENV` 为 `local`、`development`、`dev`、`demo`、`test` 时允许 `Try It Out`；其他环境展示 Swagger 文档入口，但 FastAPI `swagger_ui_parameters.tryItOutEnabled=false`，管理端页面标记为生产只读。
+
+本接口不返回数据库 DSN、MinIO AccessKey/SecretKey、JWT、原始环境变量值或其他敏感配置。
 
 ### 3.5 管理端品牌（Sprint 002）
 
@@ -346,7 +396,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 
 改密成功后 `users.token_version` 递增，JWT `tv` claim 失效旧 token；客户端 MUST 清除本地 token 并重新登录。
 
-校验错误码：`40020`（原密码错误）、`40021`（策略）、`40022`（弱密码）、`40023`（与原密码相同）、`42901`（限流）。
+校验错误码：`30060`（系统保底管理员账号不允许执行改密）、`40020`（原密码错误）、`40021`（策略）、`40022`（弱密码）、`40023`（与原密码相同）、`42901`（限流）。
 
 ---
 

@@ -471,6 +471,8 @@ def patch_issue_trace(
         block = update_yaml_scalar(block, "status", derived.display_status)
         for change_id, status in change_status_map.items():
             block = update_openspec_changes_in_block(block, change_id, status)
+        if not block.endswith("\n"):
+            block += "\n"
         if derived.display_status == "done" and re.search(r"^\s*archived:\s*null\s*$", block, re.MULTILINE):
             block = re.sub(
                 r"^(\s*archived:\s*)null\s*$",

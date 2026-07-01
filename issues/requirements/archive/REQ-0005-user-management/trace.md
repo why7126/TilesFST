@@ -9,7 +9,7 @@ owner: product
 status: done
 lifecycle_stage: archive
 note: add-user-management 已 archive（2026-06-20）；列表 v2 见 fix-user-management-list-refine
-updated_at: 2026-06-27 22:33:15
+updated_at: 2026-07-01 08:55:47
 ---
 
 # 需求追踪
@@ -39,10 +39,11 @@ related_changes:
 openspec_changes:
   - change_id: add-user-management
     type: add
-    status: archived
+    status: proposed
     iteration: sprint-002
     requirement_id: REQ-0005-user-management
-    strategy: css-port```
+    strategy: css-port
+```
 
 ## 2. 关联文档
 
@@ -113,3 +114,4 @@ openspec_changes:
 |---|---|---|---|---|
 | BUG-0017-user-reset-password-confirm-ui-inconsistency | medium | done | fix-user-reset-password-confirm-ui | 用户重置密码二次确认弹窗与类目启用停用确认弹窗 UI 不一致 |
 | BUG-0019-user-modal-avatar-upload-display | high | done | fix-user-modal-avatar-upload-display | 用户弹窗与列表头像上传后未回显且更换功能未生效 |
+| BUG-0050-user-create-validation-message-unclear | medium | done | fix-user-create-validation-message-unclear | 创建用户校验失败未明确提示具体问题点 |

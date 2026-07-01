@@ -36,6 +36,8 @@ const listPayload = {
       status: 'active',
       last_login_at: null,
       created_at: '2026-06-01T00:00:00Z',
+      is_protected: false,
+      protected_reason: null,
     },
   ],
   total: 1,
@@ -230,5 +232,37 @@ describe('UserManagementPage', () => {
     expect(resetUserPasswordMock).not.toHaveBeenCalled();
     expect(confirmSpy).not.toHaveBeenCalled();
     confirmSpy.mockRestore();
+  });
+
+  it('keeps protected account actions visible but disabled', async () => {
+    fetchUsersMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          id: 'protected-id',
+          username: 'system_admin',
+          is_protected: true,
+          protected_reason: '系统保底管理员账号不允许执行该操作',
+        },
+      ],
+    });
+
+    render(<UserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('system_admin')).toBeInTheDocument();
+    });
+
+    for (const label of ['编辑', '重置密码', '冻结', '删除']) {
+      const button = screen.getByRole('button', { name: label });
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('title', '系统保底管理员账号不允许执行该操作');
+      fireEvent.click(button);
+    }
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(resetUserPasswordMock).not.toHaveBeenCalled();
+    expect(updateUserStatusMock).not.toHaveBeenCalled();
   });
 });

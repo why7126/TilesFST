@@ -11,6 +11,45 @@ import type {
   AxiosResponse
 } from 'axios';
 
+export interface ApiDocsRouteItem {
+  method: string;
+  path: string;
+  tag: string;
+  summary: string;
+  auth_requirement: string;
+  included_in_openapi: boolean;
+  operation_id?: string | null;
+  orval_method_name?: string | null;
+  source: string;
+  missing_orval_reason?: string | null;
+}
+
+export interface ApiDocsSummary {
+  total_routes: number;
+  protected_routes: number;
+  orval_mapped_routes: number;
+  non_api_v1_routes: number;
+}
+
+export interface ApiDocsEnvironmentPolicy {
+  app_env: string;
+  allow_try_it_out: boolean;
+  label: string;
+  description: string;
+}
+
+export interface ApiDocsData {
+  routes: ApiDocsRouteItem[];
+  summary: ApiDocsSummary;
+  environment: ApiDocsEnvironmentPolicy;
+}
+
+export interface ApiResponseApiDocsData {
+  code?: number;
+  message?: string;
+  data?: ApiDocsData | null;
+}
+
 export interface BannerAdminItem {
   id: number;
   title: string;
@@ -432,6 +471,8 @@ export interface UserAdminItem {
   phone?: string | null;
   last_login_at?: string | null;
   created_at: string;
+  is_protected?: boolean;
+  protected_reason?: string | null;
 }
 
 export interface ApiResponseUserAdminItem {
@@ -790,10 +831,6 @@ export interface TileSpecUpdateRequest {
 }
 
 export interface UserCreateRequest {
-  /**
-     * @minLength 4
-     * @maxLength 32
-     */
   username: string;
   display_name?: string | null;
   role: string;
@@ -1174,6 +1211,17 @@ const resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost = (
     return axiosInstance.post(
       `/api/v1/admin/system-settings/${group}/reset`,
       undefined,options
+    );
+  }
+
+/**
+ * @summary 管理端接口文档目录
+ */
+const getApiDocsApiV1AdminApiDocsGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseApiDocsData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/api-docs`,options
     );
   }
 
@@ -1708,7 +1756,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type LogoutApiV1AuthLogoutPostResult = AxiosResponse<ApiResponseLogoutData>
@@ -1729,6 +1777,7 @@ export type GetRecentAuditApiV1AdminSystemSettingsAuditRecentGetResult = AxiosRe
 export type GetSettingsGroupApiV1AdminSystemSettingsGroupGetResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
 export type PatchSettingsGroupApiV1AdminSystemSettingsGroupPatchResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
 export type ResetSettingsGroupApiV1AdminSystemSettingsGroupResetPostResult = AxiosResponse<ApiResponseSystemSettingsGroupResponse>
+export type GetApiDocsApiV1AdminApiDocsGetResult = AxiosResponse<ApiResponseApiDocsData>
 export type ListBrandsApiV1AdminBrandsGetResult = AxiosResponse<ApiResponseBrandAdminListData>
 export type CreateBrandApiV1AdminBrandsPostResult = AxiosResponse<ApiResponseBrandAdminItem>
 export type GetBrandApiV1AdminBrandsBrandIdGetResult = AxiosResponse<ApiResponseBrandAdminItem>

@@ -21,6 +21,8 @@ REQUIRED_PATHS = [
     "src/web/package.json",
     "src/miniapp/app.json",
     "docker-compose.yml",
+    "docker-compose.prod.yml",
+    "docker-compose.prod.external.yml",
     "src/backend/Dockerfile",
     "src/web/Dockerfile",
     "src/web/nginx.conf",
@@ -31,7 +33,12 @@ ALLOWED_ROOT_FILES = {
     "README.md",
     ".gitignore",
     ".dockerignore",
+    ".coveragerc",
+    ".env.example",
     "docker-compose.yml",
+    "docker-compose.prod.yml",
+    "docker-compose.prod.external.yml",
+    "pytest.ini",
     "project.yaml",
     "DOCUMENT_METADATA_INDEX.md",
 }
@@ -44,10 +51,22 @@ ALLOWED_ROOT_DIRS = {
     "iterations",
     "compatibility",
     ".claude",
+    ".codex",
+    ".cursor",
+    ".agents",
+    ".kiro",
+    ".opencode",
     "src",
     "tests",
     "scripts",
     "data",
+    "deploy",
+}
+
+IGNORED_ROOT_NAMES = {
+    ".DS_Store",
+    ".env",
+    ".pytest_cache",
 }
 
 errors = []
@@ -57,6 +76,8 @@ for item in REQUIRED_PATHS:
         errors.append(f"缺少必需路径: {item}")
 
 for child in ROOT.iterdir():
+    if child.name in IGNORED_ROOT_NAMES:
+        continue
     if child.name.startswith(".git"):
         continue
     if child.is_file() and child.name not in ALLOWED_ROOT_FILES:

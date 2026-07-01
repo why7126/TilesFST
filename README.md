@@ -3,6 +3,8 @@ purpose: 项目说明
 content: 项目介绍、技术栈、启动方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-29 11:18:14
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -28,7 +30,8 @@ note: 适用于瓷砖信息管理平台项目模板
 - FastAPI
 - Pydantic
 - uv
-- SQLite
+- SQLite（本地开发 / demo）
+- MySQL 8.0+（生产）
 - MinIO
 
 ### 前端
@@ -93,6 +96,23 @@ pnpm dev
 ```
 
 生产环境必须修改默认账号密码，并使用独立环境变量管理。
+
+## 生产部署
+
+生产部署使用 `docker-compose.prod.yml`，连接客户已有 MySQL 8.0+，并继续使用自建 MinIO 单桶对象存储。
+
+```bash
+cp .env.example .env
+# 编辑 .env，设置 APP_ENV=production、DATABASE_URL、APP_SECRET_KEY、MinIO 密钥
+docker compose -f docker-compose.prod.yml config
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+- 生产 `DATABASE_URL` 必须是 MySQL DSN，例如 `mysql+pymysql://...?...charset=utf8mb4`。
+- 生产 Compose 不包含 mysql 服务，也不挂载 `./data/sqlite` 作为数据库。
+- 部署前置检查与冒烟流程见 `docs/02-deployment.md`。
+
+若客户同时提供外部 MySQL 与外部 MinIO/S3 兼容对象存储，使用 `docker-compose.prod.external.yml`。该变体只启动 `backend` 与 `web`，需额外配置 `MINIO_ENDPOINT`、`MINIO_BUCKET`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY` 与 `MINIO_SECURE`。
 
 ## AI目录结构约束
 

@@ -39,9 +39,9 @@ function createApiError(code: number, message: string) {
     undefined,
     undefined,
     {
-      status: code === 40020 ? 400 : 400,
+      status: code === 30060 ? 403 : 400,
       data: { code, message },
-      statusText: 'Bad Request',
+      statusText: code === 30060 ? 'Forbidden' : 'Bad Request',
       headers: {},
       config: {} as never,
     },
@@ -112,6 +112,26 @@ describe('ChangePasswordModal', () => {
     expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toBeNull();
   });
 
+  it('shows protected account API message under new password field', async () => {
+    changePasswordMock.mockRejectedValue(
+      createApiError(30060, '系统保底管理员账号不允许执行该操作'),
+    );
+    renderModal();
+
+    fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/确认新密码/), {
+      target: { value: 'NewPass456!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
+
+    expect(await screen.findByText('系统保底管理员账号不允许执行该操作')).toBeInTheDocument();
+    expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toHaveTextContent(
+      '系统保底管理员账号不允许执行该操作',
+    );
+    expect(fieldContainer('pwd-old')?.querySelector('.error-text')).toBeNull();
+  });
+
   it('shows validation error when confirm password mismatches', async () => {
     renderModal();
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
@@ -177,6 +197,10 @@ describe('mapPasswordChangeApiError', () => {
     expect(mapPasswordChangeApiError(createApiError(40022, '新密码过于常见'))).toEqual({
       oldPasswordError: null,
       newPasswordError: '新密码过于常见',
+    });
+    expect(mapPasswordChangeApiError(createApiError(30060, '系统保底管理员账号不允许执行该操作'))).toEqual({
+      oldPasswordError: null,
+      newPasswordError: '系统保底管理员账号不允许执行该操作',
     });
   });
 });

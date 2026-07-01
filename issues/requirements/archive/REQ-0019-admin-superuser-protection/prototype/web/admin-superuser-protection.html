@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REQ-0019 管理端超级管理员账号保护</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.52);
+      --weak: rgba(237, 232, 223, 0.32);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --gold: #c8a055;
+      --gold-soft: rgba(200, 160, 85, 0.12);
+      --danger: #e07050;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 264px 1fr;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--deep);
+      padding: 26px 20px;
+    }
+
+    .brand {
+      color: var(--gold);
+      letter-spacing: 0.16em;
+      font-size: 19px;
+      margin-bottom: 38px;
+    }
+
+    .nav-title {
+      color: var(--weak);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      margin: 24px 0 10px;
+    }
+
+    .nav-item {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav-item.active {
+      color: var(--text);
+      background: var(--gold-soft);
+      border-left: 2px solid var(--gold);
+    }
+
+    .main {
+      padding: 28px;
+      max-width: 1120px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      margin: 0 0 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 400;
+    }
+
+    .desc {
+      margin: 10px 0 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--weak);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 2px;
+      display: grid;
+      place-items: center;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid rgba(200, 160, 85, 0.28);
+      font-size: 12px;
+    }
+
+    .user-main {
+      display: block;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .user-sub {
+      display: block;
+      color: var(--weak);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 2px;
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .badge.gold {
+      color: var(--gold);
+      background: var(--gold-soft);
+      border-color: rgba(200, 160, 85, 0.38);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .link-btn {
+      border: 0;
+      background: transparent;
+      color: var(--gold);
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .link-btn.danger {
+      color: var(--danger);
+    }
+
+    .link-btn.disabled {
+      color: var(--weak);
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+
+    .pagination {
+      height: 56px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .page-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border-strong);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    .page-btn.active {
+      background: var(--gold);
+      color: var(--page);
+      border-color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">TILESFST</div>
+      <div class="nav-title">OPERATIONS</div>
+      <div class="nav-item">商品管理</div>
+      <div class="nav-item">品牌管理</div>
+      <div class="nav-title">SYSTEM</div>
+      <div class="nav-item active">用户管理</div>
+      <div class="nav-item">系统设置</div>
+    </aside>
+    <main class="main">
+      <p class="eyebrow">SYSTEM / USER MANAGEMENT</p>
+      <h1 class="title">用户管理</h1>
+      <p class="desc">受保护超级管理员账号仍展示在列表中，但行内危险操作保持不可用，由后端字段驱动。</p>
+
+      <section class="table-card" aria-label="用户列表">
+        <table>
+          <thead>
+            <tr>
+              <th>用户</th>
+              <th>角色</th>
+              <th>状态</th>
+              <th>最后登录</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <span class="avatar">AD</span>
+                  <span>
+                    <span class="user-main">admin</span>
+                    <span class="user-sub">系统保底管理员账号</span>
+                  </span>
+                </div>
+              </td>
+              <td><span class="badge gold">后台管理员</span></td>
+              <td><span class="badge">正常</span></td>
+              <td>2026-06-30 13:40</td>
+              <td>2026-06-13</td>
+              <td>
+                <div class="actions" title="系统保底管理员账号不允许编辑、重置密码或停用">
+                  <button class="link-btn disabled" disabled>编辑</button>
+                  <button class="link-btn disabled" disabled>重置密码</button>
+                  <button class="link-btn disabled" disabled>冻结</button>
+                  <button class="link-btn disabled" disabled>删除</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <span class="avatar">OP</span>
+                  <span>
+                    <span class="user-main">operator01</span>
+                    <span class="user-sub">运营一号</span>
+                  </span>
+                </div>
+              </td>
+              <td><span class="badge">后台运营</span></td>
+              <td><span class="badge">正常</span></td>
+              <td>从未登录</td>
+              <td>2026-06-30</td>
+              <td>
+                <div class="actions">
+                  <button class="link-btn">编辑</button>
+                  <button class="link-btn">重置密码</button>
+                  <button class="link-btn danger">冻结</button>
+                  <button class="link-btn danger">删除</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="page-summary">共 2 个用户</div>
+          <div class="page-right">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">›</button>
+            <span>每页显示 10 条</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -61,6 +61,13 @@ class UserInvalidStatusTransitionError(AppError):
         super().__init__(status_code=400, code=40012, message=message)
 
 
+class UserProtectedAccountError(AppError):
+    def __init__(self, message: str = "系统保底管理员账号不允许执行该操作") -> None:
+        from app.core.error_codes import USER_PROTECTED_ACCOUNT
+
+        super().__init__(status_code=403, code=USER_PROTECTED_ACCOUNT, message=message)
+
+
 class ProfileValidationError(AppError):
     def __init__(self, message: str = "个人资料校验失败") -> None:
         from app.core.error_codes import PROFILE_VALIDATION_ERROR

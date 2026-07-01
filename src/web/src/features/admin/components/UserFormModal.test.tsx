@@ -4,9 +4,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const createUserMock = vi.hoisted(() => vi.fn());
 const updateUserMock = vi.hoisted(() => vi.fn());
 const uploadAvatarMock = vi.hoisted(() => vi.fn());
+const getErrorMessageMock = vi.hoisted(() =>
+  vi.fn((err: unknown, fallback: string) => {
+    const response = (err as { response?: { data?: { message?: string } } })?.response;
+    return response?.data?.message ?? fallback;
+  }),
+);
 
 vi.mock('@/features/auth/api/auth-api', () => ({
-  getErrorMessage: (_err: unknown, fallback: string) => fallback,
+  getErrorMessage: (err: unknown, fallback: string) => getErrorMessageMock(err, fallback),
 }));
 
 vi.mock('../api/users-api', () => ({
@@ -22,6 +28,7 @@ describe('UserFormModal', () => {
     createUserMock.mockReset();
     updateUserMock.mockReset();
     uploadAvatarMock.mockReset();
+    getErrorMessageMock.mockClear();
   });
 
   it('renders fields in fixed order for create mode', () => {
@@ -160,5 +167,80 @@ describe('UserFormModal', () => {
       expect(uploadAvatarMock).toHaveBeenCalledTimes(2);
     });
     expect(await screen.findByText('已上传头像')).toBeInTheDocument();
+  });
+
+  it('shows backend validation message when create user fails', async () => {
+    createUserMock.mockRejectedValue({
+      response: {
+        data: {
+          code: 40010,
+          message: '用户名长度须为 4–32 位',
+          data: null,
+        },
+      },
+    });
+
+    render(
+      <UserFormModal
+        open
+        mode="create"
+        user={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('用户名'), { target: { value: 'abc' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建用户' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('用户名长度须为 4–32 位');
+    expect(createUserMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        username: 'abc',
+      }),
+    );
+  });
+
+  it('clears create error and succeeds after username is fixed', async () => {
+    createUserMock
+      .mockRejectedValueOnce({
+        response: {
+          data: {
+            code: 40010,
+            message: '用户名长度须为 4–32 位',
+            data: null,
+          },
+        },
+      })
+      .mockResolvedValueOnce({ initial_password: 'TempPass123!' });
+    const onSuccess = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <UserFormModal
+        open
+        mode="create"
+        user={null}
+        onClose={onClose}
+        onSuccess={onSuccess}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('用户名'), { target: { value: 'abc' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建用户' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('用户名长度须为 4–32 位');
+
+    fireEvent.change(screen.getByLabelText('用户名'), { target: { value: 'store_user_02' } });
+    fireEvent.click(screen.getByRole('button', { name: '创建用户' }));
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledWith('用户已创建', 'TempPass123!');
+    });
+    expect(onClose).toHaveBeenCalled();
+    expect(createUserMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        username: 'store_user_02',
+      }),
+    );
   });
 });

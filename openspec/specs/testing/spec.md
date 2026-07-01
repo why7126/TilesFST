@@ -46,13 +46,40 @@ Each REQ-0000 infrastructure requirement MUST map to at least one automated test
 
 ### Requirement: Change tests
 
-New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive.
+New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, or user-facing UI MUST include focused regression tests for the modified behavior. For `update-admin-superuser-protection`, backend tests MUST cover protected account identification and all protected operation guards; frontend tests SHOULD cover protected row disabled actions and ordinary user non-regression.
 
 #### Scenario: Governance documentation states requirement
 
 - **WHEN** a developer reads `docs/standards/testing-governance.md`
 - **THEN** MUST find a rule that OpenSpec Change implementations MUST add matching tests
 - **AND** MUST NOT allow implementation-only changes without test coverage for new Services or Routers
+
+#### Scenario: Protected user list fields tested
+
+- **WHEN** backend tests run for this change
+- **THEN** at least one test MUST assert that `GET /api/v1/admin/users` returns `is_protected=true` for `ADMIN_USERNAME`
+- **AND** ordinary admin users MUST return `is_protected=false`
+
+#### Scenario: Protected destructive operations tested
+
+- **WHEN** backend tests run for this change
+- **THEN** tests MUST assert protected account edit returns HTTP 403 and leaves fields unchanged
+- **AND** tests MUST assert reset-password returns HTTP 403 and leaves `password_hash` unchanged
+- **AND** tests MUST assert status change returns HTTP 403 and leaves status unchanged
+- **AND** tests MUST assert protected account self password change returns HTTP 403 and leaves `password_hash` and `token_version` unchanged
+
+#### Scenario: Frontend protected row behavior tested
+
+- **WHEN** frontend tests run for this change
+- **THEN** tests SHOULD assert protected account row action buttons are disabled or inert
+- **AND** tests SHOULD assert disabled actions use `protected_reason`
+- **AND** tests SHOULD assert ordinary user edit/reset/status actions remain available and keep DS confirm behavior
+
+#### Scenario: Orval and API contract checked
+
+- **WHEN** this change modifies OpenAPI response schemas
+- **THEN** generated client types MUST include `is_protected` and `protected_reason`
+- **AND** generated files MUST NOT be hand-edited
 
 ### Requirement: Test framework validation script
 
@@ -78,4 +105,21 @@ The repository MUST include a GitHub Actions workflow that runs pytest and test 
 - **WHEN** a pull request targets `main` or `master`
 - **THEN** `.github/workflows/test.yml` MUST run backend pytest
 - **AND** MUST run `python scripts/validate-test-framework.py`
+
+### Requirement: 生产 MySQL 路径必须有集成验证
+
+项目 MUST 提供至少一种 MySQL 集成验证路径，用于验证 MySQL schema 初始化、默认管理员 seed 和至少一条读写 API。该验证 MAY 作为 CI MySQL 8 service container job，也 MAY 作为 `@pytest.mark.mysql` optional pytest 与 documented manual smoke 组合。默认 SQLite pytest MUST 保持可从本地运行，不要求开发者本机安装 MySQL。
+
+#### Scenario: MySQL 集成验证覆盖启动关键路径
+
+- **WHEN** MySQL 集成验证运行
+- **THEN** MUST 覆盖 MySQL schema 初始化
+- **AND** MUST 覆盖默认管理员 seed
+- **AND** MUST 覆盖至少一条 API 读写路径，如登录或 health + 简单 CRUD
+
+#### Scenario: SQLite 默认 pytest 仍可运行
+
+- **WHEN** 开发者在未安装 MySQL 的本地环境运行默认 pytest
+- **THEN** 测试 MUST 使用 SQLite 默认路径
+- **AND** MUST NOT 因缺少 MySQL 服务而失败
 

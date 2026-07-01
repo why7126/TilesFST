@@ -3,7 +3,9 @@ purpose: 数据库文档
 content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
-note: 运行时数据库路径见 SQLITE_DATABASE_URL / .env.example
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-29 10:35:38
+note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.example
 ---
 
 # 数据库设计
@@ -12,13 +14,28 @@ note: 运行时数据库路径见 SQLITE_DATABASE_URL / .env.example
 
 | 项目 | 说明 |
 |---|---|
-| 引擎 | SQLite 3 |
-| Schema 源 | `src/backend/app/db/schema.sql` |
-| 初始化 | 应用启动 `init_database()` 执行 schema |
+| 引擎 | SQLite 3（本地开发 / demo）；MySQL 8.0+（生产） |
+| SQLite Schema 源 | `src/backend/app/db/schema.sql` + `src/backend/app/db/migrations.py` |
+| MySQL Schema 源 | `src/backend/app/db/schema.mysql.sql` |
+| 初始化 | 应用启动 `init_database()` 按数据库 dialect 执行 schema |
 | ORM | SQLAlchemy 2.x（`src/backend/app/models/`） |
 | 对象存储 | MinIO（图片/视频文件，非 SQLite） |
 
-设计原则：结构化业务数据存 SQLite；媒体二进制存 MinIO，SQLite 存元数据与 object_key。
+设计原则：结构化业务数据在本地 / demo 存 SQLite、生产存 MySQL；媒体二进制存 MinIO，数据库仅保存元数据与 object_key。
+
+### 数据库选择
+
+| 场景 | 配置 | 行为 |
+|---|---|---|
+| 本地开发 / demo | `APP_ENV!=production` 且 `DATABASE_URL` 为空 | 使用 `SQLITE_DATABASE_URL` |
+| 非生产外部库验证 | `APP_ENV!=production` 且显式配置 `DATABASE_URL` | 使用 `DATABASE_URL` |
+| 生产 | `APP_ENV=production` | 必须配置 MySQL `DATABASE_URL`，否则启动失败 |
+
+生产 MySQL URL 示例：
+
+```text
+mysql+pymysql://tiles_user:replace-with-secret@mysql.example.com:3306/tilesfst?charset=utf8mb4
+```
 
 ---
 
@@ -54,6 +71,10 @@ users 1 ── * audit_logs.actor_user_id（Sprint 003，可选 FK）
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
 | tile_videos | 已实现 | SKU 关联视频元数据 |
 | tile_images | 桩 | 瓷砖图片元数据 |
+| banners | ✓ Sprint 003 | Banner 管理 |
+| topics | ✓ Sprint 003 | 专题管理 |
+
+MySQL baseline 额外包含 `schema_migrations`，用于记录 baseline 初始化版本。
 
 ---
 
@@ -372,11 +393,35 @@ ORM：`src/backend/app/models/tile.py`
 |---|---|
 | 本地开发 | `data/sqlite/`（见 `rules/data-management.md`） |
 | Docker | 卷挂载 + `SQLITE_DATABASE_URL` |
-| Schema 变更 | 修改 `schema.sql` + OpenSpec change；生产需迁移脚本（待引入 Alembic 或等价方案） |
+| 生产 | 外部 MySQL 8.0+ + `DATABASE_URL`，不挂载 SQLite 数据库卷 |
+| SQLite Schema 变更 | 修改 `schema.sql` + `migrations.py` + OpenSpec change |
+| MySQL Schema 变更 | 修改 `schema.mysql.sql` + versioned migration / `schema_migrations` 记录 + OpenSpec change |
 
 **禁止提交：** 运行时 `.db` 文件、真实客户数据（见 `data/README.md`）
 
 ---
+
+## 12.1 SQLite → MySQL 类型映射
+
+| SQLite | MySQL baseline | 说明 |
+|---|---|---|
+| `INTEGER PRIMARY KEY AUTOINCREMENT` | `BIGINT AUTO_INCREMENT PRIMARY KEY` | 业务自增 ID |
+| `TEXT` UUID | `CHAR(36)` | `users`、日志表 ID |
+| `TEXT` 短文本 | `VARCHAR(n)` | 名称、状态、对象 Key 等 |
+| `TEXT` 长文本 / JSON | `TEXT` | `metadata`、说明、备注 |
+| ISO 时间 `TEXT` | `VARCHAR(64)` | 兼容现有 `datetime.now(UTC).isoformat()` 写入 |
+| `REAL` | `DOUBLE` | 价格、厚度、视频时长等现有浮点字段 |
+| `INTEGER` 布尔 | `TINYINT` | `is_main`、`success` |
+| `CHECK` | MySQL 8.0 `CHECK` | 关键枚举保留数据库约束 |
+
+MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku_code`、`tile_specs(width_mm,length_mm,unit)`、`banners(display_client,position,title)`，以及审计、活动日志与媒体查询路径索引。
+
+## 12.2 初始化与 Seed
+
+- SQLite 路径继续执行 `schema.sql` 后再执行 `migrations.py`，保留 `sqlite_master` / `PRAGMA` 兼容迁移。
+- MySQL 路径只执行 `schema.mysql.sql`，不得调用 SQLite introspection 或 SQLite-only DDL。
+- MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等。
+- 空库首次启动后，默认管理员 seed 继续使用 `ADMIN_USERNAME`、`ADMIN_INITIAL_PASSWORD`、`ADMIN_RESET_PASSWORD_ON_STARTUP`，密码以 bcrypt 哈希保存。
 
 ## 13. 与 API 的对应
 

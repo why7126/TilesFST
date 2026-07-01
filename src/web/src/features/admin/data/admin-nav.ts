@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
+  BookOpen,
   FolderTree,
   Image,
   LayoutDashboard,
@@ -45,6 +46,7 @@ export const adminNavSections: AdminNavSection[] = [
     items: [
       { id: 'users', label: '用户管理', path: '/admin/users', icon: Users },
       { id: 'settings', label: '系统设置', path: '/admin/settings', icon: Settings },
+      { id: 'api-docs', label: '接口文档', path: '/admin/api-docs', icon: BookOpen },
     ],
   },
 ];

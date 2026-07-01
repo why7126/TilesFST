@@ -83,7 +83,7 @@ export function mapPasswordChangeApiError(error: unknown): {
   if (code === 40020) {
     return { oldPasswordError: message, newPasswordError: null };
   }
-  if (code === 40021 || code === 40022 || code === 40023 || code === 42901) {
+  if (code === 30060 || code === 40021 || code === 40022 || code === 40023 || code === 42901) {
     return { oldPasswordError: null, newPasswordError: message };
   }
 

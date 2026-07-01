@@ -1,6 +1,38 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 50
+next_id: 54
 entries:
+  - id: BUG-0053-api-docs-list-layout-pagination-inconsistent
+    title: 接口文档列表冗余系统接口行且分页未与 SKU 页一致
+    status: draft
+    severity: medium
+    created: "2026-07-01 09:09:32"
+    related_requirement: REQ-0022-admin-api-docs-menu
+    related_bug: null
+    iteration: null
+  - id: BUG-0052-api-docs-metric-cards-inconsistent
+    title: 接口文档页指标卡样式与瓷砖 SKU 页不一致
+    status: draft
+    severity: medium
+    created: "2026-07-01 09:09:32"
+    related_requirement: REQ-0022-admin-api-docs-menu
+    related_bug: null
+    iteration: null
+  - id: BUG-0051-api-docs-swagger-ui-link-wrong
+    title: 接口文档页 Swagger UI 入口跳转到 Web 首页
+    status: pending_review
+    severity: high
+    created: "2026-07-01 09:09:32"
+    related_requirement: REQ-0022-admin-api-docs-menu
+    related_bug: null
+    iteration: null
+  - id: BUG-0050-user-create-validation-message-unclear
+    title: 创建用户校验失败未明确提示具体问题点
+    status: done
+    severity: medium
+    created: "2026-06-30 11:03:01"
+    related_requirement: REQ-0005-user-management
+    related_bug: null
+    iteration: null
   - id: BUG-0001-tile-category-enable-missing
     title: 瓷砖类目停用行缺少启用入口
     status: done

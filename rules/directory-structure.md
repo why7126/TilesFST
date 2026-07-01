@@ -3,6 +3,8 @@ purpose: 目录结构规范
 content: 约束AI与开发人员遵循当前项目目录边界、文件归属和新增文件规则
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-06-29 11:18:14
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -124,7 +126,7 @@ src/shared/
 
 ## 5. Docker与部署文件规则
 
-- 根目录只允许存在项目级编排文件：`docker-compose.yml`。
+- 根目录只允许存在项目级编排文件：`docker-compose.yml`（本地开发 / demo）、`docker-compose.prod.yml`（VPS 生产，外部 MySQL + 自建 MinIO）与 `docker-compose.prod.external.yml`（VPS 生产，外部 MySQL + 外部 MinIO）。
 - 后端镜像构建文件放入 `src/backend/Dockerfile`。
 - Web镜像构建文件放入 `src/web/Dockerfile`。
 - Web Nginx配置放入 `src/web/nginx.conf`。

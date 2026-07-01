@@ -1,7 +1,43 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 18
+next_id: 24
 entries:
+  - id: REQ-0023-api-docs-swagger-detail-link
+    title: 接口文档列表行级查看并跳转 Swagger 详情
+    status: draft
+    iteration: null
+    created: "2026-07-01 09:09:32"
+    parent_requirement: REQ-0022-admin-api-docs-menu
+  - id: REQ-0022-admin-api-docs-menu
+    title: 管理端系统设置下方新增接口文档菜单
+    status: in_sprint
+    iteration: sprint-004
+    created: "2026-06-30 21:57:46"
+    parent_requirement: REQ-0017-system-settings
+  - id: REQ-0021-sku-web-miniapp-preview
+    title: SKU 上线前 Web 与小程序视图预览
+    status: captured
+    iteration: null
+    created: "2026-06-30 11:34:04"
+    parent_requirement: REQ-0006-tile-sku-management
+  - id: REQ-0020-theme-comfort-refine
+    title: 主题色舒适度优化
+    status: captured
+    iteration: null
+    created: "2026-06-30 11:34:04"
+    parent_requirement: REQ-0000-build-design-system
+  - id: REQ-0019-admin-superuser-protection
+    title: 超级管理员账号编辑与密码重置保护
+    status: done
+    iteration: null
+    created: "2026-06-30 11:03:01"
+    parent_requirement: REQ-0005-user-management
+  - id: REQ-0018-production-mysql-deployment
+    title: 生产环境部署与 MySQL 数据库支持
+    status: done
+    iteration: null
+    created: 2026-06-28
+    parent_requirement:
   - id: REQ-0017-system-settings
     title: 管理端系统设置页面（侧栏入口 + 平台配置）
     status: done

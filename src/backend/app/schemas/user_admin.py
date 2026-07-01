@@ -24,6 +24,8 @@ class UserAdminItem(BaseModel):
     phone: str | None = None
     last_login_at: str | None = None
     created_at: str
+    is_protected: bool = False
+    protected_reason: str | None = None
 
 
 class UserAdminListData(BaseModel):
@@ -35,7 +37,7 @@ class UserAdminListData(BaseModel):
 
 
 class UserCreateRequest(BaseModel):
-    username: str = Field(min_length=4, max_length=32)
+    username: str
     display_name: str | None = Field(default=None, max_length=32)
     role: str
     avatar_object_key: str | None = None

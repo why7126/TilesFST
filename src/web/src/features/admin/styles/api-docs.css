@@ -1,0 +1,160 @@
+.admin-shell .api-docs-hero {
+  align-items: center;
+}
+
+.admin-shell .hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-shell .api-docs-readonly-action {
+  opacity: 0.68;
+}
+
+.admin-shell .api-docs-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.7fr) minmax(132px, 0.8fr) minmax(160px, 1fr) minmax(160px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-shell .api-docs-swagger-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.admin-shell .api-docs-swagger-panel > div > p:last-of-type {
+  margin: 8px 0 0;
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.admin-shell .api-docs-source-list {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--admin-weak);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.admin-shell .api-docs-source-list code {
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+}
+
+.admin-shell .api-docs-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-shell .api-docs-table {
+  min-width: 1040px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-shell .api-docs-table th,
+.admin-shell .api-docs-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.admin-shell .api-docs-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .api-docs-table td {
+  color: var(--admin-muted);
+}
+
+.admin-shell .api-docs-table tbody tr:hover {
+  background: color-mix(in srgb, var(--admin-text) 2.5%, transparent);
+}
+
+.admin-shell .api-docs-method {
+  display: inline-flex;
+  min-width: 54px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  color: var(--admin-text);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .method-get {
+  border-color: color-mix(in srgb, var(--admin-gold) 36%, transparent);
+  color: var(--admin-gold);
+}
+
+.admin-shell .method-post,
+.admin-shell .method-put,
+.admin-shell .method-patch {
+  border-color: var(--admin-line-hover);
+}
+
+.admin-shell .method-delete {
+  border-color: color-mix(in srgb, var(--admin-text) 20%, transparent);
+}
+
+.admin-shell .api-docs-path,
+.admin-shell .api-docs-orval {
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  word-break: break-all;
+}
+
+.admin-shell .api-docs-source {
+  display: block;
+  margin-top: 5px;
+  color: var(--admin-weak);
+  font-size: 10px;
+}
+
+.admin-shell .api-docs-missing {
+  color: var(--admin-weak);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.admin-shell .api-docs-empty {
+  height: 104px;
+  text-align: center;
+  color: var(--admin-weak);
+}
+
+@media (max-width: 960px) {
+  .admin-shell .api-docs-hero,
+  .admin-shell .api-docs-swagger-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .hero-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-shell .api-docs-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

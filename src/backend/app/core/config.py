@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     backend_host: str = Field(default="0.0.0.0", alias="BACKEND_HOST")
     backend_port: int = Field(default=8000, alias="BACKEND_PORT")
 
+    database_url: str | None = Field(default=None, alias="DATABASE_URL")
     sqlite_database_url: str = Field(default="sqlite:////app/data/sqlite/tile-info-platform.db", alias="SQLITE_DATABASE_URL")
 
     max_image_size_mb: int = Field(default=20, alias="MAX_IMAGE_SIZE_MB")
@@ -79,6 +80,9 @@ class Settings(BaseSettings):
 
     def max_proxy_body_size_mb(self) -> int:
         return max(self.max_image_size_mb, self.max_video_size_mb)
+
+    def allow_swagger_try_it_out(self) -> bool:
+        return self.app_env.strip().lower() in {"local", "development", "dev", "demo", "test"}
 
 
 settings = Settings()

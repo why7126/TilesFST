@@ -7,8 +7,10 @@ from app.core.exceptions import (
     UserInvalidStatusTransitionError,
     UserInvalidUsernameError,
     UserNotFoundError,
+    UserProtectedAccountError,
     UserUsernameTakenError,
 )
+from app.core.protected_account import PROTECTED_ACCOUNT_REASON, is_protected_username
 from app.core.user_validation import generate_random_password, validate_username
 from app.repositories.user_repository import UserRecord, UserRepository
 from app.schemas.user_admin import (
@@ -19,6 +21,7 @@ from app.schemas.user_admin import (
     UserCreateRequest,
     UserUpdateRequest,
 )
+from app.services.effective_settings_service import EffectiveSettingsService
 
 VALID_ROLES = frozenset({"admin", "employee", "store_owner"})
 VALID_STATUSES = frozenset({"active", "disabled", "deleted"})
@@ -28,10 +31,6 @@ def _avatar_url(object_key: str | None) -> str | None:
     if not object_key:
         return None
     return f"/media/{object_key}"
-
-
-from app.services.effective_settings_service import EffectiveSettingsService
-
 
 class UserAdminService:
     def __init__(
@@ -44,6 +43,7 @@ class UserAdminService:
 
     @staticmethod
     def to_item(user: UserRecord) -> UserAdminItem:
+        is_protected = is_protected_username(user.username)
         return UserAdminItem(
             id=user.id,
             username=user.username,
@@ -56,7 +56,14 @@ class UserAdminService:
             phone=user.phone,
             last_login_at=user.last_login_at,
             created_at=user.created_at,
+            is_protected=is_protected,
+            protected_reason=PROTECTED_ACCOUNT_REASON if is_protected else None,
         )
+
+    @staticmethod
+    def _ensure_mutable(user: UserRecord) -> None:
+        if is_protected_username(user.username):
+            raise UserProtectedAccountError()
 
     def list_users(
         self,
@@ -125,6 +132,7 @@ class UserAdminService:
         user = self._repo.get_by_id(user_id)
         if user is None:
             raise UserNotFoundError()
+        self._ensure_mutable(user)
         if user.status == "deleted":
             raise UserInvalidStatusTransitionError("已删除用户不可编辑")
         if payload.role is not None and payload.role not in VALID_ROLES:
@@ -148,6 +156,7 @@ class UserAdminService:
         user = self._repo.get_by_id(user_id)
         if user is None:
             raise UserNotFoundError()
+        self._ensure_mutable(user)
         if user.status == "deleted":
             raise UserInvalidStatusTransitionError("已删除用户不可重置密码")
 
@@ -163,6 +172,7 @@ class UserAdminService:
         user = self._repo.get_by_id(user_id)
         if user is None:
             raise UserNotFoundError()
+        self._ensure_mutable(user)
 
         if status == "deleted":
             if user.last_login_at is not None:

@@ -27,9 +27,9 @@ class SystemSettingsRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT key, value, updated_at, updated_by
+                    SELECT `key`, value, updated_at, updated_by
                     FROM system_settings
-                    WHERE key = :key
+                    WHERE `key` = :key
                     """
                 ),
                 {"key": key},
@@ -43,29 +43,45 @@ class SystemSettingsRepository:
 
     def set(self, key: str, value: str, updated_by: str | None) -> SystemSettingRecord:
         now = datetime.now(UTC).isoformat()
-        self._db.execute(
-            text(
-                """
-                INSERT INTO system_settings (key, value, updated_at, updated_by)
-                VALUES (:key, :value, :updated_at, :updated_by)
-                ON CONFLICT(key) DO UPDATE SET
-                  value = excluded.value,
-                  updated_at = excluded.updated_at,
-                  updated_by = excluded.updated_by
-                """
-            ),
-            {"key": key, "value": value, "updated_at": now, "updated_by": updated_by},
-        )
+        params = {"key": key, "value": value, "updated_at": now, "updated_by": updated_by}
+        if self._db.bind is not None and self._db.bind.dialect.name == "mysql":
+            self._db.execute(
+                text(
+                    """
+                    INSERT INTO system_settings (`key`, value, updated_at, updated_by)
+                    VALUES (:key, :value, :updated_at, :updated_by)
+                    ON DUPLICATE KEY UPDATE
+                      value = VALUES(value),
+                      updated_at = VALUES(updated_at),
+                      updated_by = VALUES(updated_by)
+                    """
+                ),
+                params,
+            )
+        else:
+            self._db.execute(
+                text(
+                    """
+                    INSERT INTO system_settings (`key`, value, updated_at, updated_by)
+                    VALUES (:key, :value, :updated_at, :updated_by)
+                    ON CONFLICT(`key`) DO UPDATE SET
+                      value = excluded.value,
+                      updated_at = excluded.updated_at,
+                      updated_by = excluded.updated_by
+                    """
+                ),
+                params,
+            )
         self._db.commit()
         return SystemSettingRecord(key=key, value=value, updated_at=now, updated_by=updated_by)
 
     def delete(self, key: str) -> None:
-        self._db.execute(text("DELETE FROM system_settings WHERE key = :key"), {"key": key})
+        self._db.execute(text("DELETE FROM system_settings WHERE `key` = :key"), {"key": key})
         self._db.commit()
 
     def delete_by_prefix(self, prefix: str) -> int:
         result = self._db.execute(
-            text("DELETE FROM system_settings WHERE key LIKE :pattern"),
+            text("DELETE FROM system_settings WHERE `key` LIKE :pattern"),
             {"pattern": f"{prefix}%"},
         )
         self._db.commit()
@@ -76,10 +92,10 @@ class SystemSettingsRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT key, value, updated_at, updated_by
+                    SELECT `key`, value, updated_at, updated_by
                     FROM system_settings
-                    WHERE key LIKE :pattern
-                    ORDER BY key
+                    WHERE `key` LIKE :pattern
+                    ORDER BY `key`
                     """
                 ),
                 {"pattern": f"{prefix}%"},

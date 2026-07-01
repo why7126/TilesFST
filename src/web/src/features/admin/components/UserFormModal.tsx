@@ -52,6 +52,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
 
   const initials = getUserInitials(displayName, username);
   const isAvatarUploading = avatarUploadState === 'uploading';
+  const isAvatarError = avatarUploadState === 'failed' && error === avatarUploadError;
 
   const handleAvatarChange = async (file: File | undefined) => {
     if (!file) return;
@@ -248,7 +249,12 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
             </select>
           </div>
           {error ? (
-            <p className="form-help" style={{ color: 'var(--admin-danger)' }}>
+            <p
+              className="form-help"
+              role={isAvatarError ? undefined : 'alert'}
+              aria-live="polite"
+              style={{ color: 'var(--admin-danger)' }}
+            >
               {error}
             </p>
           ) : null}

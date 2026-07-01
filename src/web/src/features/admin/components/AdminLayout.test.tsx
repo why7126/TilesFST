@@ -138,4 +138,75 @@ describe('AdminLayout', () => {
     );
     expect(screen.getByRole('button', { name: '展开侧边栏' })).toBeInTheDocument();
   });
+
+  it('shows api docs below system settings for admin users', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user: {
+        id: '1',
+        username: 'admin',
+        display_name: 'Admin User',
+        role: 'admin',
+        status: 'active',
+      },
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: true,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/dashboard']}>
+        <Routes>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<DashboardPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const buttons = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
+    expect(buttons.indexOf('接口文档')).toBe(buttons.indexOf('系统设置') + 1);
+  });
+
+  it('hides admin-only system entries for employee users', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user: {
+        id: '2',
+        username: 'employee',
+        display_name: 'Employee User',
+        role: 'employee',
+        status: 'active',
+      },
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: false,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/dashboard']}>
+        <Routes>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<DashboardPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '系统设置' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '接口文档' })).not.toBeInTheDocument();
+  });
 });
