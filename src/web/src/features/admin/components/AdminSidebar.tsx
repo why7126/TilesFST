@@ -35,7 +35,11 @@ export function AdminSidebar({
       return {
         ...section,
         items: section.items.filter(
-          (item) => item.id !== 'users' && item.id !== 'settings' && item.id !== 'api-docs',
+          (item) =>
+            item.id !== 'users' &&
+            item.id !== 'settings' &&
+            item.id !== 'logs' &&
+            item.id !== 'api-docs',
         ),
       };
     }
@@ -54,13 +58,18 @@ export function AdminSidebar({
   return (
     <aside className="sidebar" aria-label="后台导航">
       <div className="sidebar-head">
-        <div className="brand-block">
-          <span className="brand-mark" aria-hidden="true">
-            TF
-          </span>
-          <div className="brand-row">
-            <span className="logo-text">TILESFST</span>
-            <ProductVersionBadge className="shrink-0" />
+        <div className="brand-block" aria-label="菲尚特FST 家居建材资料库">
+          <img
+            className="sidebar-brand-logo"
+            src="/logos/64x64.png"
+            alt="菲尚特家居建材 Logo"
+          />
+          <div className="brand-copy">
+            <div className="brand-row">
+              <span className="logo-text">菲尚特FST</span>
+              <ProductVersionBadge className="shrink-0" />
+            </div>
+            <span className="brand-subtitle">家居建材资料库</span>
           </div>
         </div>
         <button

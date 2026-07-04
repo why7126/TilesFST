@@ -80,7 +80,7 @@ describe('REQ-0009 visual checklist (HTML gate)', () => {
   });
 
   it('6 分页左共 x 条', () => {
-    expect(pageSource).toContain('共 {total} 条');
+    expect(pageSource).toContain("共 {loading ? '…' : total} 条");
     expect(prototypeListHtml).toContain('共 86 条');
   });
 

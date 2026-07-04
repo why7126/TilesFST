@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-01 08:48:56
+updated_at: 2026-07-03 13:53:29
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -78,6 +78,8 @@ Authorization: Bearer <access_token>
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
 | 管理端系统设置 | `/api/v1/admin/system-settings` | 是（仅 admin） | 分组配置 GET/PATCH/reset、审计 recent | ✓ Sprint 003 |
 | 管理端接口文档 | `/api/v1/admin/api-docs` | 是（仅 admin） | 运行时接口目录、OpenAPI/Swagger/Orval 映射、非 `/api/v1` 路由清单 | ✓ Sprint 004 |
+| 管理端日志审计 | `/api/v1/admin/logs` | 是（仅 admin） | API 请求日志、产品行为事件、审计操作统一查询与详情 | ✓ Sprint 004 |
+| 产品行为事件 | `/api/v1/usage-events` | 可选登录 | 前端上报人为定义的产品使用埋点事件 | ✓ Sprint 004 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端 Banner | `/api/v1/admin/banners` | 是（admin/employee） | Banner CRUD、上下线、条件删除、summary | ✓ Sprint 003 |
 | 管理端专题（只读） | `/api/v1/admin/topics` | 是（admin/employee） | 专题列表（Banner 跳转关联） | ✓ Sprint 003 |
@@ -167,6 +169,58 @@ OpenAPI/Orval 关系：
 Swagger 在线调试策略：`APP_ENV` 为 `local`、`development`、`dev`、`demo`、`test` 时允许 `Try It Out`；其他环境展示 Swagger 文档入口，但 FastAPI `swagger_ui_parameters.tryItOutEnabled=false`，管理端页面标记为生产只读。
 
 本接口不返回数据库 DSN、MinIO AccessKey/SecretKey、JWT、原始环境变量值或其他敏感配置。
+
+### 3.4.3 管理端日志审计（Sprint 004 / REQ-0024）
+
+实现：`src/backend/app/api/v1/admin_logs.py`、`src/backend/app/api/v1/usage_events.py`  
+OpenSpec：`openspec/changes/add-product-usage-logging/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/logs` | Bearer（admin） |
+| GET | `/api/v1/admin/logs/{log_id}` | Bearer（admin） |
+| POST | `/api/v1/usage-events` | 可选 Bearer（admin/employee 匿名均可上报） |
+
+`GET /api/v1/admin/logs` 查询参数：
+
+| 参数 | 说明 |
+|---|---|
+| `page` / `page_size` | 分页，`page_size` 1–100，默认 20 |
+| `log_type` | `request` / `usage_event` / `audit` |
+| `keyword` | 匹配摘要、路径、request_id、事件名、操作人 |
+| `actor_user_id` | 操作人 ID |
+| `client_type` | 客户端类型，如 `admin_web`、`storefront_web`、`mini_program` |
+| `status_code` | HTTP 状态码 100–599 |
+| `result` | `success` / `failed` |
+| `resource_id` | 资源 ID，匹配 metadata |
+| `path_or_request_id` | API path 或 request_id |
+| `start_time` / `end_time` | ISO8601 时间字符串 |
+
+列表响应 `data.metrics` 返回当日摘要：`today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`；`data.items` 同时包含请求日志、行为事件、既有 `audit_logs` 的统一列表行。
+
+`GET /api/v1/admin/logs/{log_id}` 返回详情抽屉数据，按 `basic`、`request`、`actor`、`operation`、`tracking`、`metadata` 分组展示，并保留 `request_id` 用于链路排查。未找到返回 `404 / code=30070`。
+
+`POST /api/v1/usage-events` 请求体：
+
+```json
+{
+  "event_name": "media_upload",
+  "page_path": "/admin/tile-skus/sku_843291",
+  "session_id": "sess_abc",
+  "request_id": "req_79f1c2b4a8d04e31",
+  "duration_ms": 1280,
+  "properties": {
+    "module": "SKU 管理",
+    "entity_type": "tile_sku",
+    "entity_id": "sku_843291",
+    "changed_fields": ["gallery_images", "main_image"]
+  }
+}
+```
+
+`duration_ms` 为行为本身耗时毫秒数，适用于页面加载、查询、详情加载、上传、保存等有过程耗时的行为；瞬时行为可省略，列表显示 `-`。
+
+行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization）的上报，返回 `400 / code=40001`。
 
 ### 3.5 管理端品牌（Sprint 002）
 

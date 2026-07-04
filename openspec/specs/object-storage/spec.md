@@ -1,4 +1,4 @@
-# object-storage Specification
+# 对象存储规范
 
 ## Purpose
 定义对象存储单桶策略、管理端上传写入、媒体受控读取和对象 Key 前缀规则，确保图片、视频与后续媒体资源统一经后端授权写入 MinIO。
@@ -113,4 +113,3 @@
 - **WHEN** `admin` 完成一次图片上传
 - **THEN** 对象 MUST 写入外部 `MINIO_BUCKET`
 - **AND** 上传响应中的 `/media/{object_key}` MUST 可通过 backend 读取
-

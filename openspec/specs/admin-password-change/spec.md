@@ -1,7 +1,7 @@
-# admin-password-change Specification
+# 管理端修改密码规范
 
 ## Purpose
-TBD - created by archiving change add-admin-password-change. Update Purpose after archive.
+定义管理端本人修改密码 API、token_version 与 JWT tv claim、修改密码弹窗交互和 PNG 视觉验收要求，确保改密后旧 token 失效且受保护账号不可误改密。
 ## Requirements
 ### Requirement: 管理端修改密码 API
 
@@ -116,4 +116,3 @@ Web 客户端 MUST 提供 `ChangePasswordModal`（520px 居中），含原密码
 - **WHEN** 团队在 1440×1024 并排对比弹窗与 `password-change-modal.png`
 - **THEN** checklist（520px、遮罩、三字段、规则区、footer 按钮、Sidebar 背景）MUST pass
 - **AND** 结果 MUST 记录在 change `trace.md`
-

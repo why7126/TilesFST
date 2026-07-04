@@ -1,7 +1,7 @@
-# database Specification
+# 数据库规范
 
 ## Purpose
-TBD - created by archiving change add-production-mysql-deployment. Update Purpose after archive.
+定义生产 MySQL 与非生产 SQLite 双数据库模式、连接参数、schema 初始化、baseline 覆盖和默认管理员 seed 要求，确保本地演示与生产部署路径清晰分离。
 ## Requirements
 ### Requirement: 系统必须支持生产 MySQL 与非生产 SQLite 双数据库模式
 
@@ -71,4 +71,3 @@ MySQL baseline schema MUST 覆盖当前 SQLite 最终业务表，至少包括 `u
 - **THEN** 系统 MUST 创建默认管理员账号
 - **AND** `POST /api/v1/auth/login` MUST 可使用该账号登录
 - **AND** 数据库 MUST NOT 保存明文密码
-

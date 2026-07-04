@@ -22,6 +22,7 @@ from app.services.effective_settings_service import EffectiveSettingsService
 from app.services.user_admin_service import UserAdminService
 
 router = APIRouter(dependencies=[Depends(require_system_admin)])
+TAGS = ["Admin Users"]
 
 
 def get_user_admin_service(
@@ -31,7 +32,7 @@ def get_user_admin_service(
     return UserAdminService(repo, effective)
 
 
-@router.get("", response_model=ApiResponse[UserAdminListData], summary="用户列表")
+@router.get("", response_model=ApiResponse[UserAdminListData], tags=TAGS, summary="用户列表")
 def list_users(
     service: Annotated[UserAdminService, Depends(get_user_admin_service)],
     page: int = Query(1, ge=1),
@@ -52,7 +53,7 @@ def list_users(
     return ApiResponse(data=data)
 
 
-@router.post("", response_model=ApiResponse[UserCreateData], summary="创建用户")
+@router.post("", response_model=ApiResponse[UserCreateData], tags=TAGS, summary="创建用户")
 def create_user(
     payload: UserCreateRequest,
     service: Annotated[UserAdminService, Depends(get_user_admin_service)],
@@ -60,7 +61,9 @@ def create_user(
     return ApiResponse(data=service.create_user(payload))
 
 
-@router.get("/{user_id}", response_model=ApiResponse[UserAdminItem], summary="用户详情")
+@router.get(
+    "/{user_id}", response_model=ApiResponse[UserAdminItem], tags=TAGS, summary="用户详情"
+)
 def get_user(
     user_id: str,
     service: Annotated[UserAdminService, Depends(get_user_admin_service)],
@@ -68,7 +71,9 @@ def get_user(
     return ApiResponse(data=service.get_user(user_id))
 
 
-@router.patch("/{user_id}", response_model=ApiResponse[UserAdminItem], summary="更新用户")
+@router.patch(
+    "/{user_id}", response_model=ApiResponse[UserAdminItem], tags=TAGS, summary="更新用户"
+)
 def update_user(
     user_id: str,
     payload: UserUpdateRequest,
@@ -80,6 +85,7 @@ def update_user(
 @router.post(
     "/{user_id}/reset-password",
     response_model=ApiResponse[ResetPasswordData],
+    tags=TAGS,
     summary="重置密码",
 )
 def reset_password(
@@ -94,6 +100,7 @@ def reset_password(
 @router.patch(
     "/{user_id}/status",
     response_model=ApiResponse[UserAdminItem],
+    tags=TAGS,
     summary="更新用户状态",
 )
 def update_user_status(

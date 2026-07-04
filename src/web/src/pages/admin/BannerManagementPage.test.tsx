@@ -83,6 +83,23 @@ describe('BannerManagementPage', () => {
     expect(container.querySelector('.section-head')).toBeNull();
     expect(container.querySelector('.banner-pagination')).toBeNull();
     expect(container.querySelector('.table-toolbar')).toBeNull();
+    expect(screen.queryByRole('button', { name: '搜索' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+
+    const hero = container.querySelector('.page-hero');
+    const summary = container.querySelector('.summary-grid');
+    const filter = container.querySelector('.filter-card');
+    const table = container.querySelector('.table-card');
+    expect(hero?.compareDocumentPosition(summary as Element)).toBeTruthy();
+    expect(
+      (hero?.compareDocumentPosition(summary as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (summary?.compareDocumentPosition(filter as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (filter?.compareDocumentPosition(table as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('shows dedicated display position column without banner-sub in first column', async () => {
@@ -99,6 +116,10 @@ describe('BannerManagementPage', () => {
     });
 
     expect(screen.getByRole('columnheader', { name: '展示位置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
     expect(screen.getByText('首页顶部轮播')).toBeInTheDocument();
     expect(container.querySelector('.banner-sub')).toBeNull();
     expect(container.querySelector('.banner-position')).toBeTruthy();

@@ -1,40 +1,40 @@
-# testing Specification
+# 测试治理规范
 
 ## Purpose
-TBD - created by archiving change build-test-framework. Update Purpose after archive.
+定义后端 pytest、前端 Vitest、测试目录结构、变更测试映射、CI 工作流和回归校验要求，确保每个 OpenSpec Change 有可追踪的质量门禁。
 ## Requirements
-### Requirement: Pytest baseline
+### Requirement: Pytest 基线
 
 Backend tests MUST be runnable from repository root via `./scripts/run-tests.sh` with shared configuration in `pytest.ini` and `tests/conftest.py`.
 
-#### Scenario: Run tests from repository root
+#### Scenario: 从仓库根目录运行测试
 
 - **WHEN** a developer runs `./scripts/run-tests.sh` from the repository root
 - **THEN** pytest MUST execute backend unit and integration tests
 - **AND** MUST exit with code 0 on the repository baseline
 
-#### Scenario: Pytest configuration present
+#### Scenario: Pytest 配置存在
 
 - **WHEN** a developer inspects repository test configuration
 - **THEN** MUST find `pytest.ini` at repository root
 - **AND** MUST find `tests/conftest.py` for shared fixtures
 
-### Requirement: Test directory structure
+### Requirement: 测试目录结构
 
 The repository MUST maintain a test pyramid with dedicated directories for unit, integration, and end-to-end tests documented in `docs/standards/testing-governance.md`.
 
-#### Scenario: Core test directories exist
+#### Scenario: 核心测试目录存在
 
 - **WHEN** a developer lists `tests/`
 - **THEN** MUST find `tests/unit/`, `tests/integration/`, and `tests/e2e/`
 - **AND** `tests/unit/` and `tests/integration/` MUST contain at least one `test_*.py` file each
 
-#### Scenario: Backend module tests retained
+#### Scenario: 后端模块测试保留
 
 - **WHEN** a developer lists `src/backend/tests/`
 - **THEN** MUST find at least one `test_*.py` for backend module-level tests
 
-### Requirement: Test mapping
+### Requirement: 测试映射
 
 Each REQ-0000 infrastructure requirement MUST map to at least one automated test or validation script in `openspec/testing-mapping.md`.
 
@@ -44,23 +44,23 @@ Each REQ-0000 infrastructure requirement MUST map to at least one automated test
 - **THEN** MUST find entries for `REQ-0000-build-design-system`, `REQ-0000-build-api-standard`, and `REQ-0000-build-test-standard`
 - **AND** each entry MUST list at least one test path or validation script
 
-### Requirement: Change tests
+### Requirement: Change 测试
 
 New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, or user-facing UI MUST include focused regression tests for the modified behavior. For `update-admin-superuser-protection`, backend tests MUST cover protected account identification and all protected operation guards; frontend tests SHOULD cover protected row disabled actions and ordinary user non-regression.
 
-#### Scenario: Governance documentation states requirement
+#### Scenario: 治理文档声明测试要求
 
 - **WHEN** a developer reads `docs/standards/testing-governance.md`
 - **THEN** MUST find a rule that OpenSpec Change implementations MUST add matching tests
 - **AND** MUST NOT allow implementation-only changes without test coverage for new Services or Routers
 
-#### Scenario: Protected user list fields tested
+#### Scenario: 受保护用户列表字段已测试
 
 - **WHEN** backend tests run for this change
 - **THEN** at least one test MUST assert that `GET /api/v1/admin/users` returns `is_protected=true` for `ADMIN_USERNAME`
 - **AND** ordinary admin users MUST return `is_protected=false`
 
-#### Scenario: Protected destructive operations tested
+#### Scenario: 受保护破坏性操作已测试
 
 - **WHEN** backend tests run for this change
 - **THEN** tests MUST assert protected account edit returns HTTP 403 and leaves fields unchanged
@@ -68,39 +68,39 @@ New Services and Routers introduced in OpenSpec Changes MUST include correspondi
 - **AND** tests MUST assert status change returns HTTP 403 and leaves status unchanged
 - **AND** tests MUST assert protected account self password change returns HTTP 403 and leaves `password_hash` and `token_version` unchanged
 
-#### Scenario: Frontend protected row behavior tested
+#### Scenario: 前端受保护行行为已测试
 
 - **WHEN** frontend tests run for this change
 - **THEN** tests SHOULD assert protected account row action buttons are disabled or inert
 - **AND** tests SHOULD assert disabled actions use `protected_reason`
 - **AND** tests SHOULD assert ordinary user edit/reset/status actions remain available and keep DS confirm behavior
 
-#### Scenario: Orval and API contract checked
+#### Scenario: Orval 与 API 契约已检查
 
 - **WHEN** this change modifies OpenAPI response schemas
 - **THEN** generated client types MUST include `is_protected` and `protected_reason`
 - **AND** generated files MUST NOT be hand-edited
 
-### Requirement: Test framework validation script
+### Requirement: 测试框架校验脚本
 
 The project MUST provide `scripts/validate-test-framework.py` to verify pytest configuration, governance documents, and baseline test directories exist.
 
-#### Scenario: Validation passes on baseline
+#### Scenario: 基线校验通过
 
 - **WHEN** `python scripts/validate-test-framework.py` runs on the repository baseline
 - **THEN** it MUST exit with code 0
 - **AND** MUST report that test framework validation passed
 
-#### Scenario: Required governance docs checked
+#### Scenario: 必需治理文档已检查
 
 - **WHEN** the validation script runs
 - **THEN** it MUST verify presence of `docs/standards/testing-governance.md`, `docs/standards/unit-test-standard.md`, `docs/standards/frontend-test-standard.md`, and `.coveragerc`
 
-### Requirement: CI test workflow
+### Requirement: CI 测试工作流
 
 The repository MUST include a GitHub Actions workflow that runs pytest and test framework validation on push and pull request.
 
-#### Scenario: Backend tests in CI
+#### Scenario: CI 中运行后端测试
 
 - **WHEN** a pull request targets `main` or `master`
 - **THEN** `.github/workflows/test.yml` MUST run backend pytest
@@ -122,4 +122,220 @@ The repository MUST include a GitHub Actions workflow that runs pytest and test 
 - **WHEN** 开发者在未安装 MySQL 的本地环境运行默认 pytest
 - **THEN** 测试 MUST 使用 SQLite 默认路径
 - **AND** MUST NOT 因缺少 MySQL 服务而失败
+
+### Requirement: Swagger 入口回归测试
+
+The BUG-0051 fix and REQ-0023 enhancement SHALL include focused regression coverage for the admin API docs Swagger entry, row-level Swagger operation links, and Web proxy behavior.
+
+#### Scenario: 前端链接行为已测试
+
+- **WHEN** frontend tests run for `ApiDocsPage`
+- **THEN** they SHALL verify the non-production Swagger action uses the expected same-origin Swagger path
+- **AND** they SHALL verify the production read-only Swagger action still uses the expected same-origin Swagger path.
+
+#### Scenario: Row-level operationId link tested
+
+- **WHEN** frontend tests render an API docs route with `included_in_openapi=true` and a non-empty `operation_id`
+- **THEN** they SHALL verify the row-level `查看` action links to a same-origin Swagger UI operationId deep link such as `/docs#/{tag}/{operationId}`
+- **AND** they SHALL verify the PATH cell can use the same deep link when it is available
+- **AND** they SHALL verify tag and operationId values are URL-safe encoded where needed.
+
+#### Scenario: Row-level disabled state tested
+
+- **WHEN** frontend tests render a route with `included_in_openapi=false` or a missing `operation_id`
+- **THEN** they SHALL verify the row-level `查看` action is disabled or equivalently unavailable
+- **AND** they SHALL verify the disabled state has no clickable href to `/docs` or an incorrect operationId.
+- **AND** they SHALL verify the PATH cell does not expose a clickable Swagger detail href for unavailable routes.
+
+#### Scenario: Row-level Swagger link security tested
+
+- **WHEN** frontend tests inspect row-level Swagger links
+- **THEN** they SHALL verify enabled links open in a new tab or window with a safe rel attribute such as `noreferrer`
+- **AND** they SHALL verify the href and rendered text do not contain token, Bearer, Cookie, user, password, database, MinIO, or environment-secret content.
+
+#### Scenario: 既有接口文档回归保持覆盖
+
+- **WHEN** frontend tests are updated for REQ-0023
+- **THEN** existing admin permission, employee forbidden, OpenAPI JSON, Swagger read-only policy, Orval method name, missing method state, route filtering, pagination, and API docs summary metric assertions SHALL continue to pass.
+- **AND** they SHALL verify the pagination summary count updates to the filtered route count after filters change.
+
+#### Scenario: 固定操作列已测试
+
+- **WHEN** frontend tests render the API docs table
+- **THEN** they SHALL verify the ACTION header and row action cells expose the sticky action-column class or equivalent stable selector.
+
+#### Scenario: Web 代理 smoke 验证 docs 路由
+
+- **WHEN** proxy smoke verification is performed for the Web port
+- **THEN** `/docs` SHALL return backend Swagger HTML or an equivalent backend docs response
+- **AND** it SHALL NOT return the Web SPA homepage.
+
+#### Scenario: OpenAPI JSON smoke 验证无 fallback
+
+- **WHEN** proxy smoke verification requests `/openapi.json` through the Web port
+- **THEN** the response SHALL include OpenAPI JSON fields such as `openapi`, `info`, and `paths`
+- **AND** it SHALL NOT return Web SPA HTML.
+
+### Requirement: 管理端接口文档摘要指标卡回归测试
+
+The testing capability SHALL include focused frontend regression tests for `/admin/api-docs` summary metric card structure.
+
+#### Scenario: 摘要指标卡 class 结构已测试
+
+- **WHEN** frontend tests render `ApiDocsPage`
+- **THEN** they SHALL verify the summary metric section contains metric value and description elements using `metric-value` and `metric-desc`
+- **AND** the test SHOULD fail if the implementation regresses to summary cards that only expose bare `strong` and `span` styling hooks.
+
+#### Scenario: 既有接口文档行为测试保留
+
+- **WHEN** frontend tests are updated for this fix
+- **THEN** existing assertions for Orval method display, the "未生成" state, route filtering, and production Swagger read-only behavior SHALL continue to pass.
+
+#### Scenario: 无需后端或 Orval 回归
+
+- **WHEN** this change is implemented without API contract changes
+- **THEN** no backend aggregation endpoint tests or Orval regeneration SHALL be required for this fix.
+
+### Requirement: 接口文档列表分页回归测试
+The testing capability SHALL include focused frontend regression coverage for BUG-0053 on `/admin/api-docs`.
+
+#### Scenario: 冗余标题已覆盖
+- **WHEN** frontend tests render `/admin/api-docs`
+- **THEN** they SHALL assert the route directory list does not render the redundant `系统接口` title.
+
+#### Scenario: 分页 DOM 已覆盖
+- **WHEN** frontend tests render enough API docs routes to paginate
+- **THEN** they SHALL assert `page-summary`, `page-right`, page buttons, and page-size selector elements are present.
+
+#### Scenario: 每页条数选项已覆盖
+- **WHEN** frontend tests inspect the page-size selector
+- **THEN** they SHALL verify the 10, 20, 50, and 100 options
+- **AND** they SHOULD verify the default page size is 20.
+
+#### Scenario: 页码切换已覆盖
+- **WHEN** frontend tests switch route directory pages
+- **THEN** they SHALL verify the table displays only the current page routes.
+
+#### Scenario: 筛选重置页码
+- **WHEN** frontend tests change Method, Tag, Auth, or keyword filters after navigating away from page 1
+- **THEN** they SHALL verify the current page returns to page 1.
+
+#### Scenario: 既有 API docs 回归保持覆盖
+- **WHEN** BUG-0053 frontend tests are updated
+- **THEN** existing admin permission, employee forbidden, OpenAPI JSON, Swagger read-only policy, Orval method name, missing method state, and route filtering assertions SHALL continue to pass.
+
+### Requirement: 管理端内容区域布局回归测试
+
+The testing capability SHALL include focused frontend regression coverage for BUG-0054 on the Web admin shell content padding and width strategy.
+
+#### Scenario: Admin shell legacy padding is covered
+- **WHEN** frontend tests or static style assertions inspect `admin-home.css`
+- **THEN** they SHALL verify `.main-content` no longer uses the legacy `48px 56px 72px` desktop padding.
+
+#### Scenario: Content-inner max width is covered
+- **WHEN** frontend tests or static style assertions inspect admin shell styles
+- **THEN** they SHALL verify `.content-inner` no longer uses `max-width: 1080px`
+- **AND** they SHALL verify the chosen global strategy is `max-width: 100%` or `max-width: min(1440px, 100%)`.
+
+#### Scenario: Page-level divergent width is covered
+- **WHEN** frontend tests or static style assertions inspect admin page CSS
+- **THEN** they SHALL verify SKU management does not keep a `1120px` `content-inner` override
+- **AND** they SHALL verify system settings does not lock the full page content wrapper to `1080px`.
+
+#### Scenario: Sidebar collapse behavior remains covered
+- **WHEN** BUG-0054 tests are added or updated
+- **THEN** existing `AdminSidebar.collapse.test.tsx` and `AdminLayout.test.tsx` assertions SHALL continue to pass
+- **AND** sidebar width, collapsed state, and localStorage behavior SHALL not regress.
+
+#### Scenario: Visual baseline pages are listed for manual validation
+- **WHEN** implementation records validation results
+- **THEN** it SHALL include `/admin/logs`, `/admin/tile-skus`, `/admin/users`, `/admin/dashboard`, and `/admin/settings`
+- **AND** it SHOULD include 1440px, 1920px, collapsed, tablet, and mobile-smoke viewports.
+
+### Requirement: 管理端接口文档后端测试
+The testing capability SHALL include backend tests for any admin API docs aggregation endpoint introduced by this change.
+
+#### Scenario: Admin can fetch route inventory
+- **WHEN** the change introduces a backend route inventory endpoint
+- **THEN** pytest SHALL verify an authenticated `admin` can fetch the inventory successfully.
+
+#### Scenario: Employee cannot fetch route inventory
+- **WHEN** the change introduces a backend route inventory endpoint
+- **THEN** pytest SHALL verify an authenticated `employee` receives 403.
+
+#### Scenario: Non-api routes are included
+- **WHEN** the change introduces a backend route inventory endpoint
+- **THEN** pytest SHALL verify `/health` and `/media/{object_key:path}` are represented in the inventory.
+
+### Requirement: 管理端接口文档前端测试
+The testing capability SHALL include frontend tests for `/admin/api-docs` navigation, permissions, filtering, and Orval display.
+
+#### Scenario: Admin navigation visible
+- **WHEN** frontend tests render admin navigation for an `admin` user
+- **THEN** they SHALL assert the "接口文档" menu item is visible below "系统设置".
+
+#### Scenario: Employee navigation hidden
+- **WHEN** frontend tests render admin navigation for an `employee` user
+- **THEN** they SHALL assert the "接口文档" menu item is not visible.
+
+#### Scenario: Route page behavior
+- **WHEN** frontend tests render the API docs page
+- **THEN** they SHALL cover filtering and Orval method-name display, including the "未生成" state.
+
+### Requirement: 生产 Swagger 调试禁用验证
+The testing capability SHALL verify that production does not allow Swagger `Try It Out` from the admin API docs page.
+
+#### Scenario: Production disables Try It Out
+- **WHEN** the app is configured as production
+- **THEN** automated or documented production-equivalent verification SHALL prove Swagger `Try It Out` is hidden or disabled.
+
+#### Scenario: Non-production allows Try It Out
+- **WHEN** the app is configured as local, development, or demo
+- **THEN** tests or documented verification SHALL prove the Swagger debugging policy is shown as allowed.
+
+### Requirement: Orval and OpenAPI regression
+The testing capability SHALL include OpenAPI/Orval regression checks when the change adds or changes backend API contracts.
+
+#### Scenario: Orval generated output updated
+- **WHEN** a backend aggregation endpoint or API contract changes
+- **THEN** the OpenAPI export and Orval generated client SHALL be regenerated and reviewed.
+
+#### Scenario: API governance validation
+- **WHEN** a backend endpoint is added for admin API docs
+- **THEN** API governance validation SHALL pass or known unrelated failures SHALL be documented.
+
+### Requirement: 管理端列表页一致性回归测试
+
+The testing capability SHALL include focused frontend regression coverage for BUG-0055 on Web admin list page layout order, filter/search behavior, sticky action columns, and pagination window behavior.
+
+#### Scenario: Module order is covered
+
+- **WHEN** frontend tests render affected Web admin list pages
+- **THEN** they SHALL verify the DOM order is title module, metrics module, filter/search module, then list module
+- **AND** they SHALL cover SKU, brand, category, spec, banner, user, log audit, and API docs pages where practical.
+
+#### Scenario: Query buttons are removed
+
+- **WHEN** frontend tests render affected filter/search modules
+- **THEN** they SHALL verify no visible button named 「查询」 or 「搜索」 is rendered
+- **AND** they SHALL verify a reset button remains available.
+
+#### Scenario: Pagination window is covered
+
+- **WHEN** frontend tests exercise pagination helpers or page components
+- **THEN** they SHALL verify at most 5 clickable page number buttons are rendered
+- **AND** they SHALL cover total page counts of 1, 5, and 6 or more
+- **AND** they SHALL verify page size changes reset current page to 1.
+
+#### Scenario: Filter reset behavior is covered
+
+- **WHEN** frontend tests update filters or click reset
+- **THEN** they SHALL verify current page returns to 1
+- **AND** list result calculation or request parameters SHALL reflect the changed filters.
+
+#### Scenario: Sticky action column contract is covered
+
+- **WHEN** frontend tests render affected admin tables
+- **THEN** they SHALL verify the last header and body cells use the sticky action column contract
+- **AND** they SHALL verify existing action disabled states and confirmation flows remain test-covered where already present.
 

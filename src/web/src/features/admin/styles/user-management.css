@@ -170,6 +170,25 @@
   background: rgb(255 255 255 / 0.025);
 }
 
+.admin-shell .admin-sticky-action-cell {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  min-width: 96px;
+  background: var(--admin-card);
+  border-left: 0.5px solid var(--admin-line);
+  box-shadow: -10px 0 16px color-mix(in srgb, var(--admin-deep) 70%, transparent);
+  text-align: center;
+}
+
+.admin-shell th.admin-sticky-action-cell {
+  z-index: 2;
+}
+
+.admin-shell tbody tr:hover .admin-sticky-action-cell {
+  background: color-mix(in srgb, var(--admin-text) 2.5%, var(--admin-card));
+}
+
 .admin-shell .user-cell {
   display: flex;
   align-items: center;
@@ -363,6 +382,11 @@
   background: var(--admin-gold);
   border-color: var(--admin-gold);
   color: var(--admin-page);
+}
+
+.admin-shell .page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .admin-shell .modal-backdrop {

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
@@ -40,16 +43,37 @@ describe('AdminSidebar', () => {
     expect(screen.queryByRole('button', { name: '系统设置' })).not.toBeInTheDocument();
   });
 
-  it('shows product version badge in brand head', () => {
+  it('shows product logo, brand copy, and version badge in brand head', () => {
     render(
       <MemoryRouter initialEntries={['/admin/dashboard']}>
         <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(screen.getByText('TILESFST')).toBeInTheDocument();
+    expect(screen.getByText('菲尚特FST')).toBeInTheDocument();
+    expect(screen.getByText('家居建材资料库')).toBeInTheDocument();
+    expect(screen.getByAltText('菲尚特家居建材 Logo')).toHaveAttribute(
+      'src',
+      '/logos/64x64.png',
+    );
     const pill = screen.getByLabelText(`产品版本 ${PRODUCT_VERSION}`);
     expect(pill).toHaveTextContent(PRODUCT_VERSION);
     expect(pill).toHaveClass('version-pill');
     expect(pill.className).toMatch(/text-muted/);
+  });
+
+  it('declares FST logo favicon and apple touch icon in web entry html', () => {
+    const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+
+    expect(html).toContain(
+      '<link rel="icon" type="image/png" sizes="64x64" href="/logos/64x64.png" />',
+    );
+    expect(html).toContain(
+      '<link rel="icon" type="image/png" sizes="128x128" href="/logos/128x128.png" />',
+    );
+    expect(html).toContain(
+      '<link rel="apple-touch-icon" sizes="256x256" href="/logos/256x256.png" />',
+    );
+    expect(html).not.toContain('/vite.svg');
+    expect(html).not.toContain('/react.svg');
   });
 });

@@ -5,6 +5,7 @@ import {
   FolderTree,
   Image,
   LayoutDashboard,
+  ListTree,
   Package,
   Ruler,
   Settings,
@@ -46,6 +47,7 @@ export const adminNavSections: AdminNavSection[] = [
     items: [
       { id: 'users', label: '用户管理', path: '/admin/users', icon: Users },
       { id: 'settings', label: '系统设置', path: '/admin/settings', icon: Settings },
+      { id: 'logs', label: '日志审计', path: '/admin/logs', icon: ListTree },
       { id: 'api-docs', label: '接口文档', path: '/admin/api-docs', icon: BookOpen },
     ],
   },

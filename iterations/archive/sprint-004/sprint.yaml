@@ -1,0 +1,44 @@
+sprint_id: sprint-004
+status: completed
+lifecycle_stage: archive
+start_date: 2026-06-29 10:03:38
+end_date: 2026-07-13 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0018-production-mysql-deployment
+  - REQ-0019-admin-superuser-protection
+  - REQ-0022-admin-api-docs-menu
+  - REQ-0023-api-docs-swagger-detail-link
+  - REQ-0025-brand-logo-fst-favicon
+  - REQ-0026-product-release-management
+  - REQ-0024-product-usage-logging
+
+bugs:
+  - BUG-0050-user-create-validation-message-unclear
+  - BUG-0051-api-docs-swagger-ui-link-wrong
+  - BUG-0052-api-docs-metric-cards-inconsistent
+  - BUG-0053-api-docs-list-layout-pagination-inconsistent
+  - BUG-0054-admin-content-padding-too-large
+  - BUG-0055-admin-list-layout-unification
+
+changes:
+  - add-production-mysql-deployment
+  - update-admin-superuser-protection
+  - fix-user-create-validation-message-unclear
+  - add-admin-api-docs-menu
+  - add-api-docs-swagger-detail-link
+  - fix-api-docs-swagger-ui-link-wrong
+  - fix-api-docs-metric-cards-inconsistent
+  - fix-api-docs-list-layout-pagination-inconsistent
+  - update-brand-logo-fst-favicon
+  - add-product-release-management
+  - add-product-usage-logging
+  - fix-admin-content-padding-too-large
+  - fix-admin-list-layout-unification
+
+estimated_story_points: 83
+estimated_person_days: 60.5

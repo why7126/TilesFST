@@ -1,7 +1,7 @@
-# tile-category-management Specification
+# 瓷砖类目管理规范
 
 ## Purpose
-TBD - created by archiving change add-tile-category-management. Update Purpose after archive.
+定义瓷砖类目树、类目列表筛选、创建更新、启停删除和错误码要求，确保类目层级、排序和 SKU 关联边界清晰。
 ## Requirements
 ### Requirement: 瓷砖类目数据模型
 
@@ -123,4 +123,3 @@ TBD - created by archiving change add-tile-category-management. Update Purpose a
 
 - **WHEN** 请求不存在的 `{id}`
 - **THEN** 系统 MUST 返回 HTTP 404，`CATEGORY_NOT_FOUND`
-

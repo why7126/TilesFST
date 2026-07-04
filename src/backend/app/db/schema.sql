@@ -195,3 +195,61 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_domain_created
   ON audit_logs(domain, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS request_logs (
+  id TEXT PRIMARY KEY,
+  request_id TEXT NOT NULL,
+  actor_user_id TEXT NULL REFERENCES users(id),
+  actor_role TEXT,
+  client_type TEXT NOT NULL DEFAULT 'backend',
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  status_code INTEGER NOT NULL,
+  duration_ms INTEGER NOT NULL,
+  ip_address_masked TEXT,
+  user_agent_summary TEXT,
+  summary TEXT NOT NULL,
+  error_code TEXT,
+  result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+  metadata TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_request_logs_created
+  ON request_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_request_id
+  ON request_logs(request_id);
+CREATE INDEX IF NOT EXISTS idx_request_logs_actor_created
+  ON request_logs(actor_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_status_created
+  ON request_logs(status_code, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_path_created
+  ON request_logs(path, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS usage_events (
+  id TEXT PRIMARY KEY,
+  request_id TEXT,
+  actor_user_id TEXT NULL REFERENCES users(id),
+  actor_role TEXT,
+  client_type TEXT NOT NULL DEFAULT 'web_admin',
+  event_name TEXT NOT NULL,
+  event_category TEXT NOT NULL,
+  page_path TEXT,
+  session_id TEXT,
+  ip_address_masked TEXT,
+  user_agent_summary TEXT,
+  summary TEXT NOT NULL,
+  duration_ms INTEGER,
+  result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+  metadata TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_usage_events_created
+  ON usage_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usage_events_event_created
+  ON usage_events(event_name, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usage_events_request_id
+  ON usage_events(request_id);
+CREATE INDEX IF NOT EXISTS idx_usage_events_actor_created
+  ON usage_events(actor_user_id, created_at DESC);

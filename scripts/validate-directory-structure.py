@@ -49,6 +49,7 @@ ALLOWED_ROOT_DIRS = {
     "openspec",
     "issues",
     "iterations",
+    "releases",
     "compatibility",
     ".claude",
     ".codex",

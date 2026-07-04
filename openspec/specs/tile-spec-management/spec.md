@@ -1,7 +1,7 @@
-# tile-spec-management Specification
+# 瓷砖规格管理规范
 
 ## Purpose
-TBD - created by archiving change add-tile-spec-management. Update Purpose after archive.
+定义瓷砖规格数据模型、规格列表筛选、创建更新、启停删除、SKU 关联计数和历史规格迁移要求，确保规格主数据可维护且与 SKU 保持一致。
 ## Requirements
 ### Requirement: 瓷砖规格数据模型
 
@@ -122,4 +122,3 @@ TBD - created by archiving change add-tile-spec-management. Update Purpose after
 
 - **WHEN** 打开新增/编辑弹窗并排 `tile-size-management-modal.html`
 - **THEN** checklist（720px、宽长、只读 display_name、无状态字段、实时重复校验）MUST pass
-

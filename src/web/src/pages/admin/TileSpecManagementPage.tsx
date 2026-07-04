@@ -17,6 +17,7 @@ import {
   brandStatusLabel,
   formatBrandDateTime,
 } from '@/features/admin/lib/brand-display';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/brand-management.css';
 import '@/features/admin/styles/tile-spec-management.css';
@@ -74,6 +75,7 @@ export function TileSpecManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsEnable = statusConfirmTarget?.status === 'DISABLED';
 
   const handleStatusConfirm = async () => {
@@ -155,42 +157,52 @@ export function TileSpecManagementPage() {
 
       <section className="filter-card">
         <div className="tile-spec-filter-row">
-          <input
-            className="input"
-            placeholder="搜索尺寸名称 / 宽度 / 长度 / 备注"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (setPage(1), void loadSpecs(1))}
-          />
-          <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.label} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="btn primary"
-            onClick={() => {
-              setPage(1);
-              void loadSpecs(1);
-            }}
-          >
-            查询
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => {
-              setKeyword('');
-              setStatus('');
-              setPage(1);
-              void fetchTileSpecs({ page: 1, page_size: pageSize }).then(setData);
-            }}
-          >
-            重置
-          </button>
+          <div className="brand-form-item">
+            <label htmlFor="tile-spec-filter-keyword">关键词</label>
+            <input
+              id="tile-spec-filter-keyword"
+              className="input"
+              placeholder="搜索尺寸名称 / 宽度 / 长度 / 备注"
+              value={keyword}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(1);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
+            />
+          </div>
+          <div className="brand-form-item">
+            <label htmlFor="tile-spec-filter-status">状态</label>
+            <select
+              id="tile-spec-filter-status"
+              className="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.label} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="tile-spec-filter-actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setKeyword('');
+                setStatus('');
+                setPage(1);
+                void fetchTileSpecs({ page: 1, page_size: pageSize }).then(setData);
+              }}
+            >
+              重置
+            </button>
+          </div>
         </div>
       </section>
 
@@ -206,7 +218,7 @@ export function TileSpecManagementPage() {
               <th>排序</th>
               <th>状态</th>
               <th>更新时间</th>
-              <th>操作</th>
+              <th className="admin-sticky-action-cell">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -229,7 +241,7 @@ export function TileSpecManagementPage() {
                     </span>
                   </td>
                   <td>{formatBrandDateTime(spec.updated_at)}</td>
-                  <td>
+                  <td className="admin-sticky-action-cell">
                     <div className="tile-spec-actions">
                       <button
                         type="button"
@@ -283,9 +295,17 @@ export function TileSpecManagementPage() {
               >
                 ‹
               </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
+              {pageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                  aria-current={pageNumber === page ? 'page' : undefined}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
               <button
                 type="button"
                 className="page-btn"

@@ -80,6 +80,19 @@ describe('TileSpecManagementPage', () => {
     expect(container.querySelector('.page-size-wrap')).toBeInTheDocument();
     expect(screen.getByLabelText('每页显示条数')).toBeInTheDocument();
     expect(screen.getByText('每页显示')).toBeInTheDocument();
+    expect(screen.getByLabelText('关键词')).toHaveAttribute(
+      'placeholder',
+      '搜索尺寸名称 / 宽度 / 长度 / 备注',
+    );
+    expect(screen.getByLabelText('状态')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    const row = screen.getByText('600×1200mm').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[0]).not.toHaveClass('admin-sticky-action-cell');
+    expect(row.cells[row.cells.length - 1]).toHaveClass('admin-sticky-action-cell');
     expect(container.querySelector('.pagination-bar')).toBeNull();
     expect(container.querySelector('.page-indicator')).toBeNull();
   });

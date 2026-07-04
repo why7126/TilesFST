@@ -1,7 +1,7 @@
-# admin-profile-page Specification
+# 管理端个人资料页规范
 
 ## Purpose
-TBD - created by archiving change add-admin-profile-page. Update Purpose after archive.
+定义管理端个人资料 self-service API、操作记录、头像上传、备注字段和个人资料页视觉交互要求，确保 admin 与 employee 可安全维护本人资料。
 ## Requirements
 ### Requirement: 个人资料 self-service API
 
@@ -156,4 +156,3 @@ Web 客户端 MUST 提供 `/admin/profile` 页面，视觉 MUST 高保真对齐 
 - **WHEN** 团队在 1440×1024 并排对比 `/admin/profile` 与 `profile-page.png`
 - **THEN** checklist（Shell、用户菜单高亮、两列 layout、save-tip、timeline、分隔线等）MUST 全部 pass
 - **AND** 结果 MUST 记录在 change `trace.md`
-

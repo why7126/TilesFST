@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-01 09:01:07
+updated_at: 2026-07-04 08:10:11
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -18,6 +18,12 @@ note: 适用于瓷砖信息管理平台项目模板
 - 外部 MySQL 8.0+（生产）
 - MinIO 对象存储
 - Web 静态资源
+
+### Web 静态资源与产品 Logo
+
+Web 镜像构建会将 `src/web/public/` 下的静态资源复制到前端站点根路径。产品自身 Logo 固定放在 `src/web/public/logos/`，当前使用 `64x64.png`、`128x128.png`、`256x256.png` 三个尺寸，分别服务于管理端品牌区、浏览器 favicon 与 Apple touch icon。
+
+`src/web/public/logos/` 属于前端静态资源，不经过 MinIO；门店品牌 Logo、SKU 图片、视频封面等业务媒体仍必须通过后端授权上传并写入 `MINIO_BUCKET`。
 
 ## 环境变量
 

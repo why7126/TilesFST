@@ -1,7 +1,7 @@
-# tile-sku-management Specification
+# 瓷砖 SKU 管理规范
 
 ## Purpose
-TBD - created by archiving change fix-tile-sku-modal-content-overflow. Update Purpose after archive.
+定义瓷砖 SKU 数据模型、列表筛选、创建更新、上下架删除、图片视频上传、弹窗交互与视觉验收要求，确保商品资料可维护且展示素材完整。
 ## Requirements
 ### Requirement: SKU 管理视觉验收 Gate
 
@@ -195,4 +195,3 @@ SKU 管理弹窗（新增/编辑）「商品视频」能力 MUST 对齐 REQ-0006
 - **WHEN** 用户在同一弹窗会话内连续上传两个 MP4 且均成功
 - **THEN** 视频列表 MUST 展示两个文件卡片
 - **AND** 移除其中一个后列表 MUST 正确更新
-

@@ -93,6 +93,14 @@ describe('TileSkuManagementPage', () => {
     expect(screen.getByText('共 1 条')).toBeInTheDocument();
     expect(screen.getByText('每页显示')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: '每页显示条数' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[0]).not.toHaveClass('admin-sticky-action-cell');
+    expect(row.cells[row.cells.length - 1]).toHaveClass('admin-sticky-action-cell');
 
     const pagination = screen.getByText('共 1 条').closest('.pagination');
     expect(pagination?.querySelector('.page-summary')).toBeInTheDocument();

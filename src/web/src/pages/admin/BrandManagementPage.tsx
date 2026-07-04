@@ -20,6 +20,7 @@ import {
   formatBrandDateTime,
   getBrandInitials,
 } from '@/features/admin/lib/brand-display';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/brand-management.css';
 
@@ -79,11 +80,6 @@ export function BrandManagementPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const handleSearch = () => {
-    setPage(1);
-    void loadBrands(1);
-  };
-
   const handleReset = () => {
     setKeyword('');
     setStatus('');
@@ -140,6 +136,7 @@ export function BrandManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsEnable = statusConfirmTarget?.status === 'DISABLED';
 
   return (
@@ -184,26 +181,43 @@ export function BrandManagementPage() {
 
       <section className="filter-card">
         <div className="brand-filter-row">
-          <input
-            className="input"
-            placeholder="搜索品牌名称 / 简称 / 英文名称"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {BRAND_STATUS_OPTIONS.map((opt) => (
-              <option key={opt.label} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <button type="button" className="btn primary" onClick={handleSearch}>
-            查询
-          </button>
-          <button type="button" className="btn" onClick={handleReset}>
-            重置
-          </button>
+          <div className="brand-form-item">
+            <label htmlFor="brand-filter-keyword">关键词</label>
+            <input
+              id="brand-filter-keyword"
+              className="input"
+              placeholder="搜索品牌名称 / 简称 / 英文名称"
+              value={keyword}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(1);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
+            />
+          </div>
+          <div className="brand-form-item">
+            <label htmlFor="brand-filter-status">状态</label>
+            <select
+              id="brand-filter-status"
+              className="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              {BRAND_STATUS_OPTIONS.map((opt) => (
+                <option key={opt.label} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="brand-filter-actions">
+            <button type="button" className="btn" onClick={handleReset}>
+              重置
+            </button>
+          </div>
         </div>
       </section>
 
@@ -218,7 +232,7 @@ export function BrandManagementPage() {
               <th>SKU数量</th>
               <th>状态</th>
               <th>更新时间</th>
-              <th>操作</th>
+              <th className="admin-sticky-action-cell">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -262,7 +276,7 @@ export function BrandManagementPage() {
                     </span>
                   </td>
                   <td>{formatBrandDateTime(brand.updated_at)}</td>
-                  <td>
+                  <td className="admin-sticky-action-cell">
                     <div className="brand-actions">
                       <button type="button" className="link-btn" onClick={() => openEdit(brand)}>
                         编辑
@@ -309,9 +323,17 @@ export function BrandManagementPage() {
               >
                 ‹
               </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
+              {pageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                  aria-current={pageNumber === page ? 'page' : undefined}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
               <button
                 type="button"
                 className="page-btn"

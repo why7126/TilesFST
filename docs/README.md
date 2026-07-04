@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-06-30 21:52:26
+updated_at: 2026-07-02 14:56:58
 ---
 
 # 文档索引
@@ -52,5 +52,6 @@ updated_at: 2026-06-30 21:52:26
 | 需求 | `issues/requirements/REQ-*` |
 | 缺陷 | `issues/bugs/BUG-*` |
 | 迭代 | `iterations/change/sprint-xxx/`（进行中）、`iterations/archive/sprint-xxx/`（已归档） |
+| 产品版本发布 | `releases/vX.Y.Z/` |
 
 禁止恢复 `docs/prd/`、`docs/bugs/`、`docs/iterations/`。

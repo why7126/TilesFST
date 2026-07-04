@@ -24,6 +24,7 @@ import {
   formatCategoryDateTime,
   formatSkuCount,
 } from '@/features/admin/lib/category-display';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/tile-category-management.css';
 
@@ -107,11 +108,6 @@ export function TileCategoryManagementPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const handleSearch = () => {
-    setPage(1);
-    void loadCategories(1);
-  };
-
   const handleReset = () => {
     setKeyword('');
     setStatus('');
@@ -168,13 +164,9 @@ export function TileCategoryManagementPage() {
     }
   };
 
-  const handleReorderPlaceholder = () => {
-    setNotice('排序调整功能即将上线');
-  };
-
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const treeTitle = selectedTreeId === null ? '全部类目' : '选中类目及子孙';
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsEnable = statusConfirmTarget?.status === 'DISABLED';
 
   return (
@@ -228,13 +220,23 @@ export function TileCategoryManagementPage() {
                 className="input"
                 placeholder="输入类目名称、英文名或编码"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  setPage(1);
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
               />
             </label>
             <label>
               <span className="field-label">状态</span>
-              <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <select
+                className="select"
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setPage(1);
+                }}
+              >
                 {CATEGORY_STATUS_OPTIONS.map((opt) => (
                   <option key={opt.label} value={opt.value}>
                     {opt.label}
@@ -244,7 +246,14 @@ export function TileCategoryManagementPage() {
             </label>
             <label>
               <span className="field-label">层级</span>
-              <select className="select" value={level} onChange={(e) => setLevel(e.target.value)}>
+              <select
+                className="select"
+                value={level}
+                onChange={(e) => {
+                  setLevel(e.target.value);
+                  setPage(1);
+                }}
+              >
                 {CATEGORY_LEVEL_OPTIONS.map((opt) => (
                   <option key={opt.label} value={opt.value}>
                     {opt.label}
@@ -253,9 +262,6 @@ export function TileCategoryManagementPage() {
               </select>
             </label>
             <div className="cat-filter-actions">
-              <button type="button" className="btn primary" onClick={handleSearch}>
-                查询
-              </button>
               <button type="button" className="btn" onClick={handleReset}>
                 重置
               </button>
@@ -277,15 +283,6 @@ export function TileCategoryManagementPage() {
             }}
           />
           <div className="table-card">
-            <div className="cat-table-toolbar">
-              <div>
-                <span className="toolbar-title">{treeTitle}</span>
-                <span className="toolbar-desc">共 {total} 条记录</span>
-              </div>
-              <button type="button" className="btn" onClick={handleReorderPlaceholder}>
-                调整排序
-              </button>
-            </div>
             <table className="cat-mgmt-table">
               <thead>
                 <tr>
@@ -295,7 +292,7 @@ export function TileCategoryManagementPage() {
                   <th>SKU 数量</th>
                   <th>状态</th>
                   <th>更新时间</th>
-                  <th>操作</th>
+                  <th className="admin-sticky-action-cell">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -303,7 +300,7 @@ export function TileCategoryManagementPage() {
                   const deletable = canDeleteCategory(category);
                   return (
                     <tr key={category.id}>
-                      <td>
+                      <td className="admin-sticky-action-cell">
                         <span className="cat-name">{category.name}</span>
                         <span className="cat-path">
                           {category.code} / {category.path}
@@ -373,9 +370,17 @@ export function TileCategoryManagementPage() {
                   >
                     ‹
                   </button>
-                  <button type="button" className="page-btn active">
-                    {page}
-                  </button>
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                      aria-current={pageNumber === page ? 'page' : undefined}
+                      onClick={() => setPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
                   <button
                     type="button"
                     className="page-btn"

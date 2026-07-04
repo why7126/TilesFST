@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0023 API Docs Swagger Detail Link</title>
+    <style>
+      :root {
+        --page: #18160f;
+        --surface: #211e16;
+        --line: rgba(255, 255, 255, 0.08);
+        --line-strong: rgba(255, 255, 255, 0.16);
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.55);
+        --weak: rgba(237, 232, 223, 0.34);
+        --gold: #c8a055;
+        --gold-soft: rgba(200, 160, 85, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .admin-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 248px 1fr;
+      }
+
+      .sidebar {
+        border-right: 0.5px solid var(--line);
+        padding: 22px 18px;
+      }
+
+      .logo {
+        color: var(--gold);
+        letter-spacing: 0.16em;
+        font-family: Georgia, serif;
+        font-size: 19px;
+        margin-bottom: 30px;
+      }
+
+      .nav-title {
+        color: var(--weak);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+      }
+
+      .nav-item {
+        display: block;
+        padding: 10px 12px;
+        border-radius: 2px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      .nav-item.active {
+        color: var(--text);
+        background: var(--gold-soft);
+        border-left: 2px solid var(--gold);
+      }
+
+      main {
+        padding: 28px;
+      }
+
+      .page-hero {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .eyebrow {
+        color: var(--gold);
+        letter-spacing: 0.18em;
+        font-size: 10px;
+      }
+
+      h1 {
+        margin: 6px 0;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .desc {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.8;
+        max-width: 720px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 0.5px solid var(--line-strong);
+        border-radius: 2px;
+        color: var(--text);
+        background: transparent;
+        text-decoration: none;
+        font-size: 12px;
+      }
+
+      .btn.primary {
+        background: var(--gold);
+        color: var(--page);
+        border-color: var(--gold);
+      }
+
+      .btn.disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+      }
+
+      .table-card {
+        background: var(--surface);
+        border: 0.5px solid var(--line);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 0.5px solid var(--line);
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .section-note {
+        color: var(--weak);
+        font-size: 11px;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 1120px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 14px;
+        border-bottom: 0.5px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        font-size: 12px;
+      }
+
+      th {
+        color: var(--weak);
+        font-weight: 400;
+        letter-spacing: 0.08em;
+      }
+
+      td {
+        color: var(--muted);
+      }
+
+      code {
+        color: var(--text);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+      }
+
+      .method {
+        display: inline-flex;
+        min-width: 54px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        border: 0.5px solid var(--gold);
+        border-radius: 2px;
+        color: var(--gold);
+        font-size: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        padding: 3px 8px;
+        border-radius: 2px;
+        background: var(--gold-soft);
+        color: var(--gold);
+        font-size: 10px;
+      }
+
+      .badge.off {
+        background: transparent;
+        color: var(--weak);
+        border: 0.5px solid var(--line);
+      }
+
+      .hint {
+        display: block;
+        margin-top: 5px;
+        color: var(--weak);
+        font-size: 10px;
+        line-height: 1.5;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+      }
+
+      .page-summary,
+      .page-right {
+        color: var(--weak);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <div class="logo">TILESFST</div>
+        <p class="nav-title">SYSTEM</p>
+        <a class="nav-item" href="#">用户管理</a>
+        <a class="nav-item" href="#">系统设置</a>
+        <a class="nav-item active" href="#">接口文档</a>
+      </aside>
+      <main>
+        <section class="page-hero">
+          <div>
+            <p class="eyebrow">SYSTEM / API DOCS</p>
+            <h1>接口文档</h1>
+            <p class="desc">每个 OpenAPI 接口行提供查看入口，新窗口打开 Swagger UI 并定位到 operationId。未纳入 OpenAPI 的路由保留展示，但不提供错误跳转。</p>
+          </div>
+          <a class="btn primary" href="/docs" target="_blank" rel="noreferrer">Swagger UI</a>
+        </section>
+
+        <section class="table-card">
+          <div class="table-toolbar">
+            <div>
+              <div class="section-title">系统接口</div>
+              <div class="section-note">新增 ACTION 列，保持管理端列表页密度</div>
+            </div>
+            <div class="section-note">当前 3 / 58</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>METHOD</th>
+                  <th>PATH</th>
+                  <th>TAG</th>
+                  <th>SUMMARY</th>
+                  <th>AUTH</th>
+                  <th>OPENAPI</th>
+                  <th>ORVAL METHOD</th>
+                  <th>ACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method">GET</span></td>
+                  <td><code>/api/v1/admin/api-docs</code><span class="hint">openapi</span></td>
+                  <td>admin-api-docs</td>
+                  <td>管理端接口文档目录</td>
+                  <td>仅 admin</td>
+                  <td><span class="badge">已纳入</span></td>
+                  <td><code>getApiDocsApiV1AdminApiDocsGet</code></td>
+                  <td>
+                    <a class="btn primary" href="/docs#/admin-api-docs/get_api_docs_api_v1_admin_api_docs_get" target="_blank" rel="noreferrer">查看</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="method">GET</span></td>
+                  <td><code>/health</code><span class="hint">health-check</span></td>
+                  <td>health</td>
+                  <td>健康检查</td>
+                  <td>公开</td>
+                  <td><span class="badge">已纳入</span></td>
+                  <td><code>healthCheckHealthGet</code></td>
+                  <td>
+                    <a class="btn primary" href="/docs#/default/health_check_health_get" target="_blank" rel="noreferrer">查看</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td><span class="method">GET</span></td>
+                  <td><code>/media/{object_key:path}</code><span class="hint">media-passthrough</span></td>
+                  <td>media</td>
+                  <td>媒体直出</td>
+                  <td>公开</td>
+                  <td><span class="badge off">未纳入</span></td>
+                  <td><span class="hint">未生成 · 未纳入 OpenAPI schema</span></td>
+                  <td>
+                    <span class="btn disabled" aria-disabled="true" title="未纳入 OpenAPI，暂无 Swagger 详情">查看</span>
+                    <span class="hint">未纳入 OpenAPI</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span class="page-summary">共 58 个接口</span>
+            <span class="page-right">当前筛选 3 条</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

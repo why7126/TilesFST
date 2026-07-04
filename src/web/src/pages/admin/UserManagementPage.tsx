@@ -11,6 +11,7 @@ import {
 import { ResetPasswordDialog } from '@/features/admin/components/ResetPasswordDialog';
 import { AdminToast } from '@/features/admin/components/AdminToast';
 import { UserFormModal } from '@/features/admin/components/UserFormModal';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import { getUserInitials } from '@/features/admin/lib/user-display';
 import {
   LOGIN_FILTER_OPTIONS,
@@ -181,6 +182,7 @@ export function UserManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsUnfreeze = statusConfirmTarget?.status === 'disabled';
 
   return (
@@ -198,6 +200,29 @@ export function UserManagementPage() {
         <button type="button" className="btn primary" onClick={openCreate}>
           ＋ 添加用户
         </button>
+      </section>
+
+      <section className="summary-grid" aria-label="用户统计">
+        <article className="metric-card">
+          <div className="metric-label">用户总数</div>
+          <div className="metric-value">{data?.summary.total ?? '—'}</div>
+          <div className="metric-desc">全部有效用户</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">当前筛选</div>
+          <div className="metric-value">{data?.summary.filtered ?? '—'}</div>
+          <div className="metric-desc">符合条件用户</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">正常用户</div>
+          <div className="metric-value">{data?.summary.active_count ?? '—'}</div>
+          <div className="metric-desc">允许登录</div>
+        </article>
+        <article className="metric-card">
+          <div className="metric-label">已冻结</div>
+          <div className="metric-value">{data?.summary.disabled_count ?? '—'}</div>
+          <div className="metric-desc">禁止登录</div>
+        </article>
       </section>
 
       <section className="filter-card">
@@ -269,29 +294,6 @@ export function UserManagementPage() {
         </div>
       </section>
 
-      <section className="summary-grid" aria-label="用户统计">
-        <article className="metric-card">
-          <div className="metric-label">用户总数</div>
-          <div className="metric-value">{data?.summary.total ?? '—'}</div>
-          <div className="metric-desc">全部有效用户</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">当前筛选</div>
-          <div className="metric-value">{data?.summary.filtered ?? '—'}</div>
-          <div className="metric-desc">符合条件用户</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">正常用户</div>
-          <div className="metric-value">{data?.summary.active_count ?? '—'}</div>
-          <div className="metric-desc">允许登录</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">已冻结</div>
-          <div className="metric-value">{data?.summary.disabled_count ?? '—'}</div>
-          <div className="metric-desc">禁止登录</div>
-        </article>
-      </section>
-
       <section className="table-card" aria-label="用户列表">
         <table className="user-mgmt-table">
           <thead>
@@ -301,7 +303,7 @@ export function UserManagementPage() {
               <th>状态</th>
               <th>最后登录</th>
               <th>创建时间</th>
-              <th>操作</th>
+              <th className="admin-sticky-action-cell">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -319,7 +321,7 @@ export function UserManagementPage() {
                   : '已登录用户不可删除';
               return (
                 <tr key={user.id}>
-                  <td>
+                  <td className="admin-sticky-action-cell">
                     <div className="user-cell">
                       <span className="avatar">
                         {user.avatar_url ? (
@@ -410,9 +412,17 @@ export function UserManagementPage() {
               >
                 ‹
               </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
+              {pageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                  aria-current={pageNumber === page ? 'page' : undefined}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
               <button
                 type="button"
                 className="page-btn"

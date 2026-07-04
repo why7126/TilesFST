@@ -1,0 +1,284 @@
+{
+  "version": "v0.0.2",
+  "release_time": "2026-07-04 08:19:15",
+  "owner": "product",
+  "summary": "TILESFST v0.0.2 汇总 sprint-004 的已归档交付范围，覆盖生产 MySQL 部署、管理端账号保护、接口文档、品牌展示、产品发布治理、日志审计与管理端列表体验统一。",
+  "formal_scope_only": true,
+  "version_change_rationale": "",
+  "sprints": [
+    "sprint-004"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0018-production-mysql-deployment",
+      "title": "生产环境部署与 MySQL 数据库支持",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0019-admin-superuser-protection",
+      "title": "管理端超级管理员账号保护",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0022-admin-api-docs-menu",
+      "title": "管理端接口文档菜单与在线调试",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0023-api-docs-swagger-detail-link",
+      "title": "接口文档列表行级查看并跳转 Swagger 详情",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0025-brand-logo-fst-favicon",
+      "title": "品牌区 Logo、菲尚特FST 文案与网页图标统一",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0026-product-release-management",
+      "title": "产品版本发布与公告管理",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0024-product-usage-logging",
+      "title": "产品使用行为埋点与接口请求日志详情",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0050-user-create-validation-message-unclear",
+      "title": "创建用户校验失败未明确提示具体问题点",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0051-api-docs-swagger-ui-link-wrong",
+      "title": "接口文档页 Swagger UI 入口跳转到 Web 首页",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0052-api-docs-metric-cards-inconsistent",
+      "title": "接口文档页指标卡样式与瓷砖 SKU 页不一致",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0053-api-docs-list-layout-pagination-inconsistent",
+      "title": "接口文档列表冗余系统接口信息且分页未与 SKU 页一致",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0054-admin-content-padding-too-large",
+      "title": "管理端全局右侧内容区域内边距过大",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0055-admin-list-layout-unification",
+      "title": "管理端多列表页布局、筛选区、操作列与分页不统一",
+      "sprint": "sprint-004",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-production-mysql-deployment",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-06-29-add-production-mysql-deployment"
+    },
+    {
+      "id": "update-admin-superuser-protection",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-06-30-update-admin-superuser-protection"
+    },
+    {
+      "id": "fix-user-create-validation-message-unclear",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-06-30-fix-user-create-validation-message-unclear"
+    },
+    {
+      "id": "add-admin-api-docs-menu",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-03-add-admin-api-docs-menu"
+    },
+    {
+      "id": "add-api-docs-swagger-detail-link",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-03-add-api-docs-swagger-detail-link"
+    },
+    {
+      "id": "fix-api-docs-swagger-ui-link-wrong",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong"
+    },
+    {
+      "id": "fix-api-docs-metric-cards-inconsistent",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-02-fix-api-docs-metric-cards-inconsistent"
+    },
+    {
+      "id": "fix-api-docs-list-layout-pagination-inconsistent",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-02-fix-api-docs-list-layout-pagination-inconsistent"
+    },
+    {
+      "id": "update-brand-logo-fst-favicon",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-02-update-brand-logo-fst-favicon"
+    },
+    {
+      "id": "add-product-release-management",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-02-add-product-release-management"
+    },
+    {
+      "id": "add-product-usage-logging",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-03-add-product-usage-logging"
+    },
+    {
+      "id": "fix-admin-content-padding-too-large",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-03-fix-admin-content-padding-too-large"
+    },
+    {
+      "id": "fix-admin-list-layout-unification",
+      "sprint": "sprint-004",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-04-fix-admin-list-layout-unification"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-04 08:19:15: sprint-004 状态为 completed/archive；7 个 REQ 与 6 个 BUG 均位于 issues/*/archive；13/13 formal-scope Change 均匹配 openspec/changes/archive 下日期前缀归档目录。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: 后端 `uv run pytest` 通过：149 passed, 1 skipped；前端 `pnpm --dir src/web test -- --run` 通过：43 files, 193 tests。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: `python scripts/validate-api-standard.py` 通过；`./scripts/generate-openapi-client.sh` 通过，Orval v8.17.0 已重新生成 tileApi；`src/web/openapi.json` 与 `src/web/src/shared/api/generated.ts` 已同步。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: `docker compose config --quiet` 通过；`docker-compose.yml`、`docker-compose.prod.yml`、`docker-compose.prod.external.yml`、`src/web/nginx.conf` 与 `docs/02-deployment.md` 存在并纳入发布范围。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: `src/backend/app/db/schema.sql`、`src/backend/app/db/schema.mysql.sql`、`src/backend/app/db/migrations.py` 与 `docs/04-database-design.md` 存在；后端 pytest 覆盖 database_config、product_usage_logging、system_settings 等相关路径。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: `.env.example`、`src/backend/.env.example`、`src/backend/.env.docker` 存在，并包含 APP_ENV、DATABASE_URL、SQLite、MinIO 单桶与前缀等发布范围配置说明。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:33:51: src/shared/product-version.ts 中 PRODUCT_VERSION 已更新为 v0.0.2，与本发布对象版本一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-04 12:39:47: `releases/mint.json` 已加入 `v0.0.2/announcement`；`mintlify broken-links` 在 `releases/` 下通过，输出 `success no broken links found`。"
+    }
+  },
+  "known_issues": [
+    "生产 MySQL、外部 MinIO、日志审计与 Swagger 代理属于环境敏感能力，目标部署环境上线前仍需按真实网络、域名和权限执行 smoke。"
+  ],
+  "upgrade_steps": [
+    "升级前备份数据库、对象存储数据与当前部署配置。",
+    "确认 src/shared/product-version.ts 中 PRODUCT_VERSION 为 v0.0.2。",
+    "同步生产环境变量，重点确认 APP_ENV、MySQL 连接、MinIO 单桶与前缀、管理员初始化、日志保留与敏感信息脱敏配置。",
+    "执行 SQLite/MySQL schema 初始化或迁移，确认 MySQL 8.0+、utf8mb4、唯一约束、索引与默认管理员 seed。",
+    "重新生成 OpenAPI/Orval 客户端并构建 Web、Backend 镜像。",
+    "通过 Docker Compose 或生产等价部署启动服务，验证登录、用户管理、接口文档、Swagger 代理、日志审计、媒体读取和管理端列表关键路径。",
+    "执行 Mintlify 公告 build/preview 或等价校验后进入 /release-publish。"
+  ],
+  "rollback": {
+    "conditions": [
+      "登录、用户管理、日志审计、接口文档、媒体读取或生产 MySQL 任一核心路径 smoke 失败。",
+      "MySQL 初始化、迁移或日志表写入出现阻断性数据问题。",
+      "Swagger Web 代理导致 /api/、/media/、/openapi.json 或管理端 SPA 路由回归。",
+      "Docker Compose 环境无法稳定启动 Web、Backend 或 MinIO。",
+      "公告或发布对象校验发现敏感信息泄露风险。"
+    ],
+    "steps": [
+      "停止当前版本服务并回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Docker Compose 配置和 Web/Backend 镜像。",
+      "恢复升级前数据库备份；如已执行 MySQL schema 变更，按迁移回滚说明处理。",
+      "恢复对象存储备份或回退 MinIO/S3 配置。",
+      "重新执行登录、用户管理、接口文档、媒体读取和管理端首页 smoke 验证。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "新增接口文档菜单与行级 Swagger 详情、日志审计页、品牌区 Logo/FST 文案/favicon；统一管理端内容内边距、多列表页筛选、操作列与分页体验；用户管理保护账号与校验错误提示增强。",
+    "owner_web": "本版本无店主 Web 正式交付范围；生产部署与后端能力变化可能影响同源服务 smoke。",
+    "miniapp": "本版本无小程序交付范围。",
+    "backend": "新增或完善生产 MySQL 初始化、受保护管理员账号策略、接口目录聚合、日志采集与使用行为事件上报相关能力。",
+    "database": "新增 MySQL baseline/初始化路径，涉及日志审计与使用行为记录的表结构、索引、保留周期和 SQLite/MySQL 兼容策略。",
+    "object_storage": "保持 MinIO 单桶策略；生产部署与 smoke 需覆盖图片/媒体读取和外部对象存储配置。",
+    "docker": "新增/完善生产 Compose、外部 MySQL/MinIO 配置、Web Nginx Swagger 代理与部署文档验证范围。"
+  },
+  "publish_confirmation": {
+    "confirmed_at": "2026-07-04 12:41:18",
+    "confirmed_by": "product",
+    "announcement_location": "releases/v0.0.2/announcement.mdx",
+    "mintlify_page": "v0.0.2/announcement",
+    "validation_summary": [
+      "python scripts/validate-release.py --release-dir releases/v0.0.2 passed.",
+      "All release gates are pass: OpenSpec archive, tests, Orval, Docker Compose, database migration, env examples, product version, and Mintlify links.",
+      "Backend pytest passed: 149 passed, 1 skipped.",
+      "Frontend Vitest passed: 43 files, 193 tests.",
+      "API standard validation, OpenAPI/Orval generation, Docker Compose config validation, directory validation, OpenSpec validation, and Mintlify broken-links validation passed."
+    ]
+  },
+  "announcement": "announcement.mdx"
+}

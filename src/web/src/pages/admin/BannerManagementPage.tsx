@@ -27,6 +27,7 @@ import {
   jumpTypeLabel,
   positionLabel,
 } from '@/features/admin/lib/banner-display';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/banner-management.css';
 
@@ -90,11 +91,6 @@ export function BannerManagementPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const handleSearch = () => {
-    setPage(1);
-    void loadBanners(1);
-  };
-
   const handleReset = () => {
     setKeyword('');
     setDisplayClient('');
@@ -149,6 +145,7 @@ export function BannerManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsOnline = statusConfirmTarget?.status === 'ONLINE';
 
   return (
@@ -166,61 +163,6 @@ export function BannerManagementPage() {
         <button type="button" className="btn primary" onClick={openCreate}>
           ＋ 新增 Banner
         </button>
-      </section>
-
-      <section className="filter-card">
-        <div className="banner-filter-grid">
-          <label>
-            <span className="field-label">关键词</span>
-            <input
-              className="input"
-              placeholder="搜索标题 / 位置 / 跳转链接"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </label>
-          <label>
-            <span className="field-label">展示端</span>
-            <select
-              className="select"
-              value={displayClient}
-              onChange={(e) => setDisplayClient(e.target.value)}
-            >
-              {DISPLAY_CLIENT_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="field-label">状态</span>
-            <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
-              {BANNER_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="field-label">时间状态</span>
-            <select className="select" value={timeStatus} onChange={(e) => setTimeStatus(e.target.value)}>
-              {TIME_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="btn primary" onClick={handleSearch}>
-            搜索
-          </button>
-          <button type="button" className="btn" onClick={handleReset}>
-            重置
-          </button>
-        </div>
       </section>
 
       <section className="summary-grid" aria-label="Banner 统计">
@@ -246,6 +188,78 @@ export function BannerManagementPage() {
         </article>
       </section>
 
+      <section className="filter-card">
+        <div className="banner-filter-grid">
+          <label>
+            <span className="field-label">关键词</span>
+            <input
+              className="input"
+              placeholder="搜索标题 / 位置 / 跳转链接"
+              value={keyword}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(1);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
+            />
+          </label>
+          <label>
+            <span className="field-label">展示端</span>
+            <select
+              className="select"
+              value={displayClient}
+              onChange={(e) => {
+                setDisplayClient(e.target.value);
+                setPage(1);
+              }}
+            >
+              {DISPLAY_CLIENT_OPTIONS.map((opt) => (
+                <option key={opt.label} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="field-label">状态</span>
+            <select
+              className="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              {BANNER_STATUS_OPTIONS.map((opt) => (
+                <option key={opt.label} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="field-label">时间状态</span>
+            <select
+              className="select"
+              value={timeStatus}
+              onChange={(e) => {
+                setTimeStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              {TIME_STATUS_OPTIONS.map((opt) => (
+                <option key={opt.label} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="btn" onClick={handleReset}>
+            重置
+          </button>
+        </div>
+      </section>
+
       <section className="table-card" aria-label="Banner 列表">
         <table className="banner-mgmt-table">
             <thead>
@@ -258,7 +272,7 @@ export function BannerManagementPage() {
                 <th>有效期</th>
                 <th>排序</th>
                 <th>更新时间</th>
-                <th>操作</th>
+                <th className="admin-sticky-action-cell">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -277,7 +291,7 @@ export function BannerManagementPage() {
                   const onlineable = canOnlineBanner(banner);
                   return (
                     <tr key={banner.id}>
-                      <td>
+                      <td className="admin-sticky-action-cell">
                         <div className="banner-cell">
                           <span className="banner-thumb">
                             {banner.image_url ? <img src={banner.image_url} alt="" /> : null}
@@ -363,9 +377,17 @@ export function BannerManagementPage() {
               >
                 ‹
               </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
+              {pageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                  aria-current={pageNumber === page ? 'page' : undefined}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
               <button
                 type="button"
                 className="page-btn"

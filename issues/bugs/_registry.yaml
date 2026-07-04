@@ -1,9 +1,27 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 54
+next_id: 56
 entries:
+  - id: BUG-0055-admin-list-layout-unification
+    title: 管理端多列表页布局与筛选分页交互未统一
+    status: done
+    severity: medium
+    created: "2026-07-03 18:21:28"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-list-layout-unification
+    iteration: sprint-004
+  - id: BUG-0054-admin-content-padding-too-large
+    title: 管理端全局右侧内容区域内边距过大
+    status: done
+    severity: medium
+    created: "2026-07-03 13:15:19"
+    related_requirement: REQ-0013-admin-shell-padding-refine
+    related_bug: null
+    related_change: fix-admin-content-padding-too-large
+    iteration: sprint-004
   - id: BUG-0053-api-docs-list-layout-pagination-inconsistent
     title: 接口文档列表冗余系统接口行且分页未与 SKU 页一致
-    status: draft
+    status: done
     severity: medium
     created: "2026-07-01 09:09:32"
     related_requirement: REQ-0022-admin-api-docs-menu
@@ -11,20 +29,20 @@ entries:
     iteration: null
   - id: BUG-0052-api-docs-metric-cards-inconsistent
     title: 接口文档页指标卡样式与瓷砖 SKU 页不一致
-    status: draft
+    status: done
     severity: medium
     created: "2026-07-01 09:09:32"
     related_requirement: REQ-0022-admin-api-docs-menu
     related_bug: null
-    iteration: null
+    iteration: sprint-004
   - id: BUG-0051-api-docs-swagger-ui-link-wrong
     title: 接口文档页 Swagger UI 入口跳转到 Web 首页
-    status: pending_review
+    status: done
     severity: high
     created: "2026-07-01 09:09:32"
     related_requirement: REQ-0022-admin-api-docs-menu
     related_bug: null
-    iteration: null
+    iteration: sprint-004
   - id: BUG-0050-user-create-validation-message-unclear
     title: 创建用户校验失败未明确提示具体问题点
     status: done

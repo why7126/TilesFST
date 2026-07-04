@@ -188,7 +188,7 @@ def test_upload_brand_logo_rejects_invalid_mime(client: TestClient) -> None:
     response = client.post(
         "/api/v1/admin/uploads/brand-logos",
         headers=headers,
-        files={"file": ("logo.gif", b"gif-logo", "image/gif")},
+        files={"file": ("logo.ico", b"ico-logo", "image/x-icon")},
     )
     assert response.status_code == 400
     assert response.json()["code"] == 50002

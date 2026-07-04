@@ -59,7 +59,7 @@ describe('UserManagementPage', () => {
   it('renders v2 list layout without search button or legacy toolbar copy', async () => {
     fetchUsersMock.mockResolvedValue(listPayload);
 
-    render(<UserManagementPage />);
+    const { container } = render(<UserManagementPage />);
 
     await waitFor(() => {
       expect(fetchUsersMock).toHaveBeenCalled();
@@ -76,6 +76,24 @@ describe('UserManagementPage', () => {
     expect(screen.getByText('demo_user')).toBeInTheDocument();
     expect(screen.getByText('未设置昵称')).toBeInTheDocument();
     expect(screen.queryByText('hidden@example.com')).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
+
+    const hero = container.querySelector('.page-hero');
+    const summary = container.querySelector('.summary-grid');
+    const filter = container.querySelector('.filter-card');
+    const table = container.querySelector('.table-card');
+    expect(
+      (hero?.compareDocumentPosition(summary as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (summary?.compareDocumentPosition(filter as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (filter?.compareDocumentPosition(table as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('renders avatar image when avatar_url is present', async () => {

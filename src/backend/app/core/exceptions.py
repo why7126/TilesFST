@@ -68,6 +68,13 @@ class UserProtectedAccountError(AppError):
         super().__init__(status_code=403, code=USER_PROTECTED_ACCOUNT, message=message)
 
 
+class LogNotFoundError(AppError):
+    def __init__(self, message: str = "日志不存在") -> None:
+        from app.core.error_codes import LOG_NOT_FOUND
+
+        super().__init__(status_code=404, code=LOG_NOT_FOUND, message=message)
+
+
 class ProfileValidationError(AppError):
     def __init__(self, message: str = "个人资料校验失败") -> None:
         from app.core.error_codes import PROFILE_VALIDATION_ERROR

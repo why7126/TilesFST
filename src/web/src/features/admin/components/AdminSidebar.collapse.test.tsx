@@ -79,6 +79,10 @@ describe('AdminSidebar collapse', () => {
     const toggle = screen.getByRole('button', { name: '展开侧边栏' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(toggle).toHaveTextContent('›');
+    expect(screen.getByAltText('菲尚特家居建材 Logo')).toHaveAttribute(
+      'src',
+      '/logos/64x64.png',
+    );
   });
 
   it('keeps active nav item class when collapsed', () => {

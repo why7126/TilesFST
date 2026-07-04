@@ -25,6 +25,7 @@ import {
   tileSkuStatusBadgeClass,
   tileSkuStatusLabel,
 } from '@/features/admin/lib/tile-sku-display';
+import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/tile-sku-management.css';
 
@@ -107,11 +108,6 @@ export function TileSkuManagementPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const handleSearch = () => {
-    setPage(1);
-    void loadSkus(1);
-  };
-
   const handleReset = () => {
     setKeyword('');
     setBrandId('');
@@ -187,6 +183,7 @@ export function TileSkuManagementPage() {
 
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageNumbers = getPaginationWindow(page, totalPages);
   const statusConfirmIsPublish = statusConfirmAction === 'publish';
 
   return (
@@ -235,13 +232,23 @@ export function TileSkuManagementPage() {
               className="input"
               placeholder="SKU 名称 / SKU 编码"
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(1);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
             />
           </div>
           <div className="brand-form-item">
             <label>品牌</label>
-            <select className="select" value={brandId} onChange={(e) => setBrandId(e.target.value)}>
+            <select
+              className="select"
+              value={brandId}
+              onChange={(e) => {
+                setBrandId(e.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">全部品牌</option>
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -255,7 +262,10 @@ export function TileSkuManagementPage() {
             <select
               className="select"
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              onChange={(e) => {
+                setCategoryId(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">全部类目</option>
               {categoryOptions.map((c) => (
@@ -267,7 +277,14 @@ export function TileSkuManagementPage() {
           </div>
           <div className="brand-form-item">
             <label>状态</label>
-            <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select
+              className="select"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
               {TILE_SKU_STATUS_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.value}>
                   {opt.label}
@@ -280,7 +297,10 @@ export function TileSkuManagementPage() {
             <select
               className="select"
               value={materialCompleteness}
-              onChange={(e) => setMaterialCompleteness(e.target.value)}
+              onChange={(e) => {
+                setMaterialCompleteness(e.target.value);
+                setPage(1);
+              }}
             >
               {MATERIAL_COMPLETENESS_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.value}>
@@ -290,9 +310,6 @@ export function TileSkuManagementPage() {
             </select>
           </div>
           <div className="sku-filter-actions">
-            <button type="button" className="btn primary" onClick={handleSearch}>
-              查询
-            </button>
             <button type="button" className="btn" onClick={handleReset}>
               重置
             </button>
@@ -311,7 +328,7 @@ export function TileSkuManagementPage() {
               <th>素材</th>
               <th>状态</th>
               <th>更新时间</th>
-              <th>操作</th>
+              <th className="admin-sticky-action-cell">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -355,7 +372,7 @@ export function TileSkuManagementPage() {
                     </span>
                   </td>
                   <td>{formatSkuDateTime(item.updated_at)}</td>
-                  <td>
+                  <td className="admin-sticky-action-cell">
                     <div className="sku-actions">
                       <button type="button" className="link-btn" onClick={() => void openEdit(item)}>
                         编辑
@@ -410,9 +427,17 @@ export function TileSkuManagementPage() {
               >
                 ‹
               </button>
-              <button type="button" className="page-btn active">
-                {page}
-              </button>
+              {pageNumbers.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={`page-btn${pageNumber === page ? ' active' : ''}`}
+                  aria-current={pageNumber === page ? 'page' : undefined}
+                  onClick={() => setPage(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
               <button
                 type="button"
                 className="page-btn"

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "TILESFST Releases",
+  "navigation": [
+    {
+      "group": "产品发布",
+      "pages": [
+        "v0.0.1/announcement",
+        "v0.0.2/announcement",
+        "templates/announcement"
+      ]
+    }
+  ]
+}

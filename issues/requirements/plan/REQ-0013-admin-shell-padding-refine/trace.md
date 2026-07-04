@@ -4,7 +4,7 @@ status: pending_review
 lifecycle_stage: plan
 priority: P1
 created_at: 2026-06-28 08:55:41
-updated_at: 2026-06-28 09:22:48
+updated_at: 2026-07-04 08:16:02
 ---
 
 # 需求追踪
@@ -65,4 +65,4 @@ expected_openspec_change: fix-admin-shell-padding-refine
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0021-sidebar-menu-icons-indistinguishable | medium | captured | — | 侧栏图标可区分性；与本 REQ padding 可并行，范围独立 |
+| BUG-0054-admin-content-padding-too-large | medium | done | fix-admin-content-padding-too-large | 管理端全局右侧内容区域内边距过大 |

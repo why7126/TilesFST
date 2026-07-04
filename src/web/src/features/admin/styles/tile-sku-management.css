@@ -2,10 +2,6 @@
  * Tile SKU management — ported from tile-sku-management-list / create-modal HTML v4.
  */
 
-.admin-shell:has(.sku-page-hero) .content-inner {
-  max-width: 1120px;
-}
-
 .admin-shell .sku-filter-grid {
   display: grid;
   grid-template-columns: 1.35fr repeat(4, 1fr) auto;
@@ -20,7 +16,8 @@
 
 .admin-shell .sku-mgmt-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .admin-shell .sku-mgmt-table th,

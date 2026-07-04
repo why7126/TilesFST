@@ -1,7 +1,7 @@
-# auth Specification
+# 认证与权限规范
 
 ## Purpose
-TBD - created by archiving change add-user-login. Update Purpose after archive.
+定义账号密码登录、密码安全存储、当前用户查询、退出登录、用户数据模型、管理端访问控制、登录日志和管理员初始化要求。
 ## Requirements
 ### Requirement: 用户账号密码登录
 
@@ -227,4 +227,3 @@ TBD - created by archiving change add-user-login. Update Purpose after archive.
 
 - **WHEN** `role=store_owner` 的用户访问上述路径
 - **THEN** 系统 MUST 返回 HTTP 403
-

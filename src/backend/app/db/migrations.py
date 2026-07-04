@@ -72,6 +72,86 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_tile_specs_support(connection)
     _ensure_banner_support(connection)
     _ensure_system_settings_support(connection)
+    _ensure_product_usage_logging_support(connection)
+
+
+def _ensure_product_usage_logging_support(connection: Connection) -> None:
+    if not _table_exists(connection, "request_logs"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE request_logs (
+                  id TEXT PRIMARY KEY,
+                  request_id TEXT NOT NULL,
+                  actor_user_id TEXT NULL REFERENCES users(id),
+                  actor_role TEXT,
+                  client_type TEXT NOT NULL DEFAULT 'backend',
+                  method TEXT NOT NULL,
+                  path TEXT NOT NULL,
+                  status_code INTEGER NOT NULL,
+                  duration_ms INTEGER NOT NULL,
+                  ip_address_masked TEXT,
+                  user_agent_summary TEXT,
+                  summary TEXT NOT NULL,
+                  error_code TEXT,
+                  result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+                  metadata TEXT,
+                  created_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+
+    request_indexes = {
+        "idx_request_logs_created": "CREATE INDEX idx_request_logs_created ON request_logs(created_at DESC)",
+        "idx_request_logs_request_id": "CREATE INDEX idx_request_logs_request_id ON request_logs(request_id)",
+        "idx_request_logs_actor_created": "CREATE INDEX idx_request_logs_actor_created ON request_logs(actor_user_id, created_at DESC)",
+        "idx_request_logs_status_created": "CREATE INDEX idx_request_logs_status_created ON request_logs(status_code, created_at DESC)",
+        "idx_request_logs_path_created": "CREATE INDEX idx_request_logs_path_created ON request_logs(path, created_at DESC)",
+    }
+    for name, sql in request_indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
+
+    if not _table_exists(connection, "usage_events"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE usage_events (
+                  id TEXT PRIMARY KEY,
+                  request_id TEXT,
+                  actor_user_id TEXT NULL REFERENCES users(id),
+                  actor_role TEXT,
+                  client_type TEXT NOT NULL DEFAULT 'web_admin',
+                  event_name TEXT NOT NULL,
+                  event_category TEXT NOT NULL,
+                  page_path TEXT,
+                  session_id TEXT,
+                  ip_address_masked TEXT,
+                  user_agent_summary TEXT,
+                  summary TEXT NOT NULL,
+                  duration_ms INTEGER,
+                  result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+                  metadata TEXT,
+                  created_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+    else:
+        columns = _column_names(connection, "usage_events")
+        if "duration_ms" not in columns:
+            connection.execute(text("ALTER TABLE usage_events ADD COLUMN duration_ms INTEGER"))
+
+    usage_indexes = {
+        "idx_usage_events_created": "CREATE INDEX idx_usage_events_created ON usage_events(created_at DESC)",
+        "idx_usage_events_event_created": "CREATE INDEX idx_usage_events_event_created ON usage_events(event_name, created_at DESC)",
+        "idx_usage_events_request_id": "CREATE INDEX idx_usage_events_request_id ON usage_events(request_id)",
+        "idx_usage_events_actor_created": "CREATE INDEX idx_usage_events_actor_created ON usage_events(actor_user_id, created_at DESC)",
+    }
+    for name, sql in usage_indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
 
 
 def _ensure_system_settings_support(connection: Connection) -> None:
@@ -113,6 +193,14 @@ def _ensure_system_settings_support(connection: Connection) -> None:
                 """
             )
         )
+
+
+def _index_exists(connection: Connection, index: str) -> bool:
+    row = connection.execute(
+        text("SELECT name FROM sqlite_master WHERE type='index' AND name=:index"),
+        {"index": index},
+    ).scalar_one_or_none()
+    return row is not None
 
 
 def _ensure_banner_support(connection: Connection) -> None:

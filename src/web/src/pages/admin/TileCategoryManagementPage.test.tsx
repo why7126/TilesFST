@@ -210,6 +210,12 @@ describe('TileCategoryManagementPage', () => {
     expect(screen.queryByText('类目检索')).not.toBeInTheDocument();
     expect(screen.queryByText('类目列表')).not.toBeInTheDocument();
     expect(screen.queryByText(/当前显示/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    expect(document.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/共 2 个类目/)).toBeInTheDocument();

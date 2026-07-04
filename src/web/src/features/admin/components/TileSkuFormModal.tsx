@@ -317,7 +317,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setVideoUploadProgress(100);
       setVideoUploadState('uploaded');
       requestAnimationFrame(() => {
-        videoListRef.current?.lastElementChild?.scrollIntoView({
+        const lastVideoCard = videoListRef.current?.lastElementChild;
+        if (typeof lastVideoCard?.scrollIntoView !== 'function') return;
+        lastVideoCard.scrollIntoView({
           block: 'nearest',
           behavior: 'smooth',
         });

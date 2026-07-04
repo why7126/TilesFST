@@ -22,12 +22,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / ".cursor" / "commands"
 
-GROUP_PREFIXES = ("opsx", "req", "bug", "sprint", "build")
+GROUP_PREFIXES = ("opsx", "req", "bug", "sprint", "release", "build")
 GROUP_DISPLAY = {
     "opsx": "OPSX",
     "req": "REQ",
     "bug": "BUG",
     "sprint": "Sprint",
+    "release": "Release",
     "build": "Build",
 }
 WORD_UPPER = {"opsx": "OPSX", "req": "REQ", "bug": "BUG", "api": "API", "ds": "DS"}

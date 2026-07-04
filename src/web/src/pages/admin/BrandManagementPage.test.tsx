@@ -87,6 +87,17 @@ describe('BrandManagementPage', () => {
     expect(screen.getByText('共 2 条品牌')).toBeInTheDocument();
     expect(screen.getByText('每页显示')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: '每页显示条数' })).toBeInTheDocument();
+    expect(screen.getByLabelText('关键词')).toHaveAttribute(
+      'placeholder',
+      '搜索品牌名称 / 简称 / 英文名称',
+    );
+    expect(screen.getByLabelText('状态')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
+      'admin-sticky-action-cell',
+    );
+    expect(document.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
     expect(screen.queryByText('跳至')).not.toBeInTheDocument();
 
     const pagination = screen.getByText('共 2 条品牌').closest('.pagination');

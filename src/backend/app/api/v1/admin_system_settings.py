@@ -26,6 +26,7 @@ from app.services.system_settings_service import SystemSettingsService
 from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_system_admin)])
+TAGS = ["Admin System Settings"]
 
 PATCH_MODELS: dict[str, type] = {
     "basic": BasicSettingsPatch,
@@ -46,6 +47,7 @@ def get_system_settings_service(db: Session = Depends(get_db)) -> SystemSettings
 @router.get(
     "/audit/recent",
     response_model=ApiResponse[SystemSettingsAuditRecentData],
+    tags=TAGS,
     summary="最近系统设置变更",
 )
 def get_recent_audit(
@@ -61,6 +63,7 @@ def get_recent_audit(
 @router.get(
     "/{group}",
     response_model=ApiResponse[SystemSettingsGroupResponse],
+    tags=TAGS,
     summary="读取设置分组",
 )
 def get_settings_group(
@@ -74,6 +77,7 @@ def get_settings_group(
 @router.patch(
     "/{group}",
     response_model=ApiResponse[SystemSettingsGroupResponse],
+    tags=TAGS,
     summary="更新设置分组",
 )
 def patch_settings_group(
@@ -96,6 +100,7 @@ def patch_settings_group(
 @router.post(
     "/{group}/reset",
     response_model=ApiResponse[SystemSettingsGroupResponse],
+    tags=TAGS,
     summary="恢复设置分组默认",
 )
 def reset_settings_group(

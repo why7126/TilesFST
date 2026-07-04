@@ -1,0 +1,397 @@
+.admin-shell .log-audit-hero {
+  align-items: center;
+}
+
+.admin-shell .log-audit-filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.35fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-shell .log-audit-filter-grid > * {
+  min-width: 0;
+}
+
+.admin-shell .log-audit-filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-shell .log-audit-filter-actions .btn {
+  padding: 0 14px;
+}
+
+.admin-shell .filter-hint {
+  margin: 12px 0 0;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+@media (max-width: 1279px) {
+  .admin-shell .log-audit-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-shell .log-audit-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-shell .log-audit-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-shell .log-audit-table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-shell .log-audit-table th,
+.admin-shell .log-audit-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--admin-line);
+  color: var(--admin-muted);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.admin-shell .log-audit-table th {
+  color: var(--admin-weak);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .log-summary {
+  display: grid;
+  gap: 5px;
+  min-width: 250px;
+}
+
+.admin-shell .log-summary-button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-width: 250px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-shell .log-summary span {
+  color: var(--admin-text);
+}
+
+.admin-shell .log-summary small {
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .log-summary-button:hover span {
+  color: var(--admin-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-shell .log-type {
+  display: inline-flex;
+  min-width: 62px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.admin-shell .type-request {
+  border-color: color-mix(in srgb, var(--admin-text) 48%, transparent);
+  background: color-mix(in srgb, var(--admin-text) 8%, transparent);
+  color: var(--admin-text);
+}
+
+.admin-shell .type-usage_event {
+  border-color: color-mix(in srgb, var(--admin-gold) 58%, transparent);
+  background: color-mix(in srgb, var(--admin-gold) 13%, transparent);
+  color: var(--admin-gold);
+}
+
+.admin-shell .type-audit {
+  border-color: color-mix(in srgb, var(--admin-muted) 54%, transparent);
+  background: color-mix(in srgb, var(--admin-muted) 10%, transparent);
+  color: var(--admin-muted);
+}
+
+.admin-shell .log-status {
+  display: inline-flex;
+  min-width: 52px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.admin-shell .log-status.status-success {
+  border-color: color-mix(in srgb, var(--admin-text) 48%, transparent);
+  background: color-mix(in srgb, var(--admin-text) 8%, transparent);
+  color: var(--admin-text);
+}
+
+.admin-shell .log-status.status-warning {
+  border-color: color-mix(in srgb, var(--admin-gold) 58%, transparent);
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+  color: var(--admin-gold);
+}
+
+.admin-shell .log-status.status-failed {
+  border-color: color-mix(in srgb, var(--admin-danger) 62%, transparent);
+  background: color-mix(in srgb, var(--admin-danger) 12%, transparent);
+  color: var(--admin-danger);
+}
+
+.admin-shell .log-status.status-neutral {
+  border-color: var(--admin-line-strong);
+  background: color-mix(in srgb, var(--admin-muted) 8%, transparent);
+  color: var(--admin-muted);
+}
+
+.admin-shell .duration.danger,
+.admin-shell .metric-desc.danger {
+  color: var(--admin-danger);
+}
+
+.admin-shell .request-id-cell {
+  display: inline-flex;
+  min-width: 154px;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-shell .request-id {
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+}
+
+.admin-shell .request-copy-action {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-muted);
+  cursor: pointer;
+}
+
+.admin-shell .request-copy-action:hover {
+  border-color: var(--admin-gold-border);
+  color: var(--admin-gold);
+}
+
+.admin-shell .icon-action {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-muted);
+  cursor: pointer;
+}
+
+.admin-shell .icon-action:hover {
+  border-color: var(--admin-gold-border);
+  color: var(--admin-gold);
+}
+
+.admin-shell .log-audit-table .log-audit-action-cell {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  width: 88px;
+  min-width: 88px;
+  background: var(--admin-card);
+  border-left: 0.5px solid var(--admin-line);
+  box-shadow: -10px 0 16px color-mix(in srgb, var(--admin-deep) 70%, transparent);
+  text-align: center;
+}
+
+.admin-shell .log-audit-table th.log-audit-action-cell {
+  z-index: 2;
+}
+
+.admin-shell .log-audit-table tbody tr:hover {
+  background: color-mix(in srgb, var(--admin-text) 2.5%, transparent);
+}
+
+.admin-shell .log-audit-table tbody tr:hover .log-audit-action-cell {
+  background: color-mix(in srgb, var(--admin-text) 2.5%, var(--admin-card));
+}
+
+.admin-shell .log-audit-view-action {
+  min-width: 52px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0.5px solid var(--admin-gold-border);
+  border-radius: 2px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-shell .log-audit-view-action:hover {
+  border-color: var(--admin-gold-border-strong);
+  color: var(--admin-gold);
+}
+
+.admin-shell .log-audit-empty {
+  height: 118px;
+  text-align: center;
+  color: var(--admin-weak);
+}
+
+.admin-shell .log-drawer-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.admin-shell .log-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--admin-deep) 76%, transparent);
+  cursor: default;
+}
+
+.admin-shell .log-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(520px, 100vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: 0.5px solid var(--admin-line-strong);
+  background: var(--admin-card);
+  color: var(--admin-muted);
+  box-shadow: -18px 0 38px color-mix(in srgb, var(--admin-deep) 42%, transparent);
+}
+
+.admin-shell .log-drawer-head {
+  min-height: 116px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .log-drawer-head h2 {
+  margin: 8px 0 4px;
+  color: var(--admin-text);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.admin-shell .log-drawer-head span,
+.admin-shell .log-drawer-loading {
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .log-drawer-body {
+  overflow-y: auto;
+  padding: 18px 24px 28px;
+}
+
+.admin-shell .log-detail-section {
+  padding: 16px 0;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .log-detail-section h3 {
+  margin: 0 0 14px;
+  color: var(--admin-gold);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .log-detail-section dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.admin-shell .detail-row {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+
+.admin-shell .detail-row dt {
+  color: var(--admin-weak);
+}
+
+.admin-shell .detail-row dd {
+  margin: 0;
+  color: var(--admin-text);
+  word-break: break-word;
+}
+
+.admin-shell .log-detail-section pre {
+  max-height: 260px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border: 0.5px solid var(--admin-line);
+  background: var(--admin-deep);
+  color: var(--admin-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1120px) {
+  .admin-shell .log-audit-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-shell .log-audit-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .log-audit-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

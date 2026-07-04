@@ -5,14 +5,20 @@
 
 .admin-shell .brand-filter-row {
   display: grid;
-  grid-template-columns: 1fr 180px auto auto;
+  grid-template-columns: 1fr 180px auto;
   gap: 10px;
-  align-items: center;
+  align-items: end;
+}
+
+.admin-shell .brand-filter-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .admin-shell .brand-mgmt-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .admin-shell .brand-mgmt-table th,

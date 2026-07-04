@@ -1,4 +1,4 @@
-# brand-management Specification
+# 品牌管理规范
 
 ## Purpose
 定义管理端瓷砖品牌主数据能力中的 Logo 上传、媒体访问、对象存储安全与 Web 展示回显要求，确保品牌素材可被授权维护并稳定展示。
@@ -176,4 +176,3 @@
 
 - **WHEN** 打开新增/编辑弹窗并排 `brand-management-modal.html`（或 PNG）
 - **THEN** checklist（720px、字段顺序、无状态字段、Logo/介绍通栏同宽、固定头尾滚动）MUST pass
-

@@ -1,7 +1,7 @@
-# design-system Specification
+# 设计系统规范
 
 ## Purpose
-TBD - created by archiving change add-design-system. Update Purpose after archive.
+定义工业石材暗色旗舰风 Design Token、shadcn/ui 基础组件、复合 UI、预览页、校验脚本和治理文档要求，确保 Web UI 一致使用语义 token。
 ## Requirements
 ### Requirement: Design Token 层
 
@@ -144,42 +144,42 @@ Design System 落地后 MUST 同步更新相关文档。
 - **WHEN** Change 完成
 - **THEN** `rules/ui-design.md` MUST 补充指向 `src/web/src/styles/globals.css` 的 token 实现说明（或互链段落）
 
-### Requirement: Design System validation script
+### Requirement: Design System 校验脚本
 
 The project MUST provide `scripts/validate-design-system.py` to detect Hex hardcoding, arbitrary Tailwind color values, and unauthorized native HTML controls outside allowed Design System paths.
 
-#### Scenario: Validation script exists
+#### Scenario: 校验脚本存在
 
 - **WHEN** a developer lists `scripts/validate-design-system.py`
 - **THEN** the file MUST exist and be executable via `python scripts/validate-design-system.py`
 
-#### Scenario: Baseline validation passes
+#### Scenario: 基线校验通过
 
 - **WHEN** `python scripts/validate-design-system.py` runs on the repository baseline after Sprint-000 governance fixes
 - **THEN** it MUST exit with code 0
 - **AND** MUST report Design System validation passed
 
-#### Scenario: Token definition paths exempt
+#### Scenario: token 定义路径豁免
 
 - **WHEN** the validator scans `globals.css`, token definition files, or `/design-system` preview fixtures
 - **THEN** those paths MUST be exempt from Hex hardcoding rules as documented in the script
 
-### Requirement: Design System AI prompts
+### Requirement: Design System AI 提示词
 
 The project MUST maintain `src/shared/design-system/prompts/` with documented prompts for page, form, and table generation plus UI review rules for AI-assisted development.
 
-#### Scenario: Prompt files present
+#### Scenario: 提示词文件存在
 
 - **WHEN** a developer lists `src/shared/design-system/prompts/`
 - **THEN** MUST find at least `generate-page.md`, `generate-form.md`, `generate-table.md`, and `review-ui.md`
 
-#### Scenario: Prompts reference semantic tokens
+#### Scenario: 提示词引用语义 token
 
 - **WHEN** a developer reads the prompt files
 - **THEN** instructions MUST require semantic token classes and shared/ui component priority
 - **AND** MUST NOT encourage bare Hex or ad-hoc native controls in production UI
 
-### Requirement: Design System governance documentation
+### Requirement: Design System 治理文档
 
 Sprint-000 MUST register Design System governance artifacts linking rules, shared tokens, Web styles, validation, and preview entry.
 
@@ -188,8 +188,7 @@ Sprint-000 MUST register Design System governance artifacts linking rules, share
 - **WHEN** a developer reads `src/shared/design-system/spec.md` or equivalent README under `src/shared/design-system/`
 - **THEN** MUST find token source-of-truth paths and consumption guidance for Web
 
-#### Scenario: Sprint trace linkage
+#### Scenario: Sprint trace 关联
 
 - **WHEN** a developer reads `issues/requirements/archive/REQ-0000-build-design-system/trace.md`
 - **THEN** MUST find `change_id: build-design-system` and iteration `sprint-000`
-

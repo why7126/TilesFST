@@ -9,6 +9,7 @@ import { ApiDocsPage } from '../pages/admin/ApiDocsPage';
 import { BannerManagementPage } from '../pages/admin/BannerManagementPage';
 import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
+import { LogAuditPage } from '../pages/admin/LogAuditPage';
 import { ProfilePage } from '../pages/admin/ProfilePage';
 import { TileCategoryManagementPage } from '../pages/admin/TileCategoryManagementPage';
 import { TileSkuManagementPage } from '../pages/admin/TileSkuManagementPage';
@@ -70,6 +71,7 @@ export function App() {
               <Route path="/admin/profile" element={<ProfilePage />} />
               <Route element={<ProtectedRoute requireAdmin />}>
                 <Route path="/admin/users" element={<UserManagementPage />} />
+                <Route path="/admin/logs" element={<LogAuditPage />} />
                 <Route path="/admin/api-docs" element={<ApiDocsPage />} />
                 <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
                 <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />

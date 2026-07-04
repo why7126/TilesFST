@@ -10,10 +10,12 @@ from app.api.v1 import (
     admin_topics,
     admin_users,
     admin_system_settings,
+    admin_logs,
     admin_api_docs,
     auth,
     profile,
     tiles,
+    usage_events,
     uploads,
 )
 
@@ -30,6 +32,8 @@ api_router.include_router(
     tags=["admin-system-settings"],
 )
 api_router.include_router(admin_api_docs.router, prefix="/admin/api-docs")
+api_router.include_router(admin_logs.router, prefix="/admin/logs")
+api_router.include_router(usage_events.router, prefix="/usage-events")
 api_router.include_router(admin_brands.router, prefix="/admin/brands", tags=["admin-brands"])
 api_router.include_router(admin_banners.router, prefix="/admin/banners", tags=["admin-banners"])
 api_router.include_router(admin_topics.router, prefix="/admin/topics", tags=["admin-topics"])

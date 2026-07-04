@@ -18,6 +18,7 @@ from app.schemas.common import ApiResponse
 from app.services.brand_admin_service import BrandAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
+TAGS = ["Admin Brands"]
 
 
 def get_brand_admin_service(
@@ -26,7 +27,7 @@ def get_brand_admin_service(
     return BrandAdminService(repo)
 
 
-@router.get("", response_model=ApiResponse[BrandAdminListData], summary="品牌列表")
+@router.get("", response_model=ApiResponse[BrandAdminListData], tags=TAGS, summary="品牌列表")
 def list_brands(
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],
     page: int = Query(1, ge=1),
@@ -43,7 +44,7 @@ def list_brands(
     return ApiResponse(data=data)
 
 
-@router.post("", response_model=ApiResponse[BrandAdminItem], summary="创建品牌")
+@router.post("", response_model=ApiResponse[BrandAdminItem], tags=TAGS, summary="创建品牌")
 def create_brand(
     payload: BrandCreateRequest,
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],
@@ -51,7 +52,9 @@ def create_brand(
     return ApiResponse(data=service.create_brand(payload))
 
 
-@router.get("/{brand_id}", response_model=ApiResponse[BrandAdminItem], summary="品牌详情")
+@router.get(
+    "/{brand_id}", response_model=ApiResponse[BrandAdminItem], tags=TAGS, summary="品牌详情"
+)
 def get_brand(
     brand_id: int,
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],
@@ -59,7 +62,9 @@ def get_brand(
     return ApiResponse(data=service.get_brand(brand_id))
 
 
-@router.put("/{brand_id}", response_model=ApiResponse[BrandAdminItem], summary="更新品牌")
+@router.put(
+    "/{brand_id}", response_model=ApiResponse[BrandAdminItem], tags=TAGS, summary="更新品牌"
+)
 def update_brand(
     brand_id: int,
     payload: BrandUpdateRequest,
@@ -68,7 +73,12 @@ def update_brand(
     return ApiResponse(data=service.update_brand(brand_id, payload))
 
 
-@router.post("/{brand_id}/enable", response_model=ApiResponse[BrandAdminItem], summary="启用品牌")
+@router.post(
+    "/{brand_id}/enable",
+    response_model=ApiResponse[BrandAdminItem],
+    tags=TAGS,
+    summary="启用品牌",
+)
 def enable_brand(
     brand_id: int,
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],
@@ -76,7 +86,12 @@ def enable_brand(
     return ApiResponse(data=service.enable_brand(brand_id))
 
 
-@router.post("/{brand_id}/disable", response_model=ApiResponse[BrandAdminItem], summary="停用品牌")
+@router.post(
+    "/{brand_id}/disable",
+    response_model=ApiResponse[BrandAdminItem],
+    tags=TAGS,
+    summary="停用品牌",
+)
 def disable_brand(
     brand_id: int,
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],
@@ -84,7 +99,7 @@ def disable_brand(
     return ApiResponse(data=service.disable_brand(brand_id))
 
 
-@router.delete("/{brand_id}", response_model=ApiResponse[None], summary="删除品牌")
+@router.delete("/{brand_id}", response_model=ApiResponse[None], tags=TAGS, summary="删除品牌")
 def delete_brand(
     brand_id: int,
     service: Annotated[BrandAdminService, Depends(get_brand_admin_service)],

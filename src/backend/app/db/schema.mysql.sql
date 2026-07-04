@@ -223,3 +223,54 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   CONSTRAINT fk_audit_logs_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
   INDEX idx_audit_logs_domain_created (domain, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS request_logs (
+  id CHAR(36) PRIMARY KEY,
+  request_id VARCHAR(128) NOT NULL,
+  actor_user_id CHAR(36) NULL,
+  actor_role VARCHAR(32),
+  client_type VARCHAR(32) NOT NULL DEFAULT 'backend',
+  method VARCHAR(16) NOT NULL,
+  path VARCHAR(768) NOT NULL,
+  status_code INT NOT NULL,
+  duration_ms INT NOT NULL,
+  ip_address_masked VARCHAR(128),
+  user_agent_summary VARCHAR(512),
+  summary VARCHAR(255) NOT NULL,
+  error_code VARCHAR(64),
+  result VARCHAR(32) NOT NULL DEFAULT 'success',
+  metadata TEXT,
+  created_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_request_logs_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
+  CONSTRAINT chk_request_logs_result CHECK (result IN ('success', 'failed')),
+  INDEX idx_request_logs_created (created_at),
+  INDEX idx_request_logs_request_id (request_id),
+  INDEX idx_request_logs_actor_created (actor_user_id, created_at),
+  INDEX idx_request_logs_status_created (status_code, created_at),
+  INDEX idx_request_logs_path_created (path(255), created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS usage_events (
+  id CHAR(36) PRIMARY KEY,
+  request_id VARCHAR(128),
+  actor_user_id CHAR(36) NULL,
+  actor_role VARCHAR(32),
+  client_type VARCHAR(32) NOT NULL DEFAULT 'web_admin',
+  event_name VARCHAR(64) NOT NULL,
+  event_category VARCHAR(64) NOT NULL,
+  page_path VARCHAR(768),
+  session_id VARCHAR(128),
+  ip_address_masked VARCHAR(128),
+  user_agent_summary VARCHAR(512),
+  summary VARCHAR(255) NOT NULL,
+  duration_ms INT NULL,
+  result VARCHAR(32) NOT NULL DEFAULT 'success',
+  metadata TEXT,
+  created_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_usage_events_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
+  CONSTRAINT chk_usage_events_result CHECK (result IN ('success', 'failed')),
+  INDEX idx_usage_events_created (created_at),
+  INDEX idx_usage_events_event_created (event_name, created_at),
+  INDEX idx_usage_events_request_id (request_id),
+  INDEX idx_usage_events_actor_created (actor_user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

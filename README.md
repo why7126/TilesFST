@@ -4,7 +4,7 @@ content: 项目介绍、技术栈、启动方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-06-29 11:18:14
+updated_at: 2026-07-02 14:56:58
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -61,6 +61,7 @@ pnpm dev
 ## 目录说明
 
 - `openspec/`：需求与规格事实源
+- `releases/`：产品版本发布对象与 Mintlify 公开发布公告源文件
 - `src/backend/`：FastAPI后端
 - `src/web/`：Web展示端与管理端
 - `src/miniapp/`：微信小程序
@@ -148,6 +149,17 @@ cp .env.example .env
 ```
 
 如果项目不需要视频能力，不建议直接删除目录，应先创建 OpenSpec Change 说明裁剪范围。
+
+## 产品版本发布
+
+产品版本发布材料放在 `releases/`：
+
+```text
+releases/vX.Y.Z/release.json
+releases/vX.Y.Z/announcement.mdx
+```
+
+发布前使用发布命令族或校验脚本确认 OpenSpec archive、测试、Orval、Docker Compose、数据库迁移、`.env.example`、`PRODUCT_VERSION` 与 Mintlify 公告校验均完成。目录和命令规范见 `rules/release.md` 与 `rules/directory-structure.md`。
 
 ## V5 更新说明
 

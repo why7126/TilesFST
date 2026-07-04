@@ -1,7 +1,7 @@
-# banner-management Specification
+# Banner 管理规范
 
 ## Purpose
-TBD - created by archiving change add-banner-management. Update Purpose after archive.
+定义 Banner 数据模型、展示位置、Topics 主数据、管理端 API、图片上传、错误码和上下线删除规则，确保运营位内容可控发布。
 ## Requirements
 ### Requirement: Banner 数据模型与业务规则
 
@@ -43,7 +43,7 @@ TBD - created by archiving change add-banner-management. Update Purpose after ar
 - **THEN** 数据库 MUST 存在 ≥2 条 `status=ENABLED` 的 topics
 - **AND** `GET /api/v1/admin/topics` MUST 返回 ENABLED 专题列表
 
-### Requirement: Admin Banners API
+### Requirement: 管理端 Banner API
 
 系统 MUST 提供 Admin Banners REST API，路径前缀 `/api/v1/admin/banners`。`admin` 与 `employee` MUST 可调用；`store_owner` MUST 403。列表 API MUST 支持 keyword、`display_client`、`status`、`time_status` 分页筛选，并返回 summary（总数、筛选数、已上线、待生效）。MUST 提供 online/offline 端点；删除 MUST 拒绝 `status=ONLINE` 的记录。
 
@@ -100,4 +100,3 @@ Banner 自定义上传 MUST 经后端授权写入 MinIO 单桶，object_key MUST
 
 - **WHEN** `external_url` 非 `https://` 或含非法 scheme
 - **THEN** MUST 返回 `BANNER_EXTERNAL_URL_INVALID`
-

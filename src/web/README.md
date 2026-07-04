@@ -3,6 +3,8 @@ purpose: Web展示端与管理端说明
 content: 说明本目录职责、Design System 使用约定
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-04 08:10:11
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -53,6 +55,23 @@ src/
 4. **className 合并**：使用 `cn()` from `@/shared/lib/cn`。
 5. **圆角**：按钮/输入框使用 `rounded-industrial`（2px），卡片使用 `rounded-card`（3px）。
 6. **组件导入**：从 `@/components/ui/*` 导入 shadcn 组件。
+
+## 产品静态 Logo
+
+产品自身的静态 Logo 文件位于 `public/logos/`，由 Vite 构建时原样复制到站点根路径 `/logos/`。这些文件用于管理端品牌区与浏览器标签图标，不走 MinIO，也不属于门店品牌 Logo 上传资源。
+
+| 文件 | 用途 |
+|---|---|
+| `public/logos/64x64.png` | 管理端品牌区 40x40 展示图；浏览器 favicon 默认尺寸 |
+| `public/logos/128x128.png` | 高分屏或浏览器自动选择的 favicon 备用尺寸 |
+| `public/logos/256x256.png` | Apple touch icon 与更高分辨率入口图标 |
+
+维护约定：
+
+1. 管理端 Shell 品牌区优先引用 `/logos/64x64.png`，避免大图缩放造成额外体积。
+2. `index.html` 中的 `icon` / `apple-touch-icon` 必须与 `public/logos/` 内实际文件保持一致。
+3. 旧的 `public/images/` 产品 Logo 文件已废弃并删除，新增代码不得继续引用该类路径。
+4. 门店或业务品牌 Logo 上传仍走后端授权与 MinIO `/media/` 访问链路，不得与产品静态 Logo 混用。
 
 ### 添加 shadcn 组件
 

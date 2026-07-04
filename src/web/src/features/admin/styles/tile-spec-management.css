@@ -4,14 +4,20 @@
 
 .admin-shell .tile-spec-filter-row {
   display: grid;
-  grid-template-columns: 1fr 180px auto auto;
+  grid-template-columns: 1fr 180px auto;
   gap: 10px;
-  align-items: center;
+  align-items: end;
+}
+
+.admin-shell .tile-spec-filter-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .admin-shell .tile-spec-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .admin-shell .tile-spec-table th,

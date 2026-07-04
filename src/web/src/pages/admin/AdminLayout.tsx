@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { fetchProfileMe } from '../../features/admin/api/profile-api';
 import { AdminSidebar } from '../../features/admin/components/AdminSidebar';
@@ -11,6 +11,8 @@ import {
   writeAdminSidebarCollapsed,
 } from '../../features/admin/lib/admin-sidebar-preference';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { resolveAdminPageTrackingContext } from '../../features/tracking/admin-page-tracking';
+import { trackUsageEvent } from '../../features/tracking/api/usage-tracking';
 import '../../features/admin/styles/admin-home.css';
 import '../../features/admin/styles/password-change-modal.css';
 
@@ -19,6 +21,7 @@ const PASSWORD_CHANGE_SUCCESS_MESSAGE = '密码修改成功，请使用新密码
 
 export function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [notice, setNotice] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -88,6 +91,21 @@ export function AdminLayout() {
   useEffect(() => {
     void loadProfileShell();
   }, [loadProfileShell]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const trackingContext = resolveAdminPageTrackingContext(location.pathname);
+    const pagePath = `${location.pathname}${location.search}`;
+    void trackUsageEvent('page_view', {
+      ...trackingContext,
+      page_path: pagePath,
+    }, {
+      pagePath,
+    });
+  }, [location.pathname, location.search, user]);
 
   return (
     <ChangePasswordModalContext.Provider value={changePasswordContextValue}>
