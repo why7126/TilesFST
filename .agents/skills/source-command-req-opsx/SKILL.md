@@ -167,8 +167,8 @@ openspec_changes:
 
 ## 参考
 
-- `.cursor/commands/req-complete.md`
-- `.cursor/commands/opsx-apply.md`、`opsx-archive.md`、`opsx-explore.md`
+- `.agents/skills/source-command-req-complete/SKILL.md`
+- `.agents/skills/source-command-opsx-apply/SKILL.md`、`opsx-archive.md`、`opsx-explore.md`
 - 归档样例：`openspec/changes/archive/`
 
 ---

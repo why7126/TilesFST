@@ -27,7 +27,7 @@ Use this skill when the user asks to run the migrated source command `sprint-exp
 4. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）
 5. 输出 Experience Analysis Report
 
-详见 `.cursor/commands/sprint-exps.md`。
+详见 `.agents/skills/source-command-sprint-exps/SKILL.md`。
 
 ---
 

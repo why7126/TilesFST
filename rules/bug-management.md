@@ -127,4 +127,4 @@ Frontmatter **MUST** 含 `created_at`、`updated_at`；更新 trace 时刷新 `u
 
 ## 8. 参考命令
 
-`.cursor/commands/bug-*.md`
+`.agents/skills/source-command-bug-*/SKILL.md`

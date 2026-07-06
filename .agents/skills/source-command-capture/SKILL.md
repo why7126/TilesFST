@@ -22,7 +22,7 @@ Use this skill when the user asks to run the migrated source command `capture`.
 ## Steps
 
 1. 读 `rules/requirement-management.md`、`rules/bug-management.md`、两个 `_registry.yaml`
-2. **解析 → 分类（REQ/BUG）→ 拆分**（见 `.cursor/commands/capture.md`）
+2. **解析 → 分类（REQ/BUG）→ 拆分**（见 `.agents/skills/source-command-capture/SKILL.md`）
 3. 落盘：REQ 遵循 req-capture 模板与规则；BUG 遵循 bug-capture 模板与规则；frontmatter 加 `captured_via: capture` 与 `classification_rationale`
 4. 输出分类分析表 + Capture 摘要
 

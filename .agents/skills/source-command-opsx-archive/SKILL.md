@@ -1,190 +1,75 @@
 ---
 name: "source-command-opsx-archive"
-description: "Archive a completed change in the experimental workflow"
+description: "Archive a completed OpenSpec change"
 ---
 
 # source-command-opsx-archive
 
-Use this skill when the user asks to run the migrated source command `opsx-archive`.
+Use when the user asks `/opsx-archive <change-id>` or wants to archive one OpenSpec change.
 
-## Command Template
+## Context Budget Guardrails（MUST）
 
-Archive a completed change in the experimental workflow.
+- Read focused artifacts only: `tasks.md`, delta spec headings, related trace/status snippets.
+- Do not full-read `issues/**`, `iterations/**`, or all `openspec/specs/**`; use `rg -n "^### Requirement:|^### ADDED|^### MODIFIED|^### REMOVED"` then open the relevant sections.
+- If a script fails, inspect the named files/snippets from the report instead of broad directory reads.
+- Keep command output summarized; include full stdout only for validation reports or failures.
 
-**Input**: Optionally specify a change name after `/opsx:archive` (e.g., `/opsx:archive add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+## Input
 
-**Steps**
+- `<change-id>` preferred.
+- If omitted and not uniquely inferable, list active changes from `openspec list --json` and ask; never guess.
 
-1. **If no change name provided, prompt for selection**
+## Must Read / Run
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
-
-   Show only active changes (not already archived).
-   Include the schema used for each change if available.
-
-   **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
-
-2. **Check artifact completion status**
-
-   Run `openspec status --change "<name>" --json` to check artifact completion.
-
-   Parse the JSON to understand:
-   - `schemaName`: The workflow being used
-   - `artifacts`: List of artifacts with their status (`done` or other)
-
-   **If any artifacts are not `done`:**
-   - Display warning listing incomplete artifacts
-   - Prompt user for confirmation to continue
-   - Proceed if user confirms
-
-3. **Check task completion status**
-
-   Read the tasks file (typically `tasks.md`) to check for incomplete tasks.
-
-   Count tasks marked with `- [ ]` (incomplete) vs `- [x]` (complete).
-
-   **If incomplete tasks found:**
-   - Display warning showing count of incomplete tasks
-   - Prompt user for confirmation to continue
-   - Proceed if user confirms
-
-   **If no tasks file exists:** Proceed without task-related warning.
-
-4. **Assess delta spec sync state**
-
-   Check for delta specs at `openspec/changes/<name>/specs/`. If none exist, proceed without sync prompt.
-
-   **If delta specs exist:**
-   - Compare each delta spec with its corresponding main spec at `openspec/specs/<capability>/spec.md`
-   - Determine what changes would be applied (adds, modifications, removals, renames)
-   - Show a combined summary before prompting
-
-   **Prompt options:**
-   - If changes needed: "Sync now (recommended)", "Archive without syncing"
-   - If already synced: "Archive now", "Sync anyway", "Cancel"
-
-   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
-
-5. **Perform the archive**
-
-   Create the archive directory if it doesn't exist:
-   ```bash
-   mkdir -p openspec/changes/archive
-   ```
-
-   Generate target name using current date: `YYYY-MM-DD-<change-name>`
-
-   **Check if target already exists:**
-   - If yes: Fail with error, suggest renaming existing archive or using different date
-   - If no: Move the change directory to archive
-
-   ```bash
-   mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
-   ```
-
-6. **Display summary**
-
-   Show archive completion summary including:
-   - Change name
-   - Schema that was used
-   - Archive location
-   - Spec sync status (synced / sync skipped / no delta specs)
-   - Note about any warnings (incomplete artifacts/tasks)
-
-**Output On Success**
-
-```
-## Archive Complete
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
-**Specs:** ✓ Synced to main specs
-
-All artifacts complete. All tasks complete.
+```text
+AGENTS.md
+openspec/project.md
+rules/document-governance.md
+rules/directory-structure.md
+rules/issues-lifecycle.md
+.agents/skills/workflow-sync/SKILL.md
+openspec/changes/<change-id>/tasks.md
+openspec/changes/<change-id>/trace.md（存在时）
 ```
 
-**Output On Success (No Delta Specs)**
-
-```
-## Archive Complete
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
-**Specs:** No delta specs
-
-All artifacts complete. All tasks complete.
+```bash
+openspec status --change "<change-id>" --json
 ```
 
-**Output On Success With Warnings**
+## Gates
 
-```
-## Archive Complete (with warnings)
+| Gate | Default |
+|---|---|
+| Artifact status | incomplete => warn + require explicit user confirmation |
+| Task status | `- [ ]` exists => warn + require explicit user confirmation |
+| Delta spec | if `specs/` exists, assess ADDED/MODIFIED/REMOVED before moving |
+| MODIFIED title | matching `openspec/specs/<capability>/spec.md` requirement title MUST exist |
+| Archive target | `openspec/changes/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
 
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
-**Specs:** Sync skipped (user chose to skip)
+## Steps
 
-**Warnings:**
-- Archived with 2 incomplete artifacts
-- Archived with 3 incomplete tasks
-- Delta spec sync was skipped (user chose to skip)
+1. Resolve change and verify active directory exists.
+2. Count tasks and artifact status; stop on incomplete items unless user confirms.
+3. Assess delta specs:
+   - no delta specs => archive as metadata-only change;
+   - delta exists => summarize capability, operation type, and affected Requirement titles;
+   - prefer `openspec archive "<change-id>" -y` for sync + move.
+4. If CLI is unavailable, manual fallback is allowed only after delta self-check:
+   - merge delta into `openspec/specs/` according to OpenSpec semantics;
+   - move to `openspec/changes/archive/YYYY-MM-DD-<change-id>/`.
+5. Update related issue/change trace only through workflow sync/promote scripts where possible.
 
-Review the archive if this was not intentional.
-```
-
-**Output On Error (Archive Exists)**
-
-```
-## Archive Failed
-
-**Change:** <change-name>
-**Target:** openspec/changes/archive/YYYY-MM-DD-<name>/
-
-Target archive directory already exists.
-
-**Options:**
-1. Rename the existing archive
-2. Delete the existing archive if it's a duplicate
-3. Wait until a different date to archive
-```
-
-**Guardrails**
-- Always prompt for change selection if not provided
-- Use artifact graph (openspec status --json) for completion checking
-- Don't block archive on warnings - just inform and confirm
-- Preserve .openspec.yaml when moving to archive (it moves with the directory)
-- Show clear summary of what happened
-- If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
-- If delta specs exist, always run the sync assessment and show the combined summary before prompting
-
----
-
-## Final Step — Workflow Sync (MUST)
-
-Read `.agents/skills/workflow-sync/SKILL.md` and run:
+## Final Steps（MUST）
 
 ```bash
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
-```
-
-- Exit code **MUST** be `0` before continuing.
-- Print the **Workflow Sync Report** to the user.
-- Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
-
----
-
-## Final Step — Promote Issues (MUST)
-
-Read `rules/issues-lifecycle.md` §4.
-
-**After** workflow sync succeeds:
-
-```bash
 python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
 ```
 
-- Exit code **MUST** be `0`.
-- Print script stdout (eligible issues + each `Promote Issue Stage` report).
+- Both exit codes MUST be `0`.
+- Print Workflow Sync Report and Promote Issue Stage report.
+- Do not hand-edit `sprint.md` workflow-sync marker blocks.
+
+## Output
+
+Report change id, archive path, spec sync status, warnings/confirmations, scripts run, promoted issues, and next step.

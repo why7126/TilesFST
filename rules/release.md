@@ -73,11 +73,7 @@ releases/vX.Y.Z/announcement.mdx
 
 ## 发布命令族
 
-发布命令族以 `.cursor/commands/` 为事实源，新增或修改后 MUST 运行：
-
-```bash
-python scripts/sync-agent-commands.py
-```
+发布命令族以 `.agents/skills/source-command-release-*`（若存在）或对应 Codex 技能为入口；新增或修改发布命令时 MUST 更新 `.agents/skills/`。
 
 推荐命令：
 

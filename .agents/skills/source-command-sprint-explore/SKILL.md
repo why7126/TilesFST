@@ -156,7 +156,7 @@ REQ-0001
 
 ## 参考
 
-- 单 Change 探索：`.cursor/commands/opsx-explore.md`
-- 创建 Sprint：`.cursor/commands/sprint-propose.md`
-- 开发编排：`.cursor/commands/sprint-apply.md`
-- 批量归档：`.cursor/commands/sprint-archive.md`
+- 单 Change 探索：`.agents/skills/source-command-opsx-explore/SKILL.md`
+- 创建 Sprint：`.agents/skills/source-command-sprint-propose/SKILL.md`
+- 开发编排：`.agents/skills/source-command-sprint-apply/SKILL.md`
+- 批量归档：`.agents/skills/source-command-sprint-archive/SKILL.md`

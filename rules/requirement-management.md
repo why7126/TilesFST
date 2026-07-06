@@ -167,4 +167,4 @@ related_requirements: []
 
 ## 8. 参考命令
 
-`.cursor/commands/req-*.md`
+`.agents/skills/source-command-req-*/SKILL.md`

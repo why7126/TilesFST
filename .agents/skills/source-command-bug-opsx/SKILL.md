@@ -3,6 +3,13 @@ name: "source-command-bug-opsx"
 description: "已评审缺陷 → OpenSpec fix-* Change（CLI）；原 /bug-to-change"
 ---
 
+## Context Budget Guardrails（MUST）
+
+- 关联能力追溯先读取 BUG 包与 `trace.md` 中的 `related_requirement` / `related_change`，再定向读取对应 spec；不要默认在 `openspec/specs` + `openspec/changes/archive` 上做宽泛全文搜索。
+- 需要历史证据时先用 `rg -l "<keyword>" openspec/specs issues/requirements` 获取候选文件；只有候选不足时才加入 `openspec/changes/archive/**`。
+- 生成 Change artifacts 前只读取目标 capability 的 Requirement 标题和相关场景片段，避免整读大 spec。
+- 命令输出优先控制在 `max_output_tokens <= 8000`；大范围命中先给命中数和文件列表。
+
 # source-command-bug-opsx
 
 Use this skill when the user asks to run the migrated source command `bug-opsx`.
@@ -111,8 +118,8 @@ tasks 末项提醒：`docs/knowledge-base/incidents/`（若适用）
 
 ## 参考
 
-- `.cursor/commands/req-opsx.md`（结构对照）
-- `.cursor/commands/opsx-apply.md`
+- `.agents/skills/source-command-req-opsx/SKILL.md`（结构对照）
+- `.agents/skills/source-command-opsx-apply/SKILL.md`
 
 ---
 
