@@ -1,0 +1,26 @@
+sprint_id: sprint-005
+status: planning
+lifecycle_stage: change
+start_date: 2026-07-04 22:30:20
+end_date: 2026-07-18 22:30:20
+
+capacity:
+  developers: 2
+  testers: 1
+
+requirements:
+  - REQ-0030-api-docs-swagger-policy-checklist
+
+bugs:
+  - BUG-0057-api-governance-tags-known-debt
+  - BUG-0058-workflow-sync-check-time-drift-idempotency
+  - BUG-0059-user-password-copy-not-working
+
+changes:
+  - update-api-docs-swagger-policy-checklist
+  - fix-api-governance-route-tags-known-debt
+  - fix-workflow-sync-check-time-drift-idempotency
+  - fix-user-password-copy-not-working
+
+estimated_story_points: 15
+estimated_person_days: 12.0

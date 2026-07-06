@@ -1,17 +1,43 @@
+import { useEffect, useRef, useState } from 'react';
+
 interface ResetPasswordDialogProps {
   open: boolean;
   password: string | null;
   onClose: () => void;
 }
 
+type CopyState = 'idle' | 'success' | 'fallback';
+
 export function ResetPasswordDialog({ open, password, onClose }: ResetPasswordDialogProps) {
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const [copyState, setCopyState] = useState<CopyState>('idle');
+
+  useEffect(() => {
+    setCopyState('idle');
+  }, [open, password]);
+
   if (!open || !password) return null;
 
+  const selectPasswordForManualCopy = () => {
+    passwordInputRef.current?.focus();
+    passwordInputRef.current?.select();
+  };
+
   const handleCopy = async () => {
+    const writeText = navigator.clipboard?.writeText;
+
+    if (!writeText) {
+      selectPasswordForManualCopy();
+      setCopyState('fallback');
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(password);
+      await writeText.call(navigator.clipboard, password);
+      setCopyState('success');
     } catch {
-      // clipboard may be unavailable
+      selectPasswordForManualCopy();
+      setCopyState('fallback');
     }
   };
 
@@ -34,7 +60,20 @@ export function ResetPasswordDialog({ open, password, onClose }: ResetPasswordDi
         </div>
         <div className="modal-body">
           <p className="form-help">请复制并安全交付给用户，关闭后不可再次查看。</p>
-          <input className="input" readOnly value={password} aria-label="随机密码" />
+          <input
+            ref={passwordInputRef}
+            className="input"
+            readOnly
+            value={password}
+            aria-label="随机密码"
+          />
+          <p className="form-help" role="status" aria-live="polite">
+            {copyState === 'success'
+              ? '密码已复制，请粘贴确认后再关闭弹窗。'
+              : copyState === 'fallback'
+                ? '自动复制失败，请使用 Command/Ctrl + C 手动复制已选中的密码。'
+                : '若浏览器阻止自动复制，可手动选中密码后复制。'}
+          </p>
         </div>
         <div className="modal-footer">
           <button type="button" className="btn" onClick={() => void handleCopy()}>

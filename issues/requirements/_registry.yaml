@@ -1,7 +1,37 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 27
+next_id: 32
 entries:
+  - id: REQ-0031-api-validation-envelope-governance
+    title: API 校验错误 envelope 治理扩展到管理端表单 API
+    status: approved
+    iteration: null
+    created: "2026-07-04 21:52:59"
+    parent_requirement: REQ-0000-build-api-standard
+  - id: REQ-0030-api-docs-swagger-policy-checklist
+    title: 接口文档页 Swagger 代理与生产调试策略 checklist
+    status: proposed
+    iteration: sprint-005
+    created: "2026-07-04 15:42:05"
+    parent_requirement: REQ-0022-admin-api-docs-menu
+  - id: REQ-0029-admin-list-foundation-components
+    title: 管理端列表基础组件（MetricCard 与分页窗口工具）
+    status: approved
+    iteration: null
+    created: "2026-07-04 15:22:32"
+    parent_requirement: REQ-0028-admin-list-page-contract
+  - id: REQ-0028-admin-list-page-contract
+    title: AdminListPage 模板与管理端列表页契约
+    status: approved
+    iteration: null
+    created: "2026-07-04 15:17:26"
+    parent_requirement: REQ-0000-build-design-system
+  - id: REQ-0027-mobile-page-adaptation
+    title: Web 管理端移动端基础适配优化
+    status: approved
+    iteration: null
+    created: "2026-07-04 14:55:35"
+    parent_requirement: REQ-0004-admin-home
   - id: REQ-0026-product-release-management
     title: 产品版本发布与公告管理
     status: done

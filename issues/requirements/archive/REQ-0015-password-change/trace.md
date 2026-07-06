@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-06-28 09:41:12
-updated_at: 2026-06-28 19:40:42
+updated_at: 2026-07-05 20:33:57
 lifecycle:
   captured: 2026-06-28 09:41:12
   exploring: 2026-06-28 09:47:30
@@ -88,5 +88,6 @@ iteration: sprint-003
 
 ## 关联缺陷
 
-（暂无）
-- 2026-06-28 16:30:02 workflow-sync：状态同步为 done（Change archived）
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0061-change-password-policy-error-message-unclear | medium | captured | — | change password policy error message unclear |

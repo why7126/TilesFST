@@ -48,8 +48,13 @@ def normalize_milestone_datetime(value: str | None) -> str | None:
     return normalize_datetime(raw, default_time=MILESTONE_END_OF_DAY)
 
 
-def touch_frontmatter(text: str, *, force_created: bool = False) -> tuple[str, bool]:
-    """Ensure created_at / updated_at exist and bump updated_at."""
+def touch_frontmatter(
+    text: str,
+    *,
+    force_created: bool = False,
+    bump_updated: bool = True,
+) -> tuple[str, bool]:
+    """Ensure created_at / updated_at exist and optionally bump updated_at."""
 
     now = now_shanghai()
     if not text.startswith("---"):
@@ -83,7 +88,7 @@ def touch_frontmatter(text: str, *, force_created: bool = False) -> tuple[str, b
             has_created = True
             continue
         if line.startswith("updated_at:"):
-            out.append(f"updated_at: {now}")
+            out.append(f"updated_at: {now}" if bump_updated else line)
             has_updated = True
             continue
         out.append(line)

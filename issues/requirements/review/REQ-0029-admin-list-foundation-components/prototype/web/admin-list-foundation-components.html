@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0029 管理端列表基础组件原型</title>
+    <style>
+      :root {
+        --page: #18160f;
+        --surface: #211e16;
+        --deep: #100f0a;
+        --text: #ede8df;
+        --secondary: rgba(237, 232, 223, 0.5);
+        --muted: rgba(237, 232, 223, 0.3);
+        --border: rgba(255, 255, 255, 0.07);
+        --strong: rgba(255, 255, 255, 0.12);
+        --gold: #c8a055;
+        --danger: #e07050;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--border);
+        background: var(--deep);
+        padding: 28px 20px;
+      }
+
+      .brand {
+        margin-bottom: 32px;
+        color: var(--gold);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .nav-label {
+        margin: 24px 0 10px;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .nav-item {
+        border-radius: 2px;
+        padding: 9px 10px;
+        color: var(--secondary);
+        font-size: 12px;
+      }
+
+      .nav-item.active {
+        border: 1px solid rgba(200, 160, 85, 0.4);
+        background: rgba(200, 160, 85, 0.1);
+        color: var(--text);
+      }
+
+      .main {
+        padding: 28px;
+      }
+
+      .page-hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 22px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--gold);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .page-title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .page-desc {
+        margin: 8px 0 0;
+        max-width: 720px;
+        color: var(--secondary);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .summary-grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metric-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 112px;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: var(--surface);
+        padding: 16px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin-top: 14px;
+        font-size: 28px;
+        font-weight: 500;
+      }
+
+      .metric-desc {
+        margin-top: 8px;
+        color: var(--secondary);
+        font-size: 12px;
+      }
+
+      .metric-desc.danger {
+        color: var(--danger);
+      }
+
+      .component-section {
+        margin-top: 24px;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.025);
+        padding: 18px;
+      }
+
+      .section-title {
+        margin: 0 0 14px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 1px solid var(--border);
+        margin-top: 18px;
+        padding-top: 16px;
+      }
+
+      .page-summary {
+        color: var(--secondary);
+        font-size: 12px;
+      }
+
+      .page-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .page-buttons {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .page-button {
+        min-width: 32px;
+        height: 32px;
+        border: 1px solid var(--strong);
+        border-radius: 2px;
+        background: transparent;
+        color: var(--secondary);
+      }
+
+      .page-button.active {
+        border-color: var(--gold);
+        background: var(--gold);
+        color: var(--page);
+      }
+
+      .page-size-wrap {
+        color: var(--secondary);
+        font-size: 12px;
+      }
+
+      .notes {
+        margin-top: 18px;
+        color: var(--secondary);
+        font-size: 12px;
+        line-height: 1.8;
+      }
+
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .summary-grid,
+        .summary-grid.three {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pagination {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">TILESFST</div>
+        <div class="nav-label">Design System</div>
+        <div class="nav-item active">列表基础组件</div>
+        <div class="nav-item">AdminListPage</div>
+        <div class="nav-item">组件验收</div>
+      </aside>
+      <main class="main">
+        <section class="page-hero">
+          <div>
+            <p class="eyebrow">ADMIN / LIST FOUNDATION</p>
+            <h1 class="page-title">管理端列表基础组件</h1>
+            <p class="page-desc">
+              展示 MetricCard、MetricCardGrid 与分页窗口工具的 DOM 契约。该原型服务于
+              REQ-0029，不表达具体业务页面。
+            </p>
+          </div>
+        </section>
+
+        <section class="summary-grid" aria-label="四卡指标示例">
+          <article class="metric-card">
+            <div class="metric-label">SKU TOTAL</div>
+            <div class="metric-value">128</div>
+            <div class="metric-desc">全部商品主数据</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">PUBLISHED</div>
+            <div class="metric-value">96</div>
+            <div class="metric-desc">前台可见商品</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">API ERRORS</div>
+            <div class="metric-value">7</div>
+            <div class="metric-desc danger">异常请求</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">LOADING</div>
+            <div class="metric-value">—</div>
+            <div class="metric-desc">等待数据返回</div>
+          </article>
+        </section>
+
+        <section class="component-section">
+          <h2 class="section-title">三卡布局示例</h2>
+          <div class="summary-grid three" aria-label="三卡指标示例">
+            <article class="metric-card">
+              <div class="metric-label">TOTAL ROUTES</div>
+              <div class="metric-value">42</div>
+              <div class="metric-desc">接口目录项</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">FILTERED</div>
+              <div class="metric-value">18</div>
+              <div class="metric-desc">当前筛选结果</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">WARNINGS</div>
+              <div class="metric-value">2</div>
+              <div class="metric-desc danger">需复核配置</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="component-section">
+          <h2 class="section-title">管理端分页 DOM 契约</h2>
+          <div class="pagination">
+            <div class="page-summary">共 128 条，当前第 4 / 13 页</div>
+            <div class="page-right">
+              <div class="page-buttons" aria-label="页码">
+                <button class="page-button" type="button">2</button>
+                <button class="page-button" type="button">3</button>
+                <button class="page-button active" type="button">4</button>
+                <button class="page-button" type="button">5</button>
+                <button class="page-button" type="button">6</button>
+              </div>
+              <div class="page-size-wrap">20 / 页</div>
+            </div>
+          </div>
+          <p class="notes">
+            验收重点：最多 5 个页码；保留 .page-summary、.page-right、.page-buttons、.page-size-wrap；
+            不引入 jump-input 或页面私有分页容器。
+          </p>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

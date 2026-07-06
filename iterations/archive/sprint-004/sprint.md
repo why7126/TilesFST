@@ -1,6 +1,6 @@
 ---
 created_at: 2026-06-29 10:03:38
-updated_at: 2026-07-04 12:34:17
+updated_at: 2026-07-04 15:36:01
 title: Sprint 004 迭代说明
 purpose: 记录 Sprint 004 目标、范围、Change、工作量与风险
 content: 生产环境部署与 MySQL 数据库支持（REQ-0018）+ 管理端超级管理员账号保护（REQ-0019）+ 创建用户校验提示修复（BUG-0050）+ 管理端接口文档菜单与在线调试（REQ-0022）+ 接口文档列表行级 Swagger 详情入口（REQ-0023）+ Swagger UI 入口修复（BUG-0051）+ 接口文档指标卡一致性修复（BUG-0052）+ 接口文档列表分页一致性修复（BUG-0053）+ 管理端全局内容区域内边距修复（BUG-0054）+ 管理端多列表页布局与筛选分页交互统一修复（BUG-0055）+ 品牌区 Logo、菲尚特FST 文案与网页图标统一（REQ-0025）+ 产品版本发布与公告管理（REQ-0026）+ 产品使用行为埋点与接口请求日志详情（REQ-0024）
@@ -194,7 +194,7 @@ note: workflow-sync — workflow-sync 自动同步 — 13/13 Change archived；0
 | REQ-0023 | 接口文档列表行级查看并跳转 Swagger 详情 | P1 | done | archived `add-api-docs-swagger-detail-link`（2026-07-02 22:16:42） |
 | REQ-0025 | 品牌区 Logo、菲尚特FST 文案与网页图标统一 | P1 | done | archived `update-brand-logo-fst-favicon`（2026-07-02 03:18:58） |
 | REQ-0026 | 产品版本发布与公告管理 | P1 | done | status `done` |
-| REQ-0024 | 产品使用行为埋点与接口请求日志详情 | P1 | done | archived `add-product-usage-logging`（2026-07-04 08:15:02） |
+| REQ-0024 | 产品使用行为埋点与接口请求日志详情 | P1 | done | archived `add-product-usage-logging`（2026-07-03 23:24:07） |
 <!-- workflow-sync:scope-requirements:end -->
 
 ### 包含 BUG
@@ -206,7 +206,7 @@ note: workflow-sync — workflow-sync 自动同步 — 13/13 Change archived；0
 | BUG-0051 | 接口文档页 Swagger UI 入口跳转到 Web 首页 | high | done | archived `fix-api-docs-swagger-ui-link-wrong`（2026-07-01 20:03:09） |
 | BUG-0052 | 接口文档页指标卡样式与瓷砖 SKU 页不一致 | medium | done | archived `fix-api-docs-metric-cards-inconsistent`（2026-07-02 08:58:31） |
 | BUG-0053 | 接口文档列表冗余系统接口信息且分页未与 SKU 页一致 | medium | done | archived `fix-api-docs-list-layout-pagination-inconsistent`（2026-07-02 09:13:51） |
-| BUG-0054 | 管理端全局右侧内容区域内边距过大 | medium | done | archived `fix-admin-content-padding-too-large`（2026-07-04 08:15:02） |
+| BUG-0054 | 管理端全局右侧内容区域内边距过大 | medium | done | archived `fix-admin-content-padding-too-large`（2026-07-03 23:47:11） |
 | BUG-0055 | 管理端多列表页布局与筛选分页交互未统一 | medium | done | archived `fix-admin-list-layout-unification`（2026-07-04 07:48:50） |
 <!-- workflow-sync:scope-bugs:end -->
 
@@ -225,8 +225,8 @@ note: workflow-sync — workflow-sync 自动同步 — 13/13 Change archived；0
 | `fix-api-docs-list-layout-pagination-inconsistent` | BUG-0053-api-docs-list-layout-pagination-inconsistent | archived | archived `fix-api-docs-list-layout-pagination-inconsistent`（2026-07-02 09:13:51） |
 | `update-brand-logo-fst-favicon` | REQ-0025-brand-logo-fst-favicon | archived | archived `update-brand-logo-fst-favicon`（2026-07-02 03:18:58） |
 | `add-product-release-management` | — | archived | archived `add-product-release-management`（2026-07-02 15:27:00） |
-| `add-product-usage-logging` | REQ-0024-product-usage-logging | archived | archived `add-product-usage-logging`（2026-07-04 08:15:02） |
-| `fix-admin-content-padding-too-large` | BUG-0054-admin-content-padding-too-large | archived | archived `fix-admin-content-padding-too-large`（2026-07-04 08:15:02） |
+| `add-product-usage-logging` | REQ-0024-product-usage-logging | archived | archived `add-product-usage-logging`（2026-07-03 23:24:07） |
+| `fix-admin-content-padding-too-large` | BUG-0054-admin-content-padding-too-large | archived | archived `fix-admin-content-padding-too-large`（2026-07-03 23:47:11） |
 | `fix-admin-list-layout-unification` | BUG-0055-admin-list-layout-unification | archived | archived `fix-admin-list-layout-unification`（2026-07-04 07:48:50） |
 <!-- workflow-sync:scope-changes:end -->
 

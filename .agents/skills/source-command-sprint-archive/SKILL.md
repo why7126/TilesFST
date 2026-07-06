@@ -9,7 +9,7 @@ Use this skill when the user asks to run the migrated source command `sprint-arc
 
 ## Command Template
 
-对 `iterations/sprint-xxx/` 中 `sprint.yaml` 列出的 **全部 OpenSpec Change** 依次执行 `/opsx-archive` 等价流程：检查完成度、同步 delta spec、移入 `openspec/changes/archive/`。迭代验收文档一并收尾。
+对 `iterations/change/sprint-xxx/`（或 `resolve_sprint_dir()` 解析到的路径）中 `sprint.yaml` 列出的 **全部 OpenSpec Change** 依次执行 `/opsx-archive` 等价流程：检查完成度、同步 delta spec、移入 `openspec/changes/archive/`。迭代验收文档一并收尾；Sprint 目录 **MUST** 迁入 `iterations/archive/`。
 
 与 `/opsx-archive` 对标：**单 Change** 用 opsx-archive，**整 Sprint** 用 sprint-archive。
 
@@ -52,17 +52,50 @@ Use this skill when the user asks to run the migrated source command `sprint-arc
 AGENTS.md
 rules/document-governance.md
 rules/directory-structure.md
+rules/iterations-lifecycle.md
 ```
 
 ```text
-iterations/<sprint-id>/sprint.yaml
-iterations/<sprint-id>/sprint.md          # 依赖树 → 归档顺序
+iterations/change/<sprint-id>/sprint.yaml   # 未归档 Sprint（优先）
+iterations/archive/<sprint-id>/sprint.yaml  # 已归档只读
+iterations/<sprint-id>/sprint.md            # 依赖树 → 归档顺序
 iterations/<sprint-id>/acceptance-report.md
 ```
 
 ```bash
 openspec list --json
 ```
+
+---
+
+## Step 0.5 — Readiness Gate（MUST）
+
+归档任何 change、关闭 Sprint、迁移目录或 promote issue **之前**，MUST 运行可执行门禁：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
+```
+
+若本次只处理 Sprint 内单个 change：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --change <change-id>
+```
+
+默认模式下，脚本返回非 0 或报告 `Verdict: BLOCKED` 时 MUST 停止 `/sprint-archive`。阻断范围包括：
+
+- active change 的 `tasks.md` 有 `- [ ]`
+- archived change 的 `tasks.md` 有 `- [ ]`
+- `tasks.md` 缺失
+- `sprint.yaml` 引用的 change 目录缺失
+
+仅当用户显式传入 `--force`，并逐项确认报告中的 blocker 后，才可用：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --force
+```
+
+`--force` 不得作为默认行为；执行结果 MUST 写入 Archive Queue Report。
 
 ---
 
@@ -74,7 +107,7 @@ openspec list --json
 |------|------|
 | `archived` | 已在 `openspec/changes/archive/*/<id>/` |
 | `artifacts_done` | `openspec status --change <id> --json` 全 done |
-| `tasks_incomplete` | `tasks.md` 中 `- [ ]` 计数 |
+| `tasks_incomplete` | Step 0.5 readiness gate 统计的 `tasks.md` 中 `- [ ]` 计数（active 与 archived 都检查） |
 | `has_delta_specs` | `openspec/changes/<id>/specs/` 非空 |
 | `deps_ok_for_archive` | 子 change（fix-*）可在父 add-* 之后；见 Step 2 |
 
@@ -130,7 +163,7 @@ openspec list --json
 对每个 `Action === ARCHIVE NEXT` 的 change，执行 `.cursor/commands/opsx-archive.md` 等价步骤：
 
 1. `openspec status --change "<name>" --json`
-2. 读 `tasks.md` 统计 incomplete；有则警告（`--force` 可继续）
+2. 复用 Step 0.5 readiness gate 结果；有 incomplete 默认 BLOCK（仅显式 `--force` 可继续）
 3. **Delta spec 评估**：对比 `openspec/changes/<name>/specs/` 与 `openspec/specs/`
 4. 若需 sync 且非 `--skip-sync`：
    ```bash
@@ -155,14 +188,15 @@ openspec list --json
 
 ## Step 5 — 关闭 Sprint（除非 `--no-sprint-close`）
 
-全部 change archived 或用户确认接受遗留 blocked 项后：
+关闭 Sprint 前 MUST 再运行一次 Step 0.5 readiness gate（无 `--force`），确认 active 与 archived change 的 `tasks.md` 均已完成。全部 change archived 且 readiness gate PASS 后：
 
-1. **`sprint.yaml`**：`status: completed`
+1. **`sprint.yaml`**：`status: completed`，`lifecycle_stage: archive`
 2. **`acceptance-report.md`**：填写验收结论、日期、验收人（模板节）
 3. **`release-note.md`**：`status: published`（或 draft → published）
 4. **`sprint.md`**：note 更新为 Sprint 已关闭
+5. **目录迁移**：`git mv iterations/change/sprint-xxx iterations/archive/sprint-xxx`（见 `rules/iterations-lifecycle.md`）
 
-若仍有 blocked change：**不得**自动标 completed；报告遗留清单。
+若 readiness gate 仍有 blocked change：**不得**自动标 completed，不得迁移 Sprint 目录，不得执行 promote issues；报告遗留清单。
 
 ---
 

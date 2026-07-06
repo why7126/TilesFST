@@ -264,7 +264,11 @@ def _latest_changelog_timestamp(text: str) -> str | None:
     return latest
 
 
-def extract_trace_timestamp(trace_path: Path) -> str | None:
+def extract_trace_timestamp(
+    trace_path: Path,
+    *,
+    include_frontmatter_updated_at: bool = True,
+) -> str | None:
     """Resolve the best available timestamp from a trace.md (issue or change)."""
 
     if not trace_path.exists():
@@ -295,13 +299,17 @@ def extract_trace_timestamp(trace_path: Path) -> str | None:
         if match:
             return match.group(1).strip()
 
+    changelog_timestamp = _latest_changelog_timestamp(text)
+    if changelog_timestamp:
+        return changelog_timestamp
+
     status = (block or {}).get("status") or fm.get("status") or ""
-    if str(status).strip().lower() in TRACE_DONE_STATUSES:
+    if include_frontmatter_updated_at and str(status).strip().lower() in TRACE_DONE_STATUSES:
         updated_at = fm.get("updated_at")
         if updated_at:
             return updated_at.strip()
 
-    return _latest_changelog_timestamp(text)
+    return None
 
 
 def lifecycle_archived_from_trace(trace_path: Path) -> str | None:
@@ -319,12 +327,22 @@ def resolve_archive_timestamp(
 
     change_trace = archived_path / "trace.md"
     candidates: list[str | None] = [
-        extract_trace_timestamp(change_trace),
+        extract_trace_timestamp(change_trace, include_frontmatter_updated_at=False),
     ]
     if linked_bug and linked_bug in issues:
-        candidates.append(extract_trace_timestamp(issues[linked_bug].path / "trace.md"))
+        candidates.append(
+            extract_trace_timestamp(
+                issues[linked_bug].path / "trace.md",
+                include_frontmatter_updated_at=False,
+            )
+        )
     if linked_req and linked_req in issues:
-        candidates.append(extract_trace_timestamp(issues[linked_req].path / "trace.md"))
+        candidates.append(
+            extract_trace_timestamp(
+                issues[linked_req].path / "trace.md",
+                include_frontmatter_updated_at=False,
+            )
+        )
     for issue in issues.values():
         linked = any(oc.get("change_id") == change_id for oc in issue.openspec_changes)
         if not linked and change_id in issue.related_changes:
@@ -332,23 +350,21 @@ def resolve_archive_timestamp(
         if not linked and issue.related_change == change_id:
             linked = True
         if linked:
-            candidates.append(extract_trace_timestamp(issue.path / "trace.md"))
+            candidates.append(
+                extract_trace_timestamp(
+                    issue.path / "trace.md",
+                    include_frontmatter_updated_at=False,
+                )
+            )
 
     dir_date = extract_archive_date(archived_path)
     if dir_date:
         candidates.append(dir_date)
 
-    change_time: str | None = None
-    if change_trace.exists():
-        updated_at = normalize_datetime(parse_frontmatter(read_text(change_trace)).get("updated_at"))
-        if updated_at and " " in updated_at:
-            change_time = updated_at.split(" ", 1)[1]
-
     for raw in candidates:
         if not raw:
             continue
-        default_time = change_time or ARCHIVE_DATE_ONLY_FALLBACK
-        normalized = normalize_datetime(raw, default_time=default_time)
+        normalized = normalize_datetime(raw, default_time=ARCHIVE_DATE_ONLY_FALLBACK)
         if normalized:
             return normalized
     return None

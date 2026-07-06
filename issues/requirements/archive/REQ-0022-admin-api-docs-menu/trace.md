@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-06-30 21:57:46
-updated_at: 2026-07-04 08:16:02
+updated_at: 2026-07-05 07:58:01
 knowledge_base_refs:
   - docs/knowledge-base/best-practices/admin-list-page-consistency.md
   - docs/knowledge-base/best-practices/admin-form-page-consistency.md
@@ -114,5 +114,5 @@ knowledge_base_gate: Pass
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0051-api-docs-swagger-ui-link-wrong | high | done | fix-api-docs-swagger-ui-link-wrong | 接口文档页 Swagger UI 入口跳转到 Web 首页 |
-| BUG-0052-api-docs-metric-cards-inconsistent | medium | done | fix-api-docs-metric-cards-inconsistent | 接口文档页指标卡样式与瓷砖 SKU 页不一致 |
-| BUG-0053-api-docs-list-layout-pagination-inconsistent | medium | done | fix-api-docs-list-layout-pagination-inconsistent | 接口文档列表冗余系统接口信息且分页未与 SKU 页一致 |
+| BUG-0052-api-docs-metric-cards-inconsistent | medium | done | — | 接口文档页指标卡样式与瓷砖 SKU 页不一致 |
+| BUG-0053-api-docs-list-layout-pagination-inconsistent | medium | done | — | 接口文档列表冗余系统接口信息且分页未与 SKU 页一致 |

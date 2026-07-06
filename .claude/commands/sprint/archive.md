@@ -64,6 +64,37 @@ openspec list --json
 
 ---
 
+## Step 0.5 — Readiness Gate（MUST）
+
+归档任何 change、关闭 Sprint、迁移目录或 promote issue **之前**，MUST 运行可执行门禁：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
+```
+
+若本次只处理 Sprint 内单个 change：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --change <change-id>
+```
+
+默认模式下，脚本返回非 0 或报告 `Verdict: BLOCKED` 时 MUST 停止 `/sprint-archive`。阻断范围包括：
+
+- active change 的 `tasks.md` 有 `- [ ]`
+- archived change 的 `tasks.md` 有 `- [ ]`
+- `tasks.md` 缺失
+- `sprint.yaml` 引用的 change 目录缺失
+
+仅当用户显式传入 `--force`，并逐项确认报告中的 blocker 后，才可用：
+
+```bash
+python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --force
+```
+
+`--force` 不得作为默认行为；执行结果 MUST 写入 Archive Queue Report。
+
+---
+
 ## Step 1 — 构建 Archive Queue
 
 对 `sprint.yaml` 的 `changes[]` 每项：
@@ -72,7 +103,7 @@ openspec list --json
 |------|------|
 | `archived` | 已在 `openspec/changes/archive/*/<id>/` |
 | `artifacts_done` | `openspec status --change <id> --json` 全 done |
-| `tasks_incomplete` | `tasks.md` 中 `- [ ]` 计数 |
+| `tasks_incomplete` | Step 0.5 readiness gate 统计的 `tasks.md` 中 `- [ ]` 计数（active 与 archived 都检查） |
 | `has_delta_specs` | `openspec/changes/<id>/specs/` 非空 |
 | `deps_ok_for_archive` | 子 change（fix-*）可在父 add-* 之后；见 Step 2 |
 
@@ -128,7 +159,7 @@ openspec list --json
 对每个 `Action === ARCHIVE NEXT` 的 change，执行 `.cursor/commands/opsx-archive.md` 等价步骤：
 
 1. `openspec status --change "<name>" --json`
-2. 读 `tasks.md` 统计 incomplete；有则警告（`--force` 可继续）
+2. 复用 Step 0.5 readiness gate 结果；有 incomplete 默认 BLOCK（仅显式 `--force` 可继续）
 3. **Delta spec 评估**：对比 `openspec/changes/<name>/specs/` 与 `openspec/specs/`
 4. 若需 sync 且非 `--skip-sync`：
    ```bash
@@ -153,7 +184,7 @@ openspec list --json
 
 ## Step 5 — 关闭 Sprint（除非 `--no-sprint-close`）
 
-全部 change archived 或用户确认接受遗留 blocked 项后：
+关闭 Sprint 前 MUST 再运行一次 Step 0.5 readiness gate（无 `--force`），确认 active 与 archived change 的 `tasks.md` 均已完成。全部 change archived 且 readiness gate PASS 后：
 
 1. **`sprint.yaml`**：`status: completed`，`lifecycle_stage: archive`
 2. **`acceptance-report.md`**：填写验收结论、日期、验收人（模板节）
@@ -161,7 +192,7 @@ openspec list --json
 4. **`sprint.md`**：note 更新为 Sprint 已关闭
 5. **目录迁移**：`git mv iterations/change/sprint-xxx iterations/archive/sprint-xxx`（见 `rules/iterations-lifecycle.md`）
 
-若仍有 blocked change：**不得**自动标 completed；报告遗留清单。
+若 readiness gate 仍有 blocked change：**不得**自动标 completed，不得迁移 `iterations/change/` → `iterations/archive/`，不得执行 promote issues；报告遗留清单。
 
 ---
 

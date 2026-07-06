@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""Validate that a Sprint is ready to be archived.
+
+The gate is intentionally separate from workflow sync: `/sprint-archive` needs
+a command that can fail before any OpenSpec archive or Sprint close mutation.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+@dataclass(frozen=True)
+class TaskCounts:
+    done: int
+    total: int
+    missing: bool = False
+
+    @property
+    def incomplete(self) -> int:
+        if self.missing:
+            return 1
+        return max(self.total - self.done, 0)
+
+    @property
+    def label(self) -> str:
+        return "missing" if self.missing else f"{self.done}/{self.total}"
+
+
+@dataclass(frozen=True)
+class ChangeReadiness:
+    change_id: str
+    location: str
+    path: str | None
+    tasks: TaskCounts
+    blocker: str | None = None
+
+
+@dataclass(frozen=True)
+class SprintReadiness:
+    sprint_id: str
+    sprint_path: str
+    changes: list[ChangeReadiness]
+
+    @property
+    def blockers(self) -> list[ChangeReadiness]:
+        return [change for change in self.changes if change.blocker]
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def resolve_sprint_dir(root: Path, sprint_id: str) -> Path | None:
+    iterations = root / "iterations"
+    for stage in ("change", "archive"):
+        candidate = iterations / stage / sprint_id
+        if (candidate / "sprint.yaml").exists():
+            return candidate
+    legacy = iterations / sprint_id
+    if (legacy / "sprint.yaml").exists():
+        return legacy
+    return None
+
+
+def parse_sprint_changes(sprint_yaml: Path) -> list[str]:
+    text = read_text(sprint_yaml)
+    changes: list[str] = []
+    in_changes = False
+    changes_indent = 0
+
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+
+        indent = len(line) - len(line.lstrip(" "))
+        stripped = line.strip()
+        if re.match(r"^changes\s*:\s*$", stripped):
+            in_changes = True
+            changes_indent = indent
+            continue
+
+        if in_changes and indent <= changes_indent and not stripped.startswith("- "):
+            break
+
+        if not in_changes:
+            continue
+
+        match = re.match(r"^-\s*['\"]?([^'\"\s#]+)['\"]?", stripped)
+        if match:
+            changes.append(match.group(1))
+
+    return changes
+
+
+def find_archived_change_dir(root: Path, change_id: str) -> Path | None:
+    archive_root = root / "openspec" / "changes" / "archive"
+    if not archive_root.exists():
+        return None
+    matches = sorted(archive_root.glob(f"*-{change_id}"))
+    return matches[-1] if matches else None
+
+
+def resolve_change_dir(root: Path, change_id: str) -> tuple[str, Path | None]:
+    active = root / "openspec" / "changes" / change_id
+    if active.exists():
+        return "active", active
+    archived = find_archived_change_dir(root, change_id)
+    if archived:
+        return "archived", archived
+    return "missing", None
+
+
+def count_tasks(tasks_path: Path | None) -> TaskCounts:
+    if tasks_path is None or not tasks_path.exists():
+        return TaskCounts(done=0, total=0, missing=True)
+    text = read_text(tasks_path)
+    done = len(re.findall(r"^- \[x\]", text, re.MULTILINE))
+    total = len(re.findall(r"^- \[[ x]\]", text, re.MULTILINE))
+    return TaskCounts(done=done, total=total, missing=False)
+
+
+def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = None) -> SprintReadiness:
+    sprint_dir = resolve_sprint_dir(root, sprint_id)
+    if sprint_dir is None:
+        raise FileNotFoundError(f"sprint.yaml not found for {sprint_id}")
+
+    change_ids = parse_sprint_changes(sprint_dir / "sprint.yaml")
+    if only_change:
+        if only_change not in change_ids:
+            raise ValueError(f"change `{only_change}` is not listed in {sprint_id} sprint.yaml")
+        change_ids = [only_change]
+
+    records: list[ChangeReadiness] = []
+    for change_id in change_ids:
+        location, change_dir = resolve_change_dir(root, change_id)
+        tasks = count_tasks(change_dir / "tasks.md" if change_dir else None)
+        blocker = None
+        if location == "missing":
+            blocker = "change directory missing"
+        elif tasks.missing:
+            blocker = "tasks.md missing"
+        elif tasks.incomplete > 0:
+            blocker = f"{tasks.incomplete} incomplete task(s)"
+
+        records.append(
+            ChangeReadiness(
+                change_id=change_id,
+                location=location,
+                path=str(change_dir.relative_to(root)) if change_dir else None,
+                tasks=tasks,
+                blocker=blocker,
+            )
+        )
+
+    return SprintReadiness(
+        sprint_id=sprint_id,
+        sprint_path=str(sprint_dir.relative_to(root)),
+        changes=records,
+    )
+
+
+def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
+    lines = [
+        "## Sprint Archive Readiness Report",
+        "",
+        f"**Sprint:** {readiness.sprint_id}",
+        f"**Sprint Path:** `{readiness.sprint_path}`",
+        f"**Mode:** {'force' if force else 'strict'}",
+        "",
+        "| Change | Location | Tasks | Result |",
+        "|---|---|---:|---|",
+    ]
+    for change in readiness.changes:
+        result = "PASS" if not change.blocker else f"BLOCKED: {change.blocker}"
+        lines.append(
+            f"| `{change.change_id}` | {change.location} | {change.tasks.label} | {result} |"
+        )
+
+    blockers = readiness.blockers
+    lines.append("")
+    if blockers and not force:
+        lines.append("**Verdict:** BLOCKED")
+        lines.append("")
+        lines.append("Complete remaining `tasks.md` items via `/sprint-apply` before `/sprint-archive`.")
+    elif blockers:
+        lines.append("**Verdict:** FORCE-PROCEED")
+        lines.append("")
+        lines.append("Blocked items remain and require explicit reviewer confirmation.")
+    else:
+        lines.append("**Verdict:** PASS")
+
+    return "\n".join(lines)
+
+
+def readiness_to_json(readiness: SprintReadiness, *, force: bool) -> str:
+    payload = asdict(readiness)
+    payload["mode"] = "force" if force else "strict"
+    payload["verdict"] = "blocked" if readiness.blockers and not force else "pass"
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sprint", required=True, help="Sprint id, e.g. sprint-004")
+    parser.add_argument("--change", help="Validate one change listed in the Sprint")
+    parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
+    parser.add_argument("--force", action="store_true", help="Report blockers but exit 0")
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        readiness = evaluate_sprint(args.root.resolve(), args.sprint, only_change=args.change)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(readiness_to_json(readiness, force=args.force))
+    else:
+        print(render_markdown(readiness, force=args.force))
+
+    if readiness.blockers and not args.force:
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-01 13:52:03
-updated_at: 2026-07-04 08:16:02
+updated_at: 2026-07-05 20:33:34
 knowledge_base_refs:
   - docs/knowledge-base/best-practices/admin-list-page-consistency.md
   - docs/knowledge-base/retrospectives/sprint-003-retrospective.md
@@ -84,4 +84,4 @@ expected_openspec_change: add-product-usage-logging
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-- 2026-07-03 23:23:16 workflow-sync：状态同步为 done（Change archived）
+| BUG-0060-audit-log-request-id-copy-error | medium | captured | — | audit log request id copy error |

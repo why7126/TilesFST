@@ -21,7 +21,7 @@ class PatchResult:
 def persist_markdown(path: Path, text: str, original: str, write: bool) -> bool:
     changed = text != original
     if write:
-        text, ts_changed = touch_frontmatter(text)
+        text, ts_changed = touch_frontmatter(text, bump_updated=changed)
         changed = changed or ts_changed
         if changed:
             path.write_text(text, encoding="utf-8")

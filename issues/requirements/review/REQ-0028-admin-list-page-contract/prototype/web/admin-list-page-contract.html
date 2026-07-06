@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0028 AdminListPage Contract Prototype</title>
+  <style>
+    :root {
+      --color-page: rgb(24 22 15);
+      --color-surface: rgb(33 30 22);
+      --color-deep: rgb(16 15 10);
+      --color-primary: rgb(237 232 223);
+      --color-secondary: rgb(237 232 223 / 0.5);
+      --color-muted: rgb(237 232 223 / 0.3);
+      --color-brand: rgb(200 160 85);
+      --color-brand-muted: rgb(200 160 85 / 0.12);
+      --color-border: rgb(255 255 255 / 0.08);
+      --color-border-strong: rgb(255 255 255 / 0.16);
+      --color-accent: rgb(255 255 255 / 0.05);
+      --radius-card: 3px;
+      --radius-industrial: 2px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--color-page);
+      color: var(--color-primary);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--color-page); }
+    button, input, select { font: inherit; }
+
+    .admin-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      background: var(--color-page);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--color-border);
+      background: var(--color-deep);
+      padding: 24px 18px;
+    }
+
+    .brand {
+      color: var(--color-brand);
+      letter-spacing: 0.16em;
+      font-size: 18px;
+      margin-bottom: 32px;
+    }
+
+    .nav-label {
+      margin: 24px 0 8px;
+      color: var(--color-muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-industrial);
+      color: var(--color-secondary);
+      font-size: 13px;
+    }
+
+    .nav-item.active {
+      color: var(--color-primary);
+      background: var(--color-brand-muted);
+      border-left: 2px solid var(--color-brand);
+    }
+
+    .main {
+      min-width: 0;
+      padding: 28px;
+    }
+
+    .content {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .page-hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .eyebrow {
+      color: var(--color-brand);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 400;
+    }
+
+    .desc {
+      margin: 8px 0 0;
+      max-width: 700px;
+      color: var(--color-secondary);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .btn {
+      height: 36px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-industrial);
+      background: transparent;
+      color: var(--color-primary);
+      padding: 0 14px;
+      cursor: default;
+    }
+
+    .btn.primary {
+      border-color: var(--color-brand);
+      background: var(--color-brand);
+      color: var(--color-page);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card,
+    .filter-card,
+    .table-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+    }
+
+    .metric-card {
+      padding: 16px;
+    }
+
+    .metric-label {
+      color: var(--color-muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .metric-desc {
+      margin-top: 6px;
+      color: var(--color-secondary);
+      font-size: 12px;
+    }
+
+    .filter-card {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1.3fr) repeat(3, minmax(150px, 1fr)) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--color-muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      height: 38px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-industrial);
+      background: var(--color-page);
+      color: var(--color-primary);
+      padding: 0 10px;
+    }
+
+    .table-card {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--color-muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 500;
+      background: var(--color-surface);
+    }
+
+    tr:hover td {
+      background: var(--color-accent);
+    }
+
+    .status {
+      color: var(--color-brand);
+      background: var(--color-brand-muted);
+      border: 1px solid rgb(200 160 85 / 0.35);
+      border-radius: var(--radius-industrial);
+      padding: 3px 8px;
+    }
+
+    .sticky-action {
+      position: sticky;
+      right: 0;
+      z-index: 1;
+      background: var(--color-surface);
+      box-shadow: -10px 0 18px rgb(0 0 0 / 0.18);
+    }
+
+    tr:hover .sticky-action {
+      background: rgb(39 36 28);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-industrial);
+      background: transparent;
+      color: var(--color-secondary);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .page-summary {
+      color: var(--color-secondary);
+      font-size: 12px;
+    }
+
+    .page-right,
+    .page-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-industrial);
+      background: transparent;
+      color: var(--color-secondary);
+    }
+
+    .page-btn.active {
+      background: var(--color-brand);
+      border-color: var(--color-brand);
+      color: var(--color-page);
+    }
+
+    .page-size {
+      height: 32px;
+      min-width: 84px;
+    }
+
+    .toast-region {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+    }
+
+    .toast {
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+      padding: 12px 14px;
+      color: var(--color-primary);
+      box-shadow: 0 18px 40px rgb(0 0 0 / 0.24);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .admin-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .filter-card { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .page-hero { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="sidebar">
+      <div class="brand">TILESFST</div>
+      <div class="nav-label">Catalog</div>
+      <div class="nav-item active">瓷砖 SKU</div>
+      <div class="nav-item">品牌管理</div>
+      <div class="nav-item">类目管理</div>
+      <div class="nav-label">System</div>
+      <div class="nav-item">用户管理</div>
+      <div class="nav-item">日志审计</div>
+      <div class="nav-item">接口文档</div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <section class="page-hero">
+          <div>
+            <div class="eyebrow">AdminListPage Contract</div>
+            <h1>管理端列表页模板</h1>
+            <p class="desc">用于 /design-system 验收的 AdminListPage 样例：标题、指标卡、筛选、表格、分页与 sticky action column 必须稳定组合。</p>
+          </div>
+          <div>
+            <button class="btn">刷新</button>
+            <button class="btn primary">新增记录</button>
+          </div>
+        </section>
+
+        <section class="metric-grid" aria-label="摘要指标">
+          <article class="metric-card">
+            <div class="metric-label">Total</div>
+            <div class="metric-value">128</div>
+            <div class="metric-desc">当前筛选结果总量</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Enabled</div>
+            <div class="metric-value">96</div>
+            <div class="metric-desc">可见或已启用记录</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Pending</div>
+            <div class="metric-value">18</div>
+            <div class="metric-desc">待补齐资料记录</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Updated</div>
+            <div class="metric-value">24h</div>
+            <div class="metric-desc">最近同步窗口</div>
+          </article>
+        </section>
+
+        <section class="filter-card" aria-label="筛选区">
+          <label>关键词
+            <input value="岩板" aria-label="关键词">
+          </label>
+          <label>状态
+            <select aria-label="状态"><option>全部状态</option><option>启用</option><option>停用</option></select>
+          </label>
+          <label>类型
+            <select aria-label="类型"><option>全部类型</option><option>SKU</option><option>品牌</option></select>
+          </label>
+          <label>时间范围
+            <select aria-label="时间范围"><option>近 30 天</option><option>近 7 天</option></select>
+          </label>
+          <button class="btn">重置</button>
+        </section>
+
+        <section class="table-card" aria-label="标准列表">
+          <table>
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>模块</th>
+                <th>状态</th>
+                <th>更新时间</th>
+                <th>负责人</th>
+                <th class="sticky-action">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>岩板 SKU 列表</td>
+                <td>Catalog</td>
+                <td><span class="status">已对齐</span></td>
+                <td>2026-07-05 10:18:38</td>
+                <td>前端</td>
+                <td class="sticky-action"><div class="row-actions"><button class="icon-btn">查</button><button class="icon-btn">编</button><button class="icon-btn">停</button></div></td>
+              </tr>
+              <tr>
+                <td>接口文档列表</td>
+                <td>System</td>
+                <td><span class="status">已对齐</span></td>
+                <td>2026-07-05 10:18:38</td>
+                <td>前端</td>
+                <td class="sticky-action"><div class="row-actions"><button class="icon-btn">查</button><button class="icon-btn">链</button></div></td>
+              </tr>
+              <tr>
+                <td>日志审计列表</td>
+                <td>System</td>
+                <td><span class="status">待迁移</span></td>
+                <td>2026-07-05 10:18:38</td>
+                <td>前端</td>
+                <td class="sticky-action"><div class="row-actions"><button class="icon-btn">查</button><button class="icon-btn">复</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination" aria-label="分页">
+            <div class="page-summary">共 128 条</div>
+            <div class="page-right">
+              <div class="page-buttons">
+                <button class="page-btn">‹</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">4</button>
+                <button class="page-btn">5</button>
+                <button class="page-btn">›</button>
+              </div>
+              <select class="page-size" aria-label="每页条数"><option>20 / 页</option><option>50 / 页</option></select>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="toast-region" aria-live="polite">
+    <div class="toast">fixed toast：操作反馈不推挤列表布局</div>
+  </div>
+</body>
+</html>

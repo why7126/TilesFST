@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 severity: high
 created_at: 2026-07-01 09:09:32
-updated_at: 2026-07-04 08:16:02
+updated_at: 2026-07-05 07:58:01
 ---
 
 # 缺陷追踪
@@ -38,7 +38,7 @@ iteration: sprint-004
 openspec_changes:
   - change_id: fix-api-docs-swagger-ui-link-wrong
     type: fix
-    status: archived
+    status: proposed
 readiness: Ready
 readiness_notes: 已完成 /bug-opsx、/opsx-apply 与 /opsx-archive；修复方向为 Web 层代理 Swagger。
 documents:
