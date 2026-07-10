@@ -12,6 +12,17 @@ _HAS_UPPER = re.compile(r"[A-Z]")
 _HAS_LOWER = re.compile(r"[a-z]")
 _HAS_SPECIAL = re.compile(r"[!@#$%^&*\-_=+]")
 
+PASSWORD_POLICY_MESSAGES: dict[str, str] = {
+    "min_length": "新密码至少需要 {min_length} 位字符",
+    "max_length": "新密码不能超过 {max_length} 位字符",
+    "missing_uppercase": "新密码需要包含大写字母",
+    "missing_lowercase": "新密码需要包含小写字母",
+    "missing_digit": "新密码需要包含数字",
+    "missing_special": "新密码需要包含特殊字符",
+    "same_as_old": "新密码不能与原密码相同",
+    "weak": "新密码过于常见，请更换",
+}
+
 WEAK_PASSWORDS = frozenset(
     {
         "12345678",
@@ -66,7 +77,9 @@ WEAK_PASSWORDS = frozenset(
 
 
 def is_weak_password(password: str) -> bool:
-    return password.lower() in {item.lower() for item in WEAK_PASSWORDS} or password in WEAK_PASSWORDS
+    return (
+        password.lower() in {item.lower() for item in WEAK_PASSWORDS} or password in WEAK_PASSWORDS
+    )
 
 
 def validate_password_policy(
@@ -75,21 +88,52 @@ def validate_password_policy(
     *,
     old_password: str | None = None,
 ) -> str | None:
-    if len(password) < policy.min_length or len(password) > policy.max_length:
-        return "policy"
-    if policy.require_uppercase and not _HAS_UPPER.search(password):
-        return "policy"
-    if policy.require_lowercase and not _HAS_LOWER.search(password):
-        return "policy"
-    if policy.require_digit and not _HAS_DIGIT.search(password):
-        return "policy"
-    if policy.require_special and not _HAS_SPECIAL.search(password):
-        return "policy"
-    if old_password is not None and password == old_password:
+    violations = collect_password_policy_violations(password, policy, old_password=old_password)
+    if "same_as_old" in violations:
         return "same_as_old"
-    if is_weak_password(password):
+    if "weak" in violations:
         return "weak"
+    if violations:
+        return "policy"
     return None
+
+
+def collect_password_policy_violations(
+    password: str,
+    policy: PasswordPolicy,
+    *,
+    old_password: str | None = None,
+) -> list[str]:
+    violations: list[str] = []
+    if len(password) < policy.min_length:
+        violations.append("min_length")
+    if len(password) > policy.max_length:
+        violations.append("max_length")
+    if policy.require_uppercase and not _HAS_UPPER.search(password):
+        violations.append("missing_uppercase")
+    if policy.require_lowercase and not _HAS_LOWER.search(password):
+        violations.append("missing_lowercase")
+    if policy.require_digit and not _HAS_DIGIT.search(password):
+        violations.append("missing_digit")
+    if policy.require_special and not _HAS_SPECIAL.search(password):
+        violations.append("missing_special")
+    if old_password is not None and password == old_password:
+        violations.append("same_as_old")
+    if is_weak_password(password):
+        violations.append("weak")
+    return violations
+
+
+def password_policy_message(violation: str, policy: PasswordPolicy) -> str:
+    template = PASSWORD_POLICY_MESSAGES.get(violation, "新密码不符合安全策略")
+    return template.format(min_length=policy.min_length, max_length=policy.max_length)
+
+
+def password_policy_error_message(violations: list[str], policy: PasswordPolicy) -> str:
+    policy_violations = [item for item in violations if item not in {"same_as_old", "weak"}]
+    if not policy_violations:
+        return "新密码不符合安全策略"
+    return "；".join(password_policy_message(item, policy) for item in policy_violations)
 
 
 def validate_new_password(new_password: str, *, old_password: str | None = None) -> str | None:

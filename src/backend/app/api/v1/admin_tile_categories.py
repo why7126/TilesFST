@@ -19,7 +19,6 @@ from app.schemas.tile_category_admin import (
 from app.services.tile_category_admin_service import TileCategoryAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
-TAGS = ["Admin Tile Categories"]
 
 
 def get_tile_category_admin_service(
@@ -29,7 +28,7 @@ def get_tile_category_admin_service(
 
 
 @router.get(
-    "/tree", response_model=ApiResponse[list[TileCategoryTreeNode]], tags=TAGS, summary="类目树"
+    "/tree", response_model=ApiResponse[list[TileCategoryTreeNode]], summary="类目树"
 )
 def get_category_tree(
     service: Annotated[TileCategoryAdminService, Depends(get_tile_category_admin_service)],
@@ -38,7 +37,7 @@ def get_category_tree(
 
 
 @router.get(
-    "", response_model=ApiResponse[TileCategoryAdminListData], tags=TAGS, summary="类目列表"
+    "", response_model=ApiResponse[TileCategoryAdminListData], summary="类目列表"
 )
 def list_categories(
     service: Annotated[TileCategoryAdminService, Depends(get_tile_category_admin_service)],
@@ -61,7 +60,7 @@ def list_categories(
 
 
 @router.post(
-    "", response_model=ApiResponse[TileCategoryAdminItem], tags=TAGS, summary="创建类目"
+    "", response_model=ApiResponse[TileCategoryAdminItem], summary="创建类目"
 )
 def create_category(
     payload: TileCategoryCreateRequest,
@@ -73,7 +72,6 @@ def create_category(
 @router.get(
     "/{category_id}",
     response_model=ApiResponse[TileCategoryAdminItem],
-    tags=TAGS,
     summary="类目详情",
 )
 def get_category(
@@ -86,7 +84,6 @@ def get_category(
 @router.put(
     "/{category_id}",
     response_model=ApiResponse[TileCategoryAdminItem],
-    tags=TAGS,
     summary="更新类目",
 )
 def update_category(
@@ -100,7 +97,6 @@ def update_category(
 @router.post(
     "/{category_id}/enable",
     response_model=ApiResponse[TileCategoryAdminItem],
-    tags=TAGS,
     summary="启用类目",
 )
 def enable_category(
@@ -113,7 +109,6 @@ def enable_category(
 @router.post(
     "/{category_id}/disable",
     response_model=ApiResponse[TileCategoryAdminItem],
-    tags=TAGS,
     summary="停用类目",
 )
 def disable_category(
@@ -124,7 +119,7 @@ def disable_category(
 
 
 @router.delete(
-    "/{category_id}", response_model=ApiResponse[None], tags=TAGS, summary="删除类目"
+    "/{category_id}", response_model=ApiResponse[None], summary="删除类目"
 )
 def delete_category(
     category_id: int,

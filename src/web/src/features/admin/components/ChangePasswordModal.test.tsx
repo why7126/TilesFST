@@ -32,7 +32,7 @@ function fieldContainer(inputId: string): Element | null {
   return document.getElementById(inputId)?.closest('.password-field') ?? null;
 }
 
-function createApiError(code: number, message: string) {
+function createApiError(code: number, message: string, data: Record<string, unknown> | null = null) {
   return new axios.AxiosError(
     'Request failed',
     undefined,
@@ -40,7 +40,7 @@ function createApiError(code: number, message: string) {
     undefined,
     {
       status: code === 30060 ? 403 : 400,
-      data: { code, message },
+      data: { code, message, data },
       statusText: code === 30060 ? 'Forbidden' : 'Bad Request',
       headers: {},
       config: {} as never,
@@ -70,9 +70,9 @@ describe('ChangePasswordModal', () => {
     fireEvent.change(screen.getByLabelText(/确认新密码/), { target: { value: 'short' } });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
-    expect(await screen.findByText('新密码不符合安全策略')).toBeInTheDocument();
+    expect(await screen.findByText(/新密码至少需要 12 位字符/)).toBeInTheDocument();
     expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toHaveTextContent(
-      '新密码不符合安全策略',
+      '新密码至少需要 12 位字符',
     );
     expect(fieldContainer('pwd-old')?.querySelector('.error-text')).toBeNull();
     expect(changePasswordMock).not.toHaveBeenCalled();
@@ -83,9 +83,9 @@ describe('ChangePasswordModal', () => {
     renderModal();
 
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.change(screen.getByLabelText(/确认新密码/), {
-      target: { value: 'NewPass456!' },
+      target: { value: 'NewPass4567!' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
@@ -101,9 +101,9 @@ describe('ChangePasswordModal', () => {
     renderModal();
 
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'WrongPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.change(screen.getByLabelText(/确认新密码/), {
-      target: { value: 'NewPass456!' },
+      target: { value: 'NewPass4567!' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
@@ -119,9 +119,9 @@ describe('ChangePasswordModal', () => {
     renderModal();
 
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.change(screen.getByLabelText(/确认新密码/), {
-      target: { value: 'NewPass456!' },
+      target: { value: 'NewPass4567!' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
@@ -135,7 +135,7 @@ describe('ChangePasswordModal', () => {
   it('shows validation error when confirm password mismatches', async () => {
     renderModal();
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.change(screen.getByLabelText(/确认新密码/), {
       target: { value: 'Different789!' },
     });
@@ -149,7 +149,7 @@ describe('ChangePasswordModal', () => {
     renderModal();
     fireEvent.change(screen.getByLabelText(/确认新密码/), { target: { value: 'Mismatch123!' } });
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
     await screen.findByText('两次输入的新密码不一致');
@@ -174,17 +174,65 @@ describe('ChangePasswordModal', () => {
     renderModal({ onSuccess, onClose });
 
     fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
-    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass456!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
     fireEvent.change(screen.getByLabelText(/确认新密码/), {
-      target: { value: 'NewPass456!' },
+      target: { value: 'NewPass4567!' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
     await waitFor(() => {
-      expect(changePasswordMock).toHaveBeenCalledWith('OldPass123!', 'NewPass456!');
+      expect(changePasswordMock).toHaveBeenCalledWith('OldPass123!', 'NewPass4567!');
     });
     expect(onSuccess).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders effective default policy rules instead of the legacy static rule', () => {
+    renderModal();
+    expect(screen.getByText('至少 12 位字符')).toBeInTheDocument();
+    expect(screen.getByText('包含大写字母')).toBeInTheDocument();
+    expect(screen.getByText('包含小写字母')).toBeInTheDocument();
+    expect(screen.getByText('包含数字')).toBeInTheDocument();
+    expect(screen.getByText('包含特殊字符')).toBeInTheDocument();
+    expect(screen.queryByText('8-32 位字符')).not.toBeInTheDocument();
+    expect(screen.queryByText('至少包含字母和数字')).not.toBeInTheDocument();
+  });
+
+  it('uses a single password-modal class to avoid modal-card width cascade', () => {
+    renderModal();
+    const dialog = screen.getByRole('dialog', { name: '修改密码' });
+    expect(dialog).toHaveClass('password-modal');
+    expect(dialog).not.toHaveClass('modal-card');
+  });
+
+  it('maps API policy violation details to concrete new-password messages', async () => {
+    changePasswordMock.mockRejectedValue(
+      createApiError(40021, '新密码不符合安全策略', {
+        violations: ['missing_uppercase', 'missing_special'],
+        policy: {
+          min_length: 12,
+          max_length: 32,
+          require_uppercase: true,
+          require_lowercase: true,
+          require_digit: true,
+          require_special: true,
+        },
+      }),
+    );
+    renderModal();
+
+    fireEvent.change(screen.getByLabelText(/原密码/), { target: { value: 'OldPass123!' } });
+    fireEvent.change(screen.getByLabelText(/^新密码/), { target: { value: 'NewPass4567!' } });
+    fireEvent.change(screen.getByLabelText(/确认新密码/), {
+      target: { value: 'NewPass4567!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
+
+    expect(await screen.findByText(/新密码需要包含大写字母/)).toBeInTheDocument();
+    expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toHaveTextContent(
+      '新密码需要包含特殊字符',
+    );
+    expect(fieldContainer('pwd-old')?.querySelector('.error-text')).toBeNull();
   });
 });
 
@@ -201,6 +249,17 @@ describe('mapPasswordChangeApiError', () => {
     expect(mapPasswordChangeApiError(createApiError(30060, '系统保底管理员账号不允许执行该操作'))).toEqual({
       oldPasswordError: null,
       newPasswordError: '系统保底管理员账号不允许执行该操作',
+    });
+    expect(
+      mapPasswordChangeApiError(
+        createApiError(40021, '新密码不符合安全策略', {
+          violations: ['min_length', 'missing_digit'],
+          policy: { min_length: 12, max_length: 32 },
+        }),
+      ),
+    ).toEqual({
+      oldPasswordError: null,
+      newPasswordError: '新密码至少需要 12 位字符；新密码需要包含数字',
     });
   });
 });

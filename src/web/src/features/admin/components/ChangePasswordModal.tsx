@@ -14,6 +14,79 @@ interface ChangePasswordModalProps {
   onSuccess: () => void;
 }
 
+interface PasswordPolicy {
+  min_length: number;
+  max_length: number;
+  require_uppercase: boolean;
+  require_lowercase: boolean;
+  require_digit: boolean;
+  require_special: boolean;
+}
+
+const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
+  min_length: 12,
+  max_length: 32,
+  require_uppercase: true,
+  require_lowercase: true,
+  require_digit: true,
+  require_special: true,
+};
+
+const POLICY_MESSAGES: Record<string, (policy: PasswordPolicy) => string> = {
+  min_length: (policy) => `新密码至少需要 ${policy.min_length} 位字符`,
+  max_length: (policy) => `新密码不能超过 ${policy.max_length} 位字符`,
+  missing_uppercase: () => '新密码需要包含大写字母',
+  missing_lowercase: () => '新密码需要包含小写字母',
+  missing_digit: () => '新密码需要包含数字',
+  missing_special: () => '新密码需要包含特殊字符',
+  same_as_old: () => '新密码不能与原密码相同',
+  weak: () => '新密码过于常见，请更换',
+};
+
+function normalizePasswordPolicy(policy?: Partial<PasswordPolicy>): PasswordPolicy {
+  return {
+    ...DEFAULT_PASSWORD_POLICY,
+    ...(policy ?? {}),
+  };
+}
+
+function collectPolicyViolations(
+  newPassword: string,
+  oldPassword: string,
+  policy = DEFAULT_PASSWORD_POLICY,
+): string[] {
+  const violations: string[] = [];
+  if (newPassword.length < policy.min_length) {
+    violations.push('min_length');
+  }
+  if (newPassword.length > policy.max_length) {
+    violations.push('max_length');
+  }
+  if (policy.require_uppercase && !/[A-Z]/.test(newPassword)) {
+    violations.push('missing_uppercase');
+  }
+  if (policy.require_lowercase && !/[a-z]/.test(newPassword)) {
+    violations.push('missing_lowercase');
+  }
+  if (policy.require_digit && !/\d/.test(newPassword)) {
+    violations.push('missing_digit');
+  }
+  if (policy.require_special && !/[!@#$%^&*\-_=+]/.test(newPassword)) {
+    violations.push('missing_special');
+  }
+  if (newPassword.length > 0 && newPassword === oldPassword) {
+    violations.push('same_as_old');
+  }
+  return violations;
+}
+
+function formatPolicyViolations(violations: string[], policy = DEFAULT_PASSWORD_POLICY): string {
+  const messages = violations
+    .map((violation) => POLICY_MESSAGES[violation]?.(policy))
+    .filter((message): message is string => Boolean(message));
+  return messages.length > 0 ? messages.join('；') : '新密码不符合安全策略';
+}
+
 function PasswordField({
   id,
   label,
@@ -79,9 +152,19 @@ export function mapPasswordChangeApiError(error: unknown): {
   const payload = error.response?.data as AuthErrorPayload | undefined;
   const code = payload?.code;
   const message = payload?.message ?? fallback;
+  const violations = payload?.data?.violations;
 
   if (code === 40020) {
     return { oldPasswordError: message, newPasswordError: null };
+  }
+  if (code === 40021 && violations && violations.length > 0) {
+    return {
+      oldPasswordError: null,
+      newPasswordError: formatPolicyViolations(
+        violations,
+        normalizePasswordPolicy(payload.data?.policy),
+      ),
+    };
   }
   if (code === 30060 || code === 40021 || code === 40022 || code === 40023 || code === 42901) {
     return { oldPasswordError: null, newPasswordError: message };
@@ -118,14 +201,18 @@ export function ChangePasswordModal({
     setSubmitting(false);
   }, [open]);
 
-  const rules = useMemo(
-    () => ({
-      length: newPassword.length >= 8 && newPassword.length <= 32,
-      charset: /[A-Za-z]/.test(newPassword) && /\d/.test(newPassword),
+  const rules = useMemo(() => {
+    const policy = DEFAULT_PASSWORD_POLICY;
+    return {
+      minLength: newPassword.length >= policy.min_length,
+      maxLength: newPassword.length <= policy.max_length,
+      uppercase: !policy.require_uppercase || /[A-Z]/.test(newPassword),
+      lowercase: !policy.require_lowercase || /[a-z]/.test(newPassword),
+      digit: !policy.require_digit || /\d/.test(newPassword),
+      special: !policy.require_special || /[!@#$%^&*\-_=+]/.test(newPassword),
       different: newPassword.length > 0 && newPassword !== oldPassword,
-    }),
-    [newPassword, oldPassword],
-  );
+    };
+  }, [newPassword, oldPassword]);
 
   const requestClose = useCallback(() => {
     onClose();
@@ -149,12 +236,9 @@ export function ChangePasswordModal({
     setNewPasswordError(null);
     setConfirmError(null);
 
-    if (!rules.length || !rules.charset) {
-      setNewPasswordError('新密码不符合安全策略');
-      return;
-    }
-    if (!rules.different) {
-      setNewPasswordError('新密码不能与原密码相同');
+    const localViolations = collectPolicyViolations(newPassword, oldPassword);
+    if (localViolations.length > 0) {
+      setNewPasswordError(formatPolicyViolations(localViolations));
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -183,7 +267,7 @@ export function ChangePasswordModal({
   return (
     <div className="password-modal-backdrop" role="presentation" onClick={requestClose}>
       <section
-        className="modal-card password-modal"
+        className="password-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -202,7 +286,7 @@ export function ChangePasswordModal({
         </header>
         <div className="modal-body">
           <p className="password-intro">
-            为了账号安全，建议使用 8 位以上并包含字母、数字的密码。修改成功后需要重新登录。
+            为了账号安全，请使用符合当前安全策略的密码。修改成功后需要重新登录。
           </p>
           <PasswordField
             id="pwd-old"
@@ -222,17 +306,37 @@ export function ChangePasswordModal({
             error={newPasswordError}
           />
           <div className="rule-list" aria-label="密码规则">
-            <div className={`rule-item${rules.length ? ' ok' : ''}`}>
+            <div className={`rule-item${rules.minLength ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              8-32 位字符
+              至少 {DEFAULT_PASSWORD_POLICY.min_length} 位字符
             </div>
-            <div className={`rule-item${rules.charset ? ' ok' : ''}`}>
+            <div className={`rule-item${rules.maxLength ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              至少包含字母和数字
+              不超过 {DEFAULT_PASSWORD_POLICY.max_length} 位字符
+            </div>
+            <div className={`rule-item${rules.uppercase ? ' ok' : ''}`}>
+              <span className="rule-dot" />
+              包含大写字母
+            </div>
+            <div className={`rule-item${rules.lowercase ? ' ok' : ''}`}>
+              <span className="rule-dot" />
+              包含小写字母
+            </div>
+            <div className={`rule-item${rules.digit ? ' ok' : ''}`}>
+              <span className="rule-dot" />
+              包含数字
+            </div>
+            <div className={`rule-item${rules.special ? ' ok' : ''}`}>
+              <span className="rule-dot" />
+              包含特殊字符
             </div>
             <div className={`rule-item${rules.different ? ' ok' : ''}`}>
               <span className="rule-dot" />
               不能与原密码相同
+            </div>
+            <div className="rule-item">
+              <span className="rule-dot" />
+              避免使用常见弱密码
             </div>
           </div>
           <PasswordField

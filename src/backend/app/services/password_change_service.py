@@ -11,7 +11,11 @@ from app.core.exceptions import (
     UserProtectedAccountError,
 )
 from app.core.protected_account import is_protected_username
-from app.core.password_validation import validate_new_password, validate_password_policy
+from app.core.password_validation import (
+    collect_password_policy_violations,
+    password_policy_error_message,
+    validate_new_password,
+)
 from app.core.security import hash_password, verify_password
 from app.repositories.password_change_repository import PasswordChangeRepository
 from app.repositories.user_repository import UserRecord, UserRepository
@@ -45,37 +49,66 @@ class PasswordChangeService:
         if is_protected_username(user.username):
             raise UserProtectedAccountError()
 
-        if self._attempts.count_recent_failures(
-            user.id,
-            minutes=self.FAIL_WINDOW_MINUTES,
-        ) >= self.FAIL_LIMIT:
+        if (
+            self._attempts.count_recent_failures(
+                user.id,
+                minutes=self.FAIL_WINDOW_MINUTES,
+            )
+            >= self.FAIL_LIMIT
+        ):
             raise PasswordChangeRateLimitError()
 
-        if self._attempts.count_recent_successes(
-            user.id,
-            hours=self.SUCCESS_WINDOW_HOURS,
-        ) >= self.SUCCESS_LIMIT:
+        if (
+            self._attempts.count_recent_successes(
+                user.id,
+                hours=self.SUCCESS_WINDOW_HOURS,
+            )
+            >= self.SUCCESS_LIMIT
+        ):
             raise PasswordChangeRateLimitError()
 
         if not verify_password(old_password, user.password_hash):
             self._attempts.insert_attempt(user_id=user.id, success=False)
             raise PasswordOldIncorrectError()
 
-        validation = (
-            validate_password_policy(
-                new_password,
-                self._effective.get_password_policy(),
-                old_password=old_password,
-            )
-            if self._effective is not None
-            else validate_new_password(new_password, old_password=old_password)
+        policy = self._effective.get_password_policy() if self._effective is not None else None
+        violations = (
+            collect_password_policy_violations(new_password, policy, old_password=old_password)
+            if policy is not None
+            else []
         )
+        validation = (
+            "same_as_old"
+            if "same_as_old" in violations
+            else "weak"
+            if "weak" in violations
+            else "policy"
+            if violations
+            else None
+        )
+        if policy is None:
+            validation = validate_new_password(new_password, old_password=old_password)
         if validation == "same_as_old":
             raise PasswordSameAsOldError()
         if validation == "weak":
             raise PasswordWeakError()
         if validation == "policy":
-            raise PasswordPolicyError()
+            raise PasswordPolicyError(
+                password_policy_error_message(violations, policy)
+                if policy is not None
+                else "新密码不符合安全策略",
+                violations=violations or None,
+                policy={
+                    "min_length": policy.min_length,
+                    "max_length": policy.max_length,
+                    "require_uppercase": policy.require_uppercase,
+                    "require_lowercase": policy.require_lowercase,
+                    "require_digit": policy.require_digit,
+                    "require_special": policy.require_special,
+                }
+                if policy is not None
+                else None,
+            )
 
         updated = self._users.change_password(user.id, hash_password(new_password))
         if updated is None:

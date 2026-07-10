@@ -119,6 +119,15 @@ def parse_frontmatter(text: str) -> dict[str, str]:
     return result
 
 
+def parse_frontmatter_yaml(text: str) -> dict[str, Any]:
+    if not text.startswith("---"):
+        return {}
+    match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    if not match:
+        return {}
+    return parse_simple_yaml(match.group(1))
+
+
 def parse_yaml_block(text: str) -> dict[str, Any] | None:
     match = re.search(r"```yaml\n(.*?)```", text, re.DOTALL)
     if not match:
@@ -156,7 +165,7 @@ def parse_simple_yaml(raw: str) -> dict[str, Any]:
                 item[key.strip()] = coerce_scalar(value.strip())
                 container.append(item)
                 list_item = item
-                stack.append((indent + 2, item))
+                stack.append((indent, item))
             else:
                 container.append(coerce_scalar(item_text))
             continue
@@ -399,7 +408,16 @@ def load_issue_record(path: Path, kind: str) -> IssueRecord | None:
     if trace_path.exists():
         trace_text = read_text(trace_path)
         fm = parse_frontmatter(trace_text)
+        fm_block = parse_frontmatter_yaml(trace_text)
         trace_status = fm.get("status")
+        raw_changes = fm_block.get("openspec_changes") or []
+        if isinstance(raw_changes, list):
+            openspec_changes = [c for c in raw_changes if isinstance(c, dict)]
+        raw_related_changes = fm_block.get("related_changes") or []
+        if isinstance(raw_related_changes, list):
+            related_changes = [str(item).strip() for item in raw_related_changes if str(item).strip()]
+        related_requirement = fm_block.get("related_requirement")
+        related_change = fm_block.get("related_change")
         block = parse_yaml_block(trace_text)
         if block:
             trace_status = block.get("status") or trace_status

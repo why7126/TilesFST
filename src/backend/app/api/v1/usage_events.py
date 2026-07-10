@@ -43,7 +43,6 @@ def _optional_user(
 @router.post(
     "",
     response_model=ApiResponse[UsageEventData],
-    tags=["usage-events"],
     summary="上报产品使用行为事件",
     description="按事件字典上报产品使用行为；后端校验事件和属性并补充可信上下文。",
 )

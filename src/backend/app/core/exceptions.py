@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class AppError(Exception):
-    def __init__(self, *, status_code: int, code: int, message: str) -> None:
+    def __init__(
+        self,
+        *,
+        status_code: int,
+        code: int,
+        message: str,
+        data: dict[str, Any] | None = None,
+    ) -> None:
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.data = data
         super().__init__(message)
 
 
@@ -90,10 +100,21 @@ class PasswordOldIncorrectError(AppError):
 
 
 class PasswordPolicyError(AppError):
-    def __init__(self, message: str = "新密码不符合安全策略") -> None:
+    def __init__(
+        self,
+        message: str = "新密码不符合安全策略",
+        *,
+        violations: list[str] | None = None,
+        policy: dict[str, Any] | None = None,
+    ) -> None:
         from app.core.error_codes import PASSWORD_CHANGE_POLICY
 
-        super().__init__(status_code=400, code=PASSWORD_CHANGE_POLICY, message=message)
+        data: dict[str, Any] | None = None
+        if violations is not None:
+            data = {"violations": violations}
+            if policy is not None:
+                data["policy"] = policy
+        super().__init__(status_code=400, code=PASSWORD_CHANGE_POLICY, message=message, data=data)
 
 
 class PasswordWeakError(AppError):

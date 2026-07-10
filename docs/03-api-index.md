@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-03 13:53:29
+updated_at: 2026-07-07 00:21:09
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -451,6 +451,28 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 改密成功后 `users.token_version` 递增，JWT `tv` claim 失效旧 token；客户端 MUST 清除本地 token 并重新登录。
 
 校验错误码：`30060`（系统保底管理员账号不允许执行改密）、`40020`（原密码错误）、`40021`（策略）、`40022`（弱密码）、`40023`（与原密码相同）、`42901`（限流）。
+
+`40021` 策略失败响应保持统一 envelope，并在 `data` 中提供前端可识别的策略详情：
+
+```json
+{
+  "code": 40021,
+  "message": "新密码至少需要 12 位字符；新密码需要包含特殊字符",
+  "data": {
+    "violations": ["min_length", "missing_special"],
+    "policy": {
+      "min_length": 12,
+      "max_length": 32,
+      "require_uppercase": true,
+      "require_lowercase": true,
+      "require_digit": true,
+      "require_special": true
+    }
+  }
+}
+```
+
+`violations` 稳定枚举：`min_length`、`max_length`、`missing_uppercase`、`missing_lowercase`、`missing_digit`、`missing_special`。响应不得包含明文密码。
 
 ---
 

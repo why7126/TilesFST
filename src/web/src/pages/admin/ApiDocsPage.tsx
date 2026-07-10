@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fetchApiDocs } from '@/features/admin/api/api-docs-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
-import { getPaginationWindow } from '@/features/admin/lib/pagination';
+import { getPaginationWindow } from '@/shared/lib/pagination-window';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/api-docs.css';
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { ApiDocsData, ApiDocsRouteItem } from '@/shared/api/generated';
+import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 
 const ALL_VALUE = 'all';
 const DEFAULT_PAGE_SIZE = 20;
@@ -199,28 +200,32 @@ export function ApiDocsPage() {
         </div>
       </section>
 
-      <section className="summary-grid" aria-label="接口文档摘要">
-        <article className="metric-card">
-          <div className="metric-label">TOTAL ROUTES</div>
-          <div className="metric-value">{data?.summary.total_routes ?? '--'}</div>
-          <div className="metric-desc">全部运行时接口</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">AUTH ROUTES</div>
-          <div className="metric-value">{data?.summary.protected_routes ?? '--'}</div>
-          <div className="metric-desc">需要登录或管理员权限</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">ORVAL</div>
-          <div className="metric-value">{data?.summary.orval_mapped_routes ?? '--'}</div>
-          <div className="metric-desc">已生成前端方法名</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">NON API V1</div>
-          <div className="metric-value">{data?.summary.non_api_v1_routes ?? '--'}</div>
-          <div className="metric-desc">健康检查、媒体与文档路由</div>
-        </article>
-      </section>
+      <MetricCardGrid ariaLabel="接口文档摘要">
+        <MetricCard
+          label="TOTAL ROUTES"
+          value={data?.summary.total_routes}
+          description="全部运行时接口"
+          placeholder="--"
+        />
+        <MetricCard
+          label="AUTH ROUTES"
+          value={data?.summary.protected_routes}
+          description="需要登录或管理员权限"
+          placeholder="--"
+        />
+        <MetricCard
+          label="ORVAL"
+          value={data?.summary.orval_mapped_routes}
+          description="已生成前端方法名"
+          placeholder="--"
+        />
+        <MetricCard
+          label="NON API V1"
+          value={data?.summary.non_api_v1_routes}
+          description="健康检查、媒体与文档路由"
+          placeholder="--"
+        />
+      </MetricCardGrid>
 
       <section className="filter-card api-docs-filter" aria-label="接口筛选">
         <div className="api-docs-filter-grid">

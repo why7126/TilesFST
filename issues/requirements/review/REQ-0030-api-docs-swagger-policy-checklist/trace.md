@@ -3,7 +3,7 @@ requirement_id: REQ-0030-api-docs-swagger-policy-checklist
 status: in_sprint
 priority: P2
 created_at: 2026-07-04 15:42:05
-updated_at: 2026-07-05 07:55:25
+updated_at: 2026-07-10 08:51:57
 lifecycle_stage: review
 lifecycle:
   captured: 2026-07-04 15:42:05
@@ -32,7 +32,7 @@ readiness_notes: 已补齐 requirement、user-stories、business-flow、acceptan
 
 ## 当前状态
 
-- 状态：in_sprint
+- 状态：proposed
 - 阶段：review
 - 优先级：P2
 - 来源：Sprint 004 复盘行动项 / 用户输入

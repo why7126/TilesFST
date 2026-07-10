@@ -18,7 +18,6 @@ from app.schemas.tile_spec_admin import (
 from app.services.tile_spec_admin_service import TileSpecAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
-TAGS = ["Admin Tile Specs"]
 
 
 def get_tile_spec_admin_service(
@@ -28,7 +27,7 @@ def get_tile_spec_admin_service(
 
 
 @router.get(
-    "", response_model=ApiResponse[TileSpecAdminListData], tags=TAGS, summary="瓷砖规格列表"
+    "", response_model=ApiResponse[TileSpecAdminListData], summary="瓷砖规格列表"
 )
 def list_tile_specs(
     service: Annotated[TileSpecAdminService, Depends(get_tile_spec_admin_service)],
@@ -48,7 +47,7 @@ def list_tile_specs(
 
 
 @router.post(
-    "", response_model=ApiResponse[TileSpecAdminItem], tags=TAGS, summary="创建瓷砖规格"
+    "", response_model=ApiResponse[TileSpecAdminItem], summary="创建瓷砖规格"
 )
 def create_tile_spec(
     payload: TileSpecCreateRequest,
@@ -60,7 +59,6 @@ def create_tile_spec(
 @router.get(
     "/{spec_id}",
     response_model=ApiResponse[TileSpecAdminItem],
-    tags=TAGS,
     summary="瓷砖规格详情",
 )
 def get_tile_spec(
@@ -73,7 +71,6 @@ def get_tile_spec(
 @router.put(
     "/{spec_id}",
     response_model=ApiResponse[TileSpecAdminItem],
-    tags=TAGS,
     summary="更新瓷砖规格",
 )
 def update_tile_spec(
@@ -87,7 +84,6 @@ def update_tile_spec(
 @router.post(
     "/{spec_id}/enable",
     response_model=ApiResponse[TileSpecAdminItem],
-    tags=TAGS,
     summary="启用瓷砖规格",
 )
 def enable_tile_spec(
@@ -100,7 +96,6 @@ def enable_tile_spec(
 @router.post(
     "/{spec_id}/disable",
     response_model=ApiResponse[TileSpecAdminItem],
-    tags=TAGS,
     summary="停用瓷砖规格",
 )
 def disable_tile_spec(
@@ -113,7 +108,6 @@ def disable_tile_spec(
 @router.delete(
     "/{spec_id}",
     response_model=ApiResponse[dict[str, bool]],
-    tags=TAGS,
     summary="删除瓷砖规格",
 )
 def delete_tile_spec(

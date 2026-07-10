@@ -3,12 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fetchLogDetail, fetchLogs, type LogQuery } from '@/features/admin/api/logs-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
-import { getPaginationWindow } from '@/features/admin/lib/pagination';
+import { getPaginationWindow } from '@/shared/lib/pagination-window';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/log-audit.css';
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import { trackUsageEvent } from '@/features/tracking/api/usage-tracking';
 import type { LogDetailData, LogDetailSection, LogListData, LogListItem } from '@/shared/api/generated';
+import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
@@ -306,21 +307,27 @@ export function LogAuditPage() {
   };
 
   const copyRequestId = async (value?: string | null) => {
-    if (!value) {
+    const requestId = value?.trim();
+    if (!requestId) {
       setNotice('当前日志没有 request_id');
       return;
     }
+    const writeText = navigator.clipboard?.writeText;
+    if (!writeText) {
+      setNotice('无法自动复制 request_id，请打开日志详情选中文本手动复制');
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(value);
+      await writeText.call(navigator.clipboard, requestId);
       setNotice('request_id 已复制');
       void trackUsageEvent('copy_request_id', {
         module: TRACKING_MODULE,
         entity_type: 'request_log',
-        entity_id: value,
-        request_id: value,
+        entity_id: requestId,
+        request_id: requestId,
       });
     } catch {
-      setNotice('复制失败，请稍后重试');
+      setNotice('自动复制失败，请打开日志详情选中文本手动复制');
     }
   };
 
@@ -347,28 +354,22 @@ export function LogAuditPage() {
         </div>
       </section>
 
-      <section className="summary-grid" aria-label="日志摘要">
-        <article className="metric-card">
-          <div className="metric-label">TODAY LOGS</div>
-          <div className="metric-value">{formatMetric(data?.summary.today_logs)}</div>
-          <div className="metric-desc">今日总量</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">API ERRORS</div>
-          <div className="metric-value">{formatMetric(data?.summary.api_errors)}</div>
-          <div className="metric-desc danger">异常请求</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">SLOW REQUESTS</div>
-          <div className="metric-value">{formatMetric(data?.summary.slow_requests)}</div>
-          <div className="metric-desc danger">超过 1000ms</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">SENSITIVE OPS</div>
-          <div className="metric-value">{formatMetric(data?.summary.sensitive_ops)}</div>
-          <div className="metric-desc">审计操作</div>
-        </article>
-      </section>
+      <MetricCardGrid ariaLabel="日志摘要">
+        <MetricCard label="TODAY LOGS" value={formatMetric(data?.summary.today_logs)} description="今日总量" />
+        <MetricCard
+          label="API ERRORS"
+          value={formatMetric(data?.summary.api_errors)}
+          description="异常请求"
+          dangerDescription
+        />
+        <MetricCard
+          label="SLOW REQUESTS"
+          value={formatMetric(data?.summary.slow_requests)}
+          description="超过 1000ms"
+          dangerDescription
+        />
+        <MetricCard label="SENSITIVE OPS" value={formatMetric(data?.summary.sensitive_ops)} description="审计操作" />
+      </MetricCardGrid>
 
       <section className="filter-card log-audit-filter" aria-label="日志筛选">
         <div className="log-audit-filter-grid">
@@ -456,8 +457,8 @@ export function LogAuditPage() {
                     <td className={item.duration_ms && item.duration_ms >= 1000 ? 'duration danger' : 'duration'}>{item.duration_ms ?? '-'}{item.duration_ms ? 'ms' : ''}</td>
                     <td>
                       <div className="request-id-cell">
-                        <code className="request-id" title={item.request_id ?? undefined}>{shortRequestId(item.request_id)}</code>
-                        {item.request_id ? (
+                        <code className="request-id" title={item.request_id?.trim() || undefined}>{shortRequestId(item.request_id?.trim())}</code>
+                        {item.request_id?.trim() ? (
                           <button className="request-copy-action" type="button" aria-label="复制 request_id" onClick={() => void copyRequestId(item.request_id)}>
                             <Copy size={13} aria-hidden />
                           </button>

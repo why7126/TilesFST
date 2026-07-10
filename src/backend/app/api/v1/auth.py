@@ -37,7 +37,6 @@ def get_auth_service(
     "/login",
     response_model=ApiResponse[LoginData],
     summary="用户登录",
-    tags=["auth"],
 )
 def login(
     payload: LoginRequest,
@@ -55,7 +54,6 @@ def login(
     "/me",
     response_model=ApiResponse[UserProfile],
     summary="获取当前用户",
-    tags=["auth"],
 )
 def me(
     current_user: Annotated[UserRecord, Depends(get_current_user)],
@@ -68,7 +66,6 @@ def me(
     "/logout",
     response_model=ApiResponse[LogoutData],
     summary="用户登出",
-    tags=["auth"],
 )
 def logout(
     _: Annotated[UserRecord, Depends(get_current_user)],

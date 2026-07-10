@@ -3,21 +3,21 @@ next_id: 62
 entries:
   - id: BUG-0061-change-password-policy-error-message-unclear
     title: 修改密码新密码安全策略失败提示不清晰
-    status: captured
+    status: done
     severity: medium
     created: "2026-07-05 20:30:52"
     related_requirement: REQ-0015-password-change
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-change-password-policy-error-message
+    iteration: sprint-005
   - id: BUG-0060-audit-log-request-id-copy-error
     title: 日志审计页复制 request_id 时报错
-    status: captured
+    status: done
     severity: medium
     created: "2026-07-05 20:31:10"
     related_requirement: REQ-0024-product-usage-logging
     related_bug: null
-    related_change: null
+    related_change: fix-audit-log-request-id-copy-error
     iteration: null
   - id: BUG-0059-user-password-copy-not-working
     title: 创建用户与重置密码后复制密码功能未生效
@@ -30,7 +30,7 @@ entries:
     iteration: sprint-005
   - id: BUG-0058-workflow-sync-check-time-drift-idempotency
     title: workflow-sync --check 时间漂移幂等性不足
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-07-04 15:33:21"
     related_requirement: null
@@ -39,7 +39,7 @@ entries:
     iteration: sprint-005
   - id: BUG-0057-api-governance-tags-known-debt
     title: API governance 既有 route tags known-debt 清理失败
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-07-04 15:25:45"
     related_requirement: null
@@ -48,7 +48,7 @@ entries:
     iteration: sprint-005
   - id: BUG-0056-sprint-archive-incomplete-tasks-gate
     title: /sprint-archive 未完成 tasks 仍可归档
-    status: in_sprint
+    status: done
     severity: high
     created: "2026-07-04 15:04:22"
     related_requirement: null

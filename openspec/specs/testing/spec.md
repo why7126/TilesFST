@@ -46,7 +46,7 @@ Each REQ-0000 infrastructure requirement MUST map to at least one automated test
 
 ### Requirement: Change 测试
 
-New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, or user-facing UI MUST include focused regression tests for the modified behavior. For `update-admin-superuser-protection`, backend tests MUST cover protected account identification and all protected operation guards; frontend tests SHOULD cover protected row disabled actions and ordinary user non-regression.
+New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, user-facing UI, workflow automation, or governance scripts MUST include focused regression tests for the modified behavior. For password-policy feedback changes, tests MUST cover both backend policy failure detail and frontend user-facing error rendering.
 
 #### Scenario: 治理文档声明测试要求
 
@@ -54,32 +54,38 @@ New Services and Routers introduced in OpenSpec Changes MUST include correspondi
 - **THEN** MUST find a rule that OpenSpec Change implementations MUST add matching tests
 - **AND** MUST NOT allow implementation-only changes without test coverage for new Services or Routers
 
-#### Scenario: 受保护用户列表字段已测试
+#### Scenario: 修改密码策略失败详情已测试
 
 - **WHEN** backend tests run for this change
-- **THEN** at least one test MUST assert that `GET /api/v1/admin/users` returns `is_protected=true` for `ADMIN_USERNAME`
-- **AND** ordinary admin users MUST return `is_protected=false`
+- **THEN** tests MUST assert password change policy failures expose distinguishable failure details for length, uppercase, lowercase, digit, and special-character requirements
+- **AND** tests MUST assert failures do not update `password_hash`
+- **AND** tests MUST assert responses do not include plaintext passwords
 
-#### Scenario: 受保护破坏性操作已测试
-
-- **WHEN** backend tests run for this change
-- **THEN** tests MUST assert protected account edit returns HTTP 403 and leaves fields unchanged
-- **AND** tests MUST assert reset-password returns HTTP 403 and leaves `password_hash` unchanged
-- **AND** tests MUST assert status change returns HTTP 403 and leaves status unchanged
-- **AND** tests MUST assert protected account self password change returns HTTP 403 and leaves `password_hash` and `token_version` unchanged
-
-#### Scenario: 前端受保护行行为已测试
+#### Scenario: 修改密码弹窗具体错误提示已测试
 
 - **WHEN** frontend tests run for this change
-- **THEN** tests SHOULD assert protected account row action buttons are disabled or inert
-- **AND** tests SHOULD assert disabled actions use `protected_reason`
-- **AND** tests SHOULD assert ordinary user edit/reset/status actions remain available and keep DS confirm behavior
+- **THEN** tests MUST assert policy failure details render as concrete user-facing messages
+- **AND** tests MUST assert new-password policy failures are not displayed under the old-password field
+- **AND** tests MUST assert old-password, weak-password, same-as-old, protected-account, and success paths do not regress
 
 #### Scenario: Orval 与 API 契约已检查
 
 - **WHEN** this change modifies OpenAPI response schemas
-- **THEN** generated client types MUST include `is_protected` and `protected_reason`
+- **THEN** generated client types MUST include the password policy failure detail shape
 - **AND** generated files MUST NOT be hand-edited
+
+#### Scenario: workflow-sync 归档时间漂移已测试
+
+- **WHEN** a Change modifies workflow-sync archived Change timestamp derivation
+- **THEN** regression tests MUST cover an archived Change whose related issue or change trace frontmatter `updated_at` is newer than the stable archive fact
+- **AND** the rendered archive timestamp MUST come from lifecycle, archive records, or archive directory date rather than mutable `updated_at`
+
+#### Scenario: workflow-sync Markdown 持久化幂等已测试
+
+- **WHEN** a Change modifies workflow-sync Markdown persistence behavior
+- **THEN** regression tests MUST cover a Markdown document whose rendered content is identical to the current file
+- **AND** persistence MUST NOT rewrite the file or refresh frontmatter `updated_at`
+- **AND** consecutive `python scripts/sync-workflow-status.py --check` runs MUST remain no delta after a normal sync.
 
 ### Requirement: 测试框架校验脚本
 
@@ -338,4 +344,32 @@ The testing capability SHALL include focused frontend regression coverage for BU
 - **WHEN** frontend tests render affected admin tables
 - **THEN** they SHALL verify the last header and body cells use the sticky action column contract
 - **AND** they SHALL verify existing action disabled states and confirmation flows remain test-covered where already present.
+
+### Requirement: Sprint Archive Tasks Gate
+
+The workflow tooling MUST provide an executable Sprint archive readiness gate that blocks `/sprint-archive` before any archive or Sprint close mutation when a Sprint-scoped OpenSpec Change has incomplete tasks.
+
+#### Scenario: Incomplete active change blocks archive
+
+- **WHEN** a Sprint references an active OpenSpec Change whose `tasks.md` contains one or more `- [ ]` items
+- **THEN** the Sprint archive readiness gate MUST return a non-zero exit code
+- **AND** the report MUST identify the blocked change and incomplete task count.
+
+#### Scenario: Incomplete archived change blocks Sprint close
+
+- **WHEN** a Sprint references an already archived OpenSpec Change whose archived `tasks.md` contains one or more `- [ ]` items
+- **THEN** the Sprint archive readiness gate MUST return a non-zero exit code
+- **AND** the report MUST NOT skip the change only because it is already under `openspec/changes/archive/`.
+
+#### Scenario: Completed Sprint changes pass
+
+- **WHEN** every Sprint-scoped OpenSpec Change has a present `tasks.md` with all checklist items marked `- [x]`
+- **THEN** the Sprint archive readiness gate MUST return exit code 0
+- **AND** the report MUST declare a PASS verdict.
+
+#### Scenario: Missing tasks file blocks archive
+
+- **WHEN** a Sprint-scoped OpenSpec Change has no `tasks.md`
+- **THEN** the Sprint archive readiness gate MUST return a non-zero exit code
+- **AND** the report MUST identify the missing tasks file as a blocker.
 

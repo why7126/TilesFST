@@ -72,7 +72,7 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 - `iterations/<sprint>/sprint.md` Scope tables + note；§里程碑「目标日期」列 legacy 仅日期 → `YYYY-MM-DD HH:mm:ss`
 - `iterations/<sprint>/acceptance-report.md` issue status lines + note
 - `iterations/<sprint>/release-note.md` publish status
-- `issues/requirements|bugs/*/trace.md` status + `openspec_changes[].status`
+- `issues/requirements|bugs/*/trace.md` status + `openspec_changes[].status`（Frontmatter 与 fenced `yaml` 块均需同步）+ `## 变更记录` workflow event 行
 - parent requirement `trace.md` related bug index
 - `issues/requirements/_registry.yaml` / `issues/bugs/_registry.yaml`
 - 写入时自动维护 Frontmatter `created_at` / `updated_at`（`rules/document-governance.md` §2.4）

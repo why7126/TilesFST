@@ -40,7 +40,6 @@ def _validate_video_type(content_type: str | None, effective: EffectiveSettingsS
     "",
     response_model=ApiResponse[UploadResult],
     summary="上传头像",
-    tags=["uploads"],
 )
 async def upload_image(
     file: UploadFile = File(...),
@@ -59,7 +58,6 @@ async def upload_image(
     "/brand-logos",
     response_model=ApiResponse[UploadResult],
     summary="上传品牌 Logo",
-    tags=["uploads"],
 )
 async def upload_brand_logo(
     file: UploadFile = File(...),
@@ -78,7 +76,6 @@ async def upload_brand_logo(
     "/banner-images",
     response_model=ApiResponse[UploadResult],
     summary="上传 Banner 图片",
-    tags=["uploads"],
 )
 async def upload_banner_image(
     file: UploadFile = File(...),
@@ -97,7 +94,6 @@ async def upload_banner_image(
     "/tile-images",
     response_model=ApiResponse[UploadResult],
     summary="上传 SKU 图片",
-    tags=["uploads"],
 )
 async def upload_tile_image(
     file: UploadFile = File(...),
@@ -118,7 +114,6 @@ async def upload_tile_image(
     "/tile-videos",
     response_model=ApiResponse[UploadResult],
     summary="上传 SKU 视频",
-    tags=["uploads"],
 )
 async def upload_tile_video(
     file: UploadFile = File(...),

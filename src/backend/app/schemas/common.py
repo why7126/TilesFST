@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -18,4 +18,4 @@ class ApiResponse(BaseModel, Generic[T]):
 class ApiErrorResponse(BaseModel):
     code: int
     message: str
-    data: None = Field(default=None)
+    data: dict[str, Any] | None = Field(default=None)

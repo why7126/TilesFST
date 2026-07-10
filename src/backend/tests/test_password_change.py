@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -47,6 +47,28 @@ def _set_system_setting(key: str, value: str) -> None:
     try:
         repo = SystemSettingsRepository(session)
         repo.set(key, value, updated_by=None)
+    finally:
+        session.close()
+
+
+def _get_user_security(username: str) -> dict[str, object]:
+    session = get_session_factory()()
+    try:
+        row = (
+            session.execute(
+                text(
+                    """
+                SELECT password_hash, token_version
+                FROM users
+                WHERE username = :username
+                """
+                ),
+                {"username": username},
+            )
+            .mappings()
+            .one()
+        )
+        return dict(row)
     finally:
         session.close()
 
@@ -99,7 +121,44 @@ def test_change_password_weak(client: TestClient) -> None:
     assert response.json()["code"] == 40022
 
 
-def test_change_password_policy(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    ("username", "new_password", "expected_violation"),
+    [
+        ("policyshort", "Short1!", "min_length"),
+        ("policymax", "A1!" + "a" * 30, "max_length"),
+        ("policyupper", "lowercase123!", "missing_uppercase"),
+        ("policylower", "UPPERCASE123!", "missing_lowercase"),
+        ("policydigit", "NoDigitsHere!", "missing_digit"),
+        ("policyspecial", "NoSpecial123", "missing_special"),
+    ],
+)
+def test_change_password_policy_details(
+    client: TestClient,
+    username: str,
+    new_password: str,
+    expected_violation: str,
+) -> None:
+    _create_user(username=username)
+    before = _get_user_security(username)
+    headers = _auth_headers(client, username, "Operator123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={"old_password": "Operator123!", "new_password": new_password},
+    )
+    assert response.status_code == 400
+    body = response.json()
+    assert body["code"] == 40021
+    assert expected_violation in body["data"]["violations"]
+    assert body["data"]["policy"]["min_length"] == 12
+    assert body["data"]["policy"]["max_length"] == 32
+    assert new_password not in json.dumps(body, ensure_ascii=False)
+    after = _get_user_security(username)
+    assert after["password_hash"] == before["password_hash"]
+    assert after["token_version"] == before["token_version"]
+
+
+def test_change_password_policy_reports_multiple_details(client: TestClient) -> None:
     _create_user()
     headers = _auth_headers(client, "operator01", "Operator123!")
     response = client.post(
@@ -108,7 +167,10 @@ def test_change_password_policy(client: TestClient) -> None:
         json={"old_password": "Operator123!", "new_password": "short1"},
     )
     assert response.status_code == 400
-    assert response.json()["code"] == 40021
+    body = response.json()
+    assert body["code"] == 40021
+    assert set(body["data"]["violations"]) >= {"min_length", "missing_uppercase", "missing_special"}
+    assert "至少需要 12 位字符" in body["message"]
 
 
 def test_change_password_same_as_old(client: TestClient) -> None:
@@ -213,16 +275,20 @@ def test_rate_limit_after_failed_attempts(client: TestClient) -> None:
 def test_protected_admin_cannot_change_own_password(client: TestClient) -> None:
     session = get_session_factory()()
     try:
-        before = session.execute(
-            text(
-                """
+        before = (
+            session.execute(
+                text(
+                    """
                 SELECT password_hash, token_version
                 FROM users
                 WHERE username = :username
                 """
-            ),
-            {"username": DEFAULT_ADMIN_USERNAME},
-        ).mappings().one()
+                ),
+                {"username": DEFAULT_ADMIN_USERNAME},
+            )
+            .mappings()
+            .one()
+        )
     finally:
         session.close()
 
@@ -237,16 +303,20 @@ def test_protected_admin_cannot_change_own_password(client: TestClient) -> None:
     assert response.json()["code"] == 30060
     session = get_session_factory()()
     try:
-        after = session.execute(
-            text(
-                """
+        after = (
+            session.execute(
+                text(
+                    """
                 SELECT password_hash, token_version
                 FROM users
                 WHERE username = :username
                 """
-            ),
-            {"username": DEFAULT_ADMIN_USERNAME},
-        ).mappings().one()
+                ),
+                {"username": DEFAULT_ADMIN_USERNAME},
+            )
+            .mappings()
+            .one()
+        )
     finally:
         session.close()
     assert after["password_hash"] == before["password_hash"]

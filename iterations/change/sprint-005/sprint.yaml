@@ -9,18 +9,26 @@ capacity:
   testers: 1
 
 requirements:
+  - REQ-0029-admin-list-foundation-components
   - REQ-0030-api-docs-swagger-policy-checklist
 
 bugs:
+  - BUG-0056-sprint-archive-incomplete-tasks-gate
   - BUG-0057-api-governance-tags-known-debt
   - BUG-0058-workflow-sync-check-time-drift-idempotency
   - BUG-0059-user-password-copy-not-working
+  - BUG-0060-audit-log-request-id-copy-error
+  - BUG-0061-change-password-policy-error-message-unclear
 
 changes:
+  - add-admin-list-foundation-components
+  - fix-sprint-archive-incomplete-tasks-gate
   - update-api-docs-swagger-policy-checklist
   - fix-api-governance-route-tags-known-debt
   - fix-workflow-sync-check-time-drift-idempotency
   - fix-user-password-copy-not-working
+  - fix-audit-log-request-id-copy-error
+  - fix-change-password-policy-error-message
 
-estimated_story_points: 15
-estimated_person_days: 12.0
+estimated_story_points: 29
+estimated_person_days: 21.0

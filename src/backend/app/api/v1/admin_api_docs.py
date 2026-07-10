@@ -169,7 +169,6 @@ def _environment_policy() -> ApiDocsEnvironmentPolicy:
 @router.get(
     "",
     response_model=ApiResponse[ApiDocsData],
-    tags=["admin-api-docs"],
     summary="管理端接口文档目录",
 )
 def get_api_docs(request: Request) -> ApiResponse[ApiDocsData]:

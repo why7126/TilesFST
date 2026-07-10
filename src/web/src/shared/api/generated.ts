@@ -44,6 +44,14 @@ export interface ApiDocsData {
   environment: ApiDocsEnvironmentPolicy;
 }
 
+export type ApiErrorResponseData = { [key: string]: unknown } | null;
+
+export interface ApiErrorResponse {
+  code: number;
+  message: string;
+  data?: ApiErrorResponseData;
+}
+
 export interface ApiResponseApiDocsData {
   code?: number;
   message?: string;
@@ -1905,7 +1913,7 @@ formData.append(`file`, bodyUploadTileVideoApiV1AdminUploadsTileVideosPost.file)
   }
 
 /**
- * @summary Health Check
+ * @summary 健康检查
  */
 const healthCheckHealthGet = (
      options?: AxiosRequestConfig

@@ -19,7 +19,6 @@ from app.schemas.common import ApiResponse
 from app.services.banner_admin_service import BannerAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
-TAGS = ["Admin Banners"]
 
 
 def get_banner_admin_service(
@@ -29,7 +28,7 @@ def get_banner_admin_service(
     return BannerAdminService(banner_repo, topic_repo)
 
 
-@router.get("", response_model=ApiResponse[BannerAdminListData], tags=TAGS, summary="Banner 列表")
+@router.get("", response_model=ApiResponse[BannerAdminListData], summary="Banner 列表")
 def list_banners(
     service: Annotated[BannerAdminService, Depends(get_banner_admin_service)],
     page: int = Query(1, ge=1),
@@ -50,7 +49,7 @@ def list_banners(
     return ApiResponse(data=data)
 
 
-@router.post("", response_model=ApiResponse[BannerAdminItem], tags=TAGS, summary="创建 Banner")
+@router.post("", response_model=ApiResponse[BannerAdminItem], summary="创建 Banner")
 def create_banner(
     payload: BannerCreateRequest,
     service: Annotated[BannerAdminService, Depends(get_banner_admin_service)],
@@ -59,7 +58,7 @@ def create_banner(
 
 
 @router.get(
-    "/{banner_id}", response_model=ApiResponse[BannerAdminItem], tags=TAGS, summary="Banner 详情"
+    "/{banner_id}", response_model=ApiResponse[BannerAdminItem], summary="Banner 详情"
 )
 def get_banner(
     banner_id: int,
@@ -69,7 +68,7 @@ def get_banner(
 
 
 @router.put(
-    "/{banner_id}", response_model=ApiResponse[BannerAdminItem], tags=TAGS, summary="更新 Banner"
+    "/{banner_id}", response_model=ApiResponse[BannerAdminItem], summary="更新 Banner"
 )
 def update_banner(
     banner_id: int,
@@ -82,7 +81,6 @@ def update_banner(
 @router.post(
     "/{banner_id}/online",
     response_model=ApiResponse[BannerAdminItem],
-    tags=TAGS,
     summary="上线 Banner",
 )
 def online_banner(
@@ -95,7 +93,6 @@ def online_banner(
 @router.post(
     "/{banner_id}/offline",
     response_model=ApiResponse[BannerAdminItem],
-    tags=TAGS,
     summary="下线 Banner",
 )
 def offline_banner(
@@ -105,7 +102,7 @@ def offline_banner(
     return ApiResponse(data=service.offline_banner(banner_id))
 
 
-@router.delete("/{banner_id}", response_model=ApiResponse[None], tags=TAGS, summary="删除 Banner")
+@router.delete("/{banner_id}", response_model=ApiResponse[None], summary="删除 Banner")
 def delete_banner(
     banner_id: int,
     service: Annotated[BannerAdminService, Depends(get_banner_admin_service)],

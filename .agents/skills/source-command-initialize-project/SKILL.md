@@ -7,6 +7,13 @@ description: "根据 project.yaml 完成项目基础设施（DS / API / Test / D
 
 Use this skill when the user asks to run the migrated source command `initialize-project`.
 
+## Context Budget Guardrails（MUST）
+
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- 检索先定位再分段读取；大范围 `rg/find` 默认排除 Harness、模板 assets、历史 agent 目录、archive、generated、node_modules、dist、coverage。
+- 命令输出优先 `max_output_tokens <= 8000`；大 diff、OpenAPI/Orval 生成物、测试日志、Workflow Sync 输出先给摘要或命中数。
+
+
 ## Command Template
 
 根据 `project.yaml` 与 `rules/*` 完成**一次性**基础设施建设。与业务需求流分离：治理类能力登记为 `REQ-0000-*`，经 **`req-*` → `req-opsx` → `opsx-apply` → `sprint-archive`** 闭环。

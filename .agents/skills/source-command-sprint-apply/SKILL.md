@@ -9,6 +9,8 @@ Use this skill when the user asks to run `/sprint-apply <sprint-id>`.
 
 ## Context Budget Guardrails（MUST）
 
+- Sprint apply 必须逐 Change 聚焦读取，不得把整个 Sprint 历史、全部 issue 包或全部 active changes 同时装入上下文。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
 - 先读 `sprint.yaml` 与必要 trace/status 片段，不全量读取 Sprint 四件套。
 - 每个 Change 只读 `proposal.md`、`tasks.md`、依赖字段和必要 design/spec 片段。
 - UI gate 只读取命中标签的 best-practices。

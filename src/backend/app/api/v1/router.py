@@ -31,9 +31,9 @@ api_router.include_router(
     prefix="/admin/system-settings",
     tags=["admin-system-settings"],
 )
-api_router.include_router(admin_api_docs.router, prefix="/admin/api-docs")
-api_router.include_router(admin_logs.router, prefix="/admin/logs")
-api_router.include_router(usage_events.router, prefix="/usage-events")
+api_router.include_router(admin_api_docs.router, prefix="/admin/api-docs", tags=["admin-api-docs"])
+api_router.include_router(admin_logs.router, prefix="/admin/logs", tags=["admin-logs"])
+api_router.include_router(usage_events.router, prefix="/usage-events", tags=["usage-events"])
 api_router.include_router(admin_brands.router, prefix="/admin/brands", tags=["admin-brands"])
 api_router.include_router(admin_banners.router, prefix="/admin/banners", tags=["admin-banners"])
 api_router.include_router(admin_topics.router, prefix="/admin/topics", tags=["admin-topics"])

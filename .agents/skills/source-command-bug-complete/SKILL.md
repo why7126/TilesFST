@@ -5,6 +5,7 @@ description: "缺陷完善 - 补齐 root-cause、workaround、acceptance、trace
 
 ## Context Budget Guardrails（MUST）
 
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
 - 不要默认 `cat rules/*.md`、`cat AGENTS.md openspec/project.md rules/...` 或读取整目录；按本命令 Step 0 列表读取必要文件，已在同一会话读取过且无变更时用摘要承接。
 - 检索先用 `rg -l` / `rg --files` 定位文件，再用 `sed -n '<start>,<end>p'` 或 `nl -ba ... | sed -n` 读取必要片段。
 - 大范围 `rg` MUST 限制目录与输出：优先加 `--glob '!openspec/changes/archive/**' --glob '!**/node_modules/**' --glob '!**/.git/**'`；只有追溯历史归档时才放开 archive，并说明原因。

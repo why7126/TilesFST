@@ -9,6 +9,8 @@ Use when the user asks `/opsx-archive <change-id>` or wants to archive one OpenS
 
 ## Context Budget Guardrails（MUST）
 
+- 归档复核优先 `openspec status`、`tasks.md` checkbox、delta spec heading 与 sync/promote 报告摘要；不得为归档全量读取 active/archived specs。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
 - Read focused artifacts only: `tasks.md`, delta spec headings, related trace/status snippets.
 - Do not full-read `issues/**`, `iterations/**`, or all `openspec/specs/**`; use `rg -n "^### Requirement:|^### ADDED|^### MODIFIED|^### REMOVED"` then open the relevant sections.
 - If a script fails, inspect the named files/snippets from the report instead of broad directory reads.

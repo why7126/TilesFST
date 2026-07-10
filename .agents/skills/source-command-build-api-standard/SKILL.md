@@ -7,6 +7,13 @@ description: "建立 API Governance（统一响应 / 错误码 / OpenAPI / Orval
 
 Use this skill when the user asks to run the migrated source command `build-api-standard`.
 
+## Context Budget Guardrails（MUST）
+
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- 检索先定位再分段读取；大范围 `rg/find` 默认排除 Harness、模板 assets、历史 agent 目录、archive、generated、node_modules、dist、coverage。
+- 命令输出优先 `max_output_tokens <= 8000`；大 diff、OpenAPI/Orval 生成物、测试日志、Workflow Sync 输出先给摘要或命中数。
+
+
 ## Command Template
 
 将 `rules/api.md` 落地为可执行 API 治理：文档、Schema、校验脚本与 FastAPI 分层约定。

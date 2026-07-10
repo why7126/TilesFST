@@ -90,6 +90,17 @@ describe('TileSkuManagementPage', () => {
     expect(screen.queryByText('SKU 列表')).not.toBeInTheDocument();
     expect(document.querySelector('.table-head')).not.toBeInTheDocument();
 
+    const summary = screen.getByLabelText('SKU 统计');
+    const cards = Array.from(summary.querySelectorAll('.metric-card'));
+    expect(summary).toHaveClass('summary-grid');
+    expect(cards).toHaveLength(4);
+    cards.forEach((card) => {
+      expect(card.tagName.toLowerCase()).toBe('article');
+      expect(card.querySelector('.metric-label')).toBeInTheDocument();
+      expect(card.querySelector('.metric-value')).toBeInTheDocument();
+      expect(card.querySelector('.metric-desc')).toBeInTheDocument();
+    });
+
     expect(screen.getByText('共 1 条')).toBeInTheDocument();
     expect(screen.getByText('每页显示')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: '每页显示条数' })).toBeInTheDocument();

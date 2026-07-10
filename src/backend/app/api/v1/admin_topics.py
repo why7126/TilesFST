@@ -13,7 +13,6 @@ from app.schemas.common import ApiResponse
 from app.services.topic_admin_service import TopicAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
-TAGS = ["Admin Topics"]
 
 
 def get_topic_admin_service(
@@ -23,7 +22,7 @@ def get_topic_admin_service(
 
 
 @router.get(
-    "", response_model=ApiResponse[TopicAdminListData], tags=TAGS, summary="专题列表（只读）"
+    "", response_model=ApiResponse[TopicAdminListData], summary="专题列表（只读）"
 )
 def list_topics(
     service: Annotated[TopicAdminService, Depends(get_topic_admin_service)],

@@ -440,10 +440,64 @@ def update_openspec_changes_in_block(block: str, change_id: str, status: str) ->
     return "\n".join(out)
 
 
+def append_workflow_event_record(
+    text: str,
+    *,
+    event: str | None,
+    change_id: str | None,
+    derived: DerivedIssue,
+    change_status_map: dict[str, str],
+) -> str:
+    if "## 变更记录" not in text or not event or not change_id:
+        return text
+    if derived.linked_change != change_id:
+        return text
+    change_status = change_status_map.get(change_id)
+    if event == "opsx.apply" and change_status == "applied":
+        command = "/opsx-apply"
+        description = f"Change `{change_id}` apply 完成，待 archive。"
+    elif event == "opsx.archive" and change_status == "archived":
+        command = "/opsx-archive"
+        description = f"Change `{change_id}` 已归档，状态同步完成。"
+    else:
+        return text
+
+    if command in text and change_id in text and description in text:
+        return text
+
+    stamp = now_shanghai()
+    table_row = f"| {stamp} | {command} | {description} |\n"
+    table_header = re.compile(r"(## 变更记录\n\n\|[^\n]*\|\n\|[^\n]*\|\n)", re.MULTILINE)
+    if table_header.search(text):
+        return table_header.sub(rf"\1{table_row}", text, count=1)
+    return text.replace("## 变更记录\n\n", f"## 变更记录\n\n- {stamp} {command}：{description}\n", 1)
+
+
+def update_current_status_section(text: str, issue: IssueRecord, derived: DerivedIssue) -> str:
+    if "## 当前状态" not in text:
+        return text
+    stage = issue.path.parent.name if issue.path.parent.name in {"plan", "review", "archive"} else None
+    if stage:
+        text = re.sub(
+            r"(?m)^- 阶段：.+$",
+            f"- 阶段：{stage}",
+            text,
+            count=1,
+        )
+    return re.sub(
+        r"(?m)^- 状态：.+$",
+        f"- 状态：{derived.display_status}",
+        text,
+        count=1,
+    )
+
+
 def patch_issue_trace(
     issue: IssueRecord,
     derived: DerivedIssue,
     change_status_map: dict[str, str],
+    event: str | None = None,
+    focus_change: str | None = None,
     write: bool = True,
 ) -> PatchResult:
     trace_path = issue.path / "trace.md"
@@ -463,6 +517,17 @@ def patch_issue_trace(
             count=1,
             flags=re.MULTILINE,
         )
+
+    frontmatter_match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    if frontmatter_match:
+        block = frontmatter_match.group(1).rstrip("\n") + "\n"
+        current_block = block
+        for change_id, status in change_status_map.items():
+            block = update_openspec_changes_in_block(block, change_id, status)
+        if not block.endswith("\n"):
+            block += "\n"
+        if block != current_block:
+            text = text[: frontmatter_match.start(1)] + block + text[frontmatter_match.end(1) :]
 
     yaml_match = re.search(r"```yaml\n(.*?)```", text, re.DOTALL)
     if yaml_match:
@@ -493,6 +558,15 @@ def patch_issue_trace(
         entry = f"- {stamp} workflow-sync：状态同步为 done（Change archived）"
         if entry not in text:
             text = text.rstrip() + f"\n{entry}\n"
+
+    text = append_workflow_event_record(
+        text,
+        event=event,
+        change_id=focus_change,
+        derived=derived,
+        change_status_map=change_status_map,
+    )
+    text = update_current_status_section(text, issue, derived)
 
     changed = persist_markdown(trace_path, text, original, write)
     return PatchResult(str(trace_path.relative_to(ROOT)), changed, derived.display_status)

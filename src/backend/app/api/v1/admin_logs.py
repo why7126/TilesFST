@@ -24,7 +24,6 @@ def get_log_service(db: Session = Depends(get_db)) -> LogService:
 @router.get(
     "",
     response_model=ApiResponse[LogListData],
-    tags=["admin-logs"],
     summary="日志审计列表",
     description="系统管理员分页查询 API 请求日志、产品行为事件和审计操作。",
 )
@@ -63,7 +62,6 @@ def list_logs(
 @router.get(
     "/{log_id}",
     response_model=ApiResponse[LogDetailData],
-    tags=["admin-logs"],
     summary="日志审计详情",
     description="系统管理员查询单条日志的详情抽屉数据。",
 )

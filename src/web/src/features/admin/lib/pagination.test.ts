@@ -17,4 +17,10 @@ describe('getPaginationWindow', () => {
     expect(getPaginationWindow(4, 6)).toEqual([2, 3, 4, 5, 6]);
     expect(getPaginationWindow(6, 6)).toEqual([2, 3, 4, 5, 6]);
   });
+
+  it('keeps the old admin import path compatible with invalid input handling', () => {
+    expect(getPaginationWindow(0, 0)).toEqual([1]);
+    expect(getPaginationWindow(99, 3)).toEqual([1, 2, 3]);
+    expect(getPaginationWindow(2, 10, 0)).toEqual([2]);
+  });
 });

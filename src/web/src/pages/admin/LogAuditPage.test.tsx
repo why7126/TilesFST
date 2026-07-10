@@ -85,6 +85,13 @@ const detailData: LogDetailData = {
   metadata_json: '{\n  "path": "/api/v1/admin/logs"\n}',
 };
 
+function setClipboard(value: unknown) {
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value,
+  });
+}
+
 describe('LogAuditPage', () => {
   beforeEach(() => {
     vi.mocked(fetchLogs).mockReset();
@@ -92,10 +99,8 @@ describe('LogAuditPage', () => {
     vi.mocked(trackUsageEvent).mockClear();
     vi.mocked(fetchLogs).mockResolvedValue(logListData);
     vi.mocked(fetchLogDetail).mockResolvedValue(detailData);
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
+    setClipboard({
+      writeText: vi.fn().mockResolvedValue(undefined),
     });
   });
 
@@ -107,9 +112,23 @@ describe('LogAuditPage', () => {
     expect(screen.getByText('1,286')).toBeInTheDocument();
     expect(screen.getByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
 
+    const summary = screen.getByLabelText('日志摘要');
+    const cards = Array.from(summary.querySelectorAll('.metric-card'));
+    expect(summary).toHaveClass('summary-grid');
+    expect(cards).toHaveLength(4);
+    cards.forEach((card) => {
+      expect(card.tagName.toLowerCase()).toBe('article');
+      expect(card.querySelector('.metric-label')).toBeInTheDocument();
+      expect(card.querySelector('.metric-value')).toBeInTheDocument();
+      expect(card.querySelector('.metric-desc')).toBeInTheDocument();
+    });
+    expect(screen.getByText('异常请求')).toHaveClass('metric-desc', 'danger');
+
     const pagination = container.querySelector('.pagination');
     expect(pagination?.querySelector('.page-summary')).toHaveTextContent('共 1 条日志');
     expect(pagination?.querySelector('.page-right')).toBeInTheDocument();
+    expect(pagination?.querySelector('.page-buttons')).toBeInTheDocument();
+    expect(pagination?.querySelector('.page-size-wrap')).toBeInTheDocument();
     expect(container.querySelector('th.log-audit-action-cell')).toHaveTextContent('操作');
     expect(container.querySelector('th.log-audit-action-cell')).toHaveClass(
       'admin-sticky-action-cell',
@@ -199,7 +218,7 @@ describe('LogAuditPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '复制 request_id' }));
 
     await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('req_1234567890abcdef');
+      expect(navigator.clipboard?.writeText).toHaveBeenCalledWith('req_1234567890abcdef');
     });
     expect(trackUsageEvent).toHaveBeenCalledWith('copy_request_id', {
       module: 'log_audit',
@@ -208,6 +227,46 @@ describe('LogAuditPage', () => {
       request_id: 'req_1234567890abcdef',
     });
     expect(await screen.findByRole('status')).toHaveTextContent('request_id 已复制');
+  });
+
+  it('shows manual copy guidance when Clipboard API is unavailable', async () => {
+    setClipboard(undefined);
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 request_id' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('无法自动复制 request_id，请打开日志详情选中文本手动复制');
+    expect(trackUsageEvent).not.toHaveBeenCalled();
+  });
+
+  it('shows manual copy guidance when Clipboard API rejects writes', async () => {
+    setClipboard({
+      writeText: vi.fn().mockRejectedValue(new Error('clipboard denied')),
+    });
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 request_id' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard?.writeText).toHaveBeenCalledWith('req_1234567890abcdef');
+    });
+    expect(await screen.findByRole('status')).toHaveTextContent('自动复制失败，请打开日志详情选中文本手动复制');
+    expect(trackUsageEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not render copy action for empty request id rows', async () => {
+    vi.mocked(fetchLogs).mockResolvedValueOnce({
+      ...logListData,
+      items: [{ ...logListData.items[0], request_id: '' }],
+    });
+
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    expect(screen.queryByRole('button', { name: '复制 request_id' })).not.toBeInTheDocument();
+    expect(navigator.clipboard?.writeText).not.toHaveBeenCalled();
   });
 
   it('opens and closes detail drawer', async () => {

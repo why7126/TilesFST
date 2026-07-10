@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-06-28 09:41:12
-updated_at: 2026-07-05 20:33:57
+updated_at: 2026-07-07 00:36:08
 lifecycle:
   captured: 2026-06-28 09:41:12
   exploring: 2026-06-28 09:47:30
@@ -90,4 +90,4 @@ iteration: sprint-003
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0061-change-password-policy-error-message-unclear | medium | captured | — | change password policy error message unclear |
+| BUG-0061-change-password-policy-error-message-unclear | medium | done | fix-change-password-policy-error-message | 修改密码安全策略错误提示不清晰 |

@@ -9,6 +9,7 @@ Use when the user asks `/sprint-archive <sprint-id>` or wants to close a Sprint.
 
 ## Context Budget Guardrails（MUST）
 
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
 - Start from `sprint.yaml`; do not full-read Sprint four-piece unless closing fields are needed.
 - For each Change, read only `tasks.md`, trace/status, and delta headings.
 - Reuse `.agents/skills/source-command-opsx-archive/SKILL.md`; do not duplicate full archive reasoning.

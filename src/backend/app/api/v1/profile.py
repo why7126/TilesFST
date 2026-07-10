@@ -35,7 +35,6 @@ def get_profile_service(
     "/me",
     response_model=ApiResponse[ProfileMe],
     summary="获取当前用户个人资料",
-    tags=["profile"],
 )
 def get_profile_me(
     current_user: Annotated[UserRecord, Depends(require_admin_access)],
@@ -48,7 +47,6 @@ def get_profile_me(
     "/me",
     response_model=ApiResponse[ProfileMe],
     summary="更新当前用户个人资料",
-    tags=["profile"],
 )
 def patch_profile_me(
     payload: ProfilePatchRequest,
@@ -62,7 +60,6 @@ def patch_profile_me(
     "/me/activities",
     response_model=ApiResponse[list[ProfileActivityItem]],
     summary="获取个人资料操作记录",
-    tags=["profile"],
 )
 def get_profile_activities(
     current_user: Annotated[UserRecord, Depends(require_admin_access)],

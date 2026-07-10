@@ -8,11 +8,17 @@
 from __future__ import annotations
 
 import ast
+import json
+import re
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 API_DIR = ROOT / "src" / "backend" / "app" / "api"
+OPENAPI_PATH = ROOT / "src" / "web" / "openapi.json"
+HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+KEBAB_CASE_TAG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 violations: list[str] = []
 
@@ -36,11 +42,57 @@ def check_router_file(path: Path) -> None:
                     violations.append(
                         f"{rel}:{node.lineno} — 路由 {node.name} 缺少 response_model"
                     )
-                if "tags=" not in src:
-                    violations.append(f"{rel}:{node.lineno} — 路由 {node.name} 缺少 tags")
                 if "summary=" not in src:
                     violations.append(f"{rel}:{node.lineno} — 路由 {node.name} 缺少 summary")
                 break
+
+
+def _operation_label(method: str, path: str, operation: dict[str, Any]) -> str:
+    operation_id = operation.get("operationId")
+    label = f"{method.upper()} {path}"
+    if operation_id:
+        label = f"{label} ({operation_id})"
+    return label
+
+
+def check_openapi_operation_tags() -> None:
+    if not OPENAPI_PATH.exists():
+        violations.append(f"缺少必需文件: {OPENAPI_PATH.relative_to(ROOT)}")
+        return
+
+    try:
+        document = json.loads(OPENAPI_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        violations.append(f"{OPENAPI_PATH.relative_to(ROOT)} — JSON 解析失败: {exc}")
+        return
+
+    paths = document.get("paths", {})
+    if not isinstance(paths, dict):
+        violations.append(f"{OPENAPI_PATH.relative_to(ROOT)} — paths 必须是对象")
+        return
+
+    for path, path_item in paths.items():
+        if not isinstance(path_item, dict):
+            continue
+        for method, operation in path_item.items():
+            if method.lower() not in HTTP_METHODS or not isinstance(operation, dict):
+                continue
+
+            label = _operation_label(method, path, operation)
+            tags = operation.get("tags")
+            if not isinstance(tags, list) or not tags:
+                violations.append(f"{label} — OpenAPI operation 缺少 tags")
+                continue
+
+            if len(tags) != 1:
+                violations.append(f"{label} — OpenAPI operation tags 必须且只能有 1 个: {tags}")
+
+            if len(tags) != len(set(tags)):
+                violations.append(f"{label} — OpenAPI operation tags 存在重复值: {tags}")
+
+            for tag in tags:
+                if not isinstance(tag, str) or not KEBAB_CASE_TAG.fullmatch(tag):
+                    violations.append(f"{label} — OpenAPI operation tag 非 kebab-case: {tag!r}")
 
 
 def main() -> int:
@@ -65,6 +117,8 @@ def main() -> int:
     for doc in required_docs:
         if not (ROOT / doc).exists():
             violations.append(f"缺少必需文件: {doc}")
+
+    check_openapi_operation_tags()
 
     if violations:
         print("API 标准校验失败：")

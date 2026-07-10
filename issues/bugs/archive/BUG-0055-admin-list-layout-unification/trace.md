@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 severity: medium
 created_at: 2026-07-03 18:21:28
-updated_at: 2026-07-04 08:16:02
+updated_at: 2026-07-10 08:31:43
 ---
 
 # 缺陷追踪
@@ -48,7 +48,7 @@ iteration: sprint-004
 openspec_changes:
   - change_id: fix-admin-list-layout-unification
     type: fix
-    status: archived
+    status: proposed
 readiness: Implemented
 readiness_notes: 已完成 `/opsx-apply fix-admin-list-layout-unification` 的代码实现、前端回归测试、build、OpenSpec strict、目录结构校验与 4 项视觉验收确认。
 documents:

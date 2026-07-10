@@ -22,7 +22,7 @@ app.include_router(api_router, prefix="/api/v1")
 async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
-        content={"code": exc.code, "message": exc.message, "data": None},
+        content={"code": exc.code, "message": exc.message, "data": exc.data},
     )
 
 
@@ -36,7 +36,7 @@ def on_startup() -> None:
         session.close()
 
 
-@app.get("/health")
+@app.get("/health", summary="健康检查", tags=["health"])
 def health_check() -> dict[str, str]:
     return {"status": "ok"}
 

@@ -176,7 +176,14 @@ class SyncEngine:
                 if oc.get("change_id")
             }
             planned.append(
-                patch_issue_trace(issue, derived, change_status_map, write=write)
+                patch_issue_trace(
+                    issue,
+                    derived,
+                    change_status_map,
+                    event=event,
+                    focus_change=change_id,
+                    write=write,
+                )
             )
             registry = (
                 ROOT / "issues/requirements/_registry.yaml"

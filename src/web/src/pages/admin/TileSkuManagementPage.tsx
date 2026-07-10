@@ -25,7 +25,8 @@ import {
   tileSkuStatusBadgeClass,
   tileSkuStatusLabel,
 } from '@/features/admin/lib/tile-sku-display';
-import { getPaginationWindow } from '@/features/admin/lib/pagination';
+import { getPaginationWindow } from '@/shared/lib/pagination-window';
+import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/tile-sku-management.css';
 
@@ -201,28 +202,12 @@ export function TileSkuManagementPage() {
         </button>
       </section>
 
-      <section className="summary-grid" aria-label="SKU 统计">
-        <article className="metric-card">
-          <div className="metric-label">SKU 总数</div>
-          <div className="metric-value">{data?.summary.total ?? '—'}</div>
-          <div className="metric-desc">全部商品主数据</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">已上架</div>
-          <div className="metric-value">{data?.summary.published_count ?? '—'}</div>
-          <div className="metric-desc">前台可见商品</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">待完善</div>
-          <div className="metric-value">{data?.summary.needs_completion_count ?? '—'}</div>
-          <div className="metric-desc">缺主图或关键参数</div>
-        </article>
-        <article className="metric-card">
-          <div className="metric-label">草稿</div>
-          <div className="metric-value">{data?.summary.draft_count ?? '—'}</div>
-          <div className="metric-desc">新建默认状态</div>
-        </article>
-      </section>
+      <MetricCardGrid ariaLabel="SKU 统计">
+        <MetricCard label="SKU 总数" value={data?.summary.total} description="全部商品主数据" />
+        <MetricCard label="已上架" value={data?.summary.published_count} description="前台可见商品" />
+        <MetricCard label="待完善" value={data?.summary.needs_completion_count} description="缺主图或关键参数" />
+        <MetricCard label="草稿" value={data?.summary.draft_count} description="新建默认状态" />
+      </MetricCardGrid>
 
       <section className="filter-card">
         <div className="sku-filter-grid">

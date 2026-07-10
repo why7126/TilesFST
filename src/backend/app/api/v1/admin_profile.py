@@ -12,7 +12,7 @@ from app.db.session import get_db
 from app.repositories.password_change_repository import PasswordChangeRepository
 from app.repositories.user_repository import UserRecord, UserRepository
 from app.schemas.admin_password import ChangePasswordData, ChangePasswordRequest
-from app.schemas.common import ApiResponse
+from app.schemas.common import ApiErrorResponse, ApiResponse
 from app.services.effective_settings_service import EffectiveSettingsService
 from app.services.password_change_service import PasswordChangeService
 
@@ -36,8 +36,12 @@ def get_password_change_service(
 @router.post(
     "/password",
     response_model=ApiResponse[ChangePasswordData],
+    responses={
+        400: {"model": ApiErrorResponse},
+        403: {"model": ApiErrorResponse},
+        429: {"model": ApiErrorResponse},
+    },
     summary="修改当前用户密码",
-    tags=["admin-profile"],
 )
 def change_password(
     payload: ChangePasswordRequest,

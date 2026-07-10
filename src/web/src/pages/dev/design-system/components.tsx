@@ -123,4 +123,5 @@ export const designSystemNav = [
   { href: '#ui-composite', label: '复合 UI' },
   { href: '#business-catalog', label: '业务组件' },
   { href: '#admin-shell', label: 'Admin Shell' },
+  { href: '#admin-list-foundation', label: '管理端列表基础' },
 ] as const;

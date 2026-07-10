@@ -16,8 +16,8 @@ entries:
     parent_requirement: REQ-0022-admin-api-docs-menu
   - id: REQ-0029-admin-list-foundation-components
     title: 管理端列表基础组件（MetricCard 与分页窗口工具）
-    status: approved
-    iteration: null
+    status: done
+    iteration: sprint-005
     created: "2026-07-04 15:22:32"
     parent_requirement: REQ-0028-admin-list-page-contract
   - id: REQ-0028-admin-list-page-contract

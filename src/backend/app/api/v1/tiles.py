@@ -7,7 +7,6 @@ router = APIRouter()
     "",
     response_model=list[TileListItem],
     summary="获取瓷砖列表",
-    tags=["tiles"],
 )
 def list_tiles() -> list[TileListItem]:
     return []
@@ -16,7 +15,6 @@ def list_tiles() -> list[TileListItem]:
     "/{tile_id}",
     response_model=TileDetail,
     summary="获取瓷砖详情",
-    tags=["tiles"],
 )
 def get_tile(tile_id: int) -> TileDetail:
     return TileDetail(id=tile_id, name="示例瓷砖", model="MODEL-001", category="通体砖", images=[])

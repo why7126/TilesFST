@@ -20,7 +20,6 @@ from app.schemas.tile_sku_admin import (
 from app.services.tile_sku_admin_service import TileSkuAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
-TAGS = ["Admin Tile SKUs"]
 
 
 def get_tile_sku_admin_service(
@@ -30,7 +29,7 @@ def get_tile_sku_admin_service(
     return TileSkuAdminService(repo, spec_repo)
 
 
-@router.get("", response_model=ApiResponse[TileSkuAdminListData], tags=TAGS, summary="SKU 列表")
+@router.get("", response_model=ApiResponse[TileSkuAdminListData], summary="SKU 列表")
 def list_tile_skus(
     service: Annotated[TileSkuAdminService, Depends(get_tile_sku_admin_service)],
     page: int = Query(1, ge=1),
@@ -53,7 +52,7 @@ def list_tile_skus(
     return ApiResponse(data=data)
 
 
-@router.post("", response_model=ApiResponse[TileSkuAdminItem], tags=TAGS, summary="创建 SKU")
+@router.post("", response_model=ApiResponse[TileSkuAdminItem], summary="创建 SKU")
 def create_tile_sku(
     payload: TileSkuCreateRequest,
     service: Annotated[TileSkuAdminService, Depends(get_tile_sku_admin_service)],
@@ -62,7 +61,7 @@ def create_tile_sku(
 
 
 @router.get(
-    "/{tile_id}", response_model=ApiResponse[TileSkuAdminItem], tags=TAGS, summary="SKU 详情"
+    "/{tile_id}", response_model=ApiResponse[TileSkuAdminItem], summary="SKU 详情"
 )
 def get_tile_sku(
     tile_id: int,
@@ -72,7 +71,7 @@ def get_tile_sku(
 
 
 @router.put(
-    "/{tile_id}", response_model=ApiResponse[TileSkuAdminItem], tags=TAGS, summary="更新 SKU"
+    "/{tile_id}", response_model=ApiResponse[TileSkuAdminItem], summary="更新 SKU"
 )
 def update_tile_sku(
     tile_id: int,
@@ -85,7 +84,6 @@ def update_tile_sku(
 @router.post(
     "/{tile_id}/publish",
     response_model=ApiResponse[TileSkuAdminItem],
-    tags=TAGS,
     summary="上架 SKU",
 )
 def publish_tile_sku(
@@ -98,7 +96,6 @@ def publish_tile_sku(
 @router.post(
     "/{tile_id}/unpublish",
     response_model=ApiResponse[TileSkuAdminItem],
-    tags=TAGS,
     summary="下架 SKU",
 )
 def unpublish_tile_sku(
@@ -108,7 +105,7 @@ def unpublish_tile_sku(
     return ApiResponse(data=service.unpublish_sku(tile_id))
 
 
-@router.delete("/{tile_id}", response_model=ApiResponse[None], tags=TAGS, summary="删除 SKU")
+@router.delete("/{tile_id}", response_model=ApiResponse[None], summary="删除 SKU")
 def delete_tile_sku(
     tile_id: int,
     service: Annotated[TileSkuAdminService, Depends(get_tile_sku_admin_service)],
