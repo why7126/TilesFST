@@ -66,13 +66,14 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 4. Marker blocks: `<!-- workflow-sync:scope-*:start/end -->`.
 5. Scope 表 archived 时间与 §里程碑「目标日期」MUST 为 `YYYY-MM-DD HH:mm:ss` 且时分秒 MUST 非 `00:00:00`（见 `rules/document-governance.md` §6.1）。
 6. §Sprint 目标 不在 sync 范围；纳入 REQ/BUG 时 MUST 同步更新 **编号列表** 与 **`### xxx 要点`** 两处。
+7. Issue `trace.md` 的 `## 变更记录` MUST 保持表头紧跟章节标题；若历史记录行出现在表头前，脚本 SHOULD 自动归一化并在报告中体现 delta。
 
 ## Refreshed artifacts
 
 - `iterations/<sprint>/sprint.md` Scope tables + note；§里程碑「目标日期」列 legacy 仅日期 → `YYYY-MM-DD HH:mm:ss`
 - `iterations/<sprint>/acceptance-report.md` issue status lines + note
 - `iterations/<sprint>/release-note.md` publish status
-- `issues/requirements|bugs/*/trace.md` status + `openspec_changes[].status`（Frontmatter 与 fenced `yaml` 块均需同步）+ `## 变更记录` workflow event 行
+- `issues/requirements|bugs/*/trace.md` status + iteration + `openspec_changes[].status`（Frontmatter 与 fenced `yaml` 块均需同步）+ `## 变更记录` workflow event 行 / 表格格式归一化
 - parent requirement `trace.md` related bug index
 - `issues/requirements/_registry.yaml` / `issues/bugs/_registry.yaml`
 - 写入时自动维护 Frontmatter `created_at` / `updated_at`（`rules/document-governance.md` §2.4）

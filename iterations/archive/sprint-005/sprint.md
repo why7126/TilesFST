@@ -1,32 +1,43 @@
 ---
-note: workflow-sync — workflow-sync 自动同步 — 7/8 Change archived；0 applied；1 进行中；Sprint `planning`
+note: workflow-sync — workflow-sync 自动同步 — 10/10 Change archived；0 applied；Sprint `completed`
 created_at: 2026-07-04 22:30:20
-updated_at: 2026-07-10 08:50:39
+updated_at: 2026-07-11 10:26:11
 title: Sprint 005 迭代说明
 purpose: 记录 Sprint 005 目标、范围、Change、工作量与风险
-content: 管理端列表基础组件（REQ-0029）、接口文档页 Swagger 策略 checklist（REQ-0030）、Sprint 归档未完成 tasks 门禁（BUG-0056）、API governance route tags 清理（BUG-0057）、workflow-sync check drift 修复（BUG-0058）、管理端一次性密码复制修复（BUG-0059）、日志审计 request_id 复制修复（BUG-0060）与修改密码安全策略错误提示修复（BUG-0061）
-source: /sprint-propose REQ-0030；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
+content: AdminListPage 模板与管理端列表页契约（REQ-0028）、管理端列表基础组件（REQ-0029）、接口文档页 Swagger 策略 checklist（REQ-0030）、API 校验错误 envelope 治理扩展（REQ-0031）、Sprint 归档未完成 tasks 门禁（BUG-0056）、API governance route tags 清理（BUG-0057）、workflow-sync check drift 修复（BUG-0058）、管理端一次性密码复制修复（BUG-0059）、日志审计 request_id 复制修复（BUG-0060）与修改密码安全策略错误提示修复（BUG-0061）
+source: /sprint-propose REQ-0030；/sprint-propose REQ-0028 纳入 sprint-005；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose REQ-0031 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
 update_method: 迭代范围或状态变化时更新
 owner: 项目负责人
-status: planning
+status: completed
 ---
 
 # Sprint 005
 
 ## Sprint 目标
 
-本迭代聚焦 **API 文档治理、工作流治理补强、管理端列表基础组件与关键交互修复**，承接 Sprint 004 复盘行动项 A-001、A-003、A-006、A-004 与 A-005：一方面将 `/admin/api-docs` Swagger 入口经验沉淀为可复用的 OpenSpec design / acceptance / 文档治理门禁，并把 `MetricCard`、`MetricCardGrid` 与分页窗口工具抽象为管理端列表共享能力；另一方面补齐 `/sprint-archive` 未完成 tasks 硬门禁、清理 API governance route tags 历史债、修复 workflow-sync `--check` 时间漂移幂等性，并补入 BUG-0059 的一次性密码复制可靠性修复、BUG-0060 的日志审计 `request_id` 复制兜底修复与 BUG-0061 的修改密码策略提示修复，提升 OpenAPI 契约质量、校验脚本可信度、迭代归档审计稳定性和管理端关键排障/账号交互可用性。
+本迭代聚焦 **API 文档治理、API 校验 envelope 治理、工作流治理补强、管理端列表模板/基础组件与关键交互修复**，承接 Sprint 004 复盘行动项 A-001、A-002、A-003、A-006、A-007、A-004 与 A-005：一方面将 `/admin/api-docs` Swagger 入口经验沉淀为可复用的 OpenSpec design / acceptance / 文档治理门禁，把统一 422 validation envelope 扩展到管理端表单 API，并把 `AdminListPage` 模板契约、`MetricCard`、`MetricCardGrid` 与分页窗口工具抽象为管理端列表共享能力；另一方面补齐 `/sprint-archive` 未完成 tasks 硬门禁、清理 API governance route tags 历史债、修复 workflow-sync `--check` 时间漂移幂等性，并补入 BUG-0059 的一次性密码复制可靠性修复、BUG-0060 的日志审计 `request_id` 复制兜底修复与 BUG-0061 的修改密码策略提示修复，提升 OpenAPI 契约质量、校验脚本可信度、迭代归档审计稳定性和管理端关键排障/账号交互可用性。
 
 正式纳入范围：
 
-1. **REQ-0029-admin-list-foundation-components** — 管理端列表基础组件（MetricCard 与分页窗口工具）。
-2. **REQ-0030-api-docs-swagger-policy-checklist** — 接口文档页 Swagger 代理与生产调试策略 checklist。
-3. **BUG-0056-sprint-archive-incomplete-tasks-gate** — `/sprint-archive` 未完成 tasks 仍可归档。
-4. **BUG-0057-api-governance-tags-known-debt** — API governance route tags 历史债清理未闭环。
-5. **BUG-0058-workflow-sync-check-time-drift-idempotency** — workflow-sync `--check` 时间漂移幂等性不足。
-6. **BUG-0059-user-password-copy-not-working** — 管理端创建用户/重置密码后一次性密码复制未生效。
-7. **BUG-0060-audit-log-request-id-copy-error** — 日志审计页复制 `request_id` 时报错。
-8. **BUG-0061-change-password-policy-error-message-unclear** — 修改密码新密码安全策略失败提示不清晰。
+1. **REQ-0028-admin-list-page-contract** — AdminListPage 模板与管理端列表页契约。
+2. **REQ-0029-admin-list-foundation-components** — 管理端列表基础组件（MetricCard 与分页窗口工具）。
+3. **REQ-0030-api-docs-swagger-policy-checklist** — 接口文档页 Swagger 代理与生产调试策略 checklist。
+4. **REQ-0031-api-validation-envelope-governance** — API 校验错误 envelope 治理扩展到管理端表单 API。
+5. **BUG-0056-sprint-archive-incomplete-tasks-gate** — `/sprint-archive` 未完成 tasks 仍可归档。
+6. **BUG-0057-api-governance-tags-known-debt** — API governance route tags 历史债清理未闭环。
+7. **BUG-0058-workflow-sync-check-time-drift-idempotency** — workflow-sync `--check` 时间漂移幂等性不足。
+8. **BUG-0059-user-password-copy-not-working** — 管理端创建用户/重置密码后一次性密码复制未生效。
+9. **BUG-0060-audit-log-request-id-copy-error** — 日志审计页复制 `request_id` 时报错。
+10. **BUG-0061-change-password-policy-error-message-unclear** — 修改密码新密码安全策略失败提示不清晰。
+
+### REQ-0028-admin-list-page-contract 要点
+
+- **优先级**：P1
+- **类型**：Web 管理端 / Design System / admin-list 页面模板契约
+- **范围**：升级或重定义 `AdminListPage` 模板，覆盖标题、指标卡、筛选/搜索、列表/表格、分页和 sticky action column；扩展 `AdminListPageContent` 或等价类型；在 `/design-system` 增加 AdminListPage 验收样例。
+- **不包含**：不新增后端 API、数据库、MinIO、Docker Compose、店主 Web 或小程序能力；不直接重做 BUG-0055 已修复的 8 个页面；MetricCard 与分页窗口算法细节由 REQ-0029 承接。
+- **OpenSpec 状态**：Change `add-admin-list-page-contract` 已归档至 `openspec/changes/archive/2026-07-11-add-admin-list-page-contract/`。
+- **验收重点**：模块顺序稳定；筛选变化/重置/每页条数变更回到第 1 页；分页 DOM 保留 `page-summary`、`page-right`、`page-buttons`、`page-btn`、`active` 或等价契约；sticky action column 统一；`/design-system` 样例展示正常、loading、empty、error、单页/多页边界；使用 semantic token 与 `cn()`。
 
 ### REQ-0029-admin-list-foundation-components 要点
 
@@ -43,8 +54,17 @@ status: planning
 - **类型**：API/docs governance / Web 代理策略 / 安全门禁
 - **范围**：将 `/docs`、`/redoc`、`/openapi.json`、Swagger UI 依赖资源、Vite dev proxy、Docker Nginx、生产反向代理、生产 `Try It Out` 禁用/只读策略写入接口文档页模板 checklist。
 - **不包含**：不重新设计 `/admin/api-docs` 页面；不新增业务 API；不改数据库；不开放生产 Swagger 在线调试；不新增店主 Web、小程序或未登录用户接口文档入口。
-- **OpenSpec 状态**：已创建 Change `update-api-docs-swagger-policy-checklist`，状态为 proposed；下一步执行 `/opsx-apply update-api-docs-swagger-policy-checklist`。
+- **OpenSpec 状态**：Change `update-api-docs-swagger-policy-checklist` 已归档至 `openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist/`。
 - **验收重点**：后续 design/acceptance 固定包含 Swagger Web 代理与生产 Try It Out 策略；同源 `/docs` 不落入 SPA fallback；生产等价环境保持 `Try It Out` 禁用或只读；链接和文档不得泄露 token、DSN、MinIO 凭据或真实环境变量。
+
+### REQ-0031-api-validation-envelope-governance 要点
+
+- **优先级**：P1
+- **类型**：API governance / Web 管理端表单 / validation envelope / OpenAPI-Orval
+- **范围**：将 FastAPI / Pydantic 请求校验失败统一转换为 `{ code, message, data.errors[] }` envelope，覆盖管理端 JSON 表单、路径/查询/枚举参数、`multipart/form-data` 上传缺文件或非法参数；同步 OpenAPI / Orval、Web 错误解析、后端/前端测试和 API 治理文档。
+- **不包含**：不新增业务表单字段；不重构全部前端表单 UI；不修改数据库结构、权限模型、MinIO 单桶策略或 `/api/v1` 路径；不引入 API v2。
+- **OpenSpec 状态**：已创建 Change `update-api-validation-envelope-governance`，状态为 proposed；下一步执行 `/opsx-apply update-api-validation-envelope-governance`。
+- **验收重点**：默认保留 HTTP 422 且响应体不得只包含默认 `detail`；`data.errors[]` 包含 `field`、`message`、`type`、`location`；业务 `AppError` 不被覆盖；OpenAPI / Orval 不再把 `HTTPValidationError.detail` 作为唯一契约；错误响应不泄露密码、token、MinIO 密钥、真实路径或完整对象 key；上传状态机不回归。
 
 ### BUG-0056-sprint-archive-incomplete-tasks-gate 要点
 
@@ -110,8 +130,10 @@ status: planning
 <!-- workflow-sync:scope-requirements:start -->
 | 编号 | 名称 | 优先级 | 状态 | 说明 |
 |---|---|---|---|---|
+| REQ-0028 | AdminListPage 模板与管理端列表页契约 | P1 | done | archived `add-admin-list-page-contract`（2026-07-10 20:40:55） |
 | REQ-0029 | 管理端列表基础组件（MetricCard 与分页窗口工具） | P1 | done | archived `add-admin-list-foundation-components`（2026-07-10 08:29:59） |
-| REQ-0030 | 接口文档页 Swagger 代理与生产调试策略 checklist | P2 | proposed | proposed `update-api-docs-swagger-policy-checklist` |
+| REQ-0030 | 接口文档页 Swagger 代理与生产调试策略 checklist | P2 | done | archived `update-api-docs-swagger-policy-checklist`（2026-07-11 09:04:14） |
+| REQ-0031 | API 校验错误 envelope 治理扩展到管理端表单 API | P1 | done | archived `update-api-validation-envelope-governance`（2026-07-11 09:45:37） |
 <!-- workflow-sync:scope-requirements:end -->
 
 ### 包含 BUG
@@ -132,28 +154,29 @@ status: planning
 <!-- workflow-sync:scope-changes:start -->
 | Change ID | 关联需求 | 状态 | Sprint 目标 |
 |---|---|---|---|
+| `add-admin-list-page-contract` | REQ-0028-admin-list-page-contract | archived | archived `add-admin-list-page-contract`（2026-07-10 20:40:55） |
 | `add-admin-list-foundation-components` | REQ-0029-admin-list-foundation-components | archived | archived `add-admin-list-foundation-components`（2026-07-10 08:29:59） |
 | `fix-sprint-archive-incomplete-tasks-gate` | BUG-0056-sprint-archive-incomplete-tasks-gate | archived | archived `fix-sprint-archive-incomplete-tasks-gate`（2026-07-09 23:45:40） |
-| `update-api-docs-swagger-policy-checklist` | REQ-0030-api-docs-swagger-policy-checklist | proposed | proposed `update-api-docs-swagger-policy-checklist` |
+| `update-api-docs-swagger-policy-checklist` | REQ-0030-api-docs-swagger-policy-checklist | archived | archived `update-api-docs-swagger-policy-checklist`（2026-07-11 09:04:14） |
 | `fix-api-governance-route-tags-known-debt` | BUG-0057-api-governance-tags-known-debt | archived | archived `fix-api-governance-route-tags-known-debt`（2026-07-10 00:07:56） |
 | `fix-workflow-sync-check-time-drift-idempotency` | BUG-0058-workflow-sync-check-time-drift-idempotency | archived | archived `fix-workflow-sync-check-time-drift-idempotency`（2026-07-10 00:15:41） |
 | `fix-user-password-copy-not-working` | REQ-0005-user-management | archived | archived `fix-user-password-copy-not-working`（2026-07-06 16:05:44） |
 | `fix-audit-log-request-id-copy-error` | REQ-0024-product-usage-logging | archived | archived `fix-audit-log-request-id-copy-error`（2026-07-09 08:37:20） |
 | `fix-change-password-policy-error-message` | REQ-0015-password-change | archived | archived `fix-change-password-policy-error-message`（2026-07-07 00:28:52） |
+| `update-api-validation-envelope-governance` | REQ-0031-api-validation-envelope-governance | archived | archived `update-api-validation-envelope-governance`（2026-07-11 09:45:37） |
 <!-- workflow-sync:scope-changes:end -->
 
 ### 延后项（待评审 / 未纳入本 Sprint）
 
 | 项目 | 状态 | 延后原因 |
 |---|---|---|
-| A-002 AdminListPage 模板 | open | 需独立 REQ/评审后再纳入，避免 scope 膨胀 |
-| A-007 统一 422 envelope 治理 | open | 已有 REQ-0031 captured，未评审，不得纳入正式范围 |
 | A-008 acceptance-report 历史 sign-off 复核 | open | 人工 QA review 项，不纳入本 Sprint |
 
 ## 工作量估算
 
 | 工作项 | SP | 人天 | 角色 | 说明 |
 |---|---:|---:|---|---|
+| REQ-0028 AdminListPage 模板与列表页契约 | 8 | 5.0 | 前端/设计系统/测试 | `/req-opsx` 后实现模板契约、类型扩展、`/design-system` 验收样例和代表页面迁移示范 |
 | REQ-0029 管理端列表基础组件 | 5 | 3.0 | 前端/测试 | `/opsx-apply` 后实现 `MetricCard`、`MetricCardGrid`、分页窗口共享工具、设计系统示例和首批 2–3 页接入 |
 | OpenSpec Change 生成与设计 | 1 | 0.75 | 产品/架构 | `/req-opsx` 后补齐 proposal、design、tasks 与 specs delta |
 | checklist 文档同步 | 1 | 0.75 | 前端/DevOps/文档 | 明确 API docs design 模板、`docs/03-api-index.md`、`docs/standards/api-governance.md` 同步策略 |
@@ -164,23 +187,26 @@ status: planning
 | BUG-0059 一次性密码复制弹窗修复 | 2 | 1.5 | 前端/测试 | `/bug-opsx` 后修复 `ResetPasswordDialog` 复制反馈、fallback 与组件测试 |
 | BUG-0060 日志审计 request_id 复制修复 | 2 | 1.0 | 前端/测试 | `/bug-opsx` 后修复 `LogAuditPage` 复制反馈、Clipboard fallback 与页面测试 |
 | BUG-0061 修改密码策略失败提示修复 | 3 | 2.5 | 后端/前端/测试 | `/bug-opsx` 已创建 Change，后续修复策略失败详情、前端动态规则展示与回归测试 |
-| fix_buffer | 6 | 4.0 | 全员 | 预留 31.6% SP，应对 API governance、workflow-sync、Web modal 与密码策略联动 |
-| **合计** | **29** | **21.0** | — | 含 fix 缓冲；1 条 P1 Web 管理端组件 REQ + 1 条 P2 治理 REQ + 6 条治理/交互 BUG |
+| REQ-0031 API 校验错误 envelope 治理扩展 | 3 | 3.0 | 后端/前端/测试 | `/opsx-apply` 后实现 RequestValidationError envelope、OpenAPI/Orval 契约、Web 错误解析和上传/表单回归测试 |
+| fix_buffer | 6 | 4.0 | 全员 | 预留 16.2% SP，应对 API governance、workflow-sync、Web modal 与密码策略联动；低于 30% 建议值，后续范围需冻结 |
+| **合计** | **40** | **29.0** | — | 含 fix 缓冲；3 条 P1 REQ + 1 条 P2 治理 REQ + 6 条治理/交互 BUG |
 
 ## 容量门禁
 
 | 门禁 | 当前值 | 结论 |
 |---|---:|---|
-| add-* 主能力数 | 1 / 6 | Pass；`add-admin-list-foundation-components` 为 P1 横切组件能力 |
-| fix 缓冲 | 6 / 29 SP = 20.7% | Warning；低于 30% 建议值，已在风险表记录，后续非阻断项不得继续追加 |
-| 人天容量 | 21.0 / 约 20.0 开发人天 | Warning；REQ-0029 追加后略超双人两周开发容量，需优先完成已归档/已实现项收尾并冻结新增范围 |
-| UI 横切复发风险 | 1 个管理端列表组件 REQ + 3 个管理端复制/弹窗/表单交互 fix | Warning；REQ-0029 与 BUG-0060 共同追加 `admin-list-page-consistency.md` gate |
+| add-* 主能力数 | 2 / 6 | Pass；REQ-0028 已创建 `add-admin-list-page-contract`，REQ-0029 已有 `add-admin-list-foundation-components` |
+| fix 缓冲 | 6 / 40 SP = 15.0% | Warning；低于 30% 建议值，已在风险表记录，后续非阻断项不得继续追加 |
+| 人天容量 | 29.0 / 约 20.0 开发人天 | Warning；REQ-0031 追加后明显超双人两周开发容量，需冻结新增范围并优先完成治理最小闭环 |
+| UI 横切复发风险 | 2 个管理端列表模板/组件 REQ + 1 个 API 表单错误治理 REQ + 3 个管理端复制/弹窗/表单交互 fix | Warning；REQ-0031 额外触发 `admin-form`、`admin-modal`、`media-upload` gate |
 
 ## 里程碑
 
 | 里程碑 | 目标日期 | 说明 |
 |---|---|---|
 | Sprint 规划完成 | 2026-07-04 22:30:20 | 四件套创建，REQ-0030 纳入正式范围 |
+| REQ-0028 纳入 Sprint | 2026-07-10 20:26:45 | 已评审需求纳入 sprint-005 |
+| REQ-0028 Change 创建 | 2026-07-10 20:40:55 | 已创建 `add-admin-list-page-contract` |
 | REQ-0029 纳入 Sprint | 2026-07-10 08:15:42 | 已评审需求纳入 sprint-005 |
 | REQ-0029 Change 创建 | 2026-07-10 08:09:52 | 已创建 `add-admin-list-foundation-components` |
 | OpenSpec Change 创建 | 2026-07-05 07:55:25 | 已创建 `update-api-docs-swagger-policy-checklist` |
@@ -193,11 +219,14 @@ status: planning
 | BUG-0060 Change 创建 | 2026-07-09 08:18:00 | 已创建 `fix-audit-log-request-id-copy-error` |
 | BUG-0061 纳入 Sprint | 2026-07-06 23:54:41 | 已评审 BUG 纳入 sprint-005 |
 | BUG-0061 Change 创建 | 2026-07-07 00:08:22 | 已创建 `fix-change-password-policy-error-message` |
+| REQ-0031 纳入 Sprint | 2026-07-11 09:45:37 | 已评审需求纳入 sprint-005 |
+| REQ-0031 Change 创建 | 2026-07-11 09:43:01 | 已创建 `update-api-validation-envelope-governance` |
 | BUG-0056 纳入 Sprint | 2026-07-09 23:25:11 | 已评审 BUG 纳入 sprint-005 |
 | BUG-0056 Change 创建 | 2026-07-04 15:04:22 | 已创建并应用 `fix-sprint-archive-incomplete-tasks-gate` |
 | 文档与验收策略确认 | 2026-07-08 18:00:00 | 明确 checklist 落点和 smoke/测试方式 |
 | Sprint 验收准备 | 2026-07-17 18:00:00 | 完成 tasks、trace、验收记录 |
 | Sprint 计划结束 | 2026-07-18 22:30:20 | 可进入 `/sprint-archive` 前检查 |
+| Sprint 归档闭环 | 2026-07-11 10:12:30 | readiness gate 通过；10/10 Change 已归档；目录迁移至 `iterations/archive/sprint-005/` |
 
 ## 风险
 
@@ -208,10 +237,13 @@ status: planning
 | BUG-0059 Change 待实现 | high | Change 已创建但修复尚未落地，复制可靠性缺陷仍存在 | 执行 `/opsx-apply fix-user-password-copy-not-working` |
 | BUG-0060 Change 待实现 | medium | Change 已创建但修复尚未落地，日志审计 request_id 复制兜底仍存在缺口 | 执行 `/opsx-apply fix-audit-log-request-id-copy-error` |
 | BUG-0061 Change 待实现 | medium | Change 已创建但修复尚未落地，密码策略失败提示仍不清晰 | 执行 `/opsx-apply fix-change-password-policy-error-message` |
+| REQ-0031 Change 待实现 | high | API validation envelope 已纳入 Sprint，但横跨后端、Web、OpenAPI/Orval、测试和文档，容易影响既有业务错误码 | 执行 `/opsx-apply update-api-validation-envelope-governance`，优先覆盖统一 handler、代表接口和业务 AppError 兼容测试 |
 | REQ-0029 Change 待实现 | medium | P1 管理端列表基础组件尚未落地，A-003 复盘行动项仍未闭环 | 执行 `/opsx-apply add-admin-list-foundation-components`，首批页面控制在 2–3 个 |
-| 容量略超限 | high | REQ-0029 追加后估算 21.0 人天，高于 2 人两周约 20 人天基线 | 冻结后续新增范围；若实现阶段超时，保留 2 页最低闭环，第三页转后续推广 |
-| fix 缓冲低于建议值 | medium | REQ-0029 追加后 fix_buffer 降至 20.7%，低于 30% 建议值 | 后续非 P0/P1 阻断项延后到下一 Sprint；实现阶段优先关闭已纳入 fix |
+| REQ-0028 已归档后推广风险 | low | 页面模板契约已归档，但其余管理端列表页仍需后续逐页推广，避免一次性改动过大 | 后续按独立 Change 逐页推广 |
+| 容量明显超限 | high | REQ-0031 追加后估算 29.0 人天，高于 2 人两周约 20 人天基线 | 冻结后续新增范围；若实现阶段超时，REQ-0031 先完成统一 handler、代表接口、OpenAPI/Orval 和核心测试，非关键字段级文案后续治理 |
+| fix 缓冲低于建议值 | high | REQ-0031 追加后 fix_buffer 降至 15.0%，低于 30% 建议值 | 后续非 P0/P1 阻断项延后到下一 Sprint；实现阶段优先关闭已纳入 fix |
 | BUG-0061 可能涉及 API 契约 | medium | 若返回结构化策略失败详情，需同步 OpenAPI、Orval、API 文档与测试 | 在 Change design 中明确响应结构；实现后运行 OpenAPI/Orval 同步 |
+| 统一 envelope 可能覆盖业务错误 | high | 通用 RequestValidationError handler 若边界不清，可能误覆盖用户名重复、受保护账号、文件类型不允许等业务错误 | 后端测试必须覆盖至少一个既有 AppError 不被覆盖，OpenSpec tasks 中作为必做项 |
 | 剪贴板权限与浏览器兼容 | medium | Clipboard API 在权限受限或非预期运行环境中可能失败，若无 fallback 会复发 | acceptance 必须覆盖 writeText 成功、失败与 API 不存在三类路径 |
 | checklist 落点分散 | medium | design、API 文档、知识库重复或遗漏 | OpenSpec design 中固定事实源与同步对象 |
 | 生产 Try It Out 策略被误解为可打开 | high | 可能放开生产在线调试 | acceptance 明确生产只读，security review 作为 tasks gate |
@@ -222,21 +254,25 @@ status: planning
 | ID | 优先级 | 描述 | 本 Sprint 承接方式 |
 |---|---|---|---|
 | A-001 | P0 | 修复 `/sprint-archive` 前 tasks 未完成也可归档的问题 | **承接**；对应 BUG-0056 与 Change `fix-sprint-archive-incomplete-tasks-gate` |
-| A-002 | P1 | 落地 `AdminListPage` / 管理端列表页契约 | 延后；需独立 approved REQ |
+| A-002 | P1 | 落地 `AdminListPage` / 管理端列表页契约 | **承接**；对应 REQ-0028 与 Change `add-admin-list-page-contract` |
 | A-003 | P1 | 抽象 `MetricCard` 与分页窗口工具 | **承接**；对应 REQ-0029 与 Change `add-admin-list-foundation-components` |
 | A-004 | P1 | 清理 API governance 既有 route tags 失败 | **承接**；对应 BUG-0057 与 Change `fix-api-governance-route-tags-known-debt` |
 | A-005 | P1 | 修复 workflow-sync `--check` 时间漂移幂等性 | **承接**；对应 BUG-0058 与 Change `fix-workflow-sync-check-time-drift-idempotency` |
 | A-006 | P2 | 将 Swagger Web 代理和生产 Try It Out 策略写入接口文档页模板 checklist | **承接**；对应 REQ-0030 |
-| A-007 | P2 | 将统一 422 envelope 设计扩展到所有管理端表单 API | 延后；REQ-0031 captured 但未评审 |
+| A-007 | P2 | 将统一 422 envelope 设计扩展到所有管理端表单 API | **承接**；对应 REQ-0031 与 Change `update-api-validation-envelope-governance` |
 | A-008 | P2 | 复核 `acceptance-report.md` 历史待 sign-off 内容 | 延后；人工 QA review |
 
 ## 横切预防清单
 
-本 Sprint 新增管理端列表基础组件能力但不新增完整 CRUD 列表页或媒体上传能力；REQ-0029 与 BUG-0060 触发 `admin-list` best-practice，BUG-0059 涉及管理端一次性密码结果弹窗交互修复，BUG-0061 涉及修改密码弹窗/表单错误提示修复，触发 `admin-modal` 与 `admin-form` best-practices 横切 AC。
+本 Sprint 新增管理端列表模板契约与基础组件能力，并将统一校验错误 envelope 扩展到管理端表单与上传参数校验；REQ-0028、REQ-0029 与 BUG-0060 触发 `admin-list` best-practice，REQ-0031 触发 `admin-form`、`admin-modal` 与 `media-upload` best-practices，BUG-0059 涉及管理端一次性密码结果弹窗交互修复，BUG-0061 涉及修改密码弹窗/表单错误提示修复，触发 `admin-modal` 与 `admin-form` best-practices 横切 AC。
 
-本 Sprint 的专项预防清单来自 `docs/knowledge-base/retrospectives/sprint-004-retrospective.md`、`docs/knowledge-base/best-practices/admin-list-page-consistency.md`、`docs/knowledge-base/best-practices/admin-modal-width-css-cascade.md` 与 `docs/knowledge-base/best-practices/admin-form-page-consistency.md`：
+本 Sprint 的专项预防清单来自 `docs/knowledge-base/retrospectives/sprint-004-retrospective.md`、`docs/knowledge-base/best-practices/admin-list-page-consistency.md`、`docs/knowledge-base/best-practices/admin-modal-width-css-cascade.md`、`docs/knowledge-base/best-practices/admin-form-page-consistency.md` 与 `docs/knowledge-base/best-practices/admin-media-upload-chain.md`：
 
 - [ ] API docs design MUST 声明 dev / Docker / production 代理路径。
+- [ ] REQ-0028 AdminListPage MUST 固定标题、指标卡、筛选/搜索、列表/表格、分页和 sticky action column 模块顺序。
+- [ ] REQ-0028 AdminListPageContent 或等价类型 MUST 覆盖标题、主操作、指标卡、筛选项、列定义、行操作、分页与状态态。
+- [ ] REQ-0028 `/design-system` 样例 MUST 覆盖完整列表、loading、empty、error、单页和多页分页边界态。
+- [ ] REQ-0028 implementation MUST 使用 semantic token 与 `cn()`，禁止新增裸 Hex。
 - [ ] REQ-0029 MetricCard MUST 稳定输出 `.metric-card`、`.metric-label`、`.metric-value`、`.metric-desc`。
 - [ ] REQ-0029 MetricCardGrid MUST 保留 `.summary-grid`，并覆盖 2、3、4 卡布局。
 - [ ] REQ-0029 pagination-window MUST 默认最多 5 个页码，并覆盖首页附近、居中页、末页附近和非法输入。
@@ -265,13 +301,24 @@ status: planning
 - [ ] BUG-0061 fix MUST 明确密码策略事实源，前端展示规则与后端有效策略一致。
 - [ ] BUG-0061 API error feedback MUST 指出具体失败项，且不得放宽后端密码策略。
 - [ ] BUG-0061 tests MUST 覆盖长度不足、缺少大小写/数字/特殊字符、弱密码、同原密码和原密码错误无回归。
+- [ ] REQ-0031 validation envelope MUST 默认保留 HTTP 422，并确保响应体包含 `code`、`message`、`data.errors[]`，不得只暴露默认 `detail`。
+- [ ] REQ-0031 backend tests MUST 覆盖 JSON body、路径/查询/枚举、multipart 缺文件或非法参数，并覆盖既有业务 `AppError` 不被通用 handler 覆盖。
+- [ ] REQ-0031 Web parser MUST 优先读取 envelope `message`，字段错误可映射时展示字段级错误，无法映射时安全降级为 fixed toast 或固定错误区。
+- [ ] REQ-0031 upload validation MUST 不破坏上传控件 `idle → uploading → done/failed` 状态机，同会话成功预览不得被失败分支误清空。
+- [ ] REQ-0031 OpenAPI / Orval MUST 表达统一校验错误契约，不再把默认 `HTTPValidationError.detail` 作为管理端表单错误唯一类型来源。
 
 ## 依赖
 
 ```text
 sprint-005
+├── REQ-0028-admin-list-page-contract
+    ├── parent: REQ-0000-build-design-system
+    ├── child: REQ-0029-admin-list-foundation-components
+    ├── related bug: BUG-0055-admin-list-layout-unification（已归档修复）
+    ├── best-practice: admin-list-page-consistency
+    └── change: add-admin-list-page-contract（archived）
 ├── REQ-0029-admin-list-foundation-components
-    ├── parent: REQ-0028-admin-list-page-contract（已评审，未纳入本 Sprint）
+    ├── parent: REQ-0028-admin-list-page-contract（已评审，已纳入本 Sprint）
     ├── related bug: BUG-0055-admin-list-layout-unification（已归档修复）
     ├── best-practice: admin-list-page-consistency
     └── change: add-admin-list-foundation-components（proposed）
@@ -279,7 +326,12 @@ sprint-005
     ├── parent: REQ-0022-admin-api-docs-menu（已归档能力）
     ├── related: REQ-0023-api-docs-swagger-detail-link（已归档能力）
     ├── related bug: BUG-0051-api-docs-swagger-ui-link-wrong（已归档修复）
-    └── change: update-api-docs-swagger-policy-checklist（proposed）
+    └── change: update-api-docs-swagger-policy-checklist（archived）
+├── REQ-0031-api-validation-envelope-governance
+    ├── parent: REQ-0000-build-api-standard
+    ├── related capability: api-governance / web-client / testing
+    ├── best-practice: admin-form-page-consistency, admin-modal-width-css-cascade, admin-media-upload-chain
+    └── change: update-api-validation-envelope-governance（proposed）
 ├── BUG-0056-sprint-archive-incomplete-tasks-gate
     ├── source: sprint-004 retrospective A-001
     ├── related capability: sprint-archive / workflow tooling
@@ -312,6 +364,7 @@ sprint-005
 ## 发布计划
 
 - 本 Sprint 暂不直接形成产品版本发布对象。
+- REQ-0028 预计影响 Web 管理端共享模板、`/design-system` AdminListPage 验收样例和少量代表页面迁移；不影响后端 API、数据库、OpenAPI/Orval、小程序或店主端。
 - REQ-0029 预计影响 Web 管理端共享 UI、`/design-system` 示例和首批列表页接入；不影响后端 API、数据库、OpenAPI/Orval、小程序或店主端。
 - 若后续 Change 仅更新规范、文档和测试 checklist，可在迭代 release-note 中作为治理改进记录。
 - BUG-0057 预计会更新 OpenAPI tags 与 Orval 生成物，发布说明需标注为 API 契约元数据治理，不改变业务请求/响应语义。
@@ -320,14 +373,17 @@ sprint-005
 - BUG-0059 预计只影响 Web 管理端用户管理一次性密码弹窗复制交互，不改变 API、数据库或小程序。
 - BUG-0060 预计只影响 Web 管理端日志审计页 `request_id` 复制交互，不改变 API、数据库、OpenAPI/Orval 或小程序。
 - BUG-0061 预计影响 Web 管理端修改密码弹窗与密码策略失败反馈；若 API 错误响应增加结构化详情，发布说明需标注 OpenAPI/Orval 同步情况。
+- REQ-0031 预计影响后端统一校验异常处理、管理端表单/上传校验失败响应、Web 错误解析、OpenAPI/Orval 和测试；不影响数据库、小程序、MinIO 单桶策略或 `/api/v1` 路径。
 - 若涉及 Docker/Nginx 实际配置修改，必须补充 Docker Compose 验证记录，并在 release-note 中列为部署注意事项。
 
 ## 关联文档
 
 | 文档 | 说明 |
 |---|---|
+| `issues/requirements/archive/REQ-0028-admin-list-page-contract/` | 需求包事实源 |
 | `issues/requirements/archive/REQ-0029-admin-list-foundation-components/` | 需求包事实源 |
-| `issues/requirements/review/REQ-0030-api-docs-swagger-policy-checklist/` | 需求包事实源 |
+| `issues/requirements/archive/REQ-0030-api-docs-swagger-policy-checklist/` | 需求包事实源 |
+| `issues/requirements/archive/REQ-0031-api-validation-envelope-governance/` | 需求包事实源 |
 | `issues/bugs/archive/BUG-0056-sprint-archive-incomplete-tasks-gate/` | BUG 包事实源 |
 | `issues/bugs/archive/BUG-0057-api-governance-tags-known-debt/` | BUG 包事实源 |
 | `issues/bugs/archive/BUG-0058-workflow-sync-check-time-drift-idempotency/` | BUG 包事实源 |
@@ -339,9 +395,13 @@ sprint-005
 | `openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` | BUG-0056 修复 Change 归档目录 |
 | `openspec/changes/fix-workflow-sync-check-time-drift-idempotency/` | BUG-0058 修复 Change |
 | `openspec/changes/fix-audit-log-request-id-copy-error/` | BUG-0060 修复 Change |
+| `openspec/changes/update-api-validation-envelope-governance/` | REQ-0031 OpenSpec Change |
 | `docs/knowledge-base/best-practices/admin-list-page-consistency.md` | BUG-0060 日志审计列表反馈横切预防 gate |
 | `docs/knowledge-base/retrospectives/sprint-004-retrospective.md` | A-004 / A-005 / A-006 来源 |
 | `docs/knowledge-base/best-practices/admin-modal-width-css-cascade.md` | BUG-0059 弹窗修复横切预防 gate |
+| `docs/knowledge-base/best-practices/admin-form-page-consistency.md` | REQ-0031 与 BUG-0061 表单错误展示横切预防 gate |
+| `docs/knowledge-base/best-practices/admin-media-upload-chain.md` | REQ-0031 上传校验错误 envelope 横切预防 gate |
+| `docs/knowledge-base/retrospectives/sprint-005-retrospective.md` | Sprint 005 迭代经验复盘 |
 | `docs/03-api-index.md` | 后续可能同步接口文档页说明 |
 | `docs/standards/api-governance.md` | 后续可能同步 Swagger / Orval 治理 checklist |
 | `src/web/nginx.conf` | Docker Web 代理检查对象 |
@@ -350,6 +410,10 @@ sprint-005
 
 | 时间 | 说明 |
 |---|---|
+| 2026-07-11 10:26:11 | `/sprint-exps sprint-005` 生成 Sprint 005 复盘并写入知识库索引 |
+| 2026-07-11 10:12:30 | `/sprint-archive sprint-005` 闭环；readiness gate PASS；10/10 Change 已归档；Sprint 标记 completed/archive |
+| 2026-07-11 09:45:37 | `/sprint-propose` 续写 sprint-005，纳入 REQ-0031，承接 Sprint 004 A-007 |
+| 2026-07-10 20:26:45 | `/sprint-propose` 续写 sprint-005，纳入 REQ-0028，承接 Sprint 004 A-002 |
 | 2026-07-10 08:15:42 | `/sprint-propose` 续写 sprint-005，纳入 REQ-0029，承接 Sprint 004 A-003 |
 | 2026-07-09 23:46:53 | `/opsx-archive` 归档 `fix-sprint-archive-incomplete-tasks-gate`，BUG-0056 迁入 archive |
 | 2026-07-09 23:25:11 | `/sprint-propose` 续写 sprint-005，纳入 BUG-0056，承接 Sprint 004 A-001 归档 tasks gate |

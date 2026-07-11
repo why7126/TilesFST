@@ -46,13 +46,54 @@ Each REQ-0000 infrastructure requirement MUST map to at least one automated test
 
 ### Requirement: Change 测试
 
-New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, user-facing UI, workflow automation, or governance scripts MUST include focused regression tests for the modified behavior. For password-policy feedback changes, tests MUST cover both backend policy failure detail and frontend user-facing error rendering.
+New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, user-facing UI, workflow automation, or governance scripts MUST include focused regression tests for the modified behavior. Changes that modify management admin form validation error contracts MUST test backend validation envelope responses, frontend error parsing, OpenAPI/Orval contract generation, and business error compatibility.
 
 #### Scenario: 治理文档声明测试要求
 
 - **WHEN** a developer reads `docs/standards/testing-governance.md`
 - **THEN** MUST find a rule that OpenSpec Change implementations MUST add matching tests
 - **AND** MUST NOT allow implementation-only changes without test coverage for new Services or Routers
+
+#### Scenario: 管理端 JSON body 校验 envelope 已测试
+
+- **WHEN** backend tests run for this change
+- **THEN** tests MUST submit invalid JSON body data to representative management admin form APIs
+- **AND** tests MUST assert HTTP 422 by default
+- **AND** tests MUST assert the response body includes `code`, `message`, and `data`
+- **AND** tests MUST assert the response body is not only FastAPI/Pydantic default `detail`.
+
+#### Scenario: 管理端路径查询枚举校验 envelope 已测试
+
+- **WHEN** backend tests run for this change
+- **THEN** tests MUST cover path, query, or enum parameter validation failure for at least one management admin API
+- **AND** tests MUST assert the unified validation error envelope and a stable parameter error code.
+
+#### Scenario: 管理端上传缺文件校验 envelope 已测试
+
+- **WHEN** backend tests run for this change
+- **THEN** tests MUST call at least one `POST /api/v1/admin/uploads/*` route without a required file or with an invalid file parameter shape
+- **AND** tests MUST assert the unified validation error envelope
+- **AND** tests MUST assert sensitive file paths, object keys, credentials, and raw file content are not exposed.
+
+#### Scenario: 业务错误兼容已测试
+
+- **WHEN** backend tests run for this change
+- **THEN** tests MUST cover at least one existing business `AppError`, such as duplicate username, protected account, disallowed file type, or category max-depth validation
+- **AND** tests MUST assert the original business error code, HTTP status, and message are preserved.
+
+#### Scenario: Web 错误解析已测试
+
+- **WHEN** frontend tests run for this change
+- **THEN** tests MUST assert the admin error parser or equivalent form behavior reads envelope `message`
+- **AND** tests SHOULD cover `data.errors[]` field mapping
+- **AND** tests MUST cover safe fallback to global feedback when a field cannot be mapped.
+
+#### Scenario: OpenAPI Orval 契约已测试
+
+- **WHEN** this change modifies OpenAPI response schemas
+- **THEN** the OpenAPI export and Orval generated client MUST be regenerated and reviewed
+- **AND** generated client types MUST expose or tolerate the unified validation error envelope for management admin form APIs
+- **AND** generated files MUST NOT be hand-edited.
 
 #### Scenario: 修改密码策略失败详情已测试
 
@@ -131,56 +172,54 @@ The repository MUST include a GitHub Actions workflow that runs pytest and test 
 
 ### Requirement: Swagger 入口回归测试
 
-The BUG-0051 fix and REQ-0023 enhancement SHALL include focused regression coverage for the admin API docs Swagger entry, row-level Swagger operation links, and Web proxy behavior.
+The BUG-0051 fix and REQ-0023 enhancement SHALL include focused regression coverage for the admin API docs Swagger entry, row-level Swagger operation links, and Web proxy behavior. Future API docs refinements, Swagger entry changes, and Web proxy changes MUST include automated tests or documented smoke verification for the Swagger Web proxy and production `Try It Out` checklist.
 
-#### Scenario: 前端链接行为已测试
+#### Scenario: Swagger main entry uses same-origin path
 
-- **WHEN** frontend tests run for `ApiDocsPage`
+- **WHEN** frontend tests render the admin API docs page in non-production and production configurations
 - **THEN** they SHALL verify the non-production Swagger action uses the expected same-origin Swagger path
 - **AND** they SHALL verify the production read-only Swagger action still uses the expected same-origin Swagger path.
 
-#### Scenario: Row-level operationId link tested
+#### Scenario: Row-level Swagger operation link is generated
 
 - **WHEN** frontend tests render an API docs route with `included_in_openapi=true` and a non-empty `operation_id`
 - **THEN** they SHALL verify the row-level `查看` action links to a same-origin Swagger UI operationId deep link such as `/docs#/{tag}/{operationId}`
-- **AND** they SHALL verify the PATH cell can use the same deep link when it is available
-- **AND** they SHALL verify tag and operationId values are URL-safe encoded where needed.
+- **AND** they SHALL verify the PATH cell link, if present, uses the same safe deep link.
 
-#### Scenario: Row-level disabled state tested
+#### Scenario: Unavailable Swagger operation links stay disabled
 
 - **WHEN** frontend tests render a route with `included_in_openapi=false` or a missing `operation_id`
-- **THEN** they SHALL verify the row-level `查看` action is disabled or equivalently unavailable
+- **THEN** they SHALL verify the row-level Swagger action is disabled or equivalently unavailable
 - **AND** they SHALL verify the disabled state has no clickable href to `/docs` or an incorrect operationId.
 - **AND** they SHALL verify the PATH cell does not expose a clickable Swagger detail href for unavailable routes.
 
 #### Scenario: Row-level Swagger link security tested
 
 - **WHEN** frontend tests inspect row-level Swagger links
-- **THEN** they SHALL verify enabled links open in a new tab or window with a safe rel attribute such as `noreferrer`
-- **AND** they SHALL verify the href and rendered text do not contain token, Bearer, Cookie, user, password, database, MinIO, or environment-secret content.
+- **THEN** they SHALL verify the link does not contain bearer tokens, session data, database DSNs, MinIO credentials, JWT secrets, or real environment variable values.
 
-#### Scenario: 既有接口文档回归保持覆盖
+#### Scenario: Existing API docs regression remains covered
 
-- **WHEN** frontend tests are updated for REQ-0023
+- **WHEN** API docs frontend regressions are updated
 - **THEN** existing admin permission, employee forbidden, OpenAPI JSON, Swagger read-only policy, Orval method name, missing method state, route filtering, pagination, and API docs summary metric assertions SHALL continue to pass.
-- **AND** they SHALL verify the pagination summary count updates to the filtered route count after filters change.
-
-#### Scenario: 固定操作列已测试
-
-- **WHEN** frontend tests render the API docs table
-- **THEN** they SHALL verify the ACTION header and row action cells expose the sticky action-column class or equivalent stable selector.
 
 #### Scenario: Web 代理 smoke 验证 docs 路由
 
-- **WHEN** proxy smoke verification is performed for the Web port
+- **WHEN** proxy smoke verification requests `/docs` through the Web port
 - **THEN** `/docs` SHALL return backend Swagger HTML or an equivalent backend docs response
-- **AND** it SHALL NOT return the Web SPA homepage.
+- **AND** it SHALL NOT return the Web app homepage or React Router fallback shell.
 
 #### Scenario: OpenAPI JSON smoke 验证无 fallback
 
 - **WHEN** proxy smoke verification requests `/openapi.json` through the Web port
 - **THEN** the response SHALL include OpenAPI JSON fields such as `openapi`, `info`, and `paths`
-- **AND** it SHALL NOT return Web SPA HTML.
+- **AND** it SHALL NOT return the Web app homepage or static HTML shell.
+
+#### Scenario: Swagger checklist verification is recorded
+
+- **WHEN** a future change modifies API docs refine behavior, Swagger entry behavior, or Web proxy configuration
+- **THEN** its tasks, trace, acceptance report, or test output MUST record verification for local Web proxy, Docker Web proxy, and production-equivalent `Try It Out` policy
+- **AND** if an item cannot be automated, the record MUST name the manual smoke method and environment.
 
 ### Requirement: 管理端接口文档摘要指标卡回归测试
 
@@ -289,26 +328,39 @@ The testing capability SHALL include frontend tests for `/admin/api-docs` naviga
 - **THEN** they SHALL cover filtering and Orval method-name display, including the "未生成" state.
 
 ### Requirement: 生产 Swagger 调试禁用验证
-The testing capability SHALL verify that production does not allow Swagger `Try It Out` from the admin API docs page.
+
+The testing capability SHALL verify that production does not allow Swagger `Try It Out` from the admin API docs page. Future API docs and Swagger proxy changes MUST preserve this production read-only verification gate.
 
 #### Scenario: Production disables Try It Out
-- **WHEN** the app is configured as production
+
+- **WHEN** production or production-equivalent Swagger documentation is verified
 - **THEN** automated or documented production-equivalent verification SHALL prove Swagger `Try It Out` is hidden or disabled.
 
 #### Scenario: Non-production allows Try It Out
-- **WHEN** the app is configured as local, development, or demo
+
+- **WHEN** non-production API docs behavior is verified
 - **THEN** tests or documented verification SHALL prove the Swagger debugging policy is shown as allowed.
 
+#### Scenario: Production read-only gate remains part of API docs checklist
+
+- **WHEN** a future API docs refine, Swagger route, or Web proxy change is implemented
+- **THEN** its acceptance or trace records MUST explicitly state that production `Try It Out` remains disabled, hidden, or read-only
+- **AND** the records MUST NOT rely on frontend copy alone as the only enforcement mechanism.
+
 ### Requirement: Orval and OpenAPI regression
-The testing capability SHALL include OpenAPI/Orval regression checks when the change adds or changes backend API contracts.
+
+The testing capability SHALL include OpenAPI/Orval regression checks when the change adds or changes backend API contracts. Management admin form validation error contract changes SHALL include checks that exported OpenAPI and generated Orval output represent the unified validation error envelope and do not depend only on default `HTTPValidationError.detail`.
 
 #### Scenario: Orval generated output updated
-- **WHEN** a backend aggregation endpoint or API contract changes
+
+- **WHEN** API response contracts change
 - **THEN** the OpenAPI export and Orval generated client SHALL be regenerated and reviewed.
 
-#### Scenario: API governance validation
-- **WHEN** a backend endpoint is added for admin API docs
-- **THEN** API governance validation SHALL pass or known unrelated failures SHALL be documented.
+#### Scenario: 管理端表单校验错误类型已检查
+
+- **WHEN** API validation envelope governance is implemented
+- **THEN** generated OpenAPI / Orval output SHALL expose or tolerate the unified validation error envelope for representative management admin form APIs
+- **AND** review records SHALL confirm default `HTTPValidationError.detail` is not the only validation error type source.
 
 ### Requirement: 管理端列表页一致性回归测试
 

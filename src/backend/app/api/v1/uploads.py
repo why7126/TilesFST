@@ -11,7 +11,7 @@ from app.modules.media.storage import (
     build_video_upload_object_key,
     save_upload_file,
 )
-from app.schemas.common import ApiResponse
+from app.schemas.common import ApiResponse, VALIDATION_ERROR_RESPONSE
 from app.schemas.media import UploadResult
 from app.services.effective_settings_service import EffectiveSettingsService
 
@@ -39,6 +39,7 @@ def _validate_video_type(content_type: str | None, effective: EffectiveSettingsS
 @router.post(
     "",
     response_model=ApiResponse[UploadResult],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="上传头像",
 )
 async def upload_image(
@@ -57,6 +58,7 @@ async def upload_image(
 @router.post(
     "/brand-logos",
     response_model=ApiResponse[UploadResult],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="上传品牌 Logo",
 )
 async def upload_brand_logo(
@@ -75,6 +77,7 @@ async def upload_brand_logo(
 @router.post(
     "/banner-images",
     response_model=ApiResponse[UploadResult],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="上传 Banner 图片",
 )
 async def upload_banner_image(
@@ -93,6 +96,7 @@ async def upload_banner_image(
 @router.post(
     "/tile-images",
     response_model=ApiResponse[UploadResult],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="上传 SKU 图片",
 )
 async def upload_tile_image(
@@ -113,6 +117,7 @@ async def upload_tile_image(
 @router.post(
     "/tile-videos",
     response_model=ApiResponse[UploadResult],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="上传 SKU 视频",
 )
 async def upload_tile_video(

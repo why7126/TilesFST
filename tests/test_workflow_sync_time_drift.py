@@ -11,7 +11,11 @@ from scripts.workflow_sync import collect, engine, patch as sync_patch
 from scripts.workflow_sync.collect import IssueRecord, resolve_archive_timestamp
 from scripts.workflow_sync.derive import DerivedIssue
 from scripts.workflow_sync.engine import SyncEngine
-from scripts.workflow_sync.patch import patch_issue_trace, persist_markdown
+from scripts.workflow_sync.patch import (
+    normalize_change_record_table,
+    patch_issue_trace,
+    persist_markdown,
+)
 
 
 def test_archive_timestamp_ignores_mutable_issue_updated_at(tmp_path: Path) -> None:
@@ -190,6 +194,28 @@ openspec_changes:
     assert "status: applied" in text
     assert "| /opsx-apply | Change `add-example` apply 完成，待 archive。 |" in text
     assert text.count("/opsx-apply") == 1
+
+
+def test_normalize_change_record_table_moves_header_before_rows() -> None:
+    text = """# Trace
+
+## 变更记录
+
+| 2026-07-05 14:37:59 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
+| 2026-07-10 20:26:45 | /sprint-propose | 纳入 sprint-005 正式范围。 |
+| 时间 | 命令 | 说明 |
+|---|---|---|
+| 2026-07-04 15:17:26 | /req-capture | 创建需求记录。 |
+"""
+
+    normalized = normalize_change_record_table(text)
+    normalized_again = normalize_change_record_table(normalized)
+
+    assert normalized == normalized_again
+    assert normalized.index("| 时间 | 命令 | 说明 |") < normalized.index(
+        "| 2026-07-05 14:37:59 | lifecycle-stage-migrate |"
+    )
+    assert "| 2026-07-10 20:26:45 | /sprint-propose | 纳入 sprint-005 正式范围。 |" in normalized
 
 
 def test_sync_then_consecutive_checks_have_no_delta(tmp_path: Path, monkeypatch) -> None:

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.core.deps import get_effective_settings_service, get_user_repository, require_system_admin
 from app.repositories.user_repository import UserRecord, UserRepository
-from app.schemas.common import ApiResponse
+from app.schemas.common import ApiResponse, VALIDATION_ERROR_RESPONSE
 from app.schemas.user_admin import (
     ResetPasswordData,
     UserAdminItem,
@@ -52,7 +52,12 @@ def list_users(
     return ApiResponse(data=data)
 
 
-@router.post("", response_model=ApiResponse[UserCreateData], summary="创建用户")
+@router.post(
+    "",
+    response_model=ApiResponse[UserCreateData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="创建用户",
+)
 def create_user(
     payload: UserCreateRequest,
     service: Annotated[UserAdminService, Depends(get_user_admin_service)],
@@ -71,7 +76,10 @@ def get_user(
 
 
 @router.patch(
-    "/{user_id}", response_model=ApiResponse[UserAdminItem], summary="更新用户"
+    "/{user_id}",
+    response_model=ApiResponse[UserAdminItem],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="更新用户",
 )
 def update_user(
     user_id: str,
@@ -98,6 +106,7 @@ def reset_password(
 @router.patch(
     "/{user_id}/status",
     response_model=ApiResponse[UserAdminItem],
+    responses=VALIDATION_ERROR_RESPONSE,
     summary="更新用户状态",
 )
 def update_user_status(

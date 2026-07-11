@@ -1,8 +1,8 @@
 ---
 change_id: update-api-docs-swagger-policy-checklist
-status: proposed
+status: applied
 created_at: 2026-07-05 07:55:25
-updated_at: 2026-07-05 07:55:25
+updated_at: 2026-07-11 09:04:14
 source_requirement: REQ-0030-api-docs-swagger-policy-checklist
 sprint: sprint-005
 ---
@@ -32,4 +32,5 @@ sprint: sprint-005
 
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-11 09:04:14 | /opsx-apply update-api-docs-swagger-policy-checklist | 已同步 `docs/03-api-index.md` 与 `docs/standards/api-governance.md` 的 Swagger Web 代理、生产 Try It Out 只读、Orval 判断 checklist；本 Change 不新增 API contract、不修改数据库、不需要 Orval。Vite dev proxy、Docker Web Nginx、生产反向代理策略记录为后续触发类 Change 的必检项；本次未修改代理配置，Docker/生产 smoke 为 N/A。 |
 | 2026-07-05 07:55:25 | /req-opsx REQ-0030 | 创建 `update-api-docs-swagger-policy-checklist`，生成 proposal、design、tasks 与 delta specs。 |

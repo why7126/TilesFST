@@ -1,7 +1,7 @@
 import axios, { type AxiosError } from 'axios';
 import { getTilesFSTAPI } from '../../../shared/api/generated';
+import { getEnvelopeErrorMessage } from '../../../shared/api/error-envelope';
 import { clearStoredToken, getStoredToken } from '../utils/auth-token';
-import type { AuthErrorPayload } from '../types/auth.types';
 
 export const apiClient = axios.create({
   baseURL: '',
@@ -28,16 +28,7 @@ apiClient.interceptors.response.use(
 export const api = getTilesFSTAPI(apiClient);
 
 export function getErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError(error)) {
-    const payload = error.response?.data as AuthErrorPayload | undefined;
-    if (payload?.message) {
-      return payload.message;
-    }
-    if (error.message === 'Network Error') {
-      return '网络异常，请稍后重试';
-    }
-  }
-  return fallback;
+  return getEnvelopeErrorMessage(error, fallback);
 }
 
 export function handleUnauthorized(): void {

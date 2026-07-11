@@ -1,18 +1,21 @@
 ---
 requirement_id: REQ-0028-admin-list-page-contract
-status: approved
+status: done
 priority: P1
 created_at: 2026-07-04 15:17:26
-updated_at: 2026-07-05 14:38:45
-lifecycle_stage: review
+updated_at: 2026-07-11 08:52:57
+lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-04 15:17:26
   generated: 2026-07-05 07:56:30
   completed: 2026-07-05 10:18:38
   reviewed: 2026-07-05 14:36:29
   approved: 2026-07-05 14:36:29
-iteration: null
-openspec_changes: []
+iteration: sprint-005
+openspec_changes:
+  - change_id: add-admin-list-page-contract
+    type: add
+    status: archived
 related_requirements:
   - REQ-0000-build-design-system
   - REQ-0029-admin-list-foundation-components
@@ -34,8 +37,8 @@ readiness_notes:
 
 ## 当前状态
 
-- 状态：approved
-- 阶段：plan
+- 状态：done
+- 阶段：archive
 - 优先级：P1
 - 来源：Sprint 004 复盘行动项 / 用户输入
 - 父需求：REQ-0000-build-design-system
@@ -72,9 +75,15 @@ readiness_notes:
 
 ## 变更记录
 
-| 2026-07-05 14:37:59 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-11 08:52:43 | lifecycle-stage-migrate | review → archive（/opsx-archive add-admin-list-page-contract） |
+| 2026-07-11 08:52:36 | /opsx-archive | Change `add-admin-list-page-contract` 已归档，状态同步完成。 |
+| 2026-07-11 08:52:36 | workflow-sync | 状态同步为 done（Change archived）。 |
+| 2026-07-10 23:51:18 | /opsx-apply | Change `add-admin-list-page-contract` apply 完成，待 archive。 |
+| 2026-07-10 20:40:55 | /req-opsx | 创建 OpenSpec Change `add-admin-list-page-contract`，状态 proposed。 |
+| 2026-07-05 14:37:59 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
+| 2026-07-10 20:26:45 | /sprint-propose | 纳入 sprint-005 正式范围；当时下一步为创建 OpenSpec Change。 |
 | 2026-07-04 15:17:26 | /req-capture | 创建需求记录，作为单一交付单元记录 AdminListPage 模板、管理端列表页契约与验收页需求。 |
 | 2026-07-05 07:56:30 | /req-generate | 生成 requirement.md，明确 AdminListPage 模板、管理端列表页契约、设计验收页与 BUG-0055 经验吸收范围。 |
 | 2026-07-05 10:18:38 | /req-complete | 补齐 user-stories、business-flow、acceptance、prototype，并写入 admin-list knowledge-base 横切 AC。 |

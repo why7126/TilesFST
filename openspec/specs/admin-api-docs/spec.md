@@ -2,7 +2,6 @@
 
 ## Purpose
 定义管理端接口文档入口、系统全量接口目录、Orval 方法名展示、Swagger 在线调试策略与筛选能力，方便后台管理员查看系统所有接口并支持前端联调。
-
 ## Requirements
 ### Requirement: 管理端接口文档入口
 The system SHALL provide an admin-only API documentation page at `/admin/api-docs` inside the Web admin application.
@@ -68,20 +67,26 @@ The system SHALL show Orval generated method names for OpenAPI routes that are g
 - **THEN** the route directory SHALL filter to matching routes.
 
 ### Requirement: Swagger 在线调试策略
-The system SHALL provide Swagger access while preventing production `Try It Out` usage.
+
+The system SHALL provide Swagger access while preventing production `Try It Out` usage. Future API docs refinements, admin API docs template changes, Swagger entry changes, Web proxy changes, or production deployment documentation changes MUST include a Swagger Web proxy and production `Try It Out` policy checklist in design, acceptance, or trace records.
 
 #### Scenario: Non-production allows Swagger debugging
-- **WHEN** the app runs in a local, development, or demo environment
+
+- **WHEN** the API docs page is rendered in a non-production environment
 - **THEN** the API docs page SHALL provide Swagger access with online debugging enabled.
 
-#### Scenario: Production keeps docs view-only
-- **WHEN** the app runs in production
-- **THEN** the API docs page SHALL still be visible to admin users
+#### Scenario: Production disables Swagger Try It Out
+
+- **WHEN** the API docs page is rendered in production or a production-equivalent environment
+- **THEN** Swagger documentation MAY remain visible
 - **AND** Swagger `Try It Out` SHALL be hidden or disabled.
 
-#### Scenario: Environment policy is visible
-- **WHEN** an admin views the API docs page
-- **THEN** the page SHALL show whether the current environment allows online debugging or is view-only.
+#### Scenario: API docs refine includes Swagger proxy checklist
+
+- **WHEN** a future change refines the admin API docs page, API docs template, Swagger entry, Web proxy, or production deployment documentation
+- **THEN** its design, acceptance, or trace records MUST include a checklist covering same-origin `/docs`, `/redoc`, `/openapi.json`, Swagger UI resource routing, Vite dev proxy, Docker Web Nginx, and production reverse proxy or production-equivalent N/A rationale
+- **AND** the checklist MUST state that production `Try It Out` remains disabled, hidden, or read-only
+- **AND** the checklist MUST forbid hardcoded backend hosts, container service names, ports, tokens, DSNs, MinIO credentials, JWT secrets, or real environment variable values in Swagger links, URL fragments, query strings, new localStorage keys, page copy, and verification records.
 
 ### Requirement: 接口目录筛选
 The system SHALL support filtering the API route directory.
@@ -97,3 +102,4 @@ The system SHALL support filtering the API route directory.
 #### Scenario: Empty result
 - **WHEN** filters match no routes
 - **THEN** the page SHALL show an explicit empty state with a way to clear filters.
+

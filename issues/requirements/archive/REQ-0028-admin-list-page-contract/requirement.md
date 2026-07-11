@@ -3,13 +3,13 @@ requirement_id: REQ-0028-admin-list-page-contract
 title: AdminListPage 模板与管理端列表页契约
 terminal: web-admin
 version: v1
-status: approved
+status: done
 owner: product
 source: capture.md
 priority: P1
 parent_requirement: REQ-0000-build-design-system
 created_at: 2026-07-05 07:56:30
-updated_at: 2026-07-05 14:36:29
+updated_at: 2026-07-11 08:52:43
 ---
 
 # REQ-0028 AdminListPage 模板与管理端列表页契约
@@ -190,10 +190,10 @@ Design System / Web Admin
 ## 9. 状态块
 
 ```yaml
-status: approved
+status: done
 readiness: Partially Ready
-next_step: /req-opsx REQ-0028-admin-list-page-contract
-expected_openspec_change: add-admin-list-page-contract
+next_step: archived
+openspec_change: add-admin-list-page-contract
 needs_prototype: true
 needs_api_change: false
 needs_database_change: false

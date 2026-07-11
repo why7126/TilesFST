@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-10 08:40:32
+updated_at: 2026-07-10 20:40:55
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -71,7 +71,19 @@ issues/bugs/{plan,review,archive}/BUG-xxxx-slug/
 
 需求至少包含编号、来源、目标用户、价值、描述、优先级、状态、关联迭代、关联 Change、验收要点。BUG 至少包含编号、来源、严重程度、影响范围、复现步骤、实际/期望结果、日志/截图、状态、关联迭代、关联 Change、回归测试。
 
-Issue 状态在 capture、review、opsx、apply、archive/promote 时通过 workflow sync 或对应命令同步；同步 MUST 覆盖 trace Frontmatter 与 fenced `yaml` 中的 `openspec_changes[].status`，并在 `## 变更记录` 追加幂等 workflow event 行。
+Issue 状态在 capture、review、opsx、sprint-propose、apply、archive/promote 时通过 workflow sync 或对应命令同步；同步 MUST 覆盖 trace Frontmatter 与 fenced `yaml` 中的 `status`、`iteration`、`openspec_changes[].status`，并在 `## 变更记录` 追加幂等 workflow event 行。
+
+`trace.md` 的 `## 变更记录` MUST 使用标准 Markdown 表格，且表头必须紧跟章节标题之后：
+
+```markdown
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+| YYYY-MM-DD HH:mm:ss | /command | 说明 |
+```
+
+禁止把记录行写在表头之前；Workflow Sync SHOULD 自动整理历史错位表格，但新增或手工修复时仍须保持表头优先。
 
 ## 5. iterations 目录
 

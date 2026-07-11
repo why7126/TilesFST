@@ -1,18 +1,21 @@
 ---
 requirement_id: REQ-0031-api-validation-envelope-governance
-status: approved
+status: done
 priority: P1
 created_at: 2026-07-04 21:52:59
-updated_at: 2026-07-05 14:44:22
-lifecycle_stage: review
+updated_at: 2026-07-11 10:05:52
+lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-04 21:52:59
   generated: 2026-07-05 07:57:01
   completed: 2026-07-05 14:37:08
   reviewed: 2026-07-05 14:43:39
   approved: 2026-07-05 14:43:39
-iteration: null
-openspec_changes: []
+iteration: sprint-005
+openspec_changes:
+  - change_id: update-api-validation-envelope-governance
+    type: update
+    status: archived
 related_requirements:
   - REQ-0000-build-api-standard
 related_bugs: []
@@ -32,8 +35,8 @@ prototype_strategy: none - API governance / no new UI surface; UI impact covered
 
 ## 当前状态
 
-- 状态：approved
-- 阶段：review
+- 状态：done
+- 阶段：archive
 - 优先级：P1
 - 来源：用户输入
 - 父需求：REQ-0000-build-api-standard
@@ -72,10 +75,17 @@ prototype_strategy: none - API governance / no new UI surface; UI impact covered
 
 ## 变更记录
 
-| 2026-07-05 14:44:22 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-11 10:05:39 | lifecycle-stage-migrate | review → archive（/opsx-archive update-api-validation-envelope-governance） |
+| 2026-07-11 10:05:39 | /opsx-archive | Change `update-api-validation-envelope-governance` 已归档，状态同步完成。 |
+| 2026-07-11 10:02:05 | /opsx-apply | Change `update-api-validation-envelope-governance` apply 完成，待 archive。 |
+| 2026-07-05 14:44:22 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
 | 2026-07-04 21:52:59 | /req-capture | 创建需求记录，记录统一 422 参数校验错误 envelope 需扩展到所有管理端表单 API，并作为 API 治理延展进入后续 `/req-explore` 与 `/req-generate`。 |
 | 2026-07-05 07:57:01 | /req-generate | 生成 `requirement.md` PRD 草案，明确管理端表单 API 校验错误 envelope、`data.errors[]`、OpenAPI / Orval 同步和测试覆盖范围。 |
 | 2026-07-05 14:37:08 | /req-complete | 补齐 `user-stories.md`、`business-flow.md`、`acceptance.md`，引入 admin-form、admin-modal、media-upload 知识库横切 AC，并将需求推进到待评审。 |
 | 2026-07-05 14:43:39 | /req-review --approve | 评审通过，生成 `review.md`，状态更新为 `approved`，并准备从 `plan/` 迁移到 `review/`。 |
+| 2026-07-11 09:43:01 | /req-opsx | 创建 OpenSpec Change `update-api-validation-envelope-governance`，状态 proposed。 |
+| 2026-07-11 09:45:37 | /sprint-propose | 纳入 `sprint-005` 正式范围，关联 Change `update-api-validation-envelope-governance`。 |
+
+- 2026-07-11 10:05:39 workflow-sync：状态同步为 done（Change archived）

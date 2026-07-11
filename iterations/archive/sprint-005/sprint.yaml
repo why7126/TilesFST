@@ -1,6 +1,6 @@
 sprint_id: sprint-005
-status: planning
-lifecycle_stage: change
+status: completed
+lifecycle_stage: archive
 start_date: 2026-07-04 22:30:20
 end_date: 2026-07-18 22:30:20
 
@@ -9,8 +9,10 @@ capacity:
   testers: 1
 
 requirements:
+  - REQ-0028-admin-list-page-contract
   - REQ-0029-admin-list-foundation-components
   - REQ-0030-api-docs-swagger-policy-checklist
+  - REQ-0031-api-validation-envelope-governance
 
 bugs:
   - BUG-0056-sprint-archive-incomplete-tasks-gate
@@ -21,6 +23,7 @@ bugs:
   - BUG-0061-change-password-policy-error-message-unclear
 
 changes:
+  - add-admin-list-page-contract
   - add-admin-list-foundation-components
   - fix-sprint-archive-incomplete-tasks-gate
   - update-api-docs-swagger-policy-checklist
@@ -29,6 +32,7 @@ changes:
   - fix-user-password-copy-not-working
   - fix-audit-log-request-id-copy-error
   - fix-change-password-policy-error-message
+  - update-api-validation-envelope-governance
 
-estimated_story_points: 29
-estimated_person_days: 21.0
+estimated_story_points: 40
+estimated_person_days: 29.0

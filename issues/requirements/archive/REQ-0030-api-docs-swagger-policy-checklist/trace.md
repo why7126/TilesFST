@@ -1,10 +1,10 @@
 ---
 requirement_id: REQ-0030-api-docs-swagger-policy-checklist
-status: in_sprint
+status: done
 priority: P2
 created_at: 2026-07-04 15:42:05
-updated_at: 2026-07-10 08:51:57
-lifecycle_stage: review
+updated_at: 2026-07-11 09:09:17
+lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-04 15:42:05
   generated: 2026-07-04 22:13:25
@@ -15,7 +15,7 @@ iteration: sprint-005
 openspec_changes:
   - change_id: update-api-docs-swagger-policy-checklist
     type: update
-    status: proposed
+    status: archived
     created_at: 2026-07-05 07:55:25
 related_requirements:
   - REQ-0022-admin-api-docs-menu
@@ -32,8 +32,8 @@ readiness_notes: 已补齐 requirement、user-stories、business-flow、acceptan
 
 ## 当前状态
 
-- 状态：proposed
-- 阶段：review
+- 状态：done
+- 阶段：archive
 - 优先级：P2
 - 来源：Sprint 004 复盘行动项 / 用户输入
 - 父需求：REQ-0022-admin-api-docs-menu
@@ -66,6 +66,9 @@ readiness_notes: 已补齐 requirement、user-stories、business-flow、acceptan
 
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-11 09:09:11 | lifecycle-stage-migrate | review → archive（/opsx-archive update-api-docs-swagger-policy-checklist） |
+| 2026-07-11 09:09:06 | /opsx-archive | Change `update-api-docs-swagger-policy-checklist` 已归档，状态同步完成。 |
+| 2026-07-11 09:06:18 | /opsx-apply | Change `update-api-docs-swagger-policy-checklist` apply 完成，待 archive。 |
 | 2026-07-05 07:55:25 | /req-opsx REQ-0030 | 创建 OpenSpec Change `update-api-docs-swagger-policy-checklist`，生成 proposal、design、tasks、trace 与 specs delta。 |
 | 2026-07-04 22:30:20 | /sprint-propose sprint-005 | 纳入 Sprint 005 正式范围；OpenSpec Change 尚未创建，下一步 `/req-opsx REQ-0030-api-docs-swagger-policy-checklist`。 |
 | 2026-07-04 22:27:13 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
@@ -73,3 +76,5 @@ readiness_notes: 已补齐 requirement、user-stories、business-flow、acceptan
 | 2026-07-04 22:19:09 | /req-complete | 补齐 user-stories、business-flow、acceptance，并扩写 trace；判定为 API/docs 治理 REQ，不命中 UI 横切标签，Knowledge-base gate 为 N/A。 |
 | 2026-07-04 22:13:25 | /req-generate | 生成 `requirement.md` PRD 草案，明确接口文档页模板 checklist 的范围、Web 代理、生产 `Try It Out` 策略、安全边界与后续同步对象。 |
 | 2026-07-04 15:42:05 | /req-capture | 创建需求记录，作为 `REQ-0022` 的后续 refinement，记录接口文档页模板 checklist 需覆盖 Swagger Web 代理与生产 `Try It Out` 策略。 |
+
+- 2026-07-11 09:09:06 workflow-sync：状态同步为 done（Change archived）

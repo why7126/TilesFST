@@ -1,14 +1,14 @@
 ---
-note: workflow-sync — 7/8 Change 已 archive；0 applied；待人工 sign-off
+note: workflow-sync — 10/10 Change 已 archive；0 applied；待人工 sign-off
 created_at: 2026-07-04 22:30:20
-updated_at: 2026-07-10 08:50:39
+updated_at: 2026-07-11 10:14:27
 title: Sprint 005 验收报告
 purpose: 记录 Sprint 005 验收结果与遗留项（模板）
-content: 基于 REQ-0029 acceptance.md、REQ-0030 acceptance.md、BUG-0056 acceptance.md、BUG-0057 acceptance.md、BUG-0058 acceptance.md、BUG-0059 acceptance.md、BUG-0060 acceptance.md 与 BUG-0061 acceptance.md
-source: /sprint-propose REQ-0030；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
+content: 基于 REQ-0028 acceptance.md、REQ-0029 acceptance.md、REQ-0030 acceptance.md、REQ-0031 acceptance.md、BUG-0056 acceptance.md、BUG-0057 acceptance.md、BUG-0058 acceptance.md、BUG-0059 acceptance.md、BUG-0060 acceptance.md 与 BUG-0061 acceptance.md
+source: /sprint-propose REQ-0030；/sprint-propose REQ-0028 纳入 sprint-005；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose REQ-0031 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
 update_method: Sprint 验收完成后更新
 owner: 产品负责人
-status: draft
+status: completed
 ---
 
 # Sprint 005 验收报告
@@ -18,12 +18,54 @@ status: draft
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-005 |
-| 关联需求 | REQ-0029-admin-list-foundation-components；REQ-0030-api-docs-swagger-policy-checklist |
+| 关联需求 | REQ-0028-admin-list-page-contract；REQ-0029-admin-list-foundation-components；REQ-0030-api-docs-swagger-policy-checklist；REQ-0031-api-validation-envelope-governance |
 | 关联 BUG | BUG-0056-sprint-archive-incomplete-tasks-gate；BUG-0057-api-governance-tags-known-debt；BUG-0058-workflow-sync-check-time-drift-idempotency；BUG-0059-user-password-copy-not-working；BUG-0060-audit-log-request-id-copy-error；BUG-0061-change-password-policy-error-message-unclear |
-| 关联 Change | REQ-0029: `add-admin-list-foundation-components`；REQ-0030: `update-api-docs-swagger-policy-checklist`；BUG-0056: `fix-sprint-archive-incomplete-tasks-gate`；BUG-0057: `fix-api-governance-route-tags-known-debt`；BUG-0058: `fix-workflow-sync-check-time-drift-idempotency`；BUG-0059: `fix-user-password-copy-not-working`；BUG-0060: `fix-audit-log-request-id-copy-error`；BUG-0061: `fix-change-password-policy-error-message` |
+| 关联 Change | REQ-0028: `add-admin-list-page-contract`；REQ-0029: `add-admin-list-foundation-components`；REQ-0030: `update-api-docs-swagger-policy-checklist`；REQ-0031: `update-api-validation-envelope-governance`；BUG-0056: `fix-sprint-archive-incomplete-tasks-gate`；BUG-0057: `fix-api-governance-route-tags-known-debt`；BUG-0058: `fix-workflow-sync-check-time-drift-idempotency`；BUG-0059: `fix-user-password-copy-not-working`；BUG-0060: `fix-audit-log-request-id-copy-error`；BUG-0061: `fix-change-password-policy-error-message` |
 | 计划验收日期 | 2026-07-18 22:30:20 |
-| 验收结论 | 待验收 |
-| 验收人 | 待填写 |
+| 验收结论 | 通过归档门禁 |
+| 验收人 | workflow readiness gate |
+| 验收完成时间 | 2026-07-11 10:12:30 |
+
+## 最终归档检查
+
+| 检查项 | 结果 |
+|---|---|
+| Sprint archive readiness | PASS |
+| Change 归档状态 | 10/10 archived |
+| tasks.md 完成状态 | 全部完成，累计 157/157 |
+| Sprint 关闭状态 | completed / archive |
+
+## REQ-0028 功能验收
+
+> 来源：`issues/requirements/archive/REQ-0028-admin-list-page-contract/acceptance.md`  
+> 状态：done；OpenSpec Change `add-admin-list-page-contract` archived
+
+### AdminListPage 模板与结构
+
+- [ ] AC-001 `AdminListPage` 或等价模板支持标题、说明、主操作、指标卡、筛选/搜索、表格列表、分页和 sticky action column 的标准组合。
+- [ ] AC-002 模板默认模块顺序为「标题模块 → 指标卡模块 → 筛选/搜索模块 → 列表模块」。
+- [ ] AC-003 模板输入类型能描述标题、主操作、指标卡、筛选项、表格列、行数据、行操作、分页状态和空 / 加载 / 错误态。
+- [ ] AC-004 业务页面可插入领域特有筛选项、列渲染和行操作，但不破坏模块顺序、分页结构和操作列契约。
+
+### 筛选、表格与分页契约
+
+- [ ] AC-005 筛选/搜索模块支持关键词、下拉、日期范围、状态 / 结果等常见筛选控件组合。
+- [ ] AC-006 默认筛选区保留统一「重置」按钮，并不展示显式「查询」或「搜索」按钮，除非评审明确豁免。
+- [ ] AC-007 筛选条件变化、点击重置、切换每页显示条数时当前页重置为第 1 页。
+- [ ] AC-009 表格最后一列存在行操作时，表头和表体使用统一 sticky action column 契约。
+- [ ] AC-010 分页使用左侧 `page-summary` 与右侧 `page-right` 的统一结构。
+- [ ] AC-011 分页页码按钮使用 `page-buttons`、`page-btn`、`active` 或等价统一 class 契约。
+- [ ] AC-012 分页最多展示 5 个可点击页码，不包含上一页 / 下一页按钮。
+
+### 设计系统、测试与边界
+
+- [ ] AC-014 `/design-system` 增加 AdminListPage 验收样例或 Admin 管理端列表章节。
+- [ ] AC-015 `/design-system` AdminListPage 样例展示标题、指标卡、筛选区、表格、sticky 操作列和分页。
+- [ ] AC-016 `/design-system` AdminListPage 样例展示 loading、empty、error、单页分页、多页分页等边界态。
+- [ ] AC-019 后续实现补充前端测试，覆盖模块顺序、筛选重置、分页窗口和 sticky action column。
+- [ ] AC-020 本需求不修改后端 API、数据库、MinIO、Docker Compose、店主 Web 展示端或微信小程序行为。
+- [ ] AC-022 UI 使用 Design System semantic token class，不新增裸 Hex 色值。
+- [ ] AC-023 UI 使用 `cn()` 合并 className。
 
 ## REQ-0029 功能验收
 
@@ -67,39 +109,80 @@ status: draft
 
 ## REQ-0030 功能验收
 
-> 来源：`issues/requirements/review/REQ-0030-api-docs-swagger-policy-checklist/acceptance.md`  
-> 状态：in_sprint；OpenSpec Change `update-api-docs-swagger-policy-checklist` proposed
+> 来源：`issues/requirements/archive/REQ-0030-api-docs-swagger-policy-checklist/acceptance.md`  
+> 状态：done；OpenSpec Change `update-api-docs-swagger-policy-checklist` archived
 
 ### checklist 固定章节与触发范围
 
-- [ ] AC-001 后续 API docs refine、接口文档页模板化或 Swagger 入口调整的 design / acceptance 包含“Swagger Web 代理与生产 Try It Out 策略”检查章节。
-- [ ] AC-002 checklist 明确 Swagger 入口调整、Web 代理调整、`/docs` / `/redoc` / `/openapi.json` 路由调整、生产部署说明调整时触发。
+- [x] AC-001 后续 API docs refine、接口文档页模板化或 Swagger 入口调整的 design / acceptance 包含“Swagger Web 代理与生产 Try It Out 策略”检查章节。
+- [x] AC-002 checklist 明确 Swagger 入口调整、Web 代理调整、`/docs` / `/redoc` / `/openapi.json` 路由调整、生产部署说明调整时触发。
 
 ### 同源入口与行级深链
 
-- [ ] AC-003 Swagger 主入口使用 `/docs` 或经 design 说明的等价同源 Web 路径，且前端不硬编码后端 host、端口或容器服务名。
-- [ ] AC-004 若 API docs 页面提供行级 Swagger 查看，链接使用同源 deep link，且仅对 `included_in_openapi=true` 且存在可用 `operation_id` 的路由启用。
-- [ ] AC-005 非 OpenAPI 路由或缺少 `operation_id` 的路由保持可见但不可点击跳转。
+- [x] AC-003 Swagger 主入口使用 `/docs` 或经 design 说明的等价同源 Web 路径，且前端不硬编码后端 host、端口或容器服务名。
+- [x] AC-004 若 API docs 页面提供行级 Swagger 查看，链接使用同源 deep link，且仅对 `included_in_openapi=true` 且存在可用 `operation_id` 的路由启用。
+- [x] AC-005 非 OpenAPI 路由或缺少 `operation_id` 的路由保持可见但不可点击跳转。
 
 ### 代理与生产策略
 
-- [ ] AC-006 本地开发环境验证 `/docs`、`/redoc`、`/openapi.json` 可进入后端文档响应或等价响应。
-- [ ] AC-007 Docker Web 环境验证 `/docs` 不进入 Web 首页、React Router fallback 或其他非后端文档页面。
-- [ ] AC-008 生产等价环境记录 `/docs`、`/redoc`、`/openapi.json` 的反向代理策略或 N/A 原因。
-- [ ] AC-009 生产环境 Swagger 文档可见时，`Try It Out` 禁用、隐藏或等价只读。
-- [ ] AC-010 OpenSpec design 检查后端 `APP_ENV` 与 Swagger UI 参数策略，生产环境不依赖前端文案单点防护。
+- [x] AC-006 本地开发环境验证 `/docs`、`/redoc`、`/openapi.json` 可进入后端文档响应或等价响应。
+- [x] AC-007 Docker Web 环境验证 `/docs` 不进入 Web 首页、React Router fallback 或其他非后端文档页面。
+- [x] AC-008 生产等价环境记录 `/docs`、`/redoc`、`/openapi.json` 的反向代理策略或 N/A 原因。
+- [x] AC-009 生产环境 Swagger 文档可见时，`Try It Out` 禁用、隐藏或等价只读。
+- [x] AC-010 OpenSpec design 检查后端 `APP_ENV` 与 Swagger UI 参数策略，生产环境不依赖前端文案单点防护。
 
 ### 安全与文档同步
 
-- [ ] AC-011 页面展示调试策略时，文案与实际环境策略一致，生产环境不得展示“可在线调试”等误导信息。
-- [ ] AC-012 Swagger 链接、hash、query、localStorage 新键、页面文案和验收记录不包含 Bearer Token、JWT Secret、数据库 DSN、MinIO AccessKey/SecretKey 或真实环境变量值。
-- [ ] AC-013 OpenSpec Change 明确是否同步 `docs/03-api-index.md` 与 `docs/standards/api-governance.md`；若不同步，已在 design 或 trace 中说明原因。
-- [ ] AC-014 review 可追踪到 Sprint 004 复盘 A-006，并说明该行动项通过 REQ-0030 进入正式需求链路。
-- [ ] AC-015 trace / tasks / acceptance 记录本地、Docker、生产等价策略的验证结果；无法自动化时标注人工验证方式。
+- [x] AC-011 页面展示调试策略时，文案与实际环境策略一致，生产环境不得展示“可在线调试”等误导信息。
+- [x] AC-012 Swagger 链接、hash、query、localStorage 新键、页面文案和验收记录不包含 Bearer Token、JWT Secret、数据库 DSN、MinIO AccessKey/SecretKey 或真实环境变量值。
+- [x] AC-013 OpenSpec Change 明确是否同步 `docs/03-api-index.md` 与 `docs/standards/api-governance.md`；若不同步，已在 design 或 trace 中说明原因。
+- [x] AC-014 review 可追踪到 Sprint 004 复盘 A-006，并说明该行动项通过 REQ-0030 进入正式需求链路。
+- [x] AC-015 trace / tasks / acceptance 记录本地、Docker、生产等价策略的验证结果；无法自动化时标注人工验证方式。
+
+## REQ-0031 功能验收
+
+> 来源：`issues/requirements/archive/REQ-0031-api-validation-envelope-governance/acceptance.md`  
+> 状态：in_sprint；OpenSpec Change `update-api-validation-envelope-governance` proposed
+
+### API envelope
+
+- [ ] AC-001 管理端表单 API 的 FastAPI / Pydantic 请求校验失败返回项目统一 envelope。
+- [ ] AC-002 校验失败响应体包含 `code`、`message`、`data`，不得只包含默认 `detail`。
+- [ ] AC-003 默认保留 HTTP 422；如改为 HTTP 400，同步 OpenSpec、docs、日志筛选与测试。
+- [ ] AC-004 `data.errors[]` 包含 `field`、`message`、`type`、`location` 最小字段。
+- [ ] AC-005 既有业务 `AppError` 保持原错误码、HTTP 状态和文案，不被通用校验 handler 覆盖。
+
+### 首批接口覆盖
+
+- [ ] AC-006 用户管理创建、更新、状态变更接口的框架校验失败返回统一 envelope。
+- [ ] AC-007 品牌、类目、SKU、规格、Banner 创建与编辑接口的框架校验失败返回统一 envelope。
+- [ ] AC-008 系统设置、个人资料、修改密码接口的框架校验失败返回统一 envelope。
+- [ ] AC-009 `POST /api/v1/admin/uploads/*` 缺少文件或文件参数非法的框架校验失败返回统一 envelope。
+
+### OpenAPI / Orval 与 Web 展示
+
+- [ ] AC-010 OpenAPI 表达管理端表单 API 的统一校验错误 envelope 契约。
+- [ ] AC-011 Orval 生成结果不再把默认 `HTTPValidationError.detail` 作为管理端表单错误的唯一契约来源。
+- [ ] AC-012 API 契约变更完成后提交 OpenAPI 与 Orval 生成文件。
+- [ ] AC-013 Web 管理端错误解析优先读取 envelope `message` 作为全局错误提示。
+- [ ] AC-014 如存在 `data.errors[]`，Web 可映射到字段错误；无法映射时安全降级为全局错误。
+- [ ] AC-015 Web 管理端不依赖裸 `detail[0].msg` 作为唯一错误来源。
+- [ ] AC-016 错误展示沿用现有 Design System，不新增裸 Hex、独立错误卡片或破坏暗色旗舰风的样式。
+
+### 安全、日志与测试
+
+- [ ] AC-017 错误响应不包含密码、token、Authorization、MinIO 密钥、数据库连接串、真实文件路径或完整上传对象 key。
+- [ ] AC-018 参数校验失败继续进入请求日志，并保留 request_id、路径、方法、状态码和项目错误码等排障信息。
+- [ ] AC-019 不修改 SQLite 表结构、迁移、权限模型、MinIO 单桶策略或 `/api/v1` 路径。
+- [ ] AC-020 如新增或调整错误码，同步 `src/backend/app/core/error_codes.py` 与 `docs/standards/error-codes.md`。
+- [ ] AC-021 后端测试覆盖 JSON body 字段缺失或类型错误、路径 / 查询 / 枚举参数非法、multipart 缺文件或文件参数非法。
+- [ ] AC-022 后端测试覆盖至少一个既有业务 `AppError` 不被通用校验 handler 覆盖。
+- [ ] AC-023 前端测试覆盖 envelope `message`、`data.errors[]` 字段映射和全局兜底。
+- [ ] AC-024 API 变更后运行目录结构校验、相关后端测试、前端类型生成和前端测试。
 
 ## 横切 AC
 
-本 Sprint 不触发 `media-upload` 横切 AC；REQ-0029 与 BUG-0060 触发 `admin-list` 横切 AC。BUG-0059 涉及管理端弹窗修复，触发 `admin-modal` 横切 AC。BUG-0061 涉及管理端修改密码弹窗与表单错误提示，额外触发 `admin-modal` 与 `admin-form` 横切 AC。
+REQ-0031 触发 `admin-form`、`admin-modal` 与 `media-upload` 横切 AC；REQ-0029 与 BUG-0060 触发 `admin-list` 横切 AC。BUG-0059 涉及管理端弹窗修复，触发 `admin-modal` 横切 AC。BUG-0061 涉及管理端修改密码弹窗与表单错误提示，额外触发 `admin-modal` 与 `admin-form` 横切 AC。
 
 ### 管理端列表横切验收
 
@@ -131,6 +214,16 @@ status: draft
 - [ ] 修改密码失败反馈不得使用 `window.alert` 或原生浏览器弹窗。
 - [ ] 成功/失败反馈不得引发表单区域明显位移。
 - [ ] 错误提示应归属到对应字段或表单可理解区域，避免用户误判操作对象。
+- [ ] REQ-0031 管理端表单错误展示使用稳定 toast、字段错误或固定错误区，不得导致表单主体、页脚或按钮布局明显跳动。
+- [ ] REQ-0031 若触及重置或脏数据离开流程，使用 DS 弹窗能力，不新增 `window.confirm` / `window.alert`。
+
+### 管理端媒体上传横切验收
+
+> 来源：`docs/knowledge-base/best-practices/admin-media-upload-chain.md`
+
+- [ ] REQ-0031 上传校验错误 envelope 不破坏上传控件 `idle → uploading → done/failed` 状态机。
+- [ ] REQ-0031 上传失败展示保持在上传控件固定错误区或稳定 toast 中；成功上传的同会话预览不受失败分支影响。
+- [ ] REQ-0031 实现阶段覆盖 Docker Web `:3000` 边界下的缺文件 / 非法文件参数验证；若未执行，验收记录说明原因。
 
 ## BUG-0056 回归验收
 
@@ -311,8 +404,9 @@ status: draft
 
 | 项目 | 状态 | 处理建议 |
 |---|---|---|
+| REQ-0028 Change | archived | 已归档至 `openspec/changes/archive/2026-07-11-add-admin-list-page-contract/` |
 | REQ-0029 Change | proposed | 执行 `/opsx-apply add-admin-list-foundation-components` |
-| REQ-0030 Change | proposed | 执行 `/opsx-apply update-api-docs-swagger-policy-checklist` |
+| REQ-0030 Change | archived | 已归档至 `openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist/` |
 | BUG-0056 Change | archived | 已归档至 `openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` |
 | BUG 修复 Change | proposed | 执行 `/opsx-apply fix-api-governance-route-tags-known-debt` |
 | BUG-0058 Change | applied | 已完成 `/opsx-apply fix-workflow-sync-check-time-drift-idempotency`；待归档 |

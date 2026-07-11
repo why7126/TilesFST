@@ -19,3 +19,28 @@ class ApiErrorResponse(BaseModel):
     code: int
     message: str
     data: dict[str, Any] | None = Field(default=None)
+
+
+class ValidationErrorItem(BaseModel):
+    field: str
+    message: str
+    type: str
+    location: list[str]
+
+
+class ValidationErrorData(BaseModel):
+    errors: list[ValidationErrorItem]
+
+
+class ApiValidationErrorResponse(BaseModel):
+    code: int = 40001
+    message: str = "请求参数无效"
+    data: ValidationErrorData
+
+
+VALIDATION_ERROR_RESPONSE = {
+    422: {
+        "model": ApiValidationErrorResponse,
+        "description": "请求参数校验失败，统一响应信封",
+    }
+}

@@ -3,13 +3,13 @@ requirement_id: REQ-0031-api-validation-envelope-governance
 title: API 校验错误 envelope 治理扩展到管理端表单 API
 terminal: web-admin
 version: v1
-status: approved
+status: in_sprint
 owner: product
 source: capture.md
 priority: P1
 parent_requirement: REQ-0000-build-api-standard
 created_at: 2026-07-05 07:57:01
-updated_at: 2026-07-05 14:43:39
+updated_at: 2026-07-11 09:45:37
 ---
 
 # REQ-0031 API 校验错误 envelope 治理扩展需求文档
@@ -182,9 +182,9 @@ Web 管理端必须存在统一或等价的错误解析策略：
 ## 9. 状态
 
 ```text
-status: approved
+status: in_sprint
 lifecycle_stage: review
 next: /req-opsx REQ-0031-api-validation-envelope-governance
 ```
 
-本需求已通过 `/req-review --approve`。进入开发前必须执行 `/req-opsx REQ-0031-api-validation-envelope-governance` 创建 OpenSpec Change。
+本需求已通过 `/req-review --approve`，已执行 `/req-opsx REQ-0031-api-validation-envelope-governance` 创建 OpenSpec Change，并已纳入 `sprint-005`。下一步执行 `/opsx-apply update-api-validation-envelope-governance`。

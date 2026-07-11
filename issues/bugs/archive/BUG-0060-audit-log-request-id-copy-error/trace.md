@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 severity: medium
 created_at: 2026-07-05 20:31:10
-updated_at: 2026-07-09 08:44:07
+updated_at: 2026-07-10 20:42:15
 ---
 
 ```yaml
@@ -54,4 +54,5 @@ documents:
 | 2026-07-09 08:06:13 | complete | 通过 /bug-complete 补齐 root-cause、workaround、acceptance 与 trace；status → pending_review |
 | 2026-07-09 08:03:09 | generate | 通过 /bug-generate 生成 bug.md；status → draft |
 | 2026-07-05 20:31:10 | capture | 通过 /capture 记录日志审计页复制 request_id 报错缺陷 |
+
 - 2026-07-09 08:44:00 workflow-sync：状态同步为 done（Change archived）

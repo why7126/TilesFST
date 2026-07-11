@@ -1,13 +1,13 @@
 ---
 created_at: 2026-07-04 22:30:20
-updated_at: 2026-07-10 08:15:42
+updated_at: 2026-07-11 10:14:27
 title: Sprint 005 发布说明
 purpose: 记录 Sprint 005 交付能力与发布注意事项（初稿）
-content: 基于 REQ-0029-admin-list-foundation-components、REQ-0030-api-docs-swagger-policy-checklist、BUG-0056-sprint-archive-incomplete-tasks-gate、BUG-0057-api-governance-tags-known-debt、BUG-0058-workflow-sync-check-time-drift-idempotency、BUG-0059-user-password-copy-not-working、BUG-0060-audit-log-request-id-copy-error 与 BUG-0061-change-password-policy-error-message-unclear
-source: /sprint-propose REQ-0030；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
+content: 基于 REQ-0028-admin-list-page-contract、REQ-0029-admin-list-foundation-components、REQ-0030-api-docs-swagger-policy-checklist、REQ-0031-api-validation-envelope-governance、BUG-0056-sprint-archive-incomplete-tasks-gate、BUG-0057-api-governance-tags-known-debt、BUG-0058-workflow-sync-check-time-drift-idempotency、BUG-0059-user-password-copy-not-working、BUG-0060-audit-log-request-id-copy-error 与 BUG-0061-change-password-policy-error-message-unclear
+source: /sprint-propose REQ-0030；/sprint-propose REQ-0028 纳入 sprint-005；/sprint-propose REQ-0029 纳入 sprint-005；/sprint-propose REQ-0031 纳入 sprint-005；/sprint-propose BUG-0056 纳入 sprint-005；/sprint-propose BUG-0057 纳入 sprint-005；/sprint-propose BUG-0058 纳入 sprint-005；/sprint-propose BUG-0059 纳入 sprint-005；/sprint-propose BUG-0060 纳入 sprint-005；/sprint-propose BUG-0061 纳入 sprint-005
 update_method: Sprint 完成或范围变更时更新
 owner: 项目负责人
-status: draft
+status: published
 ---
 
 # Sprint 005 发布说明
@@ -17,16 +17,24 @@ status: draft
 | 字段 | 内容 |
 |---|---|
 | Sprint | sprint-005 |
-| 关联需求 | REQ-0029-admin-list-foundation-components；REQ-0030-api-docs-swagger-policy-checklist |
+| 关联需求 | REQ-0028-admin-list-page-contract；REQ-0029-admin-list-foundation-components；REQ-0030-api-docs-swagger-policy-checklist；REQ-0031-api-validation-envelope-governance |
 | 关联 BUG | BUG-0056-sprint-archive-incomplete-tasks-gate；BUG-0057-api-governance-tags-known-debt；BUG-0058-workflow-sync-check-time-drift-idempotency；BUG-0059-user-password-copy-not-working；BUG-0060-audit-log-request-id-copy-error；BUG-0061-change-password-policy-error-message-unclear |
-| 关联 Change | REQ-0029: `add-admin-list-foundation-components`；REQ-0030: `update-api-docs-swagger-policy-checklist`；BUG-0056: `fix-sprint-archive-incomplete-tasks-gate`；BUG-0057: `fix-api-governance-route-tags-known-debt`；BUG-0058: `fix-workflow-sync-check-time-drift-idempotency`；BUG-0059: `fix-user-password-copy-not-working`；BUG-0060: `fix-audit-log-request-id-copy-error`；BUG-0061: `fix-change-password-policy-error-message` |
+| 关联 Change | REQ-0028: `add-admin-list-page-contract`；REQ-0029: `add-admin-list-foundation-components`；REQ-0030: `update-api-docs-swagger-policy-checklist`；REQ-0031: `update-api-validation-envelope-governance`；BUG-0056: `fix-sprint-archive-incomplete-tasks-gate`；BUG-0057: `fix-api-governance-route-tags-known-debt`；BUG-0058: `fix-workflow-sync-check-time-drift-idempotency`；BUG-0059: `fix-user-password-copy-not-working`；BUG-0060: `fix-audit-log-request-id-copy-error`；BUG-0061: `fix-change-password-policy-error-message` |
 | 计划周期 | 2026-07-04 22:30:20 ~ 2026-07-18 22:30:20 |
 
 <!-- workflow-sync:release-status:start -->
-| 发布状态 | **实现进行中（In progress）** |
+| 发布状态 | **已发布（Published）** |
 <!-- workflow-sync:release-status:end -->
 
 ## 计划交付
+
+### AdminListPage 模板与管理端列表页契约
+
+- 升级或重定义 Web 管理端 `AdminListPage` 模板，覆盖标题、指标卡、筛选/搜索、列表/表格、分页和 sticky action column。
+- 扩展 `AdminListPageContent` 或等价类型，使页面标题、主操作、指标卡、筛选项、列定义、行操作、分页状态和空/加载/错误态有统一输入契约。
+- 在 `/design-system` 增加 AdminListPage 验收样例，展示完整列表、loading、empty、error、单页分页和多页分页边界态。
+- 建立新增管理端列表页复用门禁，后续页面优先使用模板或等价组合。
+- 不修改后端 API、数据库、OpenAPI/Orval、MinIO、Docker Compose、小程序或店主 Web。
 
 ### 管理端列表基础组件（MetricCard 与分页窗口工具）
 
@@ -43,6 +51,15 @@ status: draft
 - 要求 Vite dev proxy、Docker Web Nginx 与生产反向代理均有明确验证记录。
 - 要求生产环境 Swagger 文档可见但在线调试禁用、隐藏或等价只读。
 - 要求 Swagger 链接不得泄露 token、数据库 DSN、MinIO 凭据或真实环境变量。
+
+### API 校验错误 envelope 治理扩展到管理端表单 API
+
+- 管理端 JSON 表单和上传参数校验失败统一返回 `{ code, message, data.errors[] }` envelope。
+- 默认保留 HTTP 422 参数校验语义，响应体不得只包含 FastAPI / Pydantic 默认 `detail`。
+- 字段级错误最小包含 `field`、`message`、`type`、`location`，用于前端字段映射和测试断言。
+- 既有业务 `AppError`、领域错误码、HTTP 状态和文案不被通用校验 handler 覆盖。
+- OpenAPI / Orval 表达统一错误契约，Web 管理端优先读取 envelope `message`，并安全处理字段错误。
+- 上传缺文件或文件参数非法时走统一 envelope，但不改变 MinIO 单桶策略、对象 key、授权上传链路或业务上传错误码。
 
 ### API governance route tags 历史债清理
 
@@ -92,6 +109,7 @@ status: draft
 ## API 变更（计划）
 
 - 默认不新增或修改业务 API 路径、请求参数、响应结构或错误码语义。
+- REQ-0028 不涉及后端 API、OpenAPI 或 Orval；若后续实现新增管理端模板元数据接口，必须另走 OpenSpec 变更与 API 同步。
 - REQ-0029 不涉及后端分页 API、OpenAPI 或 Orval。
 - BUG-0056 不涉及业务 API、OpenAPI 或 Orval。
 - BUG-0057 预计会调整 OpenAPI operation tags，属于契约元数据治理。
@@ -101,19 +119,24 @@ status: draft
 - BUG-0059 不涉及用户管理 API 请求路径、响应字段、错误码或 OpenAPI 契约变更。
 - BUG-0060 不涉及日志审计 API 请求路径、响应字段、错误码或 OpenAPI 契约变更。
 - BUG-0061 可能涉及 `POST /api/v1/admin/profile/password` 错误响应表达增强；若新增结构化失败项，必须同步 OpenAPI、Orval 与 `docs/03-api-index.md`。
+- REQ-0031 会调整管理端表单 API 的框架校验失败响应契约；必须同步 OpenAPI、Orval、`docs/03-api-index.md` 与 `docs/standards/api-governance.md`。
+- REQ-0031 默认复用 `40001` / `INVALID_PARAMETER` 或等价已登记参数错误码；如新增错误码，必须同步 `src/backend/app/core/error_codes.py` 与 `docs/standards/error-codes.md`。
 
 ## 数据库变更（计划）
 
 - 不涉及数据库结构变更。
+- REQ-0028 不涉及数据库结构变更。
 - REQ-0029 不涉及数据库结构变更。
 - BUG-0056 不涉及数据库结构变更。
 - BUG-0059 不得将一次性明文密码持久化到数据库、日志、审计事件或长期文档。
 - BUG-0060 不修改 `request_logs`、`usage_events`、`audit_logs` 表结构。
 - BUG-0061 不涉及数据库结构变更，不得记录或持久化明文密码。
+- REQ-0031 不涉及 SQLite / MySQL 表结构、迁移或初始化数据。
 
 ## 部署注意事项
 
 - 若 Change 仅沉淀 checklist，不需要 Docker Compose 验证。
+- REQ-0028 为 Web 管理端共享模板、`/design-system` 验收样例与前端测试，不需要 Docker Compose 验证；实现阶段需运行相关 Vitest / Web build 或等价校验。
 - REQ-0029 为 Web 管理端共享 UI 组件与测试，不需要 Docker Compose 验证；实现阶段需运行相关 Vitest / Web build 或等价校验。
 - BUG-0056 为流程脚本与文档门禁，不需要 Docker Compose 验证。
 - 若 Change 修改 `src/web/nginx.conf`、Vite proxy 或生产代理说明，必须验证 Web 同源 `/docs`、`/redoc`、`/openapi.json` 不进入 SPA fallback。
@@ -121,13 +144,16 @@ status: draft
 
 ## 已知风险
 
-- REQ-0029 追加后 Sprint 估算达到 29 SP / 21.0 人天，略超双人两周开发容量；若容量不足，首批页面至少完成 2 页闭环，第三页转后续推广。
+- REQ-0028 追加后 Sprint 估算达到 37 SP / 26.0 人天，明显超双人两周开发容量；若容量不足，REQ-0028 先完成模板契约、验收页与 1 个代表页面，其他页面迁移后续推广。
+- REQ-0028 已纳入 Sprint 但尚未创建 OpenSpec Change；实现前必须执行 `/req-opsx REQ-0028-admin-list-page-contract`。
 - BUG-0057 修复 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply fix-api-governance-route-tags-known-debt`。
 - BUG-0056 修复 Change 已归档；Sprint 整体 archive 前仍必须运行 readiness gate，确保所有 Sprint 范围 Change 的 tasks 均完成。
 - BUG-0058 修复 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply fix-workflow-sync-check-time-drift-idempotency`。
 - BUG-0059 修复 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply fix-user-password-copy-not-working`。
 - BUG-0060 修复 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply fix-audit-log-request-id-copy-error`。
 - BUG-0061 修复 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply fix-change-password-policy-error-message`。
+- REQ-0031 Change 已创建但尚未实现；Sprint apply 时必须执行 `/opsx-apply update-api-validation-envelope-governance`。
+- REQ-0031 追加后 Sprint 估算达到 40 SP / 29.0 人天，明显超双人两周开发容量；后续新增范围需冻结。
 - BUG-0059 涉及浏览器 Clipboard 权限差异，验收必须覆盖成功、失败和 API 不存在路径。
 - BUG-0060 同样涉及浏览器 Clipboard 权限差异，验收必须覆盖成功、失败、API 不存在和 fixed toast 不位移。
 - BUG-0061 可能牵涉前后端契约，需提前确认错误响应结构，避免前端再次硬编码失准。
@@ -136,6 +162,7 @@ status: draft
 ## 回滚说明
 
 - 文档/checklist 类变更可通过回退对应 OpenSpec Change 与文档修改恢复。
+- REQ-0028 可通过回退 AdminListPage 模板、类型扩展、`/design-system` 样例和代表页面迁移恢复；回退后需确认已迁移页面的筛选、分页、sticky action column 与权限逻辑不丢失。
 - REQ-0029 可通过回退共享组件、分页工具迁移、首批页面接入和 `/design-system` 示例恢复；回退后必须确认已接入页面的原有指标卡和分页 DOM 不丢失。
 - BUG-0056 可通过回退 `scripts/validate-sprint-archive-readiness.py`、对应测试与 `/sprint-archive` skill/命令文档恢复；但不建议移除该门禁，若误判应优先用 `--force` 并记录人工确认。
 - 若后续涉及代理配置修改，回滚必须同时恢复 Web 代理配置并验证 `/api/`、`/media/`、`/openapi.json` 不回归。
@@ -143,3 +170,4 @@ status: draft
 - BUG-0059 为 Web UI-only 修复，可回退 `ResetPasswordDialog` 相关改动与测试；回退后需重新人工验证创建用户/重置密码一次性密码交付链路。
 - BUG-0060 为 Web UI-only 修复，可回退 `LogAuditPage` 复制函数和测试；回退后需保留通过日志详情手动复制 `request_id` 的临时规避说明。
 - BUG-0061 若仅为 Web/UI 文案与规则展示修复，可回退前端组件与测试；若包含 API 错误响应结构调整，回滚必须同步恢复 OpenAPI、Orval 与接口文档。
+- REQ-0031 若需回滚，必须同时回退全局校验异常 handler、OpenAPI / Orval 生成物、Web 错误解析和 API 治理文档，避免运行时与前端契约不一致。

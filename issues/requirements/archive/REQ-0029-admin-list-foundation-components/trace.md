@@ -3,7 +3,7 @@ requirement_id: REQ-0029-admin-list-foundation-components
 status: done
 priority: P1
 created_at: 2026-07-04 15:22:32
-updated_at: 2026-07-10 08:51:57
+updated_at: 2026-07-10 20:42:15
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-04 15:22:32
@@ -72,9 +72,9 @@ cross_cutting_tags:
 
 ## 变更记录
 
-| 2026-07-10 08:50:39 | lifecycle-stage-migrate | review → archive（/opsx-archive add-admin-list-foundation-components） |
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-10 08:50:39 | lifecycle-stage-migrate | review → archive（/opsx-archive add-admin-list-foundation-components） |
 | 2026-07-10 08:50:39 | /opsx-archive | Change `add-admin-list-foundation-components` 已归档，状态同步完成。 |
 | 2026-07-10 08:45:03 | /opsx-apply | Change `add-admin-list-foundation-components` apply 完成，待 archive。 |
 | 2026-07-04 15:22:32 | /req-capture | 创建需求记录，作为 `REQ-0028` 的子需求记录管理端列表基础组件、`MetricCard` 与分页窗口工具抽象。 |

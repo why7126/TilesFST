@@ -3,6 +3,8 @@ purpose: API 治理体系
 content: REST 设计原则、URL/Method/版本、统一返回与 OpenAPI First
 source: rules/api.md / build-api-standard
 update_method: API 规范变更时同步更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-11 09:58:50
 ---
 
 # API 治理体系
@@ -65,6 +67,31 @@ update_method: API 规范变更时同步更新
 
 实现见 `src/backend/app/schemas/common.py`、`app/core/exceptions.py`。
 
+### 管理端表单校验错误
+
+管理端表单、弹窗和上传 API 在 FastAPI / Pydantic 请求校验失败时 MUST 保留 HTTP 422，并返回统一响应信封，不得只暴露框架默认 `detail`：
+
+```json
+{
+  "code": 40001,
+  "message": "请求参数无效",
+  "data": {
+    "errors": [
+      {
+        "field": "username",
+        "message": "Field required",
+        "type": "missing",
+        "location": ["body", "username"]
+      }
+    ]
+  }
+}
+```
+
+`data.errors[]` 只允许返回 `field`、`message`、`type`、`location` 等可展示和排障字段，MUST NOT 返回原始密码、token、Authorization、MinIO 凭据、数据库连接串、真实文件路径、完整对象 key 或原始上传文件内容。
+
+业务 `AppError` 优先级高于通用校验 handler；用户名重复、受保护账号、文件类型不允许等业务错误 MUST 保留原 HTTP 状态、错误码和文案。
+
 ## 错误码
 
 见 `docs/standards/error-codes.md`、`src/backend/app/core/error_codes.py`。
@@ -75,6 +102,21 @@ update_method: API 规范变更时同步更新
 2. 导出 OpenAPI：`src/web/openapi.json`
 3. 生成客户端：`./scripts/generate-openapi-client.sh`
 4. 前端禁止手写接口类型
+
+## API Docs / Swagger Checklist
+
+后续 API docs refine、接口文档页模板化、Swagger 入口调整、Web 代理调整或生产部署文档调整时，Change 的 design、acceptance 或 trace MUST 记录：
+
+| 检查项 | 要求 |
+|---|---|
+| 同源入口 | Swagger 主入口使用 `/docs` 或经 design 说明的等价同源 Web 路径；不得硬编码 `localhost:8000`、`backend:8000`、容器服务名或端口 |
+| 行级深链 | 仅 `included_in_openapi=true` 且存在可用 `operation_id` 的路由可跳转；deep link 使用 `/docs#/{tag}/{operationId}` 或等价安全编码路径 |
+| 不可跳转路由 | 非 OpenAPI 路由或缺失 `operation_id` 的路由保持可见但不可点击，不跳到通用 `/docs` |
+| 代理路径 | 明确 `/docs`、`/redoc`、`/openapi.json` 与 Swagger UI 所需后端文档资源是否由 Web 层代理，且不被 SPA fallback 接管 |
+| 环境矩阵 | 记录 Vite dev proxy、Docker Web Nginx、生产反向代理或生产等价 N/A 原因 |
+| 生产门禁 | 生产文档 MAY 可见，但 `Try It Out` MUST 禁用、隐藏或保持只读，并由后端环境策略兜底 |
+| 安全边界 | 链接、hash、query、localStorage 新键、页面文案和验收记录不得包含 token、JWT Secret、数据库 DSN、MinIO 凭据或真实环境变量值 |
+| Orval 判断 | 说明是否新增或修改 API contract；若有 contract 变化，必须重新导出 OpenAPI 并运行 Orval；若无变化，明确记录无需 Orval |
 
 ## 鉴权
 

@@ -1491,51 +1491,49 @@ Web 客户端 MUST 修复 `/admin/users` 添加用户弹窗的校验失败提示
 
 ### Requirement: 管理端接口文档 Swagger 入口
 
-The Web admin API docs page SHALL open backend Swagger documentation through a same-origin Web route instead of sending users to the Web app homepage. The page SHALL also provide row-level Swagger detail links for OpenAPI routes that can be mapped to a concrete operationId, while keeping non-OpenAPI routes visible but unavailable for Swagger detail navigation.
+The Web admin API docs page SHALL open backend Swagger documentation through a same-origin Web route instead of sending users to the Web app homepage. The page SHALL also provide row-level Swagger detail links for OpenAPI routes that can be mapped to a concrete operationId, while keeping non-OpenAPI routes visible but unavailable for Swagger detail navigation. Future changes touching this page, its Swagger entry, or its proxy assumptions MUST document and verify the Swagger Web proxy and production `Try It Out` checklist.
 
 #### Scenario: Swagger UI link uses same-origin docs path
 
-- **WHEN** an admin views `/admin/api-docs` in a non-production environment
+- **WHEN** an authenticated `admin` user opens `/admin/api-docs`
 - **THEN** the Swagger action SHALL point to `/docs` or an equivalent same-origin Web route
-- **AND** the frontend SHALL NOT hardcode a backend host or port such as `localhost:8000`.
+- **AND** the action SHALL NOT hardcode the backend host, container service name, or port.
 
 #### Scenario: 生产 Swagger 操作保持只读
 
-- **WHEN** an admin views `/admin/api-docs` in a production environment
+- **WHEN** the Web client is configured for production
 - **THEN** the Swagger action MAY be labeled as read-only
-- **AND** the action SHALL still use a same-origin Web route
+- **AND** it SHALL still use the same-origin Web docs route
 - **AND** the frontend SHALL NOT enable production Try It Out.
 
 #### Scenario: 未知 Web 路由 fallback 不用于 Swagger
 
 - **WHEN** an admin opens the Swagger action from `/admin/api-docs`
 - **THEN** the user SHALL see FastAPI Swagger UI or an equivalent backend docs response
-- **AND** the user SHALL NOT be redirected to `/` by the Web SPA fallback.
+- **AND** the Web SPA fallback SHALL NOT serve the Web homepage for that docs route.
 
-#### Scenario: OpenAPI 路由行链接至 operationId
+#### Scenario: 行级 Swagger operationId 深链
 
 - **WHEN** an authenticated `admin` user views a `/admin/api-docs` route row with `included_in_openapi=true` and a non-empty `operation_id`
-- **THEN** the route row SHALL render an ACTION entry labeled `查看` or an equivalent short view action
+- **THEN** the row-level Swagger view action SHALL be enabled
 - **AND** the action SHALL link to a same-origin Swagger UI deep link for that specific operationId, such as `/docs#/{tag}/{operationId}` after URL-safe encoding.
 - **AND** the PATH cell MAY provide the same safe Swagger UI deep link as an additional row-level view affordance.
 
 #### Scenario: 行级 Swagger 链接安全打开新上下文
 
 - **WHEN** an admin activates an enabled row-level Swagger view action
-- **THEN** the action SHALL open in a new browser tab or window
-- **AND** the current `/admin/api-docs` page SHALL remain on the same filter, pagination, scroll, and login context
-- **AND** the link SHALL use `rel="noreferrer"` or an equivalent safe new-window attribute.
+- **THEN** the link SHALL open in a safe new browsing context or an equivalently safe navigation mode
+- **AND** it SHALL use attributes such as `rel="noreferrer"` when opening a new tab.
 
-#### Scenario: 非 OpenAPI 路由行不可操作
+#### Scenario: 非 OpenAPI 路由不可跳转
 
 - **WHEN** an admin views a route row with `included_in_openapi=false`
-- **THEN** the route row SHALL remain visible in the API docs directory
-- **AND** its row-level `查看` action SHALL be disabled or equivalently unavailable
-- **AND** the disabled action SHALL NOT include a clickable href
+- **THEN** the row-level Swagger view action SHALL be disabled or equivalently unavailable
+- **AND** it SHALL NOT navigate to `/docs` or an incorrect operationId
 - **AND** the PATH cell SHALL NOT include a clickable Swagger detail href
 - **AND** the page SHALL communicate that the route is not included in OpenAPI or has no Swagger detail.
 
-#### Scenario: 缺少 operationId 的路由行不可操作
+#### Scenario: 缺少 operationId 的 OpenAPI 路由不可跳转
 
 - **WHEN** an admin views a route row with `included_in_openapi=true` but no usable `operation_id`
 - **THEN** the row-level Swagger view action SHALL be disabled or equivalently unavailable
@@ -1545,17 +1543,15 @@ The Web admin API docs page SHALL open backend Swagger documentation through a s
 #### Scenario: 行级 Swagger 链接不泄露认证上下文
 
 - **WHEN** row-level Swagger view actions are rendered
-- **THEN** their href, hash, query, accessible label, and visible text SHALL NOT include Bearer tokens, Cookies, user identifiers, database URLs, MinIO credentials, or real environment variable values
+- **THEN** the generated URL SHALL NOT include bearer tokens, session data, database DSNs, MinIO credentials, JWT secrets, or real environment variable values in the path, query string, hash fragment, or persisted browser storage
 - **AND** the Web client SHALL NOT add a new Swagger token auto-injection mechanism for this feature.
 
-#### Scenario: API docs 表格布局保持一致
+#### Scenario: API docs refine records Swagger proxy checklist
 
-- **WHEN** the ACTION column is added to `/admin/api-docs`
-- **THEN** the table SHALL keep the existing admin table/list visual language and horizontal scrolling behavior
-- **AND** the ACTION column SHALL remain fixed at the right edge of the horizontally scrollable table when route content overflows
-- **AND** the pagination summary SHALL reflect the current filtered route count after keyword, method, tag, or auth filters change
-- **AND** empty results SHALL keep the existing empty-state behavior without rendering misleading row-level actions
-- **AND** TSX/CSS changes SHALL use semantic tokens or existing admin CSS variables without adding hard-coded design color hex values.
+- **WHEN** a future Web client change modifies `/admin/api-docs`, Swagger actions, row-level Swagger links, or docs route proxy assumptions
+- **THEN** its design, acceptance, or trace records MUST include the Swagger Web proxy and production `Try It Out` checklist
+- **AND** the checklist MUST state whether `docs/03-api-index.md` and `docs/standards/api-governance.md` need updates
+- **AND** if either document is not updated, the trace MUST record the reason.
 
 ### Requirement: 管理端品牌 favicon
 
@@ -1715,7 +1711,7 @@ The Web admin client SHALL render the API docs page according to the REQ-0022 pr
 
 ### Requirement: 管理端列表页横切一致性
 
-Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索交互、表格最后一列固定浮动和分页页码呈现。适用页面 MUST 包含 `/admin/tile-skus`、`/admin/brands`、`/admin/tile-categories`、`/admin/tile-specs`、`/admin/banners`、`/admin/users`、`/admin/logs` 与 `/admin/api-docs`。上述页面 MUST 按「标题模块 → 指标卡模块 → 筛选/搜索模块 → 列表模块」顺序展示；筛选/搜索模块 MUST 以瓷砖 SKU 页为交互和样式基线但 MUST NOT 展示【查询】或【搜索】显式提交按钮；重置按钮 MUST 保持统一尺寸和样式；列表最后一列 MUST 使用以接口文档页为基线的固定浮动操作列；分页 MUST 最多展示 5 个可点击页码。
+Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索交互、表格最后一列固定浮动和分页页码呈现。适用页面 MUST 包含 `/admin/tile-skus`、`/admin/brands`、`/admin/tile-categories`、`/admin/tile-specs`、`/admin/banners`、`/admin/users`、`/admin/logs` 与 `/admin/api-docs`。上述页面 MUST 按「标题模块 → 指标卡模块 → 筛选/搜索模块 → 列表模块」顺序展示；筛选/搜索模块 MUST 以瓷砖 SKU 页为交互和样式基线但 MUST NOT 展示【查询】或【搜索】显式提交按钮；重置按钮 MUST 保持统一尺寸和样式；列表最后一列 MUST 使用以接口文档页为基线的固定浮动操作列；分页 MUST 最多展示 5 个可点击页码。新增或迁移管理端列表页 MUST 优先复用 `AdminListPage` 或等价 Design System 模板组合，不得在业务页面内重复实现已有列表页骨架、分页 DOM、sticky action column 或 fixed toast 契约。
 
 #### Scenario: 列表页模块顺序统一
 
@@ -1764,6 +1760,13 @@ Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索
 - **AND** 可点击页码数量 MUST 不超过 5 个，不包含上一页/下一页按钮
 - **AND** 总页数为 1 时 MUST 仍展示统一分页结构，上一页/下一页为禁用态，页码 `1` 为当前态
 - **AND** 切换每页显示条数 MUST 将页码重置为 1。
+
+#### Scenario: 新增管理端列表页复用模板
+
+- **WHEN** 开发者新增或重构管理端列表型页面
+- **THEN** 页面 MUST 优先使用 `AdminListPage` 或等价模板组合承载标题、指标卡、筛选/搜索、列表和分页模块
+- **AND** 页面 MUST NOT 在业务页面内重复实现已有分页 DOM、sticky action column、固定 toast 或列表骨架
+- **AND** 业务页面 MAY 通过列定义、筛选项、行操作、状态态文案或受控 slot 插入领域内容，但 MUST NOT 破坏模块顺序、分页结构或操作列契约。
 
 #### Scenario: 非目标端不受影响
 
@@ -1841,4 +1844,40 @@ Web 管理端 SHALL connect the foundation components to 2 to 3 baseline admin l
 #### Scenario: 未接入页面追踪
 - **WHEN** implementation completes the first batch
 - **THEN** pages not included in the first batch SHALL be recorded as follow-up rollout items in trace or implementation notes
+
+### Requirement: 管理端表单校验错误解析
+
+Web 管理端 MUST provide a shared or equivalent error parsing strategy for management admin form, modal, and upload API failures. The parser MUST prioritize the unified envelope `message`, SHOULD map `data.errors[]` to field-level errors when possible, and MUST safely fall back to a global toast, modal fixed error area, or upload control error state when field mapping is unavailable. Web admin code MUST NOT rely on raw `detail[0].msg` as the only validation error source.
+
+#### Scenario: Envelope message becomes global feedback
+
+- **WHEN** a management admin form API returns `{ code, message, data }` for a validation failure
+- **THEN** the Web admin client MUST use `message` as the preferred global error feedback
+- **AND** existing business error messages for users, brands, categories, SKUs, specs, banners, system settings, profile, password, and uploads MUST remain compatible.
+
+#### Scenario: Field errors map when possible
+
+- **WHEN** a validation error response includes `data.errors[]`
+- **AND** an error item can be mapped to a visible form field
+- **THEN** the Web admin client SHOULD display or expose the field-level message for that field
+- **AND** unmapped field errors MUST safely degrade to global feedback.
+
+#### Scenario: Raw detail is not the only source
+
+- **WHEN** a management admin form request fails validation
+- **THEN** Web admin code MUST NOT depend on raw `detail[0].msg` as the only path for user-facing errors
+- **AND** any legacy `detail` compatibility branch MUST be secondary to the unified envelope.
+
+#### Scenario: Error display uses existing Design System
+
+- **WHEN** validation errors are displayed in admin pages, modals, or upload controls
+- **THEN** the display MUST use existing admin fixed toast, inline field text, modal fixed error area, or upload fixed error area patterns
+- **AND** it MUST NOT add naked Hex colors, independent light error cards, `window.alert`, or `window.confirm`
+- **AND** it MUST NOT visibly push modal footer buttons, resize modal width, or break upload `idle → uploading → done/failed` state.
+
+#### Scenario: Upload validation failure keeps preview state stable
+
+- **WHEN** an admin upload API returns a validation envelope for missing `file` or invalid file parameter
+- **THEN** the upload control MUST show a stable failure state or toast
+- **AND** a successful preview from the same session MUST NOT be cleared unless the user explicitly replaces or removes it.
 

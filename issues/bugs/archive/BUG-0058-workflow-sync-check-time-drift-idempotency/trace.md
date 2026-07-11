@@ -3,7 +3,7 @@ bug_id: BUG-0058-workflow-sync-check-time-drift-idempotency
 status: done
 lifecycle_stage: archive
 created_at: 2026-07-04 15:33:21
-updated_at: 2026-07-10 00:22:00
+updated_at: 2026-07-10 20:42:15
 ---
 
 ```yaml
@@ -51,4 +51,5 @@ documents:
 | 2026-07-05 08:00:34 | bug-complete | 补齐 root-cause、workaround、acceptance；status → pending_review |
 | 2026-07-05 07:54:28 | bug-generate | 生成 bug.md；status → draft |
 | 2026-07-04 15:33:21 | bug-capture | 记录 workflow-sync --check 时间漂移与幂等性缺陷 |
+
 - 2026-07-10 00:21:50 workflow-sync：状态同步为 done（Change archived）

@@ -66,7 +66,7 @@ updated_at: 2026-07-05 07:55:25
 
 - `docs/03-api-index.md`：补充管理端接口文档页、Swagger 同源入口、生产只读策略说明。
 - `docs/standards/api-governance.md`：补充 OpenAPI / Swagger / Orval 治理 checklist。
-- `issues/requirements/review/REQ-0030-api-docs-swagger-policy-checklist/trace.md`：记录本 Change 与 Sprint 004 A-006 的闭环。
+- `issues/requirements/archive/REQ-0030-api-docs-swagger-policy-checklist/trace.md`：记录本 Change 与 Sprint 004 A-006 的闭环。
 
 ## Verification Plan
 

@@ -82,19 +82,73 @@ export interface DetailPageContent {
   ctaLabel?: string;
 }
 
-export interface AdminListColumn<T extends { id: string } = { id: string }> {
-  key: string;
-  header: string;
-  render?: (row: T) => string;
+export interface AdminListMetric<Node = unknown> {
+  label: Node;
+  value?: Node;
+  description?: Node;
+  loading?: boolean;
+  dangerDescription?: boolean;
 }
 
-export interface AdminListPageContent<T extends { id: string } = { id: string }> {
+export interface AdminListFilter<Node = unknown> {
+  id: string;
+  label?: string;
+  control: Node;
+  className?: string;
+}
+
+export interface AdminListColumn<
+  T extends { id: string | number } = { id: string },
+  Node = unknown,
+> {
+  key: string;
+  header: string;
+  render?: (row: T) => Node;
+  stickyAction?: boolean;
+  className?: string;
+  headerClassName?: string;
+}
+
+export interface AdminListPageAction<Node = unknown> {
+  id: string;
+  label: string;
+  control?: Node;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+}
+
+export interface AdminListPaginationState {
+  page: number;
+  total: number;
+  pageSize: number;
+  pageSizeOptions?: number[];
+  itemLabel?: string;
+}
+
+export interface AdminListPageStateContent {
+  loadingText?: string;
+  emptyText?: string;
+  errorText?: string;
+  permissionText?: string;
+}
+
+export interface AdminListPageContent<
+  T extends { id: string | number } = { id: string },
+  Node = unknown,
+> {
   title: string;
   description?: string;
+  eyebrow?: string;
   searchPlaceholder?: string;
   createLabel?: string;
-  columns: AdminListColumn<T>[];
+  primaryActionLabel?: string;
+  actions?: AdminListPageAction<Node>[];
+  metrics?: AdminListMetric<Node>[];
+  filters?: AdminListFilter<Node>[];
+  columns: AdminListColumn<T, Node>[];
   rows: T[];
+  pagination?: AdminListPaginationState;
+  state?: AdminListPageStateContent;
 }
 
 export interface AdminFormField {

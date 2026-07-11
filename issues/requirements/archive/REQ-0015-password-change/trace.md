@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-06-28 09:41:12
-updated_at: 2026-07-07 00:36:08
+updated_at: 2026-07-10 20:42:15
 lifecycle:
   captured: 2026-06-28 09:41:12
   exploring: 2026-06-28 09:47:30
@@ -74,9 +74,9 @@ iteration: sprint-003
 
 ## 变更记录
 
-| 2026-06-28 19:23:06 | lifecycle-stage-migrate | review → archive（backfill opsx-archive hook (sprint-003)） |
 | 日期 | 动作 | 说明 |
 |---|---|---|
+| 2026-06-28 19:23:06 | lifecycle-stage-migrate | review → archive（backfill opsx-archive hook (sprint-003)） |
 | 2026-06-28 10:15:13 | lifecycle-stage-migrate | plan → review（/req-review --approve 补迁） |
 | 2026-06-28 10:06:30 | `/req-opsx` | 创建 OpenSpec change `add-admin-password-change` |
 | 2026-06-28 10:03:15 | `/sprint-propose sprint-003` | 纳入 sprint-003；iteration → sprint-003；status → in_sprint |

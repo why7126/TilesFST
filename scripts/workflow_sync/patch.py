@@ -473,6 +473,43 @@ def append_workflow_event_record(
     return text.replace("## 变更记录\n\n", f"## 变更记录\n\n- {stamp} {command}：{description}\n", 1)
 
 
+def normalize_change_record_table(text: str) -> str:
+    section_pattern = re.compile(r"(## 变更记录\n\n)(.*?)(?=\n## |\Z)", re.DOTALL)
+    match = section_pattern.search(text)
+    if not match:
+        return text
+
+    body = match.group(2)
+    lines = body.splitlines()
+    header_index: int | None = None
+    for index, line in enumerate(lines[:-1]):
+        if re.match(r"^\|\s*(时间|日期)\s*\|", line) and re.match(r"^\|\s*-", lines[index + 1]):
+            header_index = index
+            break
+    if header_index is None:
+        return text
+
+    header = lines[header_index]
+    separator = lines[header_index + 1]
+    rows: list[str] = []
+    other_lines: list[str] = []
+    for index, line in enumerate(lines):
+        if index in {header_index, header_index + 1}:
+            continue
+        if line.startswith("|") and line.endswith("|"):
+            rows.append(line)
+        elif line.strip():
+            other_lines.append(line)
+
+    normalized_lines = [header, separator, *rows]
+    if other_lines:
+        normalized_lines.extend(["", *other_lines])
+    normalized_body = "\n".join(normalized_lines).rstrip() + "\n"
+    if normalized_body == body:
+        return text
+    return text[: match.start(2)] + normalized_body + text[match.end(2) :]
+
+
 def update_current_status_section(text: str, issue: IssueRecord, derived: DerivedIssue) -> str:
     if "## 当前状态" not in text:
         return text
@@ -559,6 +596,7 @@ def patch_issue_trace(
         if entry not in text:
             text = text.rstrip() + f"\n{entry}\n"
 
+    text = normalize_change_record_table(text)
     text = append_workflow_event_record(
         text,
         event=event,

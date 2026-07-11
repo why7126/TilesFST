@@ -636,6 +636,23 @@ export interface ApiResponseListTileCategoryTreeNode {
   data?: TileCategoryTreeNode[] | null;
 }
 
+export interface ValidationErrorItem {
+  field: string;
+  message: string;
+  type: string;
+  location: string[];
+}
+
+export interface ValidationErrorData {
+  errors: ValidationErrorItem[];
+}
+
+export interface ApiValidationErrorResponse {
+  code?: number;
+  message?: string;
+  data: ValidationErrorData;
+}
+
 export interface BannerCreateRequest {
   /**
      * @minLength 1
