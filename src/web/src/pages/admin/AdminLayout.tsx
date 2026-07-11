@@ -11,6 +11,7 @@ import {
   writeAdminSidebarCollapsed,
 } from '../../features/admin/lib/admin-sidebar-preference';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { useTheme } from '../../features/theme/ThemeContext';
 import { resolveAdminPageTrackingContext } from '../../features/tracking/admin-page-tracking';
 import { trackUsageEvent } from '../../features/tracking/api/usage-tracking';
 import '../../features/admin/styles/admin-home.css';
@@ -23,6 +24,7 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { error: themeError, clearError: clearThemeError } = useTheme();
   const [notice, setNotice] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -70,6 +72,14 @@ export function AdminLayout() {
     const timer = window.setTimeout(() => setNotice(null), 3200);
     return () => window.clearTimeout(timer);
   }, [notice]);
+
+  useEffect(() => {
+    if (!themeError) {
+      return;
+    }
+    setToast(themeError);
+    clearThemeError();
+  }, [clearThemeError, themeError]);
 
   const loadProfileShell = useCallback(async () => {
     if (!user || (user.role !== 'admin' && user.role !== 'employee')) {

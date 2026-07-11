@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fetchLogDetail, fetchLogs, type LogQuery } from '@/features/admin/api/logs-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
+import { copyTextToClipboard } from '@/shared/lib/clipboard';
 import { getPaginationWindow } from '@/shared/lib/pagination-window';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/log-audit.css';
@@ -307,28 +308,26 @@ export function LogAuditPage() {
   };
 
   const copyRequestId = async (value?: string | null) => {
-    const requestId = value?.trim();
-    if (!requestId) {
+    const result = await copyTextToClipboard(value);
+    if (result.status === 'empty') {
       setNotice('当前日志没有 request_id');
       return;
     }
-    const writeText = navigator.clipboard?.writeText;
-    if (!writeText) {
+    if (result.status === 'unavailable') {
       setNotice('无法自动复制 request_id，请打开日志详情选中文本手动复制');
       return;
     }
-    try {
-      await writeText.call(navigator.clipboard, requestId);
+    if (result.status === 'success') {
       setNotice('request_id 已复制');
       void trackUsageEvent('copy_request_id', {
         module: TRACKING_MODULE,
         entity_type: 'request_log',
-        entity_id: requestId,
-        request_id: requestId,
+        entity_id: result.text ?? 'unknown',
+        request_id: result.text ?? 'unknown',
       });
-    } catch {
-      setNotice('自动复制失败，请打开日志详情选中文本手动复制');
+      return;
     }
+    setNotice('自动复制失败，请打开日志详情选中文本手动复制');
   };
 
   const openDetail = (item: LogListItem) => {

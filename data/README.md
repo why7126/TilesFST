@@ -1,11 +1,11 @@
 ---
 purpose: 数据目录说明
-content: 说明本地开发数据、样例数据、上传文件、SQLite文件、视频处理产物的存放规则
+content: 说明本地开发数据、样例数据、上传文件、SQLite文件、视频处理产物、AI 使用量事实的存放规则
 source: AI自动生成初稿，项目团队确认
 update_method: 新增数据类型、上传目录、视频处理流程、数据库持久化方式时由AI辅助更新，人工Review
 note: data目录用于本地开发、演示、测试样例和运行时数据；生产环境应使用正式对象存储和持久化卷
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-03 06:51:26
+updated_at: 2026-07-11 18:51:16
 ---
 
 # data 目录规范
@@ -36,8 +36,35 @@ data/
 │   ├── images/              # 样例瓷砖图片
 │   └── videos/              # 样例瓷砖视频
 ├── runtime/                 # 本地运行日志、缓存等临时数据
+├── ai-usage/                # 从本地 Codex session 派生的脱敏 AI 命令使用量事实
 └── tmp/                     # 临时文件
 ```
+
+## AI 使用量事实源
+
+`data/ai-usage/` 只保存从本地 Codex session JSONL 派生的脱敏事实，不保存原始 prompt、系统/developer 指令、技能全文、工具输出正文、本机绝对路径、密钥、`.env` 内容或客户数据。
+
+可提交：
+
+- `data/ai-usage/README.md`
+- 脱敏样例：`data/ai-usage/samples/**`
+- 经人工确认安全的 Sprint 聚合快照：`data/ai-usage/sprints/<sprint-id>.json`
+
+仅本地保留：
+
+- 原始 `~/.codex/sessions/**/*.jsonl`
+- `data/ai-usage/raw/**`
+- `data/ai-usage/local/**`
+- 任何包含 prompt、工具输出正文、真实路径、密钥或客户数据的中间文件
+
+提取命令示例：
+
+```bash
+python scripts/extract-ai-usage.py --session-jsonl ~/.codex/sessions/<session>.jsonl --sprint sprint-006
+python scripts/generate-sprint-fact-sheet.py --sprint sprint-006 --json
+```
+
+`/sprint-exps` 优先读取 `data/ai-usage/sprints/<sprint-id>.json` 的真实快照；缺失时必须明确标注“无精确 token 计量”，只能做估算分析。
 
 ## Legacy uploads 清理（BUG-0008 后）
 

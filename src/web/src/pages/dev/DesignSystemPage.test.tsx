@@ -1,11 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { ThemeProvider } from '@/features/theme/ThemeContext';
+
 import { DesignSystemPage } from './DesignSystemPage';
 
 describe('DesignSystemPage', () => {
   it('renders admin list foundation component examples and pagination contracts', () => {
-    const { container } = render(<DesignSystemPage />);
+    const { container } = render(
+      <ThemeProvider>
+        <DesignSystemPage />
+      </ThemeProvider>,
+    );
 
     expect(screen.getByLabelText('2 卡指标示例')).toHaveClass('summary-grid', '!grid-cols-2');
     expect(screen.getByLabelText('3 卡指标示例')).toHaveClass('summary-grid', '!grid-cols-3');
@@ -37,5 +43,6 @@ describe('DesignSystemPage', () => {
     expect(container.querySelector('[data-admin-list-boundary="empty"]')).toBeInTheDocument();
     expect(container.querySelector('[data-admin-list-boundary="error"]')).toBeInTheDocument();
     expect(container.querySelector('[data-admin-list-boundary="single-page"]')).toBeInTheDocument();
+    expect(screen.getByLabelText('主题')).toBeInTheDocument();
   });
 });

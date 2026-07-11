@@ -9,10 +9,26 @@ import { ADMIN_SIDEBAR_COLLAPSED_KEY } from '../lib/admin-sidebar-preference';
 import { trackUsageEvent } from '../../../features/tracking/api/usage-tracking';
 import { AdminLayout } from '../../../pages/admin/AdminLayout';
 import { DashboardPage } from '../../../pages/admin/DashboardPage';
+import { ThemeProvider } from '@/features/theme/ThemeContext';
+import { THEME_STORAGE_KEY } from '@/features/theme/theme';
 
 const adminStylesDir = path.resolve(process.cwd(), 'src/features/admin/styles');
 const readAdminCss = (filename: string) =>
   readFileSync(path.join(adminStylesDir, filename), 'utf8');
+
+function renderAdminLayout(initialEntry = '/admin/dashboard') {
+  return render(
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <Routes>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<DashboardPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </ThemeProvider>,
+  );
+}
 
 vi.mock('../../../features/auth/hooks/useAuth', () => ({
   useAuth: vi.fn(),
@@ -53,15 +69,7 @@ describe('AdminLayout', () => {
       isAdmin: true,
     });
 
-    const { container } = render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    const { container } = renderAdminLayout();
 
     expect(screen.getByText('菲尚特FST')).toBeInTheDocument();
     expect(screen.getByText('家居建材资料库')).toBeInTheDocument();
@@ -72,8 +80,49 @@ describe('AdminLayout', () => {
       '/logos/64x64.png',
     );
     expect(screen.getByLabelText('后台导航')).toBeInTheDocument();
+    const sidebar = screen.getByLabelText('后台导航');
+    const themeSelect = screen.getByLabelText('界面主题');
+    expect(sidebar).toContainElement(themeSelect);
+    expect(container.querySelector('.sidebar-theme')).toContainElement(themeSelect);
+    expect(container.querySelector('.admin-theme-row')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '退出登录' })).not.toBeInTheDocument();
     expect(screen.getByText('数据概览')).toBeInTheDocument();
+  });
+
+  it('keeps theme switching behavior after moving the selector into the sidebar', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user: {
+        id: '1',
+        username: 'admin',
+        display_name: 'Admin User',
+        role: 'admin',
+        status: 'active',
+      },
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: true,
+    });
+
+    const { container } = renderAdminLayout();
+
+    expect(screen.getAllByLabelText('界面主题')).toHaveLength(1);
+    expect(container.querySelector('.admin-theme-row')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('界面主题'), {
+      target: { value: 'comfort_dark' },
+    });
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+    });
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
   });
 
   it('tracks page views for admin pages from the shared layout', async () => {
@@ -97,15 +146,7 @@ describe('AdminLayout', () => {
       isAdmin: true,
     });
 
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard?from=nav']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderAdminLayout('/admin/dashboard?from=nav');
 
     await waitFor(() => {
       expect(trackUsageEvent).toHaveBeenCalledWith('page_view', {
@@ -142,15 +183,7 @@ describe('AdminLayout', () => {
       isAdmin: true,
     });
 
-    const { container } = render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    const { container } = renderAdminLayout();
 
     const shell = container.querySelector('.admin-shell');
     expect(shell).toHaveAttribute('data-sidebar-state', 'expanded');
@@ -187,15 +220,7 @@ describe('AdminLayout', () => {
       isAdmin: true,
     });
 
-    const { container } = render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    const { container } = renderAdminLayout();
 
     expect(container.querySelector('.admin-shell')).toHaveAttribute(
       'data-sidebar-state',
@@ -242,15 +267,7 @@ describe('AdminLayout', () => {
       isAdmin: true,
     });
 
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderAdminLayout();
 
     const buttons = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
     expect(buttons.indexOf('日志审计')).toBe(buttons.indexOf('系统设置') + 1);
@@ -278,15 +295,7 @@ describe('AdminLayout', () => {
       isAdmin: false,
     });
 
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <Routes>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<DashboardPage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderAdminLayout();
 
     expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '系统设置' })).not.toBeInTheDocument();

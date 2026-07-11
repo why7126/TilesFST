@@ -27,6 +27,7 @@ class UserRecord:
     last_login_at: str | None
     remark: str | None
     token_version: int
+    theme_mode: str
     created_at: str
     updated_at: str
 
@@ -56,6 +57,7 @@ class UserRepository:
             last_login_at=row.get("last_login_at"),
             remark=row.get("remark"),
             token_version=int(row.get("token_version") or 0),
+            theme_mode=str(row.get("theme_mode") or "system"),
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
@@ -104,11 +106,11 @@ class UserRepository:
                 """
                 INSERT INTO users (
                     id, username, phone, email, password_hash, display_name,
-                    role, status, avatar_object_key, token_version, last_login_at,
+                    role, status, avatar_object_key, token_version, theme_mode, last_login_at,
                     created_at, updated_at
                 ) VALUES (
                     :id, :username, NULL, NULL, :password_hash, :display_name,
-                    :role, :status, :avatar_object_key, 0, NULL, :created_at, :updated_at
+                    :role, :status, :avatar_object_key, 0, 'system', NULL, :created_at, :updated_at
                 )
                 """
             ),
@@ -275,6 +277,25 @@ class UserRepository:
                 "avatar_object_key": new_avatar,
                 "updated_at": now,
             },
+        )
+        self._db.commit()
+        return self.get_by_id(user_id)
+
+    def update_theme_mode(self, user_id: str, theme_mode: str) -> UserRecord | None:
+        user = self.get_by_id(user_id)
+        if user is None:
+            return None
+        now = datetime.now(UTC).isoformat()
+        self._db.execute(
+            text(
+                """
+                UPDATE users
+                SET theme_mode = :theme_mode,
+                    updated_at = :updated_at
+                WHERE id = :id
+                """
+            ),
+            {"id": user_id, "theme_mode": theme_mode, "updated_at": now},
         )
         self._db.commit()
         return self.get_by_id(user_id)

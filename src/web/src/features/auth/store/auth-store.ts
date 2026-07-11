@@ -14,6 +14,7 @@ interface AuthStore {
   login: (username: string, password: string, rememberMe: boolean) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<boolean>;
+  setUserThemeMode: (themeMode: string) => void;
   clearError: () => void;
 }
 
@@ -25,6 +26,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   error: null,
 
   clearError: () => set({ error: null }),
+
+  setUserThemeMode: (themeMode) => {
+    const user = get().user;
+    if (!user) return;
+    set({ user: { ...user, theme_mode: themeMode } });
+  },
 
   login: async (username, password, rememberMe) => {
     set({ isLoading: true, error: null });

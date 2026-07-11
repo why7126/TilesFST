@@ -307,9 +307,51 @@
 
 .admin-shell .sidebar-user {
   position: relative;
-  margin-top: auto;
   padding: 16px 0 0;
   border-top: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .sidebar-theme {
+  margin-top: auto;
+  padding: 14px 0 16px;
+  border-top: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .sidebar-theme .theme-switcher {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.admin-shell .sidebar-theme .theme-switcher-select {
+  flex: 0 0 auto;
+}
+
+.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme {
+  padding: 12px 0 14px;
+}
+
+.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-label {
+  width: 100%;
+  justify-content: center;
+  font-size: 0;
+}
+
+.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-label svg {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-select {
+  width: 48px;
+  min-width: 0;
+  padding: 6px 4px;
+  font-size: 0;
 }
 
 .admin-shell .user-trigger {

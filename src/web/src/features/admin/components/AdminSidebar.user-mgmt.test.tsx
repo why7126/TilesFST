@@ -2,10 +2,12 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { PRODUCT_VERSION } from '@shared/product-version';
+import { ThemeProvider } from '@/features/theme/ThemeContext';
 
 import { AdminSidebar } from './AdminSidebar';
 
@@ -23,31 +25,33 @@ const employeeUser = {
   role: 'employee',
 };
 
+function renderWithTheme(ui: ReactElement) {
+  return render(
+    <ThemeProvider>
+      <MemoryRouter initialEntries={['/admin/dashboard']}>{ui}</MemoryRouter>
+    </ThemeProvider>,
+  );
+}
+
 describe('AdminSidebar', () => {
   it('shows 用户管理 for admin', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />,
     );
     expect(screen.getByRole('button', { name: '用户管理' })).toBeInTheDocument();
   });
 
   it('hides 用户管理 for employee', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />,
     );
     expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '系统设置' })).not.toBeInTheDocument();
   });
 
   it('shows product logo, brand copy, and version badge in brand head', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar user={adminUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} />,
     );
     expect(screen.getByText('菲尚特FST')).toBeInTheDocument();
     expect(screen.getByText('家居建材资料库')).toBeInTheDocument();

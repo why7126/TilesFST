@@ -11,7 +11,7 @@ from app.core.deps import get_current_user, get_effective_settings_service, get_
 from app.db.session import get_db
 from app.repositories.profile_activity_repository import ProfileActivityRepository
 from app.repositories.user_repository import UserRecord, UserRepository
-from app.schemas.auth import LoginData, LoginRequest, LogoutData, UserProfile
+from app.schemas.auth import LoginData, LoginRequest, LogoutData, ThemePreferenceUpdateRequest, UserProfile
 from app.schemas.common import ApiResponse
 from app.services.auth_service import AuthService
 from app.services.effective_settings_service import EffectiveSettingsService
@@ -60,6 +60,19 @@ def me(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> ApiResponse[UserProfile]:
     return ApiResponse(data=service.get_current_profile(current_user))
+
+
+@router.patch(
+    "/me/theme",
+    response_model=ApiResponse[UserProfile],
+    summary="更新当前用户主题偏好",
+)
+def update_theme_preference(
+    payload: ThemePreferenceUpdateRequest,
+    current_user: Annotated[UserRecord, Depends(get_current_user)],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> ApiResponse[UserProfile]:
+    return ApiResponse(data=service.update_theme_mode(current_user, payload.theme_mode))
 
 
 @router.post(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.core.exceptions import AuthInvalidCredentialsError, AuthUserDisabledError
+from app.core.exceptions import AuthInvalidCredentialsError, AuthInvalidRequestError, AuthUserDisabledError
 from app.core.security import create_access_token, verify_password
 from app.repositories.profile_activity_repository import ProfileActivityRepository
 from app.repositories.user_repository import UserRecord, UserRepository
@@ -10,6 +10,8 @@ from app.schemas.auth import LoginData, UserProfile
 
 
 from app.services.effective_settings_service import EffectiveSettingsService
+
+SUPPORTED_THEME_MODES = frozenset({"system", "dark_flagship", "comfort_dark", "light"})
 
 
 class AuthService:
@@ -31,6 +33,7 @@ class AuthService:
             display_name=user.display_name or user.username,
             role=user.role,
             status=user.status,
+            theme_mode=user.theme_mode,
         )
 
     def login(self, *, username: str, password: str, remember_me: bool) -> LoginData:
@@ -65,3 +68,12 @@ class AuthService:
 
     def get_current_profile(self, user: UserRecord) -> UserProfile:
         return self.to_profile(user)
+
+    def update_theme_mode(self, user: UserRecord, theme_mode: str) -> UserProfile:
+        normalized = theme_mode.strip()
+        if normalized not in SUPPORTED_THEME_MODES:
+            raise AuthInvalidRequestError("无效的主题模式")
+        updated = self._repo.update_theme_mode(user.id, normalized)
+        if updated is None:
+            raise AuthInvalidCredentialsError()
+        return self.to_profile(updated)

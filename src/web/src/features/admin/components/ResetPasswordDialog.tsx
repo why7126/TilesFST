@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { copyTextToClipboard } from '@/shared/lib/clipboard';
+
 interface ResetPasswordDialogProps {
   open: boolean;
   password: string | null;
@@ -24,21 +26,14 @@ export function ResetPasswordDialog({ open, password, onClose }: ResetPasswordDi
   };
 
   const handleCopy = async () => {
-    const writeText = navigator.clipboard?.writeText;
-
-    if (!writeText) {
-      selectPasswordForManualCopy();
-      setCopyState('fallback');
+    const result = await copyTextToClipboard(password, {
+      selectFallback: selectPasswordForManualCopy,
+    });
+    if (result.status === 'success') {
+      setCopyState('success');
       return;
     }
-
-    try {
-      await writeText.call(navigator.clipboard, password);
-      setCopyState('success');
-    } catch {
-      selectPasswordForManualCopy();
-      setCopyState('fallback');
-    }
+    setCopyState('fallback');
   };
 
   return (

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-06-29 10:03:38
-updated_at: 2026-07-04 15:36:01
+updated_at: 2026-07-11 17:18:39
 title: Sprint 004 迭代说明
 purpose: 记录 Sprint 004 目标、范围、Change、工作量与风险
 content: 生产环境部署与 MySQL 数据库支持（REQ-0018）+ 管理端超级管理员账号保护（REQ-0019）+ 创建用户校验提示修复（BUG-0050）+ 管理端接口文档菜单与在线调试（REQ-0022）+ 接口文档列表行级 Swagger 详情入口（REQ-0023）+ Swagger UI 入口修复（BUG-0051）+ 接口文档指标卡一致性修复（BUG-0052）+ 接口文档列表分页一致性修复（BUG-0053）+ 管理端全局内容区域内边距修复（BUG-0054）+ 管理端多列表页布局与筛选分页交互统一修复（BUG-0055）+ 品牌区 Logo、菲尚特FST 文案与网页图标统一（REQ-0025）+ 产品版本发布与公告管理（REQ-0026）+ 产品使用行为埋点与接口请求日志详情（REQ-0024）
@@ -168,7 +168,7 @@ note: workflow-sync — workflow-sync 自动同步 — 13/13 Change archived；0
 - **现象**：管理端右侧主内容区域 padding 与内容宽度限制偏保守，导致日志审计、SKU、用户、Dashboard、系统设置等页面在桌面宽屏下有效内容区域偏小。
 - **根因**：`.admin-shell .main-content` 仍使用 `48px 56px 72px`，`.content-inner` 保留 `1080px` 硬上限，同时 SKU 页和系统设置页存在页面级宽度覆盖，形成全局与局部分叉。
 - **修复范围**：Desktop 主内容 padding 调整为 `24px 24px 48px`；tablet / mobile 联动收窄；放宽 `content-inner`；清理 SKU 与系统设置页面级宽度分叉；保持侧栏折叠、独立滚动、列表分页与表单布局不回归。
-- **OpenSpec**：`fix-admin-content-padding-too-large`（proposed，OpenSpec strict validate 已通过）。
+- **OpenSpec**：`fix-admin-content-padding-too-large`（archived，OpenSpec strict validate 已通过）。
 - **验收重点**：`/admin/logs`、`/admin/tile-skus`、`/admin/users`、`/admin/dashboard`、`/admin/system-settings` 基准页面视觉回归；无新增裸 Hex；不影响 API、数据库、Orval、Docker、店主端和小程序。
 
 ### BUG-0055-admin-list-layout-unification 要点
@@ -234,7 +234,7 @@ note: workflow-sync — workflow-sync 自动同步 — 13/13 Change archived；0
 
 | 项目 | 状态 | 延后原因 |
 |---|---|---|
-| REQ-0013-admin-shell-padding-refine | pending_review | 未评审，不得纳入正式规划 |
+| REQ-0013-admin-shell-padding-refine | done | 已按当前实际由 BUG-0054 / `fix-admin-content-padding-too-large` 闭环归档 |
 | Sprint 003 A-002 / A-003 / A-004 对应 UI 抽象 | backlog | 本 Sprint 为基础设施部署，不纳入 UI 模板建设 |
 | 系统设置 P1b 登录失败锁定 | backlog | REQ-0017 复盘延后项，需单独 capture/review |
 
@@ -564,7 +564,7 @@ sprint-004
       └─ testing capability（MODIFIED）
          └─ pytest + Vitest + permission/security regression
 └─ BUG-0054-admin-content-padding-too-large
-   └─ fix-admin-content-padding-too-large（proposed）
+   └─ fix-admin-content-padding-too-large（archived；同时闭环 REQ-0013 当前实际）
       ├─ admin-shell capability（MODIFIED）
       │  ├─ global main-content padding
       │  ├─ content-inner width policy
@@ -602,7 +602,7 @@ sprint-004
 12. REQ-0025 已完成 `/req-opsx`、`/opsx-apply` 与 `/opsx-archive update-brand-logo-fst-favicon`。
 13. REQ-0026 已完成 `/opsx-archive add-product-release-management`；Change 已归档并合并正式规范。
 14. REQ-0024 已完成 `/req-opsx REQ-0024-product-usage-logging` 创建 `add-product-usage-logging`；后续执行 `/opsx-apply add-product-usage-logging`。
-15. BUG-0054 已完成 `/bug-opsx BUG-0054` 创建 `fix-admin-content-padding-too-large`；后续执行 `/opsx-apply fix-admin-content-padding-too-large`。
+15. BUG-0054 已完成 `/opsx-archive fix-admin-content-padding-too-large`；该 Change 同时闭环 REQ-0013 当前实际。
 16. BUG-0055 已完成 `/bug-opsx BUG-0055`、`/opsx-apply fix-admin-list-layout-unification` 与视觉验收确认；后续执行 `/opsx-archive fix-admin-list-layout-unification`。
 17. REQ-0019、BUG-0050 与 REQ-0022 已补跑 pytest、Vitest、Orval、OpenAPI 与接口文档校验；API governance 剩余失败为既有管理端路由缺少 decorator tags。
 18. 更新 acceptance-report，核心 AC sign-off 后再 `/sprint-archive sprint-004`。
@@ -631,7 +631,7 @@ sprint-004
 | Change | `openspec/changes/add-api-docs-swagger-detail-link/` |
 | Change | `openspec/changes/archive/2026-07-02-add-product-release-management/` |
 | Change | `openspec/changes/add-product-usage-logging/` |
-| Change | `openspec/changes/fix-admin-content-padding-too-large/` |
+| Change | `openspec/changes/archive/2026-07-03-fix-admin-content-padding-too-large/` |
 | Change | `openspec/changes/fix-admin-list-layout-unification/` |
 | Change | `openspec/changes/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong/` |
 | Change | `openspec/changes/fix-api-docs-list-layout-pagination-inconsistent/` |

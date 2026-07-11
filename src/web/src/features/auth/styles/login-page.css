@@ -259,6 +259,12 @@ html:has(.login-shell) body {
   max-width: 420px;
 }
 
+.login-shell .login-theme-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
 .login-shell .eyebrow {
   color: var(--login-gold);
   font-size: 10px;
@@ -497,6 +503,10 @@ html:has(.login-shell) body {
 
   .login-shell .login-card {
     max-width: 520px;
+  }
+
+  .login-shell .login-theme-row {
+    justify-content: flex-start;
   }
 }
 

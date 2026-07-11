@@ -61,5 +61,5 @@ done
 ```
 
 - Exit code **MUST** be `0`
-- Print **Workflow Sync Report**（注明 REQ N 条 + BUG M 条）
+- Print summary **Workflow Sync Report**（注明 REQ N 条 + BUG M 条）；use `--output detail` only for debugging
 - Do **not** hand-edit `sprint.md` Scope marker blocks

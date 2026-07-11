@@ -3,7 +3,7 @@
  *
  * Source: rules/ui-design.md §2 色彩系统
  * Default theme: dark (industrial flagship)
- * Light theme: .light | [data-theme="light"]
+ * Theme modes: system | dark_flagship | comfort_dark | light
  *
  * All colors MUST be referenced via CSS variables — no Hex in components.
  * Non-color tokens: ./tokens.generated.css (sync:tokens)
@@ -15,12 +15,13 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Color Tokens — Dark theme (default)
-   Selectors: :root | .dark | [data-theme="dark"]
+   Selectors: :root | .dark | [data-theme="dark"] | [data-theme-mode="dark_flagship"]
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root,
 .dark,
-[data-theme="dark"] {
+[data-theme="dark"],
+[data-theme-mode="dark_flagship"] {
   color-scheme: dark;
 
   /* ── Background ── */
@@ -65,6 +66,77 @@
   --color-accent-subtle: rgb(255 255 255 / 0.05);
 
   /* ── shadcn/ui bridge (references semantic colors above) ── */
+  --background: var(--color-page);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-brand-gold);
+  --primary-foreground: var(--color-text-on-brand);
+  --secondary: var(--color-surface);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-surface);
+  --muted-foreground: var(--color-text-secondary);
+  --accent: var(--color-accent-subtle);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: var(--color-text-primary);
+  --border: var(--color-border-strong);
+  --input: var(--color-border-strong);
+  --ring: var(--color-border-focus);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Color Tokens — Comfort dark theme
+   Selector: [data-theme-mode="comfort_dark"]
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-mode="comfort_dark"] {
+  color-scheme: dark;
+
+  /* ── Background ── */
+  --color-page: #222018;
+  --color-surface: #2b281f;
+  --color-secondary: #302c22;
+  --color-deep: #17150f;
+  --color-bg-overlay: rgb(255 252 244 / 0.055);
+  --color-bg-badge-neutral: rgb(255 252 244 / 0.08);
+
+  /* ── Text ── */
+  --color-text-primary: #f1eadf;
+  --color-text-secondary: rgb(241 234 223 / 0.64);
+  --color-text-muted: rgb(241 234 223 / 0.46);
+  --color-text-subtle: rgb(241 234 223 / 0.32);
+  --color-text-nav-link: rgb(241 234 223 / 0.56);
+  --color-text-brand: #d0aa62;
+  --color-text-hot-sale: #dd765b;
+  --color-text-on-brand: #1b1811;
+
+  /* ── Brand (gold) ── */
+  --color-brand-gold: #d0aa62;
+  --color-brand-gold-muted: rgb(208 170 98 / 0.14);
+  --color-brand-gold-border: rgb(208 170 98 / 0.48);
+  --color-brand-gold-badge: rgb(208 170 98 / 0.18);
+
+  /* ── Semantic ── */
+  --color-error: #dd765b;
+  --color-hot-sale: #dd765b;
+  --color-hot-sale-muted: rgb(221 118 91 / 0.16);
+
+  /* ── Border / divider ── */
+  --color-border-default: rgb(255 252 244 / 0.09);
+  --color-border-emphasis: rgb(255 252 244 / 0.14);
+  --color-border-strong: rgb(255 252 244 / 0.22);
+  --color-border-hover: rgb(255 252 244 / 0.32);
+  --color-border-focus: rgb(208 170 98 / 0.68);
+  --color-border-chip: rgb(255 252 244 / 0.15);
+  --color-border-brand: rgb(208 170 98 / 0.48);
+
+  /* ── Interactive ── */
+  --color-accent-subtle: rgb(255 252 244 / 0.065);
+
+  /* ── shadcn/ui bridge ── */
   --background: var(--color-page);
   --foreground: var(--color-text-primary);
   --card: var(--color-surface);

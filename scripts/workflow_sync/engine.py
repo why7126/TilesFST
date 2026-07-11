@@ -18,6 +18,10 @@ from .derive import (
     release_status_line,
     sprint_summary_note,
 )
+from .issue_status_residuals import (
+    IssueStatusReconcileResult,
+    reconcile_issue_status_residuals,
+)
 from .patch import (
     PatchResult,
     patch_acceptance_report,
@@ -40,12 +44,13 @@ class SyncReport:
     updated: list[PatchResult] = field(default_factory=list)
     skipped: list[PatchResult] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    reconcile_results: list[IssueStatusReconcileResult] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
         return not self.errors
 
-    def format_text(self) -> str:
+    def _format_header(self) -> list[str]:
         lines = ["## Workflow Sync Report", ""]
         if self.sprint_id:
             lines.append(f"**Sprint:** {self.sprint_id}")
@@ -57,6 +62,38 @@ class SyncReport:
             lines.append(f"**Issue:** {self.focus_issue}")
         if self.focus_change:
             lines.append(f"**Change:** {self.focus_change}")
+        return lines
+
+    def format_summary(self) -> str:
+        lines = self._format_header()
+        lines.append("")
+        lines.append("**Summary:**")
+        lines.append(f"- Updated: {len(self.updated)}")
+        lines.append(f"- Skipped (no delta): {len(self.skipped)}")
+        lines.append(f"- Errors: {len(self.errors)}")
+        if self.skipped and not self.errors:
+            lines.append("- Detail: use `--output detail` to list no-delta files.")
+        if self.errors:
+            lines.append("")
+            lines.append("**Errors:**")
+            for err in self.errors:
+                lines.append(f"- {err}")
+            if self.updated:
+                lines.append("")
+                lines.append("**Updated / drift files:**")
+                for item in self.updated:
+                    suffix = f" — {item.detail}" if item.detail else ""
+                    lines.append(f"- `{item.path}`{suffix}")
+            if self.skipped:
+                lines.append("")
+                lines.append(f"**Skipped (no delta):** {len(self.skipped)} file(s)")
+                lines.append("- Detail: use `--output detail` to list no-delta files.")
+        if self.reconcile_results:
+            lines.extend(self._format_reconcile_results(detail=False))
+        return "\n".join(lines)
+
+    def format_detail(self) -> str:
+        lines = self._format_header()
         lines.append("")
         if self.updated:
             lines.append("**Updated:**")
@@ -73,7 +110,38 @@ class SyncReport:
             lines.append("**Errors:**")
             for err in self.errors:
                 lines.append(f"- {err}")
+        if self.reconcile_results:
+            lines.extend(self._format_reconcile_results(detail=True))
         return "\n".join(lines)
+
+    def _format_reconcile_results(self, *, detail: bool) -> list[str]:
+        lines = ["", "**Issue Subdocument Status Reconcile:**"]
+        for result in self.reconcile_results:
+            mode = "dry-run" if result.dry_run else "write"
+            lines.append(
+                f"- {result.issue_id}: mode={mode}, planned={len(result.planned)}, "
+                f"changed_files={result.changed_files}, changed_fields={result.changed_fields}"
+            )
+            if result.blockers:
+                for blocker in result.blockers:
+                    lines.append(f"  - BLOCKED: {blocker}")
+            if detail or result.blockers:
+                for plan in result.planned:
+                    try:
+                        path = plan.residual.file.relative_to(ROOT)
+                    except ValueError:
+                        path = plan.residual.file
+                    lines.append(
+                        f"  - `{path}` {plan.residual.source}: "
+                        f"`{plan.residual.status}` → `{plan.target_status}`, "
+                        f"updated_at={plan.updated_at}"
+                    )
+        return lines
+
+    def format_text(self, output: str = "summary") -> str:
+        if output == "detail":
+            return self.format_detail()
+        return self.format_summary()
 
 
 class SyncEngine:
@@ -89,6 +157,8 @@ class SyncEngine:
         change_id: str | None = None,
         req_id: str | None = None,
         bug_id: str | None = None,
+        reconcile_issue_status_residuals_flag: bool = False,
+        apply_reconcile: bool = False,
     ) -> SyncReport:
         report = SyncReport(
             event=event,
@@ -148,6 +218,24 @@ class SyncEngine:
             for iid in issue_ids
             if iid in issues
         }
+
+        if reconcile_issue_status_residuals_flag:
+            if not (req_id or bug_id):
+                report.errors.append("Issue status residual reconcile requires --req or --bug")
+                return report
+            focus_id = req_id or bug_id
+            issue = issues.get(focus_id or "")
+            if not issue:
+                report.errors.append(f"Issue not found: {focus_id}")
+                return report
+            result = reconcile_issue_status_residuals(
+                issue,
+                write=apply_reconcile and not (self.dry_run or self.check),
+            )
+            report.reconcile_results.append(result)
+            if result.blockers:
+                report.errors.extend(result.blockers)
+            return report
 
         write = not (self.dry_run or self.check)
 
@@ -232,6 +320,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bug", dest="bug_id")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument(
+        "--reconcile-issue-status-residuals",
+        action="store_true",
+        help="Preview or repair non-closed status fields in the focused issue subdocuments.",
+    )
+    parser.add_argument(
+        "--apply-reconcile",
+        action="store_true",
+        help="Write issue status residual reconcile changes. Without this flag reconcile is dry-run.",
+    )
+    parser.add_argument(
+        "--output",
+        choices=["summary", "detail"],
+        default="summary",
+        help="Report verbosity. summary hides no-delta file lists; detail prints every result.",
+    )
     return parser
 
 
@@ -245,8 +349,10 @@ def main(argv: list[str] | None = None) -> int:
         change_id=args.change_id,
         req_id=args.req_id,
         bug_id=args.bug_id,
+        reconcile_issue_status_residuals_flag=args.reconcile_issue_status_residuals,
+        apply_reconcile=args.apply_reconcile,
     )
-    print(report.format_text())
+    print(report.format_text(args.output))
     return 0 if report.ok else 1
 
 

@@ -1,0 +1,4 @@
+{"timestamp":"2026-07-11T00:00:00Z","type":"user_message","text":"/sprint-apply sprint-006 REQ-0034 add-ai-token-usage-observability"}
+{"timestamp":"2026-07-11T00:00:01Z","payload":{"type":"token_count","last_token_usage":{"input_tokens":100,"cached_input_tokens":20,"output_tokens":30,"reasoning_output_tokens":10,"total_tokens":140}}}
+{"timestamp":"2026-07-11T00:00:02Z","type":"tool_call","tool_name":"exec_command"}
+{"timestamp":"2026-07-11T00:00:03Z","type":"tool_result","output":"sample redacted output"}

@@ -198,3 +198,25 @@
 - **THEN** 后端测试 SHALL 覆盖日志记录、校验、脱敏、权限、筛选和 not-found 行为
 - **AND** 前端测试 SHALL 覆盖列表渲染、筛选、request_id 复制、详情抽屉、forbidden 状态和分页结构。
 
+### Requirement: 日志审计复制 helper 迁移边界
+
+Product usage logging SHALL preserve the existing `/admin/logs` request id copy behavior when the Web client migrates that interaction to a shared Clipboard copy helper or equivalent normalized pattern.
+
+#### Scenario: request_id 复制成功后埋点
+
+- **WHEN** an admin copies a non-empty request id and Clipboard writing succeeds
+- **THEN** the Web client SHALL continue to emit the `copy_request_id` usage event
+- **AND** the event SHALL NOT include passwords, tokens, Authorization values, cookies, or unrelated sensitive metadata.
+
+#### Scenario: request_id 复制失败不记录成功事件
+
+- **WHEN** Clipboard API is unavailable, Clipboard writing fails, or the request id is empty
+- **THEN** the Web client SHALL NOT emit a successful `copy_request_id` usage event
+- **AND** it SHALL show fixed toast or equivalent manual-copy guidance without causing list layout shift.
+
+#### Scenario: request_id 复制测试保持
+
+- **WHEN** the logs page frontend tests run after helper migration
+- **THEN** they SHALL cover request id copy success, Clipboard API unavailable fallback, Clipboard write failure fallback, and empty request id behavior
+- **AND** they SHALL continue to cover list pagination structure.
+

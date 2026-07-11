@@ -322,6 +322,11 @@ def patch_acceptance_report(
             re.MULTILINE,
         )
         text = pattern.sub(rf"\1> 状态：**{status_text}**", text, count=1)
+        table_pattern = re.compile(
+            rf"^(\| (?:REQ|BUG) \| {re.escape(issue_id)} \| [^|]+ \| )[^|]*( \| .+\|)$",
+            re.MULTILINE,
+        )
+        text = table_pattern.sub(rf"\1{status_text}\2", text, count=1)
 
     summary = sprint_summary_for_acceptance(sprint, changes)
     note_line = f"note: workflow-sync — {summary}"

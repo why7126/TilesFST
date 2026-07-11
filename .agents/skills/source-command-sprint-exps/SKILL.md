@@ -28,24 +28,37 @@ Use this skill when the user asks to run the migrated source command `sprint-exp
 
 ## Steps
 
-1. 读 sprint 四件套、全部 REQ/BUG/Change trace 与 review/root-cause/tasks
-2. 构建 Sprint Fact Sheet
-3. 构建 Token Usage Fact Sheet：统计或估算本 Sprint 中 AI 会话、命令输出、重复读取、生成物 diff、测试日志、Workflow Sync 输出、历史归档读取等 token 消耗来源
-4. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用
-5. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）
-6. 输出 Experience Analysis Report
+1. 运行或读取自动 Sprint Fact Sheet：
+   ```bash
+   python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id>
+   ```
+2. 优先基于 Fact Sheet 构建 Sprint 概况、Scope、Change tasks、Issue 状态、验收摘要与 evidence hints。
+3. 仅当 Fact Sheet 标记 `warnings`、`needs_detail`、缺失/不一致项，或用户指定 `--focus` 时，按 evidence hints 分段回读对应原文片段。
+4. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet 的 `ai_usage_snapshot`；若不存在真实快照，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hints 估算本 Sprint 中 AI 会话、命令输出、重复读取、生成物 diff、测试日志、Workflow Sync 输出、历史归档读取等 token 消耗来源。
+5. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
+6. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
+7. 输出 Experience Analysis Report。
 
 详见 `.agents/skills/source-command-sprint-exps/SKILL.md`。
 
 ---
 
+## Fact Sheet 读取边界（MUST）
+
+- MUST 先运行或读取 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id>` 的输出，再决定是否读取 Sprint 四件套、Issue trace、OpenSpec Change 或 tasks 原文。
+- MUST NOT 默认全文读取 sprint 四件套、全部 REQ/BUG/Change trace、review/root-cause/tasks。
+- MUST NOT 在复盘中复制原始 trace、tasks、acceptance-report、OpenAPI、Orval generated 或测试日志全文；需要证据时只引用路径、聚合计数或短片段。
+- MAY 按 Fact Sheet 的 `warnings` / `needs_detail` / `evidence_hints` 回读对应文件片段，例如缺失 trace、状态残留、tasks 未完成、acceptance 结论不清晰。
+- SHOULD 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json` 做结构化核对，尤其是 `scope.counts`、`changes[].tasks`、`warnings`、`token_risks`、`evidence_hints`。
+
 ## 分析要点
 
 - **模型 Token 使用分析（MUST）**：
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
-  - 优先使用可获得的真实统计：会话/工具元数据中的 input tokens、cached input tokens、output tokens、总 tokens、最长工具输出、失败重跑次数。
+  - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json` 暴露的真实统计：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数。
   - 若没有精确统计，MUST 明确标注“无精确 token 计量，仅基于 trace、命令输出、diff 与读取路径估算”，不得编造具体 token 数字。
   - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
+  - MUST 优先引用自动 Fact Sheet 的 `token_risks`、Change/tasks 计数、四件套行数、warnings 与 evidence hints，减少人工展开四件套、trace 与 tasks 的 token 消耗。
   - MUST 给出优化方案，至少包含：读取边界、搜索排除、输出截断、diff/stat 优先、失败日志摘要、复用已读规则摘要、按 Change 分段处理、必要时沉淀脚本或校验 gate。
   - MUST 将可执行优化项写入行动项表，建议下一命令可用 `/req-capture`、`/bug-capture`、`/opsx-propose` 或下一 Sprint 的 `/sprint-propose`。
   - SHOULD 对照 `rules/agent-context-budget.md`，指出本 Sprint 哪些行为符合预算规则、哪些行为需要修正。

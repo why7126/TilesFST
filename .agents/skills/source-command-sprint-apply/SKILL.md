@@ -110,5 +110,5 @@ python scripts/sync-workflow-status.py --event sprint.apply --sprint <sprint-id>
 ```
 
 - Exit code MUST be `0`。
-- Print Workflow Sync Report。
+- Print summary Workflow Sync Report；use `--output detail` only for debugging。
 - Do not hand-edit workflow-sync marker blocks。

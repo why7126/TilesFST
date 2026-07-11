@@ -1,0 +1,90 @@
+sprint_id: sprint-006
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-11 17:50:09
+end_date: 2026-07-25 17:50:09
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0020-theme-comfort-refine
+  - REQ-0032-clipboard-copy-helper-best-practice
+  - REQ-0033-acceptance-report-summary-ac-reference
+  - REQ-0034-ai-token-usage-observability
+
+bugs:
+  - BUG-0062-archive-issue-subdoc-status-consistency
+  - BUG-0063-archived-change-trace-fallback-summary
+  - BUG-0064-theme-selector-sidebar-placement
+
+changes:
+  - update-theme-comfort-refine
+  - add-clipboard-copy-helper-best-practice
+  - update-acceptance-report-summary-ac-reference
+  - add-ai-token-usage-observability
+  - fix-archive-issue-subdoc-status-consistency
+  - fix-archive-trace-fallback-summary-gate
+  - fix-theme-selector-sidebar-placement
+
+estimated_story_points: 39
+estimated_person_days: 26.0
+capacity_usage: 0.87
+fix_buffer_person_days: 7.0
+fix_buffer_ratio: 0.27
+
+scope_estimates:
+  - id: REQ-0020-theme-comfort-refine
+    change: update-theme-comfort-refine
+    priority: P1
+    size: XL
+    story_points: 13
+    person_days: 8.0
+  - id: BUG-0062-archive-issue-subdoc-status-consistency
+    change: fix-archive-issue-subdoc-status-consistency
+    priority: P1
+    severity: high
+    size: M
+    story_points: 3
+    person_days: 3.0
+  - id: BUG-0063-archived-change-trace-fallback-summary
+    change: fix-archive-trace-fallback-summary-gate
+    priority: P1
+    severity: high
+    size: M
+    story_points: 3
+    person_days: 3.0
+  - id: BUG-0064-theme-selector-sidebar-placement
+    change: fix-theme-selector-sidebar-placement
+    priority: P1
+    severity: medium
+    size: S
+    story_points: 2
+    person_days: 1.0
+  - id: REQ-0032-clipboard-copy-helper-best-practice
+    change: add-clipboard-copy-helper-best-practice
+    priority: P1
+    size: M
+    story_points: 5
+    person_days: 3.0
+  - id: REQ-0033-acceptance-report-summary-ac-reference
+    change: update-acceptance-report-summary-ac-reference
+    priority: P1
+    size: M
+    story_points: 5
+    person_days: 3.0
+  - id: REQ-0034-ai-token-usage-observability
+    change: add-ai-token-usage-observability
+    priority: P1
+    size: L
+    story_points: 8
+    person_days: 5.0
+
+capacity_gate:
+  result: pass_with_risk
+  capacity_person_days: 30
+  estimated_person_days: 26.0
+  capacity_usage: 0.87
+  note: "总人天未超过容量；正式 BUG/fix 缓冲为 27%，仍低于 30% 建议值，Sprint 执行期应冻结低优先级追加项。"

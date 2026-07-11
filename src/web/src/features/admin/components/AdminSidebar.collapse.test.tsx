@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,6 +8,7 @@ import {
   readAdminSidebarCollapsed,
   writeAdminSidebarCollapsed,
 } from '../lib/admin-sidebar-preference';
+import { ThemeProvider } from '@/features/theme/ThemeContext';
 import { AdminSidebar } from './AdminSidebar';
 
 const adminUser = {
@@ -16,6 +18,14 @@ const adminUser = {
   role: 'admin',
   status: 'active',
 };
+
+function renderWithTheme(ui: ReactElement) {
+  return render(
+    <ThemeProvider>
+      <MemoryRouter initialEntries={['/admin/dashboard']}>{ui}</MemoryRouter>
+    </ThemeProvider>,
+  );
+}
 
 describe('admin-sidebar-preference', () => {
   beforeEach(() => {
@@ -41,17 +51,15 @@ describe('AdminSidebar collapse', () => {
   it('toggles chevron, aria-expanded, and localStorage via layout handler', () => {
     const onToggleCollapsed = vi.fn();
 
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar
-          user={adminUser}
-          onLogout={vi.fn()}
-          onPlaceholder={vi.fn()}
-          onOpenPasswordChange={vi.fn()}
-          collapsed={false}
-          onToggleCollapsed={onToggleCollapsed}
-        />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar
+        user={adminUser}
+        onLogout={vi.fn()}
+        onPlaceholder={vi.fn()}
+        onOpenPasswordChange={vi.fn()}
+        collapsed={false}
+        onToggleCollapsed={onToggleCollapsed}
+      />,
     );
 
     const toggle = screen.getByRole('button', { name: '收起侧边栏' });
@@ -63,17 +71,15 @@ describe('AdminSidebar collapse', () => {
   });
 
   it('shows expand chevron and aria state when collapsed', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar
-          user={adminUser}
-          onLogout={vi.fn()}
-          onPlaceholder={vi.fn()}
-          onOpenPasswordChange={vi.fn()}
-          collapsed
-          onToggleCollapsed={vi.fn()}
-        />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar
+        user={adminUser}
+        onLogout={vi.fn()}
+        onPlaceholder={vi.fn()}
+        onOpenPasswordChange={vi.fn()}
+        collapsed
+        onToggleCollapsed={vi.fn()}
+      />,
     );
 
     const toggle = screen.getByRole('button', { name: '展开侧边栏' });
@@ -83,37 +89,34 @@ describe('AdminSidebar collapse', () => {
       'src',
       '/logos/64x64.png',
     );
+    expect(screen.getByLabelText('主题')).toBeInTheDocument();
   });
 
   it('keeps active nav item class when collapsed', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar
-          user={adminUser}
-          onLogout={vi.fn()}
-          onPlaceholder={vi.fn()}
-          onOpenPasswordChange={vi.fn()}
-          collapsed
-          onToggleCollapsed={vi.fn()}
-        />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar
+        user={adminUser}
+        onLogout={vi.fn()}
+        onPlaceholder={vi.fn()}
+        onOpenPasswordChange={vi.fn()}
+        collapsed
+        onToggleCollapsed={vi.fn()}
+      />,
     );
 
     expect(screen.getByRole('button', { name: '首页' })).toHaveClass('active');
   });
 
   it('uses native button semantics for keyboard activation', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar
-          user={adminUser}
-          onLogout={vi.fn()}
-          onPlaceholder={vi.fn()}
-          onOpenPasswordChange={vi.fn()}
-          collapsed={false}
-          onToggleCollapsed={vi.fn()}
-        />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar
+        user={adminUser}
+        onLogout={vi.fn()}
+        onPlaceholder={vi.fn()}
+        onOpenPasswordChange={vi.fn()}
+        collapsed={false}
+        onToggleCollapsed={vi.fn()}
+      />,
     );
 
     const toggle = screen.getByRole('button', { name: '收起侧边栏' });

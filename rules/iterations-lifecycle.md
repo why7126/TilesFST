@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-06-27 23:45:00
+updated_at: 2026-07-11 16:25:13
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -55,6 +55,30 @@ iterations/sprint-xxx/   # 遗留，deprecated
 |---|---|---|
 | **change** | **未归档**：迭代规划、开发、验收进行中 | `planning`、`in_progress` |
 | **archive** | **已完成归档**：Sprint 内 Change 已全部 `/opsx-archive`，迭代验收与发布说明已收尾 | `completed` |
+
+## 3.1 Sprint 容量门禁（MUST）
+
+`/sprint-propose` 在生成正式四件套或更新 REQ/BUG/Change trace 前 MUST 计算候选范围的容量占用率：
+
+```text
+capacity_usage = estimated_person_days / capacity_person_days
+```
+
+- 若容量或估算缺失导致无法计算，MUST 先补齐输入；不得默认通过。
+- 当 `estimated_person_days > capacity_person_days * 1.2` 时，MUST 硬阻断正式规划：不得创建 `iterations/change/<sprint>/` 四件套，不得更新 `trace.md` 的 `iteration` 或 Change trace，并提示拆分 Sprint、移出低优先级项或替换范围后重新运行 `/sprint-propose`。
+- 当 `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时，MAY 继续生成 Sprint，但 MUST 在 `sprint.md` 记录容量风险、fix 缓冲影响和延后项建议。
+- 当 `estimated_person_days <= capacity_person_days` 时，按既有 Review Gate、Readiness Gate 和 Scope 规则继续。
+
+## 3.2 opsx-apply 迭代纳入门禁（MUST）
+
+`/opsx-apply <change-id>` 对来源于 REQ/BUG 的 Change 执行前，目标 Change **MUST** 已纳入某个 `sprint-xxx` 正式范围。门禁判定以 Sprint 四件套与 Issue trace 双向一致为准：
+
+- `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]` MUST 包含 `<change-id>`。
+- 若 Change 关联 REQ，`requirements[]` MUST 包含对应 `REQ-*`；若关联 BUG，`bugs[]` MUST 包含对应 `BUG-*`。
+- 关联 REQ/BUG `trace.md` MUST 存在 `iteration: sprint-xxx`，且状态为 `in_sprint` 或后续交付态。
+- `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 或等价解析 MUST 能定位到该 Sprint；若报告 sprint skipped / unresolved，MUST 停止 `/opsx-apply`。
+
+未通过时的修复路径：先运行 `/sprint-propose` 将 REQ/BUG/Change 纳入 `iterations/change/<sprint>/`，完成 Workflow Sync 后再重新执行 `/opsx-apply`。
 
 ## 4. 目录迁移时机（MUST）
 

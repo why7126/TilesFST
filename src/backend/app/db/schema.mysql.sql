@@ -15,11 +15,13 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_object_key VARCHAR(512),
   remark TEXT,
   token_version INT NOT NULL DEFAULT 0,
+  theme_mode VARCHAR(32) NOT NULL DEFAULT 'system',
   last_login_at VARCHAR(64),
   created_at VARCHAR(64) NOT NULL,
   updated_at VARCHAR(64) NOT NULL,
   CONSTRAINT chk_users_role CHECK (role IN ('admin', 'employee', 'store_owner')),
-  CONSTRAINT chk_users_status CHECK (status IN ('active', 'disabled', 'deleted'))
+  CONSTRAINT chk_users_status CHECK (status IN ('active', 'disabled', 'deleted')),
+  CONSTRAINT chk_users_theme_mode CHECK (theme_mode IN ('system', 'dark_flagship', 'comfort_dark', 'light'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS brands (

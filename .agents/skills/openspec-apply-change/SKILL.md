@@ -56,7 +56,18 @@ Implement tasks from an OpenSpec change.
    - **spec-driven**: proposal, specs, design, tasks
    - Other schemas: follow the contextFiles from CLI output
 
-5. **Show current progress**
+5. **Check Sprint inclusion before implementation**
+
+   If the change is linked to any `REQ-*` or `BUG-*`, `/opsx-apply` is allowed only after the REQ/BUG and Change are formally included in a `sprint-xxx`.
+
+   - Run `python scripts/sync-workflow-status.py --event opsx.apply --change "<name>" --sprint auto --dry-run`.
+   - Confirm sprint resolution succeeds; skipped/unresolved sprint is blocking.
+   - Confirm the resolved `iterations/change|archive/<sprint>/sprint.yaml` contains the change in `changes[]` and the linked issue in `requirements[]` or `bugs[]`.
+   - Confirm linked issue `trace.md` has `iteration: <sprint-id>` and status `in_sprint` or a later delivery state.
+
+   If this gate fails, stop before code changes and ask the user to run `/sprint-propose` first. Only non-REQ/BUG pure technical governance changes may bypass this gate, and the reason must be stated.
+
+6. **Show current progress**
 
    Display:
    - Schema being used
@@ -64,7 +75,7 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-6. **Implement tasks (loop until done or blocked)**
+7. **Implement tasks (loop until done or blocked)**
 
    For each pending task:
    - Show which task is being worked on
@@ -79,7 +90,7 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-7. **On completion or pause, show status**
+8. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session

@@ -13,6 +13,10 @@ class User(Base):
     __table_args__ = (
         CheckConstraint("role IN ('admin', 'employee', 'store_owner')", name="ck_users_role"),
         CheckConstraint("status IN ('active', 'disabled', 'deleted')", name="ck_users_status"),
+        CheckConstraint(
+            "theme_mode IN ('system', 'dark_flagship', 'comfort_dark', 'light')",
+            name="ck_users_theme_mode",
+        ),
     )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
@@ -26,6 +30,7 @@ class User(Base):
     avatar_object_key: Mapped[str | None] = mapped_column(String, nullable=True)
     remark: Mapped[str | None] = mapped_column(Text, nullable=True)
     token_version: Mapped[int] = mapped_column(nullable=False, default=0)
+    theme_mode: Mapped[str] = mapped_column(String, nullable=False, default="system")
     last_login_at: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[str] = mapped_column(String, nullable=False)
     updated_at: Mapped[str] = mapped_column(String, nullable=False)

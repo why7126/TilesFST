@@ -24,6 +24,7 @@ python scripts/sync-workflow-status.py \
 | `--sprint none` | Skip sprint-level artifacts; sync issue/trace/registry only |
 | `--check` | Fail if derived docs drift (CI) |
 | `--dry-run` | Report only, no writes |
+| `--output summary\|detail` | Report verbosity; default `summary` hides no-delta file lists, `detail` prints every result |
 
 ### Sprint resolution (`--sprint auto`)
 
@@ -35,6 +36,39 @@ python scripts/sync-workflow-status.py \
 | No issue/change focus | Fall back to single `in_progress` sprint (legacy default) |
 
 When sprint sync is skipped, the script still updates the target issue `trace.md`, `_registry.yaml`, and parent requirement related-bug index when applicable.
+
+For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for REQ/BUG-sourced changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, unless the Change is explicitly documented as a non-REQ/BUG pure technical governance Change.
+
+### Issue subdocument residual status reconcile
+
+When issue archive promotion is blocked by residual `status` fields in issue subdocuments, do not hand-edit files in bulk. Use workflow sync reconcile mode:
+
+```bash
+python scripts/sync-workflow-status.py \
+  --event req.archive \
+  --req REQ-xxxx-slug \
+  --sprint auto \
+  --reconcile-issue-status-residuals \
+  --dry-run
+```
+
+```bash
+python scripts/sync-workflow-status.py \
+  --event req.archive \
+  --req REQ-xxxx-slug \
+  --sprint auto \
+  --reconcile-issue-status-residuals \
+  --apply-reconcile
+```
+
+Use `--bug BUG-xxxx-slug` and `--event bug.archive` for BUGs.
+
+Guardrails:
+
+1. Always run dry-run first and inspect file path, source, old status, target status, and `updated_at`.
+2. Reconcile is only for already-closed issues. If the report says the issue trace, linked Change, or linked Sprint is not closed, run the upstream workflow command first.
+3. Reconcile MUST NOT be used to bypass review, acceptance, `/opsx-archive`, or `/sprint-archive`.
+4. Successful reconcile refreshes modified Markdown `updated_at` and reports changed file/field counts.
 
 ## Event mapping
 
@@ -60,13 +94,14 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 
 ## Guardrails
 
-1. Print the **Workflow Sync Report** from script stdout.
+1. Print the **Workflow Sync Report** from script stdout. Successful commands SHOULD use the default summary output; rerun with `--output detail` only when diagnosing drift, skipped files, or failures.
 2. If exit code != 0, fix drift and re-run before ending the parent command.
 3. Do **not** hand-edit `sprint.md` Scope marker blocks; use the script.
 4. Marker blocks: `<!-- workflow-sync:scope-*:start/end -->`.
 5. Scope 表 archived 时间与 §里程碑「目标日期」MUST 为 `YYYY-MM-DD HH:mm:ss` 且时分秒 MUST 非 `00:00:00`（见 `rules/document-governance.md` §6.1）。
 6. §Sprint 目标 不在 sync 范围；纳入 REQ/BUG 时 MUST 同步更新 **编号列表** 与 **`### xxx 要点`** 两处。
 7. Issue `trace.md` 的 `## 变更记录` MUST 保持表头紧跟章节标题；若历史记录行出现在表头前，脚本 SHOULD 自动归一化并在报告中体现 delta。
+8. `/opsx-apply` 前 MUST confirm linked REQ/BUG is in a `sprint-xxx`; `--sprint auto` unresolved means do not run apply.
 
 ## Refreshed artifacts
 

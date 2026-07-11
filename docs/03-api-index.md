@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 09:58:50
+updated_at: 2026-07-11 18:51:16
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -111,6 +111,58 @@ Authorization: Bearer <access_token>
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
 \* `uploads` 路由通过后端鉴权接口写入 `MINIO_BUCKET`，不允许前端直连未授权 MinIO。
+
+## 3.1 认证与当前用户
+
+实现：`src/backend/app/api/v1/auth.py`
+
+| 方法 | 路径 | 认证 | 说明 |
+|---|---|---|---|
+| POST | `/api/v1/auth/login` | 否 | 用户名密码登录 |
+| GET | `/api/v1/auth/me` | Bearer | 获取当前用户 |
+| PATCH | `/api/v1/auth/me/theme` | Bearer | 更新当前用户界面主题偏好 |
+| POST | `/api/v1/auth/logout` | Bearer | 登出 |
+
+`GET /api/v1/auth/me` 与登录响应中的 `data.user` 返回 `theme_mode`，取值：
+
+```text
+system | dark_flagship | comfort_dark | light
+```
+
+更新主题偏好请求：
+
+```json
+{
+  "theme_mode": "comfort_dark"
+}
+```
+
+成功响应：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": "user-id",
+    "username": "admin",
+    "display_name": "系统管理员",
+    "role": "admin",
+    "status": "active",
+    "theme_mode": "comfort_dark"
+  }
+}
+```
+
+错误：
+
+| 场景 | HTTP | code | message |
+|---|---:|---:|---|
+| 未登录或 Token 无效 | 401 | 40102 | 登录已过期，请重新登录 |
+| 当前用户已禁用 | 403 | 30010 | 账号已被禁用 |
+| `theme_mode` 不在允许枚举内 | 400 | 40001 | 无效的主题模式 |
+
+新增或变更本组接口后必须重新导出 `src/web/openapi.json` 并运行 `./scripts/generate-openapi-client.sh`。
 
 ### 3.4 管理端用户（Sprint 002）
 

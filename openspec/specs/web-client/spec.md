@@ -1881,3 +1881,139 @@ Web 管理端 MUST provide a shared or equivalent error parsing strategy for man
 - **THEN** the upload control MUST show a stable failure state or toast
 - **AND** a successful preview from the same session MUST NOT be cleared unless the user explicitly replaces or removes it.
 
+### Requirement: 管理端主题选择器侧边栏位置
+
+Web admin clients SHALL render the global theme selector inside the AdminLayout sidebar, positioned directly above the bottom user avatar/account block. The selector SHALL NOT render in the page top-right content or header area on AdminLayout pages.
+
+#### Scenario: 主题选择器位于侧边栏用户区上方
+
+- **WHEN** an authenticated admin user opens any AdminLayout page
+- **THEN** the sidebar SHALL render the 「界面主题」 selector
+- **AND** the selector SHALL be positioned above the bottom user avatar/account block
+- **AND** the selector SHALL not overlap the avatar, username, email, user menu trigger, navigation items, or sidebar collapse control.
+
+#### Scenario: 顶部区域不再渲染主题选择器
+
+- **WHEN** an authenticated admin user opens pages such as `/admin/dashboard`, `/admin/users`, `/admin/settings`, or `/admin/api-docs`
+- **THEN** the page top-right content/header area SHALL NOT render the 「界面主题」 selector
+- **AND** page-level top actions SHALL remain reserved for page-specific commands or filters.
+
+#### Scenario: 主题切换行为保持不变
+
+- **WHEN** the user changes the active theme from the sidebar selector
+- **THEN** the selected theme SHALL apply immediately according to existing theme switching behavior
+- **AND** existing local and account-level persistence behavior SHALL remain unchanged
+- **AND** current page state such as filters, pagination, forms, open dialogs, and upload state SHALL not be reset by moving the selector.
+
+#### Scenario: 侧边栏收起与窄屏不重叠
+
+- **WHEN** the AdminLayout sidebar is collapsed or rendered in a narrow viewport
+- **THEN** the theme selector SHALL remain accessible through a compact or equivalent sidebar treatment
+- **AND** text, icons, select trigger, user avatar, and menu controls SHALL not overlap or become unreadable.
+
+#### Scenario: Design System 约束
+
+- **WHEN** implementing or styling the sidebar theme selector
+- **THEN** Web UI changes SHALL use existing semantic token classes, CSS variables, or established admin/sidebar classes
+- **AND** TSX/CSS SHALL NOT introduce raw Hex color values for this placement fix.
+
+### Requirement: Web 主题切换与偏好持久化
+
+The Web client MUST provide theme switching for `system`, `dark_flagship`, `comfort_dark`, and `light` on management-side and supported store-owner Web surfaces. The active mode MUST persist locally and, for authenticated users, synchronize with the account-level theme preference API. Switching themes MUST apply immediately without losing current page state.
+
+#### Scenario: 登录前主题偏好
+
+- **WHEN** an unauthenticated user changes theme on the login page
+- **THEN** the selected mode SHALL persist locally
+- **AND** the login page SHALL update immediately without requiring reload.
+
+#### Scenario: 登录后账号偏好合并
+
+- **WHEN** a user logs in successfully
+- **THEN** the Web client SHALL load the account-level `theme_mode`
+- **AND** the account-level value SHALL become authoritative when present
+- **AND** the active local theme SHALL remain visually stable while synchronization completes.
+
+#### Scenario: 主题切换失败可恢复
+
+- **WHEN** an authenticated user changes theme and the backend persistence request fails
+- **THEN** the Web client SHALL keep the local visual selection
+- **AND** it SHALL show a recoverable error message using the existing toast or equivalent Design System feedback.
+
+### Requirement: 管理端主题舒适度首批验收矩阵
+
+The Web admin implementation MUST validate theme comfort across login, one list page, one form page/state, one modal, and `/design-system`, with tile SKU management as the representative business workflow.
+
+#### Scenario: 登录页主题验收
+
+- **WHEN** a user opens the admin login page in any supported theme mode
+- **THEN** background, material composition, form controls, validation/error state, language controls, and theme switcher SHALL remain readable and visually comfortable
+- **AND** the existing login page brand composition SHALL not regress.
+
+#### Scenario: 瓷砖 SKU 列表主题验收
+
+- **WHEN** a user opens `/admin/tile-skus` in any supported theme mode
+- **THEN** page hero, metrics, filters, table, sticky action column, pagination, and fixed toast SHALL remain readable, aligned, and free of layout shift
+- **AND** the page SHALL continue to reuse the established admin list template or equivalent Design System composition.
+
+#### Scenario: 瓷砖 SKU 表单与弹窗主题验收
+
+- **WHEN** a user opens a tile SKU create/edit form or modal in any supported theme mode
+- **THEN** labels, inputs, validation errors, dirty state, modal width, modal scroll behavior, modal footer actions, and confirmation dialogs SHALL remain readable and usable
+- **AND** the SKU media upload area SHALL show `idle`, `uploading`, `uploaded`, and `failed` states clearly.
+
+### Requirement: 店主 Web 舒适主题边界
+
+Store-owner Web pages outside brand display pages MUST support comfortable theme modes. Brand display pages MAY remain in `dark_flagship` when preserving the flagship brand expression is a product decision.
+
+#### Scenario: 品牌展示页可保持暗色旗舰
+
+- **WHEN** a store-owner Web brand display page is opened
+- **THEN** the page MAY remain in `dark_flagship`
+- **AND** this exception SHALL be documented in the page or route-level theme strategy.
+
+#### Scenario: 非品牌展示页支持舒适主题
+
+- **WHEN** a store-owner Web catalog, detail, or inquiry page is opened
+- **THEN** it SHALL support the active comfortable theme mode
+- **AND** it SHALL continue to use semantic tokens rather than page-local raw Hex values.
+
+### Requirement: 管理端重置密码结果复制兜底
+
+Web 客户端 SHALL use the shared Clipboard copy helper or an equivalent normalized copy pattern when copying generated reset passwords from the user-management reset-password result dialog. The dialog SHALL preserve manual-copy fallback behavior when automatic Clipboard writing is unavailable or fails.
+
+#### Scenario: 重置密码自动复制成功
+
+- **WHEN** an admin copies a generated reset password and Clipboard writing succeeds
+- **THEN** the dialog SHALL show a success status such as `密码已复制`
+- **AND** it SHALL keep existing guidance that the password must be safely delivered and cannot be viewed again after closing.
+
+#### Scenario: 重置密码自动复制失败
+
+- **WHEN** Clipboard API is unavailable or Clipboard writing fails while copying a generated reset password
+- **THEN** the dialog SHALL focus and select the generated password input or provide an equivalent manual-copy path
+- **AND** the dialog SHALL show manual-copy guidance using `role="status"` or an equivalent accessible feedback pattern
+- **AND** it SHALL NOT log or emit the generated password as telemetry.
+
+#### Scenario: 重置密码弹窗布局不回归
+
+- **WHEN** the reset-password result dialog displays copy success, failure, or manual fallback guidance
+- **THEN** the modal width, body scroll, input visibility, and footer buttons SHALL remain stable and reachable
+- **AND** the implementation SHALL NOT use `window.confirm` for this copy flow.
+
+### Requirement: Web 管理端复制交互复用边界
+
+Web 管理端 copy interactions SHALL prefer the shared Clipboard copy helper or an equivalent normalized pattern when adding or refactoring copy buttons for already-authorized visible text.
+
+#### Scenario: 新增管理端复制入口
+
+- **WHEN** developers add a new admin copy action for visible text
+- **THEN** the implementation SHALL use the shared Clipboard helper or document why an equivalent platform-specific path is required
+- **AND** it SHALL handle success, API unavailable, write failure, empty value, and manual-copy fallback where applicable.
+
+#### Scenario: 店主 Web 与小程序边界
+
+- **WHEN** this change is implemented
+- **THEN** Web catalog and miniapp copy behavior SHALL remain unchanged
+- **AND** miniapp Clipboard API adaptation SHALL require a separate requirement or change.
+

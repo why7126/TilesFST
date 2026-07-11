@@ -69,6 +69,7 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_tiles_sku_extended(connection)
     _ensure_profile_support(connection)
     _ensure_password_change_support(connection)
+    _ensure_theme_preference_support(connection)
     _ensure_tile_specs_support(connection)
     _ensure_banner_support(connection)
     _ensure_system_settings_support(connection)
@@ -318,6 +319,20 @@ def _ensure_password_change_support(connection: Connection) -> None:
             """
         )
     )
+
+
+def _ensure_theme_preference_support(connection: Connection) -> None:
+    columns = _column_names(connection, "users")
+    if "theme_mode" not in columns:
+        connection.execute(
+            text(
+                """
+                ALTER TABLE users
+                ADD COLUMN theme_mode TEXT NOT NULL DEFAULT 'system'
+                CHECK (theme_mode IN ('system', 'dark_flagship', 'comfort_dark', 'light'))
+                """
+            )
+        )
 
 
 def _ensure_profile_support(connection: Connection) -> None:

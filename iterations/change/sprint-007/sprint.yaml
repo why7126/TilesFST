@@ -1,0 +1,45 @@
+sprint_id: sprint-007
+status: planning
+lifecycle_stage: change
+start_date: 2026-07-11 23:39:00
+end_date: 2026-07-25 23:39:00
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0036-clipboard-helper-best-practice-docs
+  - REQ-0035-ai-usage-snapshot-sprint-close-exps
+bugs: []
+changes:
+  - add-clipboard-helper-best-practice-docs
+  - update-ai-usage-snapshot-sprint-close-exps
+
+estimated_story_points: 7
+estimated_person_days: 4.0
+capacity_usage: 0.13
+fix_buffer_person_days: 26.0
+fix_buffer_ratio: 0.87
+
+scope_estimates:
+  - id: REQ-0036-clipboard-helper-best-practice-docs
+    change: add-clipboard-helper-best-practice-docs
+    priority: P2
+    size: S
+    story_points: 2
+    person_days: 1.0
+  - id: REQ-0035-ai-usage-snapshot-sprint-close-exps
+    change: update-ai-usage-snapshot-sprint-close-exps
+    priority: P1
+    size: M
+    story_points: 5
+    person_days: 3.0
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 4.0
+  capacity_usage: 0.13
+  note: "REQ-0036 与 REQ-0035 均已通过 Review/Readiness Gate；总估算 4.0 人天，容量占用 13%，fix 缓冲 26 人天 / 87%，门禁通过。"

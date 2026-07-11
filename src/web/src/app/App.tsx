@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { ProtectedRoute } from './router/ProtectedRoute';
 import { useAuthStore } from '../features/auth/store/auth-store';
+import { ThemeProvider } from '../features/theme/ThemeContext';
 import { AdminLayout } from '../pages/admin/AdminLayout';
 import { ApiDocsPage } from '../pages/admin/ApiDocsPage';
 import { BannerManagementPage } from '../pages/admin/BannerManagementPage';
@@ -53,35 +54,37 @@ function HomePage() {
 
 export function App() {
   return (
-    <BrowserRouter>
-      <AuthBootstrap>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/design-system" element={<DesignSystemPage />} />
-          <Route path="/admin/login" element={<LoginPage />} />
-          <Route path="/admin/forbidden" element={<ForbiddenPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin/dashboard" element={<DashboardPage />} />
-              <Route path="/admin/brands" element={<BrandManagementPage />} />
-              <Route path="/admin/banners" element={<BannerManagementPage />} />
-              <Route path="/admin/tile-categories" element={<TileCategoryManagementPage />} />
-              <Route path="/admin/tile-specs" element={<TileSpecManagementPage />} />
-              <Route path="/admin/tile-skus" element={<TileSkuManagementPage />} />
-              <Route path="/admin/profile" element={<ProfilePage />} />
-              <Route element={<ProtectedRoute requireAdmin />}>
-                <Route path="/admin/users" element={<UserManagementPage />} />
-                <Route path="/admin/logs" element={<LogAuditPage />} />
-                <Route path="/admin/api-docs" element={<ApiDocsPage />} />
-                <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
-                <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthBootstrap>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/design-system" element={<DesignSystemPage />} />
+            <Route path="/admin/login" element={<LoginPage />} />
+            <Route path="/admin/forbidden" element={<ForbiddenPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin/dashboard" element={<DashboardPage />} />
+                <Route path="/admin/brands" element={<BrandManagementPage />} />
+                <Route path="/admin/banners" element={<BannerManagementPage />} />
+                <Route path="/admin/tile-categories" element={<TileCategoryManagementPage />} />
+                <Route path="/admin/tile-specs" element={<TileSpecManagementPage />} />
+                <Route path="/admin/tile-skus" element={<TileSkuManagementPage />} />
+                <Route path="/admin/profile" element={<ProfilePage />} />
+                <Route element={<ProtectedRoute requireAdmin />}>
+                  <Route path="/admin/users" element={<UserManagementPage />} />
+                  <Route path="/admin/logs" element={<LogAuditPage />} />
+                  <Route path="/admin/api-docs" element={<ApiDocsPage />} />
+                  <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
+                  <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthBootstrap>
-    </BrowserRouter>
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthBootstrap>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

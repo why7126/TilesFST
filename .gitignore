@@ -32,6 +32,11 @@ build/
 /data/tmp/**
 /data/minio/**
 
+# AI usage observability: keep raw/local extraction inputs out of git.
+/data/ai-usage/raw/**
+/data/ai-usage/local/**
+/data/ai-usage/**/*.jsonl
+
 # Product release docs: keep source, ignore generated Mintlify output
 /releases/.mintlify/**
 /releases/dist/**
@@ -40,4 +45,6 @@ build/
 # Keep placeholders and documentation
 !/data/**/.gitkeep
 !/data/README.md
+!/data/ai-usage/README.md
+!/data/ai-usage/samples/**
 !/data/samples/**

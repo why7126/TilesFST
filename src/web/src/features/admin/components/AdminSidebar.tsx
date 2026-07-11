@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { UserProfile } from '@/shared/api/generated';
 import { ProductVersionBadge } from '@/shared/ui/product-version-badge';
+import { ThemeSwitcher } from '@/features/theme/ThemeSwitcher';
 
 import { adminNavSections, isAdminNavItemActive } from '../data/admin-nav';
 import { AdminUserMenu } from './AdminUserMenu';
@@ -105,6 +106,9 @@ export function AdminSidebar({
             })}
           </nav>
         ))}
+      </div>
+      <div className="sidebar-theme" aria-label="侧边栏主题偏好">
+        <ThemeSwitcher compact={collapsed} />
       </div>
       <AdminUserMenu
         user={user}

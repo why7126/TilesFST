@@ -93,5 +93,5 @@ done
 ```
 
 - Exit code **MUST** be `0`
-- Print **Workflow Sync Report**（多条时注明共 N 条）
+- Print summary **Workflow Sync Report**（多条时注明共 N 条）；use `--output detail` only for debugging
 - Do **not** hand-edit `sprint.md` Scope marker blocks

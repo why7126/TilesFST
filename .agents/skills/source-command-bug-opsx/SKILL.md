@@ -134,5 +134,5 @@ python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change 
 ```
 
 - Exit code **MUST** be `0` before ending this command.
-- Print the **Workflow Sync Report** to the user.
+- Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

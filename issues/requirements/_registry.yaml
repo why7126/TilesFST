@@ -1,7 +1,37 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 32
+next_id: 37
 entries:
+  - id: REQ-0036-clipboard-helper-best-practice-docs
+    title: Clipboard helper best-practice 文档
+    status: in_sprint
+    iteration: sprint-007
+    created: "2026-07-11 23:37:42"
+    parent_requirement: REQ-0032-clipboard-copy-helper-best-practice
+  - id: REQ-0035-ai-usage-snapshot-sprint-close-exps
+    title: AI usage snapshot 纳入 Sprint close / exps 默认流程
+    status: in_sprint
+    iteration: sprint-007
+    created: "2026-07-11 23:36:05"
+    parent_requirement: REQ-0034-ai-token-usage-observability
+  - id: REQ-0034-ai-token-usage-observability
+    title: AI 命令 Token 使用量观测与 Sprint 复盘接入
+    status: done
+    iteration: null
+    created: "2026-07-11 16:50:57"
+    parent_requirement:
+  - id: REQ-0033-acceptance-report-summary-ac-reference
+    title: acceptance-report 拆分最终验收摘要与原始 AC 引用
+    status: done
+    iteration: null
+    created: "2026-07-11 13:21:48"
+    parent_requirement:
+  - id: REQ-0032-clipboard-copy-helper-best-practice
+    title: Clipboard 复制交互沉淀共享 helper 或 best-practice
+    status: done
+    iteration: null
+    created: "2026-07-11 13:20:12"
+    parent_requirement: REQ-0000-build-design-system
   - id: REQ-0031-api-validation-envelope-governance
     title: API 校验错误 envelope 治理扩展到管理端表单 API
     status: done
@@ -70,7 +100,7 @@ entries:
     parent_requirement: REQ-0006-tile-sku-management
   - id: REQ-0020-theme-comfort-refine
     title: 主题色舒适度优化
-    status: captured
+    status: done
     iteration: null
     created: "2026-06-30 11:34:04"
     parent_requirement: REQ-0000-build-design-system
@@ -112,8 +142,8 @@ entries:
     parent_requirement: REQ-0004-admin-home
   - id: REQ-0013-admin-shell-padding-refine
     title: 管理端 Shell 内外边距收窄（侧栏 + 内容区）
-    status: pending_review
-    iteration: null
+    status: done
+    iteration: sprint-004
     created: 2026-06-28
     parent_requirement: REQ-0004-admin-home
   - id: REQ-0012-object-storage-key-layout

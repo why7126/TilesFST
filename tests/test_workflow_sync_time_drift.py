@@ -9,13 +9,89 @@ if str(ROOT) not in sys.path:
 
 from scripts.workflow_sync import collect, engine, patch as sync_patch
 from scripts.workflow_sync.collect import IssueRecord, resolve_archive_timestamp
-from scripts.workflow_sync.derive import DerivedIssue
-from scripts.workflow_sync.engine import SyncEngine
+from scripts.workflow_sync.derive import DerivedChange, DerivedIssue
+from scripts.workflow_sync.engine import SyncEngine, SyncReport
 from scripts.workflow_sync.patch import (
+    PatchResult,
     normalize_change_record_table,
     patch_issue_trace,
     persist_markdown,
 )
+
+
+def test_workflow_sync_summary_hides_skipped_file_list() -> None:
+    report = SyncReport(
+        sprint_id="sprint-999",
+        event="opsx.propose",
+        focus_change="add-demo",
+        updated=[PatchResult("issues/requirements/review/REQ-0001-demo/trace.md", True)],
+        skipped=[
+            PatchResult("iterations/change/sprint-999/sprint.md", False),
+            PatchResult("iterations/change/sprint-999/release-note.md", False),
+        ],
+    )
+
+    text = report.format_text()
+
+    assert "**Summary:**" in text
+    assert "- Updated: 1" in text
+    assert "- Skipped (no delta): 2" in text
+    assert "- Errors: 0" in text
+    assert "**Skipped (no delta):**\n- `iterations/change/sprint-999/sprint.md`" not in text
+    assert "use `--output detail`" in text
+
+
+def test_workflow_sync_detail_keeps_file_lists() -> None:
+    report = SyncReport(
+        sprint_id="sprint-999",
+        event="opsx.propose",
+        focus_change="add-demo",
+        updated=[PatchResult("issues/requirements/review/REQ-0001-demo/trace.md", True)],
+        skipped=[PatchResult("iterations/change/sprint-999/sprint.md", False)],
+    )
+
+    text = report.format_text("detail")
+
+    assert "**Updated:**" in text
+    assert "- `issues/requirements/review/REQ-0001-demo/trace.md`" in text
+    assert "**Skipped (no delta):**" in text
+    assert "- `iterations/change/sprint-999/sprint.md`" in text
+
+
+def test_workflow_sync_summary_keeps_error_diagnostics() -> None:
+    report = SyncReport(
+        event="sprint.apply",
+        updated=[PatchResult("iterations/change/sprint-999/sprint.md", True, "marker drift")],
+        skipped=[PatchResult("iterations/change/sprint-999/release-note.md", False)],
+        errors=["Drift detected in 1 file(s); run without --check to fix"],
+    )
+
+    text = report.format_text()
+
+    assert "- Errors: 1" in text
+    assert "**Errors:**" in text
+    assert "- Drift detected in 1 file(s); run without --check to fix" in text
+    assert "**Updated / drift files:**" in text
+    assert "- `iterations/change/sprint-999/sprint.md` — marker drift" in text
+    assert "**Skipped (no delta):** 1 file(s)" in text
+
+
+def test_workflow_sync_main_returns_nonzero_for_errors(monkeypatch, capsys) -> None:
+    def fake_run(self, **kwargs):
+        return SyncReport(
+            event=kwargs.get("event"),
+            updated=[PatchResult("iterations/change/sprint-999/sprint.md", True)],
+            errors=["Drift detected in 1 file(s); run without --check to fix"],
+        )
+
+    monkeypatch.setattr(SyncEngine, "run", fake_run)
+
+    exit_code = engine.main(["--event", "sprint.apply", "--check"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert "**Errors:**" in output
+    assert "Drift detected in 1 file(s)" in output
 
 
 def test_archive_timestamp_ignores_mutable_issue_updated_at(tmp_path: Path) -> None:
@@ -194,6 +270,80 @@ openspec_changes:
     assert "status: applied" in text
     assert "| /opsx-apply | Change `add-example` apply 完成，待 archive。 |" in text
     assert text.count("/opsx-apply") == 1
+
+
+def test_patch_acceptance_report_updates_layered_scope_table(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    sprint_dir = tmp_path / "iterations/change/sprint-999"
+    sprint_dir.mkdir(parents=True)
+    report = sprint_dir / "acceptance-report.md"
+    report.write_text(
+        """---
+note: old
+---
+
+# Acceptance
+
+## 最终验收摘要
+
+人工结论保留。
+
+## 原始 AC 引用
+
+<!-- workflow-sync:acceptance-scope:start -->
+| 类型 | ID | Acceptance 来源 | 当前状态 | 说明 |
+|---|---|---|---|---|
+| REQ | REQ-9999-demo | issues/requirements/review/REQ-9999-demo/acceptance.md | planning | demo |
+<!-- workflow-sync:acceptance-scope:end -->
+
+## 人工 Sign-off
+
+| 验收人 | 时间 | 结论 | 说明 |
+|---|---|---|---|
+| Alice | 2026-07-03 10:00:00 | PASS | keep me |
+""",
+        encoding="utf-8",
+    )
+    issue_dir = tmp_path / "issues/requirements/review/REQ-9999-demo"
+    issue_dir.mkdir(parents=True)
+    issue = IssueRecord(issue_id="REQ-9999-demo", kind="req", path=issue_dir, trace_status="in_sprint")
+    sprint = collect.SprintRecord(
+        sprint_id="sprint-999",
+        path=sprint_dir,
+        status="in_progress",
+        requirements=["REQ-9999-demo"],
+        bugs=[],
+        changes=["add-demo"],
+    )
+    derived_issue = DerivedIssue(
+        issue_id="REQ-9999-demo",
+        kind="req",
+        display_status="in_sprint",
+        linked_change="add-demo",
+        note="apply 完成",
+    )
+    change = DerivedChange(
+        change_id="add-demo",
+        state="applied",
+        display_status="applied",
+        note="apply 2/2",
+        tasks_done=2,
+        tasks_total=2,
+        linked_req="REQ-9999-demo",
+        linked_bug=None,
+        archive_date=None,
+    )
+
+    sync_patch.patch_acceptance_report(
+        sprint,
+        {"REQ-9999-demo": issue},
+        {"REQ-9999-demo": derived_issue},
+        {"add-demo": change},
+    )
+
+    text = report.read_text(encoding="utf-8")
+    assert "applied，待归档（`add-demo` 2/2）" in text
+    assert "| Alice | 2026-07-03 10:00:00 | PASS | keep me |" in text
 
 
 def test_normalize_change_record_table_moves_header_before_rows() -> None:

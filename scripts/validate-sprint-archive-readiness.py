@@ -41,6 +41,10 @@ class ChangeReadiness:
     location: str
     path: str | None
     tasks: TaskCounts
+    trace_exists: bool | None = None
+    fallback_summary_status: str = "n/a"
+    fallback_summary_file: str | None = None
+    fallback_summary_missing: list[str] | None = None
     blocker: str | None = None
 
 
@@ -128,6 +132,50 @@ def count_tasks(tasks_path: Path | None) -> TaskCounts:
     return TaskCounts(done=done, total=total, missing=False)
 
 
+FALLBACK_SUMMARY_FILES = ("proposal.md", "design.md", "tasks.md")
+FALLBACK_SUMMARY_REQUIREMENTS = {
+    "validation": ("验证命令", "验证结果", "测试命令", "test", "pytest", "validate"),
+    "acceptance": ("验收结论", "验收结果", "acceptance", "verdict"),
+    "issue_or_sprint_status": ("Issue", "Sprint", "REQ-", "BUG-", "状态"),
+    "archive_evidence": ("归档路径", "归档时间", "openspec/changes/archive", "archive"),
+}
+
+
+def extract_archive_summary(text: str) -> str | None:
+    match = re.search(r"^## 归档验证摘要\s*\n(.*?)(?=^##\s+|\Z)", text, re.MULTILINE | re.DOTALL)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def missing_fallback_summary_items(summary: str) -> list[str]:
+    missing: list[str] = []
+    lowered = summary.lower()
+    for key, terms in FALLBACK_SUMMARY_REQUIREMENTS.items():
+        if not any(term.lower() in lowered for term in terms):
+            missing.append(key)
+    return missing
+
+
+def evaluate_fallback_summary(change_dir: Path, root: Path) -> tuple[str, str | None, list[str]]:
+    checked: list[str] = []
+    best_missing = list(FALLBACK_SUMMARY_REQUIREMENTS)
+    for name in FALLBACK_SUMMARY_FILES:
+        path = change_dir / name
+        checked.append(str(path.relative_to(root)))
+        if not path.exists():
+            continue
+        summary = extract_archive_summary(read_text(path))
+        if summary is None:
+            continue
+        missing = missing_fallback_summary_items(summary)
+        if not missing:
+            return "pass", str(path.relative_to(root)), []
+        if len(missing) < len(best_missing):
+            best_missing = missing
+    return "missing", None, best_missing or checked
+
+
 def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = None) -> SprintReadiness:
     sprint_dir = resolve_sprint_dir(root, sprint_id)
     if sprint_dir is None:
@@ -144,12 +192,34 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
         location, change_dir = resolve_change_dir(root, change_id)
         tasks = count_tasks(change_dir / "tasks.md" if change_dir else None)
         blocker = None
+        trace_exists = None
+        fallback_summary_status = "n/a"
+        fallback_summary_file = None
+        fallback_summary_missing: list[str] | None = None
         if location == "missing":
             blocker = "change directory missing"
         elif tasks.missing:
             blocker = "tasks.md missing"
         elif tasks.incomplete > 0:
             blocker = f"{tasks.incomplete} incomplete task(s)"
+        elif location == "archived" and change_dir is not None:
+            trace_exists = (change_dir / "trace.md").exists()
+            if trace_exists:
+                fallback_summary_status = "trace-present"
+            else:
+                fallback_summary_status, fallback_summary_file, fallback_summary_missing = evaluate_fallback_summary(
+                    change_dir,
+                    root,
+                )
+                if fallback_summary_status != "pass":
+                    checked = ", ".join(
+                        str((change_dir / name).relative_to(root)) for name in FALLBACK_SUMMARY_FILES
+                    )
+                    missing = ", ".join(fallback_summary_missing or list(FALLBACK_SUMMARY_REQUIREMENTS))
+                    blocker = (
+                        "archived change missing trace.md and complete fallback summary "
+                        f"(checked: {checked}; missing: {missing})"
+                    )
 
         records.append(
             ChangeReadiness(
@@ -157,6 +227,10 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
                 location=location,
                 path=str(change_dir.relative_to(root)) if change_dir else None,
                 tasks=tasks,
+                trace_exists=trace_exists,
+                fallback_summary_status=fallback_summary_status,
+                fallback_summary_file=fallback_summary_file,
+                fallback_summary_missing=fallback_summary_missing,
                 blocker=blocker,
             )
         )
@@ -176,13 +250,26 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
         f"**Sprint Path:** `{readiness.sprint_path}`",
         f"**Mode:** {'force' if force else 'strict'}",
         "",
-        "| Change | Location | Tasks | Result |",
-        "|---|---|---:|---|",
+        "| Change | Location | Tasks | Archive Evidence | Result |",
+        "|---|---|---:|---|---|",
     ]
     for change in readiness.changes:
         result = "PASS" if not change.blocker else f"BLOCKED: {change.blocker}"
+        if change.location == "active":
+            evidence = "active change; fallback not required"
+        elif change.location == "archived" and change.trace_exists:
+            evidence = "trace.md present"
+        elif change.location == "archived" and change.fallback_summary_status == "pass":
+            evidence = f"fallback summary pass: `{change.fallback_summary_file}`"
+        elif change.location == "archived":
+            missing = ", ".join(change.fallback_summary_missing or [])
+            evidence = f"trace.md missing; fallback {change.fallback_summary_status}"
+            if missing:
+                evidence = f"{evidence}; missing {missing}"
+        else:
+            evidence = "n/a"
         lines.append(
-            f"| `{change.change_id}` | {change.location} | {change.tasks.label} | {result} |"
+            f"| `{change.change_id}` | {change.location} | {change.tasks.label} | {evidence} | {result} |"
         )
 
     blockers = readiness.blockers

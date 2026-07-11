@@ -85,6 +85,8 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_object_key TEXT,
   remark TEXT,
   token_version INTEGER NOT NULL DEFAULT 0,
+  theme_mode TEXT NOT NULL DEFAULT 'system'
+    CHECK (theme_mode IN ('system', 'dark_flagship', 'comfort_dark', 'light')),
   last_login_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL

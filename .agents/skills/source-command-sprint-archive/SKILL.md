@@ -44,6 +44,16 @@ For single change mode:
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --change <change-id>
 ```
 
+Readiness distinguishes active and archived Change semantics: active Changes are checked for directory/tasks completion; archived Changes are additionally checked for `trace.md`. If an archived Change lacks `trace.md`, `proposal.md`、`design.md` or `tasks.md` MUST contain a complete `## 归档验证摘要` covering validation command/result, acceptance verdict, Issue/Sprint status, and archive path/time evidence.
+
+Before any issue package is moved to `issues/**/archive/`, the promote step MUST pass the issue subdocument status gate:
+
+```bash
+python scripts/promote-issues-for-archive.py --sprint <sprint-id>
+```
+
+If scoped REQ/BUG child Markdown files still contain non-closed frontmatter or fenced YAML `status` values such as `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open`, keep the Sprint close blocked until those documents are reconciled.
+
 If readiness returns non-zero or `Verdict: BLOCKED`, stop unless user explicitly passed `--force` and confirms each blocker.
 
 ## Queue Rules
@@ -89,7 +99,7 @@ Move directory with `git mv iterations/change/<sprint-id> iterations/archive/<sp
 python scripts/sync-workflow-status.py --event sprint.archive --sprint <sprint-id>
 ```
 
-Exit code MUST be `0`; print Workflow Sync Report.
+Exit code MUST be `0`; print summary Workflow Sync Report; use `--output detail` only for debugging.
 
 ## Output
 

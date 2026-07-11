@@ -56,6 +56,16 @@ src/
 5. **圆角**：按钮/输入框使用 `rounded-industrial`（2px），卡片使用 `rounded-card`（3px）。
 6. **组件导入**：从 `@/components/ui/*` 导入 shadcn 组件。
 
+### Clipboard 复制 helper
+
+Web 管理端复制文本统一使用 `src/shared/lib/clipboard.ts` 的 `copyTextToClipboard`。helper 只负责归一化文本、调用 Clipboard API、返回 `success` / `failed` / `unavailable` / `empty` 结构化结果，并可选执行手动选择 fallback；调用方负责 toast、`role="status"` 文案、dialog、业务 DOM 和埋点。
+
+约束：
+
+1. 调用方不得重复散落 `navigator.clipboard?.writeText` 分支，除非有明确平台差异说明。
+2. helper 和调用方不得记录随机密码、token、Authorization、Cookie、对象存储 key 等敏感复制内容。
+3. Clipboard API 不可用或写入失败时，调用方必须提供明确手动复制路径；密码等输入型场景应聚焦并选中文本。
+
 ## 产品静态 Logo
 
 产品自身的静态 Logo 文件位于 `public/logos/`，由 Vite 构建时原样复制到站点根路径 `/logos/`。这些文件用于管理端品牌区与浏览器标签图标，不走 MinIO，也不属于门店品牌 Logo 上传资源。

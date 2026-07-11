@@ -4,7 +4,7 @@ content: REST 设计原则、URL/Method/版本、统一返回与 OpenAPI First
 source: rules/api.md / build-api-standard
 update_method: API 规范变更时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 09:58:50
+updated_at: 2026-07-11 18:51:16
 ---
 
 # API 治理体系
@@ -102,6 +102,8 @@ updated_at: 2026-07-11 09:58:50
 2. 导出 OpenAPI：`src/web/openapi.json`
 3. 生成客户端：`./scripts/generate-openapi-client.sh`
 4. 前端禁止手写接口类型
+
+主题偏好、个人资料等当前用户 self-service 接口也属于 API contract：新增字段（如 `UserProfile.theme_mode`）或新增路径（如 `PATCH /api/v1/auth/me/theme`）必须同步 OpenAPI、Orval、`docs/03-api-index.md` 与相关前后端测试。
 
 ## API Docs / Swagger Checklist
 

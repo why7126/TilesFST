@@ -16,6 +16,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (() => {
+        const key = 'tilesfst.theme_mode';
+        const modes = new Set(['system', 'dark_flagship', 'comfort_dark', 'light']);
+        const stored = window.localStorage.getItem(key);
+        const mode = modes.has(stored) ? stored : 'system';
+        const prefersLight = window.matchMedia?.('(prefers-color-scheme: light)').matches ?? false;
+        const resolved = mode === 'light' || (mode === 'system' && prefersLight) ? 'light' : 'dark';
+        document.documentElement.dataset.themeMode = mode;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.classList.toggle('light', resolved === 'light');
+        document.documentElement.classList.toggle('dark', resolved === 'dark');
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

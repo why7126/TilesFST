@@ -1,6 +1,33 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 62
+next_id: 65
 entries:
+  - id: BUG-0064-theme-selector-sidebar-placement
+    title: 界面主题选择器未放在侧边栏用户头像上方
+    status: done
+    severity: medium
+    created: "2026-07-11 19:29:34"
+    related_requirement: REQ-0020-theme-comfort-refine
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0063-archived-change-trace-fallback-summary
+    title: archived Change 缺失 trace.md 时归档验证摘要兜底检查缺失
+    status: done
+    severity: high
+    created: "2026-07-11 13:21:59"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-archive-trace-fallback-summary-gate
+    iteration: null
+  - id: BUG-0062-archive-issue-subdoc-status-consistency
+    title: 归档后 issue 子文档状态一致性检查缺失
+    status: done
+    severity: high
+    created: "2026-07-11 13:19:58"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
   - id: BUG-0061-change-password-policy-error-message-unclear
     title: 修改密码新密码安全策略失败提示不清晰
     status: done

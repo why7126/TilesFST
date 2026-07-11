@@ -19,6 +19,11 @@ class UserProfile(BaseModel):
     display_name: str
     role: str
     status: str
+    theme_mode: str = "system"
+
+
+class ThemePreferenceUpdateRequest(BaseModel):
+    theme_mode: str = Field(min_length=1)
 
 
 class LoginData(BaseModel):

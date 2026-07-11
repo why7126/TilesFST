@@ -26,6 +26,10 @@ from workflow_sync.collect import (  # noqa: E402
     resolve_issue_dir,
     resolve_sprint_dir,
 )
+from workflow_sync.issue_status_residuals import (  # noqa: E402
+    IssueStatusResidual,
+    scan_issue_status_residuals,
+)
 
 ROOT = SCRIPTS_DIR.parent
 PROMOTE_SCRIPT = SCRIPTS_DIR / "promote-issue-stage.py"
@@ -192,6 +196,45 @@ def print_report(candidates: list[PromotionCandidate], *, dry_run: bool, context
     print()
 
 
+def collect_residual_blockers(candidates: list[PromotionCandidate], issues: dict[str, IssueRecord]) -> list[IssueStatusResidual]:
+    blockers: list[IssueStatusResidual] = []
+    for item in candidates:
+        issue = issues.get(item.issue_id)
+        if issue is None:
+            continue
+        blockers.extend(scan_issue_status_residuals(issue.path, issue_id=item.issue_id))
+    return blockers
+
+
+def print_residual_blockers(blockers: list[IssueStatusResidual]) -> None:
+    if not blockers:
+        return
+    print("## Issue Subdocument Status Gate\n")
+    print("BLOCKED: issue archive promotion found non-closed status values in issue subdocuments.\n")
+    print("| Issue | File | Source | Status | Suggestion |")
+    print("|-------|------|--------|--------|------------|")
+    for blocker in blockers:
+        try:
+            file_path = blocker.file.relative_to(ROOT)
+        except ValueError:
+            file_path = blocker.file
+        issue_flag = "--req" if blocker.issue_id.startswith("REQ-") else "--bug"
+        event = "req.archive" if issue_flag == "--req" else "bug.archive"
+        dry_run_cmd = (
+            f"python scripts/sync-workflow-status.py --event {event} {issue_flag} {blocker.issue_id} "
+            "--sprint auto --reconcile-issue-status-residuals --dry-run"
+        )
+        write_cmd = (
+            f"python scripts/sync-workflow-status.py --event {event} {issue_flag} {blocker.issue_id} "
+            "--sprint auto --reconcile-issue-status-residuals --apply-reconcile"
+        )
+        print(
+            f"| {blocker.issue_id} | `{file_path}` | {blocker.source} | `{blocker.status}` | "
+            f"先运行 `{dry_run_cmd}`，确认后运行 `{write_cmd}`；若被阻断，先完成报告中的上游命令。 |"
+        )
+    print()
+
+
 def run_promotions(candidates: list[PromotionCandidate], *, dry_run: bool, reason: str) -> int:
     exit_code = 0
     for item in candidates:
@@ -241,6 +284,10 @@ def main() -> int:
 
     reason = args.reason.strip() or default_reason
     print_report(candidates, dry_run=args.dry_run, context=context)
+    blockers = collect_residual_blockers(candidates, issues)
+    if blockers:
+        print_residual_blockers(blockers)
+        return 1
     sys.stdout.flush()
     return run_promotions(candidates, dry_run=args.dry_run, reason=reason)
 

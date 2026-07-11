@@ -64,7 +64,7 @@ describe('ResetPasswordDialog', () => {
     expect(screen.getByRole('status')).toHaveTextContent('自动复制失败');
   });
 
-  it('falls back to manual copy when Clipboard API is unavailable', () => {
+  it('falls back to manual copy when Clipboard API is unavailable', async () => {
     setClipboard(undefined);
 
     render(
@@ -77,8 +77,10 @@ describe('ResetPasswordDialog', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '复制密码' }));
 
-    expect(focusSpy).toHaveBeenCalled();
-    expect(selectSpy).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(focusSpy).toHaveBeenCalled();
+      expect(selectSpy).toHaveBeenCalled();
+    });
     expect(screen.getByRole('status')).toHaveTextContent('自动复制失败');
   });
 

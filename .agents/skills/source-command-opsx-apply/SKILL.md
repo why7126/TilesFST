@@ -34,6 +34,10 @@ rules/coding.md
 rules/testing.md
 rules/security.md
 rules/directory-structure.md
+rules/document-governance.md
+rules/requirement-management.md
+rules/bug-management.md
+rules/iterations-lifecycle.md
 .agents/skills/workflow-sync/SKILL.md
 ```
 
@@ -54,6 +58,23 @@ issues/bugs/<BUG>/root-cause.md + acceptance.md + trace.md
 iterations/change|archive/<sprint>/sprint.md §横切预防清单
 docs/knowledge-base/best-practices/<matched>.md
 ```
+
+## Sprint Inclusion Gate（MUST before implementation）
+
+Before editing `src/`, running implementation checks, or marking any task complete, verify the target Change is eligible for `/opsx-apply`.
+
+For every Change linked to a REQ/BUG:
+
+1. Identify linked `REQ-*` / `BUG-*` from Change trace, proposal/design, tasks, or Issue `trace.md` `openspec_changes[]`.
+2. Confirm `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` resolves a Sprint and does not report sprint skipped/unresolved.
+3. Read the resolved `iterations/change|archive/<sprint>/sprint.yaml` snippet and confirm:
+   - `changes[]` contains `<change-id>`.
+   - `requirements[]` contains linked `REQ-*` and/or `bugs[]` contains linked `BUG-*`.
+4. Confirm each linked Issue `trace.md` has `iteration: <sprint-id>` and `status: in_sprint` or a later delivery state.
+
+If any check fails, **BLOCKED**: do not implement. Tell the user to run `/sprint-propose` to include the REQ/BUG/Change in a `sprint-xxx`, then rerun `/opsx-apply`.
+
+Only a Change with no linked REQ/BUG may bypass this gate; output the reason explicitly.
 
 ## Cross-cutting Apply Gate（MUST before `src/`）
 
@@ -104,6 +125,6 @@ python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> -
 ```
 
 - Exit code MUST be `0`。
-- Print Workflow Sync Report。
+- Print summary Workflow Sync Report；use `--output detail` only for debugging。
 - Verify linked REQ/BUG trace has `openspec_changes[].status: applied` and `/opsx-apply` in `## 变更记录`; if missing, fix workflow sync and rerun instead of hand-editing marker blocks.
 - Do not hand-edit workflow-sync marker blocks。

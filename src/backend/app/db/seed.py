@@ -65,10 +65,10 @@ def seed_admin_user(db: Session) -> bool:
             """
             INSERT INTO users (
                 id, username, phone, email, password_hash, display_name,
-                role, status, last_login_at, created_at, updated_at
+                role, status, theme_mode, last_login_at, created_at, updated_at
             ) VALUES (
                 :id, :username, NULL, NULL, :password_hash, :display_name,
-                'admin', 'active', NULL, :created_at, :updated_at
+                'admin', 'active', 'system', NULL, :created_at, :updated_at
             )
             """
         ),

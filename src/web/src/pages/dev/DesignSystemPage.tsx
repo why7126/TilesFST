@@ -3,6 +3,7 @@ import { BusinessSection } from './design-system/business-section';
 import { designSystemNav } from './design-system/components';
 import { TokensSection } from './design-system/tokens-section';
 import { UiSection } from './design-system/ui-section';
+import { ThemeSwitcher } from '@/features/theme/ThemeSwitcher';
 
 export function DesignSystemPage() {
   return (
@@ -44,6 +45,7 @@ export function DesignSystemPage() {
                   {tag}
                 </span>
               ))}
+              <ThemeSwitcher compact />
             </div>
           </header>
 

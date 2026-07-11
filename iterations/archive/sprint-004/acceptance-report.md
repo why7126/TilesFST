@@ -1,6 +1,6 @@
 ---
 created_at: 2026-06-29 10:03:38
-updated_at: 2026-07-04 08:16:02
+updated_at: 2026-07-11 17:18:39
 title: Sprint 004 验收报告
 purpose: 记录 Sprint 004 验收结果与遗留项（模板）
 content: 基于 REQ-0018-production-mysql-deployment、REQ-0019-admin-superuser-protection、REQ-0022-admin-api-docs-menu、REQ-0023-api-docs-swagger-detail-link、REQ-0025-brand-logo-fst-favicon、REQ-0026-product-release-management、REQ-0024-product-usage-logging、BUG-0050-user-create-validation-message-unclear、BUG-0051-api-docs-swagger-ui-link-wrong、BUG-0052-api-docs-metric-cards-inconsistent、BUG-0053-api-docs-list-layout-pagination-inconsistent、BUG-0054-admin-content-padding-too-large 与 BUG-0055-admin-list-layout-unification acceptance.md
@@ -20,7 +20,7 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 | Sprint | sprint-004 |
 | 关联需求 | REQ-0018-production-mysql-deployment；REQ-0019-admin-superuser-protection；REQ-0022-admin-api-docs-menu；REQ-0023-api-docs-swagger-detail-link；REQ-0025-brand-logo-fst-favicon；REQ-0026-product-release-management；REQ-0024-product-usage-logging |
 | 关联 BUG | BUG-0050-user-create-validation-message-unclear；BUG-0051-api-docs-swagger-ui-link-wrong；BUG-0052-api-docs-metric-cards-inconsistent；BUG-0053-api-docs-list-layout-pagination-inconsistent；BUG-0054-admin-content-padding-too-large；BUG-0055-admin-list-layout-unification |
-| 关联 Change | add-production-mysql-deployment；update-admin-superuser-protection；fix-user-create-validation-message-unclear；add-admin-api-docs-menu（applied）；add-api-docs-swagger-detail-link（applied）；fix-api-docs-swagger-ui-link-wrong（archived）；fix-api-docs-metric-cards-inconsistent（archived）；fix-api-docs-list-layout-pagination-inconsistent（archived）；update-brand-logo-fst-favicon（archived）；add-product-release-management（archived）；add-product-usage-logging（proposed）；fix-admin-content-padding-too-large（proposed）；fix-admin-list-layout-unification（applied） |
+| 关联 Change | add-production-mysql-deployment；update-admin-superuser-protection；fix-user-create-validation-message-unclear；add-admin-api-docs-menu（applied）；add-api-docs-swagger-detail-link（applied）；fix-api-docs-swagger-ui-link-wrong（archived）；fix-api-docs-metric-cards-inconsistent（archived）；fix-api-docs-list-layout-pagination-inconsistent（archived）；update-brand-logo-fst-favicon（archived）；add-product-release-management（archived）；add-product-usage-logging（proposed）；fix-admin-content-padding-too-large（archived）；fix-admin-list-layout-unification（applied） |
 | 计划验收日期 | 2026-07-13 18:00:00 |
 | 验收结论 | Sprint 004 范围内 13/13 OpenSpec Change 已完成 archive，相关 specs 已合并，Sprint 可关闭 |
 | 验收人 | Codex |
@@ -390,7 +390,7 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 ## BUG-0054 回归验收
 
 > 来源：`issues/bugs/archive/BUG-0054-admin-content-padding-too-large/acceptance.md`  
-> 状态：in_sprint；OpenSpec Change `fix-admin-content-padding-too-large` 已创建，待 `/opsx-apply`
+> 状态：done；OpenSpec Change `fix-admin-content-padding-too-large` 已归档，并同步闭环 REQ-0013 当前实际
 
 ### 1. Admin Shell 主内容 padding（AC-001、AC-004）
 
@@ -627,7 +627,7 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 | 2026-07-02 14:55:51 | Codex | Change 创建 | REQ-0026 已创建 `add-product-release-management`，OpenSpec strict validate 通过 |
 | 2026-07-02 15:25:19 | Codex | 范围追加 | REQ-0024 已纳入 sprint-004；OpenSpec Change 后续已创建为 `add-product-usage-logging` |
 | 2026-07-02 15:27:36 | Codex | REQ-0026 实现通过 | 完成发布目录治理、模板、校验脚本、release 命令族、测试与同步 |
-| 2026-07-03 18:51:53 | Codex | 范围追加 | BUG-0054 已纳入 sprint-004；OpenSpec Change 已创建为 `fix-admin-content-padding-too-large`，待 `/opsx-apply` |
+| 2026-07-03 18:51:53 | Codex | 范围追加 | BUG-0054 已纳入 sprint-004；OpenSpec Change 已创建为 `fix-admin-content-padding-too-large` |
 | 2026-07-03 23:30:35 | Codex | 范围追加 | BUG-0055 已纳入 sprint-004；OpenSpec Change 已创建为 `fix-admin-list-layout-unification`，后续已完成 apply 与视觉验收确认 |
 | 2026-07-04 08:13:26 | Codex | 归档通过 | `openspec list --json` 返回无活动 Change；sprint.yaml 中 13 个 Change 均已在 `openspec/changes/archive/`，执行 Sprint 关闭 |
 
@@ -646,5 +646,5 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 | REQ-0025 OpenSpec Change | 已归档 | `openspec/changes/archive/2026-07-02-update-brand-logo-fst-favicon/` |
 | REQ-0026 OpenSpec Change | 已归档 | 已执行 `/opsx-archive add-product-release-management` 并同步正式规范 |
 | REQ-0024 OpenSpec Change | 已创建 | 后续执行 `/opsx-apply add-product-usage-logging` |
-| BUG-0054 OpenSpec Change | 已创建 | 后续执行 `/opsx-apply fix-admin-content-padding-too-large` |
+| BUG-0054 OpenSpec Change | 已归档 | `fix-admin-content-padding-too-large` 已 archived，并作为 REQ-0013 当前实际归档依据 |
 | BUG-0055 OpenSpec Change | 已应用 | 任务 30/30；后续执行 `/opsx-archive fix-admin-list-layout-unification` |

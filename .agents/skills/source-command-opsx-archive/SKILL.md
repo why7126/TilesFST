@@ -47,6 +47,7 @@ openspec status --change "<change-id>" --json
 | Delta spec | if `specs/` exists, assess ADDED/MODIFIED/REMOVED before moving |
 | MODIFIED title | matching `openspec/specs/<capability>/spec.md` requirement title MUST exist |
 | Archive target | `openspec/changes/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
+| Archive evidence | if a historical archived Change lacks `trace.md`, it MUST contain a complete `## 归档验证摘要` fallback in proposal/design/tasks before Sprint close readiness can pass |
 
 ## Steps
 
@@ -69,7 +70,8 @@ python scripts/promote-issues-for-archive.py --change <change-id> --reason "/ops
 ```
 
 - Both exit codes MUST be `0`.
-- Print Workflow Sync Report and Promote Issue Stage report.
+- Print summary Workflow Sync Report and Promote Issue Stage report; use `--output detail` only for debugging.
+- `promote-issues-for-archive.py` includes the issue subdocument status gate. If it reports `Issue Subdocument Status Gate` blockers, stop and reconcile the listed child Markdown `status` values before retrying; do not move REQ/BUG packages to `archive/` with residual `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` or equivalent non-closed states.
 - Do not hand-edit `sprint.md` workflow-sync marker blocks.
 
 ## Output

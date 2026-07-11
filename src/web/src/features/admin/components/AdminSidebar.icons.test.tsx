@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ThemeProvider } from '@/features/theme/ThemeContext';
 import { AdminSidebar } from './AdminSidebar';
 
 const adminUser = {
@@ -23,19 +25,25 @@ function iconMarkup(buttonName: string): string {
   return button.querySelector('svg')?.innerHTML ?? '';
 }
 
+function renderWithTheme(ui: ReactElement) {
+  return render(
+    <ThemeProvider>
+      <MemoryRouter initialEntries={['/admin/dashboard']}>{ui}</MemoryRouter>
+    </ThemeProvider>,
+  );
+}
+
 describe('AdminSidebar icons', () => {
   it('renders distinct lucide icons for collapsed navigation items', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar
-          user={adminUser}
-          onLogout={vi.fn()}
-          onPlaceholder={vi.fn()}
-          onOpenPasswordChange={vi.fn()}
-          collapsed
-          onToggleCollapsed={vi.fn()}
-        />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar
+        user={adminUser}
+        onLogout={vi.fn()}
+        onPlaceholder={vi.fn()}
+        onOpenPasswordChange={vi.fn()}
+        collapsed
+        onToggleCollapsed={vi.fn()}
+      />,
     );
 
     const homeIcon = iconMarkup('首页');
@@ -49,10 +57,8 @@ describe('AdminSidebar icons', () => {
   });
 
   it('keeps distinct icons for employee when 用户管理 is hidden', () => {
-    render(
-      <MemoryRouter initialEntries={['/admin/dashboard']}>
-        <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} collapsed />
-      </MemoryRouter>,
+    renderWithTheme(
+      <AdminSidebar user={employeeUser} onLogout={vi.fn()} onPlaceholder={vi.fn()} onOpenPasswordChange={vi.fn()} collapsed />,
     );
 
     expect(screen.queryByRole('button', { name: '用户管理' })).not.toBeInTheDocument();

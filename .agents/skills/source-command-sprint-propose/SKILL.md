@@ -78,7 +78,15 @@ docs/knowledge-base/best-practices/<matched>.md（按标签）
 - 估算：XS=0.5、S=1、M=3、L=5、XL=8、XXL=13 人天。
 - add-* 主能力 SHOULD <= 6。
 - fix 缓冲 SHOULD >= 30% SP/人天。
-- 超限必须写入风险或延后项。
+- 必须在生成正式四件套或更新 REQ/BUG/Change trace 前计算：
+  `capacity_usage = estimated_person_days / capacity_person_days`。
+- 若容量或估算缺失导致无法计算，MUST 先补齐输入；不得默认通过。
+- `estimated_person_days > capacity_person_days * 1.2` 时 MUST 硬阻断正式规划：
+  - 不得生成 `iterations/change/<sprint>/` 四件套。
+  - 不得更新 `trace.md` 的 `iteration` 或 Change trace。
+  - 输出硬提示：必须拆分 Sprint、移出低优先级项或替换范围后重新运行 `/sprint-propose`。
+- `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时 MAY 继续，但 MUST 写入容量风险、fix 缓冲影响和延后项建议。
+- `estimated_person_days <= capacity_person_days` 时按既有 Review Gate、Readiness Gate 和 Capacity Gate 继续。
 
 ## Knowledge Intake
 
@@ -139,5 +147,5 @@ python scripts/sync-workflow-status.py --event sprint.propose --sprint <sprint-i
 ```
 
 - Exit code MUST be `0`。
-- Print Workflow Sync Report。
+- Print summary Workflow Sync Report；use `--output detail` only for debugging。
 - Do not hand-edit workflow-sync marker blocks。
