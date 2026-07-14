@@ -17,6 +17,8 @@ from typing import Any
 from workflow_sync import collect
 from workflow_sync.issue_status_residuals import scan_issue_status_residuals
 
+import ai_usage
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -128,32 +130,37 @@ def acceptance_summary(sprint_path: Path, root: Path) -> dict[str, Any]:
     }
 
 
-def ai_usage_snapshot(sprint_id: str, root: Path) -> dict[str, Any]:
+def ai_usage_snapshot(
+    sprint_id: str,
+    root: Path,
+    *,
+    expected_scope: dict[str, list[str]] | None = None,
+    min_generated_at: str | None = None,
+) -> dict[str, Any]:
     path = root / "data" / "ai-usage" / "sprints" / f"{sprint_id}.json"
-    if not path.exists():
-        return {
-            "path": rel(path, root),
-            "exists": False,
-            "estimated": True,
-            "note": "无精确 token 计量；/sprint-exps must use estimated fallback.",
-        }
-    try:
-        data = json.loads(collect.read_text(path))
-    except json.JSONDecodeError:
-        return {
-            "path": rel(path, root),
-            "exists": True,
-            "estimated": True,
-            "warnings": ["invalid-ai-usage-json"],
-        }
-    safe = {
+    status = ai_usage.check_sprint_snapshot(
+        path,
+        sprint_id,
+        expected_scope=expected_scope,
+        min_generated_at=min_generated_at,
+    )
+    status["snapshot_path"] = rel(path, root)
+    safe: dict[str, Any] = {
         "path": rel(path, root),
-        "exists": True,
-        "estimated": bool(data.get("estimated")),
-        "totals": data.get("totals") or {},
-        "by_workflow_event": data.get("by_workflow_event") or {},
-        "warnings": data.get("warnings") or [],
+        "exists": path.exists(),
+        "estimated": status["usage_mode"] != "actual",
+        "ai_usage_mode": status["usage_mode"],
+        "snapshot_status": status["snapshot_status"],
+        "generated_at": status["generated_at"],
+        "coverage": status["coverage"],
+        "totals": status["totals"],
+        "warnings": status["warnings"],
+        "warning_count": status["warning_count"],
+        "recommended_action": status["recommended_action"],
+        "note": None,
     }
+    if safe["ai_usage_mode"] == "estimated_fallback":
+        safe["note"] = "ai_usage_mode: estimated_fallback; /sprint-exps must state reason and recommended_action."
     return safe
 
 
@@ -355,7 +362,16 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
             "changes": change_rows,
             "issues": issue_rows,
             "acceptance": acceptance_summary(sprint.path, root),
-            "ai_usage_snapshot": ai_usage_snapshot(sprint.sprint_id, root),
+            "ai_usage_snapshot": ai_usage_snapshot(
+                sprint.sprint_id,
+                root,
+                expected_scope={
+                    "requirements": sprint.requirements,
+                    "bugs": sprint.bugs,
+                    "changes": sprint.changes,
+                },
+                min_generated_at=sprint_yaml.get("end_date") or sprint_yaml.get("start_date"),
+            ),
             "four_piece": four_piece,
             "warnings": warnings,
             "needs_detail": bool(warnings),
@@ -442,7 +458,11 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
     totals = ai_usage.get("totals") or {}
     lines.extend(["", "## AI Usage Snapshot", "", "| Metric | Value |", "|---|---:|"])
     lines.append(f"| Exists | {ai_usage.get('exists', False)} |")
+    lines.append(f"| Status | {ai_usage.get('snapshot_status', 'missing')} |")
+    lines.append(f"| Mode | {ai_usage.get('ai_usage_mode', 'estimated_fallback')} |")
     lines.append(f"| Estimated | {ai_usage.get('estimated', True)} |")
+    lines.append(f"| Generated At | {ai_usage.get('generated_at') or ''} |")
+    lines.append(f"| Warning Count | {ai_usage.get('warning_count', len(ai_usage.get('warnings') or []))} |")
     for key in (
         "command_run_count",
         "model_call_count",
@@ -456,6 +476,10 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
         "tool_output_chars",
     ):
         lines.append(f"| {key} | {totals.get(key, 0)} |")
+    if ai_usage.get("note"):
+        lines.append(f"| note | {ai_usage['note']} |")
+    if ai_usage.get("recommended_action"):
+        lines.append(f"| recommended_action | {ai_usage['recommended_action']} |")
 
     lines.extend(["", "## Token Risks", "", "| Source | Impact | Detail |", "|---|---|---|"])
     for risk in fact_sheet["token_risks"]:

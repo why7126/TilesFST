@@ -12,16 +12,18 @@ capacity:
 requirements:
   - REQ-0036-clipboard-helper-best-practice-docs
   - REQ-0035-ai-usage-snapshot-sprint-close-exps
+  - REQ-0037-auto-token-fact-source-for-workflow-commands
 bugs: []
 changes:
   - add-clipboard-helper-best-practice-docs
   - update-ai-usage-snapshot-sprint-close-exps
+  - add-auto-token-fact-source-for-workflow-commands
 
-estimated_story_points: 7
-estimated_person_days: 4.0
-capacity_usage: 0.13
-fix_buffer_person_days: 26.0
-fix_buffer_ratio: 0.87
+estimated_story_points: 15
+estimated_person_days: 9.0
+capacity_usage: 0.30
+fix_buffer_person_days: 21.0
+fix_buffer_ratio: 0.70
 
 scope_estimates:
   - id: REQ-0036-clipboard-helper-best-practice-docs
@@ -36,10 +38,16 @@ scope_estimates:
     size: M
     story_points: 5
     person_days: 3.0
+  - id: REQ-0037-auto-token-fact-source-for-workflow-commands
+    change: add-auto-token-fact-source-for-workflow-commands
+    priority: P1
+    size: L
+    story_points: 8
+    person_days: 5.0
 
 capacity_gate:
   result: pass
   capacity_person_days: 30
-  estimated_person_days: 4.0
-  capacity_usage: 0.13
-  note: "REQ-0036 与 REQ-0035 均已通过 Review/Readiness Gate；总估算 4.0 人天，容量占用 13%，fix 缓冲 26 人天 / 87%，门禁通过。"
+  estimated_person_days: 9.0
+  capacity_usage: 0.30
+  note: "REQ-0036、REQ-0035 与 REQ-0037 均已通过 Review/Readiness Gate；总估算 9.0 人天，容量占用 30%，fix 缓冲 21 人天 / 70%，门禁通过。"

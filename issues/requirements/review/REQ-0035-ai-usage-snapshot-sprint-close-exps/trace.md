@@ -1,10 +1,10 @@
 ---
 requirement_id: REQ-0035-ai-usage-snapshot-sprint-close-exps
-status: in_sprint
+status: done
 lifecycle_stage: review
 priority: P1
 created_at: 2026-07-11 23:36:05
-updated_at: 2026-07-12 00:07:29
+updated_at: 2026-07-12 00:52:25
 lifecycle:
   captured: 2026-07-11 23:36:05
   generated: 2026-07-11 23:42:45
@@ -15,7 +15,7 @@ iteration: sprint-007
 openspec_changes:
   - change_id: update-ai-usage-snapshot-sprint-close-exps
     type: update
-    status: proposed
+    status: archived
 related_requirements:
   - REQ-0034-ai-token-usage-observability
 knowledge_base_refs:
@@ -27,7 +27,7 @@ cross_cutting_tags: []
 
 ```yaml
 requirement_id: REQ-0035-ai-usage-snapshot-sprint-close-exps
-status: in_sprint
+status: done
 priority: P1
 created_at: 2026-07-11 23:36:05
 updated_at: 2026-07-12 00:07:29
@@ -41,7 +41,7 @@ iteration: sprint-007
 openspec_changes:
   - change_id: update-ai-usage-snapshot-sprint-close-exps
     type: update
-    status: proposed
+    status: archived
 related_requirements:
   - REQ-0034-ai-token-usage-observability
 knowledge_base_refs:
@@ -77,6 +77,8 @@ cross_cutting_tags: []
 
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-12 00:52:25 | /opsx-archive | Change `update-ai-usage-snapshot-sprint-close-exps` 已归档，状态同步完成。 |
+| 2026-07-12 00:44:24 | /opsx-apply | Change `update-ai-usage-snapshot-sprint-close-exps` apply 完成，待 archive。 |
 | 2026-07-12 00:07:29 | /sprint-propose sprint-007 | 纳入 Sprint 007 正式范围，状态更新为 in_sprint |
 | 2026-07-11 23:59:21 | workflow-sync-correction | 保持 `approved`；REQ-0035 尚未纳入 Sprint，不能标记为 `in_sprint` |
 | 2026-07-11 23:57:08 | /req-opsx | 创建 OpenSpec Change `update-ai-usage-snapshot-sprint-close-exps` |
@@ -86,3 +88,5 @@ cross_cutting_tags: []
 | 2026-07-11 23:46:16 | knowledge-base-scan | 读取 sprint-006 复盘，确认 AI usage snapshot 缺失导致 estimated fallback，并承接 A-001 行动项 |
 | 2026-07-11 23:42:45 | /req-generate | 生成 PRD，状态更新为 draft |
 | 2026-07-11 23:36:05 | /req-capture | 记录 AI usage snapshot 纳入 Sprint close / exps 默认流程需求 |
+
+- 2026-07-12 00:52:25 workflow-sync：状态同步为 done（Change archived）

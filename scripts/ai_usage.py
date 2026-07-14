@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import hashlib
 import json
 import re
 from collections import Counter
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +21,16 @@ TOKEN_FIELDS = (
     "reasoning_output_tokens",
     "total_tokens",
 )
+COUNT_FIELDS = (
+    "command_run_count",
+    "model_call_count",
+    "tool_call_count",
+    "retry_count",
+)
+
+USAGE_MODE_ACTUAL = "actual"
+USAGE_MODE_ESTIMATED = "estimated_fallback"
+USAGE_MODE_UNAVAILABLE = "unavailable"
 
 REQ_RE = re.compile(r"\bREQ-\d{4,}[A-Za-z0-9_-]*\b")
 BUG_RE = re.compile(r"\bBUG-\d{4,}[A-Za-z0-9_-]*\b")
@@ -30,6 +42,17 @@ SECRET_RE = re.compile(
 )
 ABS_PATH_RE = re.compile(r"(/Users/|/home/|/private/|[A-Za-z]:\\)")
 CHANGE_RE = re.compile(r"\b(?:add|update|fix|build|archive|refine|implement|create)-[a-z0-9][a-z0-9-]{2,}\b")
+UNSAFE_PERSISTED_KEYS = {
+    "prompt",
+    "system_prompt",
+    "system_instruction",
+    "developer_instruction",
+    "developer_message",
+    "session_jsonl",
+    "raw_session",
+    "tool_output_body",
+    "tool_output_text",
+}
 
 
 @dataclass
@@ -303,6 +326,36 @@ def apply_manual_mapping(records: list[dict[str, Any]], manual_map: dict[str, An
     return records
 
 
+def apply_workflow_context(
+    records: list[dict[str, Any]],
+    *,
+    workflow_event: str | None = None,
+    requirements: list[str] | None = None,
+    bugs: list[str] | None = None,
+    changes: list[str] | None = None,
+    sprint_id: str | None = None,
+) -> list[dict[str, Any]]:
+    """Apply explicit workflow attribution to the latest parsed command run."""
+
+    if not records:
+        return records
+    target = records[-1]
+    for key, values in (
+        ("requirements", requirements or []),
+        ("bugs", bugs or []),
+        ("changes", changes or []),
+    ):
+        target[key] = sorted(set(str(item) for item in target.get(key, [])) | set(values))
+    if workflow_event:
+        target["workflow_event"] = workflow_event
+        target["command"] = workflow_event
+    if sprint_id:
+        target["sprint_id"] = sprint_id
+    if any((workflow_event, requirements, bugs, changes, sprint_id)):
+        target["attribution_confidence"] = "high"
+    return records
+
+
 def aggregate_sprint(records: list[dict[str, Any]], sprint_id: str) -> dict[str, Any]:
     unique: dict[str, dict[str, Any]] = {}
     for record in records:
@@ -332,20 +385,167 @@ def aggregate_sprint(records: list[dict[str, Any]], sprint_id: str) -> dict[str,
     warnings = sorted({warning for row in rows for warning in row.get("warnings", [])})
     if not rows:
         warnings.append("no-real-usage-snapshot")
+    coverage = {
+        "requirements": sorted({item for row in rows for item in row.get("requirements", [])}),
+        "bugs": sorted({item for row in rows for item in row.get("bugs", [])}),
+        "changes": sorted({item for row in rows for item in row.get("changes", [])}),
+    }
     return {
         "sprint_id": sprint_id,
         "source": "data/ai-usage command-runs",
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "estimated": not bool(rows),
+        "coverage": coverage,
         "totals": totals,
         "by_workflow_event": {key: dict(value) for key, value in sorted(by_event.items())},
         "warnings": warnings,
     }
 
 
+def parse_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    if text.endswith("Z"):
+        text = f"{text[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _status_payload(
+    *,
+    path: Path,
+    status: str,
+    warnings: list[str] | None = None,
+    generated_at: str | None = None,
+    coverage: dict[str, Any] | None = None,
+    totals: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "snapshot_status": status,
+        "snapshot_path": str(path),
+        "present": status not in {"missing"},
+        "usage_mode": "actual" if status == "present" else "estimated_fallback",
+        "generated_at": generated_at,
+        "coverage": coverage or {"requirements": "unknown", "bugs": "unknown", "changes": "unknown"},
+        "warnings": warnings or [],
+        "warning_count": len(warnings or []),
+        "totals": totals or {},
+        "recommended_action": None
+        if status == "present"
+        else f"Run `python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id>` and re-check {path.name}.",
+    }
+
+
+def check_sprint_snapshot(
+    path: Path,
+    sprint_id: str,
+    *,
+    expected_scope: dict[str, list[str]] | None = None,
+    min_generated_at: str | None = None,
+) -> dict[str, Any]:
+    """Return a compact safety/status summary for one Sprint AI usage snapshot."""
+
+    if not path.exists():
+        return _status_payload(path=path, status="missing", warnings=["snapshot-missing"])
+
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return _status_payload(path=path, status="failed", warnings=["invalid-ai-usage-json"])
+    if not isinstance(data, dict):
+        return _status_payload(path=path, status="failed", warnings=["invalid-ai-usage-json"])
+
+    warnings: list[str] = []
+    generated_at = data.get("generated_at") if isinstance(data.get("generated_at"), str) else None
+    totals = data.get("totals") if isinstance(data.get("totals"), dict) else {}
+    coverage_data = data.get("coverage") if isinstance(data.get("coverage"), dict) else {}
+    coverage: dict[str, Any] = {}
+
+    if data.get("sprint_id") != sprint_id:
+        warnings.append("sprint-id-mismatch")
+    if data.get("estimated") is True:
+        warnings.append("snapshot-estimated")
+    if not generated_at:
+        warnings.append("generated-at-missing")
+    elif min_generated_at:
+        generated = parse_datetime(generated_at)
+        minimum = parse_datetime(min_generated_at)
+        if generated is None:
+            warnings.append("generated-at-invalid")
+        elif minimum and generated < minimum:
+            warnings.append("snapshot-stale")
+
+    metric_values = [int(totals.get(field) or 0) for field in (*COUNT_FIELDS, *TOKEN_FIELDS)]
+    if not totals or not any(metric_values):
+        warnings.append("required-metrics-empty")
+
+    expected_scope = expected_scope or {}
+    for key in ("requirements", "bugs", "changes"):
+        expected = sorted(set(expected_scope.get(key) or []))
+        actual = sorted(set(str(item) for item in coverage_data.get(key) or []))
+        missing = sorted(set(expected) - set(actual))
+        coverage[key] = {
+            "expected": expected,
+            "actual": actual,
+            "missing": missing,
+            "status": "pass" if not missing else "missing",
+        }
+        if expected and not actual:
+            warnings.append(f"{key}-coverage-unknown")
+        elif missing:
+            warnings.append(f"{key}-coverage-missing")
+
+    if any(warning in warnings for warning in ("sprint-id-mismatch", "snapshot-estimated", "required-metrics-empty")):
+        status = "failed"
+    elif any("stale" in warning or "coverage-" in warning or warning == "generated-at-missing" for warning in warnings):
+        status = "stale"
+    else:
+        status = "present"
+
+    return _status_payload(
+        path=path,
+        status=status,
+        warnings=sorted(set(warnings + list(data.get("warnings") or []))),
+        generated_at=generated_at,
+        coverage=coverage,
+        totals=totals,
+    )
+
+
 def assert_record_safe(record: dict[str, Any]) -> None:
+    def walk(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if str(key).lower() in UNSAFE_PERSISTED_KEYS:
+                    raise ValueError("unsafe key detected in usage record")
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(record)
     text = json.dumps(record, ensure_ascii=False)
     if ABS_PATH_RE.search(text) or SECRET_RE.search(text):
         raise ValueError("unsafe text detected in usage record")
+
+
+def load_command_run_records(out_dir: Path) -> list[dict[str, Any]]:
+    records: dict[str, dict[str, Any]] = {}
+    for path in sorted((out_dir / "command-runs").glob("*.json")):
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for record in payload.get("command_runs", []) if isinstance(payload, dict) else []:
+            if isinstance(record, dict) and isinstance(record.get("turn_hash"), str):
+                records[record["turn_hash"]] = record
+    return list(records.values())
 
 
 def write_outputs(records: list[dict[str, Any]], out_dir: Path, sprint_id: str | None) -> dict[str, Path]:
@@ -362,7 +562,8 @@ def write_outputs(records: list[dict[str, Any]], out_dir: Path, sprint_id: str |
         command_path.write_text(json.dumps({"command_runs": records}, ensure_ascii=False, indent=2) + "\n")
         output_paths["command_runs"] = command_path
     if sprint_id:
-        snapshot = aggregate_sprint(records, sprint_id)
+        snapshot_records = load_command_run_records(out_dir) if records else []
+        snapshot = aggregate_sprint(snapshot_records or records, sprint_id)
         assert_record_safe(snapshot)
         sprint_path = sprint_dir / f"{sprint_id}.json"
         sprint_path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
@@ -370,12 +571,151 @@ def write_outputs(records: list[dict[str, Any]], out_dir: Path, sprint_id: str |
     return output_paths
 
 
+def relative_path(path: Path, root: Path | None = None) -> str:
+    root = (root or Path.cwd()).resolve()
+    try:
+        return str(path.resolve().relative_to(root))
+    except ValueError:
+        return path.name
+
+
+def resolve_session_jsonl(path: Path | None) -> tuple[Path | None, str | None]:
+    if path:
+        return path, None
+    for env_name in ("AI_USAGE_SESSION_JSONL", "CODEX_SESSION_JSONL"):
+        value = os.environ.get(env_name)
+        if value:
+            return Path(value), None
+    return None, "session-jsonl-missing"
+
+
+def warning_usage_mode(records: list[dict[str, Any]], warnings: list[str]) -> str:
+    if not records:
+        return USAGE_MODE_UNAVAILABLE
+    if warnings:
+        return USAGE_MODE_ESTIMATED
+    has_real_usage = any(
+        int(record.get("model_call_count") or 0) > 0 or int(record.get("total_tokens") or 0) > 0
+        for record in records
+    )
+    return USAGE_MODE_ACTUAL if has_real_usage else USAGE_MODE_ESTIMATED
+
+
+def post_command_hook(
+    *,
+    session_jsonl: Path | None,
+    out_dir: Path,
+    workflow_event: str | None = None,
+    requirements: list[str] | None = None,
+    bugs: list[str] | None = None,
+    changes: list[str] | None = None,
+    sprint_id: str | None = None,
+    manual_map: dict[str, Any] | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Build a compact post-command AI usage fact source summary."""
+
+    resolved_session, missing_reason = resolve_session_jsonl(session_jsonl)
+    if missing_reason or resolved_session is None:
+        warning = missing_reason or "session-jsonl-missing"
+        return {
+            "status": "skipped",
+            "usage_mode": USAGE_MODE_UNAVAILABLE,
+            "command_run_count": 0,
+            "outputs": {},
+            "sprint_snapshot": {
+                "status": "skipped",
+                "path": None,
+                "reason": "no-sprint" if not sprint_id else warning,
+            },
+            "warnings": [warning],
+            "warning_count": 1,
+            "recommended_action": "Provide --session-jsonl or set AI_USAGE_SESSION_JSONL to build a redacted usage fact source.",
+        }
+    if not resolved_session.exists():
+        return {
+            "status": "skipped",
+            "usage_mode": USAGE_MODE_UNAVAILABLE,
+            "command_run_count": 0,
+            "outputs": {},
+            "sprint_snapshot": {
+                "status": "skipped",
+                "path": None,
+                "reason": "session-jsonl-not-found",
+            },
+            "warnings": ["session-jsonl-not-found"],
+            "warning_count": 1,
+            "recommended_action": "Check the local Codex session path and rerun the hook with --session-jsonl.",
+        }
+
+    records, parse_warnings = parse_session_jsonl(resolved_session, manual_map)
+    records = apply_workflow_context(
+        records,
+        workflow_event=workflow_event,
+        requirements=requirements,
+        bugs=bugs,
+        changes=changes,
+        sprint_id=sprint_id,
+    )
+    warnings = list(parse_warnings)
+    if not records:
+        warnings.append("no-command-runs")
+    if records and not any(int(record.get("model_call_count") or 0) > 0 for record in records):
+        warnings.append("token-count-missing")
+
+    usage_mode = warning_usage_mode(records, warnings)
+    outputs: dict[str, str] = {}
+    output_paths: dict[str, Path] = {}
+    if records and not dry_run:
+        output_paths = write_outputs(records, out_dir, sprint_id)
+        outputs = {key: relative_path(value) for key, value in output_paths.items()}
+
+    if sprint_id:
+        sprint_snapshot = {
+            "status": "dry-run" if dry_run else ("refreshed" if "sprint" in output_paths else "skipped"),
+            "path": relative_path(out_dir / "sprints" / f"{sprint_id}.json"),
+            "reason": None if (dry_run or "sprint" in output_paths) else "no-command-runs",
+        }
+    else:
+        sprint_snapshot = {
+            "status": "skipped",
+            "path": None,
+            "reason": "no-sprint",
+        }
+
+    status = "ok" if usage_mode == USAGE_MODE_ACTUAL else "warning"
+    recommended_action = None
+    if usage_mode != USAGE_MODE_ACTUAL:
+        recommended_action = "Inspect warnings and rerun with a session containing token_count events if actual usage is required."
+    return {
+        "status": status,
+        "usage_mode": usage_mode,
+        "command_run_count": len(records),
+        "outputs": outputs,
+        "sprint_snapshot": sprint_snapshot,
+        "warnings": sorted(set(warnings)),
+        "warning_count": len(set(warnings)),
+        "recommended_action": recommended_action,
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--session-jsonl", type=Path, required=True)
+    parser.add_argument("--session-jsonl", type=Path)
     parser.add_argument("--out-dir", type=Path, default=Path("data/ai-usage"))
     parser.add_argument("--sprint")
     parser.add_argument("--manual-map", type=Path)
+    parser.add_argument("--post-command-hook", action="store_true")
+    parser.add_argument("--workflow-event")
+    parser.add_argument("--req", action="append", default=[])
+    parser.add_argument("--bug", action="append", default=[])
+    parser.add_argument("--change", action="append", default=[])
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--check-snapshot", action="store_true")
+    parser.add_argument("--expected-requirement", action="append", default=[])
+    parser.add_argument("--expected-bug", action="append", default=[])
+    parser.add_argument("--expected-change", action="append", default=[])
+    parser.add_argument("--min-generated-at")
     parser.add_argument("--json", action="store_true")
     return parser
 
@@ -383,6 +723,38 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     manual = json.loads(args.manual_map.read_text()) if args.manual_map else None
+    if args.post_command_hook:
+        payload = post_command_hook(
+            session_jsonl=args.session_jsonl,
+            out_dir=args.out_dir,
+            workflow_event=args.workflow_event,
+            requirements=args.req,
+            bugs=args.bug,
+            changes=args.change,
+            sprint_id=args.sprint,
+            manual_map=manual,
+            dry_run=args.dry_run,
+        )
+        print(json.dumps(payload, ensure_ascii=False, indent=2) if args.json else payload)
+        return 0
+    if args.check_snapshot:
+        if not args.sprint:
+            raise SystemExit("--check-snapshot requires --sprint")
+        path = args.out_dir / "sprints" / f"{args.sprint}.json"
+        payload = check_sprint_snapshot(
+            path,
+            args.sprint,
+            expected_scope={
+                "requirements": args.expected_requirement,
+                "bugs": args.expected_bug,
+                "changes": args.expected_change,
+            },
+            min_generated_at=args.min_generated_at,
+        )
+        print(json.dumps(payload, ensure_ascii=False, indent=2) if args.json else payload)
+        return 0
+    if not args.session_jsonl:
+        raise SystemExit("--session-jsonl is required unless --check-snapshot is used")
     records, warnings = parse_session_jsonl(args.session_jsonl, manual)
     paths = write_outputs(records, args.out_dir, args.sprint)
     payload = {"command_run_count": len(records), "warnings": warnings, "outputs": {k: str(v) for k, v in paths.items()}}

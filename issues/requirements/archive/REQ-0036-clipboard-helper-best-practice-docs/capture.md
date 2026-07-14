@@ -1,8 +1,8 @@
 ---
 req_id: REQ-0036-clipboard-helper-best-practice-docs
-status: captured
+status: done
 created_at: 2026-07-11 23:37:42
-updated_at: 2026-07-11 23:37:42
+updated_at: 2026-07-12 00:32:47
 recorded_by: product
 source: 用户反馈
 priority_hint: P2

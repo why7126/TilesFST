@@ -1,9 +1,9 @@
 ---
 requirement_id: REQ-0036-clipboard-helper-best-practice-docs
 title: Clipboard helper best-practice 文档用户故事
-status: approved
+status: done
 created_at: 2026-07-11 23:47:07
-updated_at: 2026-07-11 23:53:49
+updated_at: 2026-07-12 00:32:47
 ---
 
 # User Stories

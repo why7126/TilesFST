@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 新增数据类型、上传目录、视频处理流程、数据库持久化方式时由AI辅助更新，人工Review
 note: data目录用于本地开发、演示、测试样例和运行时数据；生产环境应使用正式对象存储和持久化卷
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 18:51:16
+updated_at: 2026-07-12 00:42:30
 ---
 
 # data 目录规范
@@ -64,7 +64,14 @@ python scripts/extract-ai-usage.py --session-jsonl ~/.codex/sessions/<session>.j
 python scripts/generate-sprint-fact-sheet.py --sprint sprint-006 --json
 ```
 
-`/sprint-exps` 优先读取 `data/ai-usage/sprints/<sprint-id>.json` 的真实快照；缺失时必须明确标注“无精确 token 计量”，只能做估算分析。
+Sprint 聚合快照必须只包含数字指标、workflow ID、Sprint/REQ/BUG/Change 覆盖范围、hash、时间和 warning。提交前必须确认：
+
+- `generated_at` 存在且不早于目标 Sprint 最近关键收尾时间。
+- `coverage` 覆盖 Sprint scope 中的主要 REQ/BUG/Change。
+- `totals` 中 command run、模型调用、工具调用和 token 指标不为空。
+- 文件不包含原始 prompt、系统/developer 指令、技能全文、原始 session JSONL、本机绝对路径、工具输出正文、密钥、`.env` 内容或客户数据。
+
+`/sprint-archive` 和 `/sprint-exps` 优先读取 `data/ai-usage/sprints/<sprint-id>.json` 的真实快照；缺失、过期、失败或覆盖不足时必须明确标注 `ai_usage_mode: estimated_fallback`、reason 和 recommended_action，只能做估算分析。
 
 ## Legacy uploads 清理（BUG-0008 后）
 

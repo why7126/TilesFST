@@ -36,6 +36,7 @@ iterations/change/<sprint-id>/sprint.md（依赖/Scope 片段）
 ```bash
 openspec list --json
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
+python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 ```
 
 For single change mode:
@@ -65,6 +66,26 @@ If readiness returns non-zero or `Verdict: BLOCKED`, stop unless user explicitly
 5. Output Sprint Archive Queue Report before moving anything.
 
 Queue Report MUST include Sprint, mode, readiness verdict, each change action (`SKIP` / `ARCHIVE NEXT` / `QUEUE` / `BLOCKED`), blockers, and warnings.
+
+## AI Usage Snapshot Gate（MUST before Close Sprint）
+
+Before the final close step, check the Sprint AI usage snapshot through the Fact Sheet:
+
+```bash
+python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
+```
+
+Inspect `ai_usage_snapshot.snapshot_status`、`ai_usage_snapshot.ai_usage_mode`、`generated_at`、`coverage`、`warnings` and `recommended_action`.
+
+- If `snapshot_status: present` and `ai_usage_mode: actual`, output only a compact summary: status, mode, path, generated_at, coverage status and warning_count.
+- If snapshot is `missing`、`stale` or `failed`, try to generate/refresh it only when the operator provides a local session input, using:
+
+```bash
+python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id> --json
+```
+
+- If local session input is unavailable or generation fails, continue only with an explicit warning in the close report: `ai_usage_mode: estimated_fallback`, reason, impact, and recommended_action. Do not state that real token usage was used.
+- Do not print raw session JSONL, prompts, system/developer instructions, local absolute paths, tool output bodies, or full snapshot contents.
 
 ## Archive Loop
 

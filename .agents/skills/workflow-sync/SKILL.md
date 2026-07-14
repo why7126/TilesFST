@@ -18,6 +18,36 @@ python scripts/sync-workflow-status.py \
   [--bug <BUG-id>]
 ```
 
+## AI Usage Post-command Hook（MUST after successful workflow sync）
+
+After a `/req-*`, `/bug-*`, `/opsx-*`, or `/sprint-*` workflow command finishes its main work and the Workflow Sync command above exits with code `0`, run the unified AI usage hook or report why it is skipped:
+
+```bash
+python scripts/extract-ai-usage.py \
+  --post-command-hook \
+  --workflow-event <event> \
+  [--req <REQ-id>] \
+  [--bug <BUG-id>] \
+  [--change <change-id>] \
+  [--sprint <sprint-id>] \
+  [--session-jsonl <local-session.jsonl>] \
+  --json
+```
+
+Rules:
+
+1. The hook is best-effort for normal workflow commands. If session input is unavailable, print the short `usage_mode: unavailable` summary and recommended action; do not fail the parent command.
+2. If the command has no Sprint scope, command-run generation may proceed, but Sprint snapshot output MUST be `skipped`; do not invent a Sprint.
+3. Successful output MUST stay compact: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+4. The hook MUST NOT persist prompt text, system/developer instructions, skill bodies, raw session JSONL, local absolute paths, tool output bodies, secrets, cookies, Authorization headers, or `.env` content.
+5. Exploration commands with no workflow state change MAY run the hook in `--dry-run` mode or output the same recommended action; they MUST NOT modify REQ/BUG/Change/Sprint status just to create usage data.
+
+Session input discovery:
+
+- Prefer explicit `--session-jsonl <local-session.jsonl>` when available.
+- Otherwise the hook checks `AI_USAGE_SESSION_JSONL`, then `CODEX_SESSION_JSONL`.
+- Raw session files remain local-only and MUST NOT be copied into the repository.
+
 | Flag | Purpose |
 |------|---------|
 | `--sprint auto` | Resolve sprint by context (see below) |

@@ -1,10 +1,10 @@
 ---
 requirement_id: REQ-0036-clipboard-helper-best-practice-docs
-status: in_sprint
-lifecycle_stage: review
+status: done
+lifecycle_stage: archive
 priority: P2
 created_at: 2026-07-11 23:37:42
-updated_at: 2026-07-12 00:03:31
+updated_at: 2026-07-12 00:33:27
 lifecycle:
   captured: 2026-07-11 23:37:42
   generated: 2026-07-11 23:42:20
@@ -15,7 +15,7 @@ iteration: sprint-007
 openspec_changes:
   - change_id: add-clipboard-helper-best-practice-docs
     type: add
-    status: proposed
+    status: archived
 related_requirements:
   - REQ-0032-clipboard-copy-helper-best-practice
 knowledge_base_refs:
@@ -30,7 +30,7 @@ knowledge_base_gate: N/A
 
 ```yaml
 requirement_id: REQ-0036-clipboard-helper-best-practice-docs
-status: in_sprint
+status: done
 priority: P2
 created_at: 2026-07-11 23:37:42
 updated_at: 2026-07-12 00:03:31
@@ -44,7 +44,7 @@ iteration: sprint-007
 openspec_changes:
   - change_id: add-clipboard-helper-best-practice-docs
     type: add
-    status: proposed
+    status: archived
 related_requirements:
   - REQ-0032-clipboard-copy-helper-best-practice
 knowledge_base_refs:
@@ -59,12 +59,12 @@ knowledge_base_gate: N/A
 
 | 类型 | 路径 | 说明 |
 |---|---|---|
-| capture | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/capture.md` | 原始需求记录 |
-| requirement | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/requirement.md` | PRD |
-| user-stories | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/user-stories.md` | 用户故事 |
-| business-flow | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/business-flow.md` | 业务流程 |
-| acceptance | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/acceptance.md` | 验收标准 |
-| review | `issues/requirements/review/REQ-0036-clipboard-helper-best-practice-docs/review.md` | 评审记录 |
+| capture | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/capture.md` | 原始需求记录 |
+| requirement | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/requirement.md` | PRD |
+| user-stories | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/user-stories.md` | 用户故事 |
+| business-flow | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/business-flow.md` | 业务流程 |
+| acceptance | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/acceptance.md` | 验收标准 |
+| review | `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/review.md` | 评审记录 |
 
 ## Knowledge-base Cross-cutting Report
 
@@ -89,6 +89,9 @@ knowledge_base_gate: N/A
 
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-12 00:33:14 | lifecycle-stage-migrate | review → archive（/opsx-archive add-clipboard-helper-best-practice-docs） |
+| 2026-07-12 00:30:43 | /opsx-archive | Change `add-clipboard-helper-best-practice-docs` 已归档，状态同步完成。 |
+| 2026-07-12 00:23:44 | /opsx-apply | Change `add-clipboard-helper-best-practice-docs` apply 完成，待 archive。 |
 | 2026-07-11 23:54:29 | lifecycle-stage-migrate | plan → review（/req-review --approve） |
 | 2026-07-11 23:37:42 | /req-capture | 记录 Clipboard helper best-practice 文档需求 |
 | 2026-07-11 23:42:20 | /req-generate | 生成 requirement.md，需求状态更新为 draft |
@@ -96,3 +99,5 @@ knowledge_base_gate: N/A
 | 2026-07-11 23:53:49 | /req-review --approve | 需求评审通过，状态更新为 approved；待迁移至 review 阶段目录 |
 | 2026-07-11 23:57:08 | /req-opsx | 创建 OpenSpec Change：add-clipboard-helper-best-practice-docs |
 | 2026-07-12 00:03:31 | /sprint-propose | 纳入 sprint-007 正式范围 |
+
+- 2026-07-12 00:30:43 workflow-sync：状态同步为 done（Change archived）

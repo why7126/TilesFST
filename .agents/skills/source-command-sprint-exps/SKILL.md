@@ -30,11 +30,11 @@ Use this skill when the user asks to run the migrated source command `sprint-exp
 
 1. 运行或读取自动 Sprint Fact Sheet：
    ```bash
-   python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id>
+   python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
    ```
 2. 优先基于 Fact Sheet 构建 Sprint 概况、Scope、Change tasks、Issue 状态、验收摘要与 evidence hints。
 3. 仅当 Fact Sheet 标记 `warnings`、`needs_detail`、缺失/不一致项，或用户指定 `--focus` 时，按 evidence hints 分段回读对应原文片段。
-4. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet 的 `ai_usage_snapshot`；若不存在真实快照，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hints 估算本 Sprint 中 AI 会话、命令输出、重复读取、生成物 diff、测试日志、Workflow Sync 输出、历史归档读取等 token 消耗来源。
+4. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet 的 `ai_usage_snapshot`；只有当 `snapshot_status: present` 且 `ai_usage_mode: actual` 时，才按真实统计输出。若 snapshot `missing`、`stale`、`failed` 或覆盖不足，MUST 输出 `ai_usage_mode: estimated_fallback`、reason、impact 和 recommended_action，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hints 做估算分析。
 5. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 6. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 7. 输出 Experience Analysis Report。
@@ -56,7 +56,8 @@ Use this skill when the user asks to run the migrated source command `sprint-exp
 - **模型 Token 使用分析（MUST）**：
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
   - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json` 暴露的真实统计：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数。
-  - 若没有精确统计，MUST 明确标注“无精确 token 计量，仅基于 trace、命令输出、diff 与读取路径估算”，不得编造具体 token 数字。
+  - 若 `ai_usage_snapshot.snapshot_status != present` 或 `ai_usage_snapshot.ai_usage_mode != actual`，MUST 明确输出 `ai_usage_mode: estimated_fallback`、reason（如 missing/stale/failed/coverage-missing）、impact、recommended_action；不得编造具体 token 数字，不得静默按真实统计展示。
+  - 若 snapshot 过期、覆盖不足或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot。
   - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
   - MUST 优先引用自动 Fact Sheet 的 `token_risks`、Change/tasks 计数、四件套行数、warnings 与 evidence hints，减少人工展开四件套、trace 与 tasks 的 token 消耗。
   - MUST 给出优化方案，至少包含：读取边界、搜索排除、输出截断、diff/stat 优先、失败日志摘要、复用已读规则摘要、按 Change 分段处理、必要时沉淀脚本或校验 gate。
@@ -79,6 +80,8 @@ Use this skill when the user asks to run the migrated source command `sprint-exp
 | 指标 | 值 | 证据/说明 |
 |------|----|-----------|
 | 精确 token 统计 | 有 / 无 | 来源：会话元数据 / 工具日志 / 无法获取 |
+| AI usage mode | actual / estimated_fallback | Fact Sheet: `ai_usage_snapshot.ai_usage_mode` |
+| Snapshot status | present / missing / stale / failed | Fact Sheet: `ai_usage_snapshot.snapshot_status` |
 | 主要输入消耗 | 待填 | 例如规则重复读取、Sprint 四件套、Issue/Change trace |
 | 主要输出消耗 | 待填 | 例如测试日志、Workflow Sync 报告、diff 输出 |
 | 重复/浪费来源 | 待填 | 例如同一规则多次全量读取、宽泛搜索命中过多 |

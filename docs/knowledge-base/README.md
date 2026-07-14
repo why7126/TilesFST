@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 20:17:47
+updated_at: 2026-07-12 00:00:00
 ---
 
 # 知识库
@@ -43,6 +43,7 @@ updated_at: 2026-07-11 20:17:47
 | 管理端表单页一致性 | [`best-practices/admin-form-page-consistency.md`](best-practices/admin-form-page-consistency.md) | sprint-003 复盘 |
 | 管理端弹窗宽度 CSS 层叠 | [`best-practices/admin-modal-width-css-cascade.md`](best-practices/admin-modal-width-css-cascade.md) | sprint-003 复盘 |
 | 管理端媒体上传全链路 | [`best-practices/admin-media-upload-chain.md`](best-practices/admin-media-upload-chain.md) | sprint-002 复盘 |
+| Clipboard helper fallback | [`best-practices/clipboard-fallback.md`](best-practices/clipboard-fallback.md) | sprint-006 复盘 / REQ-0036 |
 
 ## 与 issues 的边界
 

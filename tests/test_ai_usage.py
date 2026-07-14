@@ -85,6 +85,9 @@ def test_aggregate_tools_retries_and_idempotent_sprint_totals(tmp_path: Path) ->
     snapshot = ai_usage.aggregate_sprint(duplicate_records, "sprint-006")
 
     assert snapshot["estimated"] is False
+    assert snapshot["generated_at"]
+    assert snapshot["coverage"]["bugs"] == ["BUG-0062"]
+    assert snapshot["coverage"]["changes"] == ["fix-archive-trace-fallback-summary-gate"]
     assert snapshot["totals"]["command_run_count"] == 1
     assert snapshot["totals"]["tool_call_count"] == 2
     assert snapshot["totals"]["tool_output_chars"] == 14
@@ -147,3 +150,182 @@ def test_redaction_blocks_prompts_paths_secrets_and_tool_output_bodies(tmp_path:
     assert "redacted-sensitive-text" in records[0]["warnings"]
     with pytest.raises(ValueError):
         ai_usage.assert_record_safe({"path": "/Users/example/project"})
+    with pytest.raises(ValueError):
+        ai_usage.assert_record_safe({"prompt": "do not persist"})
+
+
+def write_snapshot(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+
+def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Path) -> None:
+    missing = ai_usage.check_sprint_snapshot(tmp_path / "missing.json", "sprint-999")
+    assert missing["snapshot_status"] == "missing"
+    assert missing["usage_mode"] == "estimated_fallback"
+
+    path = tmp_path / "sprint-999.json"
+    write_snapshot(
+        path,
+        {
+            "sprint_id": "sprint-999",
+            "generated_at": "2026-07-03T00:00:00Z",
+            "estimated": False,
+            "coverage": {
+                "requirements": ["REQ-9999-demo"],
+                "bugs": ["BUG-9999-demo"],
+                "changes": ["add-demo"],
+            },
+            "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 12},
+            "warnings": [],
+        },
+    )
+    present = ai_usage.check_sprint_snapshot(
+        path,
+        "sprint-999",
+        expected_scope={
+            "requirements": ["REQ-9999-demo"],
+            "bugs": ["BUG-9999-demo"],
+            "changes": ["add-demo"],
+        },
+        min_generated_at="2026-07-02 18:00:00",
+    )
+    assert present["snapshot_status"] == "present"
+    assert present["usage_mode"] == "actual"
+
+    stale = ai_usage.check_sprint_snapshot(path, "sprint-999", min_generated_at="2026-07-04 00:00:00")
+    assert stale["snapshot_status"] == "stale"
+    assert stale["usage_mode"] == "estimated_fallback"
+    assert "snapshot-stale" in stale["warnings"]
+
+    write_snapshot(
+        path,
+        {
+            "sprint_id": "sprint-999",
+            "generated_at": "2026-07-03T00:00:00Z",
+            "estimated": False,
+            "coverage": {"requirements": [], "bugs": [], "changes": []},
+            "totals": {},
+        },
+    )
+    failed = ai_usage.check_sprint_snapshot(path, "sprint-999")
+    assert failed["snapshot_status"] == "failed"
+    assert "required-metrics-empty" in failed["warnings"]
+
+
+def test_post_command_hook_generates_command_run_and_sprint_snapshot(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"timestamp": "2026-07-12T01:00:00Z", "type": "user_message", "text": "continue"},
+            {"timestamp": "2026-07-12T01:00:01Z", "payload": {"type": "token_count", "last_token_usage": {"input_tokens": 11, "output_tokens": 4, "total_tokens": 15}}},
+        ],
+    )
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="opsx.apply",
+        requirements=["REQ-0037-auto-token-fact-source-for-workflow-commands"],
+        changes=["add-auto-token-fact-source-for-workflow-commands"],
+        sprint_id="sprint-007",
+    )
+
+    assert summary["status"] == "ok"
+    assert summary["usage_mode"] == "actual"
+    assert summary["command_run_count"] == 1
+    assert summary["sprint_snapshot"]["status"] == "refreshed"
+    command_path = out_dir / "command-runs" / f"{ai_usage.source_hash(session.read_bytes())[:16]}.json"
+    sprint_path = out_dir / "sprints" / "sprint-007.json"
+    assert command_path.exists()
+    assert sprint_path.exists()
+    command_text = command_path.read_text()
+    assert "/Users/" not in command_text
+    snapshot = json.loads(sprint_path.read_text())
+    assert snapshot["totals"]["command_run_count"] == 1
+    assert snapshot["coverage"]["requirements"] == ["REQ-0037-auto-token-fact-source-for-workflow-commands"]
+    assert snapshot["coverage"]["changes"] == ["add-auto-token-fact-source-for-workflow-commands"]
+
+
+def test_post_command_hook_without_sprint_skips_snapshot(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/req-capture REQ-0038"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 9}}},
+        ],
+    )
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="req.capture",
+        requirements=["REQ-0038-demo"],
+    )
+
+    assert summary["usage_mode"] == "actual"
+    assert summary["sprint_snapshot"] == {"status": "skipped", "path": None, "reason": "no-sprint"}
+    assert not (out_dir / "sprints").exists() or not list((out_dir / "sprints").glob("*.json"))
+
+
+def test_post_command_hook_missing_session_returns_unavailable(tmp_path: Path) -> None:
+    summary = ai_usage.post_command_hook(session_jsonl=None, out_dir=tmp_path / "ai-usage")
+
+    assert summary["status"] == "skipped"
+    assert summary["usage_mode"] == "unavailable"
+    assert summary["command_run_count"] == 0
+    assert "session-jsonl-missing" in summary["warnings"]
+    assert summary["recommended_action"]
+
+
+def test_post_command_hook_warns_on_malformed_or_missing_token_count(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/bug-complete BUG-0001"},
+            {"type": "assistant_message", "text": "ok"},
+        ],
+        malformed=True,
+    )
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=tmp_path / "ai-usage",
+        workflow_event="bug.complete",
+        bugs=["BUG-0001-demo"],
+    )
+
+    assert summary["status"] == "warning"
+    assert summary["usage_mode"] == "estimated_fallback"
+    assert "token-count-missing" in summary["warnings"]
+    assert "line-3: malformed-json" in summary["warnings"]
+
+
+def test_post_command_hook_is_idempotent_for_repeated_session(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "--event opsx.apply sprint-007 add-auto-token-fact-source-for-workflow-commands"},
+            {"payload": {"type": "token_count", "last_token_usage": {"input_tokens": 3, "output_tokens": 2, "total_tokens": 5}}},
+        ],
+    )
+
+    for _ in range(2):
+        ai_usage.post_command_hook(
+            session_jsonl=session,
+            out_dir=out_dir,
+            workflow_event="opsx.apply",
+            changes=["add-auto-token-fact-source-for-workflow-commands"],
+            sprint_id="sprint-007",
+        )
+
+    snapshot = json.loads((out_dir / "sprints" / "sprint-007.json").read_text())
+    assert snapshot["totals"]["command_run_count"] == 1
+    assert snapshot["totals"]["total_tokens"] == 5

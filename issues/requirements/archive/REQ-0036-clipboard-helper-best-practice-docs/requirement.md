@@ -3,13 +3,13 @@ requirement_id: REQ-0036-clipboard-helper-best-practice-docs
 title: Clipboard helper best-practice 文档
 terminal: web-admin
 version: v1
-status: approved
+status: done
 owner: product
 source: capture.md
 priority: P2
 parent_requirement: REQ-0032-clipboard-copy-helper-best-practice
 created_at: 2026-07-11 23:42:20
-updated_at: 2026-07-11 23:53:49
+updated_at: 2026-07-12 00:32:47
 ---
 
 # REQ-0036 Clipboard helper best-practice 文档
@@ -160,9 +160,9 @@ best-practice 文档 MUST 提供调用方 checklist，至少覆盖：
 ## 9. 状态块
 
 ```yaml
-status: approved
+status: done
 readiness: Ready
-next_step: /req-opsx REQ-0036-clipboard-helper-best-practice-docs
+next_step: /opsx-archive add-clipboard-helper-best-practice-docs
 expected_openspec_change: add-clipboard-helper-best-practice-docs
 needs_prototype: false
 needs_api_change: false

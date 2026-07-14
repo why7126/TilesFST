@@ -4,7 +4,7 @@ content: 说明本目录职责、Design System 使用约定
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-04 08:10:11
+updated_at: 2026-07-12 00:00:00
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -59,6 +59,8 @@ src/
 ### Clipboard 复制 helper
 
 Web 管理端复制文本统一使用 `src/shared/lib/clipboard.ts` 的 `copyTextToClipboard`。helper 只负责归一化文本、调用 Clipboard API、返回 `success` / `failed` / `unavailable` / `empty` 结构化结果，并可选执行手动选择 fallback；调用方负责 toast、`role="status"` 文案、dialog、业务 DOM 和埋点。
+
+调用方文案、fallback、敏感值分类、checklist、示例与反例见 [`../../docs/knowledge-base/best-practices/clipboard-fallback.md`](../../docs/knowledge-base/best-practices/clipboard-fallback.md)。
 
 约束：
 

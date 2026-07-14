@@ -1,9 +1,9 @@
 ---
 change_id: update-ai-usage-snapshot-sprint-close-exps
 type: update
-status: proposed
+status: archived
 created_at: 2026-07-11 23:57:08
-updated_at: 2026-07-12 00:07:29
+updated_at: 2026-07-12 00:55:20
 source_requirement: REQ-0035-ai-usage-snapshot-sprint-close-exps
 iteration: sprint-007
 affected_capabilities:
@@ -17,9 +17,9 @@ knowledge_base_refs:
 ```yaml
 change_id: update-ai-usage-snapshot-sprint-close-exps
 type: update
-status: proposed
+status: archived
 created_at: 2026-07-11 23:57:08
-updated_at: 2026-07-12 00:07:29
+updated_at: 2026-07-12 00:55:20
 source_requirement: REQ-0035-ai-usage-snapshot-sprint-close-exps
 iteration: sprint-007
 affected_capabilities:
@@ -33,7 +33,7 @@ knowledge_base_refs:
 | 类型 | 路径 | 说明 |
 |---|---|---|
 | REQ | `issues/requirements/review/REQ-0035-ai-usage-snapshot-sprint-close-exps/` | 已评审通过需求 |
-| knowledge-base | `docs/knowledge-base/retrospectives/sprint-006-retrospective.md` | AI usage snapshot 未成为默认产物的复盘行动项 |
+| knowledge-base | `docs/knowledge-base/retrospectives/sprint-006-retrospective.md` | A-001：将 AI usage snapshot 生成纳入 Sprint close / exps 默认流程，避免继续 estimated fallback |
 
 ## 影响分析
 
@@ -52,5 +52,7 @@ knowledge_base_refs:
 
 | 时间 | 命令 | 说明 |
 |---|---|---|
+| 2026-07-12 00:55:20 | /opsx-archive | OpenSpec Change 已归档到 `openspec/changes/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps/`，delta 已合并到 `openspec/specs/agent-workflow-tooling/spec.md` |
 | 2026-07-12 00:07:29 | /sprint-propose sprint-007 | Change 纳入 Sprint 007 正式范围 |
+| 2026-07-12 00:43:39 | /opsx-apply | 实现 snapshot 状态校验、Fact Sheet actual/fallback 口径、sprint-archive/exps 默认步骤、data 文档与聚焦测试 |
 | 2026-07-11 23:57:08 | /req-opsx | 从 REQ-0035 创建 OpenSpec Change，状态 proposed |
