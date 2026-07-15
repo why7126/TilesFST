@@ -4,6 +4,7 @@
 # Local environment
 .env
 .env.local
+scripts/build-images.env
 .venv/
 
 # Python

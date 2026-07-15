@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-04 08:10:11
+updated_at: 2026-07-15 23:57:27
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -32,6 +32,22 @@ Web 镜像构建会将 `src/web/public/` 下的静态资源复制到前端站点
 ## 生产镜像包交付
 
 `tilesfst-release-v0.0.1` 的 `linux/amd64` 镜像构建、离线交付包、外部 MySQL / 外部 MinIO 云服务器部署与冒烟验证流程，见 [08-production-image-release.md](08-production-image-release.md)。
+
+推荐使用脚本 + env 的方式构建生产镜像：
+
+```bash
+cp scripts/build-images.env.example scripts/build-images.env
+# 编辑 scripts/build-images.env，设置 IMAGE_BUILD_TAG、IMAGE_BUILD_PLATFORM、IMAGE_BUILD_RELEASE_DIR 等
+./scripts/build-images.sh
+```
+
+也可传入自定义 env 文件：
+
+```bash
+./scripts/build-images.sh /path/to/build-images.env
+```
+
+`scripts/build-images.env` 属于本地构建配置，已加入 `.gitignore`；可提交的变量示例为 `scripts/build-images.env.example`。
 
 ## Docker Compose 部署方案
 

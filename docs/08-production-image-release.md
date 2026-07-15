@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-06-30 22:03:23
+updated_at: 2026-07-15 23:57:27
 owner: 项目团队
 status: draft
 ---
@@ -115,7 +115,58 @@ docker buildx inspect --bootstrap
 
 本次实际构建中，先创建 `tilesfst-builder`，遇到 BuildKit 状态查询超时后，通过 `docker buildx rm tilesfst-builder` 清理并重新创建 builder 后继续构建。
 
-## 4. 构建后端镜像
+## 4. 脚本化构建镜像包
+
+推荐使用 `scripts/build-images.sh` + env 文件完成后端镜像、Web 镜像、基础验证、离线包导出和 sha256 校验文件生成。
+
+准备构建配置：
+
+```bash
+cp scripts/build-images.env.example scripts/build-images.env
+```
+
+编辑 `scripts/build-images.env`：
+
+```env
+IMAGE_BUILD_TAG=v0.0.1
+IMAGE_BUILD_PLATFORM=linux/amd64
+IMAGE_BUILD_BACKEND_IMAGE=tilesfst-backend
+IMAGE_BUILD_WEB_IMAGE=tilesfst-web
+IMAGE_BUILD_RELEASE_DIR=../releases/v0.0.1
+IMAGE_BUILD_TAR_NAME=tilesfst-v0.0.1-linux-amd64.tar.gz
+IMAGE_BUILD_EXPORT_TAR=true
+```
+
+执行构建：
+
+```bash
+./scripts/build-images.sh
+```
+
+如需使用临时配置文件，可传入 env 路径：
+
+```bash
+./scripts/build-images.sh /path/to/build-images.env
+```
+
+脚本会依次执行：
+
+1. 检查 Docker 与 buildx。
+2. 按 env 配置创建或复用 `IMAGE_BUILD_BUILDER`。
+3. 构建 `IMAGE_BUILD_BACKEND_IMAGE:IMAGE_BUILD_TAG` 与 `IMAGE_BUILD_WEB_IMAGE:IMAGE_BUILD_TAG`。
+4. 验证镜像平台、后端依赖导入与 Web Nginx 配置。
+5. 当 `IMAGE_BUILD_EXPORT_TAR=true` 时，导出 gzip 离线镜像包并生成 `.sha256`。
+
+输出示例：
+
+```text
+../releases/v0.0.1/images/tilesfst-v0.0.1-linux-amd64.tar.gz
+../releases/v0.0.1/images/tilesfst-v0.0.1-linux-amd64.tar.gz.sha256
+```
+
+`scripts/build-images.env` 为本地构建配置，禁止提交；可提交的示例文件是 `scripts/build-images.env.example`。
+
+## 5. 手工参考：构建后端镜像
 
 在项目根目录执行：
 
@@ -149,7 +200,7 @@ docker run --rm tilesfst-backend:v0.0.1 \
   uv run --no-sync python -c "import fastapi, sqlalchemy, pymysql, minio; print('backend deps ok')"
 ```
 
-## 5. 构建 Web 镜像
+## 6. 手工参考：构建 Web 镜像
 
 在项目根目录执行：
 
@@ -187,7 +238,7 @@ linux/amd64
 docker run --rm tilesfst-web:v0.0.1 nginx -t
 ```
 
-## 6. 导出离线镜像包
+## 7. 手工参考：导出离线镜像包
 
 创建交付目录：
 
@@ -224,7 +275,7 @@ shasum -a 256 tilesfst-v0.0.1-linux-amd64.tar.gz > tilesfst-v0.0.1-linux-amd64.t
 
 说明：`docker load` 支持直接加载 gzip 压缩的镜像包，服务器无需手动解压。
 
-### 6.1 本次已验证的端到端构建命令
+### 7.1 本次已验证的端到端构建命令
 
 以下命令为本次 `tilesfst-release-v0.0.1` 构建验证使用的完整流水，已将 shell 历史中的换行转义整理为可直接复制执行的格式：
 
@@ -271,7 +322,7 @@ ls
 shasum -a 256 tilesfst-v0.0.1-linux-amd64.tar.gz > tilesfst-v0.0.1-linux-amd64.tar.gz.sha256
 ```
 
-## 7. 交付版 docker-compose.yml
+## 8. 交付版 docker-compose.yml
 
 交付版 `docker-compose.yml` 使用 `image:`，不使用 `build:`：
 
@@ -361,7 +412,7 @@ networks:
     driver: bridge
 ```
 
-## 8. 服务器 .env 示例
+## 9. 服务器 .env 示例
 
 在云服务器交付目录中创建 `.env`，不要提交真实 `.env`：
 
@@ -407,7 +458,7 @@ HOST_PORT_WEB=127.0.0.1:3000
 - `MINIO_SECURE=true` 表示 HTTPS；HTTP 内网对象存储使用 `false`。
 - 外部 MinIO 必须提前创建 `MINIO_BUCKET`，并授予当前 AccessKey 读写权限。
 
-## 9. 云服务器部署步骤
+## 10. 云服务器部署步骤
 
 上传交付包到服务器，例如：
 
@@ -467,7 +518,7 @@ docker compose logs web --tail=100
 docker compose logs backend --tail=100
 ```
 
-## 10. 冒烟验证
+## 11. 冒烟验证
 
 验证 Web 容器：
 
@@ -516,7 +567,7 @@ docker compose exec backend uv run --no-sync python -c "from io import BytesIO; 
 5. 确认头像 URL `/media/images/...` 可显示。
 6. 创建或编辑用户，确认用户列表刷新正常。
 
-## 11. 宿主机 Nginx 接入
+## 12. 宿主机 Nginx 接入
 
 当前容器部署流程已验证，宿主机 Nginx 反代尚未完成验证。若云服务器已有其他项目占用 80/443，推荐使用独立子域名，例如：
 
@@ -556,7 +607,7 @@ systemctl reload nginx
 
 生产建议只在安全组开放 80/443，不长期开放 3000。
 
-## 12. 常见问题
+## 13. 常见问题
 
 ### 12.1 公网 IP:3000 访问不了
 
@@ -636,7 +687,7 @@ docker compose exec backend uv run --no-sync python -c "from app.core.config imp
 
 浏览器开发者工具中查看 `POST /api/v1/admin/users` 的 Response，可看到具体字段错误。
 
-## 13. 已验证与待验证
+## 14. 已验证与待验证
 
 已验证：
 
