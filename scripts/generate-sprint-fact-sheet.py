@@ -11,8 +11,10 @@ import argparse
 import json
 import re
 import sys
+from datetime import timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from workflow_sync import collect
 from workflow_sync.issue_status_residuals import scan_issue_status_residuals
@@ -21,6 +23,7 @@ import ai_usage
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PROJECT_TZ = ZoneInfo("Asia/Shanghai")
 
 
 def rel(path: Path, root: Path) -> str:
@@ -162,6 +165,19 @@ def ai_usage_snapshot(
     if safe["ai_usage_mode"] == "estimated_fallback":
         safe["note"] = "ai_usage_mode: estimated_fallback; /sprint-exps must state reason and recommended_action."
     return safe
+
+
+def project_time_to_utc_iso(value: Any) -> str | None:
+    """Convert project document timestamps to timezone-aware UTC ISO for usage checks."""
+
+    if not isinstance(value, str) or not value.strip():
+        return None
+    parsed = ai_usage.parse_datetime(value)
+    if parsed is None:
+        return value
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", value.strip()):
+        parsed = parsed.replace(tzinfo=PROJECT_TZ)
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
@@ -370,7 +386,9 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                     "bugs": sprint.bugs,
                     "changes": sprint.changes,
                 },
-                min_generated_at=sprint_yaml.get("end_date") or sprint_yaml.get("start_date"),
+                min_generated_at=project_time_to_utc_iso(
+                    sprint_yaml.get("end_date") or sprint_yaml.get("start_date")
+                ),
             ),
             "four_piece": four_piece,
             "warnings": warnings,

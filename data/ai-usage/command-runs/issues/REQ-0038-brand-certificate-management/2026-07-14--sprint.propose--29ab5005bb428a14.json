@@ -1,0 +1,43 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "29ab5005bb428a146f04e734b6ec91898f945b8adceaa4cebbab214e067f2504",
+      "source_line_start": 602,
+      "source_line_end": 612,
+      "turn_hash": "d7c002be5e715de6",
+      "started_at": "2026-07-14T15:42:46.100Z",
+      "ended_at": "2026-07-15T00:51:14.335Z",
+      "command": "sprint.propose",
+      "workflow_event": "sprint.propose",
+      "requirements": [
+        "REQ-0038-brand-certificate-management"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-brand-certificate-management"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_call_count": 1,
+      "input_tokens": 0,
+      "cached_input_tokens": 0,
+      "output_tokens": 0,
+      "reasoning_output_tokens": 0,
+      "total_tokens": 193452,
+      "tool_call_count": 0,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count",
+      "source_data_file": "~/.codex/sessions/2026/07/14/rollout-2026-07-14T22-47-35-019f6118-fee7-7072-aeeb-84a36e42b08a.jsonl",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400
+    }
+  ]
+}

@@ -4,11 +4,11 @@
 
 ### Requirement: Agent 命令 MUST 遵守上下文预算
 
-项目级 source-command 技能 MUST 引用统一的 Agent 上下文预算规则，并在执行时优先使用定位、摘要、片段读取，而不是全量读取规则、历史归档、生成物或大目录。
+项目级命令技能 MUST 引用统一的 Agent 上下文预算规则，并在执行时优先使用定位、摘要、片段读取，而不是全量读取规则、历史归档、生成物或大目录。
 
 #### Scenario: 技能引用统一预算规则
 
-- **WHEN** 新增或更新 `.agents/skills/source-command-*` 技能
+- **WHEN** 新增或更新 `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture` 或 `.agents/skills/initialize-project` 命令技能
 - **THEN** 技能 MUST 明确引用 `rules/agent-context-budget.md`
 - **AND** 技能 MUST 避免要求默认全量读取 `rules/*`、`docs/**`、`issues/**`、`iterations/**` 或 `openspec/specs/**`
 
@@ -32,5 +32,5 @@ Agent 在检查 OpenAPI、Orval、构建产物、Workflow Sync 输出或大 diff
 #### Scenario: 校验脚本阻止预算规则回退
 
 - **WHEN** 运行 `python scripts/validate-agent-context-budget.py`
-- **THEN** 脚本 MUST 检查 `.agents/skills/source-command-*` 是否引用 `rules/agent-context-budget.md`
+- **THEN** 脚本 MUST 检查 `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture` 与 `.agents/skills/initialize-project` 是否引用 `rules/agent-context-budget.md`
 - **AND** 脚本 MUST 报告缺少预算入口或出现默认宽泛读取指令的技能文件

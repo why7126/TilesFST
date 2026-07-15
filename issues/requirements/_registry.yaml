@@ -1,10 +1,16 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 38
+next_id: 39
 entries:
+  - id: REQ-0038-brand-certificate-management
+    title: 新增品牌证书管理页
+    status: done
+    iteration: sprint-007
+    created: "2026-07-14 22:37:23"
+    parent_requirement: REQ-0005-brand-management
   - id: REQ-0037-auto-token-fact-source-for-workflow-commands
     title: 工作流命令自动构建 AI Token 事实源
-    status: in_sprint
+    status: done
     iteration: null
     created: "2026-07-12 09:52:06"
     parent_requirement: REQ-0034-ai-token-usage-observability

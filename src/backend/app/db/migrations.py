@@ -71,9 +71,59 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_password_change_support(connection)
     _ensure_theme_preference_support(connection)
     _ensure_tile_specs_support(connection)
+    _ensure_brand_certificates_support(connection)
     _ensure_banner_support(connection)
     _ensure_system_settings_support(connection)
     _ensure_product_usage_logging_support(connection)
+
+
+def _ensure_brand_certificates_support(connection: Connection) -> None:
+    connection.execute(
+        text(
+            """
+            CREATE TABLE IF NOT EXISTS brand_certificates (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              brand_id INTEGER NOT NULL,
+              name TEXT NOT NULL,
+              sort_order INTEGER NOT NULL DEFAULT 100,
+              type TEXT NOT NULL CHECK (type IN ('QUALITY', 'INSPECTION', 'GREEN_BUILDING', 'HONOR', 'OTHER')),
+              certificate_no TEXT,
+              issuer TEXT,
+              file_url TEXT NOT NULL,
+              file_key TEXT NOT NULL,
+              file_name TEXT NOT NULL,
+              file_mime_type TEXT NOT NULL,
+              file_size_bytes INTEGER NOT NULL CHECK (file_size_bytes > 0),
+              is_permanent INTEGER NOT NULL DEFAULT 0 CHECK (is_permanent IN (0, 1)),
+              effective_date TEXT,
+              expiry_date TEXT,
+              is_visible INTEGER NOT NULL DEFAULT 1 CHECK (is_visible IN (0, 1)),
+              remark TEXT,
+              deleted_at TEXT,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              FOREIGN KEY(brand_id) REFERENCES brands(id)
+            )
+            """
+        )
+    )
+    indexes = {
+        "idx_brand_certificates_brand_visible": (
+            "CREATE INDEX idx_brand_certificates_brand_visible "
+            "ON brand_certificates(brand_id, is_visible, deleted_at)"
+        ),
+        "idx_brand_certificates_type_deleted": (
+            "CREATE INDEX idx_brand_certificates_type_deleted "
+            "ON brand_certificates(type, deleted_at)"
+        ),
+        "uq_brand_certificates_brand_name_active": (
+            "CREATE UNIQUE INDEX uq_brand_certificates_brand_name_active "
+            "ON brand_certificates(brand_id, name) WHERE deleted_at IS NULL"
+        ),
+    }
+    for name, sql in indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
 
 
 def _ensure_product_usage_logging_support(connection: Connection) -> None:

@@ -40,6 +40,37 @@ CREATE TABLE IF NOT EXISTS brands (
   CONSTRAINT chk_brands_sku_count CHECK (sku_count >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS brand_certificates (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  brand_id BIGINT NOT NULL,
+  name VARCHAR(180) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 100,
+  type VARCHAR(64) NOT NULL,
+  certificate_no VARCHAR(120),
+  issuer VARCHAR(180),
+  file_url VARCHAR(768) NOT NULL,
+  file_key VARCHAR(512) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_mime_type VARCHAR(128) NOT NULL,
+  file_size_bytes BIGINT NOT NULL,
+  is_permanent TINYINT NOT NULL DEFAULT 0,
+  effective_date VARCHAR(32),
+  expiry_date VARCHAR(32),
+  is_visible TINYINT NOT NULL DEFAULT 1,
+  remark TEXT,
+  deleted_at VARCHAR(64),
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_brand_certificates_brand FOREIGN KEY(brand_id) REFERENCES brands(id),
+  CONSTRAINT chk_brand_certificates_type CHECK (type IN ('QUALITY', 'INSPECTION', 'GREEN_BUILDING', 'HONOR', 'OTHER')),
+  CONSTRAINT chk_brand_certificates_file_size CHECK (file_size_bytes > 0),
+  CONSTRAINT chk_brand_certificates_permanent CHECK (is_permanent IN (0, 1)),
+  CONSTRAINT chk_brand_certificates_visible CHECK (is_visible IN (0, 1)),
+  UNIQUE KEY uq_brand_certificates_brand_name_deleted (brand_id, name, deleted_at),
+  INDEX idx_brand_certificates_brand_visible (brand_id, is_visible, deleted_at),
+  INDEX idx_brand_certificates_type_deleted (type, deleted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS tile_categories (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   parent_id BIGINT,

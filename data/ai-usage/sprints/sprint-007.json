@@ -1,0 +1,171 @@
+{
+  "sprint_id": "sprint-007",
+  "source": "data/ai-usage command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/11/rollout-2026-07-11T23-33-35-019f51d0-0850-7e01-97ae-fe9fa25c9f63.jsonl",
+    "~/.codex/sessions/2026/07/11/rollout-2026-07-11T23-35-11-019f51d1-7c68-7f30-97a4-34962a1846f3.jsonl",
+    "~/.codex/sessions/2026/07/12/rollout-2026-07-12T00-16-34-019f51f7-6251-7603-8f4b-19e357ec7816.jsonl",
+    "~/.codex/sessions/2026/07/12/rollout-2026-07-12T00-34-52-019f5208-2161-7092-bcf7-53dc943a2d9f.jsonl",
+    "~/.codex/sessions/2026/07/12/rollout-2026-07-12T09-42-45-019f53fd-ba04-7633-8169-021beb5cabd0.jsonl",
+    "~/.codex/sessions/2026/07/14/rollout-2026-07-14T22-34-09-019f610c-b191-7171-b3a2-0b3a62c0c561.jsonl",
+    "~/.codex/sessions/2026/07/14/rollout-2026-07-14T22-47-35-019f6118-fee7-7072-aeeb-84a36e42b08a.jsonl",
+    "~/.codex/sessions/2026/07/14/rollout-2026-07-14T22-55-37-019f6120-599a-7ea1-808e-5dc363e75f83.jsonl",
+    "~/.codex/sessions/2026/07/15/rollout-2026-07-15T08-53-10-019f6343-6b78-7361-b938-a7c77acd4b8c.jsonl",
+    "~/.codex/sessions/2026/07/15/rollout-2026-07-15T13-11-14-019f642f-ae28-70e3-83fa-fdf6ae30c203.jsonl",
+    "~/.codex/sessions/2026/07/15/rollout-2026-07-15T13-30-41-019f6441-7ee5-7dd0-a457-3716780397b3.jsonl",
+    "~/.codex/sessions/2026/07/15/rollout-2026-07-15T13-47-17-019f6450-b07a-7b92-855d-02e2f8fe3c15.jsonl"
+  ],
+  "generated_at": "2026-07-15T05:59:16.726793Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0035-ai-usage-snapshot-sprint-close-exps",
+      "REQ-0036-clipboard-helper-best-practice-docs",
+      "REQ-0037-auto-token-fact-source-for-workflow-commands",
+      "REQ-0038-brand-certificate-management"
+    ],
+    "bugs": [
+      "BUG-0061-change-password-policy-error-message-unclear"
+    ],
+    "changes": [
+      "add-auto-token-fact-source-for-workflow-commands",
+      "add-brand-certificate-management",
+      "add-clipboard-helper-best-practice-docs",
+      "fix-change-password-policy-error-message",
+      "update-ai-usage-snapshot-sprint-close-exps"
+    ]
+  },
+  "models": [
+    {
+      "model_name": "codex-auto-review",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "ultra_fast",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_context_window": 258400
+    },
+    {
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_context_window": 258400
+    }
+  ],
+  "totals": {
+    "input_tokens": 42219620,
+    "cached_input_tokens": 40645248,
+    "output_tokens": 209798,
+    "reasoning_output_tokens": 22708,
+    "total_tokens": 42645392,
+    "command_run_count": 17,
+    "model_call_count": 365,
+    "tool_call_count": 711,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "by_workflow_event": {
+    "opsx.apply": {
+      "command_run_count": 4,
+      "model_call_count": 167,
+      "tool_call_count": 311,
+      "retry_count": 0,
+      "input_tokens": 18117685,
+      "cached_input_tokens": 17604736,
+      "output_tokens": 96352,
+      "reasoning_output_tokens": 8196,
+      "total_tokens": 18214037
+    },
+    "opsx.archive": {
+      "command_run_count": 4,
+      "model_call_count": 65,
+      "tool_call_count": 134,
+      "retry_count": 0,
+      "input_tokens": 8052516,
+      "cached_input_tokens": 7620992,
+      "output_tokens": 24563,
+      "reasoning_output_tokens": 6495,
+      "total_tokens": 8077079
+    },
+    "release.prepare": {
+      "command_run_count": 1,
+      "model_call_count": 27,
+      "tool_call_count": 61,
+      "retry_count": 0,
+      "input_tokens": 2525023,
+      "cached_input_tokens": 2399360,
+      "output_tokens": 16141,
+      "reasoning_output_tokens": 1609,
+      "total_tokens": 2541164
+    },
+    "req.opsx": {
+      "command_run_count": 1,
+      "model_call_count": 1,
+      "tool_call_count": 0,
+      "retry_count": 0,
+      "input_tokens": 116115,
+      "cached_input_tokens": 114560,
+      "output_tokens": 74,
+      "reasoning_output_tokens": 10,
+      "total_tokens": 116189
+    },
+    "sprint.archive": {
+      "command_run_count": 1,
+      "model_call_count": 20,
+      "tool_call_count": 45,
+      "retry_count": 0,
+      "input_tokens": 1243432,
+      "cached_input_tokens": 1165312,
+      "output_tokens": 8103,
+      "reasoning_output_tokens": 917,
+      "total_tokens": 1251535
+    },
+    "sprint.exps": {
+      "command_run_count": 1,
+      "model_call_count": 10,
+      "tool_call_count": 27,
+      "retry_count": 0,
+      "input_tokens": 510106,
+      "cached_input_tokens": 441600,
+      "output_tokens": 8194,
+      "reasoning_output_tokens": 795,
+      "total_tokens": 518300
+    },
+    "sprint.propose": {
+      "command_run_count": 5,
+      "model_call_count": 75,
+      "tool_call_count": 133,
+      "retry_count": 0,
+      "input_tokens": 11654743,
+      "cached_input_tokens": 11298688,
+      "output_tokens": 56371,
+      "reasoning_output_tokens": 4686,
+      "total_tokens": 11927088
+    }
+  },
+  "by_model": {
+    "codex-auto-review|low|ultra_fast": {
+      "command_run_count": 1,
+      "model_call_count": 1,
+      "input_tokens": 116115,
+      "cached_input_tokens": 114560,
+      "output_tokens": 74,
+      "reasoning_output_tokens": 10,
+      "total_tokens": 116189
+    },
+    "gpt-5.5|medium|frontier": {
+      "command_run_count": 16,
+      "model_call_count": 364,
+      "input_tokens": 42103505,
+      "cached_input_tokens": 40530688,
+      "output_tokens": 209724,
+      "reasoning_output_tokens": 22698,
+      "total_tokens": 42529203
+    }
+  }
+}

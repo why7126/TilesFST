@@ -1,0 +1,203 @@
+.admin-shell .certificate-mgmt-table th,
+.admin-shell .certificate-mgmt-table td {
+  white-space: nowrap;
+}
+
+.admin-shell .brand-certificate-page .brand-filter-row {
+  grid-template-columns:
+    minmax(220px, 1.35fr)
+    minmax(150px, 1fr)
+    minmax(140px, 0.9fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    auto;
+}
+
+.admin-shell .certificate-cell,
+.admin-shell .certificate-file-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-shell .certificate-thumb,
+.admin-shell .certificate-file-thumb {
+  width: 38px;
+  height: 38px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 26%, transparent);
+  border-radius: 3px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.admin-shell .certificate-thumb img,
+.admin-shell .certificate-file-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .certificate-thumb-fallback {
+  display: none;
+}
+
+.admin-shell .certificate-thumb.is-fallback img {
+  display: none;
+}
+
+.admin-shell .certificate-thumb.is-fallback .certificate-thumb-fallback {
+  display: inline;
+}
+
+.admin-shell .badge.warning {
+  background: color-mix(in srgb, var(--admin-gold) 20%, transparent);
+  color: var(--admin-gold);
+}
+
+.admin-shell .badge.danger {
+  background: color-mix(in srgb, var(--admin-danger) 18%, transparent);
+  color: var(--admin-danger);
+}
+
+.admin-shell .metric-filter-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-shell .metric-filter-link:hover {
+  color: var(--admin-gold);
+}
+
+.admin-shell .certificate-modal-card {
+  width: 760px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-card) 98%, transparent);
+  box-shadow: 0 28px 100px rgb(0 0 0 / 0.55);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-shell .certificate-modal-card .modal-head,
+.admin-shell .certificate-modal-card .modal-footer {
+  flex-shrink: 0;
+}
+
+.admin-shell .certificate-modal-body {
+  overflow: auto;
+}
+
+.admin-shell .certificate-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 14px;
+}
+
+.admin-shell .certificate-upload {
+  min-height: 86px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-shell .certificate-upload.is-failed {
+  border-color: color-mix(in srgb, var(--admin-danger) 42%, var(--admin-line-strong));
+}
+
+.admin-shell .field-error {
+  margin-top: 6px;
+  color: var(--admin-danger);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.admin-shell .certificate-file-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-shell .certificate-upload-actions {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.admin-shell .certificate-upload-actions .btn {
+  min-width: 86px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.admin-shell .certificate-upload-actions .btn.disabled {
+  cursor: wait;
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.admin-shell .certificate-check {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-shell .certificate-check input {
+  accent-color: var(--admin-gold);
+}
+
+.admin-shell .certificate-remark {
+  height: 96px;
+}
+
+@media (max-width: 900px) {
+  .admin-shell .brand-certificate-page .brand-filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-shell .certificate-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .certificate-upload {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-shell .certificate-upload-actions {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .brand-certificate-page .brand-filter-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -150,6 +150,88 @@ export interface ApiResponseBrandAdminListData {
   data?: BrandAdminListData | null;
 }
 
+export type BrandCertificateItemType = typeof BrandCertificateItemType[keyof typeof BrandCertificateItemType];
+
+
+export const BrandCertificateItemType = {
+  QUALITY: 'QUALITY',
+  INSPECTION: 'INSPECTION',
+  GREEN_BUILDING: 'GREEN_BUILDING',
+  HONOR: 'HONOR',
+  OTHER: 'OTHER',
+} as const;
+
+export type BrandCertificateItemValidityStatus = typeof BrandCertificateItemValidityStatus[keyof typeof BrandCertificateItemValidityStatus];
+
+
+export const BrandCertificateItemValidityStatus = {
+  PERMANENT: 'PERMANENT',
+  VALID: 'VALID',
+  EXPIRING_SOON: 'EXPIRING_SOON',
+  EXPIRED: 'EXPIRED',
+  UNSET: 'UNSET',
+} as const;
+
+export type BrandCertificateItemDisplayStatus = typeof BrandCertificateItemDisplayStatus[keyof typeof BrandCertificateItemDisplayStatus];
+
+
+export const BrandCertificateItemDisplayStatus = {
+  VISIBLE: 'VISIBLE',
+  HIDDEN: 'HIDDEN',
+} as const;
+
+export interface BrandCertificateItem {
+  id: number;
+  brand_id: number;
+  brand_name: string;
+  name: string;
+  sort_order: number;
+  type: BrandCertificateItemType;
+  certificate_no?: string | null;
+  issuer?: string | null;
+  file_url: string;
+  file_key: string;
+  file_name: string;
+  file_mime_type: string;
+  file_size_bytes: number;
+  is_permanent: boolean;
+  effective_date?: string | null;
+  expiry_date?: string | null;
+  validity_status: BrandCertificateItemValidityStatus;
+  is_visible: boolean;
+  display_status: BrandCertificateItemDisplayStatus;
+  remark?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiResponseBrandCertificateItem {
+  code?: number;
+  message?: string;
+  data?: BrandCertificateItem | null;
+}
+
+export interface BrandCertificateSummary {
+  total: number;
+  valid_count: number;
+  expiring_soon_count: number;
+  expired_count: number;
+}
+
+export interface BrandCertificateListData {
+  items: BrandCertificateItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  summary: BrandCertificateSummary;
+}
+
+export interface ApiResponseBrandCertificateListData {
+  code?: number;
+  message?: string;
+  data?: BrandCertificateListData | null;
+}
+
 export interface ChangePasswordData {
   success?: boolean;
 }
@@ -521,6 +603,11 @@ export interface ApiResponseTopicAdminListData {
 export interface UploadResult {
   object_key: string;
   url: string;
+  file_key?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  mime_type?: string | null;
+  size?: number | null;
 }
 
 export interface ApiResponseUploadResult {
@@ -700,6 +787,10 @@ export interface BodyUploadBannerImageApiV1AdminUploadsBannerImagesPost {
   file: Blob;
 }
 
+export interface BodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost {
+  file: Blob;
+}
+
 export interface BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost {
   file: Blob;
 }
@@ -714,6 +805,95 @@ export interface BodyUploadTileImageApiV1AdminUploadsTileImagesPost {
 
 export interface BodyUploadTileVideoApiV1AdminUploadsTileVideosPost {
   file: Blob;
+}
+
+export type BrandCertificateCreateRequestType = typeof BrandCertificateCreateRequestType[keyof typeof BrandCertificateCreateRequestType];
+
+
+export const BrandCertificateCreateRequestType = {
+  QUALITY: 'QUALITY',
+  INSPECTION: 'INSPECTION',
+  GREEN_BUILDING: 'GREEN_BUILDING',
+  HONOR: 'HONOR',
+  OTHER: 'OTHER',
+} as const;
+
+export interface BrandCertificateFile {
+  /**
+     * @minLength 1
+     * @maxLength 768
+     */
+  file_url: string;
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  file_key: string;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  file_name: string;
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  file_mime_type: string;
+  /** @minimum 1 */
+  file_size_bytes: number;
+}
+
+export interface BrandCertificateCreateRequest {
+  /** @minimum 1 */
+  brand_id: number;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @minimum 1 */
+  sort_order: number;
+  type: BrandCertificateCreateRequestType;
+  certificate_no?: string | null;
+  issuer?: string | null;
+  file: BrandCertificateFile;
+  is_permanent?: boolean;
+  effective_date?: string | null;
+  expiry_date?: string | null;
+  is_visible?: boolean;
+  remark?: string | null;
+}
+
+export type BrandCertificateUpdateRequestType = typeof BrandCertificateUpdateRequestType[keyof typeof BrandCertificateUpdateRequestType];
+
+
+export const BrandCertificateUpdateRequestType = {
+  QUALITY: 'QUALITY',
+  INSPECTION: 'INSPECTION',
+  GREEN_BUILDING: 'GREEN_BUILDING',
+  HONOR: 'HONOR',
+  OTHER: 'OTHER',
+} as const;
+
+export interface BrandCertificateUpdateRequest {
+  /** @minimum 1 */
+  brand_id: number;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @minimum 1 */
+  sort_order: number;
+  type: BrandCertificateUpdateRequestType;
+  certificate_no?: string | null;
+  issuer?: string | null;
+  file: BrandCertificateFile;
+  is_permanent?: boolean;
+  effective_date?: string | null;
+  expiry_date?: string | null;
+  is_visible?: boolean;
+  remark?: string | null;
 }
 
 export interface BrandCreateRequest {
@@ -1036,6 +1216,23 @@ page?: number;
 page_size?: number;
 keyword?: string | null;
 status?: string | null;
+};
+
+export type ListBrandCertificatesApiV1AdminBrandCertificatesGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+keyword?: string | null;
+brand_id?: number | null;
+type?: string | null;
+validity_status?: string | null;
+display_status?: string | null;
 };
 
 export type ListBannersApiV1AdminBannersGetParams = {
@@ -1512,6 +1709,90 @@ const disableBrandApiV1AdminBrandsBrandIdDisablePost = (
   }
 
 /**
+ * @summary 品牌证书列表
+ */
+const listBrandCertificatesApiV1AdminBrandCertificatesGet = (
+    params?: ListBrandCertificatesApiV1AdminBrandCertificatesGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateListData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/brand-certificates`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 创建品牌证书
+ */
+const createBrandCertificateApiV1AdminBrandCertificatesPost = (
+    brandCertificateCreateRequest: BrandCertificateCreateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brand-certificates`,
+      brandCertificateCreateRequest,options
+    );
+  }
+
+/**
+ * @summary 品牌证书详情
+ */
+const getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet = (
+    certificateId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/brand-certificates/${certificateId}`,options
+    );
+  }
+
+/**
+ * @summary 更新品牌证书
+ */
+const updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut = (
+    certificateId: number,
+    brandCertificateUpdateRequest: BrandCertificateUpdateRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
+    return axiosInstance.put(
+      `/api/v1/admin/brand-certificates/${certificateId}`,
+      brandCertificateUpdateRequest,options
+    );
+  }
+
+/**
+ * @summary 删除品牌证书
+ */
+const deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete = (
+    certificateId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseNoneType>> => {
+    return axiosInstance.delete(
+      `/api/v1/admin/brand-certificates/${certificateId}`,options
+    );
+  }
+
+/**
+ * @summary 显示品牌证书
+ */
+const showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost = (
+    certificateId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brand-certificates/${certificateId}/show`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 隐藏品牌证书
+ */
+const hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost = (
+    certificateId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/brand-certificates/${certificateId}/hide`,
+      undefined,options
+    );
+  }
+
+/**
  * @summary Banner 列表
  */
 const listBannersApiV1AdminBannersGet = (
@@ -1948,6 +2229,20 @@ formData.append(`file`, bodyUploadTileVideoApiV1AdminUploadsTileVideosPost.file)
   }
 
 /**
+ * @summary 上传品牌证书文件
+ */
+const uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost = (
+    bodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost: BodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
+formData.append(`file`, bodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost.file);
+
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/brand-certificates`,
+      formData,options
+    );
+  }
+
+/**
  * @summary 健康检查
  */
 const healthCheckHealthGet = (
@@ -1958,7 +2253,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,listLogsApiV1AdminLogsGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,listLogsApiV1AdminLogsGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -1991,6 +2286,13 @@ export type UpdateBrandApiV1AdminBrandsBrandIdPutResult = AxiosResponse<ApiRespo
 export type DeleteBrandApiV1AdminBrandsBrandIdDeleteResult = AxiosResponse<ApiResponseNoneType>
 export type EnableBrandApiV1AdminBrandsBrandIdEnablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
 export type DisableBrandApiV1AdminBrandsBrandIdDisablePostResult = AxiosResponse<ApiResponseBrandAdminItem>
+export type ListBrandCertificatesApiV1AdminBrandCertificatesGetResult = AxiosResponse<ApiResponseBrandCertificateListData>
+export type CreateBrandCertificateApiV1AdminBrandCertificatesPostResult = AxiosResponse<ApiResponseBrandCertificateItem>
+export type GetBrandCertificateApiV1AdminBrandCertificatesCertificateIdGetResult = AxiosResponse<ApiResponseBrandCertificateItem>
+export type UpdateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPutResult = AxiosResponse<ApiResponseBrandCertificateItem>
+export type DeleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDeleteResult = AxiosResponse<ApiResponseNoneType>
+export type ShowBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPostResult = AxiosResponse<ApiResponseBrandCertificateItem>
+export type HideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePostResult = AxiosResponse<ApiResponseBrandCertificateItem>
 export type ListBannersApiV1AdminBannersGetResult = AxiosResponse<ApiResponseBannerAdminListData>
 export type CreateBannerApiV1AdminBannersPostResult = AxiosResponse<ApiResponseBannerAdminItem>
 export type GetBannerApiV1AdminBannersBannerIdGetResult = AxiosResponse<ApiResponseBannerAdminItem>
@@ -2026,4 +2328,5 @@ export type UploadBrandLogoApiV1AdminUploadsBrandLogosPostResult = AxiosResponse
 export type UploadBannerImageApiV1AdminUploadsBannerImagesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadTileImageApiV1AdminUploadsTileImagesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadTileVideoApiV1AdminUploadsTileVideosPostResult = AxiosResponse<ApiResponseUploadResult>
+export type UploadBrandCertificateApiV1AdminUploadsBrandCertificatesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type HealthCheckHealthGetResult = AxiosResponse<HealthCheckHealthGet200>

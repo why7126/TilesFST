@@ -2,7 +2,7 @@
 purpose: 缺陷（BUG）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-07-11 16:25:13
+updated_at: 2026-07-14 19:05:47
 ---
 
 # 缺陷管理规范
@@ -138,4 +138,4 @@ Frontmatter **MUST** 含 `created_at`、`updated_at`；更新 trace 时刷新 `u
 
 ## 8. 参考命令
 
-`.agents/skills/source-command-bug-*/SKILL.md`
+`.agents/skills/bug-*/SKILL.md`

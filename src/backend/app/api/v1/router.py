@@ -12,6 +12,7 @@ from app.api.v1 import (
     admin_system_settings,
     admin_logs,
     admin_api_docs,
+    admin_brand_certificates,
     auth,
     profile,
     tiles,
@@ -35,6 +36,11 @@ api_router.include_router(admin_api_docs.router, prefix="/admin/api-docs", tags=
 api_router.include_router(admin_logs.router, prefix="/admin/logs", tags=["admin-logs"])
 api_router.include_router(usage_events.router, prefix="/usage-events", tags=["usage-events"])
 api_router.include_router(admin_brands.router, prefix="/admin/brands", tags=["admin-brands"])
+api_router.include_router(
+    admin_brand_certificates.router,
+    prefix="/admin/brand-certificates",
+    tags=["admin-brand-certificates"],
+)
 api_router.include_router(admin_banners.router, prefix="/admin/banners", tags=["admin-banners"])
 api_router.include_router(admin_topics.router, prefix="/admin/topics", tags=["admin-topics"])
 api_router.include_router(

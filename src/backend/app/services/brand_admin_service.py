@@ -9,6 +9,7 @@ from app.core.exceptions import (
     BrandNameDuplicatedError,
     BrandNotFoundError,
 )
+from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRecord, BrandRepository
 from app.schemas.brand_admin import (
     BrandAdminItem,
@@ -37,8 +38,13 @@ def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
 
 
 class BrandAdminService:
-    def __init__(self, repo: BrandRepository) -> None:
+    def __init__(
+        self,
+        repo: BrandRepository,
+        certificate_repo: BrandCertificateRepository | None = None,
+    ) -> None:
         self._repo = repo
+        self._certificate_repo = certificate_repo
 
     @staticmethod
     def to_item(brand: BrandRecord) -> BrandAdminItem:
@@ -171,6 +177,8 @@ class BrandAdminService:
         brand = self._repo.get_by_id(brand_id)
         if brand is None:
             raise BrandNotFoundError()
+        if self._certificate_repo and self._certificate_repo.count_active_by_brand(brand_id) > 0:
+            raise BrandDeleteForbiddenError("品牌存在未删除证书，请先迁移或删除证书")
         if brand.sku_count != 0 or brand.status != "DISABLED":
             raise BrandDeleteForbiddenError()
         self._repo.delete(brand_id)

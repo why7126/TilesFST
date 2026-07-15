@@ -1,0 +1,43 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "623d615a91ae5d4cbbfb49873d7e71aa38d2019becd4481edf60126eab770aac",
+      "source_line_start": 171,
+      "source_line_end": 176,
+      "turn_hash": "490612a75a3047b0",
+      "started_at": "2026-07-15T01:07:40.669Z",
+      "ended_at": "2026-07-15T01:07:46.749Z",
+      "command": "req.opsx",
+      "workflow_event": "req.opsx",
+      "requirements": [
+        "REQ-0038-brand-certificate-management"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-brand-certificate-management"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_call_count": 1,
+      "input_tokens": 116115,
+      "cached_input_tokens": 114560,
+      "output_tokens": 74,
+      "reasoning_output_tokens": 10,
+      "total_tokens": 116189,
+      "tool_call_count": 0,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count",
+      "source_data_file": "~/.codex/sessions/2026/07/14/rollout-2026-07-14T22-55-37-019f6120-599a-7ea1-808e-5dc363e75f83.jsonl",
+      "model_name": "codex-auto-review",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "ultra_fast",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400
+    }
+  ]
+}

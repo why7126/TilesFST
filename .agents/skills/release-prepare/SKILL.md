@@ -1,0 +1,130 @@
+---
+name: "release-prepare"
+description: "执行发布前校验并生成或更新公开公告源文件"
+---
+
+# release-prepare
+
+Use this skill when the user asks `/release-prepare <version>` or wants to run pre-release checks and generate/update the public announcement.
+
+## Context Budget Guardrails（MUST）
+
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- 从 `releases/<version>/release.json` 开始，只读取发布对象中列出的 Sprint / REQ / BUG / Change。
+- 门禁失败时按脚本报告定位具体文件片段；不要全量读取 `docs/**`、`issues/**`、`iterations/**` 或归档目录。
+- 测试、Docker、Orval、Mintlify 输出只保留摘要；失败时展开关键错误。
+
+## Input
+
+- `<version>`：必填，例如 `v0.1.0`。
+- Flags：`--dry-run`、`--skip-tests`（不推荐）、`--skip-docker`（不推荐）、`--skip-mintlify`（不推荐）。
+
+## Must Read
+
+```text
+AGENTS.md
+rules/document-governance.md
+rules/directory-structure.md
+rules/release.md
+rules/security.md
+rules/testing.md
+rules/agent-context-budget.md
+releases/<version>/release.json
+releases/templates/announcement.mdx
+src/shared/product-version.ts
+```
+
+按发布对象范围分段读取：
+
+```text
+iterations/change|archive/<sprint-id>/sprint.yaml
+iterations/change|archive/<sprint-id>/release-note.md
+iterations/change|archive/<sprint-id>/acceptance-report.md
+openspec/changes/archive/<date>-<change-id>/trace.md 或归档验证摘要
+issues/requirements/{archive,review,plan}/<REQ>/trace.md
+issues/bugs/{archive,review,plan}/<BUG>/trace.md
+```
+
+## Gates
+
+Prepare MUST verify and record evidence for each applicable gate in `release.json`:
+
+| Gate | Evidence |
+|---|---|
+| `openspec_archive` | All formal Changes are archived and merged into `openspec/specs/`; unarchived formal scope blocks publish. |
+| `tests` | Relevant pytest / Vitest / smoke commands and pass summary. |
+| `orval` | API changes have OpenAPI / Orval / docs sync evidence, or `na` rationale. |
+| `docker_compose` | Deployment changes have Compose config/docs evidence, or `na` rationale. |
+| `database_migration` | DB changes have schema/migration/docs/rollback evidence, or `na` rationale. |
+| `env_example` | Env changes have `.env.example` evidence, or `na` rationale. |
+| `product_version` | `PRODUCT_VERSION` equals release version, or rationale is explicit. |
+| `mintlify_preview` | Mintlify build/preview or equivalent static MDX safety check evidence. |
+
+Do not write `status: pass` without concrete command/path/time evidence.
+
+## Commands
+
+Required structural and safety validation:
+
+```bash
+python scripts/validate-release.py --release-dir releases/<version>
+```
+
+Run additional checks according to release scope. Common commands:
+
+```bash
+uv run pytest
+pnpm --dir src/web test -- --run
+python scripts/validate-api-standard.py
+./scripts/generate-openapi-client.sh
+docker compose config --quiet
+```
+
+Only run expensive or environment-dependent checks when they match release scope or user requested full validation. If a command cannot run locally, record the blocker; do not invent evidence.
+
+## Artifacts（非 `--dry-run` MUST）
+
+Create or update:
+
+```text
+releases/<version>/release.json
+releases/<version>/announcement.mdx
+```
+
+Announcement MUST include version, release time, related Sprint, new features, bug fixes, release notes, known issues, upgrade steps, rollback instructions, and impact scope. It MUST be public-safe.
+
+## Output
+
+Report version, gate status summary, commands run, updated files, blockers, and whether publish is ready. If ready, next command:
+
+```text
+/release-publish <version>
+```
+
+## Final Step — AI Usage Post-command Hook (MUST)
+
+After release preparation completes or records blockers, run:
+
+```bash
+python scripts/extract-ai-usage.py \
+  --post-command-hook \
+  --workflow-event release.prepare \
+  --release <version> \
+  [--release-sprint <sprint-id>] \
+  [--sprint <sprint-id>] \
+  [--req <REQ-id>] \
+  [--bug <BUG-id>] \
+  [--change <change-id>] \
+  --json
+```
+
+- Pass Sprint / REQ / BUG / Change ids from `releases/<version>/release.json`.
+- Pass `--release <version>` so the hook writes both release command run details under `data/ai-usage/command-runs/releases/<version>/<date>--release.prepare--<session-hash>.json` and the version artifact `data/ai-usage/command-runs/releases/<version>/release.prepare.json`.
+- Treat the hook as incomplete if `outputs.command_runs` does not point under `data/ai-usage/command-runs/releases/<version>/`; release commands must not store their primary command-run details under `issues/` or `opsxs/` just because the release scope includes REQ / BUG / Change ids.
+- Pass each release-scope Sprint with repeated `--release-sprint <sprint-id>` so the release artifact coverage records the full version scope.
+- The hook accepts one `--sprint` value per invocation for Sprint snapshot refresh. For a release that spans multiple Sprint ids, run the hook once per Sprint only when you intentionally refresh Sprint snapshots; do not use repeated `--sprint` to express release scope.
+- If no Sprint is associated, omit `--sprint`; Sprint snapshot output MUST be `skipped`.
+- Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `session_input`, `release_artifact`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+- If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+- If the hook reports `unsafe-records-skipped:<count>`, treat it as a usage-data blocker to fix or explicitly report; do not replace it with a deliberately missing `--session-jsonl`.
+- Release scope often includes IDs such as password or token; these business IDs are allowed in command-run metadata and must not be treated as secrets unless they appear as raw credentials, auth headers, `.env` content, assigned secret-like fields, or local absolute paths.

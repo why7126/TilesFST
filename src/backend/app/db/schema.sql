@@ -106,6 +106,38 @@ CREATE TABLE IF NOT EXISTS brands (
   updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS brand_certificates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  brand_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 100,
+  type TEXT NOT NULL CHECK (type IN ('QUALITY', 'INSPECTION', 'GREEN_BUILDING', 'HONOR', 'OTHER')),
+  certificate_no TEXT,
+  issuer TEXT,
+  file_url TEXT NOT NULL,
+  file_key TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_mime_type TEXT NOT NULL,
+  file_size_bytes INTEGER NOT NULL CHECK (file_size_bytes > 0),
+  is_permanent INTEGER NOT NULL DEFAULT 0 CHECK (is_permanent IN (0, 1)),
+  effective_date TEXT,
+  expiry_date TEXT,
+  is_visible INTEGER NOT NULL DEFAULT 1 CHECK (is_visible IN (0, 1)),
+  remark TEXT,
+  deleted_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(brand_id) REFERENCES brands(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_brand_certificates_brand_visible
+  ON brand_certificates(brand_id, is_visible, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_brand_certificates_type_deleted
+  ON brand_certificates(type, deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_brand_certificates_brand_name_active
+  ON brand_certificates(brand_id, name)
+  WHERE deleted_at IS NULL;
+
 CREATE TABLE IF NOT EXISTS login_logs (
   id TEXT PRIMARY KEY,
   user_id TEXT,

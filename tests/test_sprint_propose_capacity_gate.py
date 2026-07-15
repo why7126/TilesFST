@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SPRINT_PROPOSE_SKILL = ROOT / ".agents/skills/source-command-sprint-propose/SKILL.md"
+SPRINT_PROPOSE_SKILL = ROOT / ".agents/skills/sprint-propose/SKILL.md"
 ITERATIONS_RULE = ROOT / "rules/iterations-lifecycle.md"
 CAPACITY_SPEC = ROOT / "openspec/specs/sprint-planning-governance/spec.md"
 

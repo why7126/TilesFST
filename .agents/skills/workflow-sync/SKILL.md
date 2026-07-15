@@ -38,15 +38,20 @@ Rules:
 
 1. The hook is best-effort for normal workflow commands. If session input is unavailable, print the short `usage_mode: unavailable` summary and recommended action; do not fail the parent command.
 2. If the command has no Sprint scope, command-run generation may proceed, but Sprint snapshot output MUST be `skipped`; do not invent a Sprint.
-3. Successful output MUST stay compact: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
-4. The hook MUST NOT persist prompt text, system/developer instructions, skill bodies, raw session JSONL, local absolute paths, tool output bodies, secrets, cookies, Authorization headers, or `.env` content.
-5. Exploration commands with no workflow state change MAY run the hook in `--dry-run` mode or output the same recommended action; they MUST NOT modify REQ/BUG/Change/Sprint status just to create usage data.
+3. If one command run fails persistence safety checks, the hook MUST skip that record, report `unsafe-records-skipped:<count>`, and continue writing any safe records. If all target records are unsafe, report `usage_mode: unavailable` and `no-safe-command-runs`; do not raise an unhandled exception.
+4. Workflow IDs containing business words such as `password` or `token` MUST NOT be treated as secrets by word match alone. Only auth headers, assigned secret-like fields, `.env` content, raw local absolute paths, and equivalent sensitive values should block persistence.
+5. Successful output MUST stay compact: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+6. The hook MUST NOT persist prompt text, system/developer instructions, skill bodies, raw session JSONL, local absolute paths, tool output bodies, secrets, cookies, Authorization headers, or `.env` content.
+7. Exploration commands with no workflow state change MAY run the hook in `--dry-run` mode or output the same recommended action; they MUST NOT modify REQ/BUG/Change/Sprint status just to create usage data.
 
 Session input discovery:
 
 - Prefer explicit `--session-jsonl <local-session.jsonl>` when available.
 - Otherwise the hook checks `AI_USAGE_SESSION_JSONL`, then `CODEX_SESSION_JSONL`.
 - Raw session files remain local-only and MUST NOT be copied into the repository.
+- Do not pass a known-missing `--session-jsonl` merely to produce a non-failing hook summary; `session-jsonl-not-found` is diagnostic fallback, not evidence that usage data was generated.
+- For historical backfill or audit, do not rely on automatic session discovery. Use explicit `--session-jsonl` and, when the historical turn text cannot be classified into canonical REQ/BUG, Change, Sprint, or workflow event, provide a `--manual-map` keyed by `turn_hash`.
+- Snapshot freshness checks should pass timezone-aware ISO timestamps such as `2026-07-15T05:20:00Z`; avoid naive local times unless the caller has confirmed the script's timezone interpretation.
 
 | Flag | Purpose |
 |------|---------|

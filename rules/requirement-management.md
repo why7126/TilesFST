@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-07-11 16:25:13
+updated_at: 2026-07-14 19:05:47
 ---
 
 # 需求管理规范
@@ -178,4 +178,4 @@ related_requirements: []
 
 ## 8. 参考命令
 
-`.agents/skills/source-command-req-*/SKILL.md`
+`.agents/skills/req-*/SKILL.md`

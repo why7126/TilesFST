@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 18:51:16
+updated_at: 2026-07-15 09:08:17
 note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.example
 ---
 
@@ -44,6 +44,7 @@ mysql+pymysql://tiles_user:replace-with-secret@mysql.example.com:3306/tilesfst?c
 ```text
 tile_categories 1 ── * tiles 1 ── * tile_images
 brands 1 ── * tiles
+brands 1 ── * brand_certificates
 tile_specs 1 ── * tiles
 tiles 1 ── * tile_videos
 
@@ -76,6 +77,7 @@ request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
 | tile_videos | 已实现 | SKU 关联视频元数据 |
 | tile_images | 桩 | 瓷砖图片元数据 |
+| brand_certificates | ✓ Sprint 007 | 品牌证书主数据与文件元数据 |
 | banners | ✓ Sprint 003 | Banner 管理 |
 | topics | ✓ Sprint 003 | 专题管理 |
 
@@ -321,6 +323,40 @@ OpenSpec：`openspec/changes/add-brand-management/`
 
 ORM：`src/backend/app/models/brand.py`  
 迁移：`src/backend/app/db/migrations.py` → `_ensure_brands_table`
+
+---
+
+## 6b.1 brand_certificates（Sprint 007）
+
+OpenSpec：`openspec/changes/add-brand-certificate-management/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| brand_id | INTEGER | NOT NULL, FK → brands.id | 所属品牌；一个证书仅关联一个品牌 |
+| name | TEXT | NOT NULL | 证书名称 |
+| sort_order | INTEGER | NOT NULL, DEFAULT 100 | 展示排序 |
+| type | TEXT | NOT NULL, CHECK | `QUALITY` \| `INSPECTION` \| `GREEN_BUILDING` \| `HONOR` \| `OTHER` |
+| certificate_no | TEXT | NULL | 证书编号 |
+| issuer | TEXT | NULL | 发证机构 |
+| file_url | TEXT | NOT NULL | 受控读取 URL，如 `/media/{file_key}` |
+| file_key | TEXT | NOT NULL | MinIO object_key |
+| file_name | TEXT | NOT NULL | 上传显示文件名 |
+| file_mime_type | TEXT | NOT NULL | `image/jpeg` / `image/png` / `image/webp` / `application/pdf` |
+| file_size_bytes | INTEGER | NOT NULL, CHECK > 0 | 文件大小 |
+| is_permanent | INTEGER | NOT NULL, DEFAULT 0 | 1 长期有效 / 0 有有效期 |
+| effective_date | TEXT | NULL | 生效日期，`YYYY-MM-DD` |
+| expiry_date | TEXT | NULL | 到期日期，`YYYY-MM-DD` |
+| is_visible | INTEGER | NOT NULL, DEFAULT 1 | 是否前台展示 |
+| remark | TEXT | NULL | 备注 |
+| deleted_at | TEXT | NULL | 软删除时间 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_brand_certificates_brand_visible`、`idx_brand_certificates_type_deleted`、SQLite `uq_brand_certificates_brand_name_active`。MySQL baseline 使用 `(brand_id, name, deleted_at)` 唯一键并由 service 层补充未删除证书名称唯一性校验。
+
+Repository：`src/backend/app/repositories/brand_certificate_repository.py`  
+迁移：`src/backend/app/db/migrations.py` → `_ensure_brand_certificates_support`
 
 ---
 

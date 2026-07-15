@@ -3,7 +3,7 @@
 ## 设计原则
 
 1. 统一规则入口：新增 `rules/agent-context-budget.md`，避免每个技能复制一大段守则。
-2. 技能轻引用：source-command 技能只需声明必须遵守统一规则，并保留命令特有的读取边界。
+2. 技能轻引用：命令技能只需声明必须遵守统一规则，并保留命令特有的读取边界。
 3. 默认排除高噪音：Harness/模板工程/历史 agent 目录、生成物、构建产物、归档目录默认不进入搜索面。
 4. 大输出先汇总后展开：先输出文件清单、命中数、diff stat 或失败摘要，再读取具体片段。
 5. 可校验：新增 `scripts/validate-agent-context-budget.py`，检查技能是否引用统一规则、是否保留常见禁止模式。
@@ -12,7 +12,7 @@
 
 - `AGENTS.md`：在执行前读取路由与完成检查中加入 Agent 上下文预算规则。
 - `rules/agent-context-budget.md`：新增项目级规则。
-- `.agents/skills/source-command-*`：统一引用上下文预算规则，并补强关键命令的输出/排除要求。
+- `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project`：统一引用上下文预算规则，并补强关键命令的输出/排除要求。
 - `scripts/validate-agent-context-budget.py`：新增只读校验脚本。
 - `openspec/changes/optimize-agent-context-budget-harness/`：记录本次治理变更。
 

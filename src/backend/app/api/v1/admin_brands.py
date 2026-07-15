@@ -5,8 +5,11 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
-from app.core.deps import get_brand_repository, require_admin_user
+from app.core.deps import require_admin_user
+from app.db.session import get_db
+from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRepository
 from app.schemas.brand_admin import (
     BrandAdminItem,
@@ -21,9 +24,9 @@ router = APIRouter(dependencies=[Depends(require_admin_user)])
 
 
 def get_brand_admin_service(
-    repo: Annotated[BrandRepository, Depends(get_brand_repository)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> BrandAdminService:
-    return BrandAdminService(repo)
+    return BrandAdminService(BrandRepository(db), BrandCertificateRepository(db))
 
 
 @router.get("", response_model=ApiResponse[BrandAdminListData], summary="品牌列表")

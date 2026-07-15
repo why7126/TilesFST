@@ -51,8 +51,10 @@ def test_parse_token_count_groups_by_user_turn_and_warns_on_malformed_rows(tmp_p
 
     assert len(records) == 2
     first = records[0]
+    assert first["source_data_file"].endswith("session.jsonl")
+    assert not first["source_data_file"].startswith("/Users/")
     assert first["sprint_id"] == "sprint-006"
-    assert first["requirements"] == ["REQ-0034"]
+    assert first["requirements"] == ["REQ-0034-ai-token-usage-observability"]
     assert first["changes"] == ["add-ai-token-usage-observability"]
     assert first["attribution_confidence"] == "high"
     assert first["model_call_count"] == 1
@@ -61,9 +63,125 @@ def test_parse_token_count_groups_by_user_turn_and_warns_on_malformed_rows(tmp_p
     assert first["output_tokens"] == 4
     assert first["reasoning_output_tokens"] == 2
     assert first["total_tokens"] == 16
-    assert "unknown-event:unknown_future_event" in first["warnings"]
+    assert "warnings" not in first
     assert warnings == ["line-3: malformed-json"]
     assert records[1]["workflow_event"] == "req.review"
+
+
+def test_parse_token_count_supports_payload_info_last_token_usage(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(
+        session,
+        [
+            {"timestamp": "2026-07-12T02:15:47Z", "type": "user_message", "text": "/opsx-apply add-auto-token-fact-source-for-workflow-commands"},
+            {
+                "timestamp": "2026-07-12T02:16:01Z",
+                "type": "token_count",
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "last_token_usage": {
+                            "input_tokens": 101,
+                            "cached_input_tokens": 40,
+                            "output_tokens": 12,
+                            "reasoning_output_tokens": 7,
+                            "total_tokens": 120,
+                        }
+                    },
+                },
+            },
+        ],
+    )
+
+    records, warnings = ai_usage.parse_session_jsonl(session)
+
+    assert warnings == []
+    assert records[0]["input_tokens"] == 101
+    assert records[0]["cached_input_tokens"] == 40
+    assert records[0]["output_tokens"] == 12
+    assert records[0]["reasoning_output_tokens"] == 7
+    assert records[0]["total_tokens"] == 120
+
+
+def test_parse_session_attaches_model_metadata_to_command_run(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(
+        session,
+        [
+            {
+                "type": "turn_context",
+                "payload": {
+                    "model": "gpt-5.5",
+                    "effort": "medium",
+                    "summary": "auto",
+                    "collaboration_mode": {"settings": {"model": "gpt-5.5", "reasoning_effort": "medium"}},
+                },
+            },
+            {"type": "user_message", "text": "/opsx-apply add-brand-certificate-management"},
+            {
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "last_token_usage": {"total_tokens": 12},
+                        "model_context_window": 258400,
+                    },
+                },
+                "rate_limits": {
+                    "limit_id": "codex_bengalfox",
+                    "limit_name": "GPT-5.3-Codex-Spark",
+                },
+            },
+        ],
+    )
+
+    records, _ = ai_usage.parse_session_jsonl(session)
+    record = records[0]
+
+    assert record["model_name"] == "gpt-5.5"
+    assert record["reasoning_effort"] == "medium"
+    assert record["reasoning_summary"] == "auto"
+    assert record["model_rate_limit_name"] == "GPT-5.3-Codex-Spark"
+    assert record["model_speed_tier"] == "frontier"
+    assert record["model_context_window"] == 258400
+
+
+def test_turn_hash_stays_stable_when_session_file_grows(tmp_path: Path) -> None:
+    session = tmp_path / "rollout-stable.jsonl"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/sprint-propose REQ-0038 sprint-007"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 10}}},
+        ],
+    )
+    first_records, _ = ai_usage.parse_session_jsonl(session)
+
+    with session.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"type": "user_message", "text": "later follow-up"}, ensure_ascii=False) + "\n")
+        handle.write(json.dumps({"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 3}}}, ensure_ascii=False) + "\n")
+
+    second_records, _ = ai_usage.parse_session_jsonl(session)
+
+    assert second_records[0]["source_session_hash"] == first_records[0]["source_session_hash"]
+    assert second_records[0]["turn_hash"] == first_records[0]["turn_hash"]
+    assert len(second_records) == 2
+
+
+def test_classify_text_only_treats_command_position_skill_links_as_workflow_events() -> None:
+    invoked = ai_usage.classify_text("[$sprint-propose](/project/.agents/skills/sprint-propose/SKILL.md) REQ-0038 sprint-007")
+    mentioned = ai_usage.classify_text("这个命令[$sprint-propose](/project/.agents/skills/sprint-propose/SKILL.md) REQ-0038 没有生成 usage")
+    release_invoked = ai_usage.classify_text("/release-prepare v0.1.0 sprint-007 add-brand-certificate-management")
+
+    assert invoked["workflow_event"] == "sprint.propose"
+    assert mentioned["workflow_event"] is None
+    assert release_invoked["workflow_event"] == "release.prepare"
+    assert release_invoked["release_version"] == "v0.1.0"
+
+
+def test_canonicalize_issue_ids_collapses_short_requirement_alias() -> None:
+    values = ["REQ-0038", "REQ-0038-brand-certificate-management"]
+
+    assert ai_usage.canonicalize_issue_ids(values, canonical_map={}) == ["REQ-0038-brand-certificate-management"]
 
 
 def test_aggregate_tools_retries_and_idempotent_sprint_totals(tmp_path: Path) -> None:
@@ -86,7 +204,10 @@ def test_aggregate_tools_retries_and_idempotent_sprint_totals(tmp_path: Path) ->
 
     assert snapshot["estimated"] is False
     assert snapshot["generated_at"]
-    assert snapshot["coverage"]["bugs"] == ["BUG-0062"]
+    assert snapshot["coverage"]["bugs"] == [
+        "BUG-0062-archive-issue-subdoc-status-consistency",
+        "BUG-0063-archived-change-trace-fallback-summary",
+    ]
     assert snapshot["coverage"]["changes"] == ["fix-archive-trace-fallback-summary-gate"]
     assert snapshot["totals"]["command_run_count"] == 1
     assert snapshot["totals"]["tool_call_count"] == 2
@@ -95,6 +216,120 @@ def test_aggregate_tools_retries_and_idempotent_sprint_totals(tmp_path: Path) ->
     assert snapshot["totals"]["total_tokens"] == 25
     assert snapshot["by_workflow_event"]["opsx.apply"]["command_run_count"] == 1
     assert records[0]["retry_count_method"] == "tool_result_error_count"
+
+
+def test_aggregate_sprint_normalizes_requirement_coverage_aliases() -> None:
+    snapshot = ai_usage.aggregate_sprint(
+        [
+            {
+                "turn_hash": "a",
+                "sprint_id": "sprint-007",
+                "workflow_event": "sprint.propose",
+                "source_data_file": "~/.codex/sessions/2026/07/14/session.jsonl",
+                "requirements": ["REQ-0038", "REQ-0038-brand-certificate-management"],
+                "bugs": [],
+                "changes": ["add-brand-certificate-management"],
+                "total_tokens": 1,
+            }
+        ],
+        "sprint-007",
+    )
+
+    assert snapshot["coverage"]["requirements"] == ["REQ-0038-brand-certificate-management"]
+    assert snapshot["source_data_files"] == ["~/.codex/sessions/2026/07/14/session.jsonl"]
+
+
+def test_aggregate_sprint_groups_model_metadata() -> None:
+    snapshot = ai_usage.aggregate_sprint(
+        [
+            {
+                "turn_hash": "a",
+                "sprint_id": "sprint-007",
+                "workflow_event": "sprint.propose",
+                "source_data_file": "~/.codex/sessions/2026/07/14/session.jsonl",
+                "requirements": ["REQ-0038-brand-certificate-management"],
+                "bugs": [],
+                "changes": ["add-brand-certificate-management"],
+                "model_name": "gpt-5.5",
+                "model_provider": "openai",
+                "reasoning_effort": "medium",
+                "reasoning_summary": "auto",
+                "model_speed_tier": "frontier",
+                "model_rate_limit_name": "GPT-5.5",
+                "model_context_window": 258400,
+                "model_call_count": 2,
+                "total_tokens": 30,
+            }
+        ],
+        "sprint-007",
+    )
+
+    assert snapshot["models"] == [
+        {
+            "model_name": "gpt-5.5",
+            "model_provider": "openai",
+            "reasoning_effort": "medium",
+            "reasoning_summary": "auto",
+            "model_speed_tier": "frontier",
+            "model_rate_limit_name": "GPT-5.5",
+            "model_context_window": 258400,
+        }
+    ]
+    assert snapshot["source_data_files"] == ["~/.codex/sessions/2026/07/14/session.jsonl"]
+    assert snapshot["by_model"]["gpt-5.5|medium|frontier"]["total_tokens"] == 30
+    assert snapshot["by_model"]["gpt-5.5|medium|frontier"]["model_call_count"] == 2
+
+
+def test_opsx_records_infer_linked_requirement_from_change(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    req_dir = tmp_path / "issues" / "requirements" / "review" / "REQ-0038-brand-certificate-management"
+    req_dir.mkdir(parents=True)
+    (req_dir / "trace.md").write_text(
+        "openspec_changes:\n  - change_id: add-brand-certificate-management\n",
+        encoding="utf-8",
+    )
+    change_dir = tmp_path / "openspec" / "changes" / "add-brand-certificate-management"
+    change_dir.mkdir(parents=True)
+    (change_dir / "trace.md").write_text(
+        "source_requirement: REQ-0038-brand-certificate-management\n",
+        encoding="utf-8",
+    )
+
+    record = ai_usage.normalize_record_issues(
+        {
+            "workflow_event": "opsx.apply",
+            "requirements": [],
+            "bugs": [],
+            "changes": ["add-brand-certificate-management"],
+        }
+    )
+
+    assert record["requirements"] == ["REQ-0038-brand-certificate-management"]
+    assert record["bugs"] == []
+
+
+def test_opsx_records_infer_linked_requirement_from_archived_change(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    req_dir = tmp_path / "issues" / "requirements" / "review" / "REQ-0038-brand-certificate-management"
+    req_dir.mkdir(parents=True)
+    archived_change_dir = tmp_path / "openspec" / "changes" / "archive" / "2026-07-15-add-brand-certificate-management"
+    archived_change_dir.mkdir(parents=True)
+    (archived_change_dir / "trace.md").write_text(
+        "change_id: add-brand-certificate-management\nsource_requirement: REQ-0038-brand-certificate-management\n",
+        encoding="utf-8",
+    )
+
+    record = ai_usage.normalize_record_issues(
+        {
+            "workflow_event": "opsx.archive",
+            "requirements": [],
+            "bugs": [],
+            "changes": ["add-brand-certificate-management"],
+        }
+    )
+
+    assert record["requirements"] == ["REQ-0038-brand-certificate-management"]
+    assert record["bugs"] == []
 
 
 def test_multi_issue_manual_mapping_and_low_confidence_fallback(tmp_path: Path) -> None:
@@ -119,12 +354,45 @@ def test_multi_issue_manual_mapping_and_low_confidence_fallback(tmp_path: Path) 
         },
     )
 
-    assert mapped[0]["requirements"] == ["REQ-0034"]
-    assert mapped[0]["bugs"] == ["BUG-0063"]
+    assert mapped[0]["requirements"] == ["REQ-0034-ai-token-usage-observability"]
+    assert mapped[0]["bugs"] == ["BUG-0063-archived-change-trace-fallback-summary"]
     assert mapped[0]["command"] == "multi-issue"
     assert mapped[1]["sprint_id"] == "sprint-006"
     assert mapped[1]["changes"] == ["add-ai-token-usage-observability"]
     assert mapped[1]["attribution_confidence"] == "medium"
+
+
+def test_manual_mapping_can_mark_post_command_target(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/sprint-propose REQ-0038 sprint-007 add-brand-certificate-management"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 34}}},
+            {"type": "user_message", "text": "后续排查 REQ-0038 sprint-007 add-brand-certificate-management"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 999}}},
+        ],
+    )
+    records, _ = ai_usage.parse_session_jsonl(session)
+
+    mapped = ai_usage.apply_manual_mapping(
+        records,
+        {
+            records[0]["turn_hash"]: {
+                "post_command_target": True,
+                "workflow_event": "sprint.propose",
+            }
+        },
+    )
+    target = ai_usage.select_workflow_context_record(
+        mapped,
+        workflow_event="sprint.propose",
+        requirements=["REQ-0038"],
+        changes=["add-brand-certificate-management"],
+        sprint_id="sprint-007",
+    )
+
+    assert target == mapped[0]
 
 
 def test_redaction_blocks_prompts_paths_secrets_and_tool_output_bodies(tmp_path: Path) -> None:
@@ -146,12 +414,25 @@ def test_redaction_blocks_prompts_paths_secrets_and_tool_output_bodies(tmp_path:
     assert "SECRET_OUTPUT_BODY" not in record_text
     assert "/Users/example" not in record_text
     assert "Bearer" not in record_text
-    assert "redacted-local-absolute-path" in records[0]["warnings"]
-    assert "redacted-sensitive-text" in records[0]["warnings"]
+    assert "warnings" not in records[0]
     with pytest.raises(ValueError):
         ai_usage.assert_record_safe({"path": "/Users/example/project"})
     with pytest.raises(ValueError):
         ai_usage.assert_record_safe({"prompt": "do not persist"})
+
+
+def test_safety_allows_workflow_ids_containing_password_or_token() -> None:
+    ai_usage.assert_record_safe(
+        {
+            "turn_hash": "abc",
+            "workflow_event": "release.prepare",
+            "bugs": ["BUG-0061-change-password-policy-error-message-unclear"],
+            "changes": [
+                "fix-change-password-policy-error-message",
+                "add-auto-token-fact-source-for-workflow-commands",
+            ],
+        }
+    )
 
 
 def write_snapshot(path: Path, payload: dict[str, object]) -> None:
@@ -237,9 +518,17 @@ def test_post_command_hook_generates_command_run_and_sprint_snapshot(tmp_path: P
     assert summary["usage_mode"] == "actual"
     assert summary["command_run_count"] == 1
     assert summary["sprint_snapshot"]["status"] == "refreshed"
-    command_path = out_dir / "command-runs" / f"{ai_usage.source_hash(session.read_bytes())[:16]}.json"
+    command_files = list((out_dir / "command-runs").rglob("*.json"))
+    assert len(command_files) == 1
+    command_path = command_files[0]
     sprint_path = out_dir / "sprints" / "sprint-007.json"
     assert command_path.exists()
+    assert command_path.relative_to(out_dir / "command-runs").parts[:2] == (
+        "issues",
+        "REQ-0037-auto-token-fact-source-for-workflow-commands",
+    )
+    assert command_path.name.startswith("2026-07-12--opsx.apply--")
+    assert command_path.name.endswith(f"{ai_usage.session_source_hash(session, session.read_bytes())[:16]}.json")
     assert sprint_path.exists()
     command_text = command_path.read_text()
     assert "/Users/" not in command_text
@@ -278,8 +567,101 @@ def test_post_command_hook_missing_session_returns_unavailable(tmp_path: Path) -
     assert summary["status"] == "skipped"
     assert summary["usage_mode"] == "unavailable"
     assert summary["command_run_count"] == 0
+    assert summary["session_input"] == "unavailable"
     assert "session-jsonl-missing" in summary["warnings"]
     assert summary["recommended_action"]
+
+
+def test_post_command_hook_auto_discovers_session_by_workflow_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    sessions_dir = tmp_path / "sessions"
+    sessions_dir.mkdir()
+    unrelated = sessions_dir / "unrelated.jsonl"
+    write_jsonl(
+        unrelated,
+        [
+            {"type": "user_message", "text": "/req-capture REQ-0001"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 1}}},
+        ],
+    )
+    session = sessions_dir / "rollout.jsonl"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/sprint-propose REQ-0038 sprint-007"},
+            {"payload": {"type": "token_count", "last_token_usage": {"input_tokens": 30, "output_tokens": 4, "total_tokens": 34}}},
+            {"type": "user_message", "text": "follow-up"},
+            {"payload": {"type": "token_count", "last_token_usage": {"input_tokens": 3, "output_tokens": 2, "total_tokens": 5}}},
+        ],
+    )
+    monkeypatch.setenv("AI_USAGE_SESSIONS_DIR", str(sessions_dir))
+
+    out_dir = tmp_path / "ai-usage"
+    summary = ai_usage.post_command_hook(
+        session_jsonl=None,
+        out_dir=out_dir,
+        workflow_event="sprint.propose",
+        requirements=["REQ-0038-brand-certificate-management"],
+        changes=["add-brand-certificate-management"],
+        sprint_id="sprint-007",
+    )
+
+    assert summary["status"] == "ok"
+    assert summary["usage_mode"] == "actual"
+    assert summary["command_run_count"] == 1
+    assert summary["session_input"] == "auto"
+    assert summary["sprint_snapshot"]["status"] == "refreshed"
+    command_files = list((out_dir / "command-runs").rglob("*.json"))
+    assert len(command_files) == 1
+    command_path = command_files[0]
+    payload = json.loads(command_path.read_text())
+    sprint_run = payload["command_runs"][0]
+    assert len(payload["command_runs"]) == 1
+    assert sprint_run["workflow_event"] == "sprint.propose"
+    assert sprint_run["sprint_id"] == "sprint-007"
+    assert "REQ-0038-brand-certificate-management" in sprint_run["requirements"]
+    assert "add-brand-certificate-management" in sprint_run["changes"]
+    assert str(tmp_path) not in json.dumps(summary)
+
+
+def test_post_command_hook_merges_multiple_target_runs_from_same_session(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/req-opsx REQ-0038 add-brand-certificate-management"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 21}}},
+            {"type": "user_message", "text": "/sprint-propose REQ-0038 sprint-007 add-brand-certificate-management"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 34}}},
+        ],
+    )
+
+    ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="req.opsx",
+        requirements=["REQ-0038-brand-certificate-management"],
+        changes=["add-brand-certificate-management"],
+    )
+    ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="sprint.propose",
+        requirements=["REQ-0038-brand-certificate-management"],
+        changes=["add-brand-certificate-management"],
+        sprint_id="sprint-007",
+    )
+
+    command_files = list((out_dir / "command-runs").rglob("*.json"))
+    assert len(command_files) == 1
+    command_path = command_files[0]
+    payload = json.loads(command_path.read_text())
+    events = sorted(record["workflow_event"] for record in payload["command_runs"])
+    snapshot = json.loads((out_dir / "sprints" / "sprint-007.json").read_text())
+
+    assert events == ["req.opsx", "sprint.propose"]
+    assert snapshot["totals"]["command_run_count"] == 1
+    assert snapshot["totals"]["total_tokens"] == 34
 
 
 def test_post_command_hook_warns_on_malformed_or_missing_token_count(tmp_path: Path) -> None:
@@ -329,3 +711,103 @@ def test_post_command_hook_is_idempotent_for_repeated_session(tmp_path: Path) ->
     snapshot = json.loads((out_dir / "sprints" / "sprint-007.json").read_text())
     assert snapshot["totals"]["command_run_count"] == 1
     assert snapshot["totals"]["total_tokens"] == 5
+
+
+def test_command_run_without_issue_uses_change_scope_directory(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/opsx-explore standalone-change"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 8}}},
+        ],
+    )
+
+    ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="opsx.explore",
+        changes=["standalone-change"],
+    )
+
+    command_files = list((out_dir / "command-runs").rglob("*.json"))
+    assert len(command_files) == 1
+    assert command_files[0].relative_to(out_dir / "command-runs").parts[:2] == ("opsxs", "standalone-change")
+    assert command_files[0].name.startswith("unknown-date--opsx.explore--")
+
+
+def test_post_command_hook_supports_release_events_without_sprint_snapshot(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/release-publish v0.1.0 add-brand-certificate-management"},
+            {"payload": {"type": "token_count", "last_token_usage": {"input_tokens": 8, "output_tokens": 2, "total_tokens": 10}}},
+        ],
+    )
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="release.publish",
+        release_version="v0.1.0",
+        release_sprints=["sprint-005", "sprint-006"],
+        changes=["add-brand-certificate-management"],
+    )
+
+    command_files = [
+        path
+        for path in (out_dir / "command-runs").rglob("*.json")
+        if path.name.startswith("2026-") or path.name.startswith("unknown-date--")
+    ]
+    assert len(command_files) == 1
+    assert command_files[0].relative_to(out_dir / "command-runs").parts[:2] == ("releases", "v0.1.0")
+    payload = json.loads(command_files[0].read_text())
+    release_path = out_dir / "command-runs" / "releases" / "v0.1.0" / "release.publish.json"
+    release_payload = json.loads(release_path.read_text())
+
+    assert summary["status"] == "ok"
+    assert summary["usage_mode"] == "actual"
+    assert summary["outputs"]["release"] == "release.publish.json"
+    assert summary["release_artifact"]["status"] == "refreshed"
+    assert summary["release_artifact"]["path"] == "release.publish.json"
+    assert summary["sprint_snapshot"]["status"] == "skipped"
+    assert summary["sprint_snapshot"]["reason"] == "no-sprint"
+    assert payload["command_runs"][0]["workflow_event"] == "release.publish"
+    assert payload["command_runs"][0]["release_version"] == "v0.1.0"
+    assert payload["command_runs"][0]["release_sprints"] == ["sprint-005", "sprint-006"]
+    assert release_payload["release_version"] == "v0.1.0"
+    assert release_payload["workflow_event"] == "release.publish"
+    assert release_payload["totals"]["command_run_count"] == 1
+    assert release_payload["coverage"]["changes"] == ["add-brand-certificate-management"]
+    assert release_payload["coverage"]["sprints"] == ["sprint-005", "sprint-006"]
+
+
+def test_post_command_hook_skips_unsafe_records_without_crashing(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/release-prepare v0.0.3"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 10}}},
+        ],
+    )
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=out_dir,
+        workflow_event="release.prepare",
+        changes=["/Users/example/unsafe-change"],
+        sprint_id="sprint-007",
+    )
+
+    assert summary["status"] == "warning"
+    assert summary["usage_mode"] == "unavailable"
+    assert summary["command_run_count"] == 0
+    assert "unsafe-records-skipped:1" in summary["warnings"]
+    assert "no-safe-command-runs" in summary["warnings"]
+    assert summary["sprint_snapshot"]["status"] == "skipped"
+    assert not list((out_dir / "command-runs").rglob("*.json"))

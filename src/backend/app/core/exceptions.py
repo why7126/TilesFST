@@ -158,6 +158,34 @@ class BrandInvalidSortOrderError(AppError):
         super().__init__(status_code=400, code=40020, message=message)
 
 
+class BrandCertificateNotFoundError(AppError):
+    def __init__(self, message: str = "品牌证书不存在") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_NOT_FOUND
+
+        super().__init__(status_code=404, code=BRAND_CERTIFICATE_NOT_FOUND, message=message)
+
+
+class BrandCertificateNameDuplicatedError(AppError):
+    def __init__(self, message: str = "同一品牌下证书名称已存在，请更换") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_NAME_DUPLICATED
+
+        super().__init__(status_code=409, code=BRAND_CERTIFICATE_NAME_DUPLICATED, message=message)
+
+
+class BrandCertificateDateInvalidError(AppError):
+    def __init__(self, message: str = "证书有效期配置无效") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_DATE_INVALID
+
+        super().__init__(status_code=400, code=BRAND_CERTIFICATE_DATE_INVALID, message=message)
+
+
+class BrandCertificateFileRequiredError(AppError):
+    def __init__(self, message: str = "请先上传证书文件") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_FILE_REQUIRED
+
+        super().__init__(status_code=400, code=BRAND_CERTIFICATE_FILE_REQUIRED, message=message)
+
+
 class CategoryNotFoundError(AppError):
     def __init__(self, message: str = "类目不存在") -> None:
         super().__init__(status_code=404, code=30020, message=message)

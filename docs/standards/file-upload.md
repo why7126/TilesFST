@@ -3,6 +3,8 @@ purpose: 文件上传规范
 content: 图片/视频/附件上传流程与返回结构
 source: rules/media.md / build-api-standard
 update_method: 上传能力变更时同步更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-15 09:08:17
 ---
 
 # 文件上传规范
@@ -45,9 +47,10 @@ file: <binary>
 
 - 图片 MIME 白名单：见 `ALLOWED_IMAGE_TYPES`；大小上限：`MAX_IMAGE_SIZE_MB`
 - 视频 MIME 白名单：见 `ALLOWED_VIDEO_TYPES`；大小上限：`MAX_VIDEO_SIZE_MB`
+- 品牌证书 MIME 白名单：JPG、PNG、WebP、PDF；大小上限：20MB；对象前缀：`files/default/brand-certificates/`
 - Docker Web（Nginx）`client_max_body_size` 须 ≥ `max(MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB)`（见 `src/web/nginx.conf`）
 - 修改 `src/web/nginx.conf` 后须 **重建 Web Docker 镜像** 并重启 `web` 服务，否则 `localhost:3000` 仍可能返回 413
-- 错误码：`50002`、`50003`、`50001`
+- 错误码：`50002`、`50003`、`50004`、`50005`、`50001`
 
 ## 相关
 

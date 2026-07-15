@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate source-command skills follow Agent context budget guardrails."""
+"""Validate command skills follow Agent context budget guardrails."""
 
 from __future__ import annotations
 
@@ -10,6 +10,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = ROOT / ".agents" / "skills"
 REQUIRED_RULE = "rules/agent-context-budget.md"
+COMMAND_SKILL_NAMES = {
+    "capture",
+    "initialize-project",
+}
+COMMAND_SKILL_PREFIXES = (
+    "bug-",
+    "build-",
+    "opsx-",
+    "req-",
+    "sprint-",
+)
 
 # Patterns that are risky when written as a positive/default instruction.
 BROAD_READ_PATTERNS = [
@@ -60,10 +71,15 @@ def validate_skill(path: Path) -> list[str]:
     return errors
 
 
+def is_command_skill(path: Path) -> bool:
+    name = path.parent.name
+    return name in COMMAND_SKILL_NAMES or name.startswith(COMMAND_SKILL_PREFIXES)
+
+
 def main() -> int:
-    skill_paths = sorted(SKILLS_DIR.glob("source-command-*/SKILL.md"))
+    skill_paths = sorted(path for path in SKILLS_DIR.glob("*/SKILL.md") if is_command_skill(path))
     if not skill_paths:
-        print("未找到 source-command 技能文件。", file=sys.stderr)
+        print("未找到命令技能文件。", file=sys.stderr)
         return 1
 
     errors: list[str] = []
@@ -76,7 +92,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Agent 上下文预算校验通过：{len(skill_paths)} 个 source-command 技能均已接入预算规则。")
+    print(f"Agent 上下文预算校验通过：{len(skill_paths)} 个命令技能均已接入预算规则。")
     return 0
 
 

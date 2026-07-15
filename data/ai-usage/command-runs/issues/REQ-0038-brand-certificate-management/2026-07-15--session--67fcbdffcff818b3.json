@@ -1,0 +1,81 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "67fcbdffcff818b31c4c13b40f10535053daa16e2cda0d5fb31ec085c3732ac9",
+      "source_line_start": 8,
+      "source_line_end": 555,
+      "turn_hash": "1c6871cb94d4ceaf",
+      "started_at": "2026-07-15T00:53:28.835Z",
+      "ended_at": "2026-07-15T01:15:01.429Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [
+        "REQ-0038-brand-certificate-management"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-brand-certificate-management"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_call_count": 81,
+      "input_tokens": 11182018,
+      "cached_input_tokens": 10962816,
+      "output_tokens": 49652,
+      "reasoning_output_tokens": 2925,
+      "total_tokens": 11231670,
+      "tool_call_count": 134,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count",
+      "source_data_file": "~/.codex/sessions/2026/07/15/rollout-2026-07-15T08-53-10-019f6343-6b78-7361-b938-a7c77acd4b8c.jsonl",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400
+    },
+    {
+      "source_session_hash": "67fcbdffcff818b31c4c13b40f10535053daa16e2cda0d5fb31ec085c3732ac9",
+      "source_data_file": "~/.codex/sessions/2026/07/15/rollout-2026-07-15T08-53-10-019f6343-6b78-7361-b938-a7c77acd4b8c.jsonl",
+      "source_line_start": 906,
+      "source_line_end": 943,
+      "turn_hash": "71adf2c230b566fc",
+      "started_at": "2026-07-15T04:53:40.626Z",
+      "ended_at": "2026-07-15T04:54:15.742Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0038-brand-certificate-management"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-brand-certificate-management"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 5,
+      "input_tokens": 346554,
+      "cached_input_tokens": 280448,
+      "output_tokens": 1386,
+      "reasoning_output_tokens": 245,
+      "total_tokens": 347940,
+      "tool_call_count": 7,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

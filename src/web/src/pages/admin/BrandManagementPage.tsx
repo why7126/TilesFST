@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import { AdminListPage } from '@/shared/templates';
@@ -26,6 +26,7 @@ import '@/features/admin/styles/brand-management.css';
 
 export function BrandManagementPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -247,6 +248,13 @@ export function BrandManagementPage() {
                 <div className="brand-actions">
                   <button type="button" className="link-btn" onClick={() => openEdit(brand)}>
                     编辑
+                  </button>
+                  <button
+                    type="button"
+                    className="link-btn muted"
+                    onClick={() => navigate(`/admin/brand-certificates?brand_id=${brand.id}`)}
+                  >
+                    证书
                   </button>
                   <button
                     type="button"

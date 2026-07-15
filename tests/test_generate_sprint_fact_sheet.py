@@ -226,6 +226,35 @@ def test_fact_sheet_does_not_treat_stale_snapshot_as_actual(tmp_path: Path) -> N
     assert "snapshot-stale" in ai_usage["warnings"]
 
 
+def test_fact_sheet_interprets_sprint_dates_as_project_timezone(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-07-02T10:30:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "total_tokens": 100},
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+
+    ai_usage = fact_sheet["ai_usage_snapshot"]
+    assert ai_usage["ai_usage_mode"] == "actual"
+    assert ai_usage["snapshot_status"] == "present"
+
+
 def test_cli_json_output_is_parseable() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--sprint", "sprint-005", "--json"],

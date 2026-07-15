@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 18:51:16
+updated_at: 2026-07-15 09:08:17
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -102,6 +102,7 @@ Authorization: Bearer <access_token>
 | 管理端日志审计 | `/api/v1/admin/logs` | 是（仅 admin） | API 请求日志、产品行为事件、审计操作统一查询与详情 | ✓ Sprint 004 |
 | 产品行为事件 | `/api/v1/usage-events` | 可选登录 | 前端上报人为定义的产品使用埋点事件 | ✓ Sprint 004 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
+| 管理端品牌证书 | `/api/v1/admin/brand-certificates` | 是（admin/employee） | 证书 CRUD、显示/隐藏、软删除、有效状态 summary | ✓ Sprint 007 |
 | 管理端 Banner | `/api/v1/admin/banners` | 是（admin/employee） | Banner CRUD、上下线、条件删除、summary | ✓ Sprint 003 |
 | 管理端专题（只读） | `/api/v1/admin/topics` | 是（admin/employee） | 专题列表（Banner 跳转关联） | ✓ Sprint 003 |
 | 管理端类目 | `/api/v1/admin/tile-categories` | 是（admin/employee） | 类目树、CRUD、启停、条件删除 | ✓ Sprint 002 |
@@ -328,6 +329,27 @@ OpenSpec：`openspec/changes/add-brand-management/`
 品牌 Logo 上传：`POST /api/v1/admin/uploads/brand-logos`（admin/employee；JPG/PNG/WebP）。
 
 上传接口缺少必填 `file` 或文件参数形状非法时返回 `422 / code=40001` 的统一校验 envelope；业务文件类型、大小错误仍保留上传领域错误码。
+
+### 3.6.1 管理端品牌证书（Sprint 007）
+
+实现：`src/backend/app/api/v1/admin_brand_certificates.py`  
+OpenSpec：`openspec/changes/add-brand-certificate-management/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/brand-certificates` | Bearer（admin/employee） |
+| POST | `/api/v1/admin/brand-certificates` | Bearer（admin） |
+| GET | `/api/v1/admin/brand-certificates/{certificate_id}` | Bearer（admin/employee） |
+| PUT | `/api/v1/admin/brand-certificates/{certificate_id}` | Bearer（admin） |
+| POST | `/api/v1/admin/brand-certificates/{certificate_id}/show` | Bearer（admin） |
+| POST | `/api/v1/admin/brand-certificates/{certificate_id}/hide` | Bearer（admin） |
+| DELETE | `/api/v1/admin/brand-certificates/{certificate_id}` | Bearer（admin） |
+
+列表参数：`page`、`page_size`（20/50/100）、`keyword`、`brand_id`、`type`、`validity_status`、`display_status`。响应 `data.items[]` 包含 `file_url`、`file_key`、`brand_name`、`validity_status`、`display_status`；`data.summary` 包含 `total`、`valid_count`、`expiring_soon_count`、`expired_count`。
+
+创建/更新请求体包含 `brand_id`、`name`、`sort_order`、`type`、`file`、`is_permanent`、`effective_date`、`expiry_date`、`is_visible` 等字段；非长期有效证书必须提供 `expiry_date`。错误码：`30013` 不存在、`30014` 同品牌名称重复、`40024` 日期非法、`40025` 文件缺失、`30010` 品牌不存在。
+
+证书文件上传：`POST /api/v1/admin/uploads/brand-certificates`（admin；JPG/PNG/WebP/PDF，20MB）。
 
 ### 3.5b 管理端 Banner（Sprint 003）
 
@@ -594,7 +616,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 
 ## 6. 上传接口
 
-上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 保持 `{ object_key, url }`。
+上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 至少保持 `{ object_key, url }`；证书文件额外返回 `file_key`、`file_url`、`file_name`、`mime_type`、`size`。
 
 | 方法 | 路径 | 认证 | 对象前缀 | 说明 |
 |---|---|---|---|---|
@@ -602,6 +624,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 | POST | `/api/v1/admin/uploads/brand-logos` | admin/employee | `original/default/brands/logos/` | 品牌 Logo 上传 |
 | POST | `/api/v1/admin/uploads/tile-images` | admin/employee | `original/default/tiles/{tile_id|pending}/images/` | SKU 图片上传 |
 | POST | `/api/v1/admin/uploads/tile-videos` | admin/employee | `videos/default/tiles/{tile_id|pending}/` | SKU 视频上传 |
+| POST | `/api/v1/admin/uploads/brand-certificates` | admin | `files/default/brand-certificates/` | 品牌证书 JPG/PNG/WebP/PDF 上传 |
 
 媒体读取保持 `/media/{object_key}` URL 语义，由后端从 MinIO 受控读取。
 
@@ -611,6 +634,8 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 |---|---|---|
 | 400 | 50002 | 文件类型不允许 |
 | 400 | 50003 | 文件大小超限 |
+| 400 | 50004 | 品牌证书文件类型不允许 |
+| 400 | 50005 | 品牌证书文件超过 20MB |
 | 502 | 50001 | MinIO 不可用、Bucket 初始化失败或对象写入失败 |
 
 ---

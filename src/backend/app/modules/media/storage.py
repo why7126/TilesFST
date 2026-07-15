@@ -24,6 +24,7 @@ _EXTENSIONS_BY_TYPE = {
     "image/jpg": "jpg",
     "image/png": "png",
     "image/webp": "webp",
+    "application/pdf": "pdf",
     "video/mp4": "mp4",
     "video/quicktime": "mov",
     "video/x-msvideo": "avi",
@@ -158,6 +159,11 @@ def build_video_upload_object_key(resource_type: str, content_type: str | None) 
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
+def build_file_upload_object_key(resource_type: str, content_type: str | None) -> str:
+    prefix = settings.minio_prefix_files.rstrip("/")
+    return build_upload_object_key(prefix, resource_type, content_type)
+
+
 def validate_object_key(object_key: str) -> PurePosixPath:
     key = object_key.strip()
     if not key or key.startswith("/") or "\\" in key or "//" in key:
@@ -180,13 +186,14 @@ def resolve_media_path(object_key: str) -> PurePosixPath:
         ) from exc
 
 
-async def save_upload_file(file: UploadFile, object_key: str, max_size_mb: int) -> None:
+async def save_upload_file(file: UploadFile, object_key: str, max_size_mb: int) -> int:
     resolve_media_path(object_key)
     content = await file.read()
     max_size_bytes = max_size_mb * 1024 * 1024
     if len(content) > max_size_bytes:
         raise AppError(status_code=400, code=FILE_SIZE_EXCEEDED, message="文件大小超限")
     get_media_storage_client().put_object(object_key, content, file.content_type)
+    return len(content)
 
 
 def get_media_file_response(object_key: str) -> Response:

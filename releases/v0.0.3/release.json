@@ -1,0 +1,393 @@
+{
+  "version": "v0.0.3",
+  "release_time": "2026-07-15 13:48:54",
+  "owner": "product",
+  "summary": "TILESFST v0.0.3 汇总 sprint-005、sprint-006、sprint-007 的已归档交付范围，覆盖管理端列表与复制体验治理、API 校验错误 envelope、主题舒适度与账号偏好、AI 使用量工作流治理，以及品牌证书管理。",
+  "formal_scope_only": true,
+  "version_change_rationale": "",
+  "sprints": [
+    "sprint-005",
+    "sprint-006",
+    "sprint-007"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0028-admin-list-page-contract",
+      "title": "管理端列表页模板与契约",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0029-admin-list-foundation-components",
+      "title": "管理端列表基础组件与分页窗口工具",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0030-api-docs-swagger-policy-checklist",
+      "title": "接口文档页 Swagger 代理与生产调试策略 checklist",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0031-api-validation-envelope-governance",
+      "title": "API 校验错误 envelope 治理扩展到管理端表单 API",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0020-theme-comfort-refine",
+      "title": "管理端主题舒适度优化与账号级主题偏好",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0032-clipboard-copy-helper-best-practice",
+      "title": "Clipboard 复制 helper 与最佳实践",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0033-acceptance-report-summary-ac-reference",
+      "title": "验收报告最终摘要与原始 AC 引用分层",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0034-ai-token-usage-observability",
+      "title": "AI Token 使用量观测事实源",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0036-clipboard-helper-best-practice-docs",
+      "title": "Clipboard helper best-practice 文档沉淀",
+      "sprint": "sprint-007",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0035-ai-usage-snapshot-sprint-close-exps",
+      "title": "Sprint close / exps 默认接入 AI usage snapshot",
+      "sprint": "sprint-007",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0037-auto-token-fact-source-for-workflow-commands",
+      "title": "工作流命令自动构建 Token 使用量事实源",
+      "sprint": "sprint-007",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0038-brand-certificate-management",
+      "title": "品牌证书管理",
+      "sprint": "sprint-007",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0056-sprint-archive-incomplete-tasks-gate",
+      "title": "Sprint 归档未完成 tasks 硬门禁",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0057-api-governance-tags-known-debt",
+      "title": "API governance route tags 历史债清理",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0058-workflow-sync-check-time-drift-idempotency",
+      "title": "workflow-sync check 时间漂移幂等性修复",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0059-user-password-copy-not-working",
+      "title": "管理端一次性密码复制交互修复",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0060-audit-log-request-id-copy-error",
+      "title": "管理端日志审计 request_id 复制交互修复",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0061-change-password-policy-error-message-unclear",
+      "title": "管理端修改密码策略失败提示修复",
+      "sprint": "sprint-005",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0062-archive-issue-subdoc-status-consistency",
+      "title": "归档前 issue 子文档状态一致性门禁",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0063-archived-change-trace-fallback-summary",
+      "title": "archived Change 缺 trace 时要求归档验证摘要兜底",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0064-theme-selector-sidebar-placement",
+      "title": "界面主题选择器侧边栏位置修复",
+      "sprint": "sprint-006",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-admin-list-page-contract",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-add-admin-list-page-contract"
+    },
+    {
+      "id": "add-admin-list-foundation-components",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-10-add-admin-list-foundation-components"
+    },
+    {
+      "id": "update-api-docs-swagger-policy-checklist",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist"
+    },
+    {
+      "id": "update-api-validation-envelope-governance",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-update-api-validation-envelope-governance"
+    },
+    {
+      "id": "fix-sprint-archive-incomplete-tasks-gate",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate"
+    },
+    {
+      "id": "fix-api-governance-route-tags-known-debt",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-09-fix-api-governance-route-tags-known-debt"
+    },
+    {
+      "id": "fix-workflow-sync-check-time-drift-idempotency",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-09-fix-workflow-sync-check-time-drift-idempotency"
+    },
+    {
+      "id": "fix-user-password-copy-not-working",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-06-fix-user-password-copy-not-working"
+    },
+    {
+      "id": "fix-audit-log-request-id-copy-error",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-09-fix-audit-log-request-id-copy-error"
+    },
+    {
+      "id": "fix-change-password-policy-error-message",
+      "sprint": "sprint-005",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-06-fix-change-password-policy-error-message"
+    },
+    {
+      "id": "update-theme-comfort-refine",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-update-theme-comfort-refine"
+    },
+    {
+      "id": "add-clipboard-copy-helper-best-practice",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-add-clipboard-copy-helper-best-practice"
+    },
+    {
+      "id": "update-acceptance-report-summary-ac-reference",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-update-acceptance-report-summary-ac-reference"
+    },
+    {
+      "id": "add-ai-token-usage-observability",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-add-ai-token-usage-observability"
+    },
+    {
+      "id": "fix-archive-issue-subdoc-status-consistency",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-fix-archive-issue-subdoc-status-consistency"
+    },
+    {
+      "id": "fix-archive-trace-fallback-summary-gate",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-fix-archive-trace-fallback-summary-gate"
+    },
+    {
+      "id": "fix-theme-selector-sidebar-placement",
+      "sprint": "sprint-006",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-fix-theme-selector-sidebar-placement"
+    },
+    {
+      "id": "add-clipboard-helper-best-practice-docs",
+      "sprint": "sprint-007",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs"
+    },
+    {
+      "id": "update-ai-usage-snapshot-sprint-close-exps",
+      "sprint": "sprint-007",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps"
+    },
+    {
+      "id": "add-auto-token-fact-source-for-workflow-commands",
+      "sprint": "sprint-007",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands"
+    },
+    {
+      "id": "add-brand-certificate-management",
+      "sprint": "sprint-007",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-15-add-brand-certificate-management"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: sprint-005、sprint-006、sprint-007 均为 completed/archive；21/21 formal-scope Change 均存在 openspec/changes/archive 下归档目录；12 个 REQ 与 9 个 BUG 均位于 issues/*/archive；Sprint 验收报告记录 sprint-005 10/10、sprint-006 7/7、sprint-007 4/4 Change archived。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `uv run pytest` 通过：250 passed, 1 skipped；`pnpm --dir src/web test -- --run` 通过：52 files, 235 tests。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `python scripts/validate-api-standard.py` 通过；`./scripts/generate-openapi-client.sh` 通过，Orval v8.17.0 已重新生成 tileApi；`src/web/openapi.json` 与 `src/web/src/shared/api/generated.ts` 已同步。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `docker compose config --quiet` 通过；v0.0.3 包含品牌证书上传、主题偏好与 API envelope 相关范围，Compose 配置可解析。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `src/backend/app/db/schema.sql`、`src/backend/app/db/schema.mysql.sql`、`src/backend/app/db/migrations.py` 与 `docs/04-database-design.md` 均包含 theme_mode 与 brand_certificates 相关 schema / migration / 文档证据；`uv run pytest` 覆盖 auth_theme_preference 与 admin_brand_certificates 集成测试。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `.env.example`、`src/backend/.env.example`、`src/backend/.env.docker` 存在，并保留 APP_ENV、DATABASE_URL、SQLite、MinIO 单桶与媒体前缀等发布范围配置说明；本版本未新增必须追加的环境变量。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `src/shared/product-version.ts` 已更新 PRODUCT_VERSION 为 v0.0.3，与本发布对象版本一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-15 18:35:06: `releases/mint.json` 已加入 `v0.0.3/announcement`；`python scripts/validate-release.py --release-dir releases/v0.0.3` 通过，完成公告源文件结构与公开安全扫描。"
+    }
+  },
+  "known_issues": [
+    "部分 archived Change 的历史 trace Frontmatter 仍保留 proposed/applied 文案；本发布以物理归档目录、Issue trace、Sprint 验收报告与 release validation 为发布事实源。",
+    "品牌证书管理涉及 API、DB、Web、MinIO 上传和 Orval；生产上线前仍需在目标环境执行登录、证书上传、媒体回显、显示/隐藏、删除与权限 smoke。",
+    "AI usage snapshot 依赖本地脱敏事实源；本地 session 不可访问时工作流命令会显式返回 unavailable，不阻断主命令。"
+  ],
+  "upgrade_steps": [
+    "升级前备份数据库、对象存储数据与当前部署配置。",
+    "确认 `src/shared/product-version.ts` 中 PRODUCT_VERSION 为 v0.0.3。",
+    "同步生产环境变量与部署配置，重点确认 APP_ENV、数据库连接、MinIO 单桶与媒体前缀、上传大小限制和 Web 代理配置。",
+    "执行 SQLite/MySQL schema 初始化或迁移，确认 users.theme_mode 与 brand_certificates 表、索引、约束和回滚策略。",
+    "重新生成 OpenAPI/Orval 客户端并构建 Web、Backend 镜像。",
+    "通过 Docker Compose 或生产等价部署启动服务，验证登录、主题切换、用户密码复制、日志 request_id 复制、API 校验错误展示、品牌证书 CRUD、证书文件上传和媒体回显关键路径。",
+    "执行 Mintlify 公告 build/preview 或等价 release validation 后进入 /release-publish。"
+  ],
+  "rollback": {
+    "conditions": [
+      "登录、主题偏好、用户密码复制、日志审计复制、API 校验错误展示或品牌证书管理任一核心路径 smoke 失败。",
+      "brand_certificates schema 初始化、迁移或品牌删除约束出现阻断性数据问题。",
+      "OpenAPI/Orval 生成客户端与后端运行时契约不一致。",
+      "Docker Compose 环境无法稳定启动 Web、Backend 或 MinIO。",
+      "公告或发布对象校验发现敏感信息泄露风险。"
+    ],
+    "steps": [
+      "停止当前版本服务并回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Docker Compose 配置和 Web/Backend 镜像。",
+      "恢复升级前数据库备份；如已执行 brand_certificates 或 theme_mode 相关迁移，按数据库回滚说明处理。",
+      "恢复对象存储备份或回退 MinIO/S3 配置。",
+      "重新执行登录、用户管理、主题偏好、日志审计、品牌管理、媒体读取和管理端首页 smoke 验证。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "新增或完善管理端列表模板、MetricCard / 分页窗口、Clipboard helper、主题切换位置与账号级主题偏好、API envelope 错误展示、品牌证书一级管理页、证书上传预览、显示/隐藏和删除交互。",
+    "owner_web": "品牌展示页保留暗色旗舰风边界；本版本无店主 Web 主功能交付，但共享主题策略和后端能力上线需执行基础 smoke。",
+    "miniapp": "本版本无小程序交付范围。",
+    "backend": "新增或完善统一校验错误 envelope、主题偏好 API、品牌证书管理与上传接口、审计和品牌删除约束；流程治理脚本增强归档门禁与 AI usage fact source。",
+    "database": "users 增加 theme_mode 支持；新增 brand_certificates 表或等价 schema、索引、唯一约束与 SQLite/MySQL 兼容迁移。",
+    "object_storage": "品牌证书文件通过后端鉴权上传与 MinIO 适配层存储，保持单 Bucket + 前缀策略；生产需验证证书文件上传、访问和回显。",
+    "docker": "Compose 配置无拓扑新增；品牌证书上传和 Swagger/媒体代理相关路径需要在 Docker Web 与 Backend 组合下 smoke。"
+  },
+  "announcement": "announcement.mdx",
+  "publish_confirmation": {
+    "published_at": "2026-07-15 18:46:01",
+    "announcement_path": "releases/v0.0.3/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "v0.0.3 发布确认已记录；当前最终公告位置为仓库内 Mintlify 公告源文件，若后续发布到外部站点，可补充 announcement_url。"
+  }
+}

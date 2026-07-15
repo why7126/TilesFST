@@ -1,0 +1,82 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "219c3afe737b2761216db3e9a2aab11a270a96e09aec4dd5a2054d4dedce30f1",
+      "source_data_file": "~/.codex/sessions/2026/07/12/rollout-2026-07-12T00-16-34-019f51f7-6251-7603-8f4b-19e357ec7816.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 238,
+      "turn_hash": "54edfef0085ebf23",
+      "started_at": "2026-07-11T16:16:50.010Z",
+      "ended_at": "2026-07-11T16:29:33.955Z",
+      "command": "command",
+      "workflow_event": "opsx.apply",
+      "requirements": [
+        "REQ-0036-clipboard-helper-best-practice-docs"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-clipboard-helper-best-practice-docs"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 23,
+      "input_tokens": 1389154,
+      "cached_input_tokens": 1306752,
+      "output_tokens": 13278,
+      "reasoning_output_tokens": 1220,
+      "total_tokens": 1402432,
+      "tool_call_count": 65,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "219c3afe737b2761216db3e9a2aab11a270a96e09aec4dd5a2054d4dedce30f1",
+      "source_data_file": "~/.codex/sessions/2026/07/12/rollout-2026-07-12T00-16-34-019f51f7-6251-7603-8f4b-19e357ec7816.jsonl",
+      "source_line_start": 239,
+      "source_line_end": 425,
+      "turn_hash": "7e9bfc7640e7b390",
+      "started_at": "2026-07-11T16:29:33.955Z",
+      "ended_at": "2026-07-11T16:34:36.147Z",
+      "command": "command",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0036-clipboard-helper-best-practice-docs"
+      ],
+      "bugs": [],
+      "changes": [
+        "add-clipboard-helper-best-practice-docs"
+      ],
+      "sprint_id": "sprint-007",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 22,
+      "input_tokens": 2274523,
+      "cached_input_tokens": 2177280,
+      "output_tokens": 8630,
+      "reasoning_output_tokens": 2153,
+      "total_tokens": 2283153,
+      "tool_call_count": 47,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

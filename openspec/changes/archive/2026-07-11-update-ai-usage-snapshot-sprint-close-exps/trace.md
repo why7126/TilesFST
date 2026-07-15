@@ -32,7 +32,7 @@ knowledge_base_refs:
 
 | 类型 | 路径 | 说明 |
 |---|---|---|
-| REQ | `issues/requirements/review/REQ-0035-ai-usage-snapshot-sprint-close-exps/` | 已评审通过需求 |
+| REQ | `issues/requirements/archive/REQ-0035-ai-usage-snapshot-sprint-close-exps/` | 已评审通过需求 |
 | knowledge-base | `docs/knowledge-base/retrospectives/sprint-006-retrospective.md` | A-001：将 AI usage snapshot 生成纳入 Sprint close / exps 默认流程，避免继续 estimated fallback |
 
 ## 影响分析

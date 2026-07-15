@@ -8,6 +8,7 @@ import { ThemeProvider } from '../features/theme/ThemeContext';
 import { AdminLayout } from '../pages/admin/AdminLayout';
 import { ApiDocsPage } from '../pages/admin/ApiDocsPage';
 import { BannerManagementPage } from '../pages/admin/BannerManagementPage';
+import { BrandCertificateManagementPage } from '../pages/admin/BrandCertificateManagementPage';
 import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
 import { LogAuditPage } from '../pages/admin/LogAuditPage';
@@ -66,6 +67,7 @@ export function App() {
               <Route element={<AdminLayout />}>
                 <Route path="/admin/dashboard" element={<DashboardPage />} />
                 <Route path="/admin/brands" element={<BrandManagementPage />} />
+                <Route path="/admin/brand-certificates" element={<BrandCertificateManagementPage />} />
                 <Route path="/admin/banners" element={<BannerManagementPage />} />
                 <Route path="/admin/tile-categories" element={<TileCategoryManagementPage />} />
                 <Route path="/admin/tile-specs" element={<TileSpecManagementPage />} />

@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-02 14:56:58
+updated_at: 2026-07-14 19:05:47
 ---
 
 # 发布规范
@@ -73,7 +73,7 @@ releases/vX.Y.Z/announcement.mdx
 
 ## 发布命令族
 
-发布命令族以 `.agents/skills/source-command-release-*`（若存在）或对应 Codex 技能为入口；新增或修改发布命令时 MUST 更新 `.agents/skills/`。
+发布命令族以 `.agents/skills/release-*`（若存在）或对应 Codex 技能为入口；新增或修改发布命令时 MUST 更新 `.agents/skills/`。
 
 推荐命令：
 
