@@ -73,6 +73,20 @@ CREATE TABLE IF NOT EXISTS tile_videos (
   FOREIGN KEY(tile_id) REFERENCES tiles(id)
 );
 
+CREATE TABLE IF NOT EXISTS miniapp_sku_favorites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  client_id TEXT NOT NULL,
+  sku_id INTEGER NOT NULL,
+  favorite INTEGER NOT NULL DEFAULT 1 CHECK (favorite IN (0, 1)),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(sku_id) REFERENCES tiles(id),
+  UNIQUE(client_id, sku_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_miniapp_sku_favorites_client
+  ON miniapp_sku_favorites(client_id, favorite, updated_at);
+
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,

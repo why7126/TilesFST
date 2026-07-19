@@ -9,7 +9,7 @@ Use this skill when the user asks `/release-prepare <version>` or wants to run p
 
 ## Context Budget Guardrails（MUST）
 
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - 从 `releases/<version>/release.json` 开始，只读取发布对象中列出的 Sprint / REQ / BUG / Change。
 - 门禁失败时按脚本报告定位具体文件片段；不要全量读取 `docs/**`、`issues/**`、`iterations/**` 或归档目录。
 - 测试、Docker、Orval、Mintlify 输出只保留摘要；失败时展开关键错误。

@@ -40,7 +40,9 @@ Rules:
 2. If the command has no Sprint scope, command-run generation may proceed, but Sprint snapshot output MUST be `skipped`; do not invent a Sprint.
 3. If one command run fails persistence safety checks, the hook MUST skip that record, report `unsafe-records-skipped:<count>`, and continue writing any safe records. If all target records are unsafe, report `usage_mode: unavailable` and `no-safe-command-runs`; do not raise an unhandled exception.
 4. Workflow IDs containing business words such as `password` or `token` MUST NOT be treated as secrets by word match alone. Only auth headers, assigned secret-like fields, `.env` content, raw local absolute paths, and equivalent sensitive values should block persistence.
-5. Successful output MUST stay compact: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+5. Successful standard workflow hook output MUST stay compact and user-facing summaries MUST include only: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+   - Release workflow hooks MAY also include `session_input` and `release_artifact` because release commands maintain a version-level AI usage artifact.
+   - Do not print full hook JSON, `outputs`, raw `warnings`, command-run detail files, Sprint snapshot contents, session JSONL, prompts, skill bodies, local absolute paths, or tool output bodies on the success path.
 6. The hook MUST NOT persist prompt text, system/developer instructions, skill bodies, raw session JSONL, local absolute paths, tool output bodies, secrets, cookies, Authorization headers, or `.env` content.
 7. Exploration commands with no workflow state change MAY run the hook in `--dry-run` mode or output the same recommended action; they MUST NOT modify REQ/BUG/Change/Sprint status just to create usage data.
 
@@ -101,7 +103,7 @@ Use `--bug BUG-xxxx-slug` and `--event bug.archive` for BUGs.
 Guardrails:
 
 1. Always run dry-run first and inspect file path, source, old status, target status, and `updated_at`.
-2. Reconcile is only for already-closed issues. If the report says the issue trace, linked Change, or linked Sprint is not closed, run the upstream workflow command first.
+2. Reconcile is only for already-closed issues. If the report says the issue trace or linked Change is not closed, run the upstream workflow command first. A single REQ/BUG may reconcile and promote after all of its linked Changes are archived even when its Sprint is still planning/in_progress; Sprint completion remains a `/sprint-archive` gate.
 3. Reconcile MUST NOT be used to bypass review, acceptance, `/opsx-archive`, or `/sprint-archive`.
 4. Successful reconcile refreshes modified Markdown `updated_at` and reports changed file/field counts.
 
@@ -129,7 +131,7 @@ Guardrails:
 
 ## Guardrails
 
-1. Print the **Workflow Sync Report** from script stdout. Successful commands SHOULD use the default summary output; rerun with `--output detail` only when diagnosing drift, skipped files, or failures.
+1. Print only the summary **Workflow Sync Report** from script stdout on the success path. Successful commands SHOULD use the default summary output; rerun with `--output detail` only when diagnosing drift, skipped files, or failures.
 2. If exit code != 0, fix drift and re-run before ending the parent command.
 3. Do **not** hand-edit `sprint.md` Scope marker blocks; use the script.
 4. Marker blocks: `<!-- workflow-sync:scope-*:start/end -->`.

@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "菲尚特瓷砖",
+  "usingComponents": {
+    "custom-navigation": "../../components/custom-navigation/index"
+  }
+}

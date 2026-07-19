@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XL 管理端页面分层验收模板</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --weak: rgba(237, 232, 223, 0.32);
+      --gold: #c8a055;
+      --border: rgba(255, 255, 255, 0.1);
+      --danger: #d66b5d;
+      --ok: #8dbd7b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px 1fr;
+    }
+    aside {
+      background: var(--deep);
+      border-right: 1px solid var(--border);
+      padding: 24px 18px;
+    }
+    .brand {
+      color: var(--gold);
+      letter-spacing: 0.16em;
+      font-size: 12px;
+      margin-bottom: 28px;
+    }
+    .nav-title {
+      color: var(--weak);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      margin: 20px 0 8px;
+    }
+    .nav-item {
+      display: block;
+      color: var(--muted);
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item.active {
+      color: var(--text);
+      border-color: rgba(200, 160, 85, 0.32);
+      background: rgba(200, 160, 85, 0.08);
+    }
+    main {
+      padding: 28px;
+      max-width: 1280px;
+      width: 100%;
+    }
+    .eyebrow {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 400;
+      margin: 0;
+    }
+    .desc {
+      color: var(--muted);
+      max-width: 780px;
+      margin: 10px 0 24px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 2px;
+    }
+    .chip.required { color: var(--gold); border-color: rgba(200, 160, 85, 0.38); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(132px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .gate {
+      min-width: 132px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 3px;
+    }
+    .gate h2 {
+      font-size: 15px;
+      font-weight: 400;
+      margin: 0 0 8px;
+    }
+    .status {
+      display: inline-block;
+      color: var(--ok);
+      border: 1px solid rgba(141, 189, 123, 0.34);
+      padding: 2px 6px;
+      border-radius: 2px;
+      margin-bottom: 12px;
+    }
+    .gate ul {
+      padding-left: 16px;
+      margin: 0;
+      color: var(--muted);
+    }
+    .section {
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 400;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      color: var(--weak);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    td { color: var(--muted); }
+    .required-text { color: var(--gold); }
+    .blocked { color: var(--danger); }
+    .table-wrap { overflow-x: auto; }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { display: none; }
+      main { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">TILESFST</div>
+      <p class="nav-title">ACCEPTANCE</p>
+      <a class="nav-item active" href="#">XL Gate Template</a>
+      <a class="nav-item" href="#">DB / API</a>
+      <a class="nav-item" href="#">Upload / Docker</a>
+      <a class="nav-item" href="#">UI Cross-cutting</a>
+    </aside>
+    <main>
+      <p class="eyebrow">REQ-0039 / WEB ADMIN</p>
+      <h1>XL 管理端页面分层验收模板</h1>
+      <p class="desc">用于复杂管理端页面在 PRD、OpenSpec、实现和验收阶段统一记录 gate 状态、证据和 N/A 理由。</p>
+      <div class="toolbar">
+        <span class="chip required">required</span>
+        <span class="chip">not_applicable</span>
+        <span class="chip">passed</span>
+        <span class="chip">failed</span>
+        <span class="chip">blocked</span>
+      </div>
+      <section class="grid" aria-label="分层 gate">
+        <article class="gate"><h2>DB</h2><span class="status">required?</span><ul><li>schema</li><li>migration</li><li>SQLite/MySQL</li></ul></article>
+        <article class="gate"><h2>API</h2><span class="status">required?</span><ul><li>envelope</li><li>error code</li><li>auth</li></ul></article>
+        <article class="gate"><h2>上传</h2><span class="status">required?</span><ul><li>MIME/size</li><li>MinIO</li><li>state</li></ul></article>
+        <article class="gate"><h2>Orval</h2><span class="status">required?</span><ul><li>OpenAPI</li><li>client</li><li>types</li></ul></article>
+        <article class="gate"><h2>Web</h2><span class="status">required?</span><ul><li>list</li><li>form</li><li>modal</li></ul></article>
+        <article class="gate"><h2>Docker</h2><span class="status">required?</span><ul><li>compose</li><li>nginx</li><li>3000</li></ul></article>
+        <article class="gate"><h2>UI Gate</h2><span class="status">required?</span><ul><li>token</li><li>toast</li><li>confirm</li></ul></article>
+      </section>
+      <section class="section">
+        <div class="section-head">
+          <h2 class="section-title">Gate 记录字段</h2>
+          <span class="required-text">evidence required</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>层级</th><th>状态</th><th>Owner</th><th>Evidence</th><th>N/A Reason</th><th>Risk</th></tr></thead>
+            <tbody>
+              <tr><td>DB</td><td>not_applicable</td><td>Backend</td><td>复用既有表</td><td>不新增字段/迁移</td><td>-</td></tr>
+              <tr><td>上传</td><td class="required-text">required</td><td>Fullstack</td><td>localhost:3000 边界文件</td><td>-</td><td class="blocked">Nginx 413 风险</td></tr>
+              <tr><td>UI Gate</td><td class="required-text">required</td><td>Frontend</td><td>截图 + Vitest</td><td>-</td><td>弹窗宽度层叠</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

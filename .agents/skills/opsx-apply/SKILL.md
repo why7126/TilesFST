@@ -10,7 +10,7 @@ Use this skill when the user asks to run `/opsx-apply <change-id>` or implement 
 ## Context Budget Guardrails（MUST）
 
 - 大 diff 先用 `git diff --stat` / `git diff --name-only`；不得默认展开 `src/web/openapi.json`、Orval generated、coverage 或构建产物全文。
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - `openspec instructions apply --json` returned `contextFiles` is the default read boundary.
 - UI/test定位先 `rg -l` 找文件，再分段读取目标片段。
 - 默认排除 generated、node_modules、coverage、dist、archive 大目录。

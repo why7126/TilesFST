@@ -474,3 +474,189 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **WHEN** 用户或系统重复对同一 session 或同一 command run 执行自动构建
 - **THEN** 系统 SHOULD 使用 session hash、turn hash、command run id 或等价来源摘要避免重复累计
 - **AND** 系统 SHOULD 为重复、无法归因或疑似敏感内容跳过输出 warning
+
+### Requirement: 工作流成功路径紧凑输出契约
+系统 MUST 为 Workflow Sync 与 AI usage post-command hook 建立统一 compact summary 输出契约，使工作流命令成功路径默认只输出聚合状态、关键上下文和推荐动作。
+
+#### Scenario: Workflow Sync 默认成功摘要
+- **WHEN** 用户或命令技能执行 `scripts/sync-workflow-status.py` 且命令成功完成
+- **THEN** 系统 MUST 默认输出 Workflow Sync Report 摘要
+- **AND** 摘要 MUST 至少包含 event、focus 对象、Sprint 解析结果、updated 数量、skipped 数量和 errors 数量
+- **AND** 系统 MUST NOT 默认输出完整 `Skipped (no delta)` 文件列表、完整派生 Scope 块或长篇逐文件成功日志
+
+#### Scenario: Workflow Sync 详细模式保留逐文件明细
+- **WHEN** 用户或维护者显式请求 Workflow Sync 详细输出模式
+- **THEN** 系统 MUST 输出逐文件 updated、skipped 和必要诊断明细
+- **AND** 详细模式的同步结果、写入行为和退出码 MUST 与默认摘要模式一致
+
+#### Scenario: Workflow Sync 失败路径保留诊断
+- **WHEN** Workflow Sync 发生错误、drift 检查失败或 marker 解析失败
+- **THEN** 系统 MUST 输出错误数量和每条错误原因
+- **AND** 系统 MUST 返回非零退出码
+- **AND** 系统 MUST 提供可定位问题文件或启用详细模式的提示
+
+#### Scenario: AI usage hook 输出固定摘要字段
+- **WHEN** 工作流命令在 Workflow Sync 成功后执行 AI usage post-command hook
+- **THEN** 用户可见输出 MUST 只展示 compact summary
+- **AND** compact summary MUST 包含 `status`、`usage_mode`、`command_run_count`、`sprint_snapshot`、`warning_count` 和 `recommended_action`
+- **AND** 系统 MUST NOT 默认打印完整 session、原始 prompt、系统指令、developer 指令、技能全文、工具输出正文、完整 snapshot JSON 或完整 command run 明细
+
+#### Scenario: AI usage hook 降级或不可用摘要
+- **WHEN** AI usage hook 因本地 session 输入不可用、无安全记录、Sprint 无法解析或 snapshot 被跳过而降级
+- **THEN** 系统 MUST 仍输出 compact summary
+- **AND** `usage_mode` MUST 标明 `unavailable`、`estimated_fallback` 或等价降级状态
+- **AND** `recommended_action` MUST 说明下一步可执行动作或无法自动恢复的原因
+- **AND** 父工作流命令 MUST NOT 因 session 输入不可用而被判定失败
+
+#### Scenario: 成功路径日志长度受上下文预算约束
+- **WHEN** Workflow Sync 和 AI usage hook 均成功或以允许的降级状态完成
+- **THEN** 命令技能 MUST 只向用户转述 compact summary 和必要的 Change/Sprint/Issue 结果
+- **AND** 命令技能 MUST NOT 默认转述完整测试日志、完整 OpenAPI/Orval diff、完整 Workflow Sync 派生块、完整 AI usage JSON 或完整 snapshot 内容
+
+### Requirement: Sprint 归档后旧路径残留检查
+系统 MUST 在 `/sprint-archive` 完成 Sprint 目录迁移、Workflow Sync 与关联 Issue promote 后，检查本 Sprint 关联文档中是否残留已迁移前的旧路径引用，防止归档后文档继续指向 `iterations/change/` 或 active Change 目录。
+
+#### Scenario: Sprint 归档后无旧路径残留
+- **WHEN** `/sprint-archive sprint-xxx` 已将 Sprint 目录迁移到 `iterations/archive/sprint-xxx/`
+- **AND** Sprint 关联文档不包含 `iterations/change/sprint-xxx/` 或已归档 Change 的 active 路径引用
+- **THEN** 系统 MUST 在最终报告中展示路径残留检查通过
+- **AND** 报告 MUST 包含检查文件数与命中数摘要
+
+#### Scenario: Sprint 归档后仍残留 change 路径
+- **WHEN** `/sprint-archive sprint-xxx` 完成目录迁移后执行路径残留检查
+- **AND** 任一关联 Markdown 文档仍包含 `iterations/change/sprint-xxx/`
+- **THEN** 系统 MUST 将该残留报告为 blocker 或 warning
+- **AND** 报告 MUST 包含文件路径、行号、旧路径与建议的新路径 `iterations/archive/sprint-xxx/`
+- **AND** `/sprint-archive` MUST 不得静默输出成功闭环结论
+
+#### Scenario: Sprint 归档后仍残留 active Change 路径
+- **WHEN** Sprint 范围内的 Change 已归档到 `openspec/changes/archive/<date>-<change-id>/`
+- **AND** 任一关联 Markdown 文档仍包含 `openspec/changes/<change-id>/`
+- **THEN** 系统 MUST 报告该 Change 路径残留
+- **AND** 报告 MUST 包含对应归档路径或说明无法解析归档路径
+
+#### Scenario: 检查范围受 Sprint scope 限制
+- **WHEN** 系统执行 Sprint 归档后旧路径残留检查
+- **THEN** 系统 MUST 以 `sprint.yaml` 的 `requirements[]`、`bugs[]` 与 `changes[]` 定位检查范围
+- **AND** 系统 MUST NOT 默认扫描整个 `openspec/changes/archive/**`、`issues/**` 或生成物目录
+
+### Requirement: Sprint 复盘旧路径残留提示
+系统 MUST 在 `/sprint-exps` 为已归档 Sprint 生成复盘前检查旧路径残留，并将残留作为复盘风险或 evidence hint 暴露，避免复盘文档继续传播过期链接。
+
+#### Scenario: 复盘前发现旧路径残留
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **AND** `sprint-xxx` 已位于 `iterations/archive/sprint-xxx/`
+- **AND** 路径残留检查发现 `iterations/change/sprint-xxx/` 或 active Change 路径引用
+- **THEN** Experience Analysis Report MUST 展示 residual path warning
+- **AND** 复盘文档 MUST NOT 将旧路径作为新的证据链接写入
+- **AND** 报告 MUST 给出残留文件路径与建议修正路径
+
+#### Scenario: 复盘前未发现旧路径残留
+- **WHEN** `/sprint-exps` 的路径残留检查未发现命中
+- **THEN** Experience Analysis Report SHOULD 展示检查通过摘要
+- **AND** 复盘可继续使用 Fact Sheet 中的归档路径作为证据来源
+
+#### Scenario: Fact Sheet 暴露路径残留证据
+- **WHEN** Fact Sheet 或复盘辅助脚本发现旧路径残留
+- **THEN** 机器可读输出 MUST 包含 warning 或 evidence hint
+- **AND** warning MUST 至少包含残留类型、文件路径、旧路径与建议新路径
+
+### Requirement: 规则与 Skill 已读摘要复用
+
+系统 MUST 在 Agent 上下文预算治理中定义同一会话内规则与 Skill 已读摘要复用机制，减少连续工作流命令重复读取相同文件。
+
+#### Scenario: 同一会话复用规则摘要
+
+- **WHEN** Agent 在同一会话中已经读取过 `AGENTS.md`、`openspec/project.md` 或相关 `rules/*.md`
+- **AND** 目标文件未显示内容、mtime、hash 或 `updated_at` 变化
+- **AND** 已有摘要足以覆盖当前命令的规则门禁
+- **THEN** Agent SHOULD 用摘要承接
+- **AND** Agent SHOULD NOT 重复全量读取相同文件
+
+#### Scenario: 同一会话复用 Skill 摘要
+
+- **WHEN** Agent 在同一会话中已经读取过当前命令 Skill 或共用 Skill
+- **AND** 目标 Skill 未显示内容、mtime、hash 或 `updated_at` 变化
+- **AND** 已有摘要足以覆盖当前命令步骤和 Final Step
+- **THEN** Agent SHOULD 用摘要承接
+- **AND** Agent SHOULD 只补读当前任务缺失的必要片段
+
+#### Scenario: 摘要最小信息
+
+- **WHEN** Agent 使用已读摘要承接规则或 Skill
+- **THEN** 摘要 SHOULD 能表达文件路径、版本线索、与当前任务相关的规则/门禁摘要、适用范围和刷新原因或等价信息
+- **AND** 摘要 MAY 只存在于同一对话上下文中
+
+### Requirement: 摘要复用失效与补读
+
+系统 MUST 定义摘要复用的失效条件，确保上下文节省不会绕过 OpenSpec、Issue lifecycle、安全、API、DB、上传、Docker、发布或 Workflow Sync 门禁。
+
+#### Scenario: 文件变化触发补读
+
+- **WHEN** 规则或 Skill 文件的内容、mtime、hash、`updated_at` 或等价版本线索显示已变化
+- **THEN** Agent MUST 重新读取目标文件或必要片段
+- **AND** Agent MUST NOT 继续使用旧摘要作为唯一依据
+
+#### Scenario: 任务风险升级触发补读
+
+- **WHEN** 命令从 capture、explore、generate 等轻量阶段升级到 apply、archive、release 或等价高风险阶段
+- **OR** 当前任务涉及权限、安全、API、DB、上传、Docker、发布或 OpenSpec 红线
+- **THEN** Agent MUST 补读当前 Change、Issue、Sprint、trace、Final Step 或失败相关片段
+- **AND** Agent MUST NOT 仅凭旧摘要继续执行高风险动作
+
+#### Scenario: 用户要求或失败诊断触发补读
+
+- **WHEN** 用户显式要求重新读取或复核原文
+- **OR** Workflow Sync、测试、校验脚本或 OpenSpec CLI 返回失败
+- **THEN** Agent MUST 回到相关原文或必要片段定位
+
+### Requirement: 命令 Skill 摘要复用 Guardrails
+
+命令 Skill MUST 在 `Context Budget Guardrails` 或等价章节中表达规则与 Skill 已读摘要复用约束，并保留命令特定门禁。
+
+#### Scenario: 命令 Skill 使用统一预算表述
+
+- **WHEN** 新增或更新 `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` 或 release 命令 Skill
+- **THEN** Skill MUST 引用 `rules/agent-context-budget.md`
+- **AND** Skill SHOULD 明确同一会话已读且无变更的规则和 Skill 用摘要承接
+- **AND** Skill MUST 保留命令特定 Must Read、Workflow Sync、AI usage hook 和业务门禁
+
+#### Scenario: 高风险命令保留补读要求
+
+- **WHEN** Skill 对应 apply、archive、release、req-opsx、bug-opsx、sprint-propose 或等价高风险命令
+- **THEN** Skill MUST 要求先读取当前 Change、Issue、Sprint、trace/status 或 OpenSpec CLI 输出的必要片段
+- **AND** Skill MUST NOT 要求默认全量读取历史归档、所有 specs、generated 文件或大目录
+
+### Requirement: 上下文预算校验覆盖摘要复用
+
+系统 MUST 通过上下文预算校验阻止命令 Skill 缺少预算入口、缺少摘要复用约束或回退到默认宽泛读取。
+
+#### Scenario: 校验命令 Skill 摘要复用约束
+
+- **WHEN** 用户或 CI 执行 `python scripts/validate-agent-context-budget.py`
+- **THEN** 脚本 MUST 检查命令 Skill 是否引用 `rules/agent-context-budget.md`
+- **AND** 脚本 MUST 检查命令 Skill 是否包含规则与 Skill 已读摘要复用的等价表述
+- **AND** 脚本 MUST 报告缺失约束的文件路径
+
+#### Scenario: 校验默认宽泛读取回退
+
+- **WHEN** 命令 Skill 包含默认 `cat rules/*.md`、`ls -R`、无边界 `rg <keyword> .` 或等价宽泛读取指令
+- **AND** 该指令不是明确禁止或反例说明
+- **THEN** 校验脚本 MUST 返回非零退出码
+- **AND** 报告 MUST 包含具体文件路径与行号
+
+### Requirement: 摘要复用安全边界
+
+系统 MUST 确保规则与 Skill 摘要复用不会持久化敏感上下文或扩大成功路径输出。
+
+#### Scenario: 禁止持久化敏感原文
+
+- **WHEN** Agent 使用规则或 Skill 摘要复用机制
+- **THEN** 系统 MUST NOT 将原始 prompt、系统指令、developer 指令、完整 session JSONL、工具输出正文、密钥、Cookie、Authorization header、`.env` 内容或真实客户数据写入仓库
+
+#### Scenario: 成功路径输出保持紧凑
+
+- **WHEN** 工作流命令成功复用摘要并完成主流程
+- **THEN** Agent SHOULD 只输出复用摘要、补读片段、计数、warning 或 recommended action 的短摘要
+- **AND** Agent MUST NOT 默认转述完整规则、完整 Skill、完整测试日志、完整 Workflow Sync 派生块或完整 generated diff
+

@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0051 分类入口原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --faint: rgba(237, 232, 223, 0.32);
+      --gold: #c8a055;
+      --line: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      margin: 24px auto;
+      background: var(--page);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .nav {
+      height: 92px;
+      padding: 48px 18px 14px;
+      background: var(--deep);
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .category-shell {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      height: 690px;
+    }
+
+    .primary-nav {
+      background: var(--deep);
+      border-right: 1px solid var(--line);
+      padding: 8px 0;
+    }
+
+    .primary-item {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .primary-item.active {
+      color: var(--text);
+      background: rgba(200, 160, 85, 0.08);
+    }
+
+    .rail {
+      width: 3px;
+      height: 26px;
+      background: transparent;
+      border-radius: 1px;
+    }
+
+    .active .rail { background: var(--gold); }
+
+    .panel {
+      padding: 16px 14px;
+      background: var(--page);
+    }
+
+    .primary-header {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      color: var(--faint);
+      margin-bottom: 6px;
+    }
+
+    .primary-title {
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .view-all {
+      min-width: 92px;
+      min-height: 44px;
+      border: 1px solid rgba(200, 160, 85, 0.42);
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      background: rgba(200, 160, 85, 0.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding-top: 14px;
+    }
+
+    .secondary-card {
+      min-height: 56px;
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .list-preview {
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+    }
+
+    .list-title {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .context {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .product {
+      min-height: 76px;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .image {
+      background: linear-gradient(135deg, #3a3529, #16140f);
+      border: 1px solid var(--line);
+    }
+
+    .name {
+      font-size: 14px;
+      margin: 2px 0 8px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .tabbar {
+      height: 62px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--line);
+      background: var(--deep);
+      color: var(--faint);
+      font-size: 12px;
+      text-align: center;
+      align-items: center;
+    }
+
+    .tabbar .active { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <section class="nav">分类</section>
+
+    <section class="category-shell">
+      <aside class="primary-nav">
+        <div class="primary-item active"><span class="rail"></span><span>地面砖</span></div>
+        <div class="primary-item"><span class="rail"></span><span>墙面砖</span></div>
+        <div class="primary-item"><span class="rail"></span><span>岩板</span></div>
+        <div class="primary-item"><span class="rail"></span><span>木纹砖</span></div>
+      </aside>
+
+      <section class="panel">
+        <div class="primary-header">
+          <div class="title-block">
+            <div class="eyebrow">一级分类</div>
+            <div class="primary-title">地面砖</div>
+          </div>
+          <div class="view-all">全部商品</div>
+        </div>
+
+        <div class="grid">
+          <div class="secondary-card">通体大理石</div>
+          <div class="secondary-card">柔光砖</div>
+          <div class="secondary-card">防滑砖</div>
+          <div class="secondary-card">仿古砖</div>
+          <div class="secondary-card">大规格砖</div>
+          <div class="secondary-card">亮面砖</div>
+        </div>
+
+        <div class="list-preview">
+          <div class="list-title">地面砖</div>
+          <div class="context">一级分类聚合：展示下属全部二级分类商品</div>
+          <div class="chips">
+            <div class="chip">筛选</div>
+            <div class="chip">默认排序</div>
+          </div>
+          <div class="product">
+            <div class="image"></div>
+            <div>
+              <div class="name">雅岩柔光地砖 800x800</div>
+              <div class="meta">菲尚特 · 通体大理石<br>SKU FST-DM8801</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <nav class="tabbar">
+      <div>首页</div>
+      <div class="active">分类</div>
+      <div>收藏</div>
+      <div>我的</div>
+    </nav>
+  </main>
+</body>
+</html>

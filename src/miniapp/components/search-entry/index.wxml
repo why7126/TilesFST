@@ -1,0 +1,17 @@
+<view class="search-entry {{disabled ? 'disabled' : ''}}">
+  <button wx:if="{{showBack}}" class="entry-back" bindtap="onCancel">‹</button>
+  <view class="entry-box">
+    <text class="entry-icon">⌕</text>
+    <input
+      class="entry-input"
+      disabled="{{disabled}}"
+      value="{{keyword}}"
+      placeholder="{{placeholder}}"
+      confirm-type="search"
+      bindinput="onInput"
+      bindconfirm="onSubmit"
+    />
+    <button wx:if="{{keyword && !disabled}}" class="entry-clear" bindtap="onClear">×</button>
+  </view>
+  <button class="entry-submit" disabled="{{disabled}}" bindtap="onSubmit">搜索</button>
+</view>

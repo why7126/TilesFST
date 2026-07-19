@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-02 14:56:58
+updated_at: 2026-07-16 09:24:12
 ---
 
 # 文档索引
@@ -38,6 +38,7 @@ updated_at: 2026-07-02 14:56:58
 | [standards/unit-test-standard.md](standards/unit-test-standard.md) | 后端单元测试 |
 | [standards/frontend-test-standard.md](standards/frontend-test-standard.md) | 前端 Vitest |
 | [standards/test-coverage.md](standards/test-coverage.md) | 覆盖率目标 |
+| [standards/xl-admin-page-acceptance-template.md](standards/xl-admin-page-acceptance-template.md) | XL 管理端页面分层验收模板 |
 
 细则文档 **不加** `00–` 序号；新增标准放入 `standards/`。
 

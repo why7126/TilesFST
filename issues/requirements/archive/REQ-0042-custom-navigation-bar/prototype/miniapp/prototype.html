@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0042 首页品牌自定义导航栏局部原型</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #100f0a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #ede8df;
+    }
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      overflow: hidden;
+      border-radius: 32px;
+      background: #18160f;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+    .note {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(237,232,223,0.08);
+      color: rgba(237,232,223,0.54);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .custom-nav {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(237,232,223,0.06);
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-right: 104px;
+      position: relative;
+    }
+    .native-actions {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 92px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed rgba(237,232,223,0.32);
+      color: rgba(237,232,223,0.58);
+      font-size: 11px;
+    }
+    .logo {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(200,160,85,0.5);
+      display: grid;
+      place-items: center;
+      color: #c8a055;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .brand {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .tagline {
+      margin-top: 3px;
+      color: rgba(237,232,223,0.5);
+      font-size: 12px;
+    }
+    .excluded {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border: 1px dashed rgba(200,160,85,0.35);
+      color: rgba(237,232,223,0.52);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .search {
+      height: 40px;
+      margin: 16px 20px 18px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-radius: 3px;
+      background: #211e16;
+      color: rgba(237,232,223,0.5);
+      font-size: 13px;
+    }
+    .hero {
+      margin: 0 20px;
+      height: 184px;
+      border-radius: 4px;
+      padding: 24px;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #211e16, #3a3324 64%, #6f5a2d);
+    }
+    .hero-title {
+      width: 210px;
+      font-size: 34px;
+      line-height: 1.12;
+      font-weight: 500;
+    }
+    .hero-subtitle {
+      width: 220px;
+      margin-top: 12px;
+      color: rgba(237,232,223,0.62);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .entries {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 22px 20px;
+    }
+    .entry {
+      min-height: 72px;
+      border-radius: 3px;
+      display: grid;
+      place-items: center;
+      gap: 6px;
+      background: #211e16;
+      color: rgba(237,232,223,0.82);
+      font-size: 12px;
+    }
+    .entry span {
+      color: #c8a055;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <div class="note">自定义导航栏取搜索框上方品牌展示区域；门店信息入口排除；右侧分享 / 关闭使用小程序原生能力，搜索框保留在下方。</div>
+    <section class="custom-nav">
+      <div class="brand-row">
+        <div class="logo">FST</div>
+        <div>
+          <div class="brand">菲尚特瓷砖馆</div>
+          <div class="tagline">专业选砖 · 品质生活</div>
+        </div>
+        <div class="native-actions">原生分享 / 关闭</div>
+      </div>
+      <div class="excluded">排除项：门店信息入口、门店跳转、多门店切换暗示；不得手绘模拟分享、关闭或胶囊控件。</div>
+    </section>
+    <div class="search">搜索瓷砖名称 / 型号 / 规格</div>
+    <section class="hero">
+      <div class="hero-title">高端瓷砖<br>数字展厅</div>
+      <div class="hero-subtitle">顶部品牌导航服务 REQ-0043 深色首页，不额外承载门店信息入口。</div>
+    </section>
+    <section class="entries">
+      <div class="entry"><span>▦</span>选瓷砖</div>
+      <div class="entry"><span>◆</span>品牌馆</div>
+      <div class="entry"><span>NEW</span>新品榜</div>
+      <div class="entry"><span>↗</span>热销榜</div>
+    </section>
+  </main>
+</body>
+</html>

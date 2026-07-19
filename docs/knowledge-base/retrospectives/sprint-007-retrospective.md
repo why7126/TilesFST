@@ -3,7 +3,7 @@ sprint_id: sprint-007
 title: Sprint 007 迭代经验复盘
 status: draft
 created_at: 2026-07-15 13:31:45
-updated_at: 2026-07-15 13:34:21
+updated_at: 2026-07-16 08:59:46
 owner: product
 related_iteration: iterations/archive/sprint-007/
 related_requirements:
@@ -191,7 +191,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 | A-002 | P1 | 为 Sprint archive / exps 增加 change/archive 路径残留检查，避免归档后关联文档旧链接 | `/opsx-propose` | 工具链 | open |
 | A-003 | P2 | 沉淀 XL 管理端页面分层验收模板，覆盖 DB/API/上传/Orval/Web/Docker/横切 UI gate | `/req-capture` | 产品 + 前后端 | open |
 | A-004 | P2 | 将规则/Skill 已读摘要复用机制纳入命令上下文预算治理，减少连续命令重复读取 | `/req-capture` | 工具链 | open |
-| A-005 | P2 | 为品牌证书能力补充后续运营验收观察点：过期证书提醒、证书类型统计、批量维护 | `/sprint-propose` | 产品 | open |
+| A-005 | P2 | 为品牌证书能力补充后续运营验收观察点：过期证书提醒、证书类型统计、批量维护 | `/sprint-propose` | 产品 | planned：已承接到 `iterations/change/sprint-008/` 的待评审观察点 |
 
 ## 7. 知识库沉淀清单
 

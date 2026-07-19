@@ -53,12 +53,12 @@ describe('canDeleteCategory', () => {
 });
 
 describe('buildParentOptions', () => {
-  it('excludes level-3 nodes as parent candidates', () => {
+  it('only allows root and level-1 nodes as parent candidates', () => {
     const options = buildParentOptions(sampleTree);
     const ids = options.map((o) => o.id);
     expect(ids).toContain(null);
     expect(ids).toContain(1);
-    expect(ids).toContain(2);
+    expect(ids).not.toContain(2);
     expect(ids).not.toContain(3);
   });
 });

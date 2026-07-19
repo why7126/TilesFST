@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>菲尚特瓷砖馆 - 首页原型 v2</title>
+<style>
+:root{--gold:#c79a3b;--ink:#15150f;--navy:#10254b;--bg:#f7f5f0;--muted:#77736b;--line:#ece8e0;--card:#fff}
+*{box-sizing:border-box} body{margin:0;background:#dedbd4;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#171717}
+.prototype-shell{width:390px;min-height:844px;margin:24px auto;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.18)}
+.status{height:44px;padding:12px 18px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:700;background:#fff}
+.status-icons{letter-spacing:2px;font-size:11px}
+.header{height:50px;background:#fff;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:8px}.brand img{width:31px;height:31px;border-radius:50%;object-fit:cover}.brand-name{font-size:16px;font-weight:750}.brand-name span{font-size:12px;margin-left:3px}.capsule{width:84px;height:30px;border:1px solid #ddd;border-radius:18px;display:flex;align-items:center;justify-content:space-evenly;font-weight:800}.capsule i{width:1px;height:17px;background:#ddd}
+.content{padding:0 16px 92px}.search{height:42px;margin:8px 0 14px;border-radius:14px;background:#efede8;display:flex;align-items:center;padding:0 13px;color:#8a867e;font-size:13px}.search b{font-size:18px;margin-right:8px;color:#777}
+.hero{height:202px;border-radius:18px;overflow:hidden;position:relative;background:linear-gradient(115deg,#181813,#2d2b23 60%,#898173)}
+.hero:before{content:"";position:absolute;right:-28px;bottom:-42px;width:225px;height:185px;border-radius:60% 8% 0 0;background:linear-gradient(145deg,#d8d2c7,#8d8980);opacity:.88;transform:skewX(-10deg)}
+.hero:after{content:"";position:absolute;right:28px;bottom:24px;width:142px;height:78px;border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(157,154,148,.68));box-shadow:0 16px 24px rgba(0,0,0,.32)}
+.hero-copy{position:absolute;left:20px;top:24px;color:#fff;z-index:2}.hero-copy h1{font-size:27px;line-height:1.22;margin:0 0 8px;letter-spacing:1px}.hero-copy p{font-size:12px;color:#ddd9cf;margin:0 0 18px}.hero-copy button{border:1px solid rgba(232,190,99,.8);color:#f0c76f;background:rgba(0,0,0,.18);padding:8px 15px;border-radius:8px;font-size:12px}.dots{position:absolute;bottom:12px;left:0;right:0;text-align:center;z-index:3}.dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);margin:0 3px}.dots span:first-child{width:14px;border-radius:3px;background:#fff}
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:17px 0 22px}.quick-item{text-align:center;font-size:11px}.quick-icon{width:44px;height:44px;border-radius:14px;background:#fff;margin:0 auto 7px;display:grid;place-items:center;box-shadow:0 5px 14px rgba(33,27,15,.05);font-size:20px;color:var(--gold)}
+.section{margin-top:20px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}.section-head h2{font-size:19px;margin:0}.more{font-size:12px;color:#8a867e}.cards{display:flex;gap:10px;overflow:hidden}.product{width:112px;flex:0 0 auto}.tile{height:112px;border-radius:13px;position:relative;overflow:hidden;background-color:#ddd}.tile.t1{background:linear-gradient(135deg,#e9e6df,#c9c5bb 53%,#f7f4ee)}.tile.t1:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(155deg,transparent 0 20px,rgba(125,122,115,.18) 21px 22px,transparent 23px 44px)}.tile.t2{background:linear-gradient(145deg,#ddd8d0,#aaa8a3 60%,#e7e4de)}.tile.t2:after{content:"";position:absolute;inset:0;background:linear-gradient(70deg,transparent 49%,rgba(255,255,255,.55) 50%,transparent 52%)}.tile.t3{background:linear-gradient(120deg,#e7d5bd,#c4a786 45%,#eadbc8)}.tile.t3:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(160deg,rgba(255,255,255,.12) 0 8px,rgba(100,68,42,.07) 9px 11px)}
+.badge{position:absolute;right:7px;top:7px;background:#e65643;color:#fff;padding:2px 5px;border-radius:5px;font-size:9px}.product b{display:block;font-size:12px;margin-top:7px}.product p{margin:3px 0 0;font-size:10px;color:#8a867e}.price{color:#c65330!important;font-weight:750;font-size:12px!important}
+.hot-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hot{height:188px;border-radius:15px;overflow:hidden;position:relative;background:linear-gradient(155deg,#d6d2ca,#9b9891 56%,#ece8df)}.hot:nth-child(2){background:linear-gradient(145deg,#e8d9c7,#b69d80 58%,#f2e9de)}.hot:before{content:"";position:absolute;left:12px;right:12px;bottom:52px;height:62px;background:rgba(255,255,255,.45);border-radius:4px;transform:perspective(90px) rotateX(12deg)}.hot-info{position:absolute;left:0;right:0;bottom:0;background:rgba(18,18,14,.88);padding:10px 11px;color:#fff}.hot-info b{font-size:12px}.hot-info p{font-size:10px;color:#cdc9c0;margin:4px 0}.hot-info em{font-style:normal;color:#f0c76f;font-size:12px;font-weight:700}.heart{position:absolute;right:10px;top:10px;color:white;font-size:19px}
+.services{margin-top:18px;border-radius:15px;background:#fff;padding:14px 10px;display:grid;grid-template-columns:repeat(3,1fr);font-size:11px;text-align:center}.services b{display:block;font-size:19px;color:var(--gold);margin-bottom:4px}
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:80px;padding:8px 18px 18px;background:rgba(255,255,255,.97);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:20}.tab{text-align:center;color:#777;font-size:10px}.tab b{display:block;font-size:20px;line-height:24px;font-weight:500}.tab.active{color:var(--gold);font-weight:700}
+@media(max-width:430px){.prototype-shell{margin:0;width:100vw;min-height:100vh}.content{padding-bottom:100px}.tabbar{position:fixed}}
+@page{size:390px 844px;margin:0}@media print{body{background:#fff}.prototype-shell{margin:0;box-shadow:none;width:390px;height:844px;min-height:844px}}
+</style>
+</head>
+<body>
+<main class="prototype-shell">
+  <div class="status"><span>9:41</span><span class="status-icons">▮▮▮ ︎◔ ▰</span></div>
+  <header class="header">
+    <div class="brand"><img src="assets/logo.png" alt="菲尚特"><div class="brand-name">菲尚特瓷砖馆<span>⌄</span></div></div>
+    <div class="capsule"><span>•••</span><i></i><span>◉</span></div>
+  </header>
+  <section class="content">
+    <div class="search"><b>⌕</b>搜索瓷砖名称、编号或规格</div>
+    <section class="hero">
+      <div class="hero-copy"><h1>质感空间<br>由砖而生</h1><p>精选优质瓷砖，打造理想生活</p><button>探索系列</button></div>
+      <div class="dots"><span></span><span></span><span></span><span></span></div>
+    </section>
+    <nav class="quick">
+      <div class="quick-item"><div class="quick-icon">⌂</div>按空间</div>
+      <div class="quick-item"><div class="quick-icon">▣</div>按规格</div>
+      <div class="quick-item"><div class="quick-icon">◇</div>按风格</div>
+      <div class="quick-item"><div class="quick-icon">◉</div>按颜色</div>
+      <div class="quick-item"><div class="quick-icon">▦</div>全部分类</div>
+    </nav>
+    <section class="section">
+      <div class="section-head"><h2>新品推荐</h2><span class="more">更多 ›</span></div>
+      <div class="cards">
+        <article class="product"><div class="tile t1"><span class="badge">新品</span></div><b>FS75001 通体大理石</b><p>800×800mm</p><p class="price">¥168.00/㎡</p></article>
+        <article class="product"><div class="tile t2"></div><b>FS75003 现代简约砖</b><p>750×1500mm</p><p class="price">¥298.00/㎡</p></article>
+        <article class="product"><div class="tile t3"></div><b>FS75004 木纹砖</b><p>200×1200mm</p><p class="price">¥158.00/㎡</p></article>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>热销推荐</h2><span class="more">更多 ›</span></div>
+      <div class="hot-grid">
+        <article class="hot"><span class="heart">♡</span><div class="hot-info"><b>云雾灰系列</b><p>客厅 · 亮光 · 大理石纹</p><em>¥268.00/㎡</em></div></article>
+        <article class="hot"><span class="heart">♡</span><div class="hot-info"><b>原木暖棕系列</b><p>卧室 · 哑光 · 木纹</p><em>到店询价</em></div></article>
+      </div>
+    </section>
+    <section class="services"><div><b>✓</b>正品保障</div><div><b>✦</b>免费选砖</div><div><b>☎</b>联系门店</div></section>
+  </section>
+  <nav class="tabbar">
+    <div class="tab active"><b>⌂</b>首页</div><div class="tab"><b>▦</b>分类</div><div class="tab"><b>⌕</b>找砖</div><div class="tab"><b>♡</b>收藏</div><div class="tab"><b>♙</b>我的</div>
+  </nav>
+</main>
+<div id="toast" style="position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(20,20,18,.9);color:#fff;padding:9px 14px;border-radius:18px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:99">已收藏</div>
+<script>
+(function(){
+  const toast=document.getElementById('toast');
+  function show(msg){toast.textContent=msg;toast.style.opacity='1';clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.style.opacity='0',1200)}
+  document.querySelector('.search').addEventListener('click',()=>show('进入瓷砖搜索'));
+  document.querySelectorAll('.heart').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();el.textContent=el.textContent==='♡'?'♥':'♡';show(el.textContent==='♥'?'已收藏':'已取消收藏')}));
+  document.querySelectorAll('.product,.hot,.quick-item,.more,.hero-copy button,.services>div').forEach(el=>el.addEventListener('click',()=>show('原型交互：进入对应页面')));
+})();
+</script>
+</body>
+</html>

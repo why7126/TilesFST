@@ -572,6 +572,97 @@ def test_post_command_hook_missing_session_returns_unavailable(tmp_path: Path) -
     assert summary["recommended_action"]
 
 
+def test_compact_post_command_summary_uses_standard_field_allowlist() -> None:
+    summary = ai_usage.compact_post_command_summary(
+        {
+            "status": "ok",
+            "usage_mode": "actual",
+            "command_run_count": 1,
+            "session_input": "auto",
+            "outputs": {"command_runs": "local.json"},
+            "sprint_snapshot": {"status": "skipped", "path": None, "reason": "no-sprint"},
+            "release_artifact": {"status": "skipped", "path": None, "reason": "no-release"},
+            "warnings": ["unsafe-records-skipped:1"],
+            "warning_count": 1,
+            "recommended_action": None,
+        }
+    )
+
+    assert list(summary) == [
+        "status",
+        "usage_mode",
+        "command_run_count",
+        "sprint_snapshot",
+        "warning_count",
+        "recommended_action",
+    ]
+    assert "outputs" not in summary
+    assert "warnings" not in summary
+    assert "session_input" not in summary
+    assert "release_artifact" not in summary
+
+
+def test_compact_post_command_summary_preserves_release_contract() -> None:
+    summary = ai_usage.compact_post_command_summary(
+        {
+            "status": "ok",
+            "usage_mode": "actual",
+            "command_run_count": 1,
+            "session_input": "auto",
+            "sprint_snapshot": {"status": "skipped", "path": None, "reason": "no-sprint"},
+            "release_artifact": {"status": "refreshed", "path": "release.publish.json", "reason": None},
+            "warning_count": 0,
+            "recommended_action": None,
+        },
+        include_release=True,
+    )
+
+    assert summary["session_input"] == "auto"
+    assert summary["release_artifact"]["status"] == "refreshed"
+
+
+def test_post_command_hook_cli_json_prints_compact_summary(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    session = tmp_path / "session.jsonl"
+    out_dir = tmp_path / "ai-usage"
+    write_jsonl(
+        session,
+        [
+            {"type": "user_message", "text": "/opsx-propose compact-workflow-hook-summary"},
+            {"payload": {"type": "token_count", "last_token_usage": {"total_tokens": 9}}},
+        ],
+    )
+
+    exit_code = ai_usage.main(
+        [
+            "--post-command-hook",
+            "--workflow-event",
+            "opsx.propose",
+            "--change",
+            "compact-workflow-hook-summary",
+            "--session-jsonl",
+            str(session),
+            "--out-dir",
+            str(out_dir),
+            "--json",
+        ]
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert list(payload) == [
+        "status",
+        "usage_mode",
+        "command_run_count",
+        "sprint_snapshot",
+        "warning_count",
+        "recommended_action",
+    ]
+    assert "outputs" not in payload
+    assert "warnings" not in payload
+    assert "session_input" not in payload
+    assert payload["sprint_snapshot"]["status"] == "skipped"
+
+
 def test_post_command_hook_auto_discovers_session_by_workflow_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     sessions_dir = tmp_path / "sessions"
     sessions_dir.mkdir()

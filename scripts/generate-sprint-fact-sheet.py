@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 from workflow_sync import collect
 from workflow_sync.issue_status_residuals import scan_issue_status_residuals
 
+import archived_path_residuals
 import ai_usage
 
 
@@ -351,6 +352,26 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                 }
             )
 
+        path_residual_report = archived_path_residuals.build_report(sprint.sprint_id, root=root)
+        for residual in path_residual_report.residuals:
+            suggested = residual.new_path or "unresolved"
+            warnings.append(
+                {
+                    "kind": "archived-path-residual",
+                    "target": residual.target,
+                    "detail": (
+                        f"{residual.file}:{residual.line} keeps `{residual.old_path}`; "
+                        f"suggest `{suggested}`"
+                    ),
+                }
+            )
+            evidence_hints.append(
+                {
+                    "reason": f"Archived path residual: {residual.target}",
+                    "path": residual.file,
+                }
+            )
+
         return {
             "sprint": {
                 "sprint_id": sprint.sprint_id,
@@ -378,6 +399,7 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
             "changes": change_rows,
             "issues": issue_rows,
             "acceptance": acceptance_summary(sprint.path, root),
+            "archived_path_residuals": archived_path_residuals.report_to_dict(path_residual_report),
             "ai_usage_snapshot": ai_usage_snapshot(
                 sprint.sprint_id,
                 root,

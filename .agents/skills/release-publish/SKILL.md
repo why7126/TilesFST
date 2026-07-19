@@ -9,7 +9,7 @@ Use this skill when the user asks `/release-publish <version>` or wants to recor
 
 ## Context Budget Guardrails（MUST）
 
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - 从 `releases/<version>/release.json` 和 `announcement.mdx` 开始，按 validator/gate 报告定位问题。
 - 不为发布确认全量展开关联 Sprint、Issue、Change；只有门禁证据缺失时读取对应片段。
 - 输出聚焦发布结论、公告位置、门禁结果和回滚提醒。

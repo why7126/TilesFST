@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0048 小程序全局自定义导航栏原型</title>
+    <style>
+      :root {
+        --page: #18160f;
+        --surface: #211e16;
+        --gold: #c8a055;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --line: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0f0e0a;
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        display: grid;
+        gap: 28px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 375px));
+        justify-content: center;
+        padding: 32px;
+      }
+
+      .phone {
+        overflow: hidden;
+        width: 375px;
+        min-height: 760px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 28px;
+        background: var(--page);
+      }
+
+      .nav {
+        position: relative;
+        min-height: 96px;
+        padding: 18px 112px 12px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(24, 22, 15, 0.96);
+      }
+
+      .capsule {
+        position: absolute;
+        top: 16px;
+        right: 14px;
+        width: 88px;
+        height: 32px;
+        border: 1px dashed rgba(237, 232, 223, 0.5);
+        border-radius: 18px;
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+      }
+
+      .brand-row,
+      .title-row {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(200, 160, 85, 0.5);
+        border-radius: 6px;
+        color: var(--gold);
+        display: grid;
+        place-items: center;
+        font-size: 15px;
+        letter-spacing: 0.12em;
+      }
+
+      .brand-name {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .back {
+        width: 44px;
+        height: 44px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        font-size: 26px;
+      }
+
+      .title {
+        min-width: 0;
+      }
+
+      .title strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 17px;
+        font-weight: 500;
+      }
+
+      .title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .content {
+        padding: 18px;
+      }
+
+      .search,
+      .hero,
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .search {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .hero {
+        height: 160px;
+        margin-top: 16px;
+        display: grid;
+        place-items: center;
+        color: var(--gold);
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        margin-top: 16px;
+      }
+
+      .card {
+        height: 104px;
+        padding: 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .label {
+        padding: 14px 18px 0;
+        color: var(--gold);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="phone" aria-label="首页导航形态">
+        <div class="label">Home</div>
+        <header class="nav">
+          <div class="capsule">原生胶囊</div>
+          <div class="brand-row">
+            <div class="logo">FST</div>
+            <div>
+              <div class="brand-name">菲尚特瓷砖馆</div>
+              <div class="subtitle">专业选砖 · 品质生活</div>
+            </div>
+          </div>
+        </header>
+        <section class="content">
+          <div class="search">搜索瓷砖名称 / 型号 / 规格</div>
+          <div class="hero">首页品牌内容从导航下方开始</div>
+          <div class="grid">
+            <div class="card">选瓷砖</div>
+            <div class="card">品牌馆</div>
+            <div class="card">新品榜</div>
+            <div class="card">热销榜</div>
+          </div>
+        </section>
+      </section>
+
+      <section class="phone" aria-label="非首页导航形态">
+        <div class="label">Detail / Search / List</div>
+        <header class="nav">
+          <div class="capsule">原生胶囊</div>
+          <div class="title-row">
+            <div class="back" aria-label="返回">‹</div>
+            <div class="title">
+              <strong>瓷砖 SKU 详情页</strong>
+              <span>菲尚特瓷砖馆</span>
+            </div>
+          </div>
+        </header>
+        <section class="content">
+          <div class="hero">媒体区 / 搜索区不被 fixed header 遮挡</div>
+          <div class="grid">
+            <div class="card">规格参数</div>
+            <div class="card">参考价格</div>
+            <div class="card">同系列商品</div>
+            <div class="card">同品牌推荐</div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

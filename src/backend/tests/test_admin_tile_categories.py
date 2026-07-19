@@ -39,6 +39,7 @@ def test_list_categories_and_tree(client: TestClient) -> None:
     body = list_resp.json()
     assert body["code"] == 0
     assert "summary" in body["data"]
+    assert body["data"]["summary"]["max_level"] == 2
 
     tree_resp = client.get("/api/v1/admin/tile-categories/tree", headers=headers)
     assert tree_resp.status_code == 200
@@ -63,12 +64,23 @@ def test_max_depth_exceeded(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     l1 = _create_category(client, headers, name="L1", code="CAT-L1-DEPTH")
     l2 = _create_category(client, headers, name="L2", code="CAT-L2-DEPTH", parent_id=l1)
-    l3 = _create_category(client, headers, name="L3", code="CAT-L3-DEPTH", parent_id=l2)
 
     response = client.post(
         "/api/v1/admin/tile-categories",
         headers=headers,
-        json={"name": "L4", "code": "CAT-L4-DEPTH", "sort_order": 10, "parent_id": l3},
+        json={"name": "L3", "code": "CAT-L3-DEPTH", "sort_order": 10, "parent_id": l2},
+    )
+    assert response.status_code == 422
+    assert response.json()["code"] == 30023
+    assert "二级" in response.json()["message"]
+
+
+def test_level_filter_rejects_third_level(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.get(
+        "/api/v1/admin/tile-categories",
+        headers=headers,
+        params={"level": 3},
     )
     assert response.status_code == 422
     assert response.json()["code"] == 30023

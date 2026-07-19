@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REQ-0050 小程序 brand-header 页面标题规则</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #18160F;
+      --surface: #211E16;
+      --text: #EDE8DF;
+      --muted: rgba(237,232,223,0.55);
+      --gold: #C8A055;
+      --line: rgba(255,255,255,0.09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #100f0a;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    .board {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+    .phone {
+      width: 100%;
+      max-width: 360px;
+      min-height: 660px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      background: var(--page);
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+    }
+    .nav {
+      height: 108px;
+      padding: 34px 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(24,22,15,0.96);
+      border-bottom: 1px solid var(--line);
+    }
+    .copy {
+      min-width: 0;
+      flex: 1;
+    }
+    .brand-name,
+    .page-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .brand-subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .logo {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      border-radius: 6px;
+      background: linear-gradient(145deg, #3a3325, #c8a055);
+      border: 1px solid var(--line);
+    }
+    .back {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      background: rgba(33,30,22,0.88);
+      border: 1px solid rgba(200,160,85,0.24);
+      font-size: 30px;
+      line-height: 1;
+    }
+    .capsule {
+      width: 86px;
+      height: 32px;
+      flex: 0 0 86px;
+      border: 1px dashed rgba(237,232,223,0.38);
+      border-radius: 16px;
+      color: rgba(237,232,223,0.38);
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+    }
+    .content {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+    .search,
+    .hero,
+    .card {
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+    }
+    .search {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .hero {
+      height: 150px;
+      padding: 18px;
+      background: linear-gradient(135deg, #252219, #403b2f 55%, #9a8c73);
+    }
+    .hero strong {
+      display: block;
+      max-width: 180px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+    .card {
+      min-height: 78px;
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .label {
+      margin-bottom: 8px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    @media (max-width: 900px) {
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="phone" aria-label="首页 brand-header">
+      <nav class="nav">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="copy">
+          <div class="brand-name">菲尚特瓷砖馆</div>
+          <div class="brand-subtitle">质感空间，由砖而生</div>
+        </div>
+        <div class="capsule">原生胶囊</div>
+      </nav>
+      <div class="content">
+        <div class="search">搜索瓷砖名称、编号或规格</div>
+        <div class="hero"><strong>臻选好砖<br />美好生活</strong></div>
+        <div class="card"><div class="label">首页规则</div>两行品牌文案，无返回按钮。</div>
+      </div>
+    </section>
+
+    <section class="phone" aria-label="搜索页 brand-header">
+      <nav class="nav">
+        <div class="back">‹</div>
+        <div class="copy">
+          <div class="page-title">搜索</div>
+        </div>
+        <div class="capsule">原生胶囊</div>
+      </nav>
+      <div class="content">
+        <div class="search">输入瓷砖名称、编号或规格</div>
+        <div class="card"><div class="label">非首页规则</div>只显示一行页面标题，不显示 subtitle。</div>
+        <div class="card">返回按钮点击热区保持 44x44 pt。</div>
+      </div>
+    </section>
+
+    <section class="phone" aria-label="商品详情页 brand-header">
+      <nav class="nav">
+        <div class="back">‹</div>
+        <div class="copy">
+          <div class="page-title">商品详情</div>
+        </div>
+        <div class="capsule">原生胶囊</div>
+      </nav>
+      <div class="content">
+        <div class="hero"><strong>SKU 信息留在内容区</strong></div>
+        <div class="card"><div class="label">详情页规则</div>标题固定为“商品详情”，SKU 编号不放第二行。</div>
+        <div class="card">分享路径和 SKU 参数由页面级分享能力保留。</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

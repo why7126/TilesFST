@@ -1,0 +1,5 @@
+<view class="page">
+  <view class="title">找砖</view>
+  <view class="desc">输入名称、编号、品牌、规格或系列，快速定位公开商品。</view>
+  <button class="primary-btn" bindtap="openSearch">开始搜索</button>
+</view>

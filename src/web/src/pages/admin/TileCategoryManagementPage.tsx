@@ -189,7 +189,7 @@ export function TileCategoryManagementPage() {
           <article className="metric-card">
             <div className="metric-label">类目总数</div>
             <div className="metric-value">{data?.summary.total ?? '—'}</div>
-            <div className="metric-desc">含一级、二级、三级类目</div>
+            <div className="metric-desc">含一级、二级类目</div>
           </article>
           <article className="metric-card">
             <div className="metric-label">启用类目</div>
@@ -205,8 +205,8 @@ export function TileCategoryManagementPage() {
           </article>
           <article className="metric-card">
             <div className="metric-label">最大层级</div>
-            <div className="metric-value">{data?.summary.max_level ?? 3}</div>
-            <div className="metric-desc">支持三级分类结构</div>
+            <div className="metric-value">{data?.summary.max_level ?? 2}</div>
+            <div className="metric-desc">支持二级分类结构</div>
           </article>
         </div>
       </section>

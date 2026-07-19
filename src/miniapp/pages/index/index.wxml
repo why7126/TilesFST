@@ -1,1 +1,187 @@
-<view>TODO</view>
+<view class="page">
+  <custom-navigation
+    variant="home"
+    store-name="{{home.store.name || '菲尚特瓷砖馆'}}"
+    subtitle="{{home.store.description || '专业选砖 · 品质生活'}}"
+    logo-src="{{home.store.logo_url || '/assets/logos/product-logo.png'}}"
+  />
+
+  <view wx:if="{{loading}}" class="state">
+    <view class="skeleton hero"></view>
+    <view class="skeleton line"></view>
+    <view class="skeleton grid"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="state">
+    <view class="state-title">{{error}}</view>
+    <view wx:if="{{errorDetail}}" class="state-detail">诊断：{{errorDetail}}</view>
+    <button class="primary-btn" bindtap="loadHome">重新加载</button>
+  </view>
+
+  <view wx:else class="home-content">
+    <view class="search-box" bindtap="openSearch">
+      <text class="search-icon">⌕</text>
+      <text class="search-placeholder">搜索瓷砖名称、编号或规格</text>
+      <text class="search-action">搜索</text>
+    </view>
+
+    <swiper
+      wx:if="{{home.banners.length}}"
+      class="hero hero-swiper banner-backed"
+      autoplay
+      circular
+      interval="4500"
+      duration="450"
+      indicator-dots
+      indicator-color="rgba(237,232,223,0.32)"
+      indicator-active-color="#C8A055"
+    >
+      <swiper-item wx:for="{{home.banners}}" wx:key="id">
+        <view class="hero-slide" bindtap="openBanner" data-banner="{{item}}">
+          <image
+            class="hero-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            binderror="onImageError"
+            data-key="home.banners[{{index}}].image_url"
+          ></image>
+          <view class="hero-shade"></view>
+          <view class="hero-copy">
+            <view class="hero-title">{{item.title || '臻选好砖\\n美好生活'}}</view>
+            <view class="hero-subtitle">{{item.subtitle || home.store.description || '精选优质瓷砖 · 打造理想空间'}}</view>
+            <view class="hero-button">了解更多</view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <view wx:else class="hero" bindtap="openSearch">
+      <view class="hero-slab slab-one"></view>
+      <view class="hero-slab slab-two"></view>
+      <view class="hero-copy">
+        <view class="hero-title">臻选好砖{{'\n'}}美好生活</view>
+        <view class="hero-subtitle">{{home.store.description || '精选优质瓷砖 · 打造理想空间'}}</view>
+        <view class="hero-button">了解更多</view>
+      </view>
+      <view class="hero-dots"><view class="dot active"></view><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
+    </view>
+
+    <view class="shortcut-panel">
+      <view class="shortcut-grid">
+        <view
+          class="shortcut {{item.key === 'new' ? 'featured' : ''}}"
+          wx:for="{{quickEntries}}"
+          wx:key="key"
+          bindtap="openQuickEntry"
+          data-entry="{{item}}"
+        >
+          <view class="shortcut-icon"><text>{{item.icon}}</text></view>
+          <view class="shortcut-title">{{item.title}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{home.new_products.length}}" class="section">
+      <view class="section-head">
+        <view class="section-title">新品推荐</view>
+        <view class="section-more" bindtap="openSection" data-section="new">查看更多 ›</view>
+      </view>
+      <scroll-view class="product-row" scroll-x>
+        <view
+          class="product-card"
+          wx:for="{{home.new_products}}"
+          wx:key="product_id"
+          bindtap="openProduct"
+          data-id="{{item.product_id}}"
+          data-source="new"
+        >
+          <view class="image-wrap">
+            <image
+              class="product-image"
+              src="{{item.cover_image || imageFallback}}"
+              mode="aspectFill"
+              binderror="onImageError"
+              data-key="home.new_products[{{index}}].cover_image"
+            ></image>
+          </view>
+          <view class="product-name">{{item.sku_code || item.product_name}}</view>
+          <view class="product-meta">{{item.specification}}</view>
+          <view class="product-price">{{item.price_display}}</view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{home.hot_products.length}}" class="section">
+      <view class="section-head">
+        <view class="section-title">热销推荐</view>
+        <view class="section-more" bindtap="openSection" data-section="hot">查看更多 ›</view>
+      </view>
+      <view class="hot-grid">
+        <view
+          class="hot-card"
+          wx:for="{{home.hot_products}}"
+          wx:key="product_id"
+          bindtap="openProduct"
+          data-id="{{item.product_id}}"
+          data-source="hot"
+        >
+          <image
+            class="hot-image"
+            src="{{item.cover_image || imageFallback}}"
+            mode="aspectFill"
+            binderror="onImageError"
+            data-key="home.hot_products[{{index}}].cover_image"
+          ></image>
+          <view class="visual-heart" catchtap="tapVisualFavorite" data-id="{{item.product_id}}" data-source="hot">♡</view>
+          <view class="hot-info">
+            <view class="product-name">{{item.product_name}}</view>
+            <view class="product-meta">{{item.category_name || '空间'}} · {{item.specification}}</view>
+            <view class="product-price">{{item.price_display}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section all-products">
+      <view class="section-head">
+        <view class="section-title">全部产品</view>
+        <view class="section-more">瀑布流 · 持续加载</view>
+      </view>
+      <view wx:if="{{allProducts.length}}" class="waterfall">
+        <view
+          class="waterfall-card"
+          wx:for="{{allProducts}}"
+          wx:key="product_id"
+          bindtap="openProduct"
+          data-id="{{item.product_id}}"
+          data-source="waterfall"
+        >
+          <view class="wf-image-wrap">
+            <image
+              class="wf-image"
+              src="{{item.cover_image || imageFallback}}"
+              mode="aspectFill"
+              binderror="onImageError"
+              data-key="allProducts[{{index}}].cover_image"
+            ></image>
+            <view class="visual-heart wf-heart" catchtap="tapVisualFavorite" data-id="{{item.product_id}}" data-source="waterfall">♡</view>
+          </view>
+          <view class="wf-meta">
+            <view class="product-name">{{item.product_name}}</view>
+            <view class="product-meta">{{item.sku_code}} · {{item.specification}}</view>
+            <view class="product-price">{{item.price_display}}</view>
+          </view>
+        </view>
+      </view>
+      <view wx:elif="{{!productsLoading && !productsError}}" class="empty dark-empty">
+        暂无公开商品，稍后再来看看。
+      </view>
+      <view wx:if="{{productsLoading}}" class="load-more">
+        <view class="spinner"></view>
+        <text>正在加载更多产品…</text>
+      </view>
+      <view wx:elif="{{productsError}}" class="load-more retry" bindtap="retryAllProducts">{{productsError}}</view>
+      <view wx:elif="{{productsFinished && allProducts.length}}" class="load-more">已经到底了</view>
+    </view>
+  </view>
+</view>

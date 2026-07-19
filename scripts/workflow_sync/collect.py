@@ -225,8 +225,9 @@ def run_openspec_list() -> dict[str, Any]:
             capture_output=True,
             text=True,
             check=False,
+            timeout=15,
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, subprocess.TimeoutExpired):
         return {"changes": []}
     if proc.returncode != 0:
         return {"changes": []}

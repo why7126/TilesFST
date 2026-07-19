@@ -9,7 +9,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 ## Context Budget Guardrails（MUST）
 
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - 检索先定位再分段读取；大范围 `rg/find` 默认排除 Harness、模板 assets、历史 agent 目录、archive、generated、node_modules、dist、coverage。
 - 命令输出优先 `max_output_tokens <= 8000`；大 diff、OpenAPI/Orval 生成物、测试日志、Workflow Sync 输出先给摘要或命中数。
 
@@ -33,11 +33,16 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
    ```
 2. 优先基于 Fact Sheet 构建 Sprint 概况、Scope、Change tasks、Issue 状态、验收摘要与 evidence hints。
-3. 仅当 Fact Sheet 标记 `warnings`、`needs_detail`、缺失/不一致项，或用户指定 `--focus` 时，按 evidence hints 分段回读对应原文片段。
-4. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet 的 `ai_usage_snapshot`；只有当 `snapshot_status: present` 且 `ai_usage_mode: actual` 时，才按真实统计输出。若 snapshot `missing`、`stale`、`failed` 或覆盖不足，MUST 输出 `ai_usage_mode: estimated_fallback`、reason、impact 和 recommended_action，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hints 做估算分析。
-5. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
-6. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
-7. 输出 Experience Analysis Report。
+3. 运行归档路径残留检查，或使用 Fact Sheet 的 `archived_path_residuals`：
+   ```bash
+   python scripts/check-archived-path-residuals.py --sprint <sprint-id> --json
+   ```
+   若存在 `archived-path-residual` warning，Experience Analysis Report MUST 展示 residual path warning，复盘文档 MUST NOT 将旧路径作为新的证据链接写入。
+4. 仅当 Fact Sheet 标记 `warnings`、`needs_detail`、缺失/不一致项，或用户指定 `--focus` 时，按 evidence hints 分段回读对应原文片段。
+5. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet 的 `ai_usage_snapshot`；只有当 `snapshot_status: present` 且 `ai_usage_mode: actual` 时，才按真实统计输出。若 snapshot `missing`、`stale`、`failed` 或覆盖不足，MUST 输出 `ai_usage_mode: estimated_fallback`、reason、impact 和 recommended_action，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hints 做估算分析。
+6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
+7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
+8. 输出 Experience Analysis Report。
 
 详见 `.agents/skills/sprint-exps/SKILL.md`。
 
@@ -50,6 +55,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 - MUST NOT 在复盘中复制原始 trace、tasks、acceptance-report、OpenAPI、Orval generated 或测试日志全文；需要证据时只引用路径、聚合计数或短片段。
 - MAY 按 Fact Sheet 的 `warnings` / `needs_detail` / `evidence_hints` 回读对应文件片段，例如缺失 trace、状态残留、tasks 未完成、acceptance 结论不清晰。
 - SHOULD 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json` 做结构化核对，尤其是 `scope.counts`、`changes[].tasks`、`warnings`、`token_risks`、`evidence_hints`。
+- MUST 检查 Fact Sheet 中的 `archived_path_residuals` 与 `archived-path-residual` warnings；如存在残留，只引用建议归档路径，不传播旧的 `iterations/change/<sprint-id>/` 或 active `openspec/changes/<change-id>/` 链接。
 
 ## 分析要点
 

@@ -161,6 +161,19 @@ CREATE TABLE IF NOT EXISTS tile_videos (
   INDEX idx_tile_videos_object_key (object_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS miniapp_sku_favorites (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  client_id VARCHAR(128) NOT NULL,
+  sku_id BIGINT NOT NULL,
+  favorite TINYINT NOT NULL DEFAULT 1,
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_miniapp_sku_favorites_sku FOREIGN KEY(sku_id) REFERENCES tiles(id),
+  CONSTRAINT chk_miniapp_sku_favorites_favorite CHECK (favorite IN (0, 1)),
+  UNIQUE KEY uq_miniapp_sku_favorites_client_sku (client_id, sku_id),
+  INDEX idx_miniapp_sku_favorites_client (client_id, favorite, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS login_logs (
   id CHAR(36) PRIMARY KEY,
   user_id CHAR(36),

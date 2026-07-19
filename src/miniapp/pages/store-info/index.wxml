@@ -1,0 +1,32 @@
+<view class="page">
+  <custom-navigation title="门店信息" subtitle="{{store.name || '菲尚特瓷砖馆'}}" />
+  <view wx:if="{{loading}}" class="state">加载中...</view>
+  <view wx:elif="{{error}}" class="state">
+    <view>{{error}}</view>
+    <button class="primary-btn" bindtap="loadStore">重试</button>
+  </view>
+  <view wx:else>
+    <view class="hero">
+      <view class="store-name">{{store.name}}</view>
+      <view class="store-desc">{{store.description}}</view>
+      <view wx:if="{{store.address}}" class="store-address">{{store.address}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">门店服务</view>
+      <view
+        class="service"
+        wx:for="{{services}}"
+        wx:key="key"
+        bindtap="useService"
+        data-service="{{item}}"
+      >
+        <view>
+          <view class="service-title">{{item.title}}</view>
+          <view class="service-desc">{{item.description}}</view>
+        </view>
+        <view wx:if="{{item.action_type !== 'none'}}" class="service-action">咨询</view>
+      </view>
+    </view>
+  </view>
+</view>

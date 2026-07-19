@@ -33,6 +33,11 @@ SENSITIVE_KEYS = {
     "database_url",
     "minio_access_key",
     "minio_secret_key",
+    "raw_object_key",
+    "object_key",
+    "internal_path",
+    "raw_response",
+    "raw_payload",
 }
 
 EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
@@ -100,6 +105,279 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "category": "reliability",
         "required": {"request_id", "path", "status_code", "error_code"},
         "forbidden": {"authorization", "cookie"},
+    },
+    "product_detail_view": {
+        "category": "miniapp_engagement",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename"},
+    },
+    "home_share": {
+        "category": "miniapp_engagement",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename"},
+    },
+    "product_share": {
+        "category": "miniapp_engagement",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename"},
+    },
+    "home_contact_click": {
+        "category": "miniapp_engagement",
+        "required": {"page_path", "contact_type", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "product_contact_click": {
+        "category": "miniapp_engagement",
+        "required": {"product_id", "page_path", "contact_type", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_search_click": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_quick_entry_click": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "entry_key", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_new_product_click": {
+        "category": "miniapp_home_style",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_hot_product_click": {
+        "category": "miniapp_home_style",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_waterfall_product_click": {
+        "category": "miniapp_home_style",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_favorite_visual_click": {
+        "category": "miniapp_home_style",
+        "required": {"product_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_certificate_tab_click": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_waterfall_load": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "page", "page_size", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_waterfall_load_failed": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "page", "reason", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "miniapp_home_waterfall_end_reached": {
+        "category": "miniapp_home_style",
+        "required": {"page_path", "page", "total", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
+    },
+    "sku_detail_view": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_media_swipe": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type", "media_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_image_preview": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_play": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_favorite": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_unfavorite": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_share_click": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_brand_click": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "brand_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_recommend_click": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "target_sku_id", "recommend_type", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_load_error": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type", "error_code", "stage"},
+        "forbidden": {
+            "authorization",
+            "cookie",
+            "raw_payload",
+            "raw_object_key",
+            "object_key",
+            "raw_response",
+            "internal_path",
+            "phone",
+        },
+    },
+    "category_page_view": {
+        "category": "miniapp_category_list",
+        "required": {"page_path", "client_type", "has_cache"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "primary_category_click": {
+        "category": "miniapp_category_list",
+        "required": {"category_id", "category_index", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "secondary_category_click": {
+        "category": "miniapp_category_list",
+        "required": {"category_id", "parent_category_id", "category_index", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "category_load_failed": {
+        "category": "miniapp_category_list",
+        "required": {"page_path", "client_type", "error_code", "has_cache"},
+        "forbidden": {
+            "authorization",
+            "cookie",
+            "raw_payload",
+            "raw_object_key",
+            "object_key",
+            "raw_response",
+            "internal_path",
+            "phone",
+        },
+    },
+    "product_list_page_view": {
+        "category": "miniapp_product_list",
+        "required": {"page_path", "sourcePage", "sort", "pageSize", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_item_exposure": {
+        "category": "miniapp_product_list",
+        "required": {"skuId", "sourcePage", "positionIndex", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_item_click": {
+        "category": "miniapp_product_list",
+        "required": {"skuId", "sourcePage", "positionIndex", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_filter_open": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "filterSnapshot", "sort", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_filter_apply": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "filterSnapshot", "sort", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_sort_change": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "filterSnapshot", "sort", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_refresh": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "page", "pageSize", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_load_more": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "page", "pageSize", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "product_list_load_failed": {
+        "category": "miniapp_product_list",
+        "required": {"sourcePage", "page", "pageSize", "errorCode", "requestId", "client_type"},
+        "forbidden": {
+            "authorization",
+            "cookie",
+            "raw_payload",
+            "raw_object_key",
+            "object_key",
+            "raw_response",
+            "internal_path",
+            "internal_remark",
+            "phone",
+        },
+    },
+    "search_page_view": {
+        "category": "miniapp_search",
+        "required": {"page_path", "client_type", "sourcePage", "requestId"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_input": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_suggestion_exposure": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "resultCount", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_suggestion_click": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "entityType", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_result_exposure": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "entityType", "resultCount", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_result_click": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "entityType", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_filter_apply": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "filterSnapshot", "resultCount", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_no_result": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "resultCount", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_history_click": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_history_delete": {
+        "category": "miniapp_search",
+        "required": {"keyword", "normalizedKeyword", "scope", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "search_history_clear": {
+        "category": "miniapp_search",
+        "required": {"scope", "sourcePage", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
     },
 }
 

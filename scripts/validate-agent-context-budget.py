@@ -18,6 +18,7 @@ COMMAND_SKILL_PREFIXES = (
     "bug-",
     "build-",
     "opsx-",
+    "release-",
     "req-",
     "sprint-",
 )
@@ -44,6 +45,9 @@ NEGATION_HINTS = (
     "避免",
 )
 
+SUMMARY_REUSE_RULE_TERMS = ("规则和 Skill", "规则与 Skill", "rules and Skill", "rules and skills")
+SUMMARY_REUSE_ACTION_TERMS = ("摘要承接", "摘要复用", "summary reuse", "reuse summaries")
+
 
 def is_negated(line: str) -> bool:
     return any(hint in line for hint in NEGATION_HINTS)
@@ -60,6 +64,9 @@ def validate_skill(path: Path) -> list[str]:
     if "Context Budget Guardrails" not in text:
         errors.append(f"{rel}: 缺少 Context Budget Guardrails 章节")
 
+    if not has_summary_reuse_constraint(text):
+        errors.append(f"{rel}: 缺少规则与 Skill 已读摘要复用约束")
+
     for lineno, line in enumerate(text.splitlines(), start=1):
         if is_negated(line):
             continue
@@ -69,6 +76,12 @@ def validate_skill(path: Path) -> list[str]:
                 break
 
     return errors
+
+
+def has_summary_reuse_constraint(text: str) -> bool:
+    has_scope = any(term in text for term in SUMMARY_REUSE_RULE_TERMS)
+    has_action = any(term in text for term in SUMMARY_REUSE_ACTION_TERMS)
+    return has_scope and has_action
 
 
 def is_command_skill(path: Path) -> bool:
@@ -92,7 +105,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
 
-    print(f"Agent 上下文预算校验通过：{len(skill_paths)} 个命令技能均已接入预算规则。")
+    print(f"Agent 上下文预算校验通过：{len(skill_paths)} 个命令技能均已接入预算规则与摘要复用约束。")
     return 0
 
 

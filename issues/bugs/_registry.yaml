@@ -1,6 +1,33 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 65
+next_id: 68
 entries:
+  - id: BUG-0067-home-recommendation-list-entry-routing
+    title: 首页推荐模块查看更多和榜单入口误跳搜索页
+    status: in_sprint
+    severity: medium
+    created: "2026-07-19 15:26:47"
+    related_requirement: REQ-0047-product-list-common-component-application
+    related_bug: null
+    related_change: null
+    iteration: sprint-009
+  - id: BUG-0066-search-component-prototype-deviation
+    title: 搜索组件整体交互与原型差异较大
+    status: in_sprint
+    severity: high
+    created: "2026-07-19 13:02:10"
+    related_requirement: REQ-0046-search-component-application
+    related_bug: null
+    related_change: null
+    iteration: sprint-009
+  - id: BUG-0065-miniapp-home-preview-deviation
+    title: 微信小程序首页预览效果与 REQ-0041 原型和验收差异明显
+    status: done
+    severity: high
+    created: "2026-07-16 11:33:39"
+    related_requirement: REQ-0041-miniapp-home
+    related_bug: null
+    related_change: null
+    iteration: null
   - id: BUG-0064-theme-selector-sidebar-placement
     title: 界面主题选择器未放在侧边栏用户头像上方
     status: done

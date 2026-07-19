@@ -1,0 +1,81 @@
+<view class="page">
+  <custom-navigation title="全部分类" subtitle="一级分类 / 二级分类" />
+
+  <view class="search-box" bindtap="openSearch">
+    <text class="search-icon">⌕</text>
+    <text class="search-placeholder">在{{currentPrimaryName || '全部分类'}}中搜索</text>
+    <text class="search-action">搜索</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="category-shell skeleton-shell">
+    <view class="primary-skeleton">
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="skeleton-line"></view>
+    </view>
+    <view class="secondary-skeleton">
+      <view class="skeleton-title"></view>
+      <view class="skeleton-grid">
+        <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="skeleton-card"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{error}}" class="error-state">
+    <view class="error-title">分类暂时加载失败</view>
+    <view class="error-copy">{{error}}</view>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:else class="category-shell">
+    <scroll-view
+      class="primary-nav"
+      scroll-y="true"
+      scroll-top="{{leftScrollTop}}"
+      bindscroll="onLeftScroll"
+      enhanced="true"
+      show-scrollbar="false"
+    >
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="primary-item {{item.id === currentPrimaryId ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        data-index="{{index}}"
+        bindtap="selectPrimary"
+        hover-class="tap-hover"
+      >
+        <view class="active-rail"></view>
+        <text>{{item.name}}</text>
+      </view>
+    </scroll-view>
+
+    <scroll-view
+      class="secondary-panel"
+      scroll-y="true"
+      scroll-top="{{rightScrollTop}}"
+      bindscroll="onRightScroll"
+      enhanced="true"
+      show-scrollbar="false"
+    >
+      <view class="secondary-title">{{currentPrimaryName}}</view>
+      <view wx:if="{{currentChildren.length}}" class="secondary-grid">
+        <view
+          wx:for="{{currentChildren}}"
+          wx:key="id"
+          class="secondary-card"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+          data-index="{{index}}"
+          bindtap="openSecondary"
+          hover-class="card-press"
+          aria-label="{{item.name}}"
+        >
+          <view class="secondary-name">{{item.name}}</view>
+        </view>
+      </view>
+      <view wx:else class="empty-state">
+        <view class="empty-mark">—</view>
+        <view class="empty-title">该分类暂未配置二级分类</view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

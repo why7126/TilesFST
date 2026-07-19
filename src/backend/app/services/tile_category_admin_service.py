@@ -22,6 +22,7 @@ from app.schemas.tile_category_admin import (
 
 VALID_PAGE_SIZES = frozenset({10, 20, 50})
 VALID_STATUSES = frozenset({"ENABLED", "DISABLED"})
+MAX_CATEGORY_LEVEL = 2
 
 
 class TileCategoryAdminService:
@@ -71,7 +72,7 @@ class TileCategoryAdminService:
     def _compute_path(self, name: str, parent: TileCategoryRecord | None) -> tuple[int, str]:
         if parent is None:
             return 1, name
-        if parent.level >= 3:
+        if parent.level >= MAX_CATEGORY_LEVEL:
             raise CategoryMaxDepthExceededError()
         return parent.level + 1, f"{parent.path} / {name}"
 
@@ -109,8 +110,8 @@ class TileCategoryAdminService:
             page = 1
         if status and status not in VALID_STATUSES:
             status = None
-        if level is not None and level not in {1, 2, 3}:
-            level = None
+        if level is not None and level not in {1, 2}:
+            raise CategoryMaxDepthExceededError()
 
         result = self._repo.list_categories(
             page=page,
@@ -130,7 +131,7 @@ class TileCategoryAdminService:
                 total=summary["total"],
                 enabled_count=summary["enabled_count"],
                 bound_sku_total=summary["bound_sku_total"],
-                max_level=3,
+                max_level=MAX_CATEGORY_LEVEL,
             ),
         )
 

@@ -143,7 +143,7 @@ export function CategoryFormModal({
                 ))}
               </select>
               <p className="cat-modal-help">
-                选择上级类目后自动生成层级；当前最多支持三级类目。
+                选择上级类目后自动生成层级；当前最多支持二级类目。
               </p>
             </div>
           ) : null}

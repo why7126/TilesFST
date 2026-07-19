@@ -8,13 +8,12 @@ export const CATEGORY_LEVEL_OPTIONS = [
   { label: '全部层级', value: '' },
   { label: '一级类目', value: '1' },
   { label: '二级类目', value: '2' },
-  { label: '三级类目', value: '3' },
 ] as const;
 
 export function categoryLevelLabel(level: number): string {
   if (level === 1) return '一级';
   if (level === 2) return '二级';
-  return '三级';
+  return `${level}级`;
 }
 
 export function categoryStatusLabel(status: string): string {

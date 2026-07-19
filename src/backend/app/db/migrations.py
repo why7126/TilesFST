@@ -75,6 +75,7 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_banner_support(connection)
     _ensure_system_settings_support(connection)
     _ensure_product_usage_logging_support(connection)
+    _ensure_miniapp_sku_favorites_support(connection)
 
 
 def _ensure_brand_certificates_support(connection: Connection) -> None:
@@ -203,6 +204,34 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
     for name, sql in usage_indexes.items():
         if not _index_exists(connection, name):
             connection.execute(text(sql))
+
+
+def _ensure_miniapp_sku_favorites_support(connection: Connection) -> None:
+    connection.execute(
+        text(
+            """
+            CREATE TABLE IF NOT EXISTS miniapp_sku_favorites (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              client_id TEXT NOT NULL,
+              sku_id INTEGER NOT NULL,
+              favorite INTEGER NOT NULL DEFAULT 1 CHECK (favorite IN (0, 1)),
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              FOREIGN KEY(sku_id) REFERENCES tiles(id),
+              UNIQUE(client_id, sku_id)
+            )
+            """
+        )
+    )
+    if not _index_exists(connection, "idx_miniapp_sku_favorites_client"):
+        connection.execute(
+            text(
+                """
+                CREATE INDEX idx_miniapp_sku_favorites_client
+                ON miniapp_sku_favorites(client_id, favorite, updated_at)
+                """
+            )
+        )
 
 
 def _ensure_system_settings_support(connection: Connection) -> None:

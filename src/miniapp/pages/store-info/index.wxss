@@ -1,0 +1,86 @@
+.page {
+  min-height: 100vh;
+  padding: 28rpx;
+  background: #f6f0e6;
+  box-sizing: border-box;
+}
+
+.hero {
+  min-height: 260rpx;
+  padding: 36rpx;
+  border-radius: 28rpx;
+  background: #1f1b16;
+  color: #fffaf1;
+  box-sizing: border-box;
+}
+
+.store-name {
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.store-desc,
+.store-address {
+  margin-top: 16rpx;
+  color: #d7cbb9;
+  font-size: 26rpx;
+}
+
+.section {
+  margin-top: 32rpx;
+}
+
+.section-title {
+  margin-bottom: 16rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.service {
+  min-height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding: 22rpx;
+  border-radius: 22rpx;
+  background: #fffaf1;
+  box-sizing: border-box;
+}
+
+.service-title {
+  font-weight: 700;
+}
+
+.service-desc {
+  margin-top: 8rpx;
+  color: #756b5d;
+  font-size: 24rpx;
+}
+
+.service-action {
+  min-width: 88rpx;
+  min-height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  background: #b78b3b;
+  color: #fffaf1;
+  text-align: center;
+}
+
+.state {
+  min-height: 620rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #756b5d;
+}
+
+.primary-btn {
+  min-width: 180rpx;
+  min-height: 88rpx;
+  border-radius: 44rpx;
+  background: #1f1b16;
+  color: #fffaf1;
+}

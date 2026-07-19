@@ -9,7 +9,7 @@ Use this skill when the user asks `/release-propose <version>` or wants to creat
 
 ## Context Budget Guardrails（MUST）
 
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - 先从候选 Sprint 的 `sprint.yaml`、`release-note.md` 摘要和 Change/Issue 状态定位发布范围，不得全量读取所有 `iterations/**`、`issues/**` 或 `openspec/changes/archive/**`。
 - 搜索历史归档时只按候选 Sprint / Change ID 精确定位；不要宽泛展开归档目录。
 - 命令输出优先摘要：版本、范围、门禁缺口、生成/更新文件、下一步。

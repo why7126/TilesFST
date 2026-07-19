@@ -1,0 +1,26 @@
+.placeholder-page {
+  min-height: 100vh;
+  padding: 160rpx 48rpx;
+  box-sizing: border-box;
+  background: #18160F;
+  color: #EDE8DF;
+  text-align: center;
+}
+
+.placeholder-title {
+  font-size: 44rpx;
+  font-weight: 800;
+}
+
+.placeholder-desc {
+  margin-top: 28rpx;
+  color: #C8A055;
+  font-size: 30rpx;
+}
+
+.placeholder-note {
+  margin-top: 18rpx;
+  color: rgba(237,232,223,0.5);
+  font-size: 24rpx;
+  line-height: 1.6;
+}

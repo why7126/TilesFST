@@ -9,7 +9,7 @@ class TileCategoryAdminSummary(BaseModel):
     total: int
     enabled_count: int
     bound_sku_total: int
-    max_level: int = 3
+    max_level: int = 2
 
 
 class TileCategoryAdminItem(BaseModel):

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0049 微信小程序商品卡片组件原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --surface-2: #2a261c;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --faint: rgba(237, 232, 223, 0.32);
+      --line: rgba(255, 255, 255, 0.08);
+      --gold: #c8a055;
+      --danger: #d36d45;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .phone {
+      width: min(100vw, 430px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 180px),
+        var(--page);
+    }
+
+    .title {
+      margin: 0 0 14px;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      min-width: 0;
+    }
+
+    .image {
+      position: relative;
+      aspect-ratio: 1 / 0.86;
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.18), transparent 42%),
+        linear-gradient(160deg, #4b473b, #17150f);
+    }
+
+    .image::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .fallback {
+      display: grid;
+      place-items: center;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .badge {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      padding: 3px 6px;
+      border: 1px solid rgba(200, 160, 85, 0.32);
+      background: rgba(24, 22, 15, 0.72);
+      color: var(--gold);
+      font-size: 10px;
+    }
+
+    .content {
+      padding: 9px 9px 10px;
+    }
+
+    .brand {
+      margin-bottom: 4px;
+      color: var(--gold);
+      font-size: 10px;
+    }
+
+    .name {
+      min-height: 38px;
+      margin: 0 0 7px;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .price {
+      margin-top: 8px;
+      color: var(--gold);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .price span {
+      margin-right: 3px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 400;
+    }
+
+    .status {
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .disabled {
+      opacity: 0.58;
+    }
+
+    .disabled .price {
+      color: var(--danger);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 38% 1fr;
+    }
+
+    .wide .image {
+      aspect-ratio: auto;
+      min-height: 138px;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <h1 class="title">商品卡片组件</h1>
+    <div class="subhead">
+      <span>分类列表 / 搜索结果 / 首页推荐复用</span>
+      <span>REQ-0049</span>
+    </div>
+
+    <section class="grid" aria-label="商品卡片状态示例">
+      <article class="card">
+        <div class="image">
+          <span class="badge">新品</span>
+        </div>
+        <div class="content">
+          <div class="brand">FST 菲尚特</div>
+          <p class="name">云脉岩板 600x1200 客厅地砖</p>
+          <div class="meta">SKU FST-YM612 · 暖灰 · 600x1200mm</div>
+          <div class="price"><span>参考价格</span>¥168/片</div>
+          <div class="status">点击进入 SKU 详情</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="image">
+          <span class="badge">热销</span>
+        </div>
+        <div class="content">
+          <div class="brand">FST 菲尚特</div>
+          <p class="name">星河灰柔光砖 750x1500</p>
+          <div class="meta">SKU FST-XH715 · 柔光 · 750x1500mm</div>
+          <div class="price"><span>参考价格</span>¥238/片</div>
+          <div class="status">sourcePage=search</div>
+        </div>
+      </article>
+
+      <article class="card wide">
+        <div class="image fallback">暂无图片</div>
+        <div class="content">
+          <div class="brand">品牌待确认</div>
+          <p class="name">未命名商品</p>
+          <div class="meta">SKU 待补充 · 规格待补充</div>
+          <div class="price"><span>参考价格</span>暂无参考价</div>
+          <div class="status">图片失败与字段缺失兜底</div>
+        </div>
+      </article>
+
+      <article class="card wide disabled">
+        <div class="image">
+          <span class="badge">下架</span>
+        </div>
+        <div class="content">
+          <div class="brand">FST 菲尚特</div>
+          <p class="name">月影石纹砖 800x800</p>
+          <div class="meta">SKU FST-YY880 · 暂不可查看</div>
+          <div class="price"><span>状态</span>暂不可查看</div>
+          <div class="status">禁用跳转并提示用户</div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

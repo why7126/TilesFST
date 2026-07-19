@@ -1,0 +1,6 @@
+<view class="placeholder-page">
+  <custom-navigation title="{{title}}" subtitle="品牌证书入口" />
+  <view class="placeholder-title">{{title}}</view>
+  <view class="placeholder-desc">{{message}}</view>
+  <view class="placeholder-note">公开证书聚合页会作为后续需求独立评审。</view>
+</view>

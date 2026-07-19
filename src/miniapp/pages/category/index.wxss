@@ -1,0 +1,244 @@
+.page {
+  height: 100vh;
+  padding: 24rpx 28rpx calc(132rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background: #18160F;
+  color: #EDE8DF;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-box {
+  min-height: 88rpx;
+  margin-bottom: 18rpx;
+  padding: 0 22rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  border-radius: 44rpx;
+  background: rgba(33,30,22,0.88);
+  border: 1rpx solid rgba(200,160,85,0.28);
+  box-sizing: border-box;
+}
+
+.search-icon,
+.search-action {
+  color: #C8A055;
+  flex: 0 0 auto;
+}
+
+.search-placeholder {
+  flex: 1;
+  min-width: 0;
+  color: rgba(237,232,223,0.58);
+  font-size: 26rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-shell {
+  flex: 1;
+  height: auto;
+  min-height: 600rpx;
+  display: flex;
+  gap: 18rpx;
+  overflow: hidden;
+}
+
+.primary-nav {
+  width: 196rpx;
+  height: 100%;
+  flex: 0 0 196rpx;
+  background: rgba(33,30,22,0.78);
+  border: 2rpx solid rgba(255,255,255,0.07);
+  border-radius: 24rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.primary-item {
+  position: relative;
+  min-height: 112rpx;
+  padding: 0 16rpx 0 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  color: rgba(237,232,223,0.58);
+  font-size: 25rpx;
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.primary-item.active {
+  color: #C8A055;
+  background: rgba(200,160,85,0.12);
+  font-weight: 800;
+}
+
+.active-rail {
+  position: absolute;
+  left: 0;
+  top: 28rpx;
+  width: 8rpx;
+  height: 56rpx;
+  border-radius: 0 8rpx 8rpx 0;
+  background: transparent;
+}
+
+.primary-item.active .active-rail {
+  background: #C8A055;
+}
+
+.secondary-panel {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 2rpx 0 24rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.secondary-title {
+  min-height: 56rpx;
+  margin-bottom: 20rpx;
+  color: #EDE8DF;
+  font-size: 34rpx;
+  line-height: 56rpx;
+  font-weight: 800;
+}
+
+.secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24rpx 16rpx;
+  padding-bottom: 24rpx;
+}
+
+.secondary-card {
+  min-width: 0;
+  min-height: 96rpx;
+  border-radius: 18rpx;
+  background: rgba(33,30,22,0.68);
+  border: 2rpx solid rgba(255,255,255,0.07);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.secondary-name {
+  min-height: 92rpx;
+  line-height: 92rpx;
+  padding: 0 12rpx;
+  color: #EDE8DF;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-press,
+.tap-hover {
+  opacity: 0.78;
+}
+
+.empty-state,
+.error-state {
+  min-height: 360rpx;
+  border-radius: 24rpx;
+  background: rgba(33,30,22,0.68);
+  border: 2rpx solid rgba(255,255,255,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.empty-mark {
+  width: 72rpx;
+  height: 72rpx;
+  line-height: 68rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(200,160,85,0.28);
+  color: #C8A055;
+  font-size: 36rpx;
+}
+
+.empty-title,
+.error-title {
+  margin-top: 20rpx;
+  color: #EDE8DF;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.error-copy {
+  margin-top: 12rpx;
+  color: rgba(237,232,223,0.58);
+  font-size: 24rpx;
+}
+
+.retry-btn {
+  min-height: 88rpx;
+  margin-top: 28rpx;
+  padding: 0 42rpx;
+  border-radius: 44rpx;
+  background: #C8A055;
+  color: #18160F;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.skeleton-shell {
+  opacity: 0.88;
+}
+
+.primary-skeleton {
+  width: 196rpx;
+  flex: 0 0 196rpx;
+  height: 100%;
+  padding: 18rpx;
+  border-radius: 24rpx;
+  background: rgba(33,30,22,0.78);
+  box-sizing: border-box;
+}
+
+.skeleton-line {
+  height: 56rpx;
+  margin-bottom: 28rpx;
+  border-radius: 14rpx;
+  background: #2A261D;
+}
+
+.secondary-skeleton {
+  flex: 1;
+  min-width: 0;
+}
+
+.skeleton-title {
+  width: 180rpx;
+  height: 48rpx;
+  margin-bottom: 28rpx;
+  border-radius: 14rpx;
+  background: #2A261D;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24rpx 16rpx;
+}
+
+.skeleton-card {
+  min-height: 96rpx;
+  border-radius: 18rpx;
+  background: #2A261D;
+}

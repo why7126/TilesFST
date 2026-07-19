@@ -1,0 +1,181 @@
+{
+  "sprint_id": "sprint-008",
+  "source": "data/ai-usage command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T08-57-20-019f686d-9881-75b2-8e59-7713158dbdf5.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T08-57-36-019f686d-d418-7763-86f4-9529f2bfa6cf.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T08-58-05-019f686e-463e-7022-be05-9e6452b55d22.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T09-22-54-019f6884-ffe0-7a40-ac4b-bf58861074a8.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T09-26-41-019f6888-770a-7200-b672-5b2dbae04d9e.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T09-51-37-019f689f-4bd9-7692-82be-ea6878744a34.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T12-12-00-019f691f-d168-7663-a957-48bfc1234829.jsonl",
+    "~/.codex/sessions/2026/07/16/rollout-2026-07-16T13-35-30-019f696c-433c-74a3-a895-233d3af9c5ff.jsonl",
+    "~/.codex/sessions/2026/07/17/rollout-2026-07-17T08-51-30-019f6d8e-9b11-7c63-b997-33a45adbeee5.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T13-06-21-019f739e-4917-7172-a5f5-5d3dc25e19a4.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T18-45-43-019f74d4-fc43-7531-b9fc-1ca9f8074901.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T19-30-22-019f74fd-de48-7be3-a6d8-0096953feb3b.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T20-46-01-019f7543-1f27-7550-b7aa-4b46b5b6cf83.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T22-16-14-019f7595-b954-7bf0-afba-9a7142c3d345.jsonl",
+    "~/.codex/sessions/2026/07/18/rollout-2026-07-18T23-03-07-019f75c0-a54d-7e13-ad77-b59fdbfb8fbf.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T00-59-20-019f762b-0ad6-7500-b82f-0d4d1feeba5e.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T01-30-44-019f7647-cbd4-7643-9b53-d1f01951ad95.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T01-59-43-019f7662-52ee-79c2-9cc9-a3b9a1097113.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T09-58-42-019f7818-d904-7a91-ac86-61eddb649e8a.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T10-57-48-019f784e-f4ad-7ce1-bb39-6d72a265158f.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T11-44-24-019f7879-9ebc-7741-a1c9-ea486b1938d4.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T15-24-17-019f7942-f071-79b0-b54b-72cef1dd356a.jsonl"
+  ],
+  "generated_at": "2026-07-19T07:43:27.893665Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0039-xl-admin-page-layered-acceptance-template",
+      "REQ-0040-rule-skill-read-summary-reuse-context-budget",
+      "REQ-0041-miniapp-home",
+      "REQ-0042-custom-navigation-bar",
+      "REQ-0043-miniapp-home-style-optimization",
+      "REQ-0044-miniapp-sku-detail-page",
+      "REQ-0045-category-list-page",
+      "REQ-0046-search-component-application",
+      "REQ-0047-product-list-common-component-application",
+      "REQ-0048-miniapp-global-custom-navigation-bar"
+    ],
+    "bugs": [
+      "BUG-0065-miniapp-home-preview-deviation"
+    ],
+    "changes": [
+      "add-miniapp-category-list-page",
+      "add-miniapp-custom-navigation-bar",
+      "add-miniapp-global-custom-navigation-bar",
+      "add-miniapp-home",
+      "add-miniapp-product-list-component",
+      "add-miniapp-search-component",
+      "add-miniapp-sku-detail-page",
+      "add-xl-admin-page-acceptance-template",
+      "fix-miniapp-home-preview-runtime-entry",
+      "update-miniapp-home-style-optimization",
+      "update-rule-skill-summary-reuse-context-budget"
+    ]
+  },
+  "models": [
+    {
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_context_window": 258400
+    },
+    {
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_context_window": 258400
+    }
+  ],
+  "totals": {
+    "input_tokens": 85172084,
+    "cached_input_tokens": 81374336,
+    "output_tokens": 404831,
+    "reasoning_output_tokens": 39685,
+    "total_tokens": 85619802,
+    "command_run_count": 34,
+    "model_call_count": 685,
+    "tool_call_count": 1364,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "by_workflow_event": {
+    "opsx.apply": {
+      "command_run_count": 9,
+      "model_call_count": 405,
+      "tool_call_count": 740,
+      "retry_count": 0,
+      "input_tokens": 45575316,
+      "cached_input_tokens": 44144640,
+      "output_tokens": 226727,
+      "reasoning_output_tokens": 18797,
+      "total_tokens": 45822832
+    },
+    "opsx.archive": {
+      "command_run_count": 10,
+      "model_call_count": 112,
+      "tool_call_count": 256,
+      "retry_count": 0,
+      "input_tokens": 17770310,
+      "cached_input_tokens": 16676992,
+      "output_tokens": 34181,
+      "reasoning_output_tokens": 6573,
+      "total_tokens": 17826589
+    },
+    "req.archive": {
+      "command_run_count": 1,
+      "model_call_count": 13,
+      "tool_call_count": 25,
+      "retry_count": 0,
+      "input_tokens": 2252729,
+      "cached_input_tokens": 2080640,
+      "output_tokens": 3424,
+      "reasoning_output_tokens": 760,
+      "total_tokens": 2256153
+    },
+    "sprint.archive": {
+      "command_run_count": 1,
+      "model_call_count": 6,
+      "tool_call_count": 28,
+      "retry_count": 0,
+      "input_tokens": 279103,
+      "cached_input_tokens": 213248,
+      "output_tokens": 3230,
+      "reasoning_output_tokens": 648,
+      "total_tokens": 282333
+    },
+    "sprint.exps": {
+      "command_run_count": 1,
+      "model_call_count": 6,
+      "tool_call_count": 19,
+      "retry_count": 0,
+      "input_tokens": 820574,
+      "cached_input_tokens": 734464,
+      "output_tokens": 7771,
+      "reasoning_output_tokens": 928,
+      "total_tokens": 828345
+    },
+    "sprint.propose": {
+      "command_run_count": 12,
+      "model_call_count": 143,
+      "tool_call_count": 296,
+      "retry_count": 0,
+      "input_tokens": 18474052,
+      "cached_input_tokens": 17524352,
+      "output_tokens": 129498,
+      "reasoning_output_tokens": 11979,
+      "total_tokens": 18603550
+    }
+  },
+  "by_model": {
+    "gpt-5.5|low|frontier": {
+      "command_run_count": 1,
+      "model_call_count": 3,
+      "input_tokens": 458378,
+      "cached_input_tokens": 418944,
+      "output_tokens": 1152,
+      "reasoning_output_tokens": 240,
+      "total_tokens": 459530
+    },
+    "gpt-5.5|medium|frontier": {
+      "command_run_count": 33,
+      "model_call_count": 682,
+      "input_tokens": 84713706,
+      "cached_input_tokens": 80955392,
+      "output_tokens": 403679,
+      "reasoning_output_tokens": 39445,
+      "total_tokens": 85160272
+    }
+  }
+}

@@ -10,7 +10,7 @@ Use when the user asks `/opsx-archive <change-id>` or wants to archive one OpenS
 ## Context Budget Guardrails（MUST）
 
 - 归档复核优先 `openspec status`、`tasks.md` checkbox、delta spec heading 与 sync/promote 报告摘要；不得为归档全量读取 active/archived specs。
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - Read focused artifacts only: `tasks.md`, delta spec headings, related trace/status snippets.
 - Do not full-read `issues/**`, `iterations/**`, or all `openspec/specs/**`; use `rg -n "^### Requirement:|^### ADDED|^### MODIFIED|^### REMOVED"` then open the relevant sections.
 - If a script fails, inspect the named files/snippets from the report instead of broad directory reads.
@@ -64,6 +64,8 @@ openspec status --change "<change-id>" --json
 
 ## Final Steps（MUST）
 
+Run these commands strictly sequentially. Do not use parallel execution or `multi_tool_use.parallel` for Workflow Sync and issue promotion: promotion depends on the files written by Workflow Sync.
+
 ```bash
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
 python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
@@ -72,6 +74,7 @@ python scripts/promote-issues-for-archive.py --change <change-id> --reason "/ops
 - Both exit codes MUST be `0`.
 - Print summary Workflow Sync Report and Promote Issue Stage report; use `--output detail` only for debugging.
 - `promote-issues-for-archive.py` includes the issue subdocument status gate. If it reports `Issue Subdocument Status Gate` blockers, stop and reconcile the listed child Markdown `status` values before retrying; do not move REQ/BUG packages to `archive/` with residual `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` or equivalent non-closed states.
+- Single REQ/BUG promote after `/opsx-archive <change-id>` MUST NOT be blocked solely because the containing Sprint is still planning/in_progress. Sprint completion remains a `/sprint-archive` gate, not a single Issue archive gate.
 - Do not hand-edit `sprint.md` workflow-sync marker blocks.
 
 ## Final Step — AI Usage Post-command Hook (MUST)
@@ -83,7 +86,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.arc
 ```
 
 - If the archived change has `source_requirement` / `source_bug` or an issue trace link, pass the linked REQ/BUG explicitly. The extractor must also enrich `opsx.archive` from active or archived change trace/proposal and issue traces before writing usage facts.
-- Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `session_input`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
+- Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - Use the Sprint resolved by Workflow Sync; do not pass the literal value `auto` to `extract-ai-usage.py`.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
 

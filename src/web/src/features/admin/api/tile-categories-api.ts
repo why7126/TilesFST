@@ -74,7 +74,7 @@ export function buildParentOptions(
   ];
   const walk = (nodes: TileCategoryTreeNode[], prefix: string) => {
     for (const node of nodes) {
-      if (node.level >= 3) continue;
+      if (node.level >= 2) continue;
       const label = prefix ? `${prefix} / ${node.name}` : node.name;
       options.push({ id: node.id, label, level: node.level });
       if (node.children?.length) {

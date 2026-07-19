@@ -335,6 +335,359 @@ export interface ApiResponseLogoutData {
   data?: LogoutData | null;
 }
 
+export interface MiniappCategoryChildItem {
+  id: number;
+  name: string;
+  coverUrl: string;
+  sort: number;
+}
+
+export interface MiniappCategoryTreeItem {
+  id: number;
+  name: string;
+  sort: number;
+  children?: MiniappCategoryChildItem[];
+}
+
+export interface MiniappCategoryTreeData {
+  version: string;
+  items: MiniappCategoryTreeItem[];
+}
+
+export interface ApiResponseMiniappCategoryTreeData {
+  code?: number;
+  message?: string;
+  data?: MiniappCategoryTreeData | null;
+}
+
+export interface MiniappStoreSummary {
+  name: string;
+  logo_url?: string | null;
+  description?: string | null;
+  address?: string | null;
+}
+
+export type MiniappBannerItemJumpType = typeof MiniappBannerItemJumpType[keyof typeof MiniappBannerItemJumpType];
+
+
+export const MiniappBannerItemJumpType = {
+  none: 'none',
+  product: 'product',
+  search: 'search',
+  store: 'store',
+} as const;
+
+export interface MiniappBannerItem {
+  id: number;
+  title: string;
+  subtitle?: string | null;
+  image_url: string;
+  jump_type: MiniappBannerItemJumpType;
+  target_id?: number | null;
+  search_keyword?: string | null;
+}
+
+export type MiniappShortcutItemKey = typeof MiniappShortcutItemKey[keyof typeof MiniappShortcutItemKey];
+
+
+export const MiniappShortcutItemKey = {
+  select: 'select',
+  brand: 'brand',
+  new: 'new',
+  hot: 'hot',
+} as const;
+
+export interface MiniappShortcutItem {
+  key: MiniappShortcutItemKey;
+  title: string;
+  filter_type: string;
+  filter_value?: string | null;
+}
+
+export type MiniappServiceItemActionType = typeof MiniappServiceItemActionType[keyof typeof MiniappServiceItemActionType];
+
+
+export const MiniappServiceItemActionType = {
+  none: 'none',
+  copy_wechat: 'copy_wechat',
+  phone: 'phone',
+} as const;
+
+export interface MiniappServiceItem {
+  key: string;
+  title: string;
+  description: string;
+  action_type: MiniappServiceItemActionType;
+  action_value?: string | null;
+}
+
+export interface MiniappProductCard {
+  product_id: number;
+  product_name: string;
+  sku_code: string;
+  cover_image?: string | null;
+  specification: string;
+  category_name?: string | null;
+  brand_name?: string | null;
+  style_tags?: string[];
+  applicable_spaces?: string[];
+  color_family?: string | null;
+  price_display: string;
+  is_new?: boolean;
+  is_hot?: boolean;
+}
+
+export interface MiniappHomeData {
+  store: MiniappStoreSummary;
+  banners: MiniappBannerItem[];
+  shortcuts: MiniappShortcutItem[];
+  services: MiniappServiceItem[];
+  new_products: MiniappProductCard[];
+  hot_products: MiniappProductCard[];
+}
+
+export interface ApiResponseMiniappHomeData {
+  code?: number;
+  message?: string;
+  data?: MiniappHomeData | null;
+}
+
+export interface MiniappProductDetail {
+  product_id: number;
+  product_name: string;
+  sku_code: string;
+  cover_image?: string | null;
+  specification: string;
+  category_name?: string | null;
+  brand_name?: string | null;
+  style_tags?: string[];
+  applicable_spaces?: string[];
+  color_family?: string | null;
+  price_display: string;
+  is_new?: boolean;
+  is_hot?: boolean;
+  images?: string[];
+  videos?: string[];
+  surface_finish?: string | null;
+  share_title: string;
+}
+
+export interface ApiResponseMiniappProductDetail {
+  code?: number;
+  message?: string;
+  data?: MiniappProductDetail | null;
+}
+
+export interface MiniappSearchFacetOption {
+  value: string;
+  label: string;
+  count: number;
+  selected?: boolean;
+}
+
+export interface MiniappSearchFacets {
+  brands?: MiniappSearchFacetOption[];
+  categories?: MiniappSearchFacetOption[];
+  specs?: MiniappSearchFacetOption[];
+  price_ranges?: MiniappSearchFacetOption[];
+}
+
+export interface MiniappProductListData {
+  items: MiniappProductCard[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more?: boolean;
+  facets?: MiniappSearchFacets;
+}
+
+export interface ApiResponseMiniappProductListData {
+  code?: number;
+  message?: string;
+  data?: MiniappProductListData | null;
+}
+
+export type MiniappSearchDataActiveTab = typeof MiniappSearchDataActiveTab[keyof typeof MiniappSearchDataActiveTab];
+
+
+export const MiniappSearchDataActiveTab = {
+  all: 'all',
+  sku: 'sku',
+  brand: 'brand',
+  category: 'category',
+  certificate: 'certificate',
+} as const;
+
+export type MiniappSearchSectionEntityType = typeof MiniappSearchSectionEntityType[keyof typeof MiniappSearchSectionEntityType];
+
+
+export const MiniappSearchSectionEntityType = {
+  sku: 'sku',
+  brand: 'brand',
+  category: 'category',
+  certificate: 'certificate',
+} as const;
+
+export type MiniappSearchSectionItemsItem = { [key: string]: unknown };
+
+export interface MiniappSearchSection {
+  entity_type: MiniappSearchSectionEntityType;
+  title: string;
+  count: number;
+  items?: MiniappSearchSectionItemsItem[];
+}
+
+export type MiniappSearchDataBestMatch = { [key: string]: unknown } | null;
+
+export interface MiniappSearchData {
+  keyword: string;
+  normalized_keyword: string;
+  request_id: string;
+  active_tab: MiniappSearchDataActiveTab;
+  tabs: MiniappSearchFacetOption[];
+  best_match?: MiniappSearchDataBestMatch;
+  sections: MiniappSearchSection[];
+  facets: MiniappSearchFacets;
+  items: MiniappProductCard[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more?: boolean;
+  recommended_keywords?: string[];
+}
+
+export interface ApiResponseMiniappSearchData {
+  code?: number;
+  message?: string;
+  data?: MiniappSearchData | null;
+}
+
+export interface MiniappSearchHomeData {
+  hot_keywords: string[];
+  recent_browsing: MiniappProductCard[];
+}
+
+export interface ApiResponseMiniappSearchHomeData {
+  code?: number;
+  message?: string;
+  data?: MiniappSearchHomeData | null;
+}
+
+export type MiniappSearchSuggestionEntityType = typeof MiniappSearchSuggestionEntityType[keyof typeof MiniappSearchSuggestionEntityType];
+
+
+export const MiniappSearchSuggestionEntityType = {
+  keyword: 'keyword',
+  sku: 'sku',
+  brand: 'brand',
+  category: 'category',
+  spec: 'spec',
+} as const;
+
+export interface MiniappSearchSuggestion {
+  id: string;
+  text: string;
+  entity_type: MiniappSearchSuggestionEntityType;
+  target_id?: number | null;
+  target_path?: string | null;
+  scope?: string;
+}
+
+export interface MiniappSearchSuggestionsData {
+  keyword: string;
+  normalized_keyword: string;
+  request_id: string;
+  suggestions: MiniappSearchSuggestion[];
+}
+
+export interface ApiResponseMiniappSearchSuggestionsData {
+  code?: number;
+  message?: string;
+  data?: MiniappSearchSuggestionsData | null;
+}
+
+export interface MiniappSkuBrandInfo {
+  brand_id: number;
+  brand_name: string;
+  brand_short_name?: string | null;
+  brand_logo_url?: string | null;
+  brand_entry_path?: string | null;
+  available?: boolean;
+}
+
+export type MiniappSkuMediaItemMediaType = typeof MiniappSkuMediaItemMediaType[keyof typeof MiniappSkuMediaItemMediaType];
+
+
+export const MiniappSkuMediaItemMediaType = {
+  image: 'image',
+  video: 'video',
+} as const;
+
+export interface MiniappSkuMediaItem {
+  media_id: number;
+  media_type: MiniappSkuMediaItemMediaType;
+  url: string;
+  preview_url?: string | null;
+  cover_url?: string | null;
+  sort_order: number;
+  is_main?: boolean;
+  duration_seconds?: number | null;
+}
+
+export interface MiniappSkuShareInfo {
+  title: string;
+  path: string;
+  image_url?: string | null;
+  summary: string;
+}
+
+export type MiniappSkuDetailDataParametersItem = {[key: string]: string};
+
+export interface MiniappSkuDetailData {
+  product_id: number;
+  product_name: string;
+  sku_code: string;
+  cover_image?: string | null;
+  specification: string;
+  category_name?: string | null;
+  brand_name?: string | null;
+  style_tags?: string[];
+  applicable_spaces?: string[];
+  color_family?: string | null;
+  price_display: string;
+  is_new?: boolean;
+  is_hot?: boolean;
+  brand: MiniappSkuBrandInfo;
+  media?: MiniappSkuMediaItem[];
+  image_count?: number;
+  video_count?: number;
+  category_path?: string[];
+  parameters?: MiniappSkuDetailDataParametersItem[];
+  remark?: string | null;
+  surface_finish?: string | null;
+  favorite?: boolean;
+  same_series_recommendations?: MiniappProductCard[];
+  same_brand_recommendations?: MiniappProductCard[];
+  share: MiniappSkuShareInfo;
+}
+
+export interface ApiResponseMiniappSkuDetailData {
+  code?: number;
+  message?: string;
+  data?: MiniappSkuDetailData | null;
+}
+
+export interface MiniappSkuFavoriteData {
+  sku_id: number;
+  favorite: boolean;
+}
+
+export interface ApiResponseMiniappSkuFavoriteData {
+  code?: number;
+  message?: string;
+  data?: MiniappSkuFavoriteData | null;
+}
+
 export interface ApiResponseNoneType {
   code?: number;
   message?: string;
@@ -951,6 +1304,15 @@ export interface LoginRequest {
   remember_me?: boolean;
 }
 
+export interface MiniappSkuFavoriteRequest {
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  client_id: string;
+  favorite: boolean;
+}
+
 export interface ProfilePatchRequest {
   display_name?: string | null;
   email?: string | null;
@@ -1146,6 +1508,123 @@ export interface UserUpdateRequest {
   role?: string | null;
   avatar_object_key?: string | null;
 }
+
+export type SearchProductsApiV1MiniappProductsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+page_size?: number;
+pageSize?: number | null;
+keyword?: string | null;
+categoryId?: number | null;
+brandId?: number | null;
+spec?: string | null;
+priceRange?: string | null;
+sort?: SearchProductsApiV1MiniappProductsGetSort;
+filter_type?: SearchProductsApiV1MiniappProductsGetFilterType;
+filter_value?: string | null;
+section?: SearchProductsApiV1MiniappProductsGetSection;
+};
+
+export type SearchProductsApiV1MiniappProductsGetSort = typeof SearchProductsApiV1MiniappProductsGetSort[keyof typeof SearchProductsApiV1MiniappProductsGetSort];
+
+
+export const SearchProductsApiV1MiniappProductsGetSort = {
+  default: 'default',
+  latest: 'latest',
+  price_asc: 'price_asc',
+  price_desc: 'price_desc',
+} as const;
+
+export type SearchProductsApiV1MiniappProductsGetFilterType = typeof SearchProductsApiV1MiniappProductsGetFilterType[keyof typeof SearchProductsApiV1MiniappProductsGetFilterType] | null;
+
+
+export const SearchProductsApiV1MiniappProductsGetFilterType = {
+  space: 'space',
+  spec: 'spec',
+  style: 'style',
+  color: 'color',
+  category: 'category',
+  all: 'all',
+} as const;
+
+export type SearchProductsApiV1MiniappProductsGetSection = typeof SearchProductsApiV1MiniappProductsGetSection[keyof typeof SearchProductsApiV1MiniappProductsGetSection] | null;
+
+
+export const SearchProductsApiV1MiniappProductsGetSection = {
+  new: 'new',
+  hot: 'hot',
+} as const;
+
+export type SuggestSearchApiV1MiniappSearchSuggestionsGetParams = {
+/**
+ * @minLength 1
+ * @maxLength 80
+ */
+keyword: string;
+/**
+ * @maxLength 80
+ */
+scope?: string;
+/**
+ * @minimum 6
+ * @maximum 10
+ */
+limit?: number;
+request_id?: string | null;
+};
+
+export type SearchAllApiV1MiniappSearchGetParams = {
+/**
+ * @minLength 1
+ * @maxLength 80
+ */
+keyword: string;
+tab?: SearchAllApiV1MiniappSearchGetTab;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+page_size?: number;
+brand?: string | null;
+category?: string | null;
+spec?: string | null;
+price_min?: number | null;
+price_max?: number | null;
+request_id?: string | null;
+};
+
+export type SearchAllApiV1MiniappSearchGetTab = typeof SearchAllApiV1MiniappSearchGetTab[keyof typeof SearchAllApiV1MiniappSearchGetTab];
+
+
+export const SearchAllApiV1MiniappSearchGetTab = {
+  all: 'all',
+  sku: 'sku',
+  brand: 'brand',
+  category: 'category',
+  certificate: 'certificate',
+} as const;
+
+export type GetCategoryTreeApiV1MiniappCategoriesTreeGetParams = {
+/**
+ * @minimum 1
+ * @maximum 2
+ */
+depth?: number;
+};
+
+export type GetSkuDetailApiV1MiniappSkusSkuIdGetParams = {
+client_id?: string | null;
+};
 
 export type ListUsersApiV1AdminUsersGetParams = {
 /**
@@ -1402,6 +1881,125 @@ const getProfileActivitiesApiV1ProfileMeActivitiesGet = (
  ): Promise<AxiosResponse<ApiResponseListProfileActivityItem>> => {
     return axiosInstance.get(
       `/api/v1/profile/me/activities`,options
+    );
+  }
+
+/**
+ * 返回小程序首页公开展示所需的门店摘要、Banner、快捷入口、服务区、新品和热销商品。
+ * @summary 小程序首页聚合数据
+ */
+const getHomeApiV1MiniappHomeGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappHomeData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/home`,options
+    );
+  }
+
+/**
+ * @summary 小程序公开商品搜索
+ */
+const searchProductsApiV1MiniappProductsGet = (
+    params?: SearchProductsApiV1MiniappProductsGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappProductListData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/products`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 返回热门搜索词与最近浏览兜底数据；最近搜索由小程序本机保存。
+ * @summary 小程序搜索首页数据
+ */
+const getSearchHomeApiV1MiniappSearchHomeGet = (
+     options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappSearchHomeData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/search/home`,options
+    );
+  }
+
+/**
+ * 返回 SKU、品牌、类目、规格和关键词建议；证书不参与实时联想。
+ * @summary 小程序搜索实时联想
+ */
+const suggestSearchApiV1MiniappSearchSuggestionsGet = (
+    params: SuggestSearchApiV1MiniappSearchSuggestionsGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappSearchSuggestionsData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/search/suggestions`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 返回综合、SKU、品牌、类目、证书 Tab、分区结果、筛选 facets 与分页信息。
+ * @summary 小程序完整搜索
+ */
+const searchAllApiV1MiniappSearchGet = (
+    params: SearchAllApiV1MiniappSearchGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappSearchData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/search`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 返回最多两级启用分类、排序字段、二级分类安全缩略图 URL 和分类数据版本号。
+ * @summary 小程序公开分类树
+ */
+const getCategoryTreeApiV1MiniappCategoriesTreeGet = (
+    params?: GetCategoryTreeApiV1MiniappCategoriesTreeGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappCategoryTreeData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/categories/tree`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * @summary 小程序公开商品详情
+ */
+const getProductDetailApiV1MiniappProductsProductIdGet = (
+    productId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappProductDetail>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/products/${productId}`,options
+    );
+  }
+
+/**
+ * 返回单个公开 SKU 的主体、媒体、品牌、收藏状态、分享数据和相关推荐。
+ * @summary 小程序 SKU 详情聚合数据
+ */
+const getSkuDetailApiV1MiniappSkusSkuIdGet = (
+    skuId: number,
+    params?: GetSkuDetailApiV1MiniappSkusSkuIdGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappSkuDetailData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/skus/${skuId}`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 按 SKU 粒度幂等设置收藏或取消收藏，使用小程序客户端标识隔离收藏事实。
+ * @summary 小程序 SKU 收藏状态
+ */
+const setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut = (
+    skuId: number,
+    miniappSkuFavoriteRequest: MiniappSkuFavoriteRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappSkuFavoriteData>> => {
+    return axiosInstance.put(
+      `/api/v1/miniapp/skus/${skuId}/favorite`,
+      miniappSkuFavoriteRequest,options
     );
   }
 
@@ -2253,7 +2851,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,listLogsApiV1AdminLogsGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,listLogsApiV1AdminLogsGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -2261,6 +2859,15 @@ export type LogoutApiV1AuthLogoutPostResult = AxiosResponse<ApiResponseLogoutDat
 export type GetProfileMeApiV1ProfileMeGetResult = AxiosResponse<ApiResponseProfileMe>
 export type PatchProfileMeApiV1ProfileMePatchResult = AxiosResponse<ApiResponseProfileMe>
 export type GetProfileActivitiesApiV1ProfileMeActivitiesGetResult = AxiosResponse<ApiResponseListProfileActivityItem>
+export type GetHomeApiV1MiniappHomeGetResult = AxiosResponse<ApiResponseMiniappHomeData>
+export type SearchProductsApiV1MiniappProductsGetResult = AxiosResponse<ApiResponseMiniappProductListData>
+export type GetSearchHomeApiV1MiniappSearchHomeGetResult = AxiosResponse<ApiResponseMiniappSearchHomeData>
+export type SuggestSearchApiV1MiniappSearchSuggestionsGetResult = AxiosResponse<ApiResponseMiniappSearchSuggestionsData>
+export type SearchAllApiV1MiniappSearchGetResult = AxiosResponse<ApiResponseMiniappSearchData>
+export type GetCategoryTreeApiV1MiniappCategoriesTreeGetResult = AxiosResponse<ApiResponseMiniappCategoryTreeData>
+export type GetProductDetailApiV1MiniappProductsProductIdGetResult = AxiosResponse<ApiResponseMiniappProductDetail>
+export type GetSkuDetailApiV1MiniappSkusSkuIdGetResult = AxiosResponse<ApiResponseMiniappSkuDetailData>
+export type SetSkuFavoriteApiV1MiniappSkusSkuIdFavoritePutResult = AxiosResponse<ApiResponseMiniappSkuFavoriteData>
 export type ChangePasswordApiV1AdminProfilePasswordPostResult = AxiosResponse<ApiResponseChangePasswordData>
 export type ListTilesApiV1TilesGetResult = AxiosResponse<TileListItem[]>
 export type GetTileApiV1TilesTileIdGetResult = AxiosResponse<TileDetail>

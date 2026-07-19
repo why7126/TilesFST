@@ -1,0 +1,73 @@
+{
+  "sprint_id": "sprint-009",
+  "source": "data/ai-usage command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T12-00-50-019f7888-ac63-7300-bff2-53efb5cf489d.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T12-59-18-019f78be-309c-7e71-82ce-8839703474f5.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T14-11-30-019f7900-4cf3-7700-a689-101cad418482.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T14-44-43-019f791e-b6cc-7f61-891d-77243ed0f093.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T15-22-17-019f7941-18b2-77e0-9bfb-303e012be277.jsonl"
+  ],
+  "generated_at": "2026-07-19T07:57:34.948328Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0049-miniapp-product-card-component",
+      "REQ-0050-miniapp-brand-header-page-title-rules",
+      "REQ-0051-category-list-product-list-entry-by-level"
+    ],
+    "bugs": [
+      "BUG-0066-search-component-prototype-deviation",
+      "BUG-0067-home-recommendation-list-entry-routing"
+    ],
+    "changes": []
+  },
+  "models": [
+    {
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_context_window": 258400
+    }
+  ],
+  "totals": {
+    "input_tokens": 8904523,
+    "cached_input_tokens": 8647680,
+    "output_tokens": 42583,
+    "reasoning_output_tokens": 3974,
+    "total_tokens": 8947106,
+    "command_run_count": 5,
+    "model_call_count": 56,
+    "tool_call_count": 122,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "by_workflow_event": {
+    "sprint.propose": {
+      "command_run_count": 5,
+      "model_call_count": 56,
+      "tool_call_count": 122,
+      "retry_count": 0,
+      "input_tokens": 8904523,
+      "cached_input_tokens": 8647680,
+      "output_tokens": 42583,
+      "reasoning_output_tokens": 3974,
+      "total_tokens": 8947106
+    }
+  },
+  "by_model": {
+    "gpt-5.5|medium|frontier": {
+      "command_run_count": 5,
+      "model_call_count": 56,
+      "input_tokens": 8904523,
+      "cached_input_tokens": 8647680,
+      "output_tokens": 42583,
+      "reasoning_output_tokens": 3974,
+      "total_tokens": 8947106
+    }
+  }
+}

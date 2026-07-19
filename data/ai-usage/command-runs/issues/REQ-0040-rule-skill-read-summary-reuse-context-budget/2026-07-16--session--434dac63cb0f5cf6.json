@@ -1,0 +1,86 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "434dac63cb0f5cf65fb15b7c2a3123a18c2de549c43595aa1a071d6a36b9bd9f",
+      "source_data_file": "~/.codex/sessions/2026/07/16/rollout-2026-07-16T09-26-41-019f6888-770a-7200-b672-5b2dbae04d9e.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 234,
+      "turn_hash": "cc3b373bf7eec1ac",
+      "started_at": "2026-07-16T01:26:45.221Z",
+      "ended_at": "2026-07-16T01:31:05.402Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [
+        "REQ-0040-rule-skill-read-summary-reuse-context-budget"
+      ],
+      "bugs": [],
+      "changes": [
+        "update-rule-skill-summary-reuse-context-budget"
+      ],
+      "sprint_id": "sprint-008",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 25,
+      "input_tokens": 1742683,
+      "cached_input_tokens": 1646976,
+      "output_tokens": 10075,
+      "reasoning_output_tokens": 1379,
+      "total_tokens": 1752758,
+      "tool_call_count": 54,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "434dac63cb0f5cf65fb15b7c2a3123a18c2de549c43595aa1a071d6a36b9bd9f",
+      "source_data_file": "~/.codex/sessions/2026/07/16/rollout-2026-07-16T09-26-41-019f6888-770a-7200-b672-5b2dbae04d9e.jsonl",
+      "source_line_start": 286,
+      "source_line_end": 399,
+      "turn_hash": "f487ef6fab638720",
+      "started_at": "2026-07-18T01:14:39.866Z",
+      "ended_at": "2026-07-18T01:19:14.728Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0040-rule-skill-read-summary-reuse-context-budget"
+      ],
+      "bugs": [],
+      "changes": [
+        "update-rule-skill-summary-reuse-context-budget"
+      ],
+      "sprint_id": "sprint-008",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 15,
+      "input_tokens": 1748608,
+      "cached_input_tokens": 1621632,
+      "output_tokens": 4608,
+      "reasoning_output_tokens": 1257,
+      "total_tokens": 1753216,
+      "tool_call_count": 28,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

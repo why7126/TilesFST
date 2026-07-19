@@ -1,1 +1,142 @@
-<view>TODO</view>
+<view class="page">
+  <custom-navigation title="商品详情" subtitle="{{product.sku_code || '菲尚特瓷砖'}}" />
+  <view wx:if="{{loading}}" class="skeleton">
+    <view class="skeleton-media"></view>
+    <view class="skeleton-line wide"></view>
+    <view class="skeleton-line"></view>
+    <view class="skeleton-card"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="state">
+    <view class="state-title">{{error}}</view>
+    <view class="state-subtitle">诊断：{{errorDetail}}</view>
+    <view class="state-actions">
+      <button class="ghost-btn" bindtap="retryLoad">重新加载</button>
+      <button class="primary-btn small" bindtap="goBack">返回</button>
+    </view>
+  </view>
+
+  <view wx:else class="content">
+    <view class="media-wrap">
+      <swiper
+        class="gallery"
+        autoplay="{{!mediaPaused}}"
+        interval="4200"
+        circular="{{product.media.length > 1}}"
+        current="{{mediaIndex}}"
+        bindchange="onMediaChange"
+        indicator-dots
+        indicator-active-color="#C8A055"
+      >
+        <swiper-item wx:for="{{product.media}}" wx:key="media_id">
+          <image
+            wx:if="{{item.media_type == 'image'}}"
+            class="gallery-image"
+            src="{{item.url || imageFallback}}"
+            mode="aspectFill"
+            data-url="{{item.preview_url || item.url}}"
+            data-type="image"
+            bindtap="previewImage"
+            binderror="onMediaError"
+          ></image>
+          <video
+            wx:else
+            id="sku-video-{{item.media_id}}"
+            class="gallery-image"
+            src="{{item.url}}"
+            poster="{{item.cover_url || product.cover_image || imageFallback}}"
+            controls
+            autoplay="{{false}}"
+            object-fit="cover"
+            data-type="video"
+            bindplay="onVideoPlay"
+            binderror="onMediaError"
+          ></video>
+        </swiper-item>
+        <swiper-item wx:if="{{!product.media.length}}">
+          <view class="gallery-image image-empty">暂无图片</view>
+        </swiper-item>
+      </swiper>
+      <view class="media-count">{{product.image_count}} 图<text wx:if="{{product.video_count}}"> · {{product.video_count}} 视频</text></view>
+      <view wx:if="{{mediaError}}" class="media-error">{{mediaError}}</view>
+    </view>
+
+    <view class="brand-card" bindtap="openBrand">
+      <image class="brand-logo" src="{{product.brand.brand_logo_url || imageFallback}}" mode="aspectFill"></image>
+      <view class="brand-copy">
+        <view class="brand-name">{{product.brand.brand_name}}</view>
+        <view class="brand-link">查看品牌主页</view>
+      </view>
+    </view>
+
+    <view class="summary">
+      <view class="product-name">{{product.product_name}}</view>
+      <view class="sku">{{product.sku_code}}</view>
+      <view class="price">{{product.price_display}}</view>
+      <view class="price-note">实际价格以门店最终确认为准</view>
+    </view>
+
+    <view class="panel">
+      <view class="panel-title">商品参数</view>
+      <view class="field-grid">
+        <view class="field" wx:for="{{product.parameters}}" wx:key="label">
+          <text>{{item.label}}</text>
+          <text>{{item.value || '—'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{product.remark}}" class="panel">
+      <view class="panel-title">备注说明</view>
+      <view class="remark">{{product.remark}}</view>
+    </view>
+
+    <view wx:if="{{product.same_series_recommendations.length}}" class="panel">
+      <view class="panel-title">同系列推荐</view>
+      <scroll-view class="recommend-row" scroll-x enhanced>
+        <view
+          class="recommend-card"
+          wx:for="{{product.same_series_recommendations}}"
+          wx:key="product_id"
+          data-id="{{item.product_id}}"
+          data-type="same_series"
+          bindtap="openRecommend"
+        >
+          <image class="recommend-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
+          <view class="recommend-name">{{item.product_name}}</view>
+          <view class="recommend-price">{{item.price_display}}</view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{product.same_brand_recommendations.length}}" class="panel">
+      <view class="panel-title">同品牌推荐</view>
+      <scroll-view class="recommend-row" scroll-x enhanced>
+        <view
+          class="recommend-card"
+          wx:for="{{product.same_brand_recommendations}}"
+          wx:key="product_id"
+          data-id="{{item.product_id}}"
+          data-type="same_brand"
+          bindtap="openRecommend"
+        >
+          <image class="recommend-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
+          <view class="recommend-name">{{item.product_name}}</view>
+          <view class="recommend-price">{{item.price_display}}</view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view wx:if="{{product}}" class="actions">
+    <button class="action-btn {{product.favorite ? 'active' : ''}}" loading="{{favoriteBusy}}" bindtap="toggleFavorite">
+      <text class="action-icon">{{product.favorite ? '♥' : '♡'}}</text>
+      <text class="action-label">{{product.favorite ? '已收藏' : '收藏'}}</text>
+    </button>
+    <button class="action-btn" bindtap="openBrand">
+      <text class="action-icon">▱</text>
+      <text class="action-label">品牌</text>
+    </button>
+    <button class="share-btn" open-type="share">分享给客户</button>
+  </view>
+</view>

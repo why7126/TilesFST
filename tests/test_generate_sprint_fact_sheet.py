@@ -141,6 +141,20 @@ def test_render_markdown_includes_evidence_hints(tmp_path: Path) -> None:
     assert "openspec/changes/archive/2026-07-02-add-demo/tasks.md" in markdown
 
 
+def test_fact_sheet_exposes_archived_path_residual_warnings(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    trace = tmp_path / "issues" / "requirements" / "archive" / "REQ-9999-demo" / "trace.md"
+    trace.write_text("Old link: iterations/change/sprint-999/sprint.md\n", encoding="utf-8")
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+
+    residuals = fact_sheet["archived_path_residuals"]
+    assert residuals["ok"] is False
+    assert residuals["residual_count"] == 1
+    assert any(warning["kind"] == "archived-path-residual" for warning in fact_sheet["warnings"])
+    assert any("Archived path residual" in hint["reason"] for hint in fact_sheet["evidence_hints"])
+
+
 def test_fact_sheet_reads_ai_usage_snapshot(tmp_path: Path) -> None:
     seed_project(tmp_path)
     snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"

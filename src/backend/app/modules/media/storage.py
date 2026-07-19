@@ -43,6 +43,18 @@ def _extension_for_content_type(content_type: str | None) -> str:
     return "bin"
 
 
+def _detect_content_type(content: bytes) -> str | None:
+    if content.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP":
+        return "image/webp"
+    if content.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    return None
+
+
 @dataclass(frozen=True)
 class StoredMediaObject:
     content: bytes
@@ -125,7 +137,7 @@ class MinioMediaStorageClient:
                 response.close()
                 response.release_conn()
 
-        content_type, _ = mimetypes.guess_type(object_key)
+        content_type = _detect_content_type(content) or mimetypes.guess_type(object_key)[0]
         return StoredMediaObject(content=content, content_type=content_type)
 
 
@@ -199,5 +211,9 @@ async def save_upload_file(file: UploadFile, object_key: str, max_size_mb: int) 
 def get_media_file_response(object_key: str) -> Response:
     resolve_media_path(object_key)
     stored_object = get_media_storage_client().get_object(object_key)
-    media_type = stored_object.content_type or mimetypes.guess_type(object_key)[0]
+    media_type = (
+        _detect_content_type(stored_object.content)
+        or stored_object.content_type
+        or mimetypes.guess_type(object_key)[0]
+    )
     return Response(content=stored_object.content, media_type=media_type)

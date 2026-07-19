@@ -9,7 +9,7 @@ Use when the user asks `/sprint-archive <sprint-id>` or wants to close a Sprint.
 
 ## Context Budget Guardrails（MUST）
 
-- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则用摘要承接，不重复全量读取。
+- MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - Start from `sprint.yaml`; do not full-read Sprint four-piece unless closing fields are needed.
 - For each Change, read only `tasks.md`, trace/status, and delta headings.
 - Reuse `.agents/skills/opsx-archive/SKILL.md`; do not duplicate full archive reasoning.
@@ -114,6 +114,19 @@ sprint.md: closure note only outside workflow-sync marker blocks
 
 Move directory with `git mv iterations/change/<sprint-id> iterations/archive/<sprint-id>`.
 
+## Archived Path Residual Gate（MUST after Close Sprint）
+
+After the Sprint directory has moved to `iterations/archive/<sprint-id>/` and Workflow Sync / issue promotion have succeeded, run:
+
+```bash
+python scripts/check-archived-path-residuals.py --sprint <sprint-id>
+```
+
+- Exit code `0` means no stale `iterations/change/<sprint-id>/` or active `openspec/changes/<change-id>/` references were found in this Sprint scope.
+- Exit code `1` MUST block a silent success close-out. Report the file, line, old path, suggested path, and exact retry command from the residual report.
+- The check scope MUST come from `sprint.yaml` requirements / bugs / changes and Sprint four-piece documents; do not broad-scan all `issues/**` or `openspec/changes/archive/**`.
+- Do not hand-edit workflow-sync marker blocks while fixing residual links.
+
 ## Final Step — Workflow Sync（MUST）
 
 ```bash
@@ -135,4 +148,4 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event sprint.a
 
 ## Output
 
-Report archived/skipped/blocked counts, Sprint close status, updated files, validation commands, and exact retry command if paused.
+Report archived/skipped/blocked counts, Sprint close status, updated files, validation commands, archived path residual check summary, and exact retry command if paused.

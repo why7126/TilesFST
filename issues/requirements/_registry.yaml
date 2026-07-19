@@ -1,7 +1,85 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 39
+next_id: 52
 entries:
+  - id: REQ-0051-category-list-product-list-entry-by-level
+    title: 分类列表页支持一二级分类商品列表入口
+    status: in_sprint
+    iteration: sprint-009
+    created: "2026-07-19 14:47:56"
+    parent_requirement: REQ-0045-category-list-page
+  - id: REQ-0050-miniapp-brand-header-page-title-rules
+    title: 小程序 brand-header 页面标题规则
+    status: in_sprint
+    iteration: sprint-009
+    created: "2026-07-19 14:14:10"
+    parent_requirement: REQ-0048-miniapp-global-custom-navigation-bar
+  - id: REQ-0049-miniapp-product-card-component
+    title: 微信小程序商品卡片组件
+    status: in_sprint
+    iteration: null
+    created: "2026-07-19 12:04:38"
+    parent_requirement: REQ-0047-product-list-common-component-application
+  - id: REQ-0048-miniapp-global-custom-navigation-bar
+    title: 小程序全局自定义导航栏
+    status: done
+    iteration: null
+    created: "2026-07-19 11:02:04"
+    parent_requirement: REQ-0042-custom-navigation-bar
+  - id: REQ-0047-product-list-common-component-application
+    title: 新增商品列表页通用组件并应用
+    status: done
+    iteration: sprint-008
+    created: "2026-07-19 01:02:16"
+    parent_requirement:
+  - id: REQ-0046-search-component-application
+    title: 新增搜索通用组件并应用
+    status: done
+    iteration: sprint-008
+    created: "2026-07-18 23:06:13"
+    parent_requirement:
+  - id: REQ-0045-category-list-page
+    title: 新增分类列表页
+    status: done
+    iteration: sprint-008
+    created: "2026-07-18 20:52:54"
+    parent_requirement:
+  - id: REQ-0044-miniapp-sku-detail-page
+    title: 微信小程序新增瓷砖 SKU 详情页
+    status: done
+    iteration: sprint-008
+    created: "2026-07-18 18:48:34"
+    parent_requirement: REQ-0006-tile-sku-management
+  - id: REQ-0043-miniapp-home-style-optimization
+    title: 微信小程序首页样式与信息架构优化
+    status: done
+    iteration: null
+    created: "2026-07-17 22:53:00"
+    parent_requirement: REQ-0041-miniapp-home
+  - id: REQ-0042-custom-navigation-bar
+    title: 微信小程序首页品牌自定义导航栏
+    status: done
+    iteration: sprint-008
+    created: "2026-07-17 08:52:22"
+    parent_requirement: REQ-0041-miniapp-home
+  - id: REQ-0041-miniapp-home
+    title: 微信小程序首页
+    status: done
+    iteration: null
+    created: "2026-07-16 09:09:51"
+    parent_requirement:
+  - id: REQ-0040-rule-skill-read-summary-reuse-context-budget
+    title: 规则/Skill 已读摘要复用纳入命令上下文预算治理
+    status: done
+    iteration: null
+    created: "2026-07-16 08:58:55"
+    parent_requirement:
+  - id: REQ-0039-xl-admin-page-layered-acceptance-template
+    title: XL 管理端页面分层验收模板
+    status: done
+    iteration: null
+    created: "2026-07-16 08:58:07"
+    parent_requirement:
   - id: REQ-0038-brand-certificate-management
     title: 新增品牌证书管理页
     status: done

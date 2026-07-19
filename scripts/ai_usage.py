@@ -1428,6 +1428,27 @@ def post_command_hook(
     }
 
 
+def compact_post_command_summary(
+    payload: dict[str, Any],
+    *,
+    include_release: bool = False,
+) -> dict[str, Any]:
+    """Return the user-facing compact post-command hook summary."""
+
+    summary = {
+        "status": payload.get("status"),
+        "usage_mode": payload.get("usage_mode"),
+        "command_run_count": payload.get("command_run_count", 0),
+        "sprint_snapshot": payload.get("sprint_snapshot"),
+        "warning_count": payload.get("warning_count", 0),
+        "recommended_action": payload.get("recommended_action"),
+    }
+    if include_release:
+        summary["session_input"] = payload.get("session_input")
+        summary["release_artifact"] = payload.get("release_artifact")
+    return summary
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session-jsonl", type=Path)
@@ -1468,6 +1489,7 @@ def main(argv: list[str] | None = None) -> int:
             manual_map=manual,
             dry_run=args.dry_run,
         )
+        payload = compact_post_command_summary(payload, include_release=bool(args.release))
         print(json.dumps(payload, ensure_ascii=False, indent=2) if args.json else payload)
         return 0
     if args.check_snapshot:

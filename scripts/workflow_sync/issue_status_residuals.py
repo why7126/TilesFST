@@ -179,13 +179,6 @@ def issue_reconcile_blockers(issue: collect.IssueRecord) -> list[str]:
     if pending_changes:
         blockers.append(f"linked change(s) not archived: {', '.join(pending_changes)}")
 
-    incomplete_sprints = [
-        sprint_id
-        for sprint_id in collect.find_sprints_for_issue(issue.issue_id)
-        if (sprint := collect.load_sprint(sprint_id)) and sprint.status != "completed"
-    ]
-    if incomplete_sprints:
-        blockers.append(f"linked sprint(s) not completed: {', '.join(incomplete_sprints)}")
     return blockers
 
 

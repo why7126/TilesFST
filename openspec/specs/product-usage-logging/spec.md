@@ -25,7 +25,7 @@
 - **THEN** 系统 SHALL 将该请求排除在默认请求日志采集之外。
 
 ### Requirement: 产品使用行为事件采集
-系统 SHALL 按人工定义的事件字典采集产品使用行为事件。
+系统 SHALL 按人工定义的事件字典采集产品使用行为事件。事件字典 SHALL 支持 Web 管理端既有事件，并 SHALL 支持微信小程序首页、首页样式信息架构优化、商品详情和搜索的详情访问、分享、咨询、快捷入口、瀑布流、搜索交互和安全降级事件，用于小程序热销推荐统计、搜索体验分析和后续产品优先级判断。
 
 #### Scenario: 接受已登记事件
 - **WHEN** 客户端提交的 usage event 存在于事件字典且包含全部必填属性
@@ -52,6 +52,31 @@
 - **WHEN** 已认证 admin 修改日志审计筛选、执行查询、复制 request id 或打开详情抽屉
 - **THEN** Web 客户端 SHALL 通过共享 tracking client 上报对应交互 usage event
 - **AND** 埋点失败 SHALL NOT 阻断可见用户流程。
+
+#### Scenario: 小程序首页与商品详情行为事件
+- **WHEN** 微信小程序用户浏览商品详情、分享首页、分享商品、点击首页咨询或点击商品咨询
+- **THEN** 系统 SHALL 接受已登记的 `product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click` 事件
+- **AND** 事件 SHALL 携带必要的商品 ID、页面标识、client type 和时间上下文
+- **AND** 事件 SHALL NOT 包含聊天内容、Authorization header、Cookie、原始手机号或其它不必要个人敏感信息
+- **AND** 埋点失败 SHALL NOT 阻断小程序浏览、分享或咨询主流程。
+
+#### Scenario: 小程序首页样式与信息架构行为事件
+- **WHEN** 微信小程序用户点击首页搜索、快捷入口、新品商品、热销商品、全部产品商品、收藏视觉图标或证书 Tab
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click` 和 `miniapp_certificate_tab_click` 事件
+- **AND** 事件 SHALL 仅携带必要的入口标识、商品 ID、页面标识、client type 和时间上下文
+- **AND** 事件 SHALL NOT 承诺或写入收藏持久化事实。
+
+#### Scenario: 小程序瀑布流加载行为事件
+- **WHEN** 全部产品瀑布流发生首屏加载、下一页加载、加载失败或无更多状态
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed` 和 `miniapp_home_waterfall_end_reached` 事件
+- **AND** 埋点失败 SHALL NOT 阻断瀑布流展示、追加、重试或无更多提示。
+
+#### Scenario: 小程序搜索行为事件
+- **WHEN** 微信小程序用户浏览搜索页、输入关键词、看到联想、点击联想、提交搜索、看到搜索结果、点击搜索结果、应用筛选、遇到无结果或操作搜索历史
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_submit`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete` 和 `search_history_clear` 事件
+- **AND** 事件 SHALL 仅携带 keyword、normalizedKeyword、scope、entityType、resultCount、sourcePage、filterSnapshot、requestId、client type 和时间上下文等必要字段
+- **AND** 事件 SHALL NOT 包含手机号、聊天内容、Authorization header、Cookie、raw payload、raw object key 或其它不必要个人敏感信息
+- **AND** 埋点失败 SHALL NOT 阻断搜索输入、联想展示、结果展示、筛选、无结果页或历史操作主流程。
 
 ### Requirement: 日志存储与保留
 系统 SHALL 将 request logs 与 usage events 存储在关系型存储中，并提供可查询索引和保留周期治理。
@@ -219,4 +244,62 @@ Product usage logging SHALL preserve the existing `/admin/logs` request id copy 
 - **WHEN** the logs page frontend tests run after helper migration
 - **THEN** they SHALL cover request id copy success, Clipboard API unavailable fallback, Clipboard write failure fallback, and empty request id behavior
 - **AND** they SHALL continue to cover list pagination structure.
+
+### Requirement: 小程序 SKU 详情页行为事件
+系统 SHALL 支持微信小程序 SKU 详情页行为事件，用于记录详情浏览、媒体交互、收藏、分享、品牌入口、推荐点击和加载失败，同时遵守统一 usage event 脱敏策略。
+
+#### Scenario: SKU 详情页浏览事件
+- **WHEN** 微信小程序 SKU 详情页成功展示
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `sku_detail_view` 事件
+- **AND** 事件 SHALL 仅携带必要的 SKU ID、页面标识、来源参数、client type 和时间上下文
+- **AND** 埋点失败 SHALL NOT 阻断详情页展示。
+
+#### Scenario: SKU 媒体交互事件
+- **WHEN** 用户切换媒体、打开图片预览或播放视频
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `sku_media_swipe`、`sku_image_preview` 和 `sku_video_play` 事件
+- **AND** 事件 SHALL NOT 包含原始 object key、未授权媒体 URL、Authorization header、Cookie 或用户敏感信息。
+
+#### Scenario: SKU 收藏和分享事件
+- **WHEN** 用户成功收藏、取消收藏或点击分享 SKU
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `sku_favorite`、`sku_unfavorite` 和 `sku_share_click` 事件
+- **AND** 收藏事件 SHALL 仅记录 SKU 粒度业务事实和必要上下文
+- **AND** 分享事件 SHALL NOT 存储聊天内容、联系人、群信息或原始手机号。
+
+#### Scenario: SKU 品牌和推荐点击事件
+- **WHEN** 用户点击品牌入口、同系列推荐或同品牌推荐
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `sku_brand_click` 和 `sku_recommend_click` 事件
+- **AND** 推荐点击事件 SHALL 携带当前 SKU ID、目标 SKU ID、推荐类型和必要页面上下文。
+
+#### Scenario: SKU 详情加载失败事件
+- **WHEN** SKU 详情加载失败、SKU 不存在或网络失败
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `sku_load_error` 事件
+- **AND** 事件 metadata SHALL 只包含脱敏错误码、失败阶段和必要页面上下文
+- **AND** SHALL NOT 持久化原始响应体、token、Cookie、Authorization header 或内部路径。
+
+### Requirement: 小程序商品列表行为事件
+系统 SHALL 记录小程序商品列表浏览、曝光、点击、筛选、排序、刷新、加载更多和失败事件，用于分析商品发现效率。
+
+#### Scenario: 商品列表页浏览
+- **WHEN** 用户进入商品列表页
+- **THEN** 系统 SHALL 记录 `product_list_page_view`
+- **AND** 事件 SHALL 包含 sourcePage、categoryId、brandId、keyword、sort、filterSnapshot、pageSize 和 requestId 中适用字段。
+
+#### Scenario: 商品曝光与点击
+- **WHEN** 商品卡片曝光或用户点击商品卡片
+- **THEN** 系统 SHALL 记录 `product_list_item_exposure` 或 `product_list_item_click`
+- **AND** 事件 SHALL 包含 skuId、sourcePage、列表上下文、位置索引和 requestId 中适用字段。
+
+#### Scenario: 筛选和排序事件
+- **WHEN** 用户打开筛选、应用筛选或切换排序
+- **THEN** 系统 SHALL 记录 `product_list_filter_open`、`product_list_filter_apply` 或 `product_list_sort_change`
+- **AND** 事件 SHALL 包含 filterSnapshot、sort、resultCount 和 requestId 中适用字段。
+
+#### Scenario: 刷新与加载更多事件
+- **WHEN** 用户触发下拉刷新、上拉加载更多或加载失败
+- **THEN** 系统 SHALL 记录 `product_list_refresh`、`product_list_load_more` 或 `product_list_load_failed`
+- **AND** 事件 SHALL 包含 page、pageSize、resultCount、errorCode 和 requestId 中适用字段。
+
+#### Scenario: 商品列表事件敏感信息过滤
+- **WHEN** 系统记录商品列表行为事件
+- **THEN** 事件 SHALL NOT 包含手机号、Authorization header、Cookie、raw payload、原始 object key、内部备注或不必要个人敏感信息。
 

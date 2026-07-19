@@ -1,0 +1,119 @@
+.custom-navigation-spacer {
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.custom-navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding-left: 28rpx;
+  padding-right: 28rpx;
+  box-sizing: border-box;
+  background: rgba(24,22,15,0.96);
+  border-bottom: 2rpx solid rgba(255,255,255,0.07);
+  color: #EDE8DF;
+  overflow: hidden;
+}
+
+.brand-identity {
+  height: 88rpx;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+}
+
+.store-logo {
+  width: 76rpx;
+  height: 76rpx;
+  flex: 0 0 76rpx;
+  border-radius: 18rpx;
+  background: #211E16;
+  border: 2rpx solid rgba(255,255,255,0.07);
+}
+
+.store-copy,
+.subpage-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.store-name,
+.subpage-title {
+  color: #EDE8DF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+
+.store-name {
+  font-size: 32rpx;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.store-subtitle,
+.subpage-subtitle {
+  margin-top: 4rpx;
+  color: rgba(237,232,223,0.52);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+
+.store-subtitle {
+  font-size: 22rpx;
+}
+
+.back-hit-area {
+  width: 88rpx;
+  height: 88rpx;
+  flex: 0 0 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 44rpx;
+  background: rgba(33,30,22,0.88);
+  border: 2rpx solid rgba(200,160,85,0.2);
+  box-sizing: border-box;
+}
+
+.back-icon {
+  color: #EDE8DF;
+  font-size: 56rpx;
+  line-height: 80rpx;
+  font-weight: 700;
+}
+
+.subpage-copy {
+  height: 88rpx;
+}
+
+.subpage-title {
+  font-size: 32rpx;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.subpage-subtitle {
+  font-size: 22rpx;
+}
+
+.native-action-reserve {
+  min-width: 184rpx;
+  height: 88rpx;
+  flex: 0 0 184rpx;
+  align-self: center;
+}

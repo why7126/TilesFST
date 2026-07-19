@@ -202,7 +202,7 @@ class CategoryDeleteForbiddenError(AppError):
 
 
 class CategoryMaxDepthExceededError(AppError):
-    def __init__(self, message: str = "类目最多支持三级，无法继续新增子级") -> None:
+    def __init__(self, message: str = "类目最多支持二级，无法继续新增子级") -> None:
         super().__init__(status_code=422, code=30023, message=message)
 
 

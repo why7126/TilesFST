@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-15 09:08:17
+updated_at: 2026-07-19 02:17:59
 note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.example
 ---
 
@@ -71,7 +71,7 @@ request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK
 | system_settings | ✓ Sprint 003 | 系统设置 KV 持久化 |
 | audit_logs | ✓ Sprint 003 | 统一审计日志（含 system_settings） |
 | request_logs | ✓ Sprint 004 | API 请求日志（REQ-0024） |
-| usage_events | ✓ Sprint 004 | 产品使用行为埋点事件（REQ-0024） |
+| usage_events | ✓ Sprint 004 / Sprint 008 | 产品使用行为埋点事件（REQ-0024）；小程序详情访问、分享、咨询、首页快捷入口、瀑布流与安全降级事件用于热销推荐辅助排序和产品优先级判断 |
 | tile_categories | 桩 | 分类 |
 | tile_specs | ✓ Sprint 003 | 瓷砖规格主数据 |
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
@@ -298,6 +298,8 @@ OpenSpec：`openspec/changes/add-tile-category-management/`
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
+业务约束：自 `limit-admin-tile-categories-to-two-levels` 起，管理端新增类目最多只能创建到二级；SQLite/MySQL schema 暂保留 `level BETWEEN 1 AND 3` 以兼容历史三级数据，后续历史治理需另走 OpenSpec Change。
+
 ORM：`src/backend/app/models/tile_category.py`  
 迁移：`migrations.py` → `_rebuild_tile_categories_table`（兼容旧 id+name 桩表）
 
@@ -480,7 +482,24 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 11. 媒体资产（规划）
+## 11. miniapp_sku_favorites（小程序 SKU 收藏）
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| client_id | TEXT | NOT NULL | 小程序客户端匿名标识，不存储 token、手机号或微信会话密钥 |
+| sku_id | INTEGER | NOT NULL, FK → tiles.id | 收藏的 SKU |
+| favorite | INTEGER | NOT NULL, DEFAULT 1, CHECK | 1=收藏，0=取消收藏；用于幂等设置目标状态 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+UNIQUE `(client_id, sku_id)`；索引 `idx_miniapp_sku_favorites_client(client_id, favorite, updated_at)`。
+SQLite 迁移：`src/backend/app/db/migrations.py` → `_ensure_miniapp_sku_favorites_support`。
+MySQL baseline：`src/backend/app/db/schema.mysql.sql` 中同名表，`client_id` 为 `VARCHAR(128)`，`favorite` 为 `TINYINT`。
+
+---
+
+## 12. 媒体资产（规划）
 
 `tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，未持久化到 SQLite。
 
@@ -488,7 +507,7 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 12. 迁移与本地数据
+## 13. 迁移与本地数据
 
 | 场景 | 做法 |
 |---|---|
@@ -502,7 +521,7 @@ ORM：`src/backend/app/models/tile.py`
 
 ---
 
-## 12.1 SQLite → MySQL 类型映射
+## 13.1 SQLite → MySQL 类型映射
 
 | SQLite | MySQL baseline | 说明 |
 |---|---|---|
@@ -517,14 +536,14 @@ ORM：`src/backend/app/models/tile.py`
 
 MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku_code`、`tile_specs(width_mm,length_mm,unit)`、`banners(display_client,position,title)`，以及审计、活动日志与媒体查询路径索引。
 
-## 12.2 初始化与 Seed
+## 13.2 初始化与 Seed
 
 - SQLite 路径继续执行 `schema.sql` 后再执行 `migrations.py`，保留 `sqlite_master` / `PRAGMA` 兼容迁移。
 - MySQL 路径只执行 `schema.mysql.sql`，不得调用 SQLite introspection 或 SQLite-only DDL。
 - MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等。
 - 空库首次启动后，默认管理员 seed 继续使用 `ADMIN_USERNAME`、`ADMIN_INITIAL_PASSWORD`、`ADMIN_RESET_PASSWORD_ON_STARTUP`，密码以 bcrypt 哈希保存。
 
-## 13. 与 API 的对应
+## 14. 与 API 的对应
 
 | 表 | 主要 API |
 |---|---|
@@ -532,13 +551,19 @@ MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku
 | brands | `/api/v1/admin/brands` |
 | tile_categories | `/api/v1/admin/tile-categories` |
 | tile_specs | `/api/v1/admin/tile-specs` |
-| tiles / tile_images / tile_videos | `/api/v1/admin/tile-skus`、`GET /api/v1/tiles`（展示桩） |
+| tiles / tile_images / tile_videos | `/api/v1/admin/tile-skus`、`GET /api/v1/tiles`（展示桩）、`/api/v1/miniapp/home`、`/api/v1/miniapp/products`、`/api/v1/miniapp/search*`、`/api/v1/miniapp/skus/{sku_id}` |
+| miniapp_sku_favorites | `PUT /api/v1/miniapp/skus/{sku_id}/favorite`、`GET /api/v1/miniapp/skus/{sku_id}` 收藏状态 |
+| banners | `/api/v1/admin/banners`、`/api/v1/miniapp/home` |
+| brand_certificates | `/api/v1/admin/brand-certificates`、`/api/v1/miniapp/search` 完整搜索证书分区 |
+| usage_events | `/api/v1/usage-events`；小程序热销推荐读取 `product_detail_view`、`product_share`、`product_contact_click` 聚合计数；REQ-0043 首页样式优化新增瀑布流、快捷入口、收藏视觉和证书 Tab 事件；REQ-0044 新增 SKU 详情、媒体、收藏、分享、品牌、推荐和加载失败事件；REQ-0046 新增搜索浏览、输入、联想、提交、结果、筛选、无结果和历史操作事件；REQ-0047 新增商品列表浏览、曝光、点击、筛选、排序、刷新、加载更多和失败事件 |
+
+Sprint 008 `add-miniapp-home`、`update-miniapp-home-style-optimization`、`add-miniapp-search-component` 与 `add-miniapp-product-list-component` 未新增业务表。小程序首页、全部产品瀑布流、搜索和商品列表复用既有 `brands`、`tile_categories`、`tile_specs`、`tiles`、`tile_images`、`brand_certificates`、`banners` 和 `usage_events`：人工配置与发布时间字段优先，行为事件统计作为热销推荐、热门搜索和商品发现效率分析的辅助依据；REQ-0046 与 REQ-0047 新增事件字典不改变 `usage_events` 表结构。若后续需要高性能搜索索引、排行榜缓存表、商品列表运营插槽或后台搜索配置中心，必须另走 OpenSpec Change 并同步 SQLite/MySQL schema、迁移、文档和测试。
 
 索引：`docs/03-api-index.md`
 
 ---
 
-## 14. 维护规则
+## 15. 维护规则
 
 Schema 变更时 MUST：
 

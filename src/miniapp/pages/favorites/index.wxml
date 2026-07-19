@@ -1,0 +1,6 @@
+<view class="placeholder-page">
+  <custom-navigation title="{{title}}" subtitle="本机临时收藏反馈" />
+  <view class="placeholder-title">{{title}}</view>
+  <view class="placeholder-desc">{{message}}</view>
+  <view class="placeholder-note">当前版本仅提供首页非持久化视觉反馈。</view>
+</view>
