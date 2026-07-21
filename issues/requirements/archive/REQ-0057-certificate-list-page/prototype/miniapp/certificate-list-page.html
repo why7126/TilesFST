@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0057 证书列表页原型</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --surface-2: #2a261b;
+        --gold: #c8a055;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.56);
+        --weak: rgba(237, 232, 223, 0.34);
+        --line: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .phone {
+        width: min(430px, 100vw);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--page);
+        padding: 16px 16px 92px;
+      }
+
+      .nav {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: sticky;
+        top: 0;
+        background: rgba(24, 22, 15, 0.96);
+        z-index: 2;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .nav-title {
+        font-size: 17px;
+        font-weight: 500;
+      }
+
+      .hero {
+        padding: 22px 0 16px;
+      }
+
+      .eyebrow {
+        color: var(--gold);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+      }
+
+      h1 {
+        margin: 8px 0 8px;
+        font-size: 25px;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+
+      .intro {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.75;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+        padding: 10px;
+      }
+
+      .stat strong {
+        display: block;
+        color: var(--gold);
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 3px;
+        color: var(--weak);
+        font-size: 11px;
+      }
+
+      .search {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+        padding: 0 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .chips {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 14px 0;
+      }
+
+      .chip {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        color: var(--muted);
+        border-radius: 2px;
+        padding: 7px 10px;
+        font-size: 12px;
+        background: transparent;
+      }
+
+      .chip.active {
+        border-color: rgba(200, 160, 85, 0.7);
+        color: var(--gold);
+        background: rgba(200, 160, 85, 0.1);
+      }
+
+      .list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        display: grid;
+        grid-template-columns: 86px 1fr;
+        gap: 12px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+        padding: 12px;
+      }
+
+      .thumb {
+        aspect-ratio: 4 / 5;
+        border-radius: 2px;
+        background: linear-gradient(145deg, #4d4634, #17150f);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: grid;
+        place-items: center;
+        color: var(--gold);
+        font-size: 12px;
+      }
+
+      .cert-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.35;
+      }
+
+      .meta {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .badge {
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        padding: 3px 6px;
+        color: var(--muted);
+        font-size: 10px;
+      }
+
+      .badge.gold {
+        color: var(--gold);
+        border-color: rgba(200, 160, 85, 0.42);
+      }
+
+      .more {
+        margin: 16px 0 0;
+        text-align: center;
+        color: var(--weak);
+        font-size: 12px;
+      }
+
+      .tabbar {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: min(430px, 100vw);
+        height: 70px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        background: #100f0a;
+        border-top: 1px solid var(--line);
+      }
+
+      .tab {
+        text-align: center;
+        color: var(--weak);
+        font-size: 11px;
+      }
+
+      .tab.active {
+        color: var(--gold);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone">
+      <header class="nav"><span class="nav-title">证书</span></header>
+      <section class="hero">
+        <div class="eyebrow">BRAND CERTIFICATES</div>
+        <h1>菲尚特认证证书</h1>
+        <p class="intro">集中展示质量体系、产品检测、绿色环保与荣誉资质，让每一次选砖都有据可查。</p>
+        <div class="stats">
+          <div class="stat"><strong>24</strong><span>公开证书</span></div>
+          <div class="stat"><strong>18</strong><span>有效证书</span></div>
+          <div class="stat"><strong>6</strong><span>绿色环保</span></div>
+        </div>
+      </section>
+      <div class="search">搜索证书名称 / 编号 / 发证机构</div>
+      <div class="chips" aria-label="证书类型筛选">
+        <span class="chip active">全部</span>
+        <span class="chip">质量体系</span>
+        <span class="chip">产品检测</span>
+        <span class="chip">绿色环保</span>
+        <span class="chip">荣誉资质</span>
+      </div>
+      <section class="list">
+        <article class="card">
+          <div class="thumb">PDF</div>
+          <div>
+            <h2 class="cert-title">ISO 9001 质量管理体系认证</h2>
+            <div class="meta">菲尚特瓷砖 · 证书编号 ISO-001<br />有效期：2025-01-01 至 2028-01-01</div>
+            <div class="badges"><span class="badge gold">质量体系</span><span class="badge">有效</span></div>
+          </div>
+        </article>
+        <article class="card">
+          <div class="thumb">IMG</div>
+          <div>
+            <h2 class="cert-title">绿色建材产品认证证书</h2>
+            <div class="meta">菲尚特瓷砖 · 中国绿色建材认证中心<br />有效期：长期有效</div>
+            <div class="badges"><span class="badge gold">绿色环保</span><span class="badge">长期有效</span></div>
+          </div>
+        </article>
+        <article class="card">
+          <div class="thumb">IMG</div>
+          <div>
+            <h2 class="cert-title">陶瓷砖产品质量检测报告</h2>
+            <div class="meta">菲尚特瓷砖 · 国家建筑材料测试中心<br />有效期：2026-09-30</div>
+            <div class="badges"><span class="badge gold">产品检测</span><span class="badge">即将到期</span></div>
+          </div>
+        </article>
+      </section>
+      <p class="more">上拉加载更多证书</p>
+    </main>
+    <nav class="tabbar" aria-label="TabBar">
+      <div class="tab">首页</div>
+      <div class="tab">分类</div>
+      <div class="tab">找砖</div>
+      <div class="tab">收藏</div>
+      <div class="tab active">证书</div>
+    </nav>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+<view
+  class="product-card {{density}} {{normalized.available ? '' : 'disabled'}}"
+  hover-class="card-press"
+  bindtap="openDetail"
+>
+  <view class="product-image-frame {{imageFailed || !normalized.imageSrc ? 'fallback' : ''}}">
+    <image
+      wx:if="{{normalized.imageSrc && !imageFailed}}"
+      class="product-image"
+      src="{{normalized.imageSrc}}"
+      mode="aspectFill"
+      binderror="onImageError"
+    ></image>
+    <view wx:else class="product-image-empty">暂无图片</view>
+    <view wx:if="{{normalized.badge}}" class="product-badge">{{normalized.badge}}</view>
+  </view>
+  <view class="product-content">
+    <view class="product-name">{{normalized.productName}}</view>
+    <view class="product-brand">{{normalized.brandName}}</view>
+    <view class="product-spec">{{normalized.specification}}</view>
+    <view class="product-price"><text>参考价格</text>{{normalized.priceText}}</view>
+  </view>
+</view>

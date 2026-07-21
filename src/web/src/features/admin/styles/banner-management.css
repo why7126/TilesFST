@@ -195,6 +195,13 @@
   font-size: 11px;
 }
 
+.admin-shell .banner-display-client-select:disabled {
+  color: var(--admin-text);
+  opacity: 1;
+  cursor: not-allowed;
+  line-height: 40px;
+}
+
 .admin-shell .banner-upload-box {
   height: 118px;
   border: 0.5px dashed color-mix(in srgb, var(--admin-gold) 35%, transparent);

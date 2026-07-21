@@ -153,3 +153,22 @@ def test_missing_tasks_file_blocks_archive(tmp_path: Path) -> None:
 
     assert len(readiness.blockers) == 1
     assert readiness.blockers[0].blocker == "tasks.md missing"
+
+
+def test_large_sprint_readiness_exposes_change_batches(tmp_path: Path) -> None:
+    change_ids = [f"add-batch-{index:02d}" for index in range(1, 12)]
+    write_sprint(tmp_path, "sprint-999", change_ids)
+    for index, change_id in enumerate(change_ids, start=1):
+        tasks = ["- [x] implement", "- [x] test"]
+        if index == 11:
+            tasks[-1] = "- [ ] test"
+        write_tasks(tmp_path, change_id, tasks)
+
+    readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
+    payload = validate_sprint_archive_readiness.readiness_to_json(readiness, force=False)
+
+    assert readiness.change_batches["applicable"] is True
+    assert readiness.change_batches["batch_count"] == 3
+    assert readiness.change_batches["batches"][0]["change_ids"] == change_ids[:5]
+    assert readiness.change_batches["batches"][2]["counts"]["blockers"] == 1
+    assert "batch-003" in payload

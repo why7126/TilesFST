@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0058 品牌主页/详情页原型</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #18160f;
+      --surface: #211e16;
+      --surface-2: #2b261b;
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.58);
+      --weak: rgba(237, 232, 223, 0.34);
+      --gold: #c8a055;
+      --danger: #c56f4f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(320px, 390px));
+      gap: 24px;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .phone {
+      width: min(390px, 100%);
+      height: 844px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--page);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    .nav {
+      height: 88px;
+      padding: 42px 18px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(24, 22, 15, 0.94);
+    }
+
+    .brandmark {
+      font-size: 13px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .capsule {
+      width: 86px;
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      opacity: 0.8;
+    }
+
+    .content {
+      height: calc(100% - 88px);
+      overflow: hidden;
+      padding: 14px;
+    }
+
+    .hero {
+      height: 154px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.24), transparent 46%),
+        linear-gradient(145deg, #3a3324, #16140e);
+      padding: 18px;
+      position: relative;
+    }
+
+    .hero h1,
+    .brand-info h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .hero p,
+    .brand-info p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .dots {
+      position: absolute;
+      left: 18px;
+      bottom: 14px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 18px;
+      height: 3px;
+      background: var(--gold);
+    }
+
+    .dot.muted {
+      width: 8px;
+      background: var(--weak);
+    }
+
+    .section-title {
+      margin: 18px 0 12px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .brand-grid,
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      min-height: 152px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .thumb {
+      height: 92px;
+      background:
+        linear-gradient(140deg, rgba(255,255,255,0.1), transparent 42%),
+        linear-gradient(135deg, #54452b, #19170f);
+    }
+
+    .card-body {
+      padding: 10px;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .brand-info {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .brand-cover {
+      height: 168px;
+      background:
+        linear-gradient(145deg, rgba(200, 160, 85, 0.2), transparent 48%),
+        linear-gradient(135deg, #4f4634, #15130d);
+    }
+
+    .brand-info .copy {
+      padding: 14px;
+    }
+
+    .tabs {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .tab {
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    .tab.active {
+      color: var(--page);
+      background: var(--gold);
+    }
+
+    .certificate {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .cert-row {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 84px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+    }
+
+    .cert-img {
+      height: 64px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 5px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      color: var(--gold);
+      font-size: 10px;
+    }
+
+    @media (max-width: 760px) {
+      .board {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="phone" aria-label="品牌入口页">
+      <header class="nav">
+        <div class="brandmark">TilesFST</div>
+        <div class="capsule" aria-hidden="true"></div>
+      </header>
+      <div class="content">
+        <section class="hero">
+          <h1>精选品牌</h1>
+          <p>品牌故事、代表商品与资质背书集中展示。</p>
+          <div class="dots" aria-hidden="true">
+            <span class="dot"></span>
+            <span class="dot muted"></span>
+            <span class="dot muted"></span>
+          </div>
+        </section>
+        <div class="section-title">
+          <h2>品牌列表</h2>
+          <span>全部品牌</span>
+        </div>
+        <section class="brand-grid">
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">菲尚特瓷砖</p>
+              <p class="meta">现代岩板 · 128 款商品</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">意式精选系列</p>
+              <p class="meta">高级灰 · 86 款商品</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">岩纹空间</p>
+              <p class="meta">大板 · 64 款商品</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">素色砖研所</p>
+              <p class="meta">哑光 · 42 款商品</p>
+            </div>
+          </article>
+        </section>
+      </div>
+    </section>
+
+    <section class="phone" aria-label="品牌主页详情页">
+      <header class="nav">
+        <div class="brandmark">品牌主页</div>
+        <div class="capsule" aria-hidden="true"></div>
+      </header>
+      <div class="content">
+        <section class="brand-info">
+          <div class="brand-cover"></div>
+          <div class="copy">
+            <h1>菲尚特瓷砖</h1>
+            <p>聚焦现代岩板与质感瓷砖，以稳定供应、精选纹理和空间搭配能力服务门店与设计师。</p>
+          </div>
+        </section>
+        <nav class="tabs" aria-label="品牌内容">
+          <div class="tab active">商品</div>
+          <div class="tab">证书</div>
+        </nav>
+        <section class="product-grid" style="margin-top: 10px;">
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">卡拉卡塔岩板</p>
+              <p class="meta">菲尚特 · 750x1500</p>
+              <span class="badge">参考价 ¥168</span>
+            </div>
+          </article>
+          <article class="card">
+            <div class="thumb"></div>
+            <div class="card-body">
+              <p class="card-title">云影灰柔光砖</p>
+              <p class="meta">菲尚特 · 600x1200</p>
+              <span class="badge">参考价 ¥96</span>
+            </div>
+          </article>
+        </section>
+        <section class="certificate">
+          <article class="cert-row">
+            <div class="cert-img"></div>
+            <div>
+              <p class="card-title">绿色建材认证</p>
+              <p class="meta">品牌证书 · 有效展示</p>
+            </div>
+          </article>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

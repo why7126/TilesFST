@@ -1,5 +1,5 @@
 <view class="page">
-  <custom-navigation title="商品详情" subtitle="{{product.sku_code || '菲尚特瓷砖'}}" />
+  <custom-navigation title="商品详情" />
   <view wx:if="{{loading}}" class="skeleton">
     <view class="skeleton-media"></view>
     <view class="skeleton-line wide"></view>
@@ -44,7 +44,7 @@
             id="sku-video-{{item.media_id}}"
             class="gallery-image"
             src="{{item.url}}"
-            poster="{{item.cover_url || product.cover_image || imageFallback}}"
+            poster="{{item.cover_url || ''}}"
             controls
             autoplay="{{false}}"
             object-fit="cover"
@@ -61,19 +61,21 @@
       <view wx:if="{{mediaError}}" class="media-error">{{mediaError}}</view>
     </view>
 
-    <view class="brand-card" bindtap="openBrand">
-      <image class="brand-logo" src="{{product.brand.brand_logo_url || imageFallback}}" mode="aspectFill"></image>
-      <view class="brand-copy">
-        <view class="brand-name">{{product.brand.brand_name}}</view>
-        <view class="brand-link">查看品牌主页</view>
-      </view>
-    </view>
-
     <view class="summary">
       <view class="product-name">{{product.product_name}}</view>
-      <view class="sku">{{product.sku_code}}</view>
       <view class="price">{{product.price_display}}</view>
       <view class="price-note">实际价格以门店最终确认为准</view>
+    </view>
+
+    <view class="brand-card-wrap">
+      <brand-card
+        brand="{{product.brand}}"
+        hint="查看品牌主页"
+        source-page="{{source}}"
+        source-module="sku-detail-brand"
+        sku-id="{{product.product_id}}"
+        list-context="sku-detail"
+      />
     </view>
 
     <view class="panel">

@@ -30,6 +30,7 @@ from .patch import (
     patch_registry_entry,
     patch_release_note,
     patch_sprint_md,
+    patch_sprint_yaml_scope,
 )
 from .constants import ROOT
 
@@ -240,6 +241,27 @@ class SyncEngine:
         write = not (self.dry_run or self.check)
 
         planned: list[PatchResult] = []
+        if sprint and event in {"req.opsx", "bug.opsx"} and change_id:
+            focus_issue_id = req_id or bug_id
+            planned.append(
+                patch_sprint_yaml_scope(
+                    sprint,
+                    focus_issue_id,
+                    change_id,
+                    write=write,
+                )
+            )
+            if focus_issue_id and change_id:
+                issue = issues.get(focus_issue_id)
+                if issue:
+                    has_change = any(
+                        oc.get("change_id") == change_id for oc in issue.openspec_changes
+                    )
+                    if not has_change:
+                        issue.openspec_changes.append(
+                            {"change_id": change_id, "status": "proposed"}
+                        )
+
         if sprint:
             summary = sprint_summary_note(sprint, derived_changes)
             release_line = release_status_line(sprint, derived_changes)

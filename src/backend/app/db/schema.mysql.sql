@@ -233,6 +233,7 @@ CREATE TABLE IF NOT EXISTS banners (
   sku_id BIGINT,
   external_url VARCHAR(768),
   topic_id BIGINT,
+  brand_id BIGINT,
   sort_order INT NOT NULL DEFAULT 100,
   valid_from VARCHAR(64),
   valid_to VARCHAR(64),
@@ -243,9 +244,13 @@ CREATE TABLE IF NOT EXISTS banners (
   UNIQUE KEY uq_banners_client_position_title (display_client, position, title),
   CONSTRAINT fk_banners_sku FOREIGN KEY(sku_id) REFERENCES tiles(id),
   CONSTRAINT fk_banners_topic FOREIGN KEY(topic_id) REFERENCES topics(id),
+  CONSTRAINT fk_banners_brand FOREIGN KEY(brand_id) REFERENCES brands(id),
   CONSTRAINT fk_banners_gallery_asset FOREIGN KEY(sku_gallery_asset_id) REFERENCES tile_images(id),
   CONSTRAINT chk_banners_status CHECK (status IN ('DRAFT', 'ONLINE', 'OFFLINE', 'EXPIRED')),
-  CONSTRAINT chk_banners_image_source CHECK (image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover')),
+  CONSTRAINT chk_banners_display_client CHECK (display_client = 'MINIAPP_HOME'),
+  CONSTRAINT chk_banners_position CHECK (position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')),
+  CONSTRAINT chk_banners_jump_type CHECK (jump_type IN ('SKU_DETAIL', 'BRAND_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')),
+  CONSTRAINT chk_banners_image_source CHECK (image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover', 'brand_logo')),
   INDEX idx_banners_status_position (display_client, position, status),
   INDEX idx_banners_sort (sort_order, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

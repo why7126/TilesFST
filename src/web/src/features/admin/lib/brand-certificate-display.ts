@@ -63,13 +63,19 @@ export function formatCertificateDateTime(value: string): string {
   return value.replace('T', ' ').slice(0, 16);
 }
 
-export function formatValidityRange(item: BrandCertificateItem): string {
+export function formatValidityRange(
+  item: Pick<BrandCertificateItem, 'is_permanent' | 'effective_date' | 'expiry_date'>,
+): string {
   if (item.is_permanent) return '长期有效';
   if (!item.effective_date && !item.expiry_date) return '未设置';
   if (!item.effective_date) return `至 ${item.expiry_date ?? '-'}`;
   return `${item.effective_date} 至 ${item.expiry_date ?? '-'}`;
 }
 
+export function isPdfFile(fileMimeType?: string | null, fileName?: string | null) {
+  return fileMimeType === 'application/pdf' || (fileName ?? '').toLowerCase().endsWith('.pdf');
+}
+
 export function isPdfCertificate(item: Pick<BrandCertificateItem, 'file_mime_type' | 'file_name'>) {
-  return item.file_mime_type === 'application/pdf' || item.file_name.toLowerCase().endsWith('.pdf');
+  return isPdfFile(item.file_mime_type, item.file_name);
 }

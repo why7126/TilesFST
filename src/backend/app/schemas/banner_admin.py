@@ -25,6 +25,7 @@ class BannerAdminItem(BaseModel):
     sku_id: int | None = None
     external_url: str | None = None
     topic_id: int | None = None
+    brand_id: int | None = None
     sort_order: int
     valid_from: str | None = None
     valid_to: str | None = None
@@ -43,10 +44,24 @@ class BannerAdminListData(BaseModel):
     summary: BannerAdminSummary
 
 
+DISPLAY_CLIENT_FIELD = Field(
+    ...,
+    description="展示端；当前仅支持小程序，兼容存储值为 MINIAPP_HOME。",
+    json_schema_extra={"enum": ["MINIAPP_HOME"]},
+)
+POSITION_FIELD = Field(
+    ...,
+    description="展示位置；当前仅支持首页轮播和品牌列表页轮播。",
+    json_schema_extra={
+        "enum": ["MINIAPP_HOME_CAROUSEL", "MINIAPP_BRAND_LIST_CAROUSEL"]
+    },
+)
+
+
 class BannerCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
-    display_client: str
-    position: str
+    display_client: str = DISPLAY_CLIENT_FIELD
+    position: str = POSITION_FIELD
     image_object_key: str
     image_source: str
     sku_gallery_asset_id: int | None = None
@@ -54,6 +69,7 @@ class BannerCreateRequest(BaseModel):
     sku_id: int | None = None
     external_url: str | None = None
     topic_id: int | None = None
+    brand_id: int | None = None
     sort_order: int = 100
     valid_from: str | None = None
     valid_to: str | None = None
@@ -62,8 +78,8 @@ class BannerCreateRequest(BaseModel):
 
 class BannerUpdateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
-    display_client: str
-    position: str
+    display_client: str = DISPLAY_CLIENT_FIELD
+    position: str = POSITION_FIELD
     image_object_key: str
     image_source: str
     sku_gallery_asset_id: int | None = None
@@ -71,6 +87,7 @@ class BannerUpdateRequest(BaseModel):
     sku_id: int | None = None
     external_url: str | None = None
     topic_id: int | None = None
+    brand_id: int | None = None
     sort_order: int
     valid_from: str | None = None
     valid_to: str | None = None

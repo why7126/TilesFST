@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = 'http://localhost:8000';
+const DEFAULT_BASE_URL = 'http://127.0.0.1:8010';
 
 function baseUrl() {
   const app = getApp();
@@ -58,7 +58,7 @@ function request(path, options = {}) {
             statusCode: res.statusCode,
             message: (body && body.message) || `request failed: ${res.statusCode}`,
           });
-          if (index + 1 < urls.length) {
+          if (res.statusCode >= 500 && index + 1 < urls.length) {
             tryRequest(index + 1).then(resolve).catch(reject);
             return;
           }

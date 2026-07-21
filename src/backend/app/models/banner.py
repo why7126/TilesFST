@@ -17,15 +17,19 @@ class Banner(Base):
             name="ck_banners_status",
         ),
         CheckConstraint(
-            "display_client IN ('WEB_HOME', 'MINIAPP_HOME', 'TOPIC')",
+            "display_client = 'MINIAPP_HOME'",
             name="ck_banners_display_client",
         ),
         CheckConstraint(
-            "jump_type IN ('SKU_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')",
+            "position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')",
+            name="ck_banners_position",
+        ),
+        CheckConstraint(
+            "jump_type IN ('SKU_DETAIL', 'BRAND_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')",
             name="ck_banners_jump_type",
         ),
         CheckConstraint(
-            "image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover')",
+            "image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover', 'brand_logo')",
             name="ck_banners_image_source",
         ),
     )
@@ -43,6 +47,7 @@ class Banner(Base):
     sku_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tiles.id"), nullable=True)
     external_url: Mapped[str | None] = mapped_column(String, nullable=True)
     topic_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("topics.id"), nullable=True)
+    brand_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("brands.id"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     valid_from: Mapped[str | None] = mapped_column(String, nullable=True)
     valid_to: Mapped[str | None] = mapped_column(String, nullable=True)

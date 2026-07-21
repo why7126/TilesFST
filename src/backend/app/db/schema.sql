@@ -210,6 +210,7 @@ CREATE TABLE IF NOT EXISTS banners (
   sku_id INTEGER,
   external_url TEXT,
   topic_id INTEGER,
+  brand_id INTEGER,
   sort_order INTEGER NOT NULL DEFAULT 100,
   valid_from TEXT,
   valid_to TEXT,
@@ -218,9 +219,14 @@ CREATE TABLE IF NOT EXISTS banners (
   remark TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  CHECK (display_client = 'MINIAPP_HOME'),
+  CHECK (position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')),
+  CHECK (jump_type IN ('SKU_DETAIL', 'BRAND_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')),
+  CHECK (image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover', 'brand_logo')),
   UNIQUE(display_client, position, title),
   FOREIGN KEY(sku_id) REFERENCES tiles(id),
   FOREIGN KEY(topic_id) REFERENCES topics(id),
+  FOREIGN KEY(brand_id) REFERENCES brands(id),
   FOREIGN KEY(sku_gallery_asset_id) REFERENCES tile_images(id)
 );
 

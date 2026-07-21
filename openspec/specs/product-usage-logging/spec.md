@@ -25,7 +25,7 @@
 - **THEN** 系统 SHALL 将该请求排除在默认请求日志采集之外。
 
 ### Requirement: 产品使用行为事件采集
-系统 SHALL 按人工定义的事件字典采集产品使用行为事件。事件字典 SHALL 支持 Web 管理端既有事件，并 SHALL 支持微信小程序首页、首页样式信息架构优化、商品详情和搜索的详情访问、分享、咨询、快捷入口、瀑布流、搜索交互和安全降级事件，用于小程序热销推荐统计、搜索体验分析和后续产品优先级判断。
+系统 SHALL 按人工定义的事件字典采集产品使用行为事件。事件字典 SHALL 支持 Web 管理端既有事件，并 SHALL 支持微信小程序首页、首页样式信息架构优化、分类页、商品列表页、商品详情和搜索的详情访问、分享、咨询、快捷入口、瀑布流、搜索交互和安全降级事件，用于小程序热销推荐统计、分类入口效果分析、搜索体验分析和后续产品优先级判断。
 
 #### Scenario: 接受已登记事件
 - **WHEN** 客户端提交的 usage event 存在于事件字典且包含全部必填属性
@@ -65,6 +65,22 @@
 - **THEN** 系统 SHALL 接受已登记或等价预留的 `miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click` 和 `miniapp_certificate_tab_click` 事件
 - **AND** 事件 SHALL 仅携带必要的入口标识、商品 ID、页面标识、client type 和时间上下文
 - **AND** 事件 SHALL NOT 承诺或写入收藏持久化事实。
+
+#### Scenario: 小程序分类入口与商品列表行为事件
+- **WHEN** 微信小程序用户浏览分类页、切换一级分类、点击一级分类商品入口或点击二级分类商品入口
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `category_page_view`、`primary_category_click`、`primary_category_product_list_click`、`secondary_category_click` 和 `category_load_failed` 事件
+- **AND** 一级分类商品入口点击 MAY 在 `primary_category_click` 中使用 `action=product_list_entry` 作为等价语义
+- **AND** 二级分类商品入口点击 SHALL 携带 `action=product_list_entry` 或等价商品列表跳转上下文
+- **AND** 事件 SHALL 仅携带必要的 `categoryId`、`categoryName`、`categoryLevel`、`sourcePage`、入口索引、错误码、是否有缓存、client type 和时间上下文
+- **AND** 事件 SHALL NOT 包含手机号、聊天内容、Authorization header、Cookie、raw payload、raw object key 或其它不必要个人敏感信息
+- **AND** 埋点失败 SHALL NOT 阻断分类浏览、分类切换或商品列表跳转。
+
+#### Scenario: 小程序商品列表分类浏览行为事件
+- **WHEN** 微信小程序用户从一级或二级分类进入商品列表页并完成列表首屏请求
+- **THEN** 系统 SHALL 接受已登记或等价预留的 `product_list_view` 或分类商品列表浏览事件
+- **AND** 事件 SHALL 携带 `categoryId`、`categoryName`、`categoryLevel`、`sourcePage`、`resultCount`、`requestId`、client type 和时间上下文
+- **AND** 事件 SHALL NOT 包含手机号、聊天内容、Authorization header、Cookie、raw payload、raw object key 或其它不必要个人敏感信息
+- **AND** 埋点失败 SHALL NOT 阻断商品列表展示、筛选、排序、分页、刷新或加载更多。
 
 #### Scenario: 小程序瀑布流加载行为事件
 - **WHEN** 全部产品瀑布流发生首屏加载、下一页加载、加载失败或无更多状态

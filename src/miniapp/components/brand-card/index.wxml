@@ -1,0 +1,21 @@
+<view
+  class="brand-card {{density == 'grid' ? 'grid' : ''}} {{normalized.available ? '' : 'unavailable'}}"
+  hover-class="brand-card-press"
+  bindtap="openBrand"
+>
+  <view class="brand-logo-frame {{imageFailed || !normalized.logoSrc ? 'fallback' : ''}}">
+    <image
+      wx:if="{{normalized.logoSrc && !imageFailed}}"
+      class="brand-logo-image"
+      src="{{normalized.logoSrc}}"
+      mode="aspectFill"
+      binderror="onImageError"
+    ></image>
+    <view wx:else class="brand-logo-empty">{{normalized.fallbackText}}</view>
+  </view>
+  <view class="brand-copy">
+    <view class="brand-name">{{normalized.brandName}}</view>
+    <view class="brand-hint">{{normalized.hint}}</view>
+  </view>
+  <view class="brand-arrow">›</view>
+</view>

@@ -63,8 +63,7 @@
   font-weight: 800;
 }
 
-.store-subtitle,
-.subpage-subtitle {
+.store-subtitle {
   margin-top: 4rpx;
   color: rgba(237,232,223,0.52);
   overflow: hidden;
@@ -105,10 +104,6 @@
   font-size: 32rpx;
   line-height: 1.25;
   font-weight: 800;
-}
-
-.subpage-subtitle {
-  font-size: 22rpx;
 }
 
 .native-action-reserve {

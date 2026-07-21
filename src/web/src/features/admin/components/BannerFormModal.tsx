@@ -4,6 +4,7 @@ import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { BannerAdminItem } from '@/shared/api/generated';
 import { SearchableSelect } from '@/shared/ui/searchable-select';
 
+import { fetchBrands } from '../api/brands-api';
 import { fetchTileSku, fetchTileSkus } from '../api/tile-skus-api';
 import { createBanner, updateBanner, uploadBannerImage } from '../api/banners-api';
 import { fetchTopics } from '../api/topics-api';
@@ -18,6 +19,8 @@ import {
 import { BannerValidityField } from './BannerValidityField';
 
 type ImageUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+
+const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME';
 
 interface BannerFormModalProps {
   open: boolean;
@@ -37,6 +40,13 @@ interface TopicOption {
   label: string;
 }
 
+interface BrandOption {
+  id: number;
+  label: string;
+  logoObjectKey: string | null;
+  logoUrl: string | null;
+}
+
 function mergeSkuOption(options: SkuOption[], next: SkuOption): SkuOption[] {
   if (options.some((item) => item.id === next.id)) {
     return options;
@@ -51,14 +61,22 @@ function mergeTopicOption(options: TopicOption[], next: TopicOption): TopicOptio
   return [next, ...options];
 }
 
+function mergeBrandOption(options: BrandOption[], next: BrandOption): BrandOption[] {
+  if (options.some((item) => item.id === next.id)) {
+    return options;
+  }
+  return [next, ...options];
+}
+
 export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: BannerFormModalProps) {
   const [title, setTitle] = useState('');
-  const [displayClient, setDisplayClient] = useState('WEB_HOME');
-  const [position, setPosition] = useState(DEFAULT_POSITION.WEB_HOME!);
+  const [displayClient, setDisplayClient] = useState(MINIAPP_DISPLAY_CLIENT);
+  const [position, setPosition] = useState(DEFAULT_POSITION.MINIAPP_HOME!);
   const [jumpType, setJumpType] = useState('NO_JUMP');
   const [skuId, setSkuId] = useState<number | null>(null);
   const [externalUrl, setExternalUrl] = useState('');
   const [topicId, setTopicId] = useState<number | null>(null);
+  const [brandId, setBrandId] = useState<number | null>(null);
   const [sortOrder, setSortOrder] = useState('10');
   const [validFrom, setValidFrom] = useState('');
   const [validTo, setValidTo] = useState('');
@@ -72,6 +90,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
   const [error, setError] = useState<string | null>(null);
   const [skuOptions, setSkuOptions] = useState<SkuOption[]>([]);
   const [topicOptions, setTopicOptions] = useState<TopicOption[]>([]);
+  const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
 
   const loadSkuOptions = useCallback(async (keyword?: string) => {
     try {
@@ -96,6 +115,27 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     }
   }, []);
 
+  const loadBrandOptions = useCallback(async (keyword?: string) => {
+    try {
+      const data = await fetchBrands({
+        page: 1,
+        page_size: 20,
+        keyword: keyword || undefined,
+        status: 'ENABLED',
+      });
+      setBrandOptions(
+        data.items.map((item) => ({
+          id: item.id,
+          label: item.short_name ? `${item.name} · ${item.short_name}` : item.name,
+          logoObjectKey: item.logo_object_key ?? null,
+          logoUrl: item.logo_url ?? null,
+        })),
+      );
+    } catch {
+      setBrandOptions([]);
+    }
+  }, []);
+
   const applySkuMainImage = useCallback(async (id: number) => {
     try {
       const sku = await fetchTileSku(id);
@@ -116,21 +156,44 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     }
   }, []);
 
+  const applyBrandLogo = useCallback(
+    (id: number) => {
+      const brand = brandOptions.find((item) => item.id === id);
+      if (!brand?.logoObjectKey || !brand.logoUrl) {
+        setError('该品牌无 Logo，请自定义上传');
+        return false;
+      }
+      setImageSource('brand_logo');
+      setSkuGalleryAssetId(null);
+      setImageKey(brand.logoObjectKey);
+      setImageUrl(brand.logoUrl);
+      setError(null);
+      return true;
+    },
+    [brandOptions],
+  );
+
   useEffect(() => {
     if (!open) return;
     setError(null);
     setImageUploadState('idle');
     void loadSkuOptions();
     void loadTopicOptions();
+    void loadBrandOptions();
 
     if (mode === 'edit' && banner) {
       setTitle(banner.title);
-      setDisplayClient(banner.display_client);
-      setPosition(banner.position);
+      setDisplayClient(MINIAPP_DISPLAY_CLIENT);
+      setPosition(
+        POSITIONS_BY_CLIENT.MINIAPP_HOME.some((item) => item.value === banner.position)
+          ? banner.position
+          : DEFAULT_POSITION.MINIAPP_HOME!,
+      );
       setJumpType(banner.jump_type);
       setSkuId(banner.sku_id ?? null);
       setExternalUrl(banner.external_url ?? '');
       setTopicId(banner.topic_id ?? null);
+      setBrandId(banner.brand_id ?? null);
       setSortOrder(String(banner.sort_order));
       setValidFrom(banner.valid_from?.slice(0, 16) ?? '');
       setValidTo(banner.valid_to?.slice(0, 16) ?? '');
@@ -164,14 +227,39 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
           }
         });
       }
+      if (banner.brand_id) {
+        void fetchBrands({ page: 1, page_size: 100, status: 'ENABLED' }).then((data) => {
+          const brand = data.items.find((item) => item.id === banner.brand_id);
+          if (brand) {
+            setBrandOptions((current) =>
+              mergeBrandOption(current, {
+                id: brand.id,
+                label: brand.short_name ? `${brand.name} · ${brand.short_name}` : brand.name,
+                logoObjectKey: brand.logo_object_key ?? null,
+                logoUrl: brand.logo_url ?? null,
+              }),
+            );
+          } else {
+            setBrandOptions((current) =>
+              mergeBrandOption(current, {
+                id: banner.brand_id!,
+                label: `品牌 #${banner.brand_id}`,
+                logoObjectKey: null,
+                logoUrl: null,
+              }),
+            );
+          }
+        });
+      }
     } else {
       setTitle('');
-      setDisplayClient('WEB_HOME');
-      setPosition(DEFAULT_POSITION.WEB_HOME!);
+      setDisplayClient(MINIAPP_DISPLAY_CLIENT);
+      setPosition(DEFAULT_POSITION.MINIAPP_HOME!);
       setJumpType('NO_JUMP');
       setSkuId(null);
       setExternalUrl('');
       setTopicId(null);
+      setBrandId(null);
       setSortOrder('10');
       setValidFrom('');
       setValidTo('');
@@ -181,12 +269,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       setImageSource('custom_upload');
       setSkuGalleryAssetId(null);
     }
-  }, [open, mode, banner, loadSkuOptions, loadTopicOptions]);
-
-  const handleDisplayClientChange = (value: string) => {
-    setDisplayClient(value);
-    setPosition(DEFAULT_POSITION[value] ?? POSITIONS_BY_CLIENT[value]?.[0]?.value ?? '');
-  };
+  }, [open, mode, banner, loadSkuOptions, loadTopicOptions, loadBrandOptions]);
 
   const handleJumpTypeChange = (value: string) => {
     setJumpType(value);
@@ -194,9 +277,10 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     setSkuId(cleared.sku_id);
     setExternalUrl(cleared.external_url ?? '');
     setTopicId(cleared.topic_id);
+    setBrandId(cleared.brand_id);
     setSkuGalleryAssetId(cleared.sku_gallery_asset_id);
     setImageSource(cleared.image_source);
-    if (value !== 'SKU_DETAIL') {
+    if (value !== 'SKU_DETAIL' && value !== 'BRAND_DETAIL') {
       setImageKey('');
       setImageUrl('');
     }
@@ -208,6 +292,14 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     if (!id) return;
     setImageSource('sku_main_image');
     await applySkuMainImage(id);
+  };
+
+  const handleBrandSelect = (value: string | null) => {
+    const id = value ? Number.parseInt(value, 10) : null;
+    setBrandId(id);
+    if (!id) return;
+    setImageSource('brand_logo');
+    applyBrandLogo(id);
   };
 
   const handleCustomUpload = async (file: File | undefined) => {
@@ -254,7 +346,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
 
     const payload = {
       title: title.trim(),
-      display_client: displayClient,
+      display_client: MINIAPP_DISPLAY_CLIENT,
       position,
       image_object_key: imageKey,
       image_source: imageSource,
@@ -263,6 +355,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       sku_id: skuId,
       external_url: externalUrl.trim() || null,
       topic_id: topicId,
+      brand_id: brandId,
       sort_order: sort,
       valid_from: validFrom ? `${validFrom}:00+00:00` : null,
       valid_to: validTo ? `${validTo}:59+00:00` : null,
@@ -295,13 +388,18 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     [topicOptions],
   );
 
+  const brandSelectOptions = useMemo(
+    () => brandOptions.map((brand) => ({ value: String(brand.id), label: brand.label })),
+    [brandOptions],
+  );
+
   if (!open) return null;
 
   const modalTitle =
     mode === 'edit'
       ? `编辑 Banner · ${JUMP_TYPE_OPTIONS.find((o) => o.value === jumpType)?.label ?? ''}`
       : jumpTypeModalTitle(jumpType);
-  const positions = POSITIONS_BY_CLIENT[displayClient] ?? [];
+  const positions = POSITIONS_BY_CLIENT[displayClient] ?? POSITIONS_BY_CLIENT.MINIAPP_HOME;
   const isImageUploading = imageUploadState === 'uploading';
   const uploadButtonLabel = isImageUploading ? '上传中' : imageUrl ? '更换' : '选择';
 
@@ -343,13 +441,12 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                 展示端<span className="banner-form-required">*</span>
               </span>
               <select
-                className="select"
-                value={displayClient}
-                onChange={(e) => handleDisplayClientChange(e.target.value)}
+                aria-label="展示端"
+                className="select banner-display-client-select"
+                value={MINIAPP_DISPLAY_CLIENT}
+                disabled
               >
-                <option value="WEB_HOME">Web 首页</option>
-                <option value="MINIAPP_HOME">小程序首页</option>
-                <option value="TOPIC">专题页</option>
+                <option value={MINIAPP_DISPLAY_CLIENT}>小程序</option>
               </select>
             </label>
 
@@ -357,7 +454,12 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
               <span className="field-label">
                 展示位置<span className="banner-form-required">*</span>
               </span>
-              <select className="select" value={position} onChange={(e) => setPosition(e.target.value)}>
+              <select
+                aria-label="展示位置"
+                className="select"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+              >
                 {positions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -378,7 +480,9 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   <div className="banner-upload-desc">
                     {jumpType === 'SKU_DETAIL'
                       ? '默认从关联 SKU 图库选择主图；也支持自定义上传运营图。'
-                      : '请上传 Banner 运营图，建议 16:6 比例。'}
+                      : jumpType === 'BRAND_DETAIL'
+                        ? '默认从关联品牌 Logo 取图；也支持自定义上传运营图。'
+                        : '请上传 Banner 运营图，建议 16:6 比例。'}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {jumpType === 'SKU_DETAIL' ? (
@@ -389,6 +493,16 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                         onClick={() => skuId && void applySkuMainImage(skuId)}
                       >
                         使用 SKU 主图
+                      </button>
+                    ) : null}
+                    {jumpType === 'BRAND_DETAIL' ? (
+                      <button
+                        type="button"
+                        className="btn subtle"
+                        disabled={!brandId}
+                        onClick={() => brandId && applyBrandLogo(brandId)}
+                      >
+                        使用品牌 Logo
                       </button>
                     ) : null}
                     <label
@@ -439,6 +553,22 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   onSearch={(keyword) => void loadSkuOptions(keyword)}
                   placeholder="搜索 SKU 名称或编码"
                   aria-label="关联 SKU"
+                />
+              </label>
+            ) : null}
+
+            {jumpType === 'BRAND_DETAIL' ? (
+              <label className="banner-form-row">
+                <span className="field-label">
+                  关联品牌<span className="banner-form-required">*</span>
+                </span>
+                <SearchableSelect
+                  value={brandId != null ? String(brandId) : null}
+                  options={brandSelectOptions}
+                  onChange={handleBrandSelect}
+                  onSearch={(keyword) => void loadBrandOptions(keyword)}
+                  placeholder="搜索品牌名称或简称"
+                  aria-label="关联品牌"
                 />
               </label>
             ) : null}

@@ -4,7 +4,7 @@
 TBD - created by archiving change add-miniapp-home. Update Purpose after archive.
 ## Requirements
 ### Requirement: 微信小程序首页首屏
-系统 SHALL 提供原生微信小程序首页，用于面向终端客户展示菲尚特品牌、搜索入口、Banner、快捷业务入口、新品推荐、热销推荐、全部产品瀑布流和底部 TabBar。
+系统 SHALL 提供原生微信小程序首页，用于面向终端客户展示菲尚特品牌、搜索入口、Banner、快捷业务入口、新品推荐、热销推荐、全部产品瀑布流和底部 TabBar，并 SHALL 为真实 DevTools / 真机设备验收保留可复核 evidence。
 
 #### Scenario: 首页首屏展示核心模块
 - **WHEN** 用户打开微信小程序首页
@@ -28,12 +28,27 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **THEN** 页面内容 SHALL 从品牌 Header 或搜索入口开始，并避免与原生标题重复
 - **AND** Header SHALL NOT 模拟微信系统状态栏、分享按钮、关闭按钮或胶囊控件。
 
+#### Scenario: BUG-0068 首页设备验收 evidence 闭环
+- **WHEN** 团队验收 `BUG-0068-miniapp-home-device-acceptance-followup`
+- **THEN** 验收材料 SHALL 记录微信开发者工具或真机 evidence，至少包含页面路径、设备或模拟器、逻辑宽度、验收时间、截图/录屏/人工摘要和结论
+- **AND** 验收宽度 SHALL 覆盖 320、375、390、430 pt 及 320-430 pt 常见宽度
+- **AND** 首页品牌导航、搜索入口、Banner、快捷入口、新品推荐、热销推荐、全部产品区域和底部 TabBar SHALL 在 evidence 中可见或有明确降级说明
+- **AND** 静态测试通过 SHALL NOT 被表述为 DevTools 或真机通过。
+
+#### Scenario: BUG-0068 首页降级状态设备验收
+- **WHEN** Banner 为空、商品为空、图片加载失败或首页请求失败
+- **THEN** 首页 SHALL 展示品牌化降级、空状态或错误提示
+- **AND** 降级状态 SHALL 继续满足 320-430 pt、无横向滚动、主要点击目标可用和底部 TabBar 不遮挡要求
+- **AND** 错误诊断信息 SHALL NOT 泄露敏感路径、密钥、后台字段、Authorization header 或 Cookie。
+
 ### Requirement: 首页聚合数据
-系统 SHALL 为小程序首页提供公开数据聚合能力，复用现有品牌、门店、SKU、规格、类目、Banner 和媒体数据源，不新增重复业务数据源。
+系统 SHALL 为小程序首页提供公开数据聚合能力，复用现有品牌、门店、SKU、规格、类目、Banner 和媒体数据源，不新增重复业务数据源。首页聚合数据中的 Banner SHALL 仅来自小程序首页轮播位置。
 
 #### Scenario: 首页聚合接口返回公开数据
 - **WHEN** 小程序请求首页聚合数据
 - **THEN** 后端 SHALL 返回门店摘要、可展示 Banner、默认快捷入口、新品推荐、热销推荐和服务展示所需字段
+- **AND** Banner SHALL 仅来自小程序首页轮播位置（`MINIAPP_HOME_CAROUSEL` 或等价首页轮播枚举）
+- **AND** 响应 SHALL NOT 包含品牌列表页轮播位置 Banner
 - **AND** 响应 SHALL NOT 暴露后台内部字段、库存管理、内部备注、未授权素材或敏感配置。
 
 #### Scenario: 首页数据失败可降级
@@ -48,26 +63,28 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **AND** 页面 SHALL NOT 因商品为空而丢失全部动态模块。
 
 ### Requirement: Banner 与快捷入口
-小程序首页 SHALL 复用已有后台 Banner 配置能力，并展示固定默认快捷业务入口。
-
-#### Scenario: Banner 跳转安全降级
-- **WHEN** 用户点击 Banner 且跳转目标属于商品详情、搜索结果或门店信息
-- **THEN** 小程序 SHALL 跳转到对应页面
-- **AND** 当配置目标不可达或指向本期未实现能力时，小程序 SHALL 安全降级且不得出现空白页或路由错误。
-
-#### Scenario: 四入口快捷导航
-- **WHEN** 用户查看首页快捷导航
-- **THEN** 小程序 SHALL 仅展示“选瓷砖”、“品牌馆”、“新品榜”和“热销榜”四个快捷入口
-- **AND** 四个入口 SHALL 使用统一的图标在上、文案在下结构
-- **AND** 每个入口点击区域 SHALL 不小于 72x72px 或小程序等效尺寸。
+小程序首页 SHALL 复用已有后台 Banner 配置能力，并展示固定默认快捷业务入口。首页 Banner SHALL 只读取小程序首页轮播位置；品牌入口 SHALL 进入品牌列表页，品牌列表页轮播 SHALL 使用独立位置。
 
 #### Scenario: 快捷入口点击策略
 - **WHEN** 用户点击四个快捷入口之一
 - **THEN** “选瓷砖” SHALL 进入分类 Tab、筛选页或已有分类能力
-- **AND** “品牌馆” SHALL 安全降级到搜索、筛选或占位提示，直到完整品牌馆能力另行建设
-- **AND** “新品榜” SHALL 进入搜索页并带入 `section=new` 或等价筛选参数
-- **AND** “热销榜” SHALL 进入搜索页并带入 `section=hot` 或等价筛选参数
+- **AND** “品牌馆”或“品牌” SHALL 进入品牌列表页
+- **AND** “新品榜” SHALL 进入商品列表页并带入 `section=new`
+- **AND** “热销榜” SHALL 进入商品列表页并带入 `section=hot`
+- **AND** 新品榜和热销榜入口 SHALL NOT 使用 `/pages/search/index?section=...` 承接
 - **AND** 任一目标不可达时 SHALL 安全降级且不得出现白屏或路由错误。
+
+#### Scenario: 首页轮播与品牌列表页轮播隔离
+- **WHEN** 小程序首页加载 Banner
+- **THEN** 首页 SHALL 只展示小程序首页轮播位置中已上线且有效期内的 Banner
+- **AND** 首页 SHALL NOT 展示品牌列表页轮播位置 Banner
+- **WHEN** 品牌列表页无轮播数据
+- **THEN** 首页轮播 SHALL NOT 被用作品牌列表页兜底。
+
+#### Scenario: Banner 品牌详情跳转
+- **WHEN** 后端公开 Banner 响应包含 `jump_type=brand` 和 `target_id`
+- **THEN** 小程序首页和品牌列表页 SHALL 跳转到 `pages/brand-detail/index?brandId={target_id}`
+- **AND** SHALL 保持商品详情跳转、搜索跳转、门店跳转和无跳转的既有行为。
 
 ### Requirement: 搜索页与商品详情闭环
 系统 SHALL 提供小程序搜索页和商品详情页，使首页搜索、快捷入口、推荐商品和有效 Banner 可进入商品详情。
@@ -143,45 +160,27 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **AND** 微信开发者工具实际加载的脚本 SHALL 包含对应页面的关键业务数据、生命周期和交互方法。
 
 ### Requirement: 新品热销与全部产品承接
-小程序首页 SHALL 在 Banner 与快捷入口后展示新品推荐、热销推荐和全部产品瀑布流，使用户可以连续浏览公开 SKU。
+小程序首页 SHALL 在 Banner 与快捷入口后展示新品推荐、热销推荐和全部产品瀑布流，使用户可以连续浏览公开 SKU；首页商品卡片 SHALL 复用统一商品卡片核心结构，并根据模块传入展示密度、来源上下文和位置序号。
 
 #### Scenario: 新品推荐商品卡片
 - **WHEN** 首页展示新品推荐
 - **THEN** 小程序 SHALL 使用横向滚动商品卡片展示 SKU 主图、SKU 编号或商品名称、规格和 `price_display`
 - **AND** 商品图片区域 SHALL NOT 展示“新品”角标或标签
-- **AND** 用户点击商品卡片 SHALL 进入商品详情页。
+- **AND** 用户点击商品卡片 SHALL 进入商品详情页
+- **AND** 点击 SHALL 携带 `skuId`、`sourcePage=home`、`sourceModule=new_products`、`index` 和可用 `requestId`。
 
 #### Scenario: 热销推荐商品卡片
 - **WHEN** 首页展示热销推荐
 - **THEN** 小程序 SHALL 使用双列大卡片展示 SKU 主图、系列或商品名、空间或工艺标签和 `price_display`
 - **AND** 用户点击卡片 SHALL 进入商品详情页
-- **AND** 收藏心形如出现，SHALL 仅作为非持久化视觉反馈或占位。
+- **AND** 点击 SHALL 携带 `skuId`、`sourcePage=home`、`sourceModule=hot_products`、`index` 和可用 `requestId`
+- **AND** 卡片内 SHALL NOT 展示收藏心形、分享、购物车、联系客服或询价快捷操作。
 
 #### Scenario: 全部产品瀑布流展示
-- **WHEN** 用户浏览热销推荐下方区域
-- **THEN** 首页 SHALL 展示“全部产品”模块
-- **AND** 全部产品 SHALL 使用双列瀑布流布局，图片高度允许错落
-- **AND** 首页 SHALL NOT 使用固定等高双列网格冒充瀑布流。
-
-#### Scenario: 全部产品分页加载
-- **WHEN** 首页首次加载全部产品
-- **THEN** 小程序 SHALL 加载 10 到 20 个公开商品，默认分页大小 SHOULD 为 12
-- **AND** 页面滚动接近底部 200 到 300px 且 `has_more=true` 时 SHALL 自动加载下一页
-- **AND** 请求期间 SHALL 防止重复触发并发请求。
-
-#### Scenario: 全部产品追加去重
-- **WHEN** 下一页商品加载成功
-- **THEN** 小程序 SHALL 将新商品追加到已有列表
-- **AND** SHALL NOT 覆盖已有商品
-- **AND** SHALL 按 `product_id` 或等价商品 ID 去重。
-
-#### Scenario: 全部产品状态降级
-- **WHEN** 全部产品返回 `has_more=false` 或前端推导没有更多
-- **THEN** 小程序 SHALL 展示“已经到底了”或等价状态，并停止继续请求
-- **WHEN** 下一页加载失败
-- **THEN** 小程序 SHALL 展示可重试状态，并保留已加载商品
-- **WHEN** 首页没有商品
-- **THEN** 搜索、Banner、快捷入口等非商品模块 SHALL 继续可见。
+- **WHEN** 首页展示全部产品瀑布流
+- **THEN** 小程序 SHALL 复用统一商品卡片核心结构展示公开 SKU
+- **AND** 卡片 SHALL 支持图片失败、字段缺失、不可查看和防重复点击兜底
+- **AND** 首页容器 SHALL 负责瀑布流、分页、加载态和空状态。
 
 ### Requirement: 小程序首页 TabBar 目标与安全降级
 小程序首页 SHALL 以“首页、分类、找砖、收藏、证书”为目标 TabBar 文案，并保证未完成页面可安全降级。

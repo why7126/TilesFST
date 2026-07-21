@@ -1,5 +1,5 @@
 <view class="page">
-  <custom-navigation title="门店信息" subtitle="{{store.name || '菲尚特瓷砖馆'}}" />
+  <custom-navigation title="门店信息" />
   <view wx:if="{{loading}}" class="state">加载中...</view>
   <view wx:elif="{{error}}" class="state">
     <view>{{error}}</view>

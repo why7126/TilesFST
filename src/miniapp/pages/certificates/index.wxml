@@ -1,6 +1,64 @@
-<view class="placeholder-page">
-  <custom-navigation title="{{title}}" subtitle="品牌证书入口" />
-  <view class="placeholder-title">{{title}}</view>
-  <view class="placeholder-desc">{{message}}</view>
-  <view class="placeholder-note">公开证书聚合页会作为后续需求独立评审。</view>
+<view class="page">
+  <custom-navigation title="证书列表" />
+
+  <view wx:if="{{loading}}" class="skeleton-grid">
+    <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
+      <view class="skeleton-media"></view>
+      <view class="skeleton-copy">
+        <view class="skeleton-line strong"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-line short"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{error && !items.length}}" class="state">
+    <view>{{error}}</view>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:else class="content">
+    <view wx:if="{{error && items.length}}" class="inline-error">
+      <text>{{error}}</text>
+      <text class="inline-retry" bindtap="retryLoad">重试</text>
+    </view>
+
+    <view wx:if="{{!items.length}}" class="state compact">
+      <view>暂无公开证书</view>
+    </view>
+
+    <view wx:else class="certificate-grid">
+      <view
+        class="certificate-card"
+        wx:for="{{items}}"
+        wx:key="certificate_id"
+        data-index="{{index}}"
+        bindtap="openCertificate"
+        hover-class="card-press"
+      >
+        <view class="file-frame {{item.file_kind}}">
+          <image
+            wx:if="{{item.file_kind == 'image' && !item.image_failed}}"
+            class="file-image"
+            src="{{item.file_url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            binderror="onImageError"
+          />
+          <view wx:elif="{{item.file_kind == 'pdf'}}" class="file-placeholder pdf">PDF</view>
+          <view wx:else class="file-placeholder">证书</view>
+        </view>
+
+        <view class="card-body">
+          <view class="certificate-name">{{item.certificate_name}}</view>
+          <view class="brand-name">{{item.brand_name}}</view>
+          <view class="type-badge">{{item.certificate_type_label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="load-more">加载更多...</view>
+    <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
+    <view wx:elif="{{items.length && !hasMore}}" class="load-more">已经到底了</view>
+  </view>
 </view>

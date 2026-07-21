@@ -9,6 +9,12 @@ Use this skill when the user asks to run `/opsx-apply <change-id>` or implement 
 
 ## Context Budget Guardrails（MUST）
 
+### Force-proceed Follow-up Guardrails（MUST）
+
+- `force-proceed` 仅允许继续当前命令的非阻断部分，MUST NOT 默认自动创建 follow-up REQ/BUG；除非用户在当前命令中明确授权自动 capture，否则只输出标准 capture 文案，并明确“未自动创建 Issue”。
+- 标准 capture 文案 MUST 分条包含：建议命令、类型倾向、标题、背景、影响范围、建议验收或复现要点、来源 Change/Sprint/命令；多个 follow-up 事项 MUST 逐条输出，且每条可独立用于后续 capture。
+- 如用户明确授权并实际创建 follow-up Issue，MUST 按 `/req-capture`、`/bug-capture` 或 `/capture` 规则落盘，并运行对应 `req.capture` 或 `bug.capture` Workflow Sync。
+
 - 大 diff 先用 `git diff --stat` / `git diff --name-only`；不得默认展开 `src/web/openapi.json`、Orval generated、coverage 或构建产物全文。
 - MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - `openspec instructions apply --json` returned `contextFiles` is the default read boundary.
@@ -72,7 +78,7 @@ For every Change linked to a REQ/BUG:
    - `requirements[]` contains linked `REQ-*` and/or `bugs[]` contains linked `BUG-*`.
 4. Confirm each linked Issue `trace.md` has `iteration: <sprint-id>` and `status: in_sprint` or a later delivery state.
 
-If any check fails, **BLOCKED**: do not implement. Tell the user to run `/sprint-propose` to include the REQ/BUG/Change in a `sprint-xxx`, then rerun `/opsx-apply`.
+If any check fails, **BLOCKED**: do not implement. If the linked REQ/BUG is already in a Sprint but `changes[]` lacks `<change-id>`, first run the originating `/req-opsx` or `/bug-opsx` Workflow Sync final step again to repair Sprint scope, then rerun this dry-run gate. Tell the user to run `/sprint-propose` only when the linked REQ/BUG itself is not in any Sprint scope.
 
 Only a Change with no linked REQ/BUG may bypass this gate; output the reason explicitly.
 

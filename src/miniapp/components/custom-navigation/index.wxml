@@ -7,14 +7,13 @@
   <view wx:if="{{variant === 'home'}}" class="brand-identity">
     <image class="store-logo" src="{{logoSrc || '/assets/logos/product-logo.png'}}" mode="aspectFill"></image>
     <view class="store-copy">
-      <view class="store-name">{{storeName || '菲尚特瓷砖馆'}}</view>
-      <view class="store-subtitle">{{subtitle || '专业选砖 · 品质生活'}}</view>
+      <view class="store-name">菲尚特瓷砖馆</view>
+      <view class="store-subtitle">质感空间，由砖而生</view>
     </view>
   </view>
 
   <view wx:else class="subpage-copy">
     <view class="subpage-title">{{title || '菲尚特瓷砖'}}</view>
-    <view wx:if="{{subtitle}}" class="subpage-subtitle">{{subtitle}}</view>
   </view>
 
   <view class="native-action-reserve" style="{{reserveStyle}}"></view>

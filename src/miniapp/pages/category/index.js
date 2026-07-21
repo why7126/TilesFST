@@ -4,7 +4,6 @@ const CATEGORY_CACHE_KEY = 'miniapp_category_tree_cache_v1';
 const CATEGORY_PAGE_STATE_KEY = 'miniapp_category_page_state_v1';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const CLICK_DEBOUNCE_MS = 300;
-const DEFAULT_SCOPE = 'all';
 
 function normalizeTree(data) {
   return {
@@ -186,10 +185,33 @@ Page({
     this.fetchTree(false);
   },
 
-  openSearch() {
-    const scope = this.data.currentPrimaryName || DEFAULT_SCOPE;
+  openPrimaryProducts(event) {
+    const now = Date.now();
+    if (this.lastPrimaryProductClickAt && now - this.lastPrimaryProductClickAt < CLICK_DEBOUNCE_MS) {
+      return;
+    }
+    this.lastPrimaryProductClickAt = now;
+    const id = Number(event.currentTarget.dataset.id || this.data.currentPrimaryId);
+    const name = String(event.currentTarget.dataset.name || this.data.currentPrimaryName || '');
+    const index = this.data.categories.findIndex((item) => item.id === id);
+    if (!id || !name) {
+      wx.showToast({ title: '该分类暂未上架商品', icon: 'none' });
+      return;
+    }
+    track('primary_category_product_list_click', {
+      page_path: '/pages/category/index',
+      category_id: id,
+      category_name: name,
+      category_level: 'primary',
+      sourcePage: 'category',
+      category_index: index >= 0 ? index : 0,
+      action: 'product_list_entry',
+    });
     wx.navigateTo({
-      url: `/pages/search/index?scope=${encodeURIComponent(scope)}&sourcePage=category&categoryName=${encodeURIComponent(scope)}`,
+      url: `/pages/product-list/index?categoryId=${id}&categoryName=${encodeURIComponent(name)}&categoryLevel=primary&sourcePage=category`,
+      fail: () => {
+        wx.showToast({ title: '页面打开失败，请重试', icon: 'none' });
+      },
     });
   },
 
@@ -205,16 +227,21 @@ Page({
     track('secondary_category_click', {
       page_path: '/pages/category/index',
       category_id: id,
+      category_name: name,
+      category_level: 'secondary',
       parent_category_id: this.data.currentPrimaryId,
       category_index: index,
+      sourcePage: 'category',
+      action: 'product_list_entry',
     });
     wx.navigateTo({
-      url: `/pages/product-list/index?categoryId=${id}&categoryName=${encodeURIComponent(name)}`,
+      url: `/pages/product-list/index?categoryId=${id}&categoryName=${encodeURIComponent(name)}&categoryLevel=secondary&sourcePage=category`,
       fail: () => {
         wx.showToast({ title: '页面打开失败，请重试', icon: 'none' });
       },
     });
   },
 
+  lastPrimaryProductClickAt: 0,
   lastSecondaryClickAt: 0,
 });

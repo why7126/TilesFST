@@ -72,6 +72,15 @@ Session input discovery:
 | `sprint.*` | Use explicit sprint or the single `in_progress` sprint |
 | No issue/change focus | Fall back to single `in_progress` sprint (legacy default) |
 
+For `req.opsx` / `bug.opsx` with `--change`, if the focused issue is already in sprint scope, Workflow Sync MUST also:
+
+- add the Change to `sprint.yaml` `changes[]`;
+- update the matching `scope_estimates[].change`;
+- clear the now-resolved open-change deferred item;
+- refresh derived Sprint Scope blocks.
+
+This is required because `/opsx-apply --sprint auto` resolves by `changes[]`, not by issue membership alone.
+
 When sprint sync is skipped, the script still updates the target issue `trace.md`, `_registry.yaml`, and parent requirement related-bug index when applicable.
 
 For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for REQ/BUG-sourced changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, unless the Change is explicitly documented as a non-REQ/BUG pure technical governance Change.

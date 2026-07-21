@@ -1,12 +1,7 @@
 const { request, track } = require('../../services/api');
 
 const PAGE_SIZE = 12;
-const SORT_OPTIONS = [
-  { value: 'default', label: '默认' },
-  { value: 'latest', label: '最新' },
-  { value: 'price_asc', label: '价格升序' },
-  { value: 'price_desc', label: '价格降序' },
-];
+const CATEGORY_LEVELS = new Set(['primary', 'secondary']);
 
 function requestId() {
   return `plist-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -16,6 +11,7 @@ Page({
   data: {
     categoryId: 0,
     categoryName: '',
+    categoryLevel: '',
     brandId: 0,
     keyword: '',
     sourcePage: 'direct',
@@ -32,36 +28,15 @@ Page({
     loadMoreError: '',
     emptyText: '暂无可浏览商品',
     requestId: '',
-    sort: 'default',
-    sortLabel: '默认',
-    filterDrawerVisible: false,
-    filterSnapshot: {
-      brandId: '',
-      categoryId: '',
-      spec: '',
-      priceRange: '',
-    },
-    draftFilter: {
-      brandId: '',
-      categoryId: '',
-      spec: '',
-      priceRange: '',
-    },
-    activeFilterChips: [],
-    sortOptions: SORT_OPTIONS,
-    facets: {
-      brands: [],
-      categories: [],
-      specs: [],
-      price_ranges: [],
-    },
-    skeletons: [1, 2, 3],
+    skeletons: [1, 2, 3, 4],
     items: [],
     imageFallback: '/assets/tile-placeholder.png',
   },
 
   onLoad(query) {
     const categoryName = decodeURIComponent(query.categoryName || '');
+    const rawCategoryLevel = String(query.categoryLevel || '');
+    const categoryLevel = CATEGORY_LEVELS.has(rawCategoryLevel) ? rawCategoryLevel : '';
     const keyword = decodeURIComponent(query.keyword || '');
     const sourcePage = query.sourcePage || query.source || 'direct';
     const section = query.section || '';
@@ -74,22 +49,13 @@ Page({
     this.setData({
       categoryId,
       categoryName,
+      categoryLevel,
       brandId,
       keyword,
       sourcePage,
       section,
       title,
       requestId: requestId(),
-      filterSnapshot: {
-        ...this.data.filterSnapshot,
-        brandId: brandId ? String(brandId) : '',
-        categoryId: categoryId ? String(categoryId) : '',
-      },
-      draftFilter: {
-        ...this.data.draftFilter,
-        brandId: brandId ? String(brandId) : '',
-        categoryId: categoryId ? String(categoryId) : '',
-      },
     });
     wx.setNavigationBarTitle({ title });
     this.trackPageView();
@@ -131,13 +97,6 @@ Page({
           loading: false,
           refreshing: false,
           loadingMore: false,
-          facets: {
-            brands: (data.facets && data.facets.brands) || [],
-            categories: (data.facets && data.facets.categories) || [],
-            specs: (data.facets && data.facets.specs) || [],
-            price_ranges: (data.facets && data.facets.price_ranges) || [],
-          },
-          activeFilterChips: this.buildFilterChips(),
           emptyText: this.emptyText(),
         });
         this.trackItems(merged);
@@ -165,19 +124,18 @@ Page({
   },
 
   buildQuery(page) {
-    const filters = this.data.filterSnapshot;
+    const shouldKeepCategoryLevel = Boolean(this.data.categoryId && this.data.categoryLevel);
     const params = [
       `page=${page}`,
       `pageSize=${this.data.pageSize}`,
-      `sort=${this.data.sort}`,
+      'sort=default',
       this.data.keyword ? `keyword=${encodeURIComponent(this.data.keyword)}` : '',
       this.data.section ? `section=${encodeURIComponent(this.data.section)}` : '',
-      filters.categoryId ? `categoryId=${encodeURIComponent(filters.categoryId)}` : '',
-      filters.brandId ? `brandId=${encodeURIComponent(filters.brandId)}` : '',
-      filters.spec ? `spec=${encodeURIComponent(filters.spec)}` : '',
-      filters.priceRange ? `priceRange=${encodeURIComponent(filters.priceRange)}` : '',
-      this.data.categoryName ? 'filter_type=category' : '',
-      this.data.categoryName ? `filter_value=${encodeURIComponent(this.data.categoryName)}` : '',
+      this.data.categoryId ? `categoryId=${encodeURIComponent(String(this.data.categoryId))}` : '',
+      shouldKeepCategoryLevel ? `categoryLevel=${encodeURIComponent(this.data.categoryLevel)}` : '',
+      this.data.brandId ? `brandId=${encodeURIComponent(String(this.data.brandId))}` : '',
+      this.data.categoryName && !this.data.categoryId ? 'filter_type=category' : '',
+      this.data.categoryName && !this.data.categoryId ? `filter_value=${encodeURIComponent(this.data.categoryName)}` : '',
     ];
     return params.filter(Boolean).join('&');
   },
@@ -191,79 +149,6 @@ Page({
       result.push(item);
     });
     return result;
-  },
-
-  openSearch() {
-    wx.navigateTo({
-      url: `/pages/search/index?keyword=${encodeURIComponent(this.data.keyword)}&scope=${encodeURIComponent(this.data.categoryName || 'all')}&sourcePage=product-list&categoryName=${encodeURIComponent(this.data.categoryName)}`,
-    });
-  },
-
-  openFilter() {
-    this.setData({ filterDrawerVisible: true, draftFilter: { ...this.data.filterSnapshot } });
-    this.trackListEvent('product_list_filter_open', {});
-  },
-
-  closeFilter() {
-    this.setData({ filterDrawerVisible: false });
-  },
-
-  selectFilter(event) {
-    const key = String(event.currentTarget.dataset.key || '');
-    const value = String(event.currentTarget.dataset.value || '');
-    this.setData({ [`draftFilter.${key}`]: value });
-  },
-
-  resetFilter() {
-    this.setData({
-      draftFilter: {
-        brandId: '',
-        categoryId: this.data.categoryId ? String(this.data.categoryId) : '',
-        spec: '',
-        priceRange: '',
-      },
-    });
-  },
-
-  clearFilters() {
-    this.setData({
-      filterSnapshot: {
-        brandId: '',
-        categoryId: this.data.categoryId ? String(this.data.categoryId) : '',
-        spec: '',
-        priceRange: '',
-      },
-      requestId: requestId(),
-    });
-    this.loadProducts({ reset: true });
-  },
-
-  applyFilter() {
-    this.setData({
-      filterSnapshot: { ...this.data.draftFilter },
-      filterDrawerVisible: false,
-      requestId: requestId(),
-    });
-    this.trackListEvent('product_list_filter_apply', { resultCount: this.data.total });
-    this.loadProducts({ reset: true });
-  },
-
-  removeFilter(event) {
-    const key = String(event.currentTarget.dataset.key || '');
-    this.setData({
-      [`filterSnapshot.${key}`]: key === 'categoryId' && this.data.categoryId ? String(this.data.categoryId) : '',
-      requestId: requestId(),
-    });
-    this.loadProducts({ reset: true });
-  },
-
-  changeSort(event) {
-    const sort = String(event.currentTarget.dataset.sort || 'default');
-    const found = SORT_OPTIONS.find((item) => item.value === sort) || SORT_OPTIONS[0];
-    this.setData({ sort: found.value, sortLabel: found.label, requestId: requestId() });
-    wx.pageScrollTo({ scrollTop: 0, duration: 120 });
-    this.trackListEvent('product_list_sort_change', { resultCount: this.data.total });
-    this.loadProducts({ reset: true });
   },
 
   retryLoad() {
@@ -290,26 +175,8 @@ Page({
     this.setData({ [`items[${index}].cover_image`]: this.data.imageFallback });
   },
 
-  buildFilterChips() {
-    const filters = this.data.filterSnapshot;
-    const chips = [];
-    const brand = this.data.facets.brands.find((item) => item.value === filters.brandId);
-    const category = this.data.facets.categories.find((item) => item.value === filters.categoryId);
-    if (brand) chips.push({ key: 'brandId', label: brand.label });
-    if (category && Number(filters.categoryId) !== this.data.categoryId) chips.push({ key: 'categoryId', label: category.label });
-    if (filters.spec) chips.push({ key: 'spec', label: filters.spec });
-    if (filters.priceRange) chips.push({ key: 'priceRange', label: this.priceLabel(filters.priceRange) });
-    return chips;
-  },
-
-  priceLabel(value) {
-    const item = this.data.facets.price_ranges.find((option) => option.value === value);
-    return (item && item.label) || value;
-  },
-
   emptyText() {
-    if (this.data.activeFilterChips.length) return '当前筛选暂无匹配商品';
-    if (this.data.keyword) return `没有找到“${this.data.keyword}”相关商品，可缩短关键词或清空筛选`;
+    if (this.data.keyword) return `没有找到“${this.data.keyword}”相关商品，可返回搜索页调整关键词`;
     if (this.data.categoryName) return '该分类暂未上架商品';
     if (this.data.brandId) return '该品牌暂未上架商品';
     return '暂无可浏览商品';
@@ -339,11 +206,12 @@ Page({
       page_path: '/pages/product-list/index',
       client_type: 'wechat_miniapp',
       sourcePage: this.data.sourcePage,
-      categoryId: this.data.filterSnapshot.categoryId || undefined,
-      brandId: this.data.filterSnapshot.brandId || undefined,
+      categoryId: this.data.categoryId || undefined,
+      categoryName: this.data.categoryName || undefined,
+      categoryLevel: this.data.categoryLevel || undefined,
+      brandId: this.data.brandId || undefined,
       keyword: this.data.keyword || undefined,
-      filterSnapshot: this.data.filterSnapshot,
-      sort: this.data.sort,
+      sort: 'default',
       page: this.data.page,
       pageSize: this.data.pageSize,
       resultCount: this.data.total,

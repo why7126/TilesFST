@@ -6,8 +6,11 @@ from io import BytesIO
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy import text
 
 from app.core.config import settings
+from app.db.migrations import BANNER_SCOPE_DELETE_CONDITION, _cleanup_legacy_banner_scope
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
 from app.repositories.user_repository import UserRepository
@@ -35,12 +38,20 @@ def _create_employee() -> None:
         session.close()
 
 
-def _create_brand(client: TestClient, headers: dict[str, str]) -> int:
+def _create_brand(
+    client: TestClient,
+    headers: dict[str, str],
+    *,
+    logo_object_key: str | None = None,
+) -> int:
     suffix = uuid4().hex[:6]
+    payload = {"name": f"Banner Brand {suffix}", "sort_order": 10}
+    if logo_object_key is not None:
+        payload["logo_object_key"] = logo_object_key
     response = client.post(
         "/api/v1/admin/brands",
         headers=headers,
-        json={"name": f"Banner Brand {suffix}", "sort_order": 10},
+        json=payload,
     )
     assert response.status_code == 200
     return response.json()["data"]["id"]
@@ -110,17 +121,19 @@ def _banner_payload(
     image_source: str = "custom_upload",
     external_url: str | None = None,
     topic_id: int | None = None,
+    brand_id: int | None = None,
 ) -> dict:
     return {
         "title": title,
-        "display_client": "WEB_HOME",
-        "position": "HOME_TOP_CAROUSEL",
+        "display_client": "MINIAPP_HOME",
+        "position": "MINIAPP_HOME_CAROUSEL",
         "image_object_key": image_object_key,
         "image_source": image_source,
         "jump_type": jump_type,
         "sku_id": sku_id,
         "external_url": external_url,
         "topic_id": topic_id,
+        "brand_id": brand_id,
         "sort_order": 10,
     }
 
@@ -165,6 +178,44 @@ def test_create_banner_default_draft(client: TestClient) -> None:
     data = response.json()["data"]
     assert data["status"] == "DRAFT"
     assert data["title"] == title
+    assert data["display_client"] == "MINIAPP_HOME"
+    assert data["position"] == "MINIAPP_HOME_CAROUSEL"
+
+
+def test_rejects_legacy_display_client_and_position(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    legacy_client = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json={
+            **_banner_payload(title=f"Legacy Client {uuid4().hex[:6]}"),
+            "display_client": "WEB_HOME",
+        },
+    )
+    assert legacy_client.status_code == 400
+    assert "当前仅支持小程序首页轮播和品牌列表页轮播" in legacy_client.text
+
+    legacy_position = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json={
+            **_banner_payload(title=f"Legacy Position {uuid4().hex[:6]}"),
+            "position": "HOME_TOP_CAROUSEL",
+        },
+    )
+    assert legacy_position.status_code == 400
+    assert "当前仅支持小程序首页轮播和品牌列表页轮播" in legacy_position.text
+
+    brand_list = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json={
+            **_banner_payload(title=f"Brand List {uuid4().hex[:6]}"),
+            "position": "MINIAPP_BRAND_LIST_CAROUSEL",
+        },
+    )
+    assert brand_list.status_code == 200
+    assert brand_list.json()["data"]["position"] == "MINIAPP_BRAND_LIST_CAROUSEL"
 
 
 def test_create_banner_duplicate_title(client: TestClient) -> None:
@@ -203,6 +254,41 @@ def test_jump_validation_sku_detail(client: TestClient) -> None:
             sku_id=999999,
             image_object_key=main_key,
             image_source="sku_main_image",
+        ),
+    )
+    assert bad.status_code == 400
+    assert bad.json()["code"] == 30052
+
+
+def test_jump_validation_brand_detail(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    logo_key = "images/default/brands/logos/banner-brand.webp"
+    brand_id = _create_brand(client, headers, logo_object_key=logo_key)
+    response = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"Brand Banner {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=brand_id,
+            image_object_key=logo_key,
+            image_source="brand_logo",
+        ),
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["brand_id"] == brand_id
+    assert response.json()["data"]["sku_id"] is None
+    assert response.json()["data"]["topic_id"] is None
+
+    bad = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"Bad Brand Banner {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=999999,
+            image_object_key=logo_key,
+            image_source="brand_logo",
         ),
     )
     assert bad.status_code == 400
@@ -362,6 +448,79 @@ def test_get_update_banner(client: TestClient) -> None:
     )
     assert update.status_code == 200
     assert update.json()["data"]["title"] == new_title
+
+    legacy_update = client.put(
+        f"/api/v1/admin/banners/{banner_id}",
+        headers=headers,
+        json={
+            **_banner_payload(title=f"Legacy Update {uuid4().hex[:6]}"),
+            "position": "TOPIC_TOP_BANNER",
+        },
+    )
+    assert legacy_update.status_code == 400
+    assert "当前仅支持小程序首页轮播和品牌列表页轮播" in legacy_update.text
+
+
+def test_legacy_banner_cleanup_removes_old_scope_and_preserves_media_reference(
+) -> None:
+    engine = create_engine("sqlite:///:memory:")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                CREATE TABLE banners (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  title TEXT NOT NULL,
+                  display_client TEXT NOT NULL,
+                  position TEXT NOT NULL,
+                  image_object_key TEXT NOT NULL,
+                  image_source TEXT NOT NULL,
+                  sku_gallery_asset_id INTEGER,
+                  jump_type TEXT NOT NULL,
+                  sku_id INTEGER,
+                  external_url TEXT,
+                  topic_id INTEGER,
+                  sort_order INTEGER NOT NULL DEFAULT 100,
+                  valid_from TEXT,
+                  valid_to TEXT,
+                  status TEXT NOT NULL DEFAULT 'DRAFT',
+                  remark TEXT,
+                  created_at TEXT NOT NULL,
+                  updated_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO banners (
+                  title, display_client, position, image_object_key, image_source,
+                  sku_gallery_asset_id, jump_type, sku_id, external_url, topic_id,
+                  sort_order, valid_from, valid_to, status, remark, created_at, updated_at
+                ) VALUES
+                  ('Valid Miniapp', 'MINIAPP_HOME', 'MINIAPP_HOME_CAROUSEL', 'banners/home.webp',
+                   'custom_upload', NULL, 'NO_JUMP', NULL, NULL, NULL, 1,
+                   NULL, NULL, 'DRAFT', NULL, '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00'),
+                  ('Legacy Web', 'WEB_HOME', 'HOME_TOP_CAROUSEL', 'banners/web.webp',
+                   'custom_upload', NULL, 'NO_JUMP', NULL, NULL, NULL, 1,
+                   NULL, NULL, 'DRAFT', NULL, '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00'),
+                  ('Legacy Topic', 'TOPIC', 'TOPIC_TOP_BANNER', 'banners/topic.webp',
+                   'custom_upload', NULL, 'NO_JUMP', NULL, NULL, NULL, 1,
+                   NULL, NULL, 'DRAFT', NULL, '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00')
+                """
+            )
+        )
+        deleted = _cleanup_legacy_banner_scope(connection)
+
+        assert deleted == 2
+        assert "display_client != 'MINIAPP_HOME'" in BANNER_SCOPE_DELETE_CONDITION
+        remaining = connection.execute(
+            text("SELECT title, image_object_key FROM banners")
+        ).mappings().all()
+        assert [(row["title"], row["image_object_key"]) for row in remaining] == [
+            ("Valid Miniapp", "banners/home.webp")
+        ]
 
 
 def test_banner_not_found(client: TestClient) -> None:

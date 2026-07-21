@@ -42,7 +42,20 @@ class MiniappBannerRecord:
     sku_id: int | None
     external_url: str | None
     topic_id: int | None
+    brand_id: int | None
     sort_order: int
+
+
+@dataclass
+class MiniappBrandRecord:
+    id: int
+    name: str
+    sort_order: int
+    short_name: str | None
+    english_name: str | None
+    logo_object_key: str | None
+    description: str | None
+    product_count: int
 
 
 @dataclass
@@ -76,36 +89,50 @@ class MiniappNamedResult:
 @dataclass
 class MiniappCertificateResult:
     id: int
+    brand_id: int | None
     name: str
     certificate_no: str | None
     issuer: str | None
+    type: str | None
     brand_name: str
     file_url: str
+    file_name: str | None = None
+    file_mime_type: str | None = None
+    is_permanent: bool = False
+    effective_date: str | None = None
+    expiry_date: str | None = None
 
 
 class MiniappHomeRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
 
-    def list_public_banners(self, *, limit: int = 5) -> list[MiniappBannerRecord]:
+    def list_public_banners(
+        self,
+        *,
+        position: str = "MINIAPP_HOME_CAROUSEL",
+        limit: int = 5,
+    ) -> list[MiniappBannerRecord]:
+        if position not in {"MINIAPP_HOME_CAROUSEL", "MINIAPP_BRAND_LIST_CAROUSEL"}:
+            position = "MINIAPP_HOME_CAROUSEL"
         now_iso = datetime.now(UTC).isoformat()
         rows = (
             self._db.execute(
                 text(
                     """
                     SELECT id, title, image_object_key, jump_type, sku_id,
-                           external_url, topic_id, sort_order
+                           external_url, topic_id, brand_id, sort_order
                     FROM banners
                     WHERE status = 'ONLINE'
                       AND display_client = 'MINIAPP_HOME'
-                      AND position = 'MINIAPP_HOME_CAROUSEL'
+                      AND position = :position
                       AND (valid_from IS NULL OR valid_from <= :now_iso)
                       AND (valid_to IS NULL OR valid_to >= :now_iso)
                     ORDER BY sort_order ASC, updated_at DESC
                     LIMIT :limit
                     """
                 ),
-                {"now_iso": now_iso, "limit": limit},
+                {"now_iso": now_iso, "position": position, "limit": limit},
             )
             .mappings()
             .all()
@@ -119,10 +146,176 @@ class MiniappHomeRepository:
                 sku_id=int(row["sku_id"]) if row.get("sku_id") is not None else None,
                 external_url=row.get("external_url"),
                 topic_id=int(row["topic_id"]) if row.get("topic_id") is not None else None,
+                brand_id=int(row["brand_id"]) if row.get("brand_id") is not None else None,
                 sort_order=int(row["sort_order"]),
             )
             for row in rows
         ]
+
+    def list_public_brands(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[MiniappBrandRecord], int]:
+        params = {"limit": page_size, "offset": (page - 1) * page_size}
+        base_sql = """
+            SELECT b.id, b.name, b.sort_order, b.short_name, b.english_name,
+                   b.logo_object_key, b.description,
+                   SUM(
+                     CASE
+                       WHEN t.id IS NOT NULL
+                        AND c.id IS NOT NULL
+                        AND (t.spec_id IS NULL OR s.status = 'ENABLED')
+                       THEN 1 ELSE 0
+                     END
+                   ) AS product_count
+            FROM brands b
+            LEFT JOIN tiles t ON t.brand_id = b.id AND t.status = 'PUBLISHED'
+            LEFT JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
+            LEFT JOIN tile_specs s ON s.id = t.spec_id
+            WHERE b.status = 'ENABLED'
+            GROUP BY b.id, b.name, b.sort_order, b.short_name, b.english_name,
+                     b.logo_object_key, b.description
+        """
+        rows = (
+            self._db.execute(
+                text(
+                    f"""
+                    {base_sql}
+                    ORDER BY b.sort_order ASC, product_count DESC, b.id ASC
+                    LIMIT :limit
+                    OFFSET :offset
+                    """
+                ),
+                params,
+            )
+            .mappings()
+            .all()
+        )
+        total = int(
+            self._db.execute(text("SELECT COUNT(*) FROM brands WHERE status = 'ENABLED'")).scalar_one()
+            or 0
+        )
+        return [self._to_brand(dict(row)) for row in rows], total
+
+    def get_public_brand(self, brand_id: int) -> MiniappBrandRecord | None:
+        row = (
+            self._db.execute(
+                text(
+                    """
+                    SELECT b.id, b.name, b.sort_order, b.short_name, b.english_name,
+                           b.logo_object_key, b.description,
+                           SUM(
+                             CASE
+                               WHEN t.id IS NOT NULL
+                                AND c.id IS NOT NULL
+                                AND (t.spec_id IS NULL OR s.status = 'ENABLED')
+                               THEN 1 ELSE 0
+                             END
+                           ) AS product_count
+                    FROM brands b
+                    LEFT JOIN tiles t ON t.brand_id = b.id AND t.status = 'PUBLISHED'
+                    LEFT JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
+                    LEFT JOIN tile_specs s ON s.id = t.spec_id
+                    WHERE b.status = 'ENABLED'
+                      AND b.id = :brand_id
+                    GROUP BY b.id, b.name, b.sort_order, b.short_name, b.english_name,
+                             b.logo_object_key, b.description
+                    """
+                ),
+                {"brand_id": brand_id},
+            )
+            .mappings()
+            .first()
+        )
+        return self._to_brand(dict(row)) if row else None
+
+    def list_public_brand_certificates(
+        self,
+        *,
+        brand_id: int,
+        limit: int = 50,
+    ) -> list[MiniappCertificateResult]:
+        rows = (
+            self._db.execute(
+                text(
+                    """
+                    SELECT bc.id, bc.name, bc.certificate_no, bc.issuer, bc.type,
+                           bc.file_url, b.name AS brand_name
+                    FROM brand_certificates bc
+                    JOIN brands b ON b.id = bc.brand_id
+                    WHERE bc.deleted_at IS NULL
+                      AND bc.is_visible = 1
+                      AND bc.brand_id = :brand_id
+                      AND b.status = 'ENABLED'
+                    ORDER BY bc.sort_order ASC, bc.updated_at DESC, bc.id DESC
+                    LIMIT :limit
+                    """
+                ),
+                {"brand_id": brand_id, "limit": limit},
+            )
+            .mappings()
+            .all()
+        )
+        return [
+            MiniappCertificateResult(
+                id=int(row["id"]),
+                brand_id=brand_id,
+                name=str(row["name"]),
+                certificate_no=row.get("certificate_no"),
+                issuer=row.get("issuer"),
+                type=row.get("type"),
+                brand_name=str(row["brand_name"]),
+                file_url=str(row["file_url"]),
+                file_name=row.get("file_name"),
+                file_mime_type=row.get("file_mime_type"),
+                is_permanent=bool(row.get("is_permanent")),
+                effective_date=row.get("effective_date"),
+                expiry_date=row.get("expiry_date"),
+            )
+            for row in rows
+        ]
+
+    def list_public_certificates(
+        self,
+        *,
+        page: int,
+        page_size: int,
+    ) -> tuple[list[MiniappCertificateResult], int]:
+        where, params = self._certificate_filters()
+        params["limit"] = page_size
+        params["offset"] = (page - 1) * page_size
+        rows = (
+            self._db.execute(
+                text(
+                    f"""
+                    {self._certificate_select_sql()}
+                    {where}
+                    ORDER BY bc.sort_order ASC, bc.updated_at DESC, bc.id DESC
+                    LIMIT :limit OFFSET :offset
+                    """
+                ),
+                params,
+            )
+            .mappings()
+            .all()
+        )
+        total = int(
+            self._db.execute(
+                text(
+                    f"""
+                    SELECT COUNT(*)
+                    FROM brand_certificates bc
+                    JOIN brands b ON b.id = bc.brand_id
+                    {where}
+                    """
+                ),
+                params,
+            ).scalar_one()
+            or 0
+        )
+        return [self._to_certificate(dict(row)) for row in rows], total
 
     def list_enabled_categories_for_tree(self, *, depth: int = 2) -> list[MiniappCategoryRecord]:
         rows = (
@@ -161,6 +354,7 @@ class MiniappHomeRepository:
         page_size: int = 20,
         keyword: str | None = None,
         category_id: int | None = None,
+        category_level: str | None = None,
         brand_id: int | None = None,
         spec: str | None = None,
         price_min: float | None = None,
@@ -174,6 +368,7 @@ class MiniappHomeRepository:
         where, params = self._product_filters(
             keyword=keyword,
             category_id=category_id,
+            category_level=category_level,
             brand_id=brand_id,
             spec=spec,
             price_min=price_min,
@@ -215,6 +410,7 @@ class MiniappHomeRepository:
         *,
         keyword: str | None,
         category_id: int | None,
+        category_level: str | None,
         brand_id: int | None,
         spec: str | None,
         price_min: float | None,
@@ -223,6 +419,7 @@ class MiniappHomeRepository:
         where, params = self._product_filters(
             keyword=keyword,
             category_id=category_id,
+            category_level=category_level,
             brand_id=brand_id,
             spec=spec,
             price_min=price_min,
@@ -408,9 +605,11 @@ class MiniappHomeRepository:
         return [
             MiniappCertificateResult(
                 id=int(row["id"]),
+                brand_id=None,
                 name=str(row["name"]),
                 certificate_no=row.get("certificate_no"),
                 issuer=row.get("issuer"),
+                type=None,
                 brand_name=str(row["brand_name"]),
                 file_url=str(row["file_url"]),
             )
@@ -476,7 +675,7 @@ class MiniappHomeRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT url FROM tile_images
+                    SELECT object_key FROM tile_images
                     WHERE tile_id = :product_id
                     ORDER BY is_main DESC, sort_order ASC, id ASC
                     """
@@ -486,14 +685,14 @@ class MiniappHomeRepository:
             .mappings()
             .all()
         )
-        return [str(row["url"]) for row in rows if row.get("url")]
+        return [str(row["object_key"]) for row in rows if row.get("object_key")]
 
     def list_product_videos(self, product_id: int) -> list[str]:
         rows = (
             self._db.execute(
                 text(
                     """
-                    SELECT file_name FROM tile_videos
+                    SELECT object_key FROM tile_videos
                     WHERE tile_id = :product_id
                     ORDER BY sort_order ASC, id ASC
                     """
@@ -503,14 +702,14 @@ class MiniappHomeRepository:
             .mappings()
             .all()
         )
-        return [str(row["file_name"]) for row in rows if row.get("file_name")]
+        return [str(row["object_key"]) for row in rows if row.get("object_key")]
 
     def list_product_media(self, product_id: int) -> list[MiniappMediaRecord]:
         image_rows = (
             self._db.execute(
                 text(
                     """
-                    SELECT id, url, is_main, sort_order
+                    SELECT id, object_key, is_main, sort_order
                     FROM tile_images
                     WHERE tile_id = :product_id
                     ORDER BY is_main DESC, sort_order ASC, id ASC
@@ -525,7 +724,7 @@ class MiniappHomeRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT id, file_name, duration_seconds, sort_order
+                    SELECT id, object_key, duration_seconds, sort_order
                     FROM tile_videos
                     WHERE tile_id = :product_id
                     ORDER BY sort_order ASC, id ASC
@@ -540,25 +739,25 @@ class MiniappHomeRepository:
             MiniappMediaRecord(
                 id=int(row["id"]),
                 media_type="image",
-                url=str(row["url"]),
+                url=str(row["object_key"]),
                 sort_order=int(row["sort_order"] or 0),
                 is_main=bool(row["is_main"]),
             )
             for row in image_rows
-            if row.get("url")
+            if row.get("object_key")
         ]
         media.extend(
             MiniappMediaRecord(
                 id=int(row["id"]),
                 media_type="video",
-                url=str(row["file_name"]),
+                url=str(row["object_key"]),
                 sort_order=int(row["sort_order"] or 0),
                 duration_seconds=(
                     float(row["duration_seconds"]) if row.get("duration_seconds") is not None else None
                 ),
             )
             for row in video_rows
-            if row.get("file_name")
+            if row.get("object_key")
         )
         return media
 
@@ -700,7 +899,7 @@ class MiniappHomeRepository:
               c.path AS category_path,
               s.display_name AS spec_name,
               (
-                SELECT ti.url FROM tile_images ti
+                SELECT ti.object_key FROM tile_images ti
                 WHERE ti.tile_id = t.id AND ti.is_main = 1
                 ORDER BY ti.sort_order, ti.id LIMIT 1
               ) AS main_image_url,
@@ -729,6 +928,7 @@ class MiniappHomeRepository:
         *,
         keyword: str | None,
         category_id: int | None,
+        category_level: str | None,
         brand_id: int | None,
         spec: str | None,
         price_min: float | None,
@@ -751,7 +951,23 @@ class MiniappHomeRepository:
                 """
             )
             params["keyword"] = f"%{cleaned_keyword}%"
-        if category_id is not None:
+        if category_id is not None and category_level == "primary":
+            clauses.append(
+                """
+                (
+                  t.category_id = :category_id
+                  OR t.category_id IN (
+                    SELECT child.id
+                    FROM tile_categories child
+                    WHERE child.parent_id = :category_id
+                      AND child.level = 2
+                      AND child.status = 'ENABLED'
+                  )
+                )
+                """
+            )
+            params["category_id"] = category_id
+        elif category_id is not None:
             clauses.append("t.category_id = :category_id")
             params["category_id"] = category_id
         if brand_id is not None:
@@ -844,11 +1060,59 @@ class MiniappHomeRepository:
         return "WHERE " + " AND ".join(clauses), params
 
     @staticmethod
+    def _certificate_filters() -> tuple[str, dict[str, Any]]:
+        clauses = ["bc.deleted_at IS NULL", "bc.is_visible = 1", "b.status = 'ENABLED'"]
+        params: dict[str, Any] = {}
+        return "WHERE " + " AND ".join(clauses), params
+
+    @staticmethod
+    def _certificate_select_sql() -> str:
+        return """
+            SELECT
+              bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
+              bc.file_url, bc.file_name, bc.file_mime_type, bc.is_permanent,
+              bc.effective_date, bc.expiry_date, b.name AS brand_name
+            FROM brand_certificates bc
+            JOIN brands b ON b.id = bc.brand_id
+        """
+
+    @staticmethod
     def _to_named_result(row: dict[str, Any]) -> MiniappNamedResult:
         return MiniappNamedResult(
             id=int(row["id"] or 0),
             name=str(row["name"]),
             count=int(row["count"] or 0),
+        )
+
+    @staticmethod
+    def _to_certificate(row: dict[str, Any]) -> MiniappCertificateResult:
+        return MiniappCertificateResult(
+            id=int(row["id"]),
+            brand_id=int(row["brand_id"]),
+            name=str(row["name"]),
+            certificate_no=row.get("certificate_no"),
+            issuer=row.get("issuer"),
+            type=row.get("type"),
+            brand_name=str(row["brand_name"]),
+            file_url=str(row["file_url"]),
+            file_name=row.get("file_name"),
+            file_mime_type=row.get("file_mime_type"),
+            is_permanent=bool(row.get("is_permanent")),
+            effective_date=row.get("effective_date"),
+            expiry_date=row.get("expiry_date"),
+        )
+
+    @staticmethod
+    def _to_brand(row: dict[str, Any]) -> MiniappBrandRecord:
+        return MiniappBrandRecord(
+            id=int(row["id"]),
+            name=str(row["name"]),
+            sort_order=int(row["sort_order"] or 0),
+            short_name=row.get("short_name"),
+            english_name=row.get("english_name"),
+            logo_object_key=row.get("logo_object_key"),
+            description=row.get("description"),
+            product_count=int(row["product_count"] or 0),
         )
 
     @staticmethod

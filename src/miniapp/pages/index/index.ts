@@ -20,7 +20,7 @@ type HomeData = {
     title: string;
     subtitle?: string;
     image_url: string;
-    jump_type: 'none' | 'product' | 'search' | 'store';
+    jump_type: 'none' | 'product' | 'brand' | 'search' | 'store';
     target_id?: number;
     search_keyword?: string;
   }>;
@@ -43,10 +43,12 @@ type ProductListData = {
 };
 
 const PAGE_SIZE = 12;
+const SHARE_ADD_GUIDE_SESSION_KEY = 'miniapp_share_add_guide_session_closed_v1';
+let shareAddGuideDismissedInSession = false;
 
 const QUICK_ENTRIES = [
   { key: 'select', title: '选瓷砖', icon: '▦', url: '/pages/category/index' },
-  { key: 'brand', title: '品牌馆', icon: '▣', fallback: '品牌馆建设中，先为你打开找砖入口' },
+  { key: 'brand', title: '品牌', icon: '▣', url: '/pages/brand-list/index' },
   { key: 'new', title: '新品榜', icon: 'NEW', section: 'new' },
   { key: 'hot', title: '热销榜', icon: '♨', section: 'hot' },
 ];
@@ -68,10 +70,13 @@ Page({
     productsHasMore: true,
     productsFinished: false,
     pageAlive: true,
+    shareAddGuideVisible: false,
+    shareAddGuideStyle: 'top: 112px; right: 52px;',
   },
 
   onLoad() {
     this.setData({ pageAlive: true });
+    this.prepareShareAddGuide();
     this.loadHome();
     this.loadAllProducts(true);
   },
@@ -90,6 +95,50 @@ Page({
       title: this.data.home?.store.name || '菲尚特瓷砖馆',
       path: '/pages/index/index',
     };
+  },
+
+  prepareShareAddGuide() {
+    let storageClosed = false;
+    try {
+      storageClosed = wx.getStorageSync(SHARE_ADD_GUIDE_SESSION_KEY) === 'closed';
+    } catch (error) {
+      console.warn('[miniapp-home] read share add guide state failed', error);
+    }
+    this.setData({
+      shareAddGuideVisible: !shareAddGuideDismissedInSession && !storageClosed,
+      shareAddGuideStyle: this.resolveShareAddGuideStyle(),
+    });
+  },
+
+  resolveShareAddGuideStyle() {
+    const fallbackGuideTop = 112;
+    const fallbackGuideRight = 52;
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      const menuButton = typeof wx.getMenuButtonBoundingClientRect === 'function'
+        ? wx.getMenuButtonBoundingClientRect()
+        : null;
+      const guideTop = menuButton && menuButton.bottom
+        ? menuButton.bottom + 8
+        : fallbackGuideTop;
+      const guideRight = menuButton && typeof menuButton.right === 'number'
+        ? Math.max(systemInfo.windowWidth - menuButton.right + 44, 48)
+        : fallbackGuideRight;
+      return `top: ${guideTop}px; right: ${guideRight}px;`;
+    } catch (error) {
+      console.warn('[miniapp-home] resolve share add guide metrics failed', error);
+      return `top: ${fallbackGuideTop}px; right: ${fallbackGuideRight}px;`;
+    }
+  },
+
+  dismissShareAddGuide() {
+    shareAddGuideDismissedInSession = true;
+    this.setData({ shareAddGuideVisible: false });
+    try {
+      wx.setStorageSync(SHARE_ADD_GUIDE_SESSION_KEY, 'closed');
+    } catch (error) {
+      console.warn('[miniapp-home] write share add guide state failed', error);
+    }
   },
 
   loadHome() {
@@ -204,16 +253,15 @@ Page({
       return;
     }
     if (entry.section) {
-      wx.navigateTo({ url: `/pages/search/index?section=${entry.section}` });
+      wx.navigateTo({ url: `/pages/product-list/index?section=${entry.section}` });
       return;
     }
     wx.showToast({ title: entry.fallback || '功能建设中', icon: 'none' });
-    wx.switchTab({ url: '/pages/find/index' });
   },
 
   openSection(event: WechatMiniprogram.TouchEvent) {
     const section = event.currentTarget.dataset.section;
-    wx.navigateTo({ url: `/pages/search/index?section=${section}` });
+    wx.navigateTo({ url: `/pages/product-list/index?section=${section}` });
   },
 
   openProduct(event: WechatMiniprogram.TouchEvent) {
@@ -241,6 +289,10 @@ Page({
       wx.navigateTo({ url: `/pages/tile-detail/index?id=${banner.target_id}` });
       return;
     }
+    if (banner.jump_type === 'brand' && banner.target_id) {
+      wx.navigateTo({ url: `/pages/brand-detail/index?brandId=${banner.target_id}&source=home-carousel` });
+      return;
+    }
     if (banner.jump_type === 'search') {
       wx.navigateTo({
         url: `/pages/search/index?keyword=${encodeURIComponent(banner.search_keyword || banner.title)}`,
@@ -252,16 +304,6 @@ Page({
       return;
     }
     wx.showToast({ title: '内容建设中', icon: 'none' });
-  },
-
-  tapVisualFavorite(event: WechatMiniprogram.TouchEvent) {
-    const id = event.currentTarget.dataset.id;
-    track('miniapp_home_favorite_visual_click', {
-      product_id: id ? Number(id) : 0,
-      page_path: '/pages/index/index',
-      source: event.currentTarget.dataset.source || 'home',
-    });
-    wx.showToast({ title: '收藏功能建设中', icon: 'none' });
   },
 
   retryAllProducts() {

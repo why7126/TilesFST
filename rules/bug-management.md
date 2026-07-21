@@ -2,7 +2,7 @@
 purpose: 缺陷（BUG）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-07-14 19:05:47
+updated_at: 2026-07-19 19:10:47
 ---
 
 # 缺陷管理规范
@@ -100,6 +100,7 @@ BUG-NNNN-slug/
 
 - BUG `trace.md` MUST 满足 `status: in_sprint`（或后续交付态）且 `iteration: sprint-xxx` 非空。
 - 对应 `iterations/change|archive/<sprint>/sprint.yaml` MUST 在 `bugs[]` 与 `changes[]` 中包含该 BUG 与 Change。
+- 若 BUG 先进入 Sprint、后执行 `/bug-opsx` 创建 Change，Workflow Sync MUST 将新 Change 回填到该 Sprint 的 `changes[]` 与对应 `scope_estimates[].change`；仅有 BUG 在 `bugs[]` 不足以通过 `/opsx-apply` 门禁。
 - `/opsx-apply` MUST 先用 `--sprint auto` 或等价检查确认能解析到 Sprint；解析失败时必须停止，提示先执行 `/sprint-propose`。
 
 `approved` 只表示已评审通过，可 `/bug-opsx` 与进入 Sprint 规划；不得仅凭 `approved` 直接 `/opsx-apply`。

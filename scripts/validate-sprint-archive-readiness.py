@@ -14,6 +14,12 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import sprint_change_batches
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -53,6 +59,7 @@ class SprintReadiness:
     sprint_id: str
     sprint_path: str
     changes: list[ChangeReadiness]
+    change_batches: dict[str, object]
 
     @property
     def blockers(self) -> list[ChangeReadiness]:
@@ -235,10 +242,27 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
             )
         )
 
+    change_batch_rows = [
+        {
+            "change_id": record.change_id,
+            "tasks": {
+                "done": record.tasks.done,
+                "total": record.tasks.total,
+            },
+            "trace_exists": record.trace_exists,
+            "blocker": record.blocker,
+        }
+        for record in records
+    ]
+
     return SprintReadiness(
         sprint_id=sprint_id,
         sprint_path=str(sprint_dir.relative_to(root)),
         changes=records,
+        change_batches=sprint_change_batches.build_change_batches(
+            change_batch_rows,
+            ordering="archive-readiness queue",
+        ),
     )
 
 
@@ -271,6 +295,32 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
         lines.append(
             f"| `{change.change_id}` | {change.location} | {change.tasks.label} | {evidence} | {result} |"
         )
+
+    batches = readiness.change_batches
+    lines.extend(
+        [
+            "",
+            "## Change Batches",
+            "",
+            f"- Applicable: {batches['applicable']} ({batches['reason']})",
+            f"- Total Changes: {batches['total_changes']}",
+            f"- Batch Count: {batches['batch_count']}",
+            f"- Batch Size: {batches['batch_size']}",
+        ]
+    )
+    if batches["batches"]:
+        lines.extend(
+            [
+                "",
+                "| Batch | Changes | Tasks | Blockers | Next Read |",
+                "|---|---:|---:|---:|---|",
+            ]
+        )
+        for batch in batches["batches"]:
+            counts = batch["counts"]
+            lines.append(
+                f"| `{batch['batch_id']}` | {counts['changes']} | {counts['tasks_done']}/{counts['tasks_total']} | {counts['blockers']} | {batch['recommended_next_read']} |"
+            )
 
     blockers = readiness.blockers
     lines.append("")

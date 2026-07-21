@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import type { BannerAdminItem } from '@/shared/api/generated';
 
 import {
+  DEFAULT_POSITION,
+  DISPLAY_CLIENT_OPTIONS,
+  POSITIONS_BY_CLIENT,
   canDeleteBanner,
   canOnlineBanner,
   clearJumpFieldsForType,
@@ -10,6 +13,16 @@ import {
 } from './banner-display';
 
 describe('banner-display helpers', () => {
+  it('scopes display client and positions to miniapp carousels', () => {
+    expect(DISPLAY_CLIENT_OPTIONS).toEqual([{ label: '小程序', value: 'MINIAPP_HOME' }]);
+    expect(POSITIONS_BY_CLIENT.MINIAPP_HOME).toEqual([
+      { value: 'MINIAPP_HOME_CAROUSEL', label: '首页轮播' },
+      { value: 'MINIAPP_BRAND_LIST_CAROUSEL', label: '品牌列表页轮播' },
+    ]);
+    expect(Object.keys(POSITIONS_BY_CLIENT)).toEqual(['MINIAPP_HOME']);
+    expect(DEFAULT_POSITION.MINIAPP_HOME).toBe('MINIAPP_HOME_CAROUSEL');
+  });
+
   it('disables delete when banner is ONLINE', () => {
     const online = { status: 'ONLINE' } as Pick<BannerAdminItem, 'status'>;
     const draft = { status: 'DRAFT' } as Pick<BannerAdminItem, 'status'>;
@@ -22,12 +35,21 @@ describe('banner-display helpers', () => {
     expect(sku.sku_id).toBeNull();
     expect(sku.external_url).toBeNull();
     expect(sku.topic_id).toBeNull();
+    expect(sku.brand_id).toBeNull();
     expect(sku.image_source).toBe('sku_main_image');
+
+    const brand = clearJumpFieldsForType('BRAND_DETAIL');
+    expect(brand.brand_id).toBeNull();
+    expect(brand.sku_id).toBeNull();
+    expect(brand.topic_id).toBeNull();
+    expect(brand.external_url).toBeNull();
+    expect(brand.image_source).toBe('brand_logo');
 
     const external = clearJumpFieldsForType('EXTERNAL_LINK');
     expect(external.external_url).toBe('');
     expect(external.image_source).toBe('custom_upload');
     expect(external.sku_id).toBeNull();
+    expect(external.brand_id).toBeNull();
 
     const topic = clearJumpFieldsForType('TOPIC_PAGE');
     expect(topic.topic_id).toBeNull();

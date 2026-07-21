@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-07-11 16:25:13
+updated_at: 2026-07-19 19:52:29
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -76,6 +76,8 @@ capacity_usage = estimated_person_days / capacity_person_days
 - `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]` MUST 包含 `<change-id>`。
 - 若 Change 关联 REQ，`requirements[]` MUST 包含对应 `REQ-*`；若关联 BUG，`bugs[]` MUST 包含对应 `BUG-*`。
 - 关联 REQ/BUG `trace.md` MUST 存在 `iteration: sprint-xxx`，且状态为 `in_sprint` 或后续交付态。
+- 若 REQ/BUG 已在 Sprint 中但创建 Change 时 `changes[]` 尚未回填，MUST 先运行对应 `/req-opsx` 或 `/bug-opsx` 的 Workflow Sync，确保 `changes[]` 与 `scope_estimates[].change` 同步后再 apply。
+- `/req-opsx`、`/bug-opsx`、`/opsx-apply`、`/opsx-archive` 后，Workflow Sync MUST 同步刷新 `sprint.md` 的 `## 2. Scope` 主表状态与说明；当 Change archived 时，对应 REQ/BUG 行 MUST 显示 `done` 与归档 Change，不得继续显示 `approved`、`in_sprint` 或“待创建 Change”。
 - `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 或等价解析 MUST 能定位到该 Sprint；若报告 sprint skipped / unresolved，MUST 停止 `/opsx-apply`。
 
 未通过时的修复路径：先运行 `/sprint-propose` 将 REQ/BUG/Change 纳入 `iterations/change/<sprint>/`，完成 Workflow Sync 后再重新执行 `/opsx-apply`。

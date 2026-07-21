@@ -166,6 +166,46 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "required": {"page_path", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename", "phone"},
     },
+    "certificate_list_page_view": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_list_load": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "page", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_list_refresh": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "page", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_list_load_more": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "page", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_list_retry": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_click": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "certificateId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_preview_click": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "certificateId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "certificate_load_failed": {
+        "category": "miniapp_certificate_list",
+        "required": {"page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
     "miniapp_home_waterfall_load": {
         "category": "miniapp_home_style",
         "required": {"page_path", "page", "page_size", "client_type"},
@@ -250,6 +290,19 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "required": {"category_id", "category_index", "page_path", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
     },
+    "primary_category_product_list_click": {
+        "category": "miniapp_category_list",
+        "required": {
+            "category_id",
+            "category_name",
+            "category_level",
+            "sourcePage",
+            "category_index",
+            "page_path",
+            "client_type",
+        },
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
     "secondary_category_click": {
         "category": "miniapp_category_list",
         "required": {"category_id", "parent_category_id", "category_index", "page_path", "client_type"},
@@ -323,6 +376,21 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
             "internal_remark",
             "phone",
         },
+    },
+    "brand_list_page_view": {
+        "category": "miniapp_brand_list",
+        "required": {"page_path", "sourcePage", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "brand_list_carousel_click": {
+        "category": "miniapp_brand_list",
+        "required": {"page_path", "jumpType", "positionIndex", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "brand_list_card_click": {
+        "category": "miniapp_brand_list",
+        "required": {"page_path", "brandId", "positionIndex", "sourcePage", "sourceEntry", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
     },
     "search_page_view": {
         "category": "miniapp_search",

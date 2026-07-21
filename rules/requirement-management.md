@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-07-14 19:05:47
+updated_at: 2026-07-19 19:10:47
 ---
 
 # 需求管理规范
@@ -112,9 +112,12 @@ REQ-NNNN-slug/
 
 - REQ `trace.md` MUST 满足 `status: in_sprint`（或后续交付态）且 `iteration: sprint-xxx` 非空。
 - 对应 `iterations/change|archive/<sprint>/sprint.yaml` MUST 在 `requirements[]` 与 `changes[]` 中包含该 REQ 与 Change。
+- 若 REQ 先进入 Sprint、后执行 `/req-opsx` 创建 Change，Workflow Sync MUST 将新 Change 回填到该 Sprint 的 `changes[]` 与对应 `scope_estimates[].change`；仅有 REQ 在 `requirements[]` 不足以通过 `/opsx-apply` 门禁。
 - `/opsx-apply` MUST 先用 `--sprint auto` 或等价检查确认能解析到 Sprint；解析失败时必须停止，提示先执行 `/sprint-propose`。
 
 `approved` 只表示已评审通过，可 `/req-opsx` 与进入 Sprint 规划；不得仅凭 `approved` 直接 `/opsx-apply`。
+
+当 REQ 已处于 `in_sprint` 且 `/req-opsx` 创建新 Change 时，Workflow Sync **MUST** 将该 Change 同步写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项。若 `/opsx-apply` dry-run 报告 `change <id> not in sprint scope`，优先重新运行 `/req-opsx` Final Step 的 Workflow Sync 修复派生范围；只有 REQ/BUG 本身未纳入 Sprint 时，才需要重新 `/sprint-propose`。
 
 ### 4.3 其他门禁
 

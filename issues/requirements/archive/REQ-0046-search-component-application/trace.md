@@ -3,7 +3,7 @@ requirement_id: REQ-0046-search-component-application
 status: done
 priority: P1
 created_at: 2026-07-18 23:06:13
-updated_at: 2026-07-19 14:39:40
+updated_at: 2026-07-20 22:46:35
 lifecycle:
   captured: 2026-07-18 23:06:13
   generated: 2026-07-18 23:16:37
@@ -85,4 +85,4 @@ lifecycle_stage: archive
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0066-search-component-prototype-deviation | high | in_sprint | — | 搜索组件整体交互与原型差异较大 |
+| BUG-0066-search-component-prototype-deviation | high | done | fix-miniapp-search-prototype-alignment | 搜索组件整体交互与原型差异较大 |

@@ -1,0 +1,347 @@
+{
+  "version": "v0.0.4",
+  "release_time": "2026-07-20 23:39:49",
+  "proposal_refreshed_at": "2026-07-21 07:55:01",
+  "prepared_at": "2026-07-21 08:09:39",
+  "owner": "product",
+  "summary": "TILESFST v0.0.4 汇总 sprint-009 的已归档交付范围，覆盖微信小程序商品浏览、品牌展示、品牌列表页、证书列表页、收藏列表页、添加到我的小程序引导、SKU 详情页视频播放修复、首页推荐入口修复、搜索体验对齐、设备验收治理，以及管理后台 Banner 投放范围收敛。",
+  "formal_scope_only": true,
+  "version_change_rationale": "",
+  "publish_ready": true,
+  "sprints": [
+    "sprint-009"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0049-miniapp-product-card-component",
+      "title": "微信小程序商品卡片组件",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0050-miniapp-brand-header-page-title-rules",
+      "title": "小程序 brand-header 页面标题规则",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0051-category-list-product-list-entry-by-level",
+      "title": "分类列表页支持一二级分类商品列表入口",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0052-miniapp-device-evidence-template",
+      "title": "小程序 DevTools/真机验收 evidence 模板",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0053-miniapp-custom-navigation-best-practice",
+      "title": "小程序自定义导航 best-practice 沉淀",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0054-brand-card-common-component",
+      "title": "生成品牌卡片通用组件",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0055-brand-certificate-common-component",
+      "title": "生成品牌证书通用组件",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0056-product-list-card-only-layout",
+      "title": "商品列表页改为双列商品卡片展示",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0057-certificate-list-page",
+      "title": "新增证书列表页",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0058-brand-detail-home-page",
+      "title": "新增品牌详情页/主页功能",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0059-favorite-list-page",
+      "title": "新增收藏列表页",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0060-brand-list-page",
+      "title": "新增品牌列表页",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0061-miniapp-share-add-guide",
+      "title": "小程序添加到我的小程序引导语",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0062-admin-banner-placement-scope",
+      "title": "管理后台 Banner 投放范围配置优化",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0066-search-component-prototype-deviation",
+      "title": "搜索组件整体交互与原型差异较大",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0067-home-recommendation-list-entry-routing",
+      "title": "首页推荐模块查看更多和榜单入口误跳搜索页",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0068-miniapp-home-device-acceptance-followup",
+      "title": "Sprint 008 小程序首页 DevTools 与真机验收残留未闭环",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0069-miniapp-sku-detail-carousel-video-not-playable",
+      "title": "SKU 商品详情页轮播图视频不能显示和播放",
+      "sprint": "sprint-009",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "update-miniapp-product-card-component",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-product-card-component"
+    },
+    {
+      "id": "fix-miniapp-home-recommendation-routing",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-fix-miniapp-home-recommendation-routing"
+    },
+    {
+      "id": "update-miniapp-brand-header-title-rules",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-brand-header-title-rules"
+    },
+    {
+      "id": "update-brand-certificate-common-component",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-update-brand-certificate-common-component"
+    },
+    {
+      "id": "add-miniapp-device-evidence-template",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-device-evidence-template"
+    },
+    {
+      "id": "fix-miniapp-search-prototype-alignment",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-fix-miniapp-search-prototype-alignment"
+    },
+    {
+      "id": "add-miniapp-brand-card-component",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-brand-card-component"
+    },
+    {
+      "id": "update-miniapp-category-product-list-entry",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-category-product-list-entry"
+    },
+    {
+      "id": "fix-miniapp-home-device-acceptance",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-fix-miniapp-home-device-acceptance"
+    },
+    {
+      "id": "add-miniapp-custom-navigation-best-practice",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-custom-navigation-best-practice"
+    },
+    {
+      "id": "update-miniapp-product-list-card-only-layout",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-update-miniapp-product-list-card-only-layout"
+    },
+    {
+      "id": "add-miniapp-certificate-list-page",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-certificate-list-page"
+    },
+    {
+      "id": "add-miniapp-brand-detail-home-page",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-brand-detail-home-page"
+    },
+    {
+      "id": "add-favorite-list-page",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-add-favorite-list-page"
+    },
+    {
+      "id": "add-brand-list-page",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-add-brand-list-page"
+    },
+    {
+      "id": "add-miniapp-share-add-guide",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-share-add-guide"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-video-url",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-fix-miniapp-sku-detail-video-url"
+    },
+    {
+      "id": "update-admin-banner-placement-scope",
+      "sprint": "sprint-009",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-20-update-admin-banner-placement-scope"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-20 23:39:49 CST: iterations/archive/sprint-009/sprint.yaml lists 18 formal changes and each resolves to openspec/changes/archive/2026-07-19|20-<change-id>; acceptance-report.md records Readiness PASS, 18/18 Change archived, 351/351 tasks complete."
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:08:37 CST: uv run pytest passed 343 tests, skipped 1, warnings 598. 2026-07-21 08:09:11 CST: pnpm --dir src/web test -- --run passed 54 files / 245 tests."
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:09:11 CST: python scripts/validate-api-standard.py passed. 2026-07-21 08:09:39 CST: ./scripts/generate-openapi-client.sh completed successfully with Orval v8.17.0 and regenerated tileApi client from OpenAPI."
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:09:11 CST: docker compose config --quiet exited 0."
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:08:37 CST: uv run pytest exercised migration/schema related coverage including src/backend/tests/test_admin_banners.py::test_legacy_banner_cleanup_removes_old_scope_and_preserves_media_reference and src/backend/tests/test_object_keys.py::test_collect_migrations_from_sqlite."
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "sprint-009 release scope does not intentionally add or change environment variables; no .env.example update required."
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:05:36 CST: src/shared/product-version.ts exports PRODUCT_VERSION 'v0.0.4', matching releases/v0.0.4/release.json version."
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-21 08:00:34 CST: python scripts/validate-release.py --release-dir releases/v0.0.4 passed, including release metadata structure, announcement presence and public safety scan against sensitive patterns."
+    }
+  },
+  "ai_usage": {
+    "status": "pass",
+    "evidence": "2026-07-21 08:10:37 CST: python scripts/extract-ai-usage.py --post-command-hook --workflow-event release.prepare --release v0.0.4 ... --json returned status ok, usage_mode actual, command_run_count 1, warning_count 0, release_artifact data/ai-usage/command-runs/releases/v0.0.4/release.prepare.json and sprint_snapshot data/ai-usage/sprints/sprint-009.json."
+  },
+  "known_issues": [],
+  "upgrade_steps": [
+    "完成升级前备份，确认小程序静态资源、媒体访问和 Banner 数据在目标环境可用。",
+    "部署后端、管理端 Web 与微信小程序相关资源。",
+    "执行后端 pytest、Web Vitest、OpenAPI/Orval 校验和小程序静态回归。",
+    "完成小程序关键页面 smoke：首页、搜索、分类进入商品列表、商品列表、SKU 详情视频、品牌列表、品牌详情、证书列表、收藏列表和添加引导。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "SKU 视频、品牌列表、证书列表或 Banner 投放范围出现阻断性问题",
+      "发现数据迁移、权限边界或公开媒体 URL 安全问题"
+    ],
+    "steps": [
+      "回退到 v0.0.3 对应部署包或上一 Git tag。",
+      "恢复上一版本小程序资源、Web 静态资源和后端服务。",
+      "如 Banner 投放范围或数据库结构变更已应用，按迁移回滚说明恢复业务数据与 schema。",
+      "复跑 smoke 与回归验证，确认首页、SKU 详情、品牌与证书入口恢复。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "Banner 投放范围配置与品牌证书通用组件体验受影响。",
+    "owner_web": "无直接交付；收藏列表如后续扩展到店主 Web 需另行确认。",
+    "miniapp": "商品卡片、商品列表、分类入口、搜索、首页推荐入口、SKU 详情视频、品牌列表/详情、证书列表、收藏列表、自定义导航和添加引导均受影响。",
+    "backend": "小程序公开接口、SKU 详情媒体 URL、品牌/证书/收藏相关服务和 Banner 管理接口受影响。",
+    "database": "Banner 投放范围收敛涉及 schema/migration 与历史业务记录处理；收藏等能力涉及本地 schema 文档与测试证据。",
+    "object_storage": "SKU 详情视频和证书/品牌媒体展示依赖后端受控媒体 URL，不改变 MinIO 单桶策略。",
+    "docker": "无直接部署编排变更；发布前仍需 docker compose config 校验。"
+  },
+  "announcement": "announcement.mdx",
+  "publish_confirmation": {
+    "published_at": "2026-07-21 08:14:16",
+    "announcement_url": "releases/v0.0.4/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "v0.0.4 发布确认完成；所有 release prepare 门禁已通过，公告源文件为本地 Mintlify MDX。",
+    "ai_usage_evidence": "2026-07-21 08:15:03 CST: release.publish hook returned status ok, usage_mode actual, command_run_count 1, warning_count 0, release_artifact data/ai-usage/command-runs/releases/v0.0.4/release.publish.json and sprint_snapshot data/ai-usage/sprints/sprint-009.json."
+  }
+}

@@ -1,11 +1,5 @@
 <view class="page">
-  <custom-navigation title="全部分类" subtitle="一级分类 / 二级分类" />
-
-  <view class="search-box" bindtap="openSearch">
-    <text class="search-icon">⌕</text>
-    <text class="search-placeholder">在{{currentPrimaryName || '全部分类'}}中搜索</text>
-    <text class="search-action">搜索</text>
-  </view>
+  <custom-navigation title="全部分类" />
 
   <view wx:if="{{loading}}" class="category-shell skeleton-shell">
     <view class="primary-skeleton">
@@ -56,7 +50,19 @@
       enhanced="true"
       show-scrollbar="false"
     >
-      <view class="secondary-title">{{currentPrimaryName}}</view>
+      <view class="secondary-heading">
+        <view class="secondary-title">{{currentPrimaryName}}</view>
+        <view
+          class="primary-product-entry"
+          data-id="{{currentPrimaryId}}"
+          data-name="{{currentPrimaryName}}"
+          bindtap="openPrimaryProducts"
+          hover-class="tap-hover"
+        >
+          <text>查看全部商品</text>
+          <text class="entry-arrow">›</text>
+        </view>
+      </view>
       <view wx:if="{{currentChildren.length}}" class="secondary-grid">
         <view
           wx:for="{{currentChildren}}"

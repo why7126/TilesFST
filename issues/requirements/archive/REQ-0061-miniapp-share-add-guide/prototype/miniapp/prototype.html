@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0061 小程序添加引导原型</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #18160f;
+      --surface: #211e16;
+      --gold: #c8a055;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.62);
+      --line: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0f0e0a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+
+    .phone {
+      position: relative;
+      width: min(390px, 100vw);
+      height: 844px;
+      overflow: hidden;
+      background: var(--bg);
+      border: 1px solid var(--line);
+    }
+
+    .status {
+      height: 48px;
+      padding: 14px 18px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .capsule {
+      position: absolute;
+      top: 13px;
+      right: 12px;
+      width: 92px;
+      height: 32px;
+      border: 1px solid rgba(237, 232, 223, 0.22);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      color: rgba(237, 232, 223, 0.76);
+      font-size: 16px;
+    }
+
+    .nav {
+      height: 72px;
+      padding: 10px 132px 12px 18px;
+    }
+
+    .brand {
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+    }
+
+    .sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .guide {
+      position: absolute;
+      top: 54px;
+      right: 22px;
+      width: 232px;
+      padding: 12px 38px 12px 14px;
+      background: rgba(33, 30, 22, 0.96);
+      border: 1px solid rgba(200, 160, 85, 0.48);
+      border-radius: 6px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.36);
+      font-size: 13px;
+      line-height: 1.45;
+      z-index: 2;
+    }
+
+    .guide::before {
+      content: "";
+      position: absolute;
+      top: -7px;
+      right: 48px;
+      width: 12px;
+      height: 12px;
+      transform: rotate(45deg);
+      background: rgba(33, 30, 22, 0.96);
+      border-left: 1px solid rgba(200, 160, 85, 0.48);
+      border-top: 1px solid rgba(200, 160, 85, 0.48);
+    }
+
+    .guide b { color: var(--gold); font-weight: 500; }
+
+    .close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .search {
+      margin: 14px 18px 0;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      background: var(--surface);
+    }
+
+    .hero {
+      margin: 18px;
+      height: 190px;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.22), transparent 58%),
+        linear-gradient(160deg, #302b20, #15130e);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 210px;
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.18;
+    }
+
+    .hero p {
+      max-width: 230px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 0 18px;
+    }
+
+    .card {
+      height: 116px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="小程序首页添加引导原型">
+    <div class="status">9:41</div>
+    <div class="capsule" aria-label="微信原生胶囊占位">··· | ○</div>
+    <section class="nav">
+      <div class="brand">菲尚特瓷砖馆</div>
+      <div class="sub">质感空间，由砖而生</div>
+    </section>
+    <aside class="guide" aria-label="添加到我的小程序引导">
+      点击右上角按钮，<b>添加到我的小程序</b>，方便下次找回
+      <button class="close" type="button" aria-label="关闭引导">×</button>
+    </aside>
+    <div class="search">搜索瓷砖名称、编号或规格</div>
+    <section class="hero">
+      <h1>精选瓷砖 数字展厅</h1>
+      <p>浏览新品、热销与空间方案，快速找到适合门店客户的产品。</p>
+    </section>
+    <section class="grid" aria-label="首页内容示意">
+      <div class="card"><strong>按空间</strong>客厅、厨房、阳台</div>
+      <div class="card"><strong>按规格</strong>600×1200、750×1500</div>
+      <div class="card"><strong>新品推荐</strong>本月上新纹理</div>
+      <div class="card"><strong>热销推荐</strong>门店高频咨询</div>
+    </section>
+  </main>
+</body>
+</html>

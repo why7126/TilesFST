@@ -1,6 +1,71 @@
-<view class="placeholder-page">
-  <custom-navigation title="{{title}}" subtitle="本机临时收藏反馈" />
-  <view class="placeholder-title">{{title}}</view>
-  <view class="placeholder-desc">{{message}}</view>
-  <view class="placeholder-note">当前版本仅提供首页非持久化视觉反馈。</view>
+<view class="page">
+  <custom-navigation title="收藏列表" />
+
+  <view wx:if="{{total > 0}}" class="summary">
+    <view class="summary-label">已收藏商品：{{total}}</view>
+  </view>
+
+  <view wx:if="{{status == 'loading'}}" class="skeleton-list">
+    <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
+      <view class="skeleton-image"></view>
+      <view class="skeleton-copy">
+        <view class="skeleton-line strong"></view>
+        <view class="skeleton-line"></view>
+        <view class="skeleton-line short"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{status == 'error'}}" class="state">
+    <view class="state-title">收藏列表加载失败</view>
+    <view class="state-desc">请检查网络或稍后重试。</view>
+    <button class="primary-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:elif="{{status == 'empty'}}" class="state">
+    <view class="state-title">还没有收藏</view>
+    <view class="state-desc">浏览商品详情时点亮收藏，之后就能在这里快速找回。</view>
+    <button class="primary-btn" bindtap="openExplore">去浏览商品</button>
+  </view>
+
+  <view wx:else class="favorite-list">
+    <view
+      class="favorite-card {{item.status == 'available' ? '' : 'unavailable'}}"
+      wx:for="{{visibleItems}}"
+      wx:key="objectId"
+      data-id="{{item.objectId || item.sku_id || item.product_id}}"
+      data-index="{{index}}"
+      hover-class="card-press"
+      bindtap="openItem"
+    >
+      <view class="cover {{item.cover_image ? '' : 'fallback'}}">
+        <image
+          wx:if="{{item.cover_image}}"
+          src="{{item.cover_image}}"
+          mode="aspectFill"
+          data-index="{{index}}"
+          binderror="onImageError"
+        ></image>
+        <view wx:else class="cover-empty">暂无图片</view>
+        <view class="type-badge">{{item.status == 'available' ? 'SKU' : '已失效'}}</view>
+      </view>
+      <view class="favorite-main">
+        <view class="favorite-name">{{item.product_name}}</view>
+        <view class="favorite-meta">{{item.brand_name || '品牌待确认'}} · {{item.specification || '规格待补充'}}</view>
+        <view class="favorite-code">{{item.sku_code || 'SKU 待补充'}}</view>
+        <view class="favorite-price">{{item.status == 'available' ? item.price_display : '暂不可查看'}}</view>
+      </view>
+      <button
+        class="remove-btn"
+        catchtap="removeItem"
+        data-id="{{item.objectId || item.sku_id || item.product_id}}"
+        loading="{{removingId == item.objectId}}"
+        aria-label="取消收藏"
+      >♥</button>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="load-more">加载更多...</view>
+    <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
+    <view wx:elif="{{!hasMore}}" class="load-more">已经到底了</view>
+  </view>
 </view>

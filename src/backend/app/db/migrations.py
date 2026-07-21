@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
+
+logger = logging.getLogger(__name__)
+
+BANNER_SCOPE_DELETE_CONDITION = (
+    "display_client != 'MINIAPP_HOME' "
+    "OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')"
+)
 
 
 def _users_table_sql(connection: Connection) -> str:
@@ -330,6 +339,10 @@ def _ensure_banner_support(connection: Connection) -> None:
             )
 
     if _table_exists(connection, "banners"):
+        columns = _column_names(connection, "banners")
+        if "brand_id" not in columns:
+            connection.execute(text("ALTER TABLE banners ADD COLUMN brand_id INTEGER"))
+        _cleanup_legacy_banner_scope(connection)
         return
 
     connection.execute(
@@ -347,6 +360,7 @@ def _ensure_banner_support(connection: Connection) -> None:
               sku_id INTEGER,
               external_url TEXT,
               topic_id INTEGER,
+              brand_id INTEGER,
               sort_order INTEGER NOT NULL DEFAULT 100,
               valid_from TEXT,
               valid_to TEXT,
@@ -355,14 +369,34 @@ def _ensure_banner_support(connection: Connection) -> None:
               remark TEXT,
               created_at TEXT NOT NULL,
               updated_at TEXT NOT NULL,
+              CHECK (display_client = 'MINIAPP_HOME'),
+              CHECK (position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')),
+              CHECK (jump_type IN ('SKU_DETAIL', 'BRAND_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')),
+              CHECK (image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover', 'brand_logo')),
               UNIQUE(display_client, position, title),
               FOREIGN KEY(sku_id) REFERENCES tiles(id),
               FOREIGN KEY(topic_id) REFERENCES topics(id),
+              FOREIGN KEY(brand_id) REFERENCES brands(id),
               FOREIGN KEY(sku_gallery_asset_id) REFERENCES tile_images(id)
             )
             """
         )
     )
+    _cleanup_legacy_banner_scope(connection)
+
+
+def _cleanup_legacy_banner_scope(connection: Connection) -> int:
+    result = connection.execute(
+        text(f"DELETE FROM banners WHERE {BANNER_SCOPE_DELETE_CONDITION}")
+    )
+    deleted = int(result.rowcount or 0)
+    logger.info(
+        "Banner scope cleanup removed %s legacy records with condition: %s; "
+        "media objects were not deleted.",
+        deleted,
+        BANNER_SCOPE_DELETE_CONDITION,
+    )
+    return deleted
 
 
 def _ensure_password_change_support(connection: Connection) -> None:

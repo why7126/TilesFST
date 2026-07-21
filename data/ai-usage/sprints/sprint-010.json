@@ -1,0 +1,66 @@
+{
+  "sprint_id": "sprint-010",
+  "source": "data/ai-usage command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/20/rollout-2026-07-20T19-16-44-019f7f3e-1d02-7863-af40-8ce49bcbf979.jsonl"
+  ],
+  "generated_at": "2026-07-20T14:33:05.448402Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0063-password-validation-policy-simplification"
+    ],
+    "bugs": [],
+    "changes": [
+      "update-password-validation-policy"
+    ]
+  },
+  "models": [
+    {
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_context_window": 258400
+    }
+  ],
+  "totals": {
+    "input_tokens": 2250494,
+    "cached_input_tokens": 2218752,
+    "output_tokens": 6308,
+    "reasoning_output_tokens": 526,
+    "total_tokens": 2256802,
+    "command_run_count": 1,
+    "model_call_count": 10,
+    "tool_call_count": 24,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "by_workflow_event": {
+    "sprint.propose": {
+      "command_run_count": 1,
+      "model_call_count": 10,
+      "tool_call_count": 24,
+      "retry_count": 0,
+      "input_tokens": 2250494,
+      "cached_input_tokens": 2218752,
+      "output_tokens": 6308,
+      "reasoning_output_tokens": 526,
+      "total_tokens": 2256802
+    }
+  },
+  "by_model": {
+    "gpt-5.5|medium|frontier": {
+      "command_run_count": 1,
+      "model_call_count": 10,
+      "input_tokens": 2250494,
+      "cached_input_tokens": 2218752,
+      "output_tokens": 6308,
+      "reasoning_output_tokens": 526,
+      "total_tokens": 2256802
+    }
+  }
+}

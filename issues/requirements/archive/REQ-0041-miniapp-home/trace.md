@@ -3,7 +3,7 @@ requirement_id: REQ-0041-miniapp-home
 status: done
 priority: P1
 created_at: 2026-07-16 09:09:51
-updated_at: 2026-07-17 23:01:19
+updated_at: 2026-07-19 21:38:23
 lifecycle:
   captured: 2026-07-16 09:09:51
   generated: 2026-07-16 09:20:59
@@ -77,3 +77,4 @@ expected_openspec_change: add-miniapp-home
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0065-miniapp-home-preview-deviation | high | done | fix-miniapp-home-preview-runtime-entry | 微信小程序首页预览效果与 REQ-0041 原型和验收差异明显 |
+| BUG-0068-miniapp-home-device-acceptance-followup | high | done | fix-miniapp-home-device-acceptance | Sprint 008 小程序首页 DevTools 与真机验收残留未闭环 |

@@ -1,23 +1,95 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 52
+next_id: 64
 entries:
+  - id: REQ-0063-password-validation-policy-simplification
+    title: 密码校验规则简化
+    status: in_sprint
+    iteration: sprint-010
+    created: "2026-07-20 19:19:09"
+    parent_requirement: REQ-0015-password-change
+  - id: REQ-0062-admin-banner-placement-scope
+    title: 管理后台 Banner 投放范围配置优化
+    status: done
+    iteration: sprint-009
+    created: "2026-07-20 13:23:12"
+    parent_requirement: REQ-0016-banner-management
+  - id: REQ-0061-miniapp-share-add-guide
+    title: 小程序添加到我的小程序引导语
+    status: done
+    iteration: null
+    created: "2026-07-19 23:38:10"
+    parent_requirement:
+  - id: REQ-0060-brand-list-page
+    title: 新增品牌列表页
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 22:26:11"
+    parent_requirement: REQ-0005-brand-management
+  - id: REQ-0059-favorite-list-page
+    title: 新增收藏列表页
+    status: done
+    iteration: null
+    created: "2026-07-19 22:26:46"
+    parent_requirement:
+  - id: REQ-0058-brand-detail-home-page
+    title: 新增品牌详情页/主页功能
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 22:30:11"
+    parent_requirement: REQ-0005-brand-management
+  - id: REQ-0057-certificate-list-page
+    title: 新增证书列表页
+    status: done
+    iteration: null
+    created: "2026-07-19 22:27:20"
+    parent_requirement: REQ-0038-brand-certificate-management
+  - id: REQ-0056-product-list-card-only-layout
+    title: 商品列表页改为双列商品卡片展示
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 21:42:40"
+    parent_requirement: REQ-0047-product-list-common-component-application
+  - id: REQ-0055-brand-certificate-common-component
+    title: 生成品牌证书通用组件
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 17:37:58"
+    parent_requirement: REQ-0038-brand-certificate-management
+  - id: REQ-0054-brand-card-common-component
+    title: 生成品牌卡片通用组件
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 17:36:54"
+    parent_requirement: REQ-0005-brand-management
+  - id: REQ-0053-miniapp-custom-navigation-best-practice
+    title: 小程序自定义导航 best-practice 沉淀
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 17:28:06"
+    parent_requirement: REQ-0048-miniapp-global-custom-navigation-bar
+  - id: REQ-0052-miniapp-device-evidence-template
+    title: 小程序 DevTools/真机验收 evidence 模板
+    status: done
+    iteration: sprint-009
+    created: "2026-07-19 17:02:14"
+    parent_requirement:
   - id: REQ-0051-category-list-product-list-entry-by-level
     title: 分类列表页支持一二级分类商品列表入口
-    status: in_sprint
+    status: done
     iteration: sprint-009
     created: "2026-07-19 14:47:56"
     parent_requirement: REQ-0045-category-list-page
   - id: REQ-0050-miniapp-brand-header-page-title-rules
     title: 小程序 brand-header 页面标题规则
-    status: in_sprint
+    status: done
     iteration: sprint-009
     created: "2026-07-19 14:14:10"
     parent_requirement: REQ-0048-miniapp-global-custom-navigation-bar
   - id: REQ-0049-miniapp-product-card-component
     title: 微信小程序商品卡片组件
-    status: in_sprint
-    iteration: null
+    status: done
+    iteration: sprint-009
     created: "2026-07-19 12:04:38"
     parent_requirement: REQ-0047-product-list-common-component-application
   - id: REQ-0048-miniapp-global-custom-navigation-bar

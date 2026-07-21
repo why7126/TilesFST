@@ -1,0 +1,105 @@
+<view class="page">
+  <custom-navigation title="{{title}}" />
+
+  <view wx:if="{{loading}}" class="detail-skeleton">
+    <view class="hero-skeleton"></view>
+    <view class="line strong"></view>
+    <view class="line"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="state">
+    <view>{{error}}</view>
+    <button class="retry-btn" bindtap="retryBrand">重新加载</button>
+  </view>
+
+  <view wx:else>
+    <view class="brand-hero">
+      <view class="brand-logo-frame {{imageFailed || !brand.brand_logo_url ? 'fallback' : ''}}">
+        <image
+          wx:if="{{brand.brand_logo_url && !imageFailed}}"
+          class="brand-logo"
+          src="{{brand.brand_logo_url}}"
+          mode="aspectFill"
+          binderror="onBrandImageError"
+        ></image>
+        <view wx:else class="brand-logo-empty">{{brand.brand_short_name || brand.brand_name}}</view>
+        <view class="brand-overlay">
+          <view class="brand-copy">
+            <view class="brand-name">{{brand.brand_name}}</view>
+            <view wx:if="{{brand.english_name}}" class="brand-en">{{brand.english_name}}</view>
+          </view>
+          <view wx:if="{{brand.description}}" class="brand-description">{{brand.description}}</view>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view class="tab-scroll" scroll-x>
+      <button class="tab {{activeTab === 'products' ? 'active' : ''}}" bindtap="switchTab" data-tab="products">商品</button>
+      <button class="tab {{activeTab === 'certificates' ? 'active' : ''}}" bindtap="switchTab" data-tab="certificates">证书</button>
+    </scroll-view>
+
+    <view wx:if="{{activeTab === 'products'}}" class="tab-panel">
+      <view wx:if="{{productsLoading && !products.length}}" class="skeleton-grid">
+        <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this"></view>
+      </view>
+      <view wx:elif="{{productsError}}" class="state compact">
+        <view>{{productsError}}</view>
+        <button class="retry-btn" bindtap="retryProducts">重新加载</button>
+      </view>
+      <view wx:elif="{{!products.length}}" class="state compact">{{brand.brand_name}} 暂无公开商品</view>
+      <view wx:else class="product-grid">
+        <product-card
+          wx:for="{{products}}"
+          wx:key="product_id"
+          product="{{item}}"
+          density="grid"
+          source-page="brand-detail"
+          source-module="brand_products"
+          brand-id="{{brandId}}"
+          list-context="{{brand.brand_name}}"
+          index="{{index}}"
+          request-id="{{requestId}}"
+          image-fallback="{{imageFallback}}"
+        />
+      </view>
+      <view wx:if="{{productsLoading && products.length}}" class="load-more">加载更多...</view>
+      <view wx:elif="{{productsLoadMoreError}}" class="load-more retry" bindtap="retryProductsMore">{{productsLoadMoreError}}</view>
+      <view wx:elif="{{products.length && !productsHasMore}}" class="load-more">已经到底了</view>
+    </view>
+
+    <view wx:else class="tab-panel">
+      <view wx:if="{{certificatesLoading}}" class="state compact">证书加载中...</view>
+      <view wx:elif="{{certificatesError}}" class="state compact">
+        <view>{{certificatesError}}</view>
+        <button class="retry-btn" bindtap="retryCertificates">重新加载</button>
+      </view>
+      <view wx:elif="{{!certificates.length}}" class="state compact">{{brand.brand_name}} 暂无公开证书</view>
+      <view wx:else class="certificate-grid">
+        <view
+          wx:for="{{certificates}}"
+          wx:key="certificate_id"
+          class="certificate-card"
+          bindtap="previewCertificate"
+          data-index="{{index}}"
+          hover-class="card-press"
+        >
+          <view class="file-frame {{item.file_kind}}">
+            <image
+              wx:if="{{item.file_kind === 'image'}}"
+              class="file-image"
+              src="{{item.file_url}}"
+              mode="aspectFill"
+            ></image>
+            <view wx:elif="{{item.file_kind === 'pdf'}}" class="file-placeholder pdf">PDF</view>
+            <view wx:else class="file-placeholder">证书</view>
+          </view>
+          <view class="card-body">
+            <view class="certificate-name">{{item.certificate_name}}</view>
+            <view class="brand-name">{{brand.brand_name}}</view>
+            <view class="type-badge">{{item.certificate_type_label || item.certificate_type || '证书'}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

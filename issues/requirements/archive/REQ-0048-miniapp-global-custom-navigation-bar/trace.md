@@ -3,7 +3,7 @@ requirement_id: REQ-0048-miniapp-global-custom-navigation-bar
 status: done
 priority: P1
 created_at: 2026-07-19 11:02:04
-updated_at: 2026-07-19 13:52:15
+updated_at: 2026-07-19 18:25:57
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-19 11:02:04
@@ -15,7 +15,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-global-custom-navigation-bar
     type: add
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0042-custom-navigation-bar
 knowledge_base_refs:
@@ -43,7 +43,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-global-custom-navigation-bar
     type: add
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0042-custom-navigation-bar
 knowledge_base_refs:

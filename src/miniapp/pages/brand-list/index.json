@@ -1,0 +1,8 @@
+{
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "custom-navigation": "../../components/custom-navigation/index",
+    "brand-card": "../../components/brand-card/index"
+  }
+}

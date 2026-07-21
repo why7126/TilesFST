@@ -1,25 +1,23 @@
 <view class="page">
-  <custom-navigation title="搜索" subtitle="瓷砖名称 / 编号 / 规格" />
-  <view class="search-shell">
-    <view class="search-bar">
-      <text class="search-icon">⌕</text>
-      <input
-        class="search-input"
-        value="{{keyword}}"
-        placeholder="搜索瓷砖名称、编号或规格"
-        bindinput="onInput"
-        confirm-type="search"
-        bindconfirm="submitSearch"
-      />
-      <button wx:if="{{keyword}}" class="clear-btn" bindtap="clearKeyword">×</button>
-    </view>
-    <button class="search-btn" bindtap="submitSearch">搜索</button>
+  <custom-navigation title="{{searchMode == 'result' ? normalizedKeyword : '搜索'}}" />
+  <view wx:if="{{searchMode != 'result'}}" class="search-safe-area">
+    <search-entry
+      keyword="{{keyword}}"
+      scope="{{scope}}"
+      source-page="{{sourcePage}}"
+      show-back="{{false}}"
+      disabled="{{loading}}"
+      bind:input="onSearchEntryInput"
+      bind:submit="onSearchEntrySubmit"
+      bind:clear="clearKeyword"
+      bind:cancel="cancelSearch"
+    />
   </view>
 
-  <view wx:if="{{!normalizedKeyword && !suggestions.length}}" class="search-home">
-    <view wx:if="{{recentSearches.length}}" class="section-head">
-      <text>最近搜索</text>
-      <button class="text-btn" bindtap="clearHistory">清空</button>
+  <view wx:if="{{searchMode == 'home'}}" class="search-home">
+    <view wx:if="{{recentSearches.length}}" class="section-head recent-head">
+      <text class="section-title">最近搜索</text>
+      <button class="text-btn clear-history-btn" bindtap="clearHistory">清空</button>
     </view>
     <view wx:if="{{recentSearches.length}}" class="chip-row">
       <view wx:for="{{recentSearches}}" wx:key="*this" class="history-chip">
@@ -34,31 +32,30 @@
         {{item}}
       </button>
     </view>
-
-    <view class="section-head"><text>最近浏览</text></view>
-    <view wx:if="{{recentBrowsing.length}}" class="result-list compact">
-      <view wx:for="{{recentBrowsing}}" wx:key="product_id" class="result-card" bindtap="openProduct" data-item="{{item}}">
-        <image class="result-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
-        <view class="result-info">
-          <view class="product-name">{{item.product_name}}</view>
-          <view class="product-meta">{{item.sku_code}} · {{item.specification}}</view>
-          <view class="product-price">{{item.price_display}}</view>
-        </view>
-      </view>
-    </view>
-    <view wx:else class="soft-state">浏览商品后会展示在这里</view>
   </view>
 
-  <view wx:elif="{{suggestions.length || suggesting}}" class="suggest-panel">
+  <view wx:elif="{{searchMode == 'suggest'}}" class="suggest-panel">
     <view wx:if="{{suggesting}}" class="soft-state">正在联想...</view>
+    <view wx:if="{{brandSuggestions.length}}" class="suggest-group-title">品牌</view>
     <view
-      wx:for="{{suggestions}}"
+      wx:for="{{brandSuggestions}}"
       wx:key="id"
       class="suggest-row"
       bindtap="openSuggestion"
       data-item="{{item}}"
     >
-      <text class="suggest-type">{{item.entity_type}}</text>
+      <text class="suggest-type">{{item.group_label || item.entity_type}}</text>
+      <text class="suggest-text">{{item.text}}</text>
+    </view>
+    <view wx:if="{{skuSuggestions.length}}" class="suggest-group-title">SKU</view>
+    <view
+      wx:for="{{skuSuggestions}}"
+      wx:key="id"
+      class="suggest-row"
+      bindtap="openSuggestion"
+      data-item="{{item}}"
+    >
+      <text class="suggest-type">{{item.group_label || item.entity_type}}</text>
       <text class="suggest-text">{{item.text}}</text>
     </view>
   </view>
@@ -76,31 +73,20 @@
       </button>
     </scroll-view>
 
-    <view class="filter-line">
-      <view class="quick-filters">
-        <button
-          wx:for="{{facets.brands}}"
-          wx:key="value"
-          wx:if="{{index < 3}}"
-          class="filter-chip {{item.selected ? 'selected' : ''}}"
-          bindtap="selectFacet"
-          data-type="brand"
-          data-value="{{item.value}}"
-        >
-          {{item.label}}
-        </button>
-      </view>
-      <button class="filter-btn" bindtap="openFilterDrawer">筛选</button>
-    </view>
-
     <view wx:if="{{loading}}" class="state">加载中...</view>
     <view wx:elif="{{error}}" class="state">
       <view>{{error}}</view>
       <button class="retry-btn" bindtap="retrySearch">重试</button>
     </view>
-    <view wx:elif="{{!total}}" class="state">
+    <view wx:elif="{{!hasResults}}" class="state empty-state">
+      <view class="empty-icon">⌕</view>
       <view class="empty-title">没有找到“{{normalizedKeyword}}”</view>
-      <view class="empty-copy">试试缩短编码，或替换品牌、规格、名称</view>
+      <view class="empty-copy">可以尝试下面的调整方式</view>
+      <view class="empty-suggestions">
+        <view>检查 SKU 编码或型号是否完整</view>
+        <view>缩短关键词，只保留品牌、规格或名称</view>
+        <view>替换相近品牌、类目或规格重新搜索</view>
+      </view>
       <view class="chip-row center">
         <button wx:for="{{recommendedKeywords}}" wx:key="*this" class="keyword-chip" bindtap="useKeyword" data-keyword="{{item}}">
           {{item}}
@@ -109,47 +95,105 @@
     </view>
 
     <view wx:else class="result-list">
-      <view wx:if="{{bestMatch}}" class="best-match" bindtap="openProduct" data-item="{{bestMatch}}">
+      <view wx:if="{{activeTab == 'all' && bestMatch}}" class="best-match">
         <text>最佳匹配</text>
-        <view>{{bestMatch.product_name}} · {{bestMatch.sku_code}}</view>
-      </view>
-      <view wx:for="{{items}}" wx:key="product_id" class="result-card" bindtap="openProduct" data-item="{{item}}">
-        <image class="result-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
-        <view class="result-info">
-          <view class="product-name">{{item.product_name}}</view>
-          <view class="product-meta">{{item.sku_code}} · {{item.brand_name || '品牌'}} · {{item.specification}}</view>
-          <view class="product-meta">{{item.category_name}}</view>
-          <view class="product-price">{{item.price_display}}</view>
+        <product-card
+          wx:if="{{bestMatch.entity_type == 'sku' || bestMatch.product_id}}"
+          product="{{bestMatch}}"
+          density="list"
+          source-page="search"
+          source-module="best_match"
+          keyword="{{normalizedKeyword}}"
+          list-context="best_match"
+          index="0"
+          request-id="{{requestId}}"
+          image-fallback="{{imageFallback}}"
+          bindcardtap="rememberProduct"
+        />
+        <view wx:else class="section-result-product-card" bindtap="openSectionItem" data-item="{{bestMatch}}">
+          <view class="section-card-image-frame">
+            <text>{{bestMatch.entity_type == 'brand' ? '品牌' : '匹配'}}</text>
+          </view>
+          <view class="section-card-content">
+            <view class="section-card-name">{{bestMatch.title || bestMatch.name}}</view>
+            <view class="section-card-brand">{{bestMatch.entity_type == 'brand' ? '品牌' : '搜索结果'}}</view>
+            <view class="section-card-spec">{{bestMatch.count ? bestMatch.count + ' 个公开 SKU' : '查看详情'}}</view>
+            <view class="section-card-price"><text>最佳匹配</text>{{bestMatch.title || bestMatch.name}}</view>
+          </view>
         </view>
       </view>
+      <block wx:if="{{activeTab == 'all'}}">
+        <view wx:for="{{displaySections}}" wx:key="title" class="result-section">
+          <view class="result-section-head">
+            <text>{{item.title}}</text>
+            <text>{{item.count}} 条</text>
+          </view>
+          <view wx:if="{{item.entity_type == 'sku'}}" class="section-product-list">
+            <product-card
+              wx:for="{{item.items}}"
+              wx:for-item="sectionItem"
+              wx:key="id"
+              product="{{sectionItem}}"
+              density="list"
+              source-page="search"
+              source-module="section_sku"
+              keyword="{{normalizedKeyword}}"
+              list-context="section_sku"
+              index="{{index}}"
+              request-id="{{requestId}}"
+              image-fallback="{{imageFallback}}"
+              bindcardtap="rememberProduct"
+            />
+          </view>
+          <block wx:else>
+            <view wx:for="{{item.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
+              <view class="section-card-image-frame">
+                <text>{{item.card_label}}</text>
+              </view>
+              <view class="section-card-content">
+                <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || sectionItem.sku_code}}</view>
+                <view class="section-card-brand">{{item.card_label}}</view>
+                <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
+                <view class="section-card-price"><text>相关信息</text>{{sectionItem.sku_code || sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </block>
+      <block wx:elif="{{activeDisplaySection}}">
+        <view wx:if="{{activeDisplaySection.entity_type == 'sku'}}" class="section-product-list">
+          <product-card
+            wx:for="{{activeDisplaySection.items}}"
+            wx:for-item="sectionItem"
+            wx:key="id"
+            product="{{sectionItem}}"
+            density="list"
+            source-page="search"
+            source-module="section_sku"
+            keyword="{{normalizedKeyword}}"
+            list-context="section_sku"
+            index="{{index}}"
+            request-id="{{requestId}}"
+            image-fallback="{{imageFallback}}"
+            bindcardtap="rememberProduct"
+          />
+        </view>
+        <block wx:else>
+          <view wx:for="{{activeDisplaySection.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
+            <view class="section-card-image-frame">
+              <text>{{activeDisplaySection.card_label}}</text>
+            </view>
+            <view class="section-card-content">
+              <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || sectionItem.sku_code}}</view>
+              <view class="section-card-brand">{{activeDisplaySection.card_label}}</view>
+              <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
+              <view class="section-card-price"><text>相关信息</text>{{sectionItem.sku_code || sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+            </view>
+          </view>
+        </block>
+      </block>
       <button wx:if="{{hasMore && !loading}}" class="more-btn" bindtap="loadMore">加载更多</button>
     </view>
   </view>
 
-  <view wx:if="{{filterDrawerOpen}}" class="drawer-mask" bindtap="closeFilterDrawer"></view>
-  <view wx:if="{{filterDrawerOpen}}" class="filter-drawer">
-    <view class="drawer-head">
-      <text>筛选</text>
-      <button class="text-btn" bindtap="resetFilters">重置</button>
-    </view>
-    <view class="facet-title">品牌</view>
-    <view class="chip-row">
-      <button wx:for="{{facets.brands}}" wx:key="value" class="filter-chip {{item.selected ? 'selected' : ''}}" bindtap="selectFacet" data-type="brand" data-value="{{item.value}}">
-        {{item.label}} {{item.count}}
-      </button>
-    </view>
-    <view class="facet-title">类目</view>
-    <view class="chip-row">
-      <button wx:for="{{facets.categories}}" wx:key="value" class="filter-chip {{item.selected ? 'selected' : ''}}" bindtap="selectFacet" data-type="category" data-value="{{item.value}}">
-        {{item.label}} {{item.count}}
-      </button>
-    </view>
-    <view class="facet-title">规格</view>
-    <view class="chip-row">
-      <button wx:for="{{facets.specs}}" wx:key="value" class="filter-chip {{item.selected ? 'selected' : ''}}" bindtap="selectFacet" data-type="spec" data-value="{{item.value}}">
-        {{item.label}} {{item.count}}
-      </button>
-    </view>
-    <button class="apply-btn" bindtap="applyFilters">查看 {{total}} 个结果</button>
-  </view>
 </view>

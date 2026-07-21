@@ -1,0 +1,181 @@
+sprint_id: sprint-009
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-31 09:00:00
+end_date: 2026-08-14 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0049-miniapp-product-card-component
+  - REQ-0050-miniapp-brand-header-page-title-rules
+  - REQ-0051-category-list-product-list-entry-by-level
+  - REQ-0052-miniapp-device-evidence-template
+  - REQ-0053-miniapp-custom-navigation-best-practice
+  - REQ-0054-brand-card-common-component
+  - REQ-0055-brand-certificate-common-component
+  - REQ-0056-product-list-card-only-layout
+  - REQ-0057-certificate-list-page
+  - REQ-0058-brand-detail-home-page
+  - REQ-0059-favorite-list-page
+  - REQ-0060-brand-list-page
+  - REQ-0061-miniapp-share-add-guide
+  - REQ-0062-admin-banner-placement-scope
+bugs:
+  - BUG-0066-search-component-prototype-deviation
+  - BUG-0067-home-recommendation-list-entry-routing
+  - BUG-0068-miniapp-home-device-acceptance-followup
+  - BUG-0069-miniapp-sku-detail-carousel-video-not-playable
+changes:
+  - update-miniapp-product-card-component
+  - fix-miniapp-home-recommendation-routing
+  - update-miniapp-brand-header-title-rules
+  - update-brand-certificate-common-component
+  - add-miniapp-device-evidence-template
+  - fix-miniapp-search-prototype-alignment
+  - add-miniapp-brand-card-component
+  - update-miniapp-category-product-list-entry
+  - fix-miniapp-home-device-acceptance
+  - add-miniapp-custom-navigation-best-practice
+  - update-miniapp-product-list-card-only-layout
+  - add-miniapp-certificate-list-page
+  - add-miniapp-brand-detail-home-page
+  - add-favorite-list-page
+  - add-brand-list-page
+  - add-miniapp-share-add-guide
+  - fix-miniapp-sku-detail-video-url
+  - update-admin-banner-placement-scope
+
+estimated_story_points: 36
+estimated_person_days: 36.0
+capacity_usage: 1.2
+fix_buffer_person_days: -6.0
+fix_buffer_ratio: -0.2
+
+scope_estimates:
+  - id: REQ-0049-miniapp-product-card-component
+    change: update-miniapp-product-card-component
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "微信小程序商品卡片组件：作为 REQ-0047 商品列表通用组件的子需求，聚焦单个卡片展示、图片占位、点击跳转、异常状态和埋点建议；默认不新增 API/DB，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: REQ-0050-miniapp-brand-header-page-title-rules
+    change: update-miniapp-brand-header-title-rules
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "小程序 brand-header 页面标题规则：作为 REQ-0048 全局自定义导航栏的 refinement，聚焦首页两行文案、非首页单行标题、返回按钮、状态栏和微信原生胶囊避让；默认不新增 API/DB，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: BUG-0066-search-component-prototype-deviation
+    change: fix-miniapp-search-prototype-alignment
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "搜索组件原型偏差修复：需对齐 REQ-0046 的 5 个搜索状态原型，涉及小程序搜索页 WXML/WXSS/TS、通用搜索组件应用、综合分区、筛选价格区间、无结果状态和静态验收测试；默认不新增 API/DB。"
+  - id: REQ-0051-category-list-product-list-entry-by-level
+    change: update-miniapp-category-product-list-entry
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "分类列表页支持一二级分类商品列表入口：涉及小程序分类页一级聚合入口、二级精确入口参数、商品列表 categoryLevel 上下文、空状态/埋点，以及可能的后端一级分类子分类聚合查询语义；需先 /req-opsx 创建 OpenSpec Change。"
+  - id: BUG-0067-home-recommendation-list-entry-routing
+    change: fix-miniapp-home-recommendation-routing
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "首页推荐模块查看更多和榜单入口误跳搜索页修复：聚焦微信小程序首页新品榜、热销榜、新品推荐查看更多、热销推荐查看更多 4 个入口路由，需同步 .ts/.js 与静态测试；默认不新增 API/DB。"
+  - id: REQ-0052-miniapp-device-evidence-template
+    change: add-miniapp-device-evidence-template
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "小程序 DevTools/真机验收 evidence 模板：文档/治理型能力，沉淀设备验收 evidence 字段、状态、DevTools/真机边界和 follow-up 规则；默认不修改小程序源码、API、DB、Orval 或 Docker，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: REQ-0053-miniapp-custom-navigation-best-practice
+    change: add-miniapp-custom-navigation-best-practice
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "小程序自定义导航 best-practice 沉淀：文档/治理型能力，沉淀状态栏、微信原生胶囊、返回兜底、页面 offset 和截图验收矩阵；默认不修改小程序源码、API、DB、Orval 或 Docker，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: REQ-0054-brand-card-common-component
+    change: add-miniapp-brand-card-component
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "微信小程序品牌卡片组件：聚焦单个品牌卡片展示、Logo fallback、点击跳转、卡片级异常和 SKU 详情页内联结构替换；默认不新增 API/DB、Logo 上传链路、Web 端组件或管理端操作，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: BUG-0068-miniapp-home-device-acceptance-followup
+    change: fix-miniapp-home-device-acceptance
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "Sprint 008 小程序首页 DevTools 与真机验收残留未闭环：聚焦首页真实预览、320-430 pt、胶囊避让、fixed header / TabBar 内容不遮挡和 evidence 补齐；默认不新增 API/DB/Orval/Docker，需先 /bug-opsx 创建修复 Change。"
+  - id: BUG-0069-miniapp-sku-detail-carousel-video-not-playable
+    change: fix-miniapp-sku-detail-video-url
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "SKU 商品详情页轮播图视频不能显示和播放修复：聚焦小程序 SKU 详情接口视频 URL 使用 object_key 生成安全媒体 URL、后端真实字段语义回归测试和小程序视频节点静态回归；默认不新增 DB、上传、转码、封面生成、Orval 或 Docker。"
+  - id: REQ-0055-brand-certificate-common-component
+    change: update-brand-certificate-common-component
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "品牌证书通用组件：管理端组件化 refinement，聚焦证书缩略图、信息单元、有效期/状态 Badge、预览入口、文件卡片、现有品牌证书管理页替换和 admin-list/admin-modal/media-upload 横切 AC；默认不新增 API/DB/Orval，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: REQ-0056-product-list-card-only-layout
+    change: update-miniapp-product-list-card-only-layout
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "微信小程序商品列表页双列卡片展示策略收敛：聚焦移除商品列表页搜索/筛选/排序控件、复用首页热销推荐式双列商品卡片、保留入口上下文与分页状态；默认不新增 API/DB/Orval/Docker，需先 /req-opsx 创建 OpenSpec Change。"
+  - id: REQ-0057-certificate-list-page
+    change: add-miniapp-certificate-list-page
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "新增证书列表页：小程序公开证书聚合列表能力，聚焦公开证书 API、证书卡片、搜索筛选、分页加载、图片/PDF 预览、数据安全过滤、埋点和 320/375/430 pt 自定义导航 evidence；涉及后端 API、OpenAPI/Orval、小程序页面与测试。"
+  - id: REQ-0058-brand-detail-home-page
+    change: add-miniapp-brand-detail-home-page
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "新增品牌详情页/主页功能：微信小程序品牌入口页与品牌主页/详情页，包含品牌轮播、双列品牌卡片、品牌信息区、商品 Tab、证书 Tab、公开数据过滤、导航与设备验收；可能涉及后端公开接口、OpenAPI/Orval、小程序页面和受控媒体 URL。"
+  - id: REQ-0059-favorite-list-page
+    change: add-favorite-list-page
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "新增收藏列表页：用户侧回访已收藏对象能力，聚焦收藏列表、详情跳转、取消收藏、空/错/未登录状态、详情页状态一致性和小程序/店主 Web 端范围确认；可能涉及 API/DB，需在实现阶段明确接口与数据模型。"
+  - id: REQ-0060-brand-list-page
+    change: add-brand-list-page
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "新增品牌列表页：微信小程序品牌频道能力，聚焦品牌入口、品牌轮播、双列品牌卡片列表、品牌详情/商品列表跳转、公开品牌过滤、埋点和小程序导航设备 evidence；可能复用或扩展小程序品牌/Banner API，需在实现阶段明确接口与数据来源。"
+  - id: REQ-0061-miniapp-share-add-guide
+    change: add-miniapp-share-add-guide
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "小程序添加到我的小程序引导语：轻量 UI 引导能力，聚焦右上角微信原生入口附近提示、胶囊避让、手工关闭、本地关闭状态和 DevTools/真机 evidence；默认不新增 API/DB/Orval/Web 管理端，需按小程序自定义导航 best-practice 验收。"
+  - id: REQ-0062-admin-banner-placement-scope
+    change: update-admin-banner-placement-scope
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "管理后台 Banner 投放范围配置优化：收敛展示端为小程序、展示位置为首页轮播与品牌列表页轮播，删除旧 Web/专题/历史位置 Banner 业务数据，并同步后端 API/DB、OpenAPI/Orval、小程序品牌列表页轮播分流以及 admin-list/admin-modal/media-upload 横切 AC。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 36.0
+  capacity_usage: 1.2
+  note: "REQ-0049、REQ-0050、REQ-0051、REQ-0052、REQ-0053、REQ-0054、REQ-0055、REQ-0056、REQ-0057、REQ-0058、REQ-0059、REQ-0060、REQ-0061、REQ-0062、BUG-0066、BUG-0067、BUG-0068 与 BUG-0069 均已评审通过并完成文档包；合计估算 36.0 人天，容量占用 120.00%，等于 120% 硬阻断阈值但未超过，允许纳入但风险已到边界。fix 缓冲 -6.0 人天 / -20.00%，低于 SHOULD >= 30% 建议，必须严格冻结新增范围并优先移出低优先级项、拆分 Sprint 或以替换范围方式调整。"
+
+deferred_items:
+  - id: REQ-0049-open-change
+    source: REQ-0049-miniapp-product-card-component
+    priority: P1
+    status: action_required
+    title: 创建微信小程序商品卡片组件 OpenSpec Change
+    recommended_next_step: "/req-opsx REQ-0049-miniapp-product-card-component"

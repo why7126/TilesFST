@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-19 02:17:59
+updated_at: 2026-07-20 22:51:30
 note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.example
 ---
 
@@ -388,15 +388,16 @@ OpenSpec：`openspec/changes/add-banner-management/`
 |---|---|---|---|
 | id | INTEGER | PK AUTOINCREMENT | |
 | title | TEXT | NOT NULL | Banner 标题 |
-| display_client | TEXT | NOT NULL | `WEB_HOME` \| `MINIAPP_HOME` \| `TOPIC` |
-| position | TEXT | NOT NULL | 展示位置（与 display_client 组合校验） |
+| display_client | TEXT | NOT NULL, CHECK | 当前仅支持 `MINIAPP_HOME`；管理端文案显示“小程序” |
+| position | TEXT | NOT NULL, CHECK | `MINIAPP_HOME_CAROUSEL` \| `MINIAPP_BRAND_LIST_CAROUSEL` |
 | image_object_key | TEXT | NOT NULL | 图片 MinIO 键 |
-| image_source | TEXT | NOT NULL | `sku_main_image` \| `sku_gallery_image` \| `custom_upload` \| `topic_cover` |
+| image_source | TEXT | NOT NULL | `sku_main_image` \| `sku_gallery_image` \| `custom_upload` \| `topic_cover` \| `brand_logo` |
 | sku_gallery_asset_id | INTEGER | FK → tile_images.id | SKU 图库引用 |
-| jump_type | TEXT | NOT NULL | `SKU_DETAIL` \| `EXTERNAL_LINK` \| `TOPIC_PAGE` \| `NO_JUMP` |
+| jump_type | TEXT | NOT NULL | `SKU_DETAIL` \| `BRAND_DETAIL` \| `EXTERNAL_LINK` \| `TOPIC_PAGE` \| `NO_JUMP` |
 | sku_id | INTEGER | FK → tiles.id | SKU 跳转目标 |
 | external_url | TEXT | NULL | HTTPS 外链 |
 | topic_id | INTEGER | FK → topics.id | 专题跳转目标 |
+| brand_id | INTEGER | FK → brands.id | 品牌详情跳转目标 |
 | sort_order | INTEGER | NOT NULL, DEFAULT 100 | 排序 |
 | valid_from | TEXT | NULL | 生效开始 |
 | valid_to | TEXT | NULL | 生效结束 |
@@ -406,7 +407,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 UNIQUE `(display_client, position, title)`。ORM：`src/backend/app/models/banner.py`  
-迁移：`migrations.py` → `_ensure_banner_support`
+迁移：`migrations.py` → `_ensure_banner_support`；`update-admin-banner-placement-scope` 执行旧数据清理，删除条件为 `display_client != 'MINIAPP_HOME' OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')`。该清理仅删除 Banner 业务记录，不物理删除 MinIO 对象或其他业务表中的媒体引用；如需回滚旧 Banner 数据，依赖数据库备份恢复。
 
 ---
 
@@ -534,7 +535,7 @@ MySQL baseline：`src/backend/app/db/schema.mysql.sql` 中同名表，`client_id
 | `INTEGER` 布尔 | `TINYINT` | `is_main`、`success` |
 | `CHECK` | MySQL 8.0 `CHECK` | 关键枚举保留数据库约束 |
 
-MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku_code`、`tile_specs(width_mm,length_mm,unit)`、`banners(display_client,position,title)`，以及审计、活动日志与媒体查询路径索引。
+MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku_code`、`tile_specs(width_mm,length_mm,unit)`、`banners(display_client,position,title)`，以及审计、活动日志与媒体查询路径索引。Banner baseline 与 SQLite 最终态一致：`display_client` 仅允许 `MINIAPP_HOME`，`position` 仅允许 `MINIAPP_HOME_CAROUSEL` 与 `MINIAPP_BRAND_LIST_CAROUSEL`。
 
 ## 13.2 初始化与 Seed
 
@@ -554,10 +555,10 @@ MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku
 | tiles / tile_images / tile_videos | `/api/v1/admin/tile-skus`、`GET /api/v1/tiles`（展示桩）、`/api/v1/miniapp/home`、`/api/v1/miniapp/products`、`/api/v1/miniapp/search*`、`/api/v1/miniapp/skus/{sku_id}` |
 | miniapp_sku_favorites | `PUT /api/v1/miniapp/skus/{sku_id}/favorite`、`GET /api/v1/miniapp/skus/{sku_id}` 收藏状态 |
 | banners | `/api/v1/admin/banners`、`/api/v1/miniapp/home` |
-| brand_certificates | `/api/v1/admin/brand-certificates`、`/api/v1/miniapp/search` 完整搜索证书分区 |
+| brand_certificates | `/api/v1/admin/brand-certificates`、`/api/v1/miniapp/search` 完整搜索证书分区、`/api/v1/miniapp/certificates` 公开证书列表、`/api/v1/miniapp/brands/{brand_id}/certificates` 品牌主页证书 Tab |
 | usage_events | `/api/v1/usage-events`；小程序热销推荐读取 `product_detail_view`、`product_share`、`product_contact_click` 聚合计数；REQ-0043 首页样式优化新增瀑布流、快捷入口、收藏视觉和证书 Tab 事件；REQ-0044 新增 SKU 详情、媒体、收藏、分享、品牌、推荐和加载失败事件；REQ-0046 新增搜索浏览、输入、联想、提交、结果、筛选、无结果和历史操作事件；REQ-0047 新增商品列表浏览、曝光、点击、筛选、排序、刷新、加载更多和失败事件 |
 
-Sprint 008 `add-miniapp-home`、`update-miniapp-home-style-optimization`、`add-miniapp-search-component` 与 `add-miniapp-product-list-component` 未新增业务表。小程序首页、全部产品瀑布流、搜索和商品列表复用既有 `brands`、`tile_categories`、`tile_specs`、`tiles`、`tile_images`、`brand_certificates`、`banners` 和 `usage_events`：人工配置与发布时间字段优先，行为事件统计作为热销推荐、热门搜索和商品发现效率分析的辅助依据；REQ-0046 与 REQ-0047 新增事件字典不改变 `usage_events` 表结构。若后续需要高性能搜索索引、排行榜缓存表、商品列表运营插槽或后台搜索配置中心，必须另走 OpenSpec Change 并同步 SQLite/MySQL schema、迁移、文档和测试。
+Sprint 008/009 `add-miniapp-home`、`update-miniapp-home-style-optimization`、`add-miniapp-search-component`、`add-miniapp-product-list-component` 与 `add-miniapp-certificate-list-page` 未新增业务表。小程序首页、全部产品瀑布流、搜索、商品列表、品牌证书 Tab 和公开证书列表复用既有 `brands`、`tile_categories`、`tile_specs`、`tiles`、`tile_images`、`brand_certificates`、`banners` 和 `usage_events`：人工配置与发布时间字段优先，行为事件统计作为热销推荐、热门搜索和商品发现效率分析的辅助依据；REQ-0046、REQ-0047 与 REQ-0057 新增事件字典不改变 `usage_events` 表结构。若后续需要高性能搜索索引、排行榜缓存表、商品列表运营插槽、证书运营配置或后台搜索配置中心，必须另走 OpenSpec Change 并同步 SQLite/MySQL schema、迁移、文档和测试。
 
 索引：`docs/03-api-index.md`
 

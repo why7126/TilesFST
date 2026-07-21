@@ -66,6 +66,42 @@ def write_change(root: Path) -> None:
     (change_dir / "proposal.md").write_text("REQ-9999 BUG-9999\n", encoding="utf-8")
 
 
+def write_large_sprint(root: Path, change_count: int = 11) -> list[str]:
+    change_ids = [f"add-batch-{index:02d}" for index in range(1, change_count + 1)]
+    sprint_dir = root / "iterations" / "change" / "sprint-998"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-998",
+                "status: in_progress",
+                "lifecycle_stage: change",
+                "start_date: 2026-07-01 09:00:00",
+                "end_date: 2026-07-02 18:00:00",
+                "requirements: []",
+                "bugs: []",
+                "changes:",
+                *[f"  - {change_id}" for change_id in change_ids],
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (sprint_dir / "sprint.md").write_text("# Sprint\n", encoding="utf-8")
+    (sprint_dir / "release-note.md").write_text("# Release\n", encoding="utf-8")
+    (sprint_dir / "acceptance-report.md").write_text("# Acceptance\n\n**Verdict:** PASS\n", encoding="utf-8")
+    for index, change_id in enumerate(change_ids, start=1):
+        change_dir = root / "openspec" / "changes" / change_id
+        change_dir.mkdir(parents=True)
+        task_lines = ["- [x] implement", "- [x] test"]
+        if index == 6:
+            task_lines[-1] = "- [ ] test"
+        (change_dir / "tasks.md").write_text("\n".join(task_lines) + "\n", encoding="utf-8")
+        if index != 7:
+            (change_dir / "trace.md").write_text("---\nstatus: applied\n---\n", encoding="utf-8")
+    return change_ids
+
+
 def seed_project(root: Path) -> None:
     write_sprint(root)
     write_issue(
@@ -97,6 +133,36 @@ def test_build_fact_sheet_collects_scope_and_tasks(tmp_path: Path) -> None:
     assert fact_sheet["scope"]["counts"]["tasks_total"] == 2
     assert fact_sheet["changes"][0]["trace_exists"] is True
     assert fact_sheet["acceptance"]["signals"] == ["**Verdict:** PASS"]
+    assert fact_sheet["change_batches"]["applicable"] is False
+    assert fact_sheet["change_batches"]["reason"] == "not_applicable"
+
+
+def test_fact_sheet_builds_change_batches_for_large_sprint(tmp_path: Path) -> None:
+    change_ids = write_large_sprint(tmp_path)
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-998", root=tmp_path)
+    batches = fact_sheet["change_batches"]
+
+    assert batches["applicable"] is True
+    assert batches["total_changes"] == 11
+    assert batches["batch_count"] == 3
+    assert batches["batches"][0]["change_ids"] == change_ids[:5]
+    assert batches["batches"][1]["counts"]["tasks_done"] == 9
+    assert batches["batches"][1]["counts"]["tasks_total"] == 10
+    assert batches["batches"][1]["counts"]["trace_missing"] == 1
+    assert batches["batches"][1]["warning_labels"]["change-tasks-incomplete"] == 1
+    assert batches["batches"][1]["warning_labels"]["change-trace-missing"] == 1
+
+
+def test_fact_sheet_summary_includes_compact_change_batches(tmp_path: Path) -> None:
+    write_large_sprint(tmp_path)
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-998", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+
+    assert summary["change_batches"]["applicable"] is True
+    assert summary["change_batches"]["batch_count"] == 3
+    assert "evidence_hints" not in summary["change_batches"]["batches"][0]
 
 
 def test_acceptance_summary_prioritizes_final_sections_over_raw_ac(tmp_path: Path) -> None:
@@ -130,6 +196,18 @@ def test_acceptance_summary_prioritizes_final_sections_over_raw_ac(tmp_path: Pat
     assert not any("未完成的旧 AC" in signal for signal in summary["signals"])
 
 
+def test_build_fact_sheet_handles_missing_acceptance_report(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    report = tmp_path / "iterations" / "archive" / "sprint-999" / "acceptance-report.md"
+    report.unlink()
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+
+    assert fact_sheet["acceptance"]["exists"] is False
+    assert fact_sheet["acceptance"]["signals"] == []
+    assert "change_batches" in fact_sheet
+
+
 def test_render_markdown_includes_evidence_hints(tmp_path: Path) -> None:
     seed_project(tmp_path)
     fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
@@ -153,6 +231,36 @@ def test_fact_sheet_exposes_archived_path_residual_warnings(tmp_path: Path) -> N
     assert residuals["residual_count"] == 1
     assert any(warning["kind"] == "archived-path-residual" for warning in fact_sheet["warnings"])
     assert any("Archived path residual" in hint["reason"] for hint in fact_sheet["evidence_hints"])
+
+
+def test_summary_exposes_compact_detail_signals_without_evidence_hints(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    trace = tmp_path / "issues" / "requirements" / "archive" / "REQ-9999-demo" / "trace.md"
+    trace.write_text("Old link: iterations/change/sprint-999/sprint.md\n", encoding="utf-8")
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+
+    assert summary["sprint"]["sprint_id"] == "sprint-999"
+    assert summary["scope"]["counts"]["changes"] == 1
+    assert summary["tasks"] == {"done": 2, "total": 2}
+    assert summary["needs_detail"] is True
+    assert summary["warnings"]["count"] == 1
+    assert summary["detail_triggers"]["evidence_hint_count"] == len(fact_sheet["evidence_hints"])
+    assert "evidence_hints" not in summary
+
+
+def test_select_fields_can_return_evidence_hints_and_nested_values(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+
+    selected = generate_sprint_fact_sheet.select_fields(
+        fact_sheet,
+        ["evidence_hints", "ai_usage_snapshot.snapshot_status"],
+    )
+
+    assert selected["evidence_hints"] == fact_sheet["evidence_hints"]
+    assert selected["ai_usage_snapshot.snapshot_status"] == "missing"
 
 
 def test_fact_sheet_reads_ai_usage_snapshot(tmp_path: Path) -> None:
@@ -282,6 +390,50 @@ def test_cli_json_output_is_parseable() -> None:
     assert payload["sprint"]["sprint_id"] == "sprint-005"
     assert "changes" in payload
     assert "token_risks" in payload
+    assert "evidence_hints" in payload
+
+
+def test_cli_summary_output_is_compact_and_parseable() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--sprint", "sprint-005", "--summary"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["sprint"]["sprint_id"] == "sprint-005"
+    assert "token_risks" in payload
+    assert "detail_triggers" in payload
+    assert "evidence_hints" not in payload
+
+
+def test_cli_fields_output_can_return_evidence_hints() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--sprint", "sprint-005", "--fields", "evidence_hints"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert "evidence_hints" in payload
+    assert isinstance(payload["evidence_hints"], list)
+
+
+def test_cli_fields_unknown_path_returns_nonzero() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--sprint", "sprint-005", "--fields", "does_not_exist"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 3
+    assert "unknown field path" in result.stderr
 
 
 def test_missing_sprint_returns_nonzero() -> None:

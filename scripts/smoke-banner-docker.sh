@@ -97,6 +97,22 @@ if [[ "${TOPICS_CODE}" != "200" ]]; then
 fi
 echo "OK GET /api/v1/admin/topics -> ${TOPICS_CODE}"
 
+echo "-- banner image upload through Web Docker :3000 boundary"
+TMP_PNG="$(mktemp)"
+trap 'rm -f "${TMP_PNG}"' EXIT
+printf '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82' > "${TMP_PNG}"
+UPLOAD_RESPONSE="$(curl -sS -w '\n%{http_code}' \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -F "file=@${TMP_PNG};type=image/png;filename=banner-smoke.png" \
+  "${WEB_URL}/api/v1/admin/uploads/banner-images")"
+UPLOAD_CODE="$(printf '%s' "${UPLOAD_RESPONSE}" | tail -n 1)"
+UPLOAD_BODY="$(printf '%s' "${UPLOAD_RESPONSE}" | sed '$d')"
+if [[ "${UPLOAD_CODE}" != "200" ]] || ! printf '%s' "${UPLOAD_BODY}" | grep -q '"object_key"'; then
+  echo "ERROR: banner upload via ${WEB_URL} returned HTTP ${UPLOAD_CODE}: ${UPLOAD_BODY}" >&2
+  exit 1
+fi
+echo "OK POST ${WEB_URL}/api/v1/admin/uploads/banner-images -> ${UPLOAD_CODE}"
+
 echo "-- SPA routes (web container)"
 for path in /admin/login /admin/banners /admin; do
   code="$(curl -s -o /dev/null -w '%{http_code}' "${WEB_URL}${path}")"

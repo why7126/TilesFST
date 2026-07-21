@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0060 品牌列表页原型</title>
+  <style>
+    :root {
+      --page: #18160F;
+      --surface: #211E16;
+      --surface-2: #2A261D;
+      --text: #EDE8DF;
+      --muted: rgba(237,232,223,.58);
+      --weak: rgba(237,232,223,.36);
+      --gold: #C8A055;
+      --line: rgba(255,255,255,.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #100F0A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: var(--page);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0,0,0,.42);
+    }
+    .status {
+      height: 44px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      padding: 0 24px 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .nav {
+      height: 54px;
+      display: grid;
+      grid-template-columns: 48px 1fr 86px;
+      align-items: center;
+      padding: 0 18px;
+    }
+    .back {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-size: 24px;
+    }
+    .title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .capsule {
+      justify-self: end;
+      width: 78px;
+      height: 30px;
+      border: 1px solid rgba(237,232,223,.22);
+      border-radius: 15px;
+      opacity: .72;
+    }
+    .content {
+      padding: 12px 18px 96px;
+    }
+    .hero {
+      position: relative;
+      height: 174px;
+      overflow: hidden;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(24,22,15,.1), rgba(24,22,15,.92)),
+        linear-gradient(120deg, #4A4335, #BCA979 48%, #29251C);
+      border: 1px solid rgba(200,160,85,.22);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 18%, rgba(200,160,85,.24), transparent 34%);
+    }
+    .hero-copy {
+      position: absolute;
+      z-index: 1;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: .18em;
+    }
+    .hero h1 {
+      margin: 0;
+      max-width: 240px;
+      font-size: 26px;
+      line-height: 1.18;
+    }
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 250px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .dots {
+      position: absolute;
+      z-index: 2;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(237,232,223,.32);
+    }
+    .dot.active {
+      width: 16px;
+      border-radius: 8px;
+      background: var(--gold);
+    }
+    .summary {
+      margin: 16px 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .summary-card {
+      min-height: 58px;
+      padding: 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(33,30,22,.82);
+    }
+    .summary-value {
+      color: var(--gold);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .summary-label {
+      margin-top: 4px;
+      color: var(--weak);
+      font-size: 11px;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin: 18px 0 12px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .section-note {
+      color: var(--weak);
+      font-size: 12px;
+    }
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .brand-card {
+      min-height: 154px;
+      padding: 16px 14px;
+      border: 1px solid rgba(200,160,85,.18);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(0,0,0,.18);
+    }
+    .logo {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 12px;
+      border: 1px solid rgba(200,160,85,.28);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--surface-2);
+      color: var(--gold);
+      font-family: Georgia, serif;
+      font-size: 20px;
+      letter-spacing: .08em;
+    }
+    .brand-name {
+      min-height: 40px;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+    .brand-meta {
+      margin-top: 8px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      bottom: calc(50vh - 422px);
+      transform: translateX(-50%);
+      width: 390px;
+      height: 72px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      background: rgba(16,15,10,.96);
+      border-top: 1px solid var(--line);
+    }
+    .tab {
+      text-align: center;
+      color: var(--weak);
+      font-size: 11px;
+    }
+    .tab .icon {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+    .tab.active {
+      color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <div class="status"><span>9:41</span><span>5G 100%</span></div>
+    <header class="nav">
+      <div class="back">‹</div>
+      <div class="title">品牌</div>
+      <div class="capsule"></div>
+    </header>
+    <section class="content">
+      <article class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">BRAND GALLERY</p>
+          <h1>全球优选品牌<br>严选好砖体系</h1>
+          <p>与首页轮播一致的品牌主视觉，承接主推品牌与精选系列。</p>
+        </div>
+        <div class="dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+      </article>
+
+      <section class="summary">
+        <div class="summary-card"><div class="summary-value">24</div><div class="summary-label">公开品牌</div></div>
+        <div class="summary-card"><div class="summary-value">860</div><div class="summary-label">品牌商品</div></div>
+        <div class="summary-card"><div class="summary-value">8</div><div class="summary-label">热推品牌</div></div>
+      </section>
+
+      <div class="section-head">
+        <div class="section-title">品牌列表</div>
+        <div class="section-note">一行 2 个卡片</div>
+      </div>
+
+      <section class="brand-grid">
+        <article class="brand-card"><div class="logo">FS</div><div class="brand-name">菲尚特精选</div><div class="brand-meta">门店主推 · 128 款</div></article>
+        <article class="brand-card"><div class="logo">MP</div><div class="brand-name">Marble Pro</div><div class="brand-meta">大理石瓷砖 · 96 款</div></article>
+        <article class="brand-card"><div class="logo">SL</div><div class="brand-name">Stone Lab</div><div class="brand-meta">质感岩板 · 72 款</div></article>
+        <article class="brand-card"><div class="logo">UC</div><div class="brand-name">Urban Casa</div><div class="brand-meta">现代空间 · 54 款</div></article>
+      </section>
+    </section>
+    <nav class="tabbar">
+      <div class="tab"><span class="icon">⌂</span>首页</div>
+      <div class="tab"><span class="icon">▦</span>分类</div>
+      <div class="tab active"><span class="icon">▣</span>品牌</div>
+      <div class="tab"><span class="icon">⌾</span>我的</div>
+    </nav>
+  </main>
+</body>
+</html>

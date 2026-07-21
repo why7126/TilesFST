@@ -3,10 +3,7 @@ import type { BannerAdminItem, TileSkuAdminItem } from '@/shared/api/generated';
 export const BANNER_PAGE_SIZES = [10, 20, 50] as const;
 
 export const DISPLAY_CLIENT_OPTIONS = [
-  { label: '全部展示端', value: '' },
-  { label: 'Web 首页', value: 'WEB_HOME' },
-  { label: '小程序首页', value: 'MINIAPP_HOME' },
-  { label: '专题页', value: 'TOPIC' },
+  { label: '小程序', value: 'MINIAPP_HOME' },
 ] as const;
 
 export const BANNER_STATUS_OPTIONS = [
@@ -26,39 +23,33 @@ export const TIME_STATUS_OPTIONS = [
 
 export const JUMP_TYPE_OPTIONS = [
   { label: 'SKU 详情', value: 'SKU_DETAIL' },
+  { label: '品牌详情', value: 'BRAND_DETAIL' },
   { label: '外部链接', value: 'EXTERNAL_LINK' },
   { label: '专题页', value: 'TOPIC_PAGE' },
   { label: '无跳转', value: 'NO_JUMP' },
 ] as const;
 
 export const POSITIONS_BY_CLIENT: Record<string, { value: string; label: string }[]> = {
-  WEB_HOME: [
-    { value: 'HOME_TOP_CAROUSEL', label: '首页顶部轮播' },
-    { value: 'HOME_MID_SLOT', label: '首页中部运营位' },
+  MINIAPP_HOME: [
+    { value: 'MINIAPP_HOME_CAROUSEL', label: '首页轮播' },
+    { value: 'MINIAPP_BRAND_LIST_CAROUSEL', label: '品牌列表页轮播' },
   ],
-  MINIAPP_HOME: [{ value: 'MINIAPP_HOME_CAROUSEL', label: '小程序首页轮播' }],
-  TOPIC: [{ value: 'TOPIC_TOP_BANNER', label: '专题顶部横幅' }],
 };
 
 export const DEFAULT_POSITION: Record<string, string> = {
-  WEB_HOME: 'HOME_TOP_CAROUSEL',
   MINIAPP_HOME: 'MINIAPP_HOME_CAROUSEL',
-  TOPIC: 'TOPIC_TOP_BANNER',
 };
 
 export function displayClientLabel(value: string): string {
   const map: Record<string, string> = {
-    WEB_HOME: 'Web 首页',
-    MINIAPP_HOME: '小程序首页',
-    TOPIC: '专题页',
+    MINIAPP_HOME: '小程序',
   };
   return map[value] ?? value;
 }
 
 export function displayClientBadgeClass(value: string): string {
   if (value === 'MINIAPP_HOME') return 'badge mini';
-  if (value === 'TOPIC') return 'badge topic';
-  return 'badge web';
+  return 'badge mini';
 }
 
 export function positionLabel(value: string): string {
@@ -72,6 +63,7 @@ export function positionLabel(value: string): string {
 export function jumpTypeLabel(value: string): string {
   const map: Record<string, string> = {
     SKU_DETAIL: 'SKU详情',
+    BRAND_DETAIL: '品牌详情',
     EXTERNAL_LINK: '外部链接',
     TOPIC_PAGE: '专题页',
     NO_JUMP: '无跳转',
@@ -82,6 +74,7 @@ export function jumpTypeLabel(value: string): string {
 export function jumpTypeBadgeClass(value: string): string {
   const map: Record<string, string> = {
     SKU_DETAIL: 'badge link-sku',
+    BRAND_DETAIL: 'badge link-cat',
     EXTERNAL_LINK: 'badge link-url',
     TOPIC_PAGE: 'badge link-cat',
     NO_JUMP: 'badge link-none',
@@ -129,6 +122,7 @@ export function clearJumpFieldsForType(jumpType: string): {
   sku_id: number | null;
   external_url: string | null;
   topic_id: number | null;
+  brand_id: number | null;
   sku_gallery_asset_id: number | null;
   image_source: string;
 } {
@@ -137,8 +131,19 @@ export function clearJumpFieldsForType(jumpType: string): {
       sku_id: null,
       external_url: null,
       topic_id: null,
+      brand_id: null,
       sku_gallery_asset_id: null,
       image_source: 'sku_main_image',
+    };
+  }
+  if (jumpType === 'BRAND_DETAIL') {
+    return {
+      sku_id: null,
+      external_url: null,
+      topic_id: null,
+      brand_id: null,
+      sku_gallery_asset_id: null,
+      image_source: 'brand_logo',
     };
   }
   if (jumpType === 'EXTERNAL_LINK') {
@@ -146,6 +151,7 @@ export function clearJumpFieldsForType(jumpType: string): {
       sku_id: null,
       external_url: '',
       topic_id: null,
+      brand_id: null,
       sku_gallery_asset_id: null,
       image_source: 'custom_upload',
     };
@@ -155,6 +161,7 @@ export function clearJumpFieldsForType(jumpType: string): {
       sku_id: null,
       external_url: null,
       topic_id: null,
+      brand_id: null,
       sku_gallery_asset_id: null,
       image_source: 'custom_upload',
     };
@@ -163,6 +170,7 @@ export function clearJumpFieldsForType(jumpType: string): {
     sku_id: null,
     external_url: null,
     topic_id: null,
+    brand_id: null,
     sku_gallery_asset_id: null,
     image_source: 'custom_upload',
   };

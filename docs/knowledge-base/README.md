@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-19 15:38:56
+updated_at: 2026-07-20 23:33:49
 ---
 
 # 知识库
@@ -36,6 +36,7 @@ updated_at: 2026-07-19 15:38:56
 | sprint-006 | [`retrospectives/sprint-006-retrospective.md`](retrospectives/sprint-006-retrospective.md) | draft |
 | sprint-007 | [`retrospectives/sprint-007-retrospective.md`](retrospectives/sprint-007-retrospective.md) | draft |
 | sprint-008 | [`retrospectives/sprint-008-retrospective.md`](retrospectives/sprint-008-retrospective.md) | draft |
+| sprint-009 | [`retrospectives/sprint-009-retrospective.md`](retrospectives/sprint-009-retrospective.md) | draft |
 
 ## 最佳实践索引
 
@@ -46,6 +47,7 @@ updated_at: 2026-07-19 15:38:56
 | 管理端弹窗宽度 CSS 层叠 | [`best-practices/admin-modal-width-css-cascade.md`](best-practices/admin-modal-width-css-cascade.md) | sprint-003 复盘 |
 | 管理端媒体上传全链路 | [`best-practices/admin-media-upload-chain.md`](best-practices/admin-media-upload-chain.md) | sprint-002 复盘 |
 | Clipboard helper fallback | [`best-practices/clipboard-fallback.md`](best-practices/clipboard-fallback.md) | sprint-006 复盘 / REQ-0036 |
+| 小程序自定义导航 | [`best-practices/miniapp-custom-navigation.md`](best-practices/miniapp-custom-navigation.md) | sprint-008 复盘 / REQ-0053 |
 
 ## 与 issues 的边界
 

@@ -1,7 +1,25 @@
 const { request, track } = require('../../services/api');
 
+const NAV_LOCK_MS = 800;
+const FAVORITE_STORAGE_KEY = 'miniapp_favorite_skus_v1';
+
 function pagePath(id, source) {
   return `/pages/tile-detail/index?skuId=${id}&source=${source || 'direct'}`;
+}
+
+function safeRouteParam(value) {
+  if (value === undefined || value === null) return '';
+  return String(value).slice(0, 80);
+}
+
+function safeText(value) {
+  if (typeof value !== 'string') return '';
+  const text = value.trim();
+  return text && text !== 'null' && text !== 'undefined' ? text : '';
+}
+
+function brandSearchPath(brandName) {
+  return `/pages/search/index?keyword=${encodeURIComponent(brandName.slice(0, 80))}`;
 }
 
 function clientId() {
@@ -13,6 +31,50 @@ function clientId() {
   const generated = `miniapp-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
   wx.setStorageSync(key, generated);
   return generated;
+}
+
+function readLocalFavorites() {
+  try {
+    const value = wx.getStorageSync(FAVORITE_STORAGE_KEY);
+    return Array.isArray(value) ? value.filter((item) => item && item.objectType === 'sku') : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function writeLocalFavorites(items) {
+  try {
+    wx.setStorageSync(FAVORITE_STORAGE_KEY, items);
+  } catch (_error) {
+    wx.showToast({ title: '本机收藏保存失败', icon: 'none' });
+  }
+}
+
+function favoriteItemFromProduct(product) {
+  const media = product.media || [];
+  const mediaCover = media.find((item) => item.media_type === 'image');
+  const brand = product.brand || {};
+  const categoryPath = product.category_path || [];
+  return {
+    objectType: 'sku',
+    objectId: product.product_id,
+    product_id: product.product_id,
+    sku_id: product.product_id,
+    product_name: product.product_name,
+    sku_code: product.sku_code,
+    cover_image: product.cover_image || (mediaCover && (mediaCover.preview_url || mediaCover.url)) || '',
+    specification: product.specification || '',
+    brand_name: brand.brand_name || '',
+    category_name: categoryPath.join(' / '),
+    price_display: product.price_display || '暂无',
+    status: 'available',
+    favorited_at: Date.now(),
+  };
+}
+
+function syncLocalFavorite(product, favorite) {
+  const items = readLocalFavorites().filter((item) => item.objectId !== product.product_id);
+  writeLocalFavorites(favorite ? [favoriteItemFromProduct(product), ...items] : items);
 }
 
 function legacyToSkuDetail(product) {
@@ -47,10 +109,10 @@ function legacyToSkuDetail(product) {
     category_path: product.category_name ? [product.category_name] : [],
     parameters: [
       { label: 'SKU 编码', value: product.sku_code },
-      { label: '规格', value: product.specification || '—' },
-      { label: '表面工艺', value: product.surface_finish || '—' },
-      { label: '主色系', value: product.color_family || '—' },
       { label: '类目', value: product.category_name || '—' },
+      { label: '规格', value: product.specification || '—' },
+      { label: '主色系', value: product.color_family || '—' },
+      { label: '表面工艺', value: product.surface_finish || '—' },
     ],
     remark: undefined,
     surface_finish: product.surface_finish,
@@ -70,6 +132,16 @@ Page({
   data: {
     id: 0,
     source: 'direct',
+    routeContext: {
+      sourcePage: '',
+      sourceModule: '',
+      categoryId: '',
+      brandId: '',
+      keyword: '',
+      listContext: '',
+      index: '',
+      requestId: '',
+    },
     clientId: '',
     loading: true,
     favoriteBusy: false,
@@ -80,13 +152,24 @@ Page({
     errorDetail: '',
     product: null,
     imageFallback: '/assets/tile-placeholder.png',
+    brandNavigating: false,
   },
 
   onLoad(query) {
     const id = Number(query.skuId || query.id || 0);
-    const source = query.source || 'direct';
+    const source = safeRouteParam(query.source || query.sourcePage || 'direct') || 'direct';
+    const routeContext = {
+      sourcePage: safeRouteParam(query.sourcePage || source),
+      sourceModule: safeRouteParam(query.sourceModule),
+      categoryId: safeRouteParam(query.categoryId),
+      brandId: safeRouteParam(query.brandId),
+      keyword: safeRouteParam(query.keyword),
+      listContext: safeRouteParam(query.listContext),
+      index: safeRouteParam(query.index),
+      requestId: safeRouteParam(query.requestId),
+    };
     const storedClientId = clientId();
-    this.setData({ id, source, clientId: storedClientId });
+    this.setData({ id, source, routeContext, clientId: storedClientId });
     this.loadProduct(id, source, storedClientId);
   },
 
@@ -129,10 +212,14 @@ Page({
       .catch(() => request(`/api/v1/miniapp/products/${id}`).then(legacyToSkuDetail))
       .then((product) => {
         this.setData({ product, loading: false, mediaIndex: 0, mediaPaused: false });
+        if (product.favorite) {
+          syncLocalFavorite(product, true);
+        }
         track('sku_detail_view', {
           sku_id: product.product_id,
           page_path: pagePath(product.product_id, source),
           source,
+          ...this.data.routeContext,
         });
       })
       .catch((error) => {
@@ -145,6 +232,7 @@ Page({
           page_path: pagePath(id, source),
           error_code: 'request_failed',
           stage: 'detail',
+          ...this.data.routeContext,
         });
       });
   },
@@ -244,6 +332,7 @@ Page({
     })
       .then(() => {
         this.setData({ favoriteBusy: false });
+        syncLocalFavorite(product, nextFavorite);
         wx.showToast({ title: nextFavorite ? '已收藏' : '已取消', icon: 'success' });
         track(nextFavorite ? 'sku_favorite' : 'sku_unfavorite', {
           sku_id: product.product_id,
@@ -261,14 +350,43 @@ Page({
     if (!product) {
       return;
     }
+    const brandName = safeText(product.brand.brand_name || product.brand.brand_short_name);
+    const entryPath = safeText(product.brand.brand_entry_path);
+    if (!brandName || (!entryPath && product.brand.available === false)) {
+      wx.showToast({ title: '品牌内容暂不可查看', icon: 'none' });
+      track('brand_card_unavailable_click', {
+        skuId: product.product_id,
+        brandId: product.brand.brand_id || undefined,
+        brandName: brandName || '品牌信息待完善',
+        sourcePage: this.data.source,
+        sourceModule: 'sku-detail-bottom-bar',
+        unavailableReason: brandName ? 'entry_unavailable' : 'missing_brand_name',
+      });
+      return;
+    }
+    if (this.data.brandNavigating) {
+      return;
+    }
+    this.setData({ brandNavigating: true });
+    track('brand_card_click', {
+      skuId: product.product_id,
+      brandId: product.brand.brand_id || undefined,
+      brandName,
+      sourcePage: this.data.source,
+      sourceModule: 'sku-detail-bottom-bar',
+    });
     track('sku_brand_click', {
       sku_id: product.product_id,
       brand_id: product.brand.brand_id,
       page_path: pagePath(product.product_id, this.data.source),
     });
+    const fallbackUrl = brandSearchPath(brandName);
     wx.navigateTo({
-      url: product.brand.brand_entry_path || `/pages/search/index?keyword=${encodeURIComponent(product.brand.brand_name)}`,
-      fail: () => wx.navigateTo({ url: `/pages/search/index?keyword=${encodeURIComponent(product.brand.brand_name)}` }),
+      url: entryPath || fallbackUrl,
+      fail: () => wx.navigateTo({ url: fallbackUrl }),
+      complete: () => {
+        setTimeout(() => this.setData({ brandNavigating: false }), NAV_LOCK_MS);
+      },
     });
   },
 

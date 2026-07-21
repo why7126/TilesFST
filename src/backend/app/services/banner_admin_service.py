@@ -26,21 +26,23 @@ from app.schemas.banner_admin import (
 
 VALID_PAGE_SIZES = frozenset({10, 20, 50})
 
+MINIAPP_DISPLAY_CLIENT = "MINIAPP_HOME"
+MINIAPP_HOME_CAROUSEL_POSITION = "MINIAPP_HOME_CAROUSEL"
+MINIAPP_BRAND_LIST_CAROUSEL_POSITION = "MINIAPP_BRAND_LIST_CAROUSEL"
+
 DISPLAY_CLIENT_POSITIONS: dict[str, frozenset[str]] = {
-    "WEB_HOME": frozenset({"HOME_TOP_CAROUSEL", "HOME_MID_SLOT"}),
-    "MINIAPP_HOME": frozenset({"MINIAPP_HOME_CAROUSEL"}),
-    "TOPIC": frozenset({"TOPIC_TOP_BANNER"}),
+    MINIAPP_DISPLAY_CLIENT: frozenset(
+        {MINIAPP_HOME_CAROUSEL_POSITION, MINIAPP_BRAND_LIST_CAROUSEL_POSITION}
+    ),
 }
 
 DEFAULT_POSITION: dict[str, str] = {
-    "WEB_HOME": "HOME_TOP_CAROUSEL",
-    "MINIAPP_HOME": "MINIAPP_HOME_CAROUSEL",
-    "TOPIC": "TOPIC_TOP_BANNER",
+    MINIAPP_DISPLAY_CLIENT: MINIAPP_HOME_CAROUSEL_POSITION,
 }
 
-JUMP_TYPES = frozenset({"SKU_DETAIL", "EXTERNAL_LINK", "TOPIC_PAGE", "NO_JUMP"})
+JUMP_TYPES = frozenset({"SKU_DETAIL", "BRAND_DETAIL", "EXTERNAL_LINK", "TOPIC_PAGE", "NO_JUMP"})
 IMAGE_SOURCES = frozenset(
-    {"sku_main_image", "sku_gallery_image", "custom_upload", "topic_cover"}
+    {"sku_main_image", "sku_gallery_image", "custom_upload", "topic_cover", "brand_logo"}
 )
 BANNER_STATUSES = frozenset({"DRAFT", "ONLINE", "OFFLINE", "EXPIRED"})
 
@@ -98,6 +100,7 @@ class BannerAdminService:
             sku_id=banner.sku_id,
             external_url=banner.external_url,
             topic_id=banner.topic_id,
+            brand_id=banner.brand_id,
             sort_order=banner.sort_order,
             valid_from=banner.valid_from,
             valid_to=banner.valid_to,
@@ -115,9 +118,9 @@ class BannerAdminService:
     @staticmethod
     def validate_display_client_position(display_client: str, position: str) -> None:
         if display_client not in DISPLAY_CLIENT_POSITIONS:
-            raise AuthInvalidRequestError("展示端无效")
+            raise AuthInvalidRequestError("当前仅支持小程序首页轮播和品牌列表页轮播")
         if position not in DISPLAY_CLIENT_POSITIONS[display_client]:
-            raise AuthInvalidRequestError("展示位置与展示端不匹配")
+            raise AuthInvalidRequestError("当前仅支持小程序首页轮播和品牌列表页轮播")
 
     @staticmethod
     def validate_title(title: str) -> str:
@@ -150,6 +153,7 @@ class BannerAdminService:
         sku_id: int | None,
         external_url: str | None,
         topic_id: int | None,
+        brand_id: int | None,
         image_source: str,
         image_object_key: str,
         sku_gallery_asset_id: int | None,
@@ -166,16 +170,26 @@ class BannerAdminService:
                 raise BannerJumpTargetInvalidError("SKU 详情跳转必须选择 SKU")
             if not self._banners.sku_exists(sku_id):
                 raise BannerJumpTargetInvalidError("关联 SKU 不存在")
-            if external_url or topic_id is not None:
+            if external_url or topic_id is not None or brand_id is not None:
                 raise BannerJumpTargetInvalidError("SKU 详情跳转不能包含其他跳转目标")
             self._validate_sku_image(sku_id, image_source, sku_gallery_asset_id, image_object_key)
+            return
+
+        if jump_type == "BRAND_DETAIL":
+            if brand_id is None:
+                raise BannerJumpTargetInvalidError("品牌详情跳转必须选择品牌")
+            if not self._banners.brand_exists(brand_id):
+                raise BannerJumpTargetInvalidError("关联品牌不存在或未启用")
+            if sku_id is not None or external_url or topic_id is not None:
+                raise BannerJumpTargetInvalidError("品牌详情跳转不能包含其他跳转目标")
+            self._validate_brand_image(brand_id, image_source, sku_gallery_asset_id, image_object_key)
             return
 
         if jump_type == "EXTERNAL_LINK":
             if not external_url:
                 raise BannerJumpTargetInvalidError("外部链接跳转必须填写 URL")
             self.validate_external_url(external_url)
-            if sku_id is not None or topic_id is not None:
+            if sku_id is not None or topic_id is not None or brand_id is not None:
                 raise BannerJumpTargetInvalidError("外部链接跳转不能包含其他跳转目标")
             if image_source != "custom_upload":
                 raise BannerJumpTargetInvalidError("外部链接 Banner 必须使用自定义上传图片")
@@ -188,12 +202,12 @@ class BannerAdminService:
                 raise BannerJumpTargetInvalidError("专题页跳转必须选择专题")
             if not self._topics.is_enabled(topic_id):
                 raise BannerJumpTargetInvalidError("专题不存在或未启用")
-            if sku_id is not None or external_url:
+            if sku_id is not None or external_url or brand_id is not None:
                 raise BannerJumpTargetInvalidError("专题页跳转不能包含其他跳转目标")
             return
 
         if jump_type == "NO_JUMP":
-            if sku_id is not None or external_url or topic_id is not None:
+            if sku_id is not None or external_url or topic_id is not None or brand_id is not None:
                 raise BannerJumpTargetInvalidError("无跳转 Banner 不能配置跳转目标")
             if sku_gallery_asset_id is not None and image_source != "custom_upload":
                 raise BannerJumpTargetInvalidError("无跳转 Banner 图片配置无效")
@@ -232,6 +246,30 @@ class BannerAdminService:
 
         raise BannerJumpTargetInvalidError("SKU 详情 Banner 图片来源无效")
 
+    def _validate_brand_image(
+        self,
+        brand_id: int,
+        image_source: str,
+        sku_gallery_asset_id: int | None,
+        image_object_key: str,
+    ) -> None:
+        if image_source == "brand_logo":
+            logo_key = self._banners.get_brand_logo_key(brand_id)
+            if not logo_key:
+                raise BannerJumpTargetInvalidError("品牌无 Logo，请切换图片来源")
+            if logo_key != image_object_key:
+                raise BannerJumpTargetInvalidError("品牌 Logo 引用不一致")
+            if sku_gallery_asset_id is not None:
+                raise BannerJumpTargetInvalidError("品牌 Logo 不能设置 SKU 图库资产 ID")
+            return
+
+        if image_source == "custom_upload":
+            if sku_gallery_asset_id is not None:
+                raise BannerJumpTargetInvalidError("自定义上传不能设置图库资产 ID")
+            return
+
+        raise BannerJumpTargetInvalidError("品牌详情 Banner 图片来源无效")
+
     @staticmethod
     def validate_validity(valid_from: str | None, valid_to: str | None) -> None:
         from_dt = _parse_dt(valid_from)
@@ -262,7 +300,7 @@ class BannerAdminService:
         if time_status and time_status not in {"ACTIVE", "PENDING", "EXPIRED"}:
             time_status = None
         if display_client and display_client not in DISPLAY_CLIENT_POSITIONS:
-            display_client = None
+            display_client = MINIAPP_DISPLAY_CLIENT
 
         result = self._banners.list_banners(
             page=page,
@@ -302,6 +340,7 @@ class BannerAdminService:
             sku_id=payload.sku_id,
             external_url=payload.external_url,
             topic_id=payload.topic_id,
+            brand_id=payload.brand_id,
             image_source=payload.image_source,
             image_object_key=payload.image_object_key,
             sku_gallery_asset_id=payload.sku_gallery_asset_id,
@@ -320,6 +359,7 @@ class BannerAdminService:
             sku_id=payload.sku_id,
             external_url=_normalize_optional(payload.external_url, max_len=500),
             topic_id=payload.topic_id,
+            brand_id=payload.brand_id,
             sort_order=payload.sort_order,
             valid_from=payload.valid_from,
             valid_to=payload.valid_to,
@@ -341,6 +381,7 @@ class BannerAdminService:
             sku_id=payload.sku_id,
             external_url=payload.external_url,
             topic_id=payload.topic_id,
+            brand_id=payload.brand_id,
             image_source=payload.image_source,
             image_object_key=payload.image_object_key,
             sku_gallery_asset_id=payload.sku_gallery_asset_id,
@@ -362,6 +403,7 @@ class BannerAdminService:
             sku_id=payload.sku_id,
             external_url=_normalize_optional(payload.external_url, max_len=500),
             topic_id=payload.topic_id,
+            brand_id=payload.brand_id,
             sort_order=payload.sort_order,
             valid_from=payload.valid_from,
             valid_to=payload.valid_to,
@@ -388,6 +430,7 @@ class BannerAdminService:
             sku_id=banner.sku_id,
             external_url=banner.external_url,
             topic_id=banner.topic_id,
+            brand_id=banner.brand_id,
             image_source=banner.image_source,
             image_object_key=banner.image_object_key,
             sku_gallery_asset_id=banner.sku_gallery_asset_id,

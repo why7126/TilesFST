@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0062 Banner 投放范围配置优化原型</title>
+  </head>
+  <body class="bg-page text-primary">
+    <main class="admin-shell">
+      <section class="page-hero">
+        <p class="eyebrow">OPERATIONS / BANNER MANAGEMENT</p>
+        <h1>Banner 管理</h1>
+        <p>仅维护小程序首页轮播与品牌列表页轮播。</p>
+        <button type="button">新增 Banner</button>
+      </section>
+
+      <section class="metric-grid" aria-label="Banner 指标">
+        <article class="metric-card">
+          <p class="metric-label">Banner 总数</p>
+          <strong class="metric-value">12</strong>
+          <p class="metric-desc">仅小程序范围</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">当前筛选</p>
+          <strong class="metric-value">8</strong>
+          <p class="metric-desc">首页轮播 / 品牌列表页轮播</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">已上线</p>
+          <strong class="metric-value">6</strong>
+          <p class="metric-desc">有效期内</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">待生效</p>
+          <strong class="metric-value">2</strong>
+          <p class="metric-desc">排期待上线</p>
+        </article>
+      </section>
+
+      <section class="filter-card" aria-label="Banner 筛选">
+        <label>关键词 <input type="search" placeholder="搜索 Banner 标题" /></label>
+        <label>展示端 <select><option>小程序</option></select></label>
+        <label>
+          展示位置
+          <select>
+            <option>首页轮播</option>
+            <option>品牌列表页轮播</option>
+          </select>
+        </label>
+        <label>状态 <select><option>全部状态</option></select></label>
+      </section>
+
+      <section class="table-card" aria-label="Banner 列表">
+        <table>
+          <thead>
+            <tr>
+              <th>Banner</th>
+              <th>展示位置</th>
+              <th>展示端</th>
+              <th>跳转类型</th>
+              <th>状态</th>
+              <th>有效期</th>
+              <th>排序</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>春季新品主推</td>
+              <td>首页轮播</td>
+              <td>小程序</td>
+              <td>SKU 详情</td>
+              <td>已上线</td>
+              <td>长期</td>
+              <td>10</td>
+              <td>编辑 / 下线</td>
+            </tr>
+            <tr>
+              <td>品牌馆入口视觉</td>
+              <td>品牌列表页轮播</td>
+              <td>小程序</td>
+              <td>无跳转</td>
+              <td>草稿</td>
+              <td>未设置</td>
+              <td>20</td>
+              <td>编辑 / 删除</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

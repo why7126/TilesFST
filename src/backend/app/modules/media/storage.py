@@ -14,6 +14,7 @@ from fastapi.responses import Response
 from app.core.config import settings
 from app.core.error_codes import FILE_SIZE_EXCEEDED, STORAGE_UNAVAILABLE
 from app.core.exceptions import AppError
+from app.modules.media.key_migration import map_legacy_object_key
 from app.modules.media.object_keys import build_object_key
 
 MEDIA_NOT_FOUND = 40404
@@ -210,10 +211,33 @@ async def save_upload_file(file: UploadFile, object_key: str, max_size_mb: int) 
 
 def get_media_file_response(object_key: str) -> Response:
     resolve_media_path(object_key)
-    stored_object = get_media_storage_client().get_object(object_key)
+    client = get_media_storage_client()
+    candidate_keys = [object_key]
+    legacy_key = map_legacy_object_key(object_key)
+    if legacy_key and legacy_key not in candidate_keys:
+        candidate_keys.append(legacy_key)
+
+    stored_object: StoredMediaObject | None = None
+    resolved_key = object_key
+    last_not_found: AppError | None = None
+    for candidate_key in candidate_keys:
+        try:
+            stored_object = client.get_object(candidate_key)
+            resolved_key = candidate_key
+            break
+        except AppError as exc:
+            if exc.code != MEDIA_NOT_FOUND:
+                raise
+            last_not_found = exc
+
+    if stored_object is None:
+        if last_not_found is not None:
+            raise last_not_found
+        raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在")
+
     media_type = (
         _detect_content_type(stored_object.content)
         or stored_object.content_type
-        or mimetypes.guess_type(object_key)[0]
+        or mimetypes.guess_type(resolved_key)[0]
     )
     return Response(content=stored_object.content, media_type=media_type)

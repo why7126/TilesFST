@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0059 收藏列表页原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --primary: #ede8df;
+      --secondary: rgba(237, 232, 223, 0.64);
+      --muted: rgba(237, 232, 223, 0.42);
+      --line: rgba(255, 255, 255, 0.1);
+      --gold: #c8a055;
+      --danger: #c7694b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--deep);
+      color: var(--primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .phone {
+      width: min(420px, 100vw);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--page);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      height: 64px;
+      padding: 12px 18px 8px;
+      background: rgba(24, 22, 15, 0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 18px 18px 28px;
+    }
+
+    .summary {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .summary strong {
+      display: block;
+      color: var(--gold);
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .summary span,
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 96px 1fr 40px;
+      gap: 12px;
+      min-height: 116px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+
+    .cover {
+      min-height: 96px;
+      border-radius: 3px;
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.26), rgba(255, 255, 255, 0.04)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 8px, transparent 8px 16px);
+    }
+
+    .meta {
+      min-width: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      margin-bottom: 8px;
+      padding: 2px 6px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      border-radius: 2px;
+      color: var(--gold);
+      font-size: 10px;
+    }
+
+    .name {
+      margin: 0 0 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .detail {
+      margin: 0;
+      color: var(--secondary);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .price {
+      margin-top: 8px;
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    .remove {
+      align-self: start;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--gold);
+      font-size: 18px;
+    }
+
+    .card.disabled {
+      opacity: 0.58;
+    }
+
+    .card.disabled .price {
+      color: var(--danger);
+    }
+
+    .empty {
+      margin-top: 18px;
+      padding: 24px 18px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px dashed var(--line);
+      border-radius: 4px;
+    }
+
+    .empty h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .empty p {
+      margin: 0 auto 16px;
+      max-width: 260px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .cta {
+      min-height: 40px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 2px;
+      background: var(--gold);
+      color: var(--deep);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header class="topbar">
+      <button class="icon-btn" aria-label="返回">‹</button>
+      <div class="title">我的收藏</div>
+      <div></div>
+    </header>
+
+    <section class="content">
+      <div class="summary">
+        <div>
+          <strong>12</strong>
+          <span>已收藏商品</span>
+        </div>
+        <p class="hint">按最近收藏排序，可进入详情继续比较。</p>
+      </div>
+
+      <div class="list" aria-label="收藏列表">
+        <article class="card">
+          <div class="cover" aria-hidden="true"></div>
+          <div class="meta">
+            <span class="badge">SKU</span>
+            <h2 class="name">雪山银灰通体大理石砖</h2>
+            <p class="detail">菲尚特 · 750x1500mm · 亮面</p>
+            <div class="price">参考价 ¥128 / 片</div>
+          </div>
+          <button class="remove" aria-label="取消收藏">♡</button>
+        </article>
+
+        <article class="card">
+          <div class="cover" aria-hidden="true"></div>
+          <div class="meta">
+            <span class="badge">SKU</span>
+            <h2 class="name">雅士白柔光岩板</h2>
+            <p class="detail">菲尚特 · 600x1200mm · 柔光</p>
+            <div class="price">参考价 ¥96 / 片</div>
+          </div>
+          <button class="remove" aria-label="取消收藏">♡</button>
+        </article>
+
+        <article class="card disabled">
+          <div class="cover" aria-hidden="true"></div>
+          <div class="meta">
+            <span class="badge">已失效</span>
+            <h2 class="name">云脉灰系列样品</h2>
+            <p class="detail">该商品已下架，可继续浏览其他推荐。</p>
+            <div class="price">暂不可查看</div>
+          </div>
+          <button class="remove" aria-label="移除失效收藏">×</button>
+        </article>
+      </div>
+
+      <section class="empty" aria-label="空状态示例">
+        <h2>还没有收藏</h2>
+        <p>浏览商品时点亮收藏，之后就能在这里快速找回。</p>
+        <button class="cta">去浏览商品</button>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

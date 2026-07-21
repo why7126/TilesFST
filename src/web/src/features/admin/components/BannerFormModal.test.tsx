@@ -21,6 +21,8 @@ const bannerManagementCss = readCss('banner-management.css');
 const fetchTileSkusMock = vi.fn();
 const fetchTileSkuMock = vi.fn();
 const fetchTopicsMock = vi.fn();
+const fetchBrandsMock = vi.fn();
+const createBannerMock = vi.fn();
 const uploadBannerImageMock = vi.fn();
 
 vi.mock('@/features/auth/api/auth-api', () => ({
@@ -36,8 +38,12 @@ vi.mock('@/features/admin/api/topics-api', () => ({
   fetchTopics: (...args: unknown[]) => fetchTopicsMock(...args),
 }));
 
+vi.mock('@/features/admin/api/brands-api', () => ({
+  fetchBrands: (...args: unknown[]) => fetchBrandsMock(...args),
+}));
+
 vi.mock('@/features/admin/api/banners-api', () => ({
-  createBanner: vi.fn(),
+  createBanner: (...args: unknown[]) => createBannerMock(...args),
   updateBanner: vi.fn(),
   uploadBannerImage: (...args: unknown[]) => uploadBannerImageMock(...args),
 }));
@@ -83,6 +89,18 @@ describe('BannerFormModal', () => {
       main_image_url: '/media/main.webp',
     });
     fetchTopicsMock.mockResolvedValue({ items: [] });
+    fetchBrandsMock.mockResolvedValue({
+      items: [
+        {
+          id: 3,
+          name: '马可波罗',
+          short_name: 'MK',
+          logo_object_key: 'images/default/brands/logos/mk.webp',
+          logo_url: '/media/images/default/brands/logos/mk.webp',
+        },
+      ],
+    });
+    createBannerMock.mockResolvedValue({ id: 1 });
   });
 
   it('shows 选择 upload label and applies SKU main image via detail fetch', async () => {
@@ -138,6 +156,60 @@ describe('BannerFormModal', () => {
     expect(document.querySelector('input[type="datetime-local"]')).toBeNull();
   });
 
+  it('defaults to miniapp and only exposes the two supported positions', () => {
+    renderBannerModal();
+
+    const displayClientSelect = screen.getByRole('combobox', { name: '展示端' }) as HTMLSelectElement;
+    expect(displayClientSelect).toBeDisabled();
+    expect(displayClientSelect.value).toBe('MINIAPP_HOME');
+    expect(Array.from(displayClientSelect.options).map((option) => option.textContent)).toEqual(['小程序']);
+    const positionSelect = screen.getByRole('combobox', { name: '展示位置' }) as HTMLSelectElement;
+    expect(Array.from(positionSelect.options).map((option) => option.textContent)).toEqual([
+      '首页轮播',
+      '品牌列表页轮播',
+    ]);
+    expect(positionSelect.value).toBe('MINIAPP_HOME_CAROUSEL');
+    expect(screen.queryByText('Web 首页')).toBeNull();
+  });
+
+  it('adds brand detail jump with brand logo behavior like sku detail', async () => {
+    const { container } = renderBannerModal();
+
+    fireEvent.change(screen.getByLabelText(/Banner 标题/), { target: { value: '品牌轮播' } });
+    fireEvent.change(screen.getByLabelText(/跳转类型/), { target: { value: 'BRAND_DETAIL' } });
+
+    const brandInput = await screen.findByRole('combobox', { name: '关联品牌' });
+    fireEvent.focus(brandInput);
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: '马可波罗 · MK' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('option', { name: '马可波罗 · MK' }));
+
+    await waitFor(() => {
+      expect(container.querySelector('.banner-upload-preview img')).toHaveAttribute(
+        'src',
+        '/media/images/default/brands/logos/mk.webp',
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '保存 Banner' }));
+
+    await waitFor(() => {
+      expect(createBannerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          jump_type: 'BRAND_DETAIL',
+          brand_id: 3,
+          image_source: 'brand_logo',
+          image_object_key: 'images/default/brands/logos/mk.webp',
+          sku_id: null,
+          topic_id: null,
+        }),
+      );
+    });
+  });
+
   it('uses banner-modal-card only so admin modal-card 520px cascade cannot override 880px', () => {
     expect(userManagementCss).toMatch(/\.admin-shell \.modal-card\s*\{[^}]*width:\s*520px/);
     expect(systemSettingsCss).toMatch(/\.admin-shell \.modal-card\s*\{[^}]*width:\s*520px/);
@@ -150,5 +222,11 @@ describe('BannerFormModal', () => {
     expect(modalCard?.classList.contains('modal-card')).toBe(false);
     expect(modalCard?.querySelector('.modal-body')).toBeTruthy();
     expect(modalCard?.querySelector('.modal-footer')).toBeTruthy();
+  });
+
+  it('keeps disabled display client select text visually centered', () => {
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-display-client-select:disabled\s*\{[^}]*opacity:\s*1;[^}]*line-height:\s*40px;/s,
+    );
   });
 });

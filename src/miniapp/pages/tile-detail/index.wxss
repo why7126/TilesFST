@@ -56,7 +56,7 @@
   color: #C8A055;
 }
 
-.brand-card,
+.brand-card-wrap,
 .summary,
 .panel {
   margin: 22rpx 26rpx 0;
@@ -66,36 +66,10 @@
   box-shadow: 0 12rpx 34rpx rgba(0,0,0,0.18);
 }
 
-.brand-card {
-  min-height: 104rpx;
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  padding: 20rpx;
-}
-
-.brand-logo {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: #2A261D;
-}
-
-.brand-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.brand-name {
-  color: #EDE8DF;
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
-.brand-link {
-  margin-top: 6rpx;
-  color: #C8A055;
-  font-size: 22rpx;
+.brand-card-wrap {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .summary {

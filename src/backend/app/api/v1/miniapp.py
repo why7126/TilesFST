@@ -12,7 +12,11 @@ from app.repositories.miniapp_home_repository import MiniappHomeRepository
 from app.repositories.system_settings_repository import SystemSettingsRepository
 from app.schemas.common import ApiResponse, VALIDATION_ERROR_RESPONSE
 from app.schemas.miniapp_home import (
+    MiniappBrandCertificateListData,
+    MiniappBrandDetailData,
+    MiniappBrandListData,
     MiniappCategoryTreeData,
+    MiniappCertificateListData,
     MiniappHomeData,
     MiniappProductDetail,
     MiniappProductListData,
@@ -61,6 +65,7 @@ def search_products(
     page_size_camel: int | None = Query(None, alias="pageSize", ge=1, le=50),
     keyword: str | None = Query(None, max_length=80),
     category_id: int | None = Query(None, alias="categoryId", ge=1),
+    category_level: Literal["primary", "secondary"] | None = Query(None, alias="categoryLevel"),
     brand_id: int | None = Query(None, alias="brandId", ge=1),
     spec: str | None = Query(None, max_length=80),
     price_range: str | None = Query(None, alias="priceRange", max_length=40),
@@ -75,6 +80,7 @@ def search_products(
             page_size=page_size_camel or page_size,
             keyword=keyword,
             category_id=category_id,
+            category_level=category_level,
             brand_id=brand_id,
             spec=spec,
             price_range=price_range,
@@ -82,6 +88,71 @@ def search_products(
             filter_type=filter_type,
             filter_value=filter_value,
             section=section,
+        )
+    )
+
+
+@router.get(
+    "/brands",
+    response_model=ApiResponse[MiniappBrandListData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="小程序公开品牌列表",
+    description="返回品牌列表页所需的公开品牌轮播和启用品牌卡片；品牌仅包含已启用且具备公开 SKU 的安全字段。",
+)
+def list_brands(
+    service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    page_size_camel: int | None = Query(None, alias="pageSize", ge=1, le=50),
+) -> ApiResponse[MiniappBrandListData]:
+    return ApiResponse(data=service.get_brand_list(page=page, page_size=page_size_camel or page_size))
+
+
+@router.get(
+    "/brands/{brand_id}",
+    response_model=ApiResponse[MiniappBrandDetailData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="小程序公开品牌详情",
+    description="返回品牌主页/详情页顶部公开信息；过滤不可公开品牌、内部备注和对象存储原始 key。",
+)
+def get_brand_detail(
+    brand_id: int,
+    service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
+) -> ApiResponse[MiniappBrandDetailData]:
+    return ApiResponse(data=service.get_brand_detail(brand_id))
+
+
+@router.get(
+    "/brands/{brand_id}/certificates",
+    response_model=ApiResponse[MiniappBrandCertificateListData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="小程序公开品牌证书列表",
+    description="返回当前品牌可公开证书；过滤隐藏、删除、禁用品牌证书和内部字段。",
+)
+def list_brand_certificates(
+    brand_id: int,
+    service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
+) -> ApiResponse[MiniappBrandCertificateListData]:
+    return ApiResponse(data=service.get_brand_certificates(brand_id))
+
+
+@router.get(
+    "/certificates",
+    response_model=ApiResponse[MiniappCertificateListData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="小程序公开证书聚合列表",
+    description="返回证书 Tab 可公开浏览的品牌证书列表、分页信息和筛选辅助数据；过滤隐藏、软删除和禁用品牌证书。",
+)
+def list_certificates(
+    service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    page_size_camel: int | None = Query(None, alias="pageSize", ge=1, le=50),
+) -> ApiResponse[MiniappCertificateListData]:
+    return ApiResponse(
+        data=service.list_certificates(
+            page=page,
+            page_size=page_size_camel or page_size,
         )
     )
 

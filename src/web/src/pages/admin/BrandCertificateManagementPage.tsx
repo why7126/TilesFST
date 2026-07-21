@@ -15,19 +15,21 @@ import {
 import { fetchBrands } from '@/features/admin/api/brands-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
 import {
+  CertificateFileCard,
+  CertificateListIdentity,
+  CertificatePreviewAction,
+  CertificateValidityBadge,
+  CertificateValidityText,
+  CertificateVisibilityBadge,
+} from '@/features/admin/components/BrandCertificateComponents';
+import {
   CERTIFICATE_DISPLAY_OPTIONS,
   CERTIFICATE_TYPE_OPTIONS,
   CERTIFICATE_VALIDITY_OPTIONS,
   certificateTypeLabel,
-  displayStatusLabel,
   formatCertificateDateTime,
-  formatValidityRange,
-  isPdfCertificate,
-  validityBadgeClass,
-  validityStatusLabel,
 } from '@/features/admin/lib/brand-certificate-display';
 import { AdminListPage } from '@/shared/templates';
-import { cn } from '@/shared/lib/cn';
 import type {
   BrandAdminItem,
   BrandCertificateCreateRequest,
@@ -280,7 +282,6 @@ function CertificateFormModal({
     }
   };
 
-  const file = form.file;
   const isUploading = uploadState === 'uploading';
 
   return (
@@ -410,68 +411,14 @@ function CertificateFormModal({
               <span className="field-label">
                 证书文件 <span className="req">*</span>
               </span>
-              <div className={cn('certificate-upload', uploadState === 'failed' && 'is-failed')}>
-                <div className="certificate-file-card">
-                  <span className={cn('certificate-file-thumb', file && 'has-file')}>
-                    {file && file.file_mime_type !== 'application/pdf' ? (
-                      <img src={file.file_url} alt="" />
-                    ) : (
-                      <span>{file?.file_mime_type === 'application/pdf' ? 'PDF' : 'FILE'}</span>
-                    )}
-                  </span>
-                  <span className="certificate-file-meta">
-                    <span className="user-main">{file ? file.file_name : '未上传证书文件'}</span>
-                    <span className="user-sub">支持 JPG / PNG / WebP / PDF，单文件最大 20MB</span>
-                    {isUploading ? (
-                      <span className="brand-logo-status">
-                        <span
-                          className="brand-logo-progress"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={uploadProgress}
-                        >
-                          <span
-                            className="brand-logo-progress-bar"
-                            style={{ width: `${uploadProgress}%` }}
-                          />
-                        </span>
-                        <span className="brand-logo-progress-text">上传中 {uploadProgress}%</span>
-                      </span>
-                    ) : null}
-                    {uploadState === 'done' && file ? (
-                      <span className="brand-logo-upload-success">证书文件已就绪</span>
-                    ) : null}
-                    {uploadState === 'failed' && uploadError ? (
-                      <span className="brand-logo-upload-error" role="alert">
-                        {uploadError}
-                      </span>
-                    ) : null}
-                  </span>
-                </div>
-                <div className="certificate-upload-actions">
-                  {file ? (
-                    <button type="button" className="btn" onClick={() => updateForm({ file: null })}>
-                      移除
-                    </button>
-                  ) : null}
-                  <label className={cn('btn', isUploading && 'disabled')} aria-disabled={isUploading}>
-                    {isUploading ? '上传中' : file ? '重新上传' : '选择文件'}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
-                      disabled={isUploading}
-                      hidden
-                      onChange={(event) => {
-                        const input = event.currentTarget;
-                        void handleFileChange(input.files?.[0]).finally(() => {
-                          input.value = '';
-                        });
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
+              <CertificateFileCard
+                file={form.file}
+                state={uploadState}
+                progress={uploadProgress}
+                error={uploadError}
+                onRemove={() => updateForm({ file: null })}
+                onSelectFile={(selectedFile) => void handleFileChange(selectedFile)}
+              />
               {fieldErrors.file ? (
                 <p className="field-error" role="alert">
                   {fieldErrors.file}
@@ -920,50 +867,21 @@ export function BrandCertificateManagementPage() {
           {
             key: 'certificate',
             header: '证书',
-            render: (item) => (
-              <div className="certificate-cell">
-                <span className="certificate-thumb">
-                  {isPdfCertificate(item) ? (
-                    'PDF'
-                  ) : (
-                    <img
-                      src={item.file_url}
-                      alt=""
-                      onError={(event) => {
-                        event.currentTarget.closest('.certificate-thumb')?.classList.add('is-fallback');
-                      }}
-                    />
-                  )}
-                  <span className="certificate-thumb-fallback">FILE</span>
-                </span>
-                <span>
-                  <span className="brand-name">{item.name}</span>
-                  <span className="brand-sub">{item.certificate_no || item.file_name}</span>
-                </span>
-              </div>
-            ),
+            render: (item) => <CertificateListIdentity certificate={item} />,
           },
           { key: 'brand_name', header: '所属品牌' },
           { key: 'type', header: '证书类型', render: (item) => certificateTypeLabel(item.type) },
           { key: 'issuer', header: '发证机构', render: (item) => item.issuer || '—' },
-          { key: 'validity', header: '有效期', render: (item) => formatValidityRange(item) },
+          { key: 'validity', header: '有效期', render: (item) => <CertificateValidityText certificate={item} /> },
           {
             key: 'validity_status',
             header: '有效状态',
-            render: (item) => (
-              <span className={validityBadgeClass(item.validity_status)}>
-                {validityStatusLabel(item.validity_status)}
-              </span>
-            ),
+            render: (item) => <CertificateValidityBadge status={item.validity_status} />,
           },
           {
             key: 'display_status',
             header: '前台展示',
-            render: (item) => (
-              <span className={item.is_visible ? 'badge enabled' : 'badge disabled'}>
-                {displayStatusLabel(item)}
-              </span>
-            ),
+            render: (item) => <CertificateVisibilityBadge certificate={item} />,
           },
           { key: 'sort_order', header: '排序', className: 'sort-num' },
           {
@@ -977,20 +895,11 @@ export function BrandCertificateManagementPage() {
             stickyAction: true,
             render: (item) => (
               <div className="brand-actions">
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => {
-                    const url = item.file_url;
-                    if (isPdfCertificate(item)) {
-                      window.open(url, '_blank', 'noopener,noreferrer');
-                    } else {
-                      window.open(url, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                >
-                  预览
-                </button>
+                <CertificatePreviewAction
+                  fileUrl={item.file_url}
+                  onPreview={(url) => window.open(url, '_blank', 'noopener,noreferrer')}
+                  onUnavailable={(reason) => setNotice(reason)}
+                />
                 {canMutate ? (
                   <>
                     <button type="button" className="link-btn" onClick={() => openEdit(item)}>

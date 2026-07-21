@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0053 小程序自定义导航 best-practice 信息架构原型</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #18160f;
+      --surface: #211e16;
+      --line: rgba(255,255,255,0.1);
+      --text: #ede8df;
+      --muted: rgba(237,232,223,0.62);
+      --gold: #c8a055;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--page);
+      color: var(--text);
+      letter-spacing: 0;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; }
+    h2 { margin: 0 0 16px; font-size: 18px; }
+    p { color: var(--muted); line-height: 1.7; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    section {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 18px;
+    }
+    ul { margin: 0; padding-left: 18px; color: var(--muted); line-height: 1.8; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    th, td {
+      border-top: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--text); font-weight: 700; }
+    .tag {
+      display: inline-block;
+      margin: 0 8px 8px 0;
+      padding: 5px 8px;
+      border: 1px solid rgba(200,160,85,0.35);
+      color: var(--gold);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>小程序自定义导航 best-practice</h1>
+    <p>信息架构原型：用于确认文档章节、页面接入 checklist 与截图验收矩阵，不代表新的小程序页面 UI。</p>
+
+    <div class="grid">
+      <section>
+        <h2>核心规则</h2>
+        <span class="tag">状态栏</span>
+        <span class="tag">原生胶囊</span>
+        <span class="tag">返回兜底</span>
+        <span class="tag">页面 offset</span>
+        <ul>
+          <li>读取窗口、状态栏与菜单按钮数据。</li>
+          <li>失败时使用统一 fallback。</li>
+          <li>右侧 reserve 不放自绘分享或关闭按钮。</li>
+          <li>无页面栈时回首页或安全入口。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>页面接入 checklist</h2>
+        <ul>
+          <li>识别页面形态：首页 / TabBar / 非首页 / 分享直达。</li>
+          <li>标题固定或动态，均需单行截断。</li>
+          <li>返回按钮触控区域不小于 44x44 pt。</li>
+          <li>加载、空、错状态不被导航栏遮挡。</li>
+        </ul>
+      </section>
+    </div>
+
+    <section style="margin-top:16px">
+      <h2>截图验收矩阵</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>建议覆盖</th>
+            <th>结论</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>页面</td>
+            <td>首页、搜索、分类、商品列表、详情、收藏、证书、门店信息</td>
+            <td>首屏内容不被遮挡</td>
+          </tr>
+          <tr>
+            <td>视口</td>
+            <td>DevTools 320 / 375 / 430 pt</td>
+            <td>标题、返回、胶囊 reserve 不重叠</td>
+          </tr>
+          <tr>
+            <td>真机</td>
+            <td>iPhone 刘海屏、iPhone 非刘海屏、Android 常见机型</td>
+            <td>状态栏、胶囊、触控真实可用</td>
+          </tr>
+          <tr>
+            <td>状态</td>
+            <td>正常、加载、空状态、错误、分享直达、长标题</td>
+            <td>返回可兜底，风险可追溯</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

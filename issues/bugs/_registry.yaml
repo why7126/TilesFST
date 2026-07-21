@@ -1,9 +1,36 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 68
+next_id: 71
 entries:
+  - id: BUG-0070-miniapp-sku-detail-duplicate-brand-button
+    title: 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复
+    status: draft
+    severity: medium
+    created: "2026-07-21 08:10:00"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0069-miniapp-sku-detail-carousel-video-not-playable
+    title: SKU 商品详情页轮播图视频不能显示和播放
+    status: done
+    severity: high
+    created: "2026-07-19 23:36:55"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: null
+    related_change: fix-miniapp-sku-detail-video-url
+    iteration: sprint-009
+  - id: BUG-0068-miniapp-home-device-acceptance-followup
+    title: Sprint 008 小程序首页 DevTools 与真机验收残留未闭环
+    status: done
+    severity: high
+    created: "2026-07-19 17:27:51"
+    related_requirement: REQ-0041-miniapp-home
+    related_bug: BUG-0065-miniapp-home-preview-deviation
+    related_change: null
+    iteration: sprint-009
   - id: BUG-0067-home-recommendation-list-entry-routing
     title: 首页推荐模块查看更多和榜单入口误跳搜索页
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-07-19 15:26:47"
     related_requirement: REQ-0047-product-list-common-component-application
@@ -12,7 +39,7 @@ entries:
     iteration: sprint-009
   - id: BUG-0066-search-component-prototype-deviation
     title: 搜索组件整体交互与原型差异较大
-    status: in_sprint
+    status: done
     severity: high
     created: "2026-07-19 13:02:10"
     related_requirement: REQ-0046-search-component-application

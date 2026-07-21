@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-18 18:48:34
-updated_at: 2026-07-18 21:24:17
+updated_at: 2026-07-21 08:14:55
 lifecycle:
   captured: 2026-07-18 18:48:34
   generated: 2026-07-18 18:55:47
@@ -15,7 +15,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-sku-detail-page
     type: add
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0006-tile-sku-management
 knowledge_base_refs:
@@ -55,7 +55,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-sku-detail-page
     type: add
-    status: archived
+    status: proposed
 readiness: Ready
 readiness_notes: 五件套已补齐，且小程序 UI 原型策略已存在；本 REQ 不命中管理端横切 best-practice 标签，knowledge-base gate 为 N/A。
 documents:
@@ -136,4 +136,5 @@ kb_cross_cutting_report:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-- 2026-07-18 21:22:44 workflow-sync：状态同步为 done（Change archived）
+| BUG-0069-miniapp-sku-detail-carousel-video-not-playable | high | done | fix-miniapp-sku-detail-video-url | SKU 商品详情页轮播图视频不能显示和播放 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | medium | draft | — | 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复 |

@@ -6,21 +6,79 @@
     "~/.codex/sessions/2026/07/19/rollout-2026-07-19T12-59-18-019f78be-309c-7e71-82ce-8839703474f5.jsonl",
     "~/.codex/sessions/2026/07/19/rollout-2026-07-19T14-11-30-019f7900-4cf3-7700-a689-101cad418482.jsonl",
     "~/.codex/sessions/2026/07/19/rollout-2026-07-19T14-44-43-019f791e-b6cc-7f61-891d-77243ed0f093.jsonl",
-    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T15-22-17-019f7941-18b2-77e0-9bfb-303e012be277.jsonl"
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T15-22-17-019f7941-18b2-77e0-9bfb-303e012be277.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T16-58-18-019f7999-0004-7d23-b719-46d1fc15c1f2.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T17-24-55-019f79b1-5e48-75c0-809c-e909bc4a4a6b.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T17-25-09-019f79b1-983c-7793-bfd1-fa8f94efddd1.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T17-33-44-019f79b9-7386-7d21-8ac8-b67149d5b548.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T17-34-18-019f79b9-f800-75c0-aa44-7e4cbd67351a.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-05-42-019f79d6-b5ec-7231-b575-d5e3baad7c53.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-06-11-019f79d7-27c8-7e40-9e3d-21536e151de5.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-06-25-019f79d7-5d93-7191-81cd-c5a9d5299b09.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-06-44-019f79d7-a84c-7a41-8344-eccee962b371.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-07-38-019f79d8-7d61-76b3-8dfc-7a816a398312.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-08-26-019f79d9-3630-7a70-bac1-f43b0206a6a8.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-08-43-019f79d9-79b5-7ce2-8a2a-ab8fb8c76c47.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-08-59-019f79d9-b972-7a61-8327-4ab4e217cf9e.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-09-13-019f79d9-ed3c-7a72-ad62-7ba857beb9c8.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T21-37-54-019f7a98-fe0e-7ac0-8b35-930dda2e4cb2.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T22-21-13-019f7ac0-a4a2-7ce2-99c3-411a19f0f59d.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T22-22-29-019f7ac1-cf8e-7d83-b3f2-1dad61035eca.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T22-22-59-019f7ac2-4273-7932-9949-03c0b7c69022.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T22-23-26-019f7ac2-ae77-7312-9b05-a6c1b97d0ac7.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T23-30-31-019f7b00-1613-7dc1-8419-7daa459acce4.jsonl",
+    "~/.codex/sessions/2026/07/19/rollout-2026-07-19T23-32-43-019f7b02-1a05-7722-9d44-d4af3f9e48c2.jsonl",
+    "~/.codex/sessions/2026/07/20/rollout-2026-07-20T13-22-17-019f7df9-9761-7692-8849-d63c1b6a5a94.jsonl",
+    "~/.codex/sessions/2026/07/20/rollout-2026-07-20T23-12-20-019f8015-cef0-74e3-8ae9-c7f11f81c7bb.jsonl",
+    "~/.codex/sessions/2026/07/20/rollout-2026-07-20T23-35-50-019f802b-5066-7b51-a624-a87ebea381b3.jsonl"
   ],
-  "generated_at": "2026-07-19T07:57:34.948328Z",
+  "generated_at": "2026-07-21T00:14:57.569553Z",
   "estimated": false,
   "coverage": {
     "requirements": [
+      "REQ-0044-miniapp-sku-detail-page",
+      "REQ-0046-search-component-application",
       "REQ-0049-miniapp-product-card-component",
       "REQ-0050-miniapp-brand-header-page-title-rules",
-      "REQ-0051-category-list-product-list-entry-by-level"
+      "REQ-0051-category-list-product-list-entry-by-level",
+      "REQ-0052-miniapp-device-evidence-template",
+      "REQ-0053-miniapp-custom-navigation-best-practice",
+      "REQ-0054-brand-card-common-component",
+      "REQ-0055-brand-certificate-common-component",
+      "REQ-0056-product-list-card-only-layout",
+      "REQ-0057-certificate-list-page",
+      "REQ-0058-brand-detail-home-page",
+      "REQ-0059-favorite-list-page",
+      "REQ-0060-brand-list-page",
+      "REQ-0061-miniapp-share-add-guide",
+      "REQ-0062-admin-banner-placement-scope"
     ],
     "bugs": [
       "BUG-0066-search-component-prototype-deviation",
-      "BUG-0067-home-recommendation-list-entry-routing"
+      "BUG-0067-home-recommendation-list-entry-routing",
+      "BUG-0068-miniapp-home-device-acceptance-followup",
+      "BUG-0069-miniapp-sku-detail-carousel-video-not-playable"
     ],
-    "changes": []
+    "changes": [
+      "add-brand-list-page",
+      "add-favorite-list-page",
+      "add-miniapp-brand-card-component",
+      "add-miniapp-brand-detail-home-page",
+      "add-miniapp-certificate-list-page",
+      "add-miniapp-custom-navigation-best-practice",
+      "add-miniapp-device-evidence-template",
+      "add-miniapp-share-add-guide",
+      "fix-miniapp-home-device-acceptance",
+      "fix-miniapp-home-recommendation-routing",
+      "fix-miniapp-search-prototype-alignment",
+      "fix-miniapp-sku-detail-video-url",
+      "update-admin-banner-placement-scope",
+      "update-brand-certificate-common-component",
+      "update-miniapp-brand-header-title-rules",
+      "update-miniapp-category-product-list-entry",
+      "update-miniapp-product-card-component",
+      "update-miniapp-product-list-card-only-layout"
+    ]
   },
   "models": [
     {
@@ -35,39 +93,138 @@
     }
   ],
   "totals": {
-    "input_tokens": 8904523,
-    "cached_input_tokens": 8647680,
-    "output_tokens": 42583,
-    "reasoning_output_tokens": 3974,
-    "total_tokens": 8947106,
-    "command_run_count": 5,
-    "model_call_count": 56,
-    "tool_call_count": 122,
+    "input_tokens": 185115360,
+    "cached_input_tokens": 176410112,
+    "output_tokens": 658138,
+    "reasoning_output_tokens": 71651,
+    "total_tokens": 186048651,
+    "command_run_count": 59,
+    "model_call_count": 1377,
+    "tool_call_count": 2670,
     "tool_output_chars": 0,
     "retry_count": 0
   },
   "by_workflow_event": {
-    "sprint.propose": {
-      "command_run_count": 5,
-      "model_call_count": 56,
-      "tool_call_count": 122,
+    "opsx.apply": {
+      "command_run_count": 16,
+      "model_call_count": 802,
+      "tool_call_count": 1482,
       "retry_count": 0,
-      "input_tokens": 8904523,
-      "cached_input_tokens": 8647680,
-      "output_tokens": 42583,
-      "reasoning_output_tokens": 3974,
-      "total_tokens": 8947106
+      "input_tokens": 109666698,
+      "cached_input_tokens": 105467392,
+      "output_tokens": 355811,
+      "reasoning_output_tokens": 39612,
+      "total_tokens": 110150589
+    },
+    "opsx.archive": {
+      "command_run_count": 17,
+      "model_call_count": 138,
+      "tool_call_count": 381,
+      "retry_count": 0,
+      "input_tokens": 16578266,
+      "cached_input_tokens": 15051136,
+      "output_tokens": 40921,
+      "reasoning_output_tokens": 5665,
+      "total_tokens": 16640282
+    },
+    "release.prepare": {
+      "command_run_count": 1,
+      "model_call_count": 29,
+      "tool_call_count": 46,
+      "retry_count": 0,
+      "input_tokens": 1994217,
+      "cached_input_tokens": 1843072,
+      "output_tokens": 13937,
+      "reasoning_output_tokens": 1652,
+      "total_tokens": 2008154
+    },
+    "release.propose": {
+      "command_run_count": 1,
+      "model_call_count": 4,
+      "tool_call_count": 12,
+      "retry_count": 0,
+      "input_tokens": 400733,
+      "cached_input_tokens": 298496,
+      "output_tokens": 1791,
+      "reasoning_output_tokens": 635,
+      "total_tokens": 402524
+    },
+    "release.publish": {
+      "command_run_count": 1,
+      "model_call_count": 4,
+      "tool_call_count": 7,
+      "retry_count": 0,
+      "input_tokens": 789451,
+      "cached_input_tokens": 759296,
+      "output_tokens": 1167,
+      "reasoning_output_tokens": 118,
+      "total_tokens": 790618
+    },
+    "req.archive": {
+      "command_run_count": 1,
+      "model_call_count": 14,
+      "tool_call_count": 29,
+      "retry_count": 0,
+      "input_tokens": 780004,
+      "cached_input_tokens": 737536,
+      "output_tokens": 3419,
+      "reasoning_output_tokens": 405,
+      "total_tokens": 783423
+    },
+    "req.opsx": {
+      "command_run_count": 1,
+      "model_call_count": 28,
+      "tool_call_count": 74,
+      "retry_count": 0,
+      "input_tokens": 2297746,
+      "cached_input_tokens": 2189824,
+      "output_tokens": 14259,
+      "reasoning_output_tokens": 942,
+      "total_tokens": 2312005
+    },
+    "sprint.archive": {
+      "command_run_count": 1,
+      "model_call_count": 2,
+      "tool_call_count": 3,
+      "retry_count": 0,
+      "input_tokens": 163021,
+      "cached_input_tokens": 113408,
+      "output_tokens": 1291,
+      "reasoning_output_tokens": 393,
+      "total_tokens": 164312
+    },
+    "sprint.exps": {
+      "command_run_count": 1,
+      "model_call_count": 12,
+      "tool_call_count": 21,
+      "retry_count": 0,
+      "input_tokens": 2497391,
+      "cached_input_tokens": 2347136,
+      "output_tokens": 13249,
+      "reasoning_output_tokens": 1099,
+      "total_tokens": 2530659
+    },
+    "sprint.propose": {
+      "command_run_count": 19,
+      "model_call_count": 344,
+      "tool_call_count": 615,
+      "retry_count": 0,
+      "input_tokens": 49947833,
+      "cached_input_tokens": 47602816,
+      "output_tokens": 212293,
+      "reasoning_output_tokens": 21130,
+      "total_tokens": 50266085
     }
   },
   "by_model": {
     "gpt-5.5|medium|frontier": {
-      "command_run_count": 5,
-      "model_call_count": 56,
-      "input_tokens": 8904523,
-      "cached_input_tokens": 8647680,
-      "output_tokens": 42583,
-      "reasoning_output_tokens": 3974,
-      "total_tokens": 8947106
+      "command_run_count": 59,
+      "model_call_count": 1377,
+      "input_tokens": 185115360,
+      "cached_input_tokens": 176410112,
+      "output_tokens": 658138,
+      "reasoning_output_tokens": 71651,
+      "total_tokens": 186048651
     }
   }
 }

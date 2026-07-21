@@ -21,6 +21,7 @@ from workflow_sync.issue_status_residuals import scan_issue_status_residuals
 
 import archived_path_residuals
 import ai_usage
+import sprint_change_batches
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -372,6 +373,13 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                 }
             )
 
+        change_batches = sprint_change_batches.build_change_batches(
+            change_rows,
+            warnings=warnings,
+            evidence_hints=evidence_hints,
+            ordering="sprint.yaml changes[]",
+        )
+
         return {
             "sprint": {
                 "sprint_id": sprint.sprint_id,
@@ -397,6 +405,7 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                 },
             },
             "changes": change_rows,
+            "change_batches": change_batches,
             "issues": issue_rows,
             "acceptance": acceptance_summary(sprint.path, root),
             "archived_path_residuals": archived_path_residuals.report_to_dict(path_residual_report),
@@ -420,6 +429,109 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
         }
     finally:
         collect.ROOT = previous_root
+
+
+def warning_summary(warnings: list[dict[str, str]]) -> dict[str, Any]:
+    by_kind: dict[str, int] = {}
+    for warning in warnings:
+        kind = warning.get("kind", "unknown")
+        by_kind[kind] = by_kind.get(kind, 0) + 1
+    return {
+        "count": len(warnings),
+        "by_kind": by_kind,
+        "items": warnings,
+    }
+
+
+def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
+    ai_usage = fact_sheet.get("ai_usage_snapshot") or {}
+    residuals = fact_sheet.get("archived_path_residuals") or {}
+    return {
+        "sprint": fact_sheet["sprint"],
+        "scope": {
+            "counts": fact_sheet["scope"]["counts"],
+            "requirements": fact_sheet["scope"]["requirements"],
+            "bugs": fact_sheet["scope"]["bugs"],
+            "changes": fact_sheet["scope"]["changes"],
+        },
+        "tasks": {
+            "done": fact_sheet["scope"]["counts"]["tasks_done"],
+            "total": fact_sheet["scope"]["counts"]["tasks_total"],
+        },
+        "change_batches": {
+            "applicable": fact_sheet["change_batches"]["applicable"],
+            "reason": fact_sheet["change_batches"]["reason"],
+            "threshold": fact_sheet["change_batches"]["threshold"],
+            "batch_size": fact_sheet["change_batches"]["batch_size"],
+            "total_changes": fact_sheet["change_batches"]["total_changes"],
+            "batch_count": fact_sheet["change_batches"]["batch_count"],
+            "ordering": fact_sheet["change_batches"]["ordering"],
+            "batches": [
+                {
+                    "batch_id": batch["batch_id"],
+                    "change_ids": batch["change_ids"],
+                    "counts": batch["counts"],
+                    "warning_labels": batch["warning_labels"],
+                    "recommended_next_read": batch["recommended_next_read"],
+                }
+                for batch in fact_sheet["change_batches"]["batches"]
+            ],
+        },
+        "acceptance": fact_sheet["acceptance"],
+        "warnings": warning_summary(fact_sheet["warnings"]),
+        "needs_detail": fact_sheet["needs_detail"],
+        "detail_triggers": {
+            "warning_count": len(fact_sheet["warnings"]),
+            "evidence_hint_count": len(fact_sheet["evidence_hints"]),
+            "archived_path_residual_count": residuals.get("residual_count", 0),
+            "ai_usage_warning_count": ai_usage.get("warning_count", 0),
+        },
+        "ai_usage_snapshot": {
+            "exists": ai_usage.get("exists", False),
+            "ai_usage_mode": ai_usage.get("ai_usage_mode", "estimated_fallback"),
+            "snapshot_status": ai_usage.get("snapshot_status", "missing"),
+            "estimated": ai_usage.get("estimated", True),
+            "generated_at": ai_usage.get("generated_at"),
+            "warning_count": ai_usage.get("warning_count", 0),
+            "recommended_action": ai_usage.get("recommended_action"),
+            "note": ai_usage.get("note"),
+            "totals": ai_usage.get("totals") or {},
+        },
+        "token_risks": fact_sheet["token_risks"],
+        "four_piece": fact_sheet["four_piece"],
+        "archived_path_residuals": {
+            "ok": residuals.get("ok", True),
+            "residual_count": residuals.get("residual_count", 0),
+        },
+        "read_strategy": {
+            "default_for_sprint_exps": "summary",
+            "evidence_hints": "Use --fields evidence_hints only when needs_detail, warnings, missing/inconsistent facts, or user-requested detail requires raw evidence lookup.",
+        },
+    }
+
+
+def select_field(payload: Any, field_path: str) -> Any:
+    current = payload
+    for part in field_path.split("."):
+        if not part:
+            raise KeyError(field_path)
+        if isinstance(current, dict):
+            if part not in current:
+                raise KeyError(field_path)
+            current = current[part]
+        elif isinstance(current, list) and part.isdigit():
+            index = int(part)
+            try:
+                current = current[index]
+            except IndexError as exc:
+                raise KeyError(field_path) from exc
+        else:
+            raise KeyError(field_path)
+    return current
+
+
+def select_fields(payload: dict[str, Any], field_paths: list[str]) -> dict[str, Any]:
+    return {field_path: select_field(payload, field_path) for field_path in field_paths}
 
 
 def render_markdown(fact_sheet: dict[str, Any]) -> str:
@@ -453,6 +565,32 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
         lines.append(
             f"| `{change['change_id']}` | {change['location']} | {tasks.get('done', 0)}/{tasks.get('total', 0)} | {trace} | {linked} | `{path}` |"
         )
+
+    change_batches = fact_sheet["change_batches"]
+    lines.extend(
+        [
+            "",
+            "## Change Batches",
+            "",
+            f"- Applicable: {change_batches['applicable']} ({change_batches['reason']})",
+            f"- Total Changes: {change_batches['total_changes']}",
+            f"- Batch Count: {change_batches['batch_count']}",
+            f"- Batch Size: {change_batches['batch_size']}",
+        ]
+    )
+    if change_batches["batches"]:
+        lines.extend(
+            [
+                "",
+                "| Batch | Changes | Tasks | Blockers | Warnings | Next Read |",
+                "|---|---:|---:|---:|---:|---|",
+            ]
+        )
+        for batch in change_batches["batches"]:
+            counts = batch["counts"]
+            lines.append(
+                f"| `{batch['batch_id']}` | {counts['changes']} | {counts['tasks_done']}/{counts['tasks_total']} | {counts['blockers']} | {counts['warnings']} | {batch['recommended_next_read']} |"
+            )
 
     lines.extend(
         [
@@ -546,6 +684,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--sprint", required=True, help="Sprint id, e.g. sprint-005")
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Emit compact JSON for /sprint-exps default consumption without full evidence_hints",
+    )
+    parser.add_argument(
+        "--fields",
+        nargs="+",
+        metavar="FIELD",
+        help="Emit selected field paths as JSON, e.g. evidence_hints warnings ai_usage_snapshot.totals",
+    )
     return parser
 
 
@@ -556,7 +705,15 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
-    if args.json:
+    if args.fields:
+        try:
+            print(json.dumps(select_fields(fact_sheet, args.fields), ensure_ascii=False, indent=2))
+        except KeyError as exc:
+            print(f"ERROR: unknown field path: {exc.args[0]}", file=sys.stderr)
+            return 3
+    elif args.summary:
+        print(json.dumps(build_summary(fact_sheet), ensure_ascii=False, indent=2))
+    elif args.json:
         print(json.dumps(fact_sheet, ensure_ascii=False, indent=2))
     else:
         print(render_markdown(fact_sheet), end="")

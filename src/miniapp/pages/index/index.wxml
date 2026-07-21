@@ -1,10 +1,24 @@
 <view class="page">
   <custom-navigation
     variant="home"
-    store-name="{{home.store.name || '菲尚特瓷砖馆'}}"
-    subtitle="{{home.store.description || '专业选砖 · 品质生活'}}"
     logo-src="{{home.store.logo_url || '/assets/logos/product-logo.png'}}"
   />
+
+  <view wx:if="{{shareAddGuideVisible}}" class="share-add-guide" style="{{shareAddGuideStyle}}">
+    <view class="share-add-guide-arrow"></view>
+    <view class="share-add-guide-copy">
+      <view class="guide-copy-line first-line">
+        <text>点击右上角</text>
+        <view class="guide-menu-dots" aria-label="右上角更多入口">
+          <view class="guide-dot small"></view>
+          <view class="guide-dot large"></view>
+          <view class="guide-dot small"></view>
+        </view>
+      </view>
+      <view class="guide-copy-line second-line">添加到我的小程序，方便下次找回</view>
+    </view>
+    <view class="guide-dismiss" bindtap="dismissShareAddGuide" aria-label="关闭添加引导">×</view>
+  </view>
 
   <view wx:if="{{loading}}" class="state">
     <view class="skeleton hero"></view>
@@ -20,9 +34,7 @@
 
   <view wx:else class="home-content">
     <view class="search-box" bindtap="openSearch">
-      <text class="search-icon">⌕</text>
       <text class="search-placeholder">搜索瓷砖名称、编号或规格</text>
-      <text class="search-action">搜索</text>
     </view>
 
     <swiper
@@ -87,27 +99,18 @@
         <view class="section-more" bindtap="openSection" data-section="new">查看更多 ›</view>
       </view>
       <scroll-view class="product-row" scroll-x>
-        <view
-          class="product-card"
+        <product-card
           wx:for="{{home.new_products}}"
           wx:key="product_id"
-          bindtap="openProduct"
-          data-id="{{item.product_id}}"
-          data-source="new"
-        >
-          <view class="image-wrap">
-            <image
-              class="product-image"
-              src="{{item.cover_image || imageFallback}}"
-              mode="aspectFill"
-              binderror="onImageError"
-              data-key="home.new_products[{{index}}].cover_image"
-            ></image>
-          </view>
-          <view class="product-name">{{item.sku_code || item.product_name}}</view>
-          <view class="product-meta">{{item.specification}}</view>
-          <view class="product-price">{{item.price_display}}</view>
-        </view>
+          product="{{item}}"
+          density="compact"
+          source-page="home"
+          source-module="new_products"
+          list-context="home_new_products"
+          index="{{index}}"
+          request-id="home"
+          image-fallback="{{imageFallback}}"
+        />
       </scroll-view>
     </view>
 
@@ -116,62 +119,40 @@
         <view class="section-title">热销推荐</view>
         <view class="section-more" bindtap="openSection" data-section="hot">查看更多 ›</view>
       </view>
-      <view class="hot-grid">
-        <view
-          class="hot-card"
+      <scroll-view class="product-row" scroll-x>
+        <product-card
           wx:for="{{home.hot_products}}"
           wx:key="product_id"
-          bindtap="openProduct"
-          data-id="{{item.product_id}}"
-          data-source="hot"
-        >
-          <image
-            class="hot-image"
-            src="{{item.cover_image || imageFallback}}"
-            mode="aspectFill"
-            binderror="onImageError"
-            data-key="home.hot_products[{{index}}].cover_image"
-          ></image>
-          <view class="visual-heart" catchtap="tapVisualFavorite" data-id="{{item.product_id}}" data-source="hot">♡</view>
-          <view class="hot-info">
-            <view class="product-name">{{item.product_name}}</view>
-            <view class="product-meta">{{item.category_name || '空间'}} · {{item.specification}}</view>
-            <view class="product-price">{{item.price_display}}</view>
-          </view>
-        </view>
-      </view>
+          product="{{item}}"
+          density="compact"
+          source-page="home"
+          source-module="hot_products"
+          list-context="home_hot_products"
+          index="{{index}}"
+          request-id="home"
+          image-fallback="{{imageFallback}}"
+        />
+      </scroll-view>
     </view>
 
     <view class="section all-products">
       <view class="section-head">
         <view class="section-title">全部产品</view>
-        <view class="section-more">瀑布流 · 持续加载</view>
+        <view class="section-more">持续加载</view>
       </view>
       <view wx:if="{{allProducts.length}}" class="waterfall">
-        <view
-          class="waterfall-card"
+        <product-card
           wx:for="{{allProducts}}"
           wx:key="product_id"
-          bindtap="openProduct"
-          data-id="{{item.product_id}}"
-          data-source="waterfall"
-        >
-          <view class="wf-image-wrap">
-            <image
-              class="wf-image"
-              src="{{item.cover_image || imageFallback}}"
-              mode="aspectFill"
-              binderror="onImageError"
-              data-key="allProducts[{{index}}].cover_image"
-            ></image>
-            <view class="visual-heart wf-heart" catchtap="tapVisualFavorite" data-id="{{item.product_id}}" data-source="waterfall">♡</view>
-          </view>
-          <view class="wf-meta">
-            <view class="product-name">{{item.product_name}}</view>
-            <view class="product-meta">{{item.sku_code}} · {{item.specification}}</view>
-            <view class="product-price">{{item.price_display}}</view>
-          </view>
-        </view>
+          product="{{item}}"
+          density="grid"
+          source-page="home"
+          source-module="all_products"
+          list-context="home_all_products"
+          index="{{index}}"
+          request-id="home"
+          image-fallback="{{imageFallback}}"
+        />
       </view>
       <view wx:elif="{{!productsLoading && !productsError}}" class="empty dark-empty">
         暂无公开商品，稍后再来看看。

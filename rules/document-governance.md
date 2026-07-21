@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 16:25:13
+updated_at: 2026-07-19 19:52:29
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -72,6 +72,8 @@ issues/bugs/{plan,review,archive}/BUG-xxxx-slug/
 需求至少包含编号、来源、目标用户、价值、描述、优先级、状态、关联迭代、关联 Change、验收要点。BUG 至少包含编号、来源、严重程度、影响范围、复现步骤、实际/期望结果、日志/截图、状态、关联迭代、关联 Change、回归测试。
 
 Issue 状态在 capture、review、opsx、sprint-propose、apply、archive/promote 时通过 workflow sync 或对应命令同步；同步 MUST 覆盖 trace Frontmatter 与 fenced `yaml` 中的 `status`、`iteration`、`openspec_changes[].status`，并在 `## 变更记录` 追加幂等 workflow event 行。
+
+当已纳入 Sprint 的 REQ/BUG 执行 `/req-opsx` 或 `/bug-opsx` 创建 Change 时，Workflow Sync MUST 同步更新对应 `iterations/change|archive/<sprint>/sprint.yaml`：补入 `changes[]`、填充匹配 `scope_estimates[].change`，并移除该 Issue 的 open-change 延后项，确保后续 `/opsx-apply` 门禁可从 Sprint scope 解析到同一个 Change。
 
 `trace.md` 的 `## 变更记录` MUST 使用标准 Markdown 表格，且表头必须紧跟章节标题之后：
 
@@ -156,6 +158,7 @@ python scripts/sync-workflow-status.py --event <event> [--sprint auto] [--change
 - Skill：`.agents/skills/workflow-sync/SKILL.md`
 - 本地校验：`python scripts/sync-workflow-status.py --sprint auto --check`
 - 禁止手工编辑 `sprint.md` 的 `<!-- workflow-sync:* -->` 标记块与派生 Scope 表。
+- `sprint.md` 的 `## 2. Scope` 主表与 `<!-- workflow-sync:scope-* -->` 派生表均属于 Workflow Sync 管辖范围；REQ/BUG/Change 状态、关联 Change、归档说明和估算必须从 `sprint.yaml`、Issue trace 与 OpenSpec Change 状态派生刷新，不得保留“待 req/bug-opsx”等过期规划文案。
 - Scope 表、里程碑、archived 时间戳 MUST 使用 `YYYY-MM-DD HH:mm:ss` 且时分秒为实际值；不得使用 `00:00:00` 占位。
 - `sprint.yaml` 中正式纳入的 REQ/BUG MUST 同步出现在 `sprint.md` 的 Sprint 目标列表和对应要点小节；未评审项只能列「延后项（待评审）」。
 

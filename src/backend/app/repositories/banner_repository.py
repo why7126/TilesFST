@@ -9,6 +9,11 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+VALID_BANNER_SCOPE_SQL = (
+    "display_client = 'MINIAPP_HOME' "
+    "AND position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')"
+)
+
 
 @dataclass
 class BannerRecord:
@@ -23,6 +28,7 @@ class BannerRecord:
     sku_id: int | None
     external_url: str | None
     topic_id: int | None
+    brand_id: int | None
     sort_order: int
     valid_from: str | None
     valid_to: str | None
@@ -108,6 +114,7 @@ class BannerRepository:
             sku_id=int(row["sku_id"]) if row.get("sku_id") is not None else None,
             external_url=row.get("external_url"),
             topic_id=int(row["topic_id"]) if row.get("topic_id") is not None else None,
+            brand_id=int(row["brand_id"]) if row.get("brand_id") is not None else None,
             sort_order=int(row["sort_order"]),
             valid_from=row.get("valid_from"),
             valid_to=row.get("valid_to"),
@@ -120,7 +127,9 @@ class BannerRepository:
     def _summary(self, *, where_sql: str, params: dict[str, Any]) -> dict[str, int]:
         now_iso = datetime.now(UTC).isoformat()
         total_row = (
-            self._db.execute(text("SELECT COUNT(*) AS c FROM banners"))
+            self._db.execute(
+                text(f"SELECT COUNT(*) AS c FROM banners WHERE {VALID_BANNER_SCOPE_SQL}")
+            )
             .mappings()
             .one()
         )
@@ -134,7 +143,10 @@ class BannerRepository:
         )
         online_row = (
             self._db.execute(
-                text("SELECT COUNT(*) AS c FROM banners WHERE status = 'ONLINE'"),
+                text(
+                    f"SELECT COUNT(*) AS c FROM banners "
+                    f"WHERE {VALID_BANNER_SCOPE_SQL} AND status = 'ONLINE'"
+                ),
             )
             .mappings()
             .one()
@@ -142,7 +154,10 @@ class BannerRepository:
         pending_sql = _time_status_sql("PENDING", now_iso)
         pending_row = (
             self._db.execute(
-                text(f"SELECT COUNT(*) AS c FROM banners WHERE {pending_sql}"),
+                text(
+                    f"SELECT COUNT(*) AS c FROM banners "
+                    f"WHERE {VALID_BANNER_SCOPE_SQL} AND {pending_sql}"
+                ),
             )
             .mappings()
             .one()
@@ -164,7 +179,7 @@ class BannerRepository:
         status: str | None,
         time_status: str | None,
     ) -> BannerListResult:
-        conditions = ["1=1"]
+        conditions = [VALID_BANNER_SCOPE_SQL]
         params: dict[str, Any] = {}
         now_iso = datetime.now(UTC).isoformat()
 
@@ -214,7 +229,10 @@ class BannerRepository:
 
     def get_by_id(self, banner_id: int) -> BannerRecord | None:
         row = (
-            self._db.execute(text("SELECT * FROM banners WHERE id = :id"), {"id": banner_id})
+            self._db.execute(
+                text(f"SELECT * FROM banners WHERE id = :id AND {VALID_BANNER_SCOPE_SQL}"),
+                {"id": banner_id},
+            )
             .mappings()
             .first()
         )
@@ -258,6 +276,7 @@ class BannerRepository:
         sku_id: int | None,
         external_url: str | None,
         topic_id: int | None,
+        brand_id: int | None,
         sort_order: int,
         valid_from: str | None,
         valid_to: str | None,
@@ -270,11 +289,11 @@ class BannerRepository:
                 INSERT INTO banners (
                   title, display_client, position, image_object_key, image_source,
                   sku_gallery_asset_id, jump_type, sku_id, external_url, topic_id,
-                  sort_order, valid_from, valid_to, status, remark, created_at, updated_at
+                  brand_id, sort_order, valid_from, valid_to, status, remark, created_at, updated_at
                 ) VALUES (
                   :title, :display_client, :position, :image_object_key, :image_source,
                   :sku_gallery_asset_id, :jump_type, :sku_id, :external_url, :topic_id,
-                  :sort_order, :valid_from, :valid_to, 'DRAFT', :remark, :created_at, :updated_at
+                  :brand_id, :sort_order, :valid_from, :valid_to, 'DRAFT', :remark, :created_at, :updated_at
                 )
                 """
             ),
@@ -289,6 +308,7 @@ class BannerRepository:
                 "sku_id": sku_id,
                 "external_url": external_url,
                 "topic_id": topic_id,
+                "brand_id": brand_id,
                 "sort_order": sort_order,
                 "valid_from": valid_from,
                 "valid_to": valid_to,
@@ -317,6 +337,7 @@ class BannerRepository:
         sku_id: int | None,
         external_url: str | None,
         topic_id: int | None,
+        brand_id: int | None,
         sort_order: int,
         valid_from: str | None,
         valid_to: str | None,
@@ -337,6 +358,7 @@ class BannerRepository:
                   sku_id = :sku_id,
                   external_url = :external_url,
                   topic_id = :topic_id,
+                  brand_id = :brand_id,
                   sort_order = :sort_order,
                   valid_from = :valid_from,
                   valid_to = :valid_to,
@@ -357,6 +379,7 @@ class BannerRepository:
                 "sku_id": sku_id,
                 "external_url": external_url,
                 "topic_id": topic_id,
+                "brand_id": brand_id,
                 "sort_order": sort_order,
                 "valid_from": valid_from,
                 "valid_to": valid_to,
@@ -413,3 +436,26 @@ class BannerRepository:
     def sku_exists(self, sku_id: int) -> bool:
         row = self._db.execute(text("SELECT 1 FROM tiles WHERE id = :id"), {"id": sku_id}).first()
         return row is not None
+
+    def brand_exists(self, brand_id: int) -> bool:
+        row = self._db.execute(
+            text("SELECT 1 FROM brands WHERE id = :id AND status = 'ENABLED'"),
+            {"id": brand_id},
+        ).first()
+        return row is not None
+
+    def get_brand_logo_key(self, brand_id: int) -> str | None:
+        row = (
+            self._db.execute(
+                text(
+                    """
+                    SELECT logo_object_key FROM brands
+                    WHERE id = :id AND status = 'ENABLED'
+                    """
+                ),
+                {"id": brand_id},
+            )
+            .mappings()
+            .first()
+        )
+        return row["logo_object_key"] if row else None

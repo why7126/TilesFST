@@ -31,10 +31,12 @@ import { getPaginationWindow } from '@/features/admin/lib/pagination';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/banner-management.css';
 
+const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME';
+
 export function BannerManagementPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [keyword, setKeyword] = useState('');
-  const [displayClient, setDisplayClient] = useState('');
+  const [displayClient, setDisplayClient] = useState(MINIAPP_DISPLAY_CLIENT);
   const [status, setStatus] = useState('');
   const [timeStatus, setTimeStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -58,7 +60,7 @@ export function BannerManagementPage() {
           page: currentPage,
           page_size: pageSize,
           keyword: keyword.trim() || undefined,
-          display_client: displayClient || undefined,
+          display_client: MINIAPP_DISPLAY_CLIENT,
           status: status || undefined,
           time_status: timeStatus || undefined,
         });
@@ -93,11 +95,15 @@ export function BannerManagementPage() {
 
   const handleReset = () => {
     setKeyword('');
-    setDisplayClient('');
+    setDisplayClient(MINIAPP_DISPLAY_CLIENT);
     setStatus('');
     setTimeStatus('');
     setPage(1);
-    void fetchBanners({ page: 1, page_size: pageSize }).then(setData).catch((err) => {
+    void fetchBanners({
+      page: 1,
+      page_size: pageSize,
+      display_client: MINIAPP_DISPLAY_CLIENT,
+    }).then(setData).catch((err) => {
       setNotice(getErrorMessage(err, '加载 Banner 列表失败'));
     });
   };
@@ -157,7 +163,7 @@ export function BannerManagementPage() {
           <p className="eyebrow">OPERATIONS / BANNER MANAGEMENT</p>
           <h1 className="page-title">Banner 管理</h1>
           <p className="page-desc">
-            维护前台首页、小程序首页与专题运营位的 Banner 内容、排序、跳转与生效时间。
+            维护小程序首页轮播与品牌列表页轮播的 Banner 内容、排序、跳转与生效时间。
           </p>
         </div>
         <button type="button" className="btn primary" onClick={openCreate}>
@@ -209,7 +215,7 @@ export function BannerManagementPage() {
               className="select"
               value={displayClient}
               onChange={(e) => {
-                setDisplayClient(e.target.value);
+                setDisplayClient(e.target.value || MINIAPP_DISPLAY_CLIENT);
                 setPage(1);
               }}
             >

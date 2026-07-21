@@ -5,6 +5,12 @@ description: "已评审缺陷 → OpenSpec fix-* Change（CLI）；原 /bug-to-c
 
 ## Context Budget Guardrails（MUST）
 
+### Force-proceed Follow-up Guardrails（MUST）
+
+- `force-proceed` 仅允许继续当前命令的非阻断部分，MUST NOT 默认自动创建 follow-up REQ/BUG；除非用户在当前命令中明确授权自动 capture，否则只输出标准 capture 文案，并明确“未自动创建 Issue”。
+- 标准 capture 文案 MUST 分条包含：建议命令、类型倾向、标题、背景、影响范围、建议验收或复现要点、来源 Change/Sprint/命令；多个 follow-up 事项 MUST 逐条输出，且每条可独立用于后续 capture。
+- 如用户明确授权并实际创建 follow-up Issue，MUST 按 `/req-capture`、`/bug-capture` 或 `/capture` 规则落盘，并运行对应 `req.capture` 或 `bug.capture` Workflow Sync。
+
 - BUG 转 Change 时只读取目标 BUG 文档包、父需求 trace 摘要与候选 spec 片段；不得默认读取全部 `openspec/specs/**`。
 - MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
 - 关联能力追溯先读取 BUG 包与 `trace.md` 中的 `related_requirement` / `related_change`，再定向读取对应 spec；不要默认在 `openspec/specs` + `openspec/changes/archive` 上做宽泛全文搜索。
@@ -134,6 +140,7 @@ python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change 
 ```
 
 - Exit code **MUST** be `0` before ending this command.
+- 当目标 BUG 已在 Sprint 正式范围内时，Workflow Sync **MUST** 把 `<change-id>` 写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项；结束前用 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 确认后续 `/opsx-apply` 不再报告 `change <id> not in sprint scope`。
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
 

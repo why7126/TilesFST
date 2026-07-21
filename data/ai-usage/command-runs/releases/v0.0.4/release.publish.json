@@ -1,0 +1,149 @@
+{
+  "release_version": "v0.0.4",
+  "workflow_event": "release.publish",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/20/rollout-2026-07-20T23-35-50-019f802b-5066-7b51-a624-a87ebea381b3.jsonl"
+  ],
+  "generated_at": "2026-07-21T00:14:57.575752Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0049-miniapp-product-card-component",
+      "REQ-0050-miniapp-brand-header-page-title-rules",
+      "REQ-0051-category-list-product-list-entry-by-level",
+      "REQ-0052-miniapp-device-evidence-template",
+      "REQ-0053-miniapp-custom-navigation-best-practice",
+      "REQ-0054-brand-card-common-component",
+      "REQ-0055-brand-certificate-common-component",
+      "REQ-0056-product-list-card-only-layout",
+      "REQ-0057-certificate-list-page",
+      "REQ-0058-brand-detail-home-page",
+      "REQ-0059-favorite-list-page",
+      "REQ-0060-brand-list-page",
+      "REQ-0061-miniapp-share-add-guide",
+      "REQ-0062-admin-banner-placement-scope"
+    ],
+    "bugs": [
+      "BUG-0066-search-component-prototype-deviation",
+      "BUG-0067-home-recommendation-list-entry-routing",
+      "BUG-0068-miniapp-home-device-acceptance-followup",
+      "BUG-0069-miniapp-sku-detail-carousel-video-not-playable"
+    ],
+    "changes": [
+      "add-brand-list-page",
+      "add-favorite-list-page",
+      "add-miniapp-brand-card-component",
+      "add-miniapp-brand-detail-home-page",
+      "add-miniapp-certificate-list-page",
+      "add-miniapp-custom-navigation-best-practice",
+      "add-miniapp-device-evidence-template",
+      "add-miniapp-share-add-guide",
+      "fix-miniapp-home-device-acceptance",
+      "fix-miniapp-home-recommendation-routing",
+      "fix-miniapp-search-prototype-alignment",
+      "fix-miniapp-sku-detail-video-url",
+      "update-admin-banner-placement-scope",
+      "update-brand-certificate-common-component",
+      "update-miniapp-brand-header-title-rules",
+      "update-miniapp-category-product-list-entry",
+      "update-miniapp-product-card-component",
+      "update-miniapp-product-list-card-only-layout"
+    ],
+    "sprints": [
+      "sprint-009"
+    ]
+  },
+  "totals": {
+    "input_tokens": 789451,
+    "cached_input_tokens": 759296,
+    "output_tokens": 1167,
+    "reasoning_output_tokens": 118,
+    "total_tokens": 790618,
+    "command_run_count": 1,
+    "model_call_count": 4,
+    "tool_call_count": 7,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "c7e23139f8143457a97674cb48d3eb6f24733056e64313092b5114306adf2594",
+      "source_data_file": "~/.codex/sessions/2026/07/20/rollout-2026-07-20T23-35-50-019f802b-5066-7b51-a624-a87ebea381b3.jsonl",
+      "source_line_start": 697,
+      "source_line_end": 730,
+      "turn_hash": "c24ec16c01724bf0",
+      "started_at": "2026-07-21T00:13:57.621Z",
+      "ended_at": "2026-07-21T00:14:46.145Z",
+      "command": "release.publish",
+      "workflow_event": "release.publish",
+      "requirements": [
+        "REQ-0049-miniapp-product-card-component",
+        "REQ-0050-miniapp-brand-header-page-title-rules",
+        "REQ-0051-category-list-product-list-entry-by-level",
+        "REQ-0052-miniapp-device-evidence-template",
+        "REQ-0053-miniapp-custom-navigation-best-practice",
+        "REQ-0054-brand-card-common-component",
+        "REQ-0055-brand-certificate-common-component",
+        "REQ-0056-product-list-card-only-layout",
+        "REQ-0057-certificate-list-page",
+        "REQ-0058-brand-detail-home-page",
+        "REQ-0059-favorite-list-page",
+        "REQ-0060-brand-list-page",
+        "REQ-0061-miniapp-share-add-guide",
+        "REQ-0062-admin-banner-placement-scope"
+      ],
+      "bugs": [
+        "BUG-0066-search-component-prototype-deviation",
+        "BUG-0067-home-recommendation-list-entry-routing",
+        "BUG-0068-miniapp-home-device-acceptance-followup",
+        "BUG-0069-miniapp-sku-detail-carousel-video-not-playable"
+      ],
+      "changes": [
+        "add-brand-list-page",
+        "add-favorite-list-page",
+        "add-miniapp-brand-card-component",
+        "add-miniapp-brand-detail-home-page",
+        "add-miniapp-certificate-list-page",
+        "add-miniapp-custom-navigation-best-practice",
+        "add-miniapp-device-evidence-template",
+        "add-miniapp-share-add-guide",
+        "fix-miniapp-home-device-acceptance",
+        "fix-miniapp-home-recommendation-routing",
+        "fix-miniapp-search-prototype-alignment",
+        "fix-miniapp-sku-detail-video-url",
+        "update-admin-banner-placement-scope",
+        "update-brand-certificate-common-component",
+        "update-miniapp-brand-header-title-rules",
+        "update-miniapp-category-product-list-entry",
+        "update-miniapp-product-card-component",
+        "update-miniapp-product-list-card-only-layout"
+      ],
+      "sprint_id": "sprint-009",
+      "release_sprints": [
+        "sprint-009"
+      ],
+      "release_version": "v0.0.4",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 4,
+      "input_tokens": 789451,
+      "cached_input_tokens": 759296,
+      "output_tokens": 1167,
+      "reasoning_output_tokens": 118,
+      "total_tokens": 790618,
+      "tool_call_count": 7,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

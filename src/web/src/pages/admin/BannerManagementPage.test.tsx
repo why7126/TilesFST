@@ -40,8 +40,8 @@ const listWithItem = {
     {
       id: 1,
       title: '春季主推',
-      position: 'HOME_TOP_CAROUSEL',
-      display_client: 'WEB_HOME',
+      position: 'MINIAPP_BRAND_LIST_CAROUSEL',
+      display_client: 'MINIAPP_HOME',
       jump_type: 'NONE',
       status: 'ONLINE',
       image_url: null,
@@ -64,6 +64,28 @@ describe('BannerManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchBannersMock.mockResolvedValue(listPayload);
+  });
+
+  it('requests and displays only miniapp banner scope options', async () => {
+    render(
+      <MemoryRouter>
+        <BannerManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBannersMock).toHaveBeenCalledWith(
+        expect.objectContaining({ display_client: 'MINIAPP_HOME' }),
+      );
+    });
+
+    const displayClientSelect = screen.getByLabelText('展示端') as HTMLSelectElement;
+    expect(Array.from(displayClientSelect.options).map((option) => option.textContent)).toEqual([
+      '小程序',
+    ]);
+    expect(displayClientSelect.value).toBe('MINIAPP_HOME');
+    expect(screen.queryByText('Web 首页')).toBeNull();
+    expect(screen.queryByText('专题页')).toBeNull();
   });
 
   it('renders standard pagination without section-head or banner-pagination', async () => {
@@ -120,7 +142,7 @@ describe('BannerManagementPage', () => {
       'admin-sticky-action-cell',
     );
     expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
-    expect(screen.getByText('首页顶部轮播')).toBeInTheDocument();
+    expect(screen.getByText('品牌列表页轮播')).toBeInTheDocument();
     expect(container.querySelector('.banner-sub')).toBeNull();
     expect(container.querySelector('.banner-position')).toBeTruthy();
   });

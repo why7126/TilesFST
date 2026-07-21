@@ -1,0 +1,93 @@
+<view class="page">
+  <custom-navigation title="品牌列表" />
+
+  <view wx:if="{{status == 'loading'}}" class="skeleton-shell">
+    <view class="skeleton-hero"></view>
+    <view class="skeleton-grid">
+      <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
+        <view class="skeleton-logo"></view>
+        <view class="skeleton-line strong"></view>
+        <view class="skeleton-line"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{status == 'error'}}" class="state">
+    <view class="state-title">品牌列表加载失败</view>
+    <view class="state-desc">请检查网络或稍后重试。</view>
+    <button class="primary-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <view wx:elif="{{status == 'empty'}}" class="state">
+    <view class="state-title">暂无公开品牌</view>
+    <view class="state-desc">可以先按分类浏览公开商品。</view>
+    <button class="primary-btn" bindtap="openCategory">去看分类</button>
+  </view>
+
+  <view wx:else class="brand-content">
+    <swiper
+      wx:if="{{banners.length}}"
+      class="brand-hero"
+      autoplay
+      circular
+      interval="4500"
+      duration="450"
+      indicator-dots
+      indicator-color="rgba(237,232,223,0.32)"
+      indicator-active-color="#C8A055"
+    >
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <view class="brand-slide" bindtap="openBanner" data-banner="{{item}}" data-index="{{index}}">
+          <image
+            class="brand-hero-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            binderror="onImageError"
+            data-index="{{index}}"
+          ></image>
+          <view class="brand-hero-shade"></view>
+          <view class="brand-hero-copy">
+            <view class="brand-hero-title">{{item.title || '精选品牌'}}</view>
+            <view class="brand-hero-subtitle">{{item.subtitle || '看品牌矩阵，找同品牌好砖'}}</view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <view wx:else class="brand-hero fallback">
+      <view class="brand-hero-copy">
+        <view class="brand-hero-title">精选品牌</view>
+        <view class="brand-hero-subtitle">看品牌矩阵，找同品牌好砖</view>
+      </view>
+    </view>
+
+    <view class="section-head">
+      <view class="section-title">品牌</view>
+      <view class="section-meta">共 {{total}} 个</view>
+    </view>
+
+    <view class="brand-grid">
+      <view
+        wx:for="{{items}}"
+        wx:key="brand_id"
+        data-index="{{index}}"
+        bindtap="onBrandTap"
+      >
+        <brand-card
+          brand="{{item}}"
+          density="grid"
+          hint="{{item.product_count ? item.product_count + ' 个商品' : '暂无内容'}}"
+          source-page="brand-list"
+          source-module="brand-list-grid"
+          list-context="brand-list"
+          index="{{index}}"
+          request-id="{{requestId}}"
+        />
+      </view>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="load-more">加载更多...</view>
+    <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
+    <view wx:elif="{{!hasMore}}" class="load-more">已经到底了</view>
+  </view>
+</view>

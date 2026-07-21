@@ -19,7 +19,7 @@ class MiniappBannerItem(BaseModel):
     title: str
     subtitle: str | None = None
     image_url: str
-    jump_type: Literal["none", "product", "search", "store"]
+    jump_type: Literal["none", "product", "brand", "search", "store"]
     target_id: int | None = None
     search_keyword: str | None = None
 
@@ -85,6 +85,74 @@ class MiniappProductListData(BaseModel):
     page_size: int
     has_more: bool = False
     facets: MiniappSearchFacets = Field(default_factory=MiniappSearchFacets)
+
+
+class MiniappBrandCard(BaseModel):
+    brand_id: int
+    brand_name: str
+    brand_short_name: str | None = None
+    english_name: str | None = None
+    brand_logo_url: str | None = None
+    brand_entry_path: str
+    product_count: int = 0
+    description: str | None = None
+    available: bool = True
+
+
+class MiniappBrandListData(BaseModel):
+    banners: list[MiniappBannerItem]
+    items: list[MiniappBrandCard]
+    total: int
+    page: int
+    page_size: int
+    has_more: bool = False
+
+
+class MiniappBrandDetailData(MiniappBrandCard):
+    product_path: str
+    certificate_count: int = 0
+
+
+class MiniappBrandCertificateItem(BaseModel):
+    certificate_id: int
+    certificate_name: str
+    certificate_type: str | None = None
+    certificate_no: str | None = None
+    issuer: str | None = None
+    brand_name: str
+    file_url: str
+
+
+class MiniappBrandCertificateListData(BaseModel):
+    items: list[MiniappBrandCertificateItem]
+    total: int
+
+
+class MiniappCertificateItem(BaseModel):
+    certificate_id: int
+    certificate_name: str
+    certificate_type: str | None = None
+    certificate_type_label: str
+    certificate_no: str | None = None
+    issuer: str | None = None
+    brand_id: int
+    brand_name: str
+    file_url: str | None = None
+    file_name: str | None = None
+    file_mime_type: str | None = None
+    file_kind: Literal["image", "pdf", "unknown"]
+    effective_date: str | None = None
+    expiry_date: str | None = None
+    validity_status: Literal["PERMANENT", "VALID", "EXPIRING_SOON", "EXPIRED", "UNSET"]
+    validity_status_label: str
+
+
+class MiniappCertificateListData(BaseModel):
+    items: list[MiniappCertificateItem]
+    total: int
+    page: int
+    page_size: int
+    has_more: bool = False
 
 
 class MiniappSearchSuggestion(BaseModel):

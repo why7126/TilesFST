@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-19 02:17:59
+updated_at: 2026-07-20 22:51:30
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -94,7 +94,7 @@ Authorization: Bearer <access_token>
 | 认证 | `/api/v1/auth` | 部分 | 登录、当前用户、退出 | ✓ 已实现 |
 | 个人资料 | `/api/v1/profile` | 是（admin/employee） | 当前用户资料 self-service、操作记录 | ✓ Sprint 003 |
 | 管理端个人设置 | `/api/v1/admin/profile` | 是（admin/employee） | 自助修改密码 | ✓ Sprint 003 |
-| 微信小程序 | `/api/v1/miniapp` | 否 | 首页聚合、公开分类树、公开商品搜索、搜索联想/完整搜索、公开商品/SKU 详情 | ✓ Sprint 008 |
+| 微信小程序 | `/api/v1/miniapp` | 否 | 首页聚合、公开分类树、公开商品搜索、公开证书聚合列表、搜索联想/完整搜索、公开商品/SKU 详情 | ✓ Sprint 008/009 |
 | 瓷砖（展示） | `/api/v1/tiles` | 否 | 列表、详情 | 桩实现（返回空/示例） |
 | 管理端瓷砖 | `/api/v1/admin/tiles` | 是（admin/employee） | 创建瓷砖 | 桩实现 |
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
@@ -305,7 +305,7 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 
 `duration_ms` 为行为本身耗时毫秒数，适用于页面加载、查询、详情加载、上传、保存等有过程耗时的行为；瞬时行为可省略，列表显示 `-`。
 
-行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`、`product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click`、`miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click`、`miniapp_certificate_tab_click`、`miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed`、`miniapp_home_waterfall_end_reached`、`sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_favorite`、`sku_unfavorite`、`sku_share_click`、`sku_brand_click`、`sku_recommend_click`、`sku_load_error`、`category_page_view`、`primary_category_click`、`secondary_category_click`、`category_load_failed`、`product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization、cookie、raw_payload、raw_filename、raw_object_key、object_key、raw_response、internal_path）的上报，返回 `400 / code=40001`。
+行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`、`product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click`、`miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click`、`miniapp_certificate_tab_click`、`certificate_list_page_view`、`certificate_list_load`、`certificate_list_refresh`、`certificate_list_load_more`、`certificate_list_retry`、`certificate_click`、`certificate_preview_click`、`certificate_load_failed`、`miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed`、`miniapp_home_waterfall_end_reached`、`sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_favorite`、`sku_unfavorite`、`sku_share_click`、`sku_brand_click`、`sku_recommend_click`、`sku_load_error`、`category_page_view`、`primary_category_click`、`secondary_category_click`、`category_load_failed`、`product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization、cookie、raw_payload、raw_filename、raw_object_key、object_key、raw_response、internal_path）的上报，返回 `400 / code=40001`。
 
 小程序事件要求：
 
@@ -323,6 +323,9 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | `miniapp_home_waterfall_product_click` | `product_id`、`page_path`、`client_type` | 全部产品瀑布流商品点击 |
 | `miniapp_home_favorite_visual_click` | `product_id`、`page_path`、`client_type` | 非持久化收藏视觉点击或收藏占位 Tab 触达 |
 | `miniapp_certificate_tab_click` | `page_path`、`client_type` | 证书 Tab 点击 |
+| `certificate_list_page_view` | `page_path`、`client_type` | 证书列表页曝光 |
+| `certificate_click` / `certificate_preview_click` | `certificateId`、`page_path`、`client_type` | 证书卡片点击与预览点击 |
+| `certificate_load_failed` | `page_path`、`client_type` | 证书列表或证书图片加载失败 |
 | `miniapp_home_waterfall_load` | `page_path`、`page`、`page_size`、`client_type` | 全部产品瀑布流加载 |
 | `miniapp_home_waterfall_load_failed` | `page_path`、`page`、`reason`、`client_type` | 全部产品瀑布流加载失败 |
 | `miniapp_home_waterfall_end_reached` | `page_path`、`page`、`total`、`client_type` | 全部产品瀑布流无更多 |
@@ -337,7 +340,8 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | `sku_load_error` | `sku_id`、`page_path`、`error_code`、`stage`、`client_type` | SKU 详情加载失败 |
 | `category_page_view` | `page_path`、`has_cache`、`client_type` | 分类页访问 |
 | `primary_category_click` | `category_id`、`category_index`、`page_path`、`client_type` | 一级分类点击 |
-| `secondary_category_click` | `category_id`、`parent_category_id`、`category_index`、`page_path`、`client_type` | 二级分类点击 |
+| `primary_category_product_list_click` | `category_id`、`category_name`、`category_level`、`sourcePage`、`category_index`、`page_path`、`client_type` | 一级分类商品列表入口点击 |
+| `secondary_category_click` | `category_id`、`parent_category_id`、`category_index`、`page_path`、`client_type` | 二级分类点击，商品列表入口需补充 `category_name`、`category_level`、`sourcePage` 与 `action` |
 | `category_load_failed` | `page_path`、`error_code`、`has_cache`、`client_type` | 分类树加载失败 |
 | `product_list_page_view` | `page_path`、`sourcePage`、`sort`、`pageSize`、`requestId`、`client_type` | 商品列表页访问 |
 | `product_list_item_exposure` | `skuId`、`sourcePage`、`positionIndex`、`requestId`、`client_type` | 商品卡片曝光 |
@@ -361,19 +365,23 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 
 小程序事件不得提交聊天内容、Authorization header、Cookie、原始手机号、raw payload、raw object key、原始响应体或内部路径。SKU 详情收藏事件只记录 SKU 粒度业务事实和必要上下文；分类页事件只记录分类 ID、索引、错误码和是否有缓存等必要信息；商品列表事件只记录来源页面、分类/品牌/关键词、筛选快照、排序、分页、结果数量、SKU ID、位置索引和 requestId 等必要上下文；搜索事件只记录关键词、归一化关键词、scope、实体类型、结果数量、来源页面、筛选快照和 requestId 等必要上下文。埋点失败不得阻断小程序浏览、分享、收藏、推荐跳转、分类切换、商品列表加载、筛选、排序、刷新、加载更多、详情跳转、搜索输入、联想、结果展示、筛选、无结果页或瀑布流加载主流程。
 
-### 3.5 微信小程序公开接口（Sprint 008）
+### 3.5 微信小程序公开接口（Sprint 008/009）
 
 实现：`src/backend/app/api/v1/miniapp.py`
-OpenSpec：`openspec/changes/add-miniapp-home/`、`openspec/changes/add-miniapp-search-component/`、`openspec/changes/add-miniapp-product-list-component/`
+OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`openspec/specs/miniapp-product-list-page/`、`openspec/specs/miniapp-certificate-list-page/`
 
 | 方法 | 路径 | 认证 | 说明 |
 |---|---|---|---|
 | GET | `/api/v1/miniapp/home` | 否 | 首页聚合数据：门店摘要、Banner、快捷入口、服务区、新品、热销 |
 | GET | `/api/v1/miniapp/categories/tree?depth=2` | 否 | 公开分类树：最多两级启用分类、排序、兼容 `coverUrl` 和数据版本号 |
-| GET | `/api/v1/miniapp/products` | 否 | 公开商品列表，支持 `categoryId`、`keyword`、`brandId`、`spec`、`priceRange`、`sort`、`page`、`pageSize`，兼容 `filter_type`、`filter_value`、`section` |
-| GET | `/api/v1/miniapp/search/home` | 否 | 搜索首页数据：热门搜索词、最近浏览兜底数据；最近搜索由小程序本机保存 |
-| GET | `/api/v1/miniapp/search/suggestions` | 否 | 搜索实时联想，支持 `keyword`、`scope`、`limit`、`request_id`；证书不参与联想 |
-| GET | `/api/v1/miniapp/search` | 否 | 完整搜索，支持 `keyword`、`tab`、分页、品牌/类目/规格/价格筛选和 `request_id` |
+| GET | `/api/v1/miniapp/brands` | 否 | 公开品牌列表与品牌页轮播，支持 `page`、`pageSize` |
+| GET | `/api/v1/miniapp/brands/{brand_id}` | 否 | 公开品牌主页/详情信息：品牌图片、名称、简介、公开商品数、公开证书数 |
+| GET | `/api/v1/miniapp/brands/{brand_id}/certificates` | 否 | 当前品牌可公开证书列表，返回受控证书预览 URL |
+| GET | `/api/v1/miniapp/certificates` | 否 | 公开证书聚合列表，仅支持 `page`、`pageSize` |
+| GET | `/api/v1/miniapp/products` | 否 | 公开商品列表，支持 `categoryId`、`categoryLevel`、`keyword`、`brandId`、`spec`、`priceRange`、`sort`、`page`、`pageSize`，兼容 `filter_type`、`filter_value`、`section` |
+| GET | `/api/v1/miniapp/search/home` | 否 | 搜索首页数据：热门搜索词；最近搜索由小程序本机保存 |
+| GET | `/api/v1/miniapp/search/suggestions` | 否 | 搜索实时联想，支持 `keyword`、`scope`、`limit`、`request_id`；仅返回品牌与 SKU 联想 |
+| GET | `/api/v1/miniapp/search` | 否 | 完整搜索，支持 `keyword`、`tab`、分页、品牌/类目/规格/价格筛选和 `request_id`；小程序结果页仅展示综合、品牌、SKU、证书 Tab |
 | GET | `/api/v1/miniapp/products/{product_id}` | 否 | 公开商品详情 |
 | GET | `/api/v1/miniapp/skus/{sku_id}` | 否 | SKU 详情聚合数据：主体、媒体、品牌、收藏状态、分享数据、同系列和同品牌推荐 |
 | PUT | `/api/v1/miniapp/skus/{sku_id}/favorite` | 否 | SKU 粒度幂等设置收藏状态，body: `{ client_id, favorite }` |
@@ -401,13 +409,21 @@ OpenSpec：`openspec/changes/add-miniapp-home/`、`openspec/changes/add-miniapp-
 
 公开商品卡片只返回允许展示字段：`product_id`、`product_name`、`sku_code`、`cover_image`、`specification`、`category_name`、`brand_name`、`style_tags`、`applicable_spaces`、`color_family`、`price_display`、`is_new`、`is_hot`。接口不得返回后台内部字段、库存管理字段、内部备注、对象存储 raw object key 或敏感配置。
 
-`GET /api/v1/miniapp/products` 请求支持分类、搜索、品牌、规格、价格区间和排序上下文：`categoryId`、`keyword`、`brandId`、`spec`、`priceRange`（如 `100-200`、`200-`）、`sort=default|latest|price_asc|price_desc`、`page`、`pageSize`。接口兼容旧参数 `filter_type`、`filter_value` 和 `section=new|hot`，供首页瀑布流和历史入口继续调用。响应 `data` 包含 `items`、`total`、`page`、`page_size`、`has_more` 和 `facets`；`facets` 提供可用 `brands`、`categories`、`specs`、`price_ranges` 选项。服务端只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格或无规格的 SKU，并过滤后台内部字段、库存管理、内部备注、未授权素材、raw object key、Authorization header、Cookie 或敏感配置。`has_more` 用于小程序商品列表页和首页全部产品瀑布流判断是否继续触底加载；若无更多数据，小程序端必须停止追加请求并展示无更多状态。
+`GET /api/v1/miniapp/products` 请求支持分类、搜索、品牌、规格、价格区间和排序上下文：`categoryId`、`categoryLevel=primary|secondary`、`keyword`、`brandId`、`spec`、`priceRange`（如 `100-200`、`200-`）、`sort=default|latest|price_asc|price_desc`、`page`、`pageSize`。`categoryLevel=primary` 表示聚合该一级分类下所有启用二级分类的公开 SKU，不返回仅直接挂载在一级分类下的 SKU；`categoryLevel=secondary` 或未传时保持既有二级分类精确查询语义。接口兼容旧参数 `filter_type`、`filter_value` 和 `section=new|hot`，供首页瀑布流和历史入口继续调用。响应 `data` 包含 `items`、`total`、`page`、`page_size`、`has_more` 和 `facets`；`facets` 提供可用 `brands`、`categories`、`specs`、`price_ranges` 选项。服务端只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格或无规格的 SKU，并过滤后台内部字段、库存管理、内部备注、未授权素材、raw object key、Authorization header、Cookie 或敏感配置。`has_more` 用于小程序商品列表页和首页全部产品瀑布流判断是否继续触底加载；若无更多数据，小程序端必须停止追加请求并展示无更多状态。
 
-`GET /api/v1/miniapp/search/suggestions` 响应 `data` 包含 `keyword`、`normalized_keyword`、`request_id` 与 `suggestions[]`。`suggestions[]` 可包含 `keyword`、`sku`、`brand`、`category`、`spec` 类型，字段为 `id`、`text`、`entity_type`、`target_id`、`target_path`、`scope`；证书不得进入联想结果。
+`GET /api/v1/miniapp/search/suggestions` 响应 `data` 包含 `keyword`、`normalized_keyword`、`request_id` 与 `suggestions[]`。`suggestions[]` 仅包含 `brand` 和 `sku` 类型，字段为 `id`、`text`、`entity_type`、`target_id`、`target_path`、`scope`；最近搜索、普通关键词、类目、规格和证书不得进入联想结果。
 
-`GET /api/v1/miniapp/search` 响应 `data` 包含 `tabs[]`、`best_match`、`sections[]`、`facets`、`items`、`total`、`page`、`page_size`、`has_more` 与 `recommended_keywords`。完整搜索会二次过滤公开状态：只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格和可公开证书，不暴露后台内部字段、内部备注、raw object key 或敏感配置。v1 不新增管理端搜索配置中心、后台热门词维护、同义词维护、自然语言词典维护、搜索统计管理页或 `/api/admin/search/*`。
+`GET /api/v1/miniapp/search` 响应 `data` 包含 `tabs[]`、`best_match`、`sections[]`、`facets`、`items`、`total`、`page`、`page_size`、`has_more` 与 `recommended_keywords`。`best_match` 可返回 `entity_type=sku|brand|certificate`：SKU 编码或 SKU 名称直接命中优先，其次品牌名精确命中，最后证书名称或证书编号精确命中；未满足上述直接命中时返回 `null`。小程序结果页按综合、品牌、SKU、证书展示 Tab，不展示类目 Tab；综合 Tab 按最佳匹配、品牌、SKU、证书顺序展示非 0 条分区，品牌/SKU/证书单独 Tab 直接展示卡片内容，不再展示分区标题和数量。完整搜索会二次过滤公开状态：只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格和可公开证书，不暴露后台内部字段、内部备注、raw object key 或敏感配置。v1 不新增管理端搜索配置中心、后台热门词维护、同义词维护、自然语言词典维护、搜索统计管理页或 `/api/admin/search/*`。
 
-首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（小程序首页）、展示位置为 `MINIAPP_HOME_CAROUSEL`（小程序首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序端使用 `image_url` 渲染轮播图；若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
+首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（管理端文案显示“小程序”）、展示位置为 `MINIAPP_HOME_CAROUSEL`（首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序端使用 `image_url` 渲染轮播图；公开 `jump_type` 支持 `product`、`brand`、`search`、`store`、`none`，其中 `brand` 使用 `target_id` 跳转品牌详情页。若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
+
+`GET /api/v1/miniapp/brands` 响应 `data` 包含 `banners[]`、`items[]`、`total`、`page`、`page_size` 和 `has_more`。`banners[]` 仅来自 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）安全字段，支持 `jump_type=brand` + `target_id` 跳转品牌详情页；品牌列表页无轮播数据时返回空数组，不使用首页轮播兜底。`items[]` 返回启用品牌的安全字段：`brand_id`、`brand_name`、`brand_short_name`、`brand_logo_url`、`brand_entry_path`、`product_count`、`description`、`available`；`product_count=0` 的启用品牌仍可展示。接口不得返回品牌后台备注、raw object key、内部审计字段、Authorization header、Cookie 或敏感配置。
+
+`GET /api/v1/miniapp/brands/{brand_id}` 响应 `data` 包含单品牌主页公开信息，并返回 `product_path` 与 `certificate_count` 供小程序品牌主页展示。品牌不存在、停用、无公开 SKU 或不可公开时返回 `404 / code=30030`。
+
+`GET /api/v1/miniapp/brands/{brand_id}/certificates` 响应 `data.items[]` 只包含当前品牌可公开证书，字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_no`、`issuer`、`brand_name`、`file_url`。隐藏、删除、停用品牌证书不会返回；响应不得暴露 `file_key`、后台备注、审计字段、raw object key、Authorization header、Cookie 或敏感配置。
+
+`GET /api/v1/miniapp/certificates` 响应 `data` 包含 `items[]`、`total`、`page`、`page_size` 和 `has_more`，请求仅支持分页参数 `page`、`pageSize`。`items[]` 字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_type_label`、`brand_id`、`brand_name`、`file_url`、`file_name`、`file_mime_type`、`file_kind`、`effective_date`、`expiry_date`、`validity_status`、`validity_status_label`；小程序证书卡片仅展示证书名称、品牌名称和证书类型。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书，排序为 `sort_order ASC, updated_at DESC, id DESC`；响应不得暴露 `file_key`、后台备注、审计字段、内部用户字段、raw object key、Authorization header、Cookie 或敏感配置。
 
 `GET /api/v1/miniapp/categories/tree?depth=2` 响应 `data` 包含 `version` 与 `items[]`。`items[]` 只返回 `status=ENABLED` 且 `level<=2` 的类目，一级和二级分别按 `sort_order ASC, created_at ASC, id ASC` 排序；一级节点字段为 `id`、`name`、`sort`、`children`，二级节点字段为 `id`、`name`、`coverUrl`、`sort`。`coverUrl` 为兼容字段，当前小程序分类列表页不渲染二级类目图片；后端返回统一安全占位 URL `/media/miniapp/category-placeholder.webp`，不自动取 SKU 商品主图，不暴露 `description`、`sku_count`、`path`、raw object key、Authorization header、Cookie 或后台内部备注。
 
@@ -478,7 +494,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | DELETE | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
 | GET | `/api/v1/admin/topics` | Bearer（admin/employee） |
 
-列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。  
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。当前 `display_client` 仅支持 `MINIAPP_HOME`（管理端显示“小程序”）；Banner 保存仅允许 `MINIAPP_HOME_CAROUSEL`（首页轮播）与 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）。创建/更新请求体支持 `jump_type=SKU_DETAIL|BRAND_DETAIL|EXTERNAL_LINK|TOPIC_PAGE|NO_JUMP`，其中品牌详情使用 `brand_id` 作为唯一跳转目标，图片来源可使用品牌 `logo_object_key` 对应的 `brand_logo` 或自定义上传。旧 Web 首页、专题页和历史运营位 Banner 业务记录由迁移清理，不物理删除 MinIO 对象。
 响应 `data.summary`：`total`、`filtered_count`、`online_count`、`pending_count`。  
 Banner 图上传：`POST /api/v1/admin/uploads/banner-images`（`images/default/banners/...`）。
 

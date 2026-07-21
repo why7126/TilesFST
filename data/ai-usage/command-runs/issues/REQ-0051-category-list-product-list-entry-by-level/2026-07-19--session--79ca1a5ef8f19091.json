@@ -1,0 +1,89 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "79ca1a5ef8f1909164109b9c9184914a8e56a655a0d411ca02d0d401212a6c75",
+      "source_data_file": "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-06-25-019f79d7-5d93-7191-81cd-c5a9d5299b09.jsonl",
+      "source_line_start": 633,
+      "source_line_end": 1199,
+      "turn_hash": "3709805b6289080c",
+      "started_at": "2026-07-19T11:29:28.577Z",
+      "ended_at": "2026-07-19T13:04:15.334Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [
+        "REQ-0051-category-list-product-list-entry-by-level"
+      ],
+      "bugs": [
+        "BUG-0068-miniapp-home-device-acceptance-followup"
+      ],
+      "changes": [
+        "fix-miniapp-home-device-acceptance",
+        "update-miniapp-category-product-list-entry"
+      ],
+      "sprint_id": "sprint-009",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 65,
+      "input_tokens": 6881118,
+      "cached_input_tokens": 6630400,
+      "output_tokens": 24285,
+      "reasoning_output_tokens": 2417,
+      "total_tokens": 6927202,
+      "tool_call_count": 154,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "79ca1a5ef8f1909164109b9c9184914a8e56a655a0d411ca02d0d401212a6c75",
+      "source_data_file": "~/.codex/sessions/2026/07/19/rollout-2026-07-19T18-06-25-019f79d7-5d93-7191-81cd-c5a9d5299b09.jsonl",
+      "source_line_start": 1304,
+      "source_line_end": 1419,
+      "turn_hash": "208d6d0a53e8853e",
+      "started_at": "2026-07-19T13:16:55.948Z",
+      "ended_at": "2026-07-19T13:22:40.667Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0051-category-list-product-list-entry-by-level"
+      ],
+      "bugs": [],
+      "changes": [
+        "update-miniapp-category-product-list-entry"
+      ],
+      "sprint_id": "sprint-009",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 13,
+      "input_tokens": 1667269,
+      "cached_input_tokens": 1631104,
+      "output_tokens": 3519,
+      "reasoning_output_tokens": 334,
+      "total_tokens": 1670788,
+      "tool_call_count": 34,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

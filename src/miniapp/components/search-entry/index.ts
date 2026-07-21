@@ -17,9 +17,10 @@ Component({
       });
     },
 
-    onSubmit() {
+    onSubmit(event?: WechatMiniprogram.Input) {
+      const keyword = event?.detail?.value || this.data.keyword;
       this.triggerEvent('submit', {
-        keyword: this.data.keyword,
+        keyword,
         scope: this.data.scope,
         sourcePage: this.data.sourcePage,
       });

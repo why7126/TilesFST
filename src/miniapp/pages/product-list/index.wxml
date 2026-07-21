@@ -1,35 +1,7 @@
 <view class="page">
-  <custom-navigation title="{{title}}" subtitle="{{categoryName || keyword || '精选商品'}}" />
-  <view class="search-box" bindtap="openSearch">
-    <text class="search-icon">⌕</text>
-    <text class="search-placeholder">在{{categoryName || keyword || '全部商品'}}中搜索</text>
-    <text class="search-action">搜索</text>
-  </view>
+  <custom-navigation title="{{title}}" />
 
-  <view class="toolbar">
-    <button class="tool-btn" bindtap="openFilter">筛选</button>
-    <view class="sort-tabs">
-      <view
-        wx:for="{{sortOptions}}"
-        wx:key="value"
-        class="sort-tab {{sort === item.value ? 'active' : ''}}"
-        data-sort="{{item.value}}"
-        bindtap="changeSort"
-      >{{item.label}}</view>
-    </view>
-  </view>
-
-  <view wx:if="{{activeFilterChips.length}}" class="filter-chips">
-    <view
-      wx:for="{{activeFilterChips}}"
-      wx:key="key"
-      class="filter-chip"
-      data-key="{{item.key}}"
-      bindtap="removeFilter"
-    >{{item.label}} ×</view>
-  </view>
-
-  <view wx:if="{{loading}}" class="skeleton-list">
+  <view wx:if="{{loading}}" class="skeleton-grid">
     <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
       <view class="skeleton-image"></view>
       <view class="skeleton-copy">
@@ -47,107 +19,29 @@
 
   <view wx:elif="{{!items.length}}" class="state">
     <view>{{emptyText}}</view>
-    <button wx:if="{{activeFilterChips.length}}" class="retry-btn ghost" bindtap="clearFilters">清空筛选</button>
   </view>
 
   <view wx:else class="product-list">
-    <view
-      class="product-card"
-      wx:for="{{items}}"
-      wx:key="product_id"
-      bindtap="openProduct"
-      data-id="{{item.product_id}}"
-      data-index="{{index}}"
-      hover-class="card-press"
-    >
-      <view class="image-frame">
-        <image
-          wx:if="{{item.cover_image}}"
-          class="product-image"
-          src="{{item.cover_image}}"
-          mode="aspectFill"
-          data-index="{{index}}"
-          binderror="onImageError"
-        ></image>
-        <view wx:else class="product-image image-empty">瓷砖</view>
-      </view>
-      <view class="product-info">
-        <view class="product-name">{{item.product_name}}</view>
-        <view class="product-meta">{{item.sku_code}} · {{item.specification}}</view>
-        <view class="product-meta">{{item.brand_name || '菲尚特'}} · {{item.category_name || categoryName || '精选系列'}}</view>
-        <view class="product-price">{{item.price_display}}</view>
-      </view>
+    <view class="product-grid">
+      <product-card
+        wx:for="{{items}}"
+        wx:key="product_id"
+        product="{{item}}"
+        density="grid"
+        source-page="product-list"
+        source-module="{{section || 'list'}}"
+        category-id="{{categoryId}}"
+        brand-id="{{brandId}}"
+        keyword="{{keyword}}"
+        list-context="{{title}}"
+        index="{{index}}"
+        request-id="{{requestId}}"
+        image-fallback="{{imageFallback}}"
+      />
     </view>
 
     <view wx:if="{{loadingMore}}" class="load-more">加载更多...</view>
     <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
     <view wx:elif="{{!hasMore}}" class="load-more">已经到底了</view>
-  </view>
-
-  <view wx:if="{{filterDrawerVisible}}" class="drawer-mask" bindtap="closeFilter"></view>
-  <view wx:if="{{filterDrawerVisible}}" class="filter-drawer">
-    <view class="drawer-handle"></view>
-    <view class="drawer-title">筛选商品</view>
-
-    <view class="filter-group">
-      <view class="filter-title">品牌</view>
-      <view class="option-grid">
-        <view
-          wx:for="{{facets.brands}}"
-          wx:key="value"
-          class="option-chip {{draftFilter.brandId === item.value ? 'active' : ''}}"
-          data-key="brandId"
-          data-value="{{item.value}}"
-          bindtap="selectFilter"
-        >{{item.label}}</view>
-      </view>
-    </view>
-
-    <view class="filter-group">
-      <view class="filter-title">分类</view>
-      <view class="option-grid">
-        <view
-          wx:for="{{facets.categories}}"
-          wx:key="value"
-          class="option-chip {{draftFilter.categoryId === item.value ? 'active' : ''}}"
-          data-key="categoryId"
-          data-value="{{item.value}}"
-          bindtap="selectFilter"
-        >{{item.label}}</view>
-      </view>
-    </view>
-
-    <view class="filter-group">
-      <view class="filter-title">规格</view>
-      <view class="option-grid">
-        <view
-          wx:for="{{facets.specs}}"
-          wx:key="value"
-          class="option-chip {{draftFilter.spec === item.value ? 'active' : ''}}"
-          data-key="spec"
-          data-value="{{item.value}}"
-          bindtap="selectFilter"
-        >{{item.label}}</view>
-      </view>
-    </view>
-
-    <view class="filter-group">
-      <view class="filter-title">价格区间</view>
-      <view class="option-grid">
-        <view
-          wx:for="{{facets.price_ranges}}"
-          wx:key="value"
-          class="option-chip {{draftFilter.priceRange === item.value ? 'active' : ''}}"
-          data-key="priceRange"
-          data-value="{{item.value}}"
-          bindtap="selectFilter"
-        >{{item.label}}</view>
-      </view>
-    </view>
-
-    <view class="drawer-actions">
-      <button class="drawer-btn ghost" bindtap="resetFilter">重置</button>
-      <button class="drawer-btn primary" bindtap="applyFilter">确认</button>
-    </view>
   </view>
 </view>
