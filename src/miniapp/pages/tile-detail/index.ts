@@ -56,7 +56,6 @@ type SkuDetail = ProductCard & {
   };
 };
 
-const NAV_LOCK_MS = 800;
 const FAVORITE_STORAGE_KEY = 'miniapp_favorite_skus_v1';
 
 type FavoriteSnapshot = {
@@ -76,7 +75,7 @@ type FavoriteSnapshot = {
 };
 
 function pagePath(id: number, source: string): string {
-  return `/pages/tile-detail/index?skuId=${id}&source=${source || 'direct'}`;
+  return `/pages/tile-detail/index?skuId=${encodeURIComponent(String(id || 0))}&source=${encodeURIComponent(source || 'direct')}`;
 }
 
 function safeRouteParam(value: unknown): string {
@@ -90,8 +89,21 @@ function safeText(value: unknown): string {
   return text && text !== 'null' && text !== 'undefined' ? text : '';
 }
 
-function brandSearchPath(brandName: string): string {
-  return `/pages/search/index?keyword=${encodeURIComponent(brandName.slice(0, 80))}`;
+function skuShareTitle(product: SkuDetail | null): string {
+  if (!product) return '菲尚特瓷砖';
+  return safeText(product.share?.title) || [safeText(product.brand?.brand_name), safeText(product.product_name)]
+    .filter(Boolean)
+    .join(' ') || '菲尚特瓷砖';
+}
+
+function skuShareImage(product: SkuDetail | null, fallback: string): string {
+  if (!product) return fallback;
+  const mainImage = product.media.find((item) => item.media_type === 'image');
+  return safeText(product.share?.image_url)
+    || safeText(product.cover_image)
+    || safeText(mainImage?.preview_url)
+    || safeText(mainImage?.url)
+    || fallback;
 }
 
 function clientId(): string {
@@ -177,7 +189,6 @@ function legacyToSkuDetail(product: LegacyProductDetail): SkuDetail {
     video_count: (product.videos || []).length,
     category_path: product.category_name ? [product.category_name] : [],
     parameters: [
-      { label: 'SKU 编码', value: product.sku_code },
       { label: '类目', value: product.category_name || '—' },
       { label: '规格', value: product.specification || '—' },
       { label: '主色系', value: product.color_family || '—' },
@@ -221,7 +232,6 @@ Page({
     errorDetail: '',
     product: null as SkuDetail | null,
     imageFallback: '/assets/tile-placeholder.png',
-    brandNavigating: false,
   },
 
   onLoad(query: Record<string, string>) {
@@ -251,18 +261,35 @@ Page({
   },
 
   onShareAppMessage() {
+    this.trackSkuShare('wechat_friend');
     const product = this.data.product;
-    if (product) {
-      track('sku_share_click', {
-        sku_id: product.product_id,
-        page_path: pagePath(product.product_id, this.data.source),
-      });
-    }
+    const skuId = product?.product_id || this.data.id;
     return {
-      title: (product && product.share.title) || '菲尚特瓷砖',
-      path: (product && product.share.path) || pagePath(this.data.id, 'share'),
-      imageUrl: product && product.share.image_url,
+      title: skuShareTitle(product),
+      path: pagePath(skuId, 'share'),
+      imageUrl: skuShareImage(product, this.data.imageFallback),
     };
+  },
+
+  onShareTimeline() {
+    this.trackSkuShare('wechat_timeline');
+    const product = this.data.product;
+    const skuId = product?.product_id || this.data.id;
+    return {
+      title: skuShareTitle(product),
+      query: `skuId=${encodeURIComponent(String(skuId || 0))}&source=share`,
+      imageUrl: skuShareImage(product, this.data.imageFallback),
+    };
+  },
+
+  trackSkuShare(shareChannel: 'wechat_friend' | 'wechat_timeline') {
+    const product = this.data.product;
+    const skuId = product?.product_id || this.data.id || 0;
+    track('sku_share_click', {
+      sku_id: skuId,
+      page_path: pagePath(skuId, 'share'),
+      share_channel: shareChannel,
+    });
   },
 
   loadProduct(id: number, source: string = this.data.source, clientIdValue: string = this.data.clientId) {
@@ -412,51 +439,6 @@ Page({
         this.setData({ favoriteBusy: false, 'product.favorite': previous });
         wx.showToast({ title: '收藏状态未保存', icon: 'none' });
       });
-  },
-
-  openBrand() {
-    const product = this.data.product;
-    if (!product) {
-      return;
-    }
-    const brandName = safeText(product.brand.brand_name || product.brand.brand_short_name);
-    const entryPath = safeText(product.brand.brand_entry_path);
-    if (!brandName || (!entryPath && product.brand.available === false)) {
-      wx.showToast({ title: '品牌内容暂不可查看', icon: 'none' });
-      track('brand_card_unavailable_click', {
-        skuId: product.product_id,
-        brandId: product.brand.brand_id || undefined,
-        brandName: brandName || '品牌信息待完善',
-        sourcePage: this.data.source,
-        sourceModule: 'sku-detail-bottom-bar',
-        unavailableReason: brandName ? 'entry_unavailable' : 'missing_brand_name',
-      });
-      return;
-    }
-    if (this.data.brandNavigating) {
-      return;
-    }
-    this.setData({ brandNavigating: true });
-    track('brand_card_click', {
-      skuId: product.product_id,
-      brandId: product.brand.brand_id || undefined,
-      brandName,
-      sourcePage: this.data.source,
-      sourceModule: 'sku-detail-bottom-bar',
-    });
-    track('sku_brand_click', {
-      sku_id: product.product_id,
-      brand_id: product.brand.brand_id,
-      page_path: pagePath(product.product_id, this.data.source),
-    });
-    const fallbackUrl = brandSearchPath(brandName);
-    wx.navigateTo({
-      url: entryPath || fallbackUrl,
-      fail: () => wx.navigateTo({ url: fallbackUrl }),
-      complete: () => {
-        setTimeout(() => this.setData({ brandNavigating: false }), NAV_LOCK_MS);
-      },
-    });
   },
 
   openRecommend(event: WechatMiniprogram.BaseEvent) {

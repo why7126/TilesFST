@@ -4,8 +4,8 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-20 22:51:30
-note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.example
+updated_at: 2026-07-21 23:04:48
+note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
 # 数据库设计
@@ -27,7 +27,7 @@ note: 运行时数据库路径见 DATABASE_URL / SQLITE_DATABASE_URL / .env.exam
 
 | 场景 | 配置 | 行为 |
 |---|---|---|
-| 本地开发 / demo | `APP_ENV!=production` 且 `DATABASE_URL` 为空 | 使用 `SQLITE_DATABASE_URL` |
+| 本地开发 / demo | `APP_ENV!=production` | 使用 SQLite `DATABASE_URL` |
 | 非生产外部库验证 | `APP_ENV!=production` 且显式配置 `DATABASE_URL` | 使用 `DATABASE_URL` |
 | 生产 | `APP_ENV=production` | 必须配置 MySQL `DATABASE_URL`，否则启动失败 |
 
@@ -407,7 +407,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 UNIQUE `(display_client, position, title)`。ORM：`src/backend/app/models/banner.py`  
-迁移：`migrations.py` → `_ensure_banner_support`；`update-admin-banner-placement-scope` 执行旧数据清理，删除条件为 `display_client != 'MINIAPP_HOME' OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')`。该清理仅删除 Banner 业务记录，不物理删除 MinIO 对象或其他业务表中的媒体引用；如需回滚旧 Banner 数据，依赖数据库备份恢复。
+迁移：SQLite `migrations.py` → `_ensure_banner_support`；MySQL `mysql_migrations.py` → `_ensure_banner_brand_id`，用于对既有生产 `banners` 表幂等补齐 `brand_id`、`idx_banners_status_position`、`idx_banners_sort`、`idx_banners_brand`，并在不存在脏品牌引用时补齐 `fk_banners_brand`。`update-admin-banner-placement-scope` 执行旧数据清理，删除条件为 `display_client != 'MINIAPP_HOME' OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')`。该清理仅删除 Banner 业务记录，不物理删除 MinIO 对象或其他业务表中的媒体引用；如需回滚旧 Banner 数据，依赖数据库备份恢复。
 
 ---
 
@@ -513,7 +513,7 @@ MySQL baseline：`src/backend/app/db/schema.mysql.sql` 中同名表，`client_id
 | 场景 | 做法 |
 |---|---|
 | 本地开发 | `data/sqlite/`（见 `rules/data-management.md`） |
-| Docker | 卷挂载 + `SQLITE_DATABASE_URL` |
+| Docker | 卷挂载 + SQLite `DATABASE_URL` |
 | 生产 | 外部 MySQL 8.0+ + `DATABASE_URL`，不挂载 SQLite 数据库卷 |
 | SQLite Schema 变更 | 修改 `schema.sql` + `migrations.py` + OpenSpec change |
 | MySQL Schema 变更 | 修改 `schema.mysql.sql` + versioned migration / `schema_migrations` 记录 + OpenSpec change |
@@ -541,8 +541,18 @@ MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku
 
 - SQLite 路径继续执行 `schema.sql` 后再执行 `migrations.py`，保留 `sqlite_master` / `PRAGMA` 兼容迁移。
 - MySQL 路径只执行 `schema.mysql.sql`，不得调用 SQLite introspection 或 SQLite-only DDL。
-- MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等。
+- MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等；随后执行 MySQL 兼容迁移并记录 `mysql_compat_banners_brand_id_v1`，覆盖旧生产 `banners` 表缺少 `brand_id` 的 drift 修复。
 - 空库首次启动后，默认管理员 seed 继续使用 `ADMIN_USERNAME`、`ADMIN_INITIAL_PASSWORD`、`ADMIN_RESET_PASSWORD_ON_STARTUP`，密码以 bcrypt 哈希保存。
+
+## 13.3 发布前 MySQL 兼容校验
+
+数据库影响发布必须在 `/release-prepare` 中记录目标 MySQL 兼容证据。推荐命令：
+
+```bash
+python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
+```
+
+该脚本只读取 `schema.mysql.sql` 和目标 MySQL `information_schema`，不修改业务数据；发现缺表或缺列时返回非 0，发布不得继续。发布证据中只记录命令、目标环境类型、时间和摘要结果，不记录明文 `DATABASE_URL`、密码或生产敏感信息。
 
 ## 14. 与 API 的对应
 

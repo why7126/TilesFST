@@ -14,7 +14,9 @@ from app.db.migrations import BANNER_SCOPE_DELETE_CONDITION, _cleanup_legacy_ban
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
 from app.repositories.user_repository import UserRepository
-from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
+from tests.test_auth import _login
+
+pytest_plugins = ("tests.test_auth",)
 
 
 def _auth_headers(client: TestClient, username: str, password: str) -> dict[str, str]:
@@ -43,9 +45,10 @@ def _create_brand(
     headers: dict[str, str],
     *,
     logo_object_key: str | None = None,
+    name: str | None = None,
 ) -> int:
     suffix = uuid4().hex[:6]
-    payload = {"name": f"Banner Brand {suffix}", "sort_order": 10}
+    payload = {"name": name or f"Banner Brand {suffix}", "sort_order": 10}
     if logo_object_key is not None:
         payload["logo_object_key"] = logo_object_key
     response = client.post(
@@ -62,7 +65,7 @@ def _create_category(client: TestClient, headers: dict[str, str]) -> int:
     response = client.post(
         "/api/v1/admin/tile-categories",
         headers=headers,
-        json={"name": f"Banner Cat {suffix}", "code": f"BNR-CAT-{suffix}", "sort_order": 10},
+        json={"name": f"Bnr{suffix}", "sort_order": 10},
     )
     assert response.status_code == 200
     return response.json()["data"]["id"]
@@ -146,6 +149,21 @@ def _create_banner(client: TestClient, headers: dict[str, str], **kwargs) -> int
     )
     assert response.status_code == 200
     return response.json()["data"]["id"]
+
+
+def _assert_error_is_sanitized(response_text: str) -> None:
+    forbidden_fragments = [
+        "SELECT ",
+        "INSERT ",
+        "UPDATE ",
+        "Traceback",
+        "DATABASE_URL",
+        "mysql://",
+        "mysql+pymysql://",
+        "MINIO_SECRET",
+    ]
+    for fragment in forbidden_fragments:
+        assert fragment not in response_text
 
 
 def test_list_banners_and_summary(client: TestClient) -> None:
@@ -293,6 +311,145 @@ def test_jump_validation_brand_detail(client: TestClient) -> None:
     )
     assert bad.status_code == 400
     assert bad.json()["code"] == 30052
+    _assert_error_is_sanitized(bad.text)
+
+
+def test_brand_detail_banner_custom_upload_and_update_round_trip(
+    client: TestClient,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    original_logo = "images/default/brands/logos/banner-edit-original.webp"
+    next_logo = "images/default/brands/logos/banner-edit-next.webp"
+    original_brand_id = _create_brand(client, headers, logo_object_key=original_logo)
+    next_brand_id = _create_brand(client, headers, logo_object_key=next_logo)
+    custom_key = "images/default/banners/brand-custom.webp"
+    updated_key = "images/default/banners/brand-custom-updated.webp"
+
+    create = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json={
+            **_banner_payload(
+                title=f"Brand Custom {uuid4().hex[:6]}",
+                jump_type="BRAND_DETAIL",
+                brand_id=original_brand_id,
+                image_object_key=custom_key,
+                image_source="custom_upload",
+            ),
+            "position": "MINIAPP_BRAND_LIST_CAROUSEL",
+            "valid_from": "2026-08-01T00:00:00+00:00",
+            "valid_to": "2026-08-31T23:59:59+00:00",
+            "remark": "create custom upload",
+        },
+    )
+    assert create.status_code == 200
+    created = create.json()["data"]
+    banner_id = created["id"]
+    assert created["brand_id"] == original_brand_id
+    assert created["image_source"] == "custom_upload"
+    assert created["image_object_key"] == custom_key
+
+    update = client.put(
+        f"/api/v1/admin/banners/{banner_id}",
+        headers=headers,
+        json={
+            **_banner_payload(
+                title=f"Brand Custom Updated {uuid4().hex[:6]}",
+                jump_type="BRAND_DETAIL",
+                brand_id=next_brand_id,
+                image_object_key=updated_key,
+                image_source="custom_upload",
+            ),
+            "position": "MINIAPP_BRAND_LIST_CAROUSEL",
+            "sort_order": 3,
+            "valid_from": "2026-09-01T00:00:00+00:00",
+            "valid_to": "2026-09-30T23:59:59+00:00",
+            "remark": "updated custom upload",
+        },
+    )
+    assert update.status_code == 200
+    updated = update.json()["data"]
+    assert updated["brand_id"] == next_brand_id
+    assert updated["image_source"] == "custom_upload"
+    assert updated["image_object_key"] == updated_key
+    assert updated["sort_order"] == 3
+    assert updated["valid_from"] == "2026-09-01T00:00:00+00:00"
+    assert updated["valid_to"] == "2026-09-30T23:59:59+00:00"
+    assert updated["remark"] == "updated custom upload"
+
+    detail = client.get(f"/api/v1/admin/banners/{banner_id}", headers=headers)
+    assert detail.status_code == 200
+    assert detail.json()["data"]["brand_id"] == next_brand_id
+    listing = client.get(
+        "/api/v1/admin/banners",
+        headers=headers,
+        params={"status": "DRAFT"},
+    )
+    assert listing.status_code == 200
+    listed = [item for item in listing.json()["data"]["items"] if item["id"] == banner_id]
+    assert listed and listed[0]["image_object_key"] == updated_key
+
+
+def test_brand_detail_banner_rejects_disabled_missing_logo_and_logo_mismatch(
+    client: TestClient,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    disabled_brand_id = _create_brand(
+        client,
+        headers,
+        logo_object_key="images/default/brands/logos/disabled.webp",
+    )
+    assert client.post(f"/api/v1/admin/brands/{disabled_brand_id}/disable", headers=headers).status_code == 200
+
+    disabled = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"Disabled Brand {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=disabled_brand_id,
+            image_object_key="images/default/brands/logos/disabled.webp",
+            image_source="brand_logo",
+        ),
+    )
+    assert disabled.status_code == 400
+    assert disabled.json()["code"] == 30052
+    _assert_error_is_sanitized(disabled.text)
+
+    no_logo_brand_id = _create_brand(client, headers)
+    no_logo = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"No Logo Brand {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=no_logo_brand_id,
+            image_object_key="images/default/brands/logos/missing.webp",
+            image_source="brand_logo",
+        ),
+    )
+    assert no_logo.status_code == 400
+    assert no_logo.json()["code"] == 30052
+    assert "品牌无 Logo" in no_logo.text
+    _assert_error_is_sanitized(no_logo.text)
+
+    logo_key = "images/default/brands/logos/mismatch-real.webp"
+    brand_id = _create_brand(client, headers, logo_object_key=logo_key)
+    mismatch = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"Logo Mismatch {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=brand_id,
+            image_object_key="images/default/brands/logos/mismatch-submitted.webp",
+            image_source="brand_logo",
+        ),
+    )
+    assert mismatch.status_code == 400
+    assert mismatch.json()["code"] == 30052
+    assert "品牌 Logo 引用不一致" in mismatch.text
+    _assert_error_is_sanitized(mismatch.text)
 
 
 def test_external_url_validation(client: TestClient) -> None:
@@ -415,7 +572,7 @@ def test_banner_image_upload(client: TestClient) -> None:
     )
     assert response.status_code == 200
     data = response.json()["data"]
-    assert data["object_key"].startswith(f"{settings.minio_prefix_images.rstrip('/')}/")
+    assert data["object_key"].startswith(f"{settings.object_storage_prefix_images.rstrip('/')}/")
     assert "banners" in data["object_key"]
     assert data["url"].startswith("/media/")
 

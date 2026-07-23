@@ -1,0 +1,6 @@
+- [x] 新增 OpenSpec Change 记录测试与发布准备治理增强。
+- [x] 补充测试规范：契约变更同步 fixture/helper，Change 文件读取兼容 active/archive。
+- [x] 提供统一测试 helper 解析 active/archive OpenSpec Change 文件。
+- [x] 更新小程序 evidence 测试使用统一 helper。
+- [x] 补充 release-prepare 测试失败分类要求。
+- [x] 运行精确回归和全量 pytest。

@@ -376,6 +376,7 @@ class MiniappHomeRepository:
             filter_type=filter_type,
             filter_value=filter_value,
             only_new=only_new,
+            dialect_name=self._dialect_name(),
         )
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
@@ -427,6 +428,7 @@ class MiniappHomeRepository:
             filter_type=None,
             filter_value=None,
             only_new=False,
+            dialect_name=self._dialect_name(),
         )
         facets: dict[str, list[MiniappNamedResult]] = {}
         for key, select_sql, group_sql, order_sql in [
@@ -923,6 +925,11 @@ class MiniappHomeRepository:
             AND ue.metadata LIKE {product_like}
         """.format(product_like=product_like)
 
+    def _dialect_name(self) -> str:
+        if self._db.bind is None:
+            return "sqlite"
+        return self._db.bind.dialect.name
+
     @staticmethod
     def _product_filters(
         *,
@@ -936,6 +943,7 @@ class MiniappHomeRepository:
         filter_type: str | None,
         filter_value: str | None,
         only_new: bool,
+        dialect_name: str = "sqlite",
     ) -> tuple[str, dict[str, Any]]:
         clauses = ["t.status = 'PUBLISHED'", "b.status = 'ENABLED'", "c.status = 'ENABLED'", "(s.id IS NULL OR s.status = 'ENABLED')"]
         params: dict[str, Any] = {}
@@ -997,7 +1005,10 @@ class MiniappHomeRepository:
             clauses.append("t.color_family LIKE :filter_value")
             params["filter_value"] = f"%{cleaned_filter}%"
         if only_new:
-            clauses.append("t.created_at >= datetime('now', '-90 days')")
+            if dialect_name == "mysql":
+                clauses.append("t.created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)")
+            else:
+                clauses.append("t.created_at >= datetime('now', '-90 days')")
         return "WHERE " + " AND ".join(clauses), params
 
     @staticmethod

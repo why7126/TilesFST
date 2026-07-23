@@ -283,6 +283,7 @@ def test_fact_sheet_reads_ai_usage_snapshot(tmp_path: Path) -> None:
                     "model_call_count": 3,
                     "total_tokens": 123,
                 },
+                "usage_matrices": {"by_issue": [], "by_change": []},
                 "by_workflow_event": {"sprint.apply": {"command_run_count": 2}},
                 "warnings": [],
             }
@@ -333,6 +334,7 @@ def test_fact_sheet_does_not_treat_stale_snapshot_as_actual(tmp_path: Path) -> N
                     "changes": ["add-demo"],
                 },
                 "totals": {"command_run_count": 1, "total_tokens": 100},
+                "usage_matrices": {"by_issue": [], "by_change": []},
                 "warnings": [],
             }
         ),
@@ -364,6 +366,7 @@ def test_fact_sheet_interprets_sprint_dates_as_project_timezone(tmp_path: Path) 
                     "changes": ["add-demo"],
                 },
                 "totals": {"command_run_count": 1, "total_tokens": 100},
+                "usage_matrices": {"by_issue": [], "by_change": []},
                 "warnings": [],
             }
         ),

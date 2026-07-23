@@ -13,7 +13,7 @@ fi
 
 WEB_URL="${SMOKE_WEB_URL:-http://localhost:${HOST_PORT_WEB:-3000}}"
 API_URL="${SMOKE_API_URL:-http://localhost:${HOST_PORT_BACKEND:-8000}}"
-BACKEND_CONTAINER="${SMOKE_BACKEND_CONTAINER:-tile-info-platform-backend}"
+BACKEND_CONTAINER="${SMOKE_BACKEND_CONTAINER:-tilesfst-backend}"
 
 echo "==> Docker system-settings smoke (web=${WEB_URL}, api=${API_URL})"
 

@@ -1,4 +1,6 @@
-const DEFAULT_BASE_URL = 'http://127.0.0.1:8010';
+import { miniappApiConfig } from '../utils/env';
+
+const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
 
 type ApiResponse<T> = {
   code: number;
@@ -7,12 +9,16 @@ type ApiResponse<T> = {
 };
 
 function baseUrl(): string {
-  const app = getApp<{ globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[] } }>();
+  const app = getApp<{
+    globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[]; environment?: string };
+  }>();
   return app.globalData?.apiBaseUrl || DEFAULT_BASE_URL;
 }
 
 function baseUrls(): string[] {
-  const app = getApp<{ globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[] } }>();
+  const app = getApp<{
+    globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[]; environment?: string };
+  }>();
   const fallbackUrls = app.globalData?.apiFallbackBaseUrls || [];
   return [baseUrl(), ...fallbackUrls].filter(
     (url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index,

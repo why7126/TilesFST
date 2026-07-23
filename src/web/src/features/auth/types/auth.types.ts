@@ -15,10 +15,8 @@ export interface AuthErrorPayload {
     policy?: Partial<{
       min_length: number;
       max_length: number;
-      require_uppercase: boolean;
-      require_lowercase: boolean;
+      require_letter: boolean;
       require_digit: boolean;
-      require_special: boolean;
     }>;
   } | null;
 }

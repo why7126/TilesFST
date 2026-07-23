@@ -3,7 +3,7 @@
 # source: AI自动生成初稿，项目团队确认
 # update_method: OpenSpec工具规则变化时更新
 # note: YAML文件使用注释元数据避免破坏语法
-project: tile-info-platform
+project: tilesfst
 spec_dir: openspec/specs
 change_dir: openspec/changes
 archive_dir: openspec/archive

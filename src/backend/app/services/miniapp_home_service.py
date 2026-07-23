@@ -278,7 +278,7 @@ class MiniappHomeService:
             suggestions.append(
                 MiniappSearchSuggestion(
                     id=f"sku-{item.id}",
-                    text=f"{item.sku_code} {item.name}",
+                    text=item.name,
                     entity_type="sku",
                     target_id=item.id,
                     target_path=f"/pages/tile-detail/index?skuId={item.id}",
@@ -512,7 +512,7 @@ class MiniappHomeService:
             or ([self._media_url(record.main_image_url)] if record.main_image_url else []),
             videos=[self._media_url(video) for video in self._repo.list_product_videos(product_id)],
             surface_finish=record.surface_finish,
-            share_title=f"{record.name} · {record.sku_code}",
+            share_title=f"{record.brand_name} {record.name}".strip(),
         )
 
     def get_sku_detail(self, sku_id: int, *, client_id: str | None = None) -> MiniappSkuDetailData:
@@ -546,7 +546,7 @@ class MiniappHomeService:
                 brand_logo_url=self._media_url(record.brand_logo_object_key)
                 if record.brand_logo_object_key
                 else None,
-                brand_entry_path=f"/pages/search/index?brandId={record.brand_id}",
+                brand_entry_path=f"/pages/brand-detail/index?brandId={record.brand_id}",
                 available=True,
             ),
             media=media,
@@ -738,7 +738,6 @@ class MiniappHomeService:
     @staticmethod
     def _parameters(record: MiniappProductRecord) -> list[dict[str, str]]:
         return [
-            {"label": "SKU 编码", "value": record.sku_code},
             {"label": "类目", "value": " / ".join(_category_path(record.category_path, record.category_name))},
             {"label": "规格", "value": record.spec_name or record.size or "—"},
             {"label": "主色系", "value": record.color_family or "—"},

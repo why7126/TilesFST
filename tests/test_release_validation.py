@@ -78,3 +78,35 @@ def test_missing_gate_fails(tmp_path: Path) -> None:
     (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
     errors = validate_release_script.validate_release(release_dir, product_version)
     assert "gate orval is required" in errors
+
+
+def test_database_impact_requires_mysql_compatibility_evidence(tmp_path: Path) -> None:
+    release_dir, product_version = write_release(tmp_path)
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-07-21 10:35:42"
+    data["impact_scope"]["database"] = "schema change"
+    data["gates"]["database_migration"] = {
+        "status": "pass",
+        "evidence": "schema.sql and docs updated",
+    }
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+
+    errors = validate_release_script.validate_release(release_dir, product_version)
+
+    assert any("MySQL" in error or "schema.mysql.sql" in error for error in errors)
+    assert any("schema drift" in error or "smoke" in error for error in errors)
+    assert any("rollback" in error or "backup" in error for error in errors)
+
+
+def test_database_impact_accepts_mysql_drift_and_rollback_evidence(tmp_path: Path) -> None:
+    release_dir, product_version = write_release(tmp_path)
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-07-21 10:35:42"
+    data["impact_scope"]["database"] = "schema change"
+    data["gates"]["database_migration"] = {
+        "status": "pass",
+        "evidence": "schema.mysql.sql checked by scripts/check-mysql-schema-drift.py against target MySQL; rollback backup verified.",
+    }
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+
+    assert validate_release_script.validate_release(release_dir, product_version) == []

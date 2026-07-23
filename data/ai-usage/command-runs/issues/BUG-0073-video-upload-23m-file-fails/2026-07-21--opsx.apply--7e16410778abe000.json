@@ -1,0 +1,45 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "7e16410778abe000f300e40e9c31541f1a032c08152a6008fe81e3a22844e07c",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T22-47-46-019f8525-ad75-7302-8727-12485ba6510c.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 386,
+      "turn_hash": "3b3e12414278a87a",
+      "started_at": "2026-07-21T14:48:01.919Z",
+      "ended_at": "2026-07-21T15:04:19.613Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [],
+      "bugs": [
+        "BUG-0073-video-upload-23m-file-fails"
+      ],
+      "changes": [
+        "fix-upload-size-limit-consistency"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 49,
+      "input_tokens": 5663138,
+      "cached_input_tokens": 5471616,
+      "output_tokens": 17854,
+      "reasoning_output_tokens": 1598,
+      "total_tokens": 5680992,
+      "tool_call_count": 96,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

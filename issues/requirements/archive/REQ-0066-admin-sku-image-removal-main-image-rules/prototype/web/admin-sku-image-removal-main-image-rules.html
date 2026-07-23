@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0066 SKU 图片移除与主图规则原型</title>
+    <style>
+      :root {
+        --page: #18160f;
+        --surface: #211e16;
+        --surface-2: #2a261c;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --line: rgba(255, 255, 255, 0.12);
+        --gold: #c8a055;
+        --danger: #d66f55;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--page);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .backdrop {
+        width: 100%;
+        min-height: 100vh;
+        padding: 32px;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.36);
+      }
+      .sku-modal-card {
+        width: min(880px, calc(100vw - 32px));
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        background: var(--surface);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+      }
+      header, footer {
+        position: sticky;
+        z-index: 2;
+        background: var(--surface);
+      }
+      header {
+        top: 0;
+        padding: 22px 24px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      footer {
+        bottom: 0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 16px 24px;
+        border-top: 1px solid var(--line);
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-weight: 400;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      main {
+        padding: 22px 24px 26px;
+      }
+      .section-title {
+        margin: 0 0 12px;
+        color: var(--gold);
+        font-size: 12px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .tile, .add {
+        position: relative;
+        min-height: 142px;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        overflow: hidden;
+        background: var(--surface-2);
+      }
+      .tile img {
+        width: 100%;
+        height: 142px;
+        object-fit: cover;
+        display: block;
+      }
+      .flag {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 3px 7px;
+        border-radius: 2px;
+        background: var(--gold);
+        color: #17130c;
+        font-size: 11px;
+      }
+      .remove {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 2px;
+        background: rgba(16,15,10,.72);
+        color: var(--text);
+        cursor: default;
+      }
+      .set-main {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        border: 1px solid rgba(200,160,85,.55);
+        border-radius: 2px;
+        padding: 6px 9px;
+        background: rgba(16,15,10,.72);
+        color: var(--gold);
+        font-size: 12px;
+      }
+      .add {
+        display: grid;
+        place-items: center;
+        min-height: 142px;
+        color: var(--muted);
+        border-style: dashed;
+      }
+      .note {
+        margin-top: 12px;
+      }
+      button.primary, button.secondary {
+        border-radius: 2px;
+        padding: 9px 16px;
+      }
+      button.primary {
+        border: 1px solid var(--gold);
+        background: var(--gold);
+        color: #17130c;
+      }
+      button.secondary {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--text);
+      }
+      @media (max-width: 720px) {
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop">
+      <section class="sku-modal-card" role="dialog" aria-modal="true" aria-labelledby="title">
+        <header>
+          <h1 id="title">编辑 SKU</h1>
+          <p>商品图片支持移除；主图始终在第一位，移除主图后由下一张图片自动接任。</p>
+        </header>
+        <main>
+          <h2 class="section-title">商品图片</h2>
+          <div class="grid" aria-label="商品图片列表">
+            <article class="tile">
+              <img src="https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?auto=format&fit=crop&w=360&q=80" alt="浅灰石纹瓷砖主图" />
+              <span class="flag">主图</span>
+              <button class="remove" aria-label="移除主图">×</button>
+            </article>
+            <article class="tile">
+              <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=360&q=80" alt="暖灰瓷砖细节图" />
+              <button class="remove" aria-label="移除图片 2">×</button>
+              <button class="set-main">设为主图</button>
+            </article>
+            <article class="tile">
+              <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=360&q=80" alt="深色纹理瓷砖细节图" />
+              <button class="remove" aria-label="移除图片 3">×</button>
+              <button class="set-main">设为主图</button>
+            </article>
+            <button class="add" type="button">继续添加图片</button>
+          </div>
+          <p class="note">交互规则：点击第二张“设为主图”后，它移动到第一位；移除第一张主图后，第二张自动成为新主图。</p>
+        </main>
+        <footer>
+          <button class="secondary" type="button">取消</button>
+          <button class="primary" type="button">保存 SKU</button>
+        </footer>
+      </section>
+    </div>
+  </body>
+</html>

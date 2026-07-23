@@ -24,7 +24,6 @@ from app.services.effective_settings_service import EffectiveSettingsService
 router = APIRouter()
 
 CERTIFICATE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf"}
-CERTIFICATE_MAX_SIZE_MB = 20
 
 
 def _validate_image_type(content_type: str | None, effective: EffectiveSettingsService) -> None:
@@ -180,17 +179,19 @@ async def upload_tile_video(
 async def upload_brand_certificate(
     file: UploadFile = File(...),
     _: UserRecord = Depends(require_system_admin),
+    effective: EffectiveSettingsService = Depends(get_effective_settings_service),
 ) -> ApiResponse[UploadResult]:
     _validate_certificate_type(file.content_type)
     object_key = build_file_upload_object_key("brand-certificates", file.content_type)
+    max_size_mb = effective.max_file_size_mb()
     try:
-        size = await save_upload_file(file, object_key, CERTIFICATE_MAX_SIZE_MB)
+        size = await save_upload_file(file, object_key, max_size_mb)
     except AppError as exc:
         if exc.code == FILE_SIZE_EXCEEDED:
             raise AppError(
                 status_code=400,
                 code=CERTIFICATE_FILE_TOO_LARGE,
-                message="证书文件不能超过 20MB",
+                message=f"证书文件不能超过 {max_size_mb}MB",
             ) from exc
         raise
     return ApiResponse(data=_upload_result(object_key=object_key, size=size, file=file))

@@ -1,0 +1,141 @@
+{
+  "release_version": "v0.0.5",
+  "workflow_event": "release.publish",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/22/rollout-2026-07-22T12-44-27-019f8823-ad2b-77d0-b74c-bed0c8f6fd0c.jsonl"
+  ],
+  "generated_at": "2026-07-22T05:17:07.350695Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0027-mobile-page-adaptation",
+      "REQ-0063-password-validation-policy-simplification",
+      "REQ-0064-miniapp-wechat-share-pages",
+      "REQ-0065-sku-metadata-name-sku-dedup",
+      "REQ-0066-admin-sku-image-removal-main-image-rules",
+      "REQ-0067-admin-category-edit-modal-validation"
+    ],
+    "bugs": [
+      "BUG-0070-miniapp-sku-detail-duplicate-brand-button",
+      "BUG-0071-login-page-theme-language-selector-misalignment",
+      "BUG-0072-miniapp-usage-events-bad-request",
+      "BUG-0073-video-upload-23m-file-fails",
+      "BUG-0074-prod-theme-preference-sync-toast-persistent",
+      "BUG-0075-prod-admin-brand-banner-save-fails",
+      "BUG-0077-miniapp-category-secondary-name-truncated",
+      "BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search",
+      "BUG-0079-admin-dashboard-overview-mock-data",
+      "BUG-0080-admin-banner-image-preview-cropped"
+    ],
+    "changes": [
+      "add-admin-sku-image-removal-main-image-rules",
+      "add-miniapp-wechat-share-pages",
+      "fix-admin-banner-image-preview-cropped",
+      "fix-admin-dashboard-overview-real-data",
+      "fix-login-page-tool-selector-alignment",
+      "fix-miniapp-category-secondary-name-truncated",
+      "fix-miniapp-sku-detail-brand-card-route",
+      "fix-miniapp-sku-detail-duplicate-brand-button",
+      "fix-miniapp-usage-events-contract-drift",
+      "fix-prod-admin-brand-banner-save",
+      "fix-theme-preference-sync-toast-persistent",
+      "fix-upload-size-limit-consistency",
+      "refine-admin-category-edit-modal-validation",
+      "refine-sku-metadata-name-code-display",
+      "update-password-validation-policy",
+      "update-web-admin-mobile-adaptation"
+    ],
+    "sprints": [
+      "sprint-010"
+    ]
+  },
+  "totals": {
+    "input_tokens": 906981,
+    "cached_input_tokens": 879488,
+    "output_tokens": 2142,
+    "reasoning_output_tokens": 419,
+    "total_tokens": 909123,
+    "command_run_count": 1,
+    "model_call_count": 5,
+    "tool_call_count": 10,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "ea7386a06fe0032725a2f35d509b96a7508aa58937eea35d2376a1699c362c6a",
+      "source_data_file": "~/.codex/sessions/2026/07/22/rollout-2026-07-22T12-44-27-019f8823-ad2b-77d0-b74c-bed0c8f6fd0c.jsonl",
+      "source_line_start": 703,
+      "source_line_end": 743,
+      "turn_hash": "c273f36abc29eb30",
+      "started_at": "2026-07-22T05:16:09.740Z",
+      "ended_at": "2026-07-22T05:17:03.816Z",
+      "command": "release.publish",
+      "workflow_event": "release.publish",
+      "requirements": [
+        "REQ-0027-mobile-page-adaptation",
+        "REQ-0063-password-validation-policy-simplification",
+        "REQ-0064-miniapp-wechat-share-pages",
+        "REQ-0065-sku-metadata-name-sku-dedup",
+        "REQ-0066-admin-sku-image-removal-main-image-rules",
+        "REQ-0067-admin-category-edit-modal-validation"
+      ],
+      "bugs": [
+        "BUG-0070-miniapp-sku-detail-duplicate-brand-button",
+        "BUG-0071-login-page-theme-language-selector-misalignment",
+        "BUG-0072-miniapp-usage-events-bad-request",
+        "BUG-0073-video-upload-23m-file-fails",
+        "BUG-0074-prod-theme-preference-sync-toast-persistent",
+        "BUG-0075-prod-admin-brand-banner-save-fails",
+        "BUG-0077-miniapp-category-secondary-name-truncated",
+        "BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search",
+        "BUG-0079-admin-dashboard-overview-mock-data",
+        "BUG-0080-admin-banner-image-preview-cropped"
+      ],
+      "changes": [
+        "add-admin-sku-image-removal-main-image-rules",
+        "add-miniapp-wechat-share-pages",
+        "fix-admin-banner-image-preview-cropped",
+        "fix-admin-dashboard-overview-real-data",
+        "fix-login-page-tool-selector-alignment",
+        "fix-miniapp-category-secondary-name-truncated",
+        "fix-miniapp-sku-detail-brand-card-route",
+        "fix-miniapp-sku-detail-duplicate-brand-button",
+        "fix-miniapp-usage-events-contract-drift",
+        "fix-prod-admin-brand-banner-save",
+        "fix-theme-preference-sync-toast-persistent",
+        "fix-upload-size-limit-consistency",
+        "refine-admin-category-edit-modal-validation",
+        "refine-sku-metadata-name-code-display",
+        "update-password-validation-policy",
+        "update-web-admin-mobile-adaptation"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [
+        "sprint-010"
+      ],
+      "release_version": "v0.0.5",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 5,
+      "input_tokens": 906981,
+      "cached_input_tokens": 879488,
+      "output_tokens": 2142,
+      "reasoning_output_tokens": 419,
+      "total_tokens": 909123,
+      "tool_call_count": 10,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

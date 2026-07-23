@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0067 管理端类目编辑弹窗原型</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --deep: #100f0a;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.56);
+        --border: rgba(255, 255, 255, 0.12);
+        --gold: #c8a055;
+        --error: #ff9070;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page-shell {
+        width: min(100%, 1120px);
+        padding: 32px;
+      }
+
+      .modal-backdrop {
+        min-height: 720px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.32);
+      }
+
+      .category-modal {
+        width: 560px;
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      }
+
+      .modal-head,
+      .modal-footer {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .modal-footer {
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid var(--border);
+        border-bottom: 0;
+      }
+
+      .modal-title {
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .modal-close,
+      .btn {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        border-radius: 3px;
+        min-height: 36px;
+        padding: 0 14px;
+      }
+
+      .btn.primary {
+        background: var(--gold);
+        color: var(--deep);
+        border-color: var(--gold);
+      }
+
+      .modal-body {
+        overflow: auto;
+        padding: 20px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      label,
+      .field-label {
+        font-size: 13px;
+        color: var(--text);
+      }
+
+      .required {
+        color: var(--gold);
+        margin-left: 4px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: var(--deep);
+        color: var(--text);
+        min-height: 38px;
+        padding: 0 12px;
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 86px;
+        padding-top: 10px;
+        resize: vertical;
+      }
+
+      .help {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .error {
+        margin: 0;
+        color: var(--error);
+        font-size: 12px;
+      }
+
+      .code-note {
+        margin: 0 0 18px;
+        padding: 10px 12px;
+        border: 1px dashed var(--border);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="modal-backdrop" aria-label="类目弹窗示意">
+        <div class="category-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <header class="modal-head">
+            <strong id="modal-title" class="modal-title">新增类目</strong>
+            <button class="modal-close" type="button" aria-label="关闭">×</button>
+          </header>
+
+          <div class="modal-body">
+            <p class="code-note">类目编码由系统自动生成，保存后以 CAT- 开头写入内部编码。</p>
+
+            <div class="field">
+              <label for="parent">上级类目<span class="required">*</span></label>
+              <select id="parent">
+                <option>无上级，创建一级类目</option>
+                <option>地面砖</option>
+                <option>墙面砖</option>
+              </select>
+              <p class="help">当前最多支持二级类目，二级类目不会出现在上级选项中。</p>
+            </div>
+
+            <div class="field">
+              <label for="name">类目名称<span class="required">*</span></label>
+              <input id="name" value="通体砖" maxlength="10" />
+              <p class="help">最多 10 个字符，仅支持中文、英文和数字。</p>
+            </div>
+
+            <div class="field">
+              <label for="sort">排序权重<span class="required">*</span></label>
+              <input id="sort" value="10" inputmode="numeric" />
+              <p class="error">示例错误：排序权重必须为正整数</p>
+            </div>
+
+            <div class="field">
+              <label for="description">类目描述</label>
+              <textarea id="description" placeholder="面向运营的类目说明，可选"></textarea>
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button class="btn" type="button">取消</button>
+            <button class="btn primary" type="button">保存类目</button>
+          </footer>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -51,7 +51,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    ```bash
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields evidence_hints
    ```
-5. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet summary 的 `ai_usage_snapshot`；只有当 `snapshot_status: present` 且 `ai_usage_mode: actual` 时，才按真实统计输出。若 snapshot `missing`、`stale`、`failed` 或覆盖不足，MUST 输出 `ai_usage_mode: estimated_fallback`、reason、impact 和 recommended_action，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hint 计数做估算分析；仅在需要定位原始证据时读取完整 evidence hints。
+5. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet summary 的 `ai_usage_snapshot`；只有当 `snapshot_status: present`、`ai_usage_mode: actual` 且 `usage_matrices` 存在时，才按真实统计输出。若 snapshot `missing`、`stale`、`failed`、覆盖不足或缺少 `usage_matrices`，MUST 输出 `ai_usage_mode: estimated_fallback`、reason、impact 和 recommended_action，再使用 `token_risks`、四件套行数、Change/tasks 计数、warnings 与 evidence hint 计数做估算分析；仅在需要定位原始证据时读取完整 evidence hints。
 6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 8. 输出 Experience Analysis Report。
@@ -76,8 +76,15 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 - **模型 Token 使用分析（MUST）**：
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
   - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的真实统计：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数。
-  - 若 `ai_usage_snapshot.snapshot_status != present` 或 `ai_usage_snapshot.ai_usage_mode != actual`，MUST 明确输出 `ai_usage_mode: estimated_fallback`、reason（如 missing/stale/failed/coverage-missing）、impact、recommended_action；不得编造具体 token 数字，不得静默按真实统计展示。
+  - 若 `ai_usage_snapshot.snapshot_status != present`、`ai_usage_snapshot.ai_usage_mode != actual` 或 `ai_usage_snapshot.usage_matrices` 缺失，MUST 明确输出 `ai_usage_mode: estimated_fallback`、reason（如 missing/stale/failed/coverage-missing/usage-matrices-missing）、impact、recommended_action；不得编造具体 token 数字，不得静默按真实统计展示。
   - 若 snapshot 过期、覆盖不足或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot。
+  - 当 `usage_matrices` 可用时，复盘文档 MUST 在 `## 模型 Token 使用分析` 中新增四张指标矩阵表，数据来源为 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet summary 暴露的 `ai_usage_snapshot.usage_matrices`：
+    - 第一张：总 Token 消耗数 `total_tokens`。
+    - 第二张：总输入 Token 消耗数 `input_tokens`。
+    - 第三张：总输出 Token 消耗数 `output_tokens`。
+    - 第四张：模型调用次数 `model_call_count`。
+  - 四张矩阵表 MUST 使用相同结构：第一列为对象，表格最上方 MUST 是 `Total` 汇总行；之后纵向按 Sprint、REQ、BUG 排列（例如 `sprint-010` / `REQ-0001-*` / `BUG-0001-*`，展示时 MAY 保留 canonical ID）；横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 展示。
+  - 矩阵口径 MUST 说明：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。
   - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
   - MUST 优先引用自动 Fact Sheet summary 的 `token_risks`、Change/tasks 计数、四件套行数、warnings 与 evidence hint 计数，减少人工展开四件套、trace 与 tasks 的 token 消耗。
   - MUST 给出优化方案，至少包含：读取边界、搜索排除、输出截断、diff/stat 优先、失败日志摘要、复用已读规则摘要、按 Change 分段处理、必要时沉淀脚本或校验 gate。
@@ -106,6 +113,27 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 | 主要输出消耗 | 待填 | 例如测试日志、Workflow Sync 报告、diff 输出 |
 | 重复/浪费来源 | 待填 | 例如同一规则多次全量读取、宽泛搜索命中过多 |
 | 已采用节省策略 | 待填 | 例如 `rg --files` 定位、`sed -n` 分段、`git diff --stat` |
+
+### total_tokens 矩阵
+
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|------|---------:|------------:|------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|-----------:|-----------:|---------:|---------:|-------------:|-------------:|-----------:|-------------:|---------------:|---------------:|-------------:|---------------:|
+| Total | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
+| sprint-xxx | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
+
+### input_tokens 矩阵
+
+同上结构，指标取 `input_tokens`。
+
+### output_tokens 矩阵
+
+同上结构，指标取 `output_tokens`。
+
+### model_call_count 矩阵
+
+同上结构，指标取 `model_call_count`。
+
+> 矩阵数据来自 `ai_usage_snapshot.usage_matrices`；若缺失，提示刷新 `data/ai-usage` snapshot，不得手工估填具体数值。
 
 ### 高消耗来源
 

@@ -1,0 +1,86 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "564ec0e15dd4e3e77115718eb1b34e14bcfc4b6e4081acee42ea501f4f313e19",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T22-48-45-019f8526-91f6-7032-af33-47565623bfe2.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 370,
+      "turn_hash": "ba68428e591f3a54",
+      "started_at": "2026-07-21T14:49:00.438Z",
+      "ended_at": "2026-07-21T15:06:21.755Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [],
+      "bugs": [
+        "BUG-0075-prod-admin-brand-banner-save-fails"
+      ],
+      "changes": [
+        "fix-prod-admin-brand-banner-save"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 50,
+      "input_tokens": 5644154,
+      "cached_input_tokens": 5480192,
+      "output_tokens": 22900,
+      "reasoning_output_tokens": 2605,
+      "total_tokens": 5667054,
+      "tool_call_count": 84,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "564ec0e15dd4e3e77115718eb1b34e14bcfc4b6e4081acee42ea501f4f313e19",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T22-48-45-019f8526-91f6-7032-af33-47565623bfe2.jsonl",
+      "source_line_start": 399,
+      "source_line_end": 540,
+      "turn_hash": "6221a058794acb39",
+      "started_at": "2026-07-22T00:58:01.763Z",
+      "ended_at": "2026-07-22T01:01:09.472Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [],
+      "bugs": [
+        "BUG-0075-prod-admin-brand-banner-save-fails"
+      ],
+      "changes": [
+        "fix-prod-admin-brand-banner-save"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 19,
+      "input_tokens": 3494959,
+      "cached_input_tokens": 3300480,
+      "output_tokens": 4954,
+      "reasoning_output_tokens": 797,
+      "total_tokens": 3499913,
+      "tool_call_count": 36,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

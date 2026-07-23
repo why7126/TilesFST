@@ -59,15 +59,18 @@ TBD - created by archiving change add-miniapp-search-component. Update Purpose a
 - **AND** 用户点击不可直达关键词建议 SHALL 进入搜索结果页。
 
 ### Requirement: 小程序完整搜索结果
-系统 SHALL 提供微信小程序完整搜索结果页，用于展示综合、品牌、SKU 和证书结果。
+
+系统 SHALL 提供微信小程序完整搜索结果页，用于展示综合、品牌、SKU 和证书结果。搜索后端 MAY 继续使用 SKU 编码作为匹配信号，但小程序搜索结果 UI SHALL 以商品名称作为 SKU 结果主展示，且不得展示 SKU 编码。
 
 #### Scenario: 综合结果按 sections 分区渲染
+
 - **WHEN** 搜索结果响应包含 `sections` 或等价分区数据
 - **THEN** 综合页 SHALL 展示最多 1 条最佳匹配
-- **AND** 最佳匹配 SHALL 按 SKU 编码或名称直接命中、品牌名精确命中、证书名称或证书编号精确命中的顺序判定
+- **AND** 最佳匹配 MAY 按 SKU 编码或商品名称直接命中、品牌名精确命中、证书名称或证书编号精确命中的顺序判定
 - **AND** 综合页 SHALL 按品牌、SKU、证书顺序展示非 0 条分区
 - **AND** 品牌、SKU 和证书单独 Tab SHALL 直接展示卡片内容，不展示分区标题和数量
 - **AND** SKU 结果 SHALL 复用公开 SKU 卡片
+- **AND** SKU 结果 SHALL 展示商品名称而不是 SKU 编码
 - **AND** 品牌和证书结果 SHALL 使用与 SKU 卡片一致的一行卡片式视觉，但保留各自目标跳转行为
 - **AND** 页面 SHALL NOT 展示类目 Tab 或仅以扁平 SKU 列表替代综合结果分区。
 
@@ -84,13 +87,15 @@ TBD - created by archiving change add-miniapp-search-component. Update Purpose a
 - **THEN** 后端 MAY 继续按参数过滤结果，以保持接口兼容。
 
 ### Requirement: 小程序搜索无结果与异常状态
-系统 SHALL 提供搜索无结果、加载和失败状态，帮助用户调整关键词并继续搜索。
+
+系统 SHALL 提供搜索无结果、加载和失败状态，帮助用户调整关键词并继续搜索。公开文案 SHALL 引导用户调整品牌、规格或商品名称，不把 SKU 编码作为普通用户可见检索概念。
 
 #### Scenario: 无结果状态按原型呈现
+
 - **WHEN** 用户提交关键词且无任何搜索结果
 - **THEN** 无结果页 SHALL 展示当前关键词、搜索图标、调整建议列表和推荐搜索词
-- **AND** 调整建议 SHALL 包含检查编码、缩短关键词或替换品牌、规格、名称等方向
-- **AND** 页面 SHALL NOT 展示联系商家、提交找砖需求、购物车、询价、在线下单或客服找砖入口。
+- **AND** 调整建议 SHALL 包含缩短关键词或替换品牌、规格、商品名称等方向
+- **AND** 页面 SHALL NOT 展示检查 SKU 编码、内部编码、联系商家、提交找砖需求、购物车、询价、在线下单或客服找砖入口。
 
 ### Requirement: 小程序搜索原型验收
 小程序搜索实现 SHALL 参考 `issues/requirements/archive/REQ-0046-search-component-application/prototype/` 下的 HTML、PNG 和 context。

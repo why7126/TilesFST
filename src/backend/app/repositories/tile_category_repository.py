@@ -185,6 +185,31 @@ class TileCategoryRepository:
         row = self._db.execute(text(sql), params).mappings().first()
         return self._to_record(dict(row)) if row else None
 
+    def get_by_parent_and_name(
+        self,
+        *,
+        parent_id: int | None,
+        name: str,
+        exclude_id: int | None = None,
+    ) -> TileCategoryRecord | None:
+        if parent_id is None:
+            sql = """
+                SELECT * FROM tile_categories
+                WHERE parent_id IS NULL AND LOWER(name) = LOWER(:name)
+            """
+            params: dict[str, Any] = {"name": name}
+        else:
+            sql = """
+                SELECT * FROM tile_categories
+                WHERE parent_id = :parent_id AND LOWER(name) = LOWER(:name)
+            """
+            params = {"parent_id": parent_id, "name": name}
+        if exclude_id is not None:
+            sql += " AND id != :exclude_id"
+            params["exclude_id"] = exclude_id
+        row = self._db.execute(text(sql), params).mappings().first()
+        return self._to_record(dict(row)) if row else None
+
     def has_children(self, category_id: int) -> bool:
         count = self._db.execute(
             text("SELECT COUNT(*) FROM tile_categories WHERE parent_id = :id"),

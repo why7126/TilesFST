@@ -159,6 +159,7 @@ def ai_usage_snapshot(
         "generated_at": status["generated_at"],
         "coverage": status["coverage"],
         "totals": status["totals"],
+        "usage_matrices": status.get("usage_matrices") or {},
         "warnings": status["warnings"],
         "warning_count": status["warning_count"],
         "recommended_action": status["recommended_action"],
@@ -496,6 +497,7 @@ def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
             "recommended_action": ai_usage.get("recommended_action"),
             "note": ai_usage.get("note"),
             "totals": ai_usage.get("totals") or {},
+            "usage_matrices": ai_usage.get("usage_matrices") or {},
         },
         "token_risks": fact_sheet["token_risks"],
         "four_piece": fact_sheet["four_piece"],
@@ -658,6 +660,34 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
         lines.append(f"| note | {ai_usage['note']} |")
     if ai_usage.get("recommended_action"):
         lines.append(f"| recommended_action | {ai_usage['recommended_action']} |")
+    usage_matrices = ai_usage.get("usage_matrices") or {}
+    matrix_columns = [
+        str(column.get("label"))
+        for column in usage_matrices.get("columns", [])
+        if column.get("label")
+    ]
+    matrix_rows = usage_matrices.get("rows") or []
+    if matrix_columns and matrix_rows:
+        lines.extend(["", "### AI Usage Matrices", ""])
+        for metric in ("total_tokens", "input_tokens", "output_tokens", "model_call_count"):
+            lines.extend(
+                [
+                    f"#### {metric}",
+                    "",
+                    "| 对象 | " + " | ".join(matrix_columns) + " |",
+                    "|---|" + "|".join("---:" for _ in matrix_columns) + "|",
+                ]
+            )
+            for row in matrix_rows:
+                cells = ((row.get("metrics") or {}).get(metric) or {})
+                lines.append(
+                    f"| {row.get('object_id')} | "
+                    + " | ".join(str(cells.get(column, 0)) for column in matrix_columns)
+                    + " |"
+                )
+            lines.append("")
+        if usage_matrices.get("note"):
+            lines.append(f"> {usage_matrices['note']}")
 
     lines.extend(["", "## Token Risks", "", "| Source | Impact | Detail |", "|---|---|---|"])
     for risk in fact_sheet["token_risks"]:

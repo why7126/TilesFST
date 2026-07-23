@@ -1,4 +1,4 @@
-"""MinIO-backed media storage and controlled media object access."""
+"""S3-compatible media storage and controlled media object access."""
 
 from __future__ import annotations
 
@@ -70,27 +70,41 @@ class MediaStorageClient(Protocol):
         """Return object bytes and optional content type."""
 
 
-class MinioMediaStorageClient:
+class S3CompatibleMediaStorageClient:
     def __init__(self) -> None:
         self._client = None
+
+    def _client_endpoint(self) -> str:
+        return settings.effective_object_storage_endpoint()
 
     def _get_client(self):
         if self._client is None:
             from minio import Minio
 
             self._client = Minio(
-                settings.minio_endpoint,
-                access_key=settings.minio_access_key,
-                secret_key=settings.minio_secret_key,
-                secure=settings.minio_secure,
+                self._client_endpoint(),
+                access_key=settings.effective_object_storage_access_key(),
+                secret_key=settings.effective_object_storage_secret_key(),
+                secure=settings.effective_object_storage_secure(),
+                region=settings.effective_object_storage_region(),
             )
+            if not settings.effective_object_storage_path_style():
+                # minio-py enables virtual-host style only for AWS/Aliyun by default.
+                self._client._base_url._virtual_style_flag = True
         return self._client
 
     def _ensure_bucket(self) -> None:
+        if not settings.effective_object_storage_auto_create_bucket():
+            return
+
         client = self._get_client()
+        bucket = settings.effective_object_storage_bucket()
         try:
-            if not client.bucket_exists(settings.minio_bucket):
-                client.make_bucket(settings.minio_bucket)
+            if client.bucket_exists(bucket):
+                return
+            client.make_bucket(bucket)
+        except AppError:
+            raise
         except Exception as exc:
             raise AppError(
                 status_code=502,
@@ -104,7 +118,7 @@ class MinioMediaStorageClient:
         client = self._get_client()
         try:
             client.put_object(
-                settings.minio_bucket,
+                settings.effective_object_storage_bucket(),
                 object_key,
                 BytesIO(content),
                 length=len(content),
@@ -122,7 +136,7 @@ class MinioMediaStorageClient:
         client = self._get_client()
         response = None
         try:
-            response = client.get_object(settings.minio_bucket, object_key)
+            response = client.get_object(settings.effective_object_storage_bucket(), object_key)
             content = response.read()
         except Exception as exc:
             code = getattr(exc, "code", "")
@@ -142,13 +156,15 @@ class MinioMediaStorageClient:
         return StoredMediaObject(content=content, content_type=content_type)
 
 
+MinioMediaStorageClient = S3CompatibleMediaStorageClient
+
 _media_storage_client: MediaStorageClient | None = None
 
 
 def get_media_storage_client() -> MediaStorageClient:
     global _media_storage_client
     if _media_storage_client is None:
-        _media_storage_client = MinioMediaStorageClient()
+        _media_storage_client = S3CompatibleMediaStorageClient()
     return _media_storage_client
 
 
@@ -163,17 +179,17 @@ def build_upload_object_key(prefix: str, resource_type: str, content_type: str |
 
 
 def build_image_upload_object_key(resource_type: str, content_type: str | None) -> str:
-    prefix = settings.minio_prefix_images.rstrip("/")
+    prefix = settings.object_storage_prefix_images.rstrip("/")
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
 def build_video_upload_object_key(resource_type: str, content_type: str | None) -> str:
-    prefix = settings.minio_prefix_video.rstrip("/")
+    prefix = settings.object_storage_prefix_video.rstrip("/")
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
 def build_file_upload_object_key(resource_type: str, content_type: str | None) -> str:
-    prefix = settings.minio_prefix_files.rstrip("/")
+    prefix = settings.object_storage_prefix_files.rstrip("/")
     return build_upload_object_key(prefix, resource_type, content_type)
 
 

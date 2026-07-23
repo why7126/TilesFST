@@ -67,6 +67,18 @@ def test_patch_and_reset_media_group(client: TestClient) -> None:
     reset = client.post("/api/v1/admin/system-settings/media/reset", headers=headers)
     assert reset.status_code == 200
     assert reset.json()["data"]["data"]["max_image_size_mb"] == settings.max_image_size_mb
+    assert reset.json()["data"]["data"]["max_file_size_mb"] == settings.max_file_size_mb
+
+
+def test_patch_media_group_updates_document_file_limit(client: TestClient) -> None:
+    headers = _auth_headers(client, settings.admin_username, settings.admin_initial_password)
+    patch = client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"max_file_size_mb": 25},
+    )
+    assert patch.status_code == 200
+    assert patch.json()["data"]["data"]["max_file_size_mb"] == 25
 
 
 def test_patch_media_validation_rejects_invalid_size(client: TestClient) -> None:
@@ -77,6 +89,13 @@ def test_patch_media_validation_rejects_invalid_size(client: TestClient) -> None
         json={"max_image_size_mb": 999},
     )
     assert response.status_code == 400
+
+    file_response = client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"max_file_size_mb": 999},
+    )
+    assert file_response.status_code == 400
 
 
 def test_upload_uses_effective_media_limit(client: TestClient) -> None:

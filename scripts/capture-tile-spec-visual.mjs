@@ -4,14 +4,23 @@
  * 依赖：Docker Compose 已启动（./scripts/docker-up.sh）
  */
 import { execSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const WEB_URL = process.env.SMOKE_WEB_URL ?? 'http://localhost:3000';
+const envPath = path.join(ROOT, '.env');
+if (existsSync(envPath)) {
+  for (const line of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (match && process.env[match[1]] === undefined) {
+      process.env[match[1]] = match[2];
+    }
+  }
+}
+const WEB_URL = process.env.SMOKE_WEB_URL ?? `http://localhost:${process.env.HOST_PORT_WEB ?? '3000'}`;
 const OUT_DIR = path.join(
   ROOT,
   'issues/requirements/review/REQ-0009-tile-spec-management/prototype/web',
@@ -19,7 +28,7 @@ const OUT_DIR = path.join(
 
 function adminPassword() {
   if (process.env.ADMIN_INITIAL_PASSWORD) return process.env.ADMIN_INITIAL_PASSWORD;
-  return execSync('docker exec tile-info-platform-backend printenv ADMIN_INITIAL_PASSWORD', {
+  return execSync('docker exec tilesfst-backend printenv ADMIN_INITIAL_PASSWORD', {
     encoding: 'utf8',
   }).trim();
 }

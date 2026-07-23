@@ -6,6 +6,7 @@ import re
 import secrets
 import string
 
+from app.core.password_validation import collect_password_policy_violations
 from app.services.effective_settings_service import PasswordPolicy
 
 USERNAME_PATTERN = re.compile(r"^[a-z][a-z0-9._-]{3,31}$")
@@ -51,9 +52,12 @@ def generate_random_password(
     length: int | None = None,
     policy: PasswordPolicy | None = None,
 ) -> str:
-    """Generate a random password meeting effective complexity requirements."""
+    """Generate a random password meeting the unified basic password policy."""
     active_policy = policy or PasswordPolicy()
-    target_length = max(length or active_policy.min_length, active_policy.min_length, 12)
+    target_length = min(
+        max(length or 12, active_policy.min_length, 5),
+        active_policy.max_length,
+    )
 
     while True:
         chars = [secrets.choice(_PASSWORD_ALPHABET) for _ in range(target_length)]
@@ -63,14 +67,4 @@ def generate_random_password(
 
 
 def _meets_policy(password: str, policy: PasswordPolicy) -> bool:
-    if len(password) < policy.min_length:
-        return False
-    if policy.require_uppercase and not any(c.isupper() for c in password):
-        return False
-    if policy.require_lowercase and not any(c.islower() for c in password):
-        return False
-    if policy.require_digit and not any(c.isdigit() for c in password):
-        return False
-    if policy.require_special and not any(c in "!@#$%^&*-_=+" for c in password):
-        return False
-    return True
+    return not collect_password_policy_violations(password, policy)

@@ -104,7 +104,7 @@ class TileSkuRepository:
         return TileSkuRecord(
             id=int(row["id"]),
             name=row["name"],
-            sku_code=row["sku_code"],
+            sku_code=row["sku_code"] or "",
             brand_id=int(row["brand_id"]),
             category_id=int(row["category_id"]),
             spec_id=int(row["spec_id"]) if row.get("spec_id") is not None else None,
@@ -393,6 +393,17 @@ class TileSkuRepository:
         assert record is not None
         return record
 
+    def update_sku_code(self, tile_id: int, sku_code: str) -> TileSkuRecord:
+        now = self._now()
+        self._db.execute(
+            text("UPDATE tiles SET sku_code = :sku_code, updated_at = :updated_at WHERE id = :id"),
+            {"id": tile_id, "sku_code": sku_code, "updated_at": now},
+        )
+        self._db.commit()
+        record = self.get_by_id(tile_id)
+        assert record is not None
+        return record
+
     def delete_sku(
         self,
         tile_id: int,
@@ -512,8 +523,8 @@ class TileSkuRepository:
         self._db.commit()
 
     @staticmethod
-    def generate_draft_sku_code() -> str:
-        return f"DRAFT-{uuid4().hex[:8].upper()}"
+    def generate_sku_code() -> str:
+        return f"SKU-{uuid4().hex[:10].upper()}"
 
     def _increment_sku_count(self, brand_id: int, category_id: int) -> None:
         if brand_id:

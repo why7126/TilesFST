@@ -44,6 +44,7 @@ type ProductListData = {
 
 const PAGE_SIZE = 12;
 const SHARE_ADD_GUIDE_SESSION_KEY = 'miniapp_share_add_guide_session_closed_v1';
+const HOME_SHARE_PATH = '/pages/index/index?source=share';
 let shareAddGuideDismissedInSession = false;
 
 const QUICK_ENTRIES = [
@@ -90,11 +91,27 @@ Page({
   },
 
   onShareAppMessage() {
-    track('home_share', { page_path: '/pages/index/index' });
+    this.trackHomeShare('wechat_friend');
     return {
       title: this.data.home?.store.name || '菲尚特瓷砖馆',
-      path: '/pages/index/index',
+      path: HOME_SHARE_PATH,
     };
+  },
+
+  onShareTimeline() {
+    this.trackHomeShare('wechat_timeline');
+    return {
+      title: this.data.home?.store.name || '菲尚特瓷砖馆',
+      query: 'source=share',
+    };
+  },
+
+  trackHomeShare(shareChannel: 'wechat_friend' | 'wechat_timeline') {
+    track('home_share', {
+      page_path: '/pages/index/index',
+      share_channel: shareChannel,
+      source: 'share',
+    });
   },
 
   prepareShareAddGuide() {

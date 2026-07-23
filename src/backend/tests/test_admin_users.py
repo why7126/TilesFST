@@ -15,6 +15,12 @@ from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 
 
+def _assert_basic_password_policy(password: str) -> None:
+    assert 5 <= len(password) <= 32
+    assert any("A" <= char <= "Z" or "a" <= char <= "z" for char in password)
+    assert any("0" <= char <= "9" for char in password)
+
+
 def _auth_headers(client: TestClient, username: str, password: str) -> dict[str, str]:
     data = _login(client, username, password)
     return {"Authorization": f"Bearer {data['access_token']}"}
@@ -128,7 +134,7 @@ def test_create_user_success(client: TestClient) -> None:
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["user"]["username"] == "new_store_01"
-    assert len(data["initial_password"]) >= 12
+    _assert_basic_password_policy(data["initial_password"])
 
 
 def test_create_user_duplicate_username(client: TestClient) -> None:
@@ -252,7 +258,7 @@ def test_reset_password(client: TestClient) -> None:
         headers=headers,
     )
     assert response.status_code == 200
-    assert len(response.json()["data"]["password"]) >= 12
+    _assert_basic_password_policy(response.json()["data"]["password"])
 
 
 def test_protected_admin_cannot_be_edited(client: TestClient) -> None:

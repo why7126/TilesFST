@@ -5,7 +5,7 @@
 ## Requirements
 ### Requirement: 管理端登录页
 
-Web 客户端 MUST 提供管理端登录页，路由为 `/admin/login`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html` 的布局与 CSS Port 策略（最高优先级视觉结构），并 MUST 满足 `issues/requirements/archive/REQ-0002-product-brand-login-simplify` 与 `issues/requirements/archive/REQ-0003-login-left-panel-refine` 的要求。实现 MUST 采用 **CSS Port 策略**：自 `user-login.html` port 专用 stylesheet（`features/auth/styles/login-page.css`），React 负责 DOM 结构与 auth 交互。左栏金色 Logo（`.logo`）MUST 为 **TilesFST**；左栏白色主标题（`.brand-title`）MUST 为 **「瓷砖信息管理后台」**。颜色 MUST 引用 `globals.css` 的 `--color-*` token；TSX MUST NOT 含裸 Hex。密码字段 MUST 按 `issues/requirements/archive/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md` 提供显隐切换控件。
+Web 客户端 MUST 提供管理端登录页，路由为 `/admin/login`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0001-user-login/prototype/web/user-login.html` 的布局与 CSS Port 策略（最高优先级视觉结构），并 MUST 满足 `issues/requirements/archive/REQ-0002-product-brand-login-simplify` 与 `issues/requirements/archive/REQ-0003-login-left-panel-refine` 的要求。实现 MUST 采用 **CSS Port 策略**：自 `user-login.html` port 专用 stylesheet（`features/auth/styles/login-page.css`），React 负责 DOM 结构与 auth 交互。左栏金色 Logo（`.logo`）MUST 为 **TilesFST**；左栏白色主标题（`.brand-title`）MUST 为 **「瓷砖信息管理后台」**。颜色 MUST 引用 `globals.css` 的 `--color-*` token；TSX MUST NOT 含裸 Hex。密码字段 MUST 按 `issues/requirements/archive/REQ-0003-login-remember-autofill/prototype/web/login-form-enhancements-context.md` 提供显隐切换控件。登录页辅助工具区 MUST 统一承载主题选择模块与语言选择模块，两个模块 MUST 在桌面和窄屏视口下保持清晰对齐且不得遮挡登录内容。
 
 #### Scenario: 登录页布局
 
@@ -28,36 +28,21 @@ Web 客户端 MUST 提供管理端登录页，路由为 `/admin/login`，视觉 
 - **AND** 表单 MUST NOT 包含 notice 横幅或页脚版权（© STONEX…）
 - **AND** 密码输入框 MUST 在 `.password-wrap` 容器内提供显隐切换按钮（默认 `type="password"`）
 
-#### Scenario: 左侧品牌背景
+#### Scenario: 登录页辅助工具区对齐
 
-- **WHEN** 用户在桌面端查看登录页左栏
-- **THEN** MUST 展示：**TilesFST** Logo（金色）、TILE DATA OPERATING SYSTEM 眉标、主标题 **「瓷砖信息管理后台」**（白色）、描述、三列统计卡、右下角 CSS 材质拼贴（`material-board` + 3 tiles）、底部 PRECISION · MATERIAL · INVENTORY
-- **AND** MUST 叠加网格线与 radial glow 氛围层（对齐 `user-login.html`）
+- **WHEN** 用户查看 Web 管理端登录页
+- **THEN** 主题选择模块与语言选择模块 MUST 使用统一的登录页工具区布局或等价对齐规则
+- **AND** 两个模块的垂直对齐、控件高度、视觉重心和交互热区 MUST 保持一致
+- **AND** 桌面视口下两个模块之间的水平间距 MUST 稳定，右上角工具区 MUST NOT 重叠、裁切或异常换行
+- **AND** 窄屏视口下两个模块 MUST 保持可见且布局稳定，MUST NOT 遮挡登录标题、表单字段或安全提示。
 
-#### Scenario: 左栏主标题与 Logo 间距
+#### Scenario: 登录页辅助工具区行为不回退
 
-- **WHEN** 用户在桌面端查看登录页左栏
-- **THEN** Logo 与眉标/主标题之间垂直间距 MUST 紧凑（REQ-0003-login-left-panel-refine）
-
-#### Scenario: 统计卡不被材质拼贴遮挡
-
-- **WHEN** 用户在 1440×1024 桌面视口查看登录页左栏
-- **THEN** 三列统计卡（含 126 / 门店同步）MUST 完整可读，不被 `.material-board` 覆盖
-
-#### Scenario: Logo 品牌字体
-
-- **WHEN** 用户查看登录页左栏 TilesFST Logo
-- **THEN** Logo MUST 使用品牌字体样式（`font-brand` / Georgia 类）
-
-#### Scenario: 登录页无页面级纵向滚动
-
-- **WHEN** 用户在桌面端（>= 1024px）访问 `/admin/login`
-- **THEN** 页面 MUST NOT 出现整页纵向滚动条（视口内完成布局）
-
-#### Scenario: 登录页组件结构
-
-- **WHEN** 开发者查看登录页源码
-- **THEN** 页面 MUST 由 `features/auth` 模块组件组装（如 `LoginPage`、`LoginForm`、`BrandPanel`）
+- **WHEN** 修复登录页辅助工具区对齐后
+- **THEN** 主题选择控件 MUST 仍可切换现有主题模式
+- **AND** 语言选择按钮 MUST 保持文案「简体中文⌄」与可访问名称 `切换语言`
+- **AND** 登录表单提交、记住登录状态、登录成功跳转和认证错误提示 MUST 保持不变
+- **AND** 修复 MUST NOT 要求新增完整 i18n 能力、主题模式、认证 API 字段或数据库结构。
 
 ### Requirement: 登录页原型静态资源
 
@@ -417,21 +402,86 @@ Web 客户端管理端登录页（`/admin/login`）MUST 通过 port CSS 引用 D
 
 ### Requirement: 管理端瓷砖类目管理页
 
-Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `tile-category-management-add.html` 弹窗策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
+Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `REQ-0067` 类目新增 / 编辑弹窗字段策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
 
 #### Scenario: 类目页布局
 
-- **WHEN** 已登录 `admin` 或 `employee` 访问 `/admin/tile-categories`
+- **WHEN** 用户访问 `/admin/tile-categories`
 - **THEN** 页面 MUST 展示 page-header（eyebrow「CATEGORY MANAGEMENT」、标题「瓷砖类目管理」、说明、「＋ 新增类目」）
 - **AND** MUST 展示 4 指标卡、类目检索区（**无**外层 section 标题）、左侧类目树（280px）与右侧类目列表（**无**外层「类目列表」section 标题）
-- **AND** MUST NOT 展示导出按钮或批量操作入口
-- **AND** 页面内容宽度 MUST 跟随全局 Admin Shell 策略，不得通过页面级 `.content-inner` max-width 退回 1080px。
 
 #### Scenario: 类目树与列表联动
 
 - **WHEN** 用户点击左侧类目树节点
-- **THEN** 右侧列表 MUST 以所选节点为上下文刷新
-- **AND** 当前选中节点 MUST 有清晰 active 状态。
+- **THEN** 右侧类目列表 MUST 按节点及其子孙范围刷新
+
+#### Scenario: 类目列表名称列第二行仅展示编码
+
+- **WHEN** 管理端类目列表展示类目名称列
+- **THEN** 名称列第一行 MUST 展示类目名称
+- **AND** 名称列第二行 MUST 仅展示系统类目编码
+- **AND** 名称列第二行 MUST NOT 展示层级路径，例如 `父级类目 / 二级类目`
+
+#### Scenario: 新增类目弹窗字段
+
+- **WHEN** 用户点击「新增类目」
+- **THEN** 系统 MUST 打开新增类目弹窗
+- **AND** 弹窗 MUST 展示带必填标识的「上级类目」「类目名称」「排序权重」
+- **AND** 弹窗 MUST NOT 展示可填写的「类目编码」输入项
+- **AND** 弹窗 MUST 提示类目编码由系统自动生成或等价弱提示
+
+#### Scenario: 编辑类目弹窗字段
+
+- **WHEN** 用户点击类目行「编辑」
+- **THEN** 系统 MUST 打开编辑类目弹窗
+- **AND** 弹窗 MUST NOT 提供可编辑的「类目编码」输入项
+- **AND** 本期 MUST NOT 允许通过编辑弹窗修改上级类目
+
+#### Scenario: 上级类目选择
+
+- **WHEN** 用户在新增类目弹窗选择上级类目
+- **THEN** 下拉项 MUST 包含「无上级，创建一级类目」或等价顶级选项
+- **AND** 下拉项 MUST 仅包含可作为上级的一级类目
+- **AND** 二级类目 MUST NOT 出现在上级类目可选项中
+
+#### Scenario: 类目名称本地校验
+
+- **WHEN** 用户提交空名称、超过 10 个用户可见字符的名称，或包含中文/英文/数字之外字符的名称
+- **THEN** 前端 MUST 阻止保存
+- **AND** 错误提示 MUST 展示在类目名称字段或字段组下方
+
+#### Scenario: 排序权重本地校验
+
+- **WHEN** 用户提交空值、0、负数、小数或非数字排序权重
+- **THEN** 前端 MUST 阻止保存
+- **AND** 错误提示 MUST 展示在排序权重字段或字段组下方
+
+#### Scenario: 创建请求不包含编码
+
+- **WHEN** 用户提交新增类目弹窗
+- **THEN** 前端调用创建 API 的 payload MUST NOT 包含用户填写的 `code`
+- **AND** 前端 MUST 使用 Orval 生成类型或等价生成客户端契约
+
+#### Scenario: 服务端错误展示
+
+- **WHEN** 创建或更新 API 返回统一错误 envelope
+- **THEN** 前端 MUST 优先展示 `message`
+- **AND** 字段级错误 SHOULD 映射到对应字段
+- **AND** 无法映射字段的错误 MUST 展示在弹窗固定错误区域或等价表单错误区
+
+#### Scenario: 保存成功刷新
+
+- **WHEN** 类目创建或更新成功
+- **THEN** 弹窗 MUST 关闭
+- **AND** 类目树、类目列表和页面统计 MUST 刷新
+
+#### Scenario: 类目弹窗横切质量
+
+- **WHEN** 开发者实现或回归类目新增 / 编辑弹窗
+- **THEN** TSX MUST NOT 同时挂载通用 `modal-card` 与专属类
+- **AND** 1440px 视口下 computed width MUST 为 560px 或 design/tasks 中批准的宽度
+- **AND** 矮视口下弹窗 body MUST 可滚动且 footer 操作按钮始终可达
+- **AND** 实现 MUST 使用 Design System semantic token 或既有管理端样式，MUST NOT 新增裸 Hex
 
 ### Requirement: 品牌管理 UI 一致性修复
 
@@ -1911,13 +1961,14 @@ Web admin clients SHALL render the global theme selector inside the AdminLayout 
 
 ### Requirement: Web 主题切换与偏好持久化
 
-The Web client MUST provide theme switching for `system`, `dark_flagship`, `comfort_dark`, and `light` on management-side and supported store-owner Web surfaces. The active mode MUST persist locally and, for authenticated users, synchronize with the account-level theme preference API. Switching themes MUST apply immediately without losing current page state.
+The Web client MUST provide theme switching for `system`, `dark_flagship`, `comfort_dark`, and `light` on management-side and supported store-owner Web surfaces. The active mode MUST persist locally and, for authenticated users, synchronize with the account-level theme preference API. Switching themes MUST apply immediately without losing current page state. Account preference synchronization failures MUST be communicated with recoverable admin feedback that automatically dismisses or provides an explicit close affordance; the feedback MUST NOT remain persistently visible without user control.
 
 #### Scenario: 登录前主题偏好
 
 - **WHEN** an unauthenticated user changes theme on the login page
 - **THEN** the selected mode SHALL persist locally
-- **AND** the login page SHALL update immediately without requiring reload.
+- **AND** the login page SHALL update immediately without requiring reload
+- **AND** the Web client SHALL NOT call the account-level theme preference API.
 
 #### Scenario: 登录后账号偏好合并
 
@@ -1930,7 +1981,16 @@ The Web client MUST provide theme switching for `system`, `dark_flagship`, `comf
 
 - **WHEN** an authenticated user changes theme and the backend persistence request fails
 - **THEN** the Web client SHALL keep the local visual selection
-- **AND** it SHALL show a recoverable error message using the existing toast or equivalent Design System feedback.
+- **AND** it SHALL show a recoverable error message using the existing toast or equivalent Design System feedback
+- **AND** the error feedback SHALL automatically dismiss or provide an explicit close affordance
+- **AND** the error feedback SHALL NOT persist indefinitely, stack repeatedly, or block the user from continuing management-side work.
+
+#### Scenario: 主题切换重复失败不刷屏
+
+- **WHEN** an authenticated user changes theme multiple times and multiple backend persistence attempts fail
+- **THEN** the Web client SHALL avoid unbounded duplicate toast stacking
+- **AND** the latest recoverable error feedback SHALL remain readable
+- **AND** the management sidebar, routed page content, login/logout controls, and current page state SHALL remain usable.
 
 ### Requirement: 管理端主题舒适度首批验收矩阵
 
@@ -2008,4 +2068,120 @@ Web 管理端 copy interactions SHALL prefer the shared Clipboard copy helper or
 - **WHEN** this change is implemented
 - **THEN** Web catalog and miniapp copy behavior SHALL remain unchanged
 - **AND** miniapp Clipboard API adaptation SHALL require a separate requirement or change.
+
+### Requirement: Web 管理端移动端基础适配矩阵
+
+Web 客户端 MUST 为当前已实现的 Web 管理端 `/admin/*` 页面提供移动端基础可用验收矩阵。适用页面 MUST 包含 `/admin/login`、`/admin/dashboard`、`/admin/brands`、`/admin/banners`、`/admin/tile-categories`、`/admin/tile-specs`、`/admin/tile-skus`、`/admin/profile`、`/admin/users`、`/admin/logs`、`/admin/api-docs`、`/admin/settings/:tab` 与 `/admin/forbidden`。本能力 MUST 仅作用于 Web 管理端，MUST NOT 修改店主 Web 展示端、微信小程序、后端 API、数据库、OpenAPI、Orval、Docker Compose、Nginx、MinIO 或媒体上传后端链路。
+
+#### Scenario: 移动端验收视口覆盖
+
+- **WHEN** 实现或验收本 Change
+- **THEN** MUST 覆盖 `375x812`、`390x844`、`768x1024` 与 `1440x1024` 视口
+- **AND** `1440x1024` MUST 作为桌面回归视口
+- **AND** 验收记录 MUST 标明每个视口是否存在页面级横向溢出、控件重叠、弹窗不可关闭、底部按钮不可达、筛选或分页不可操作。
+
+#### Scenario: 非目标端和后端契约不受影响
+
+- **WHEN** 本 Change 实现完成
+- **THEN** 店主 Web 展示端与微信小程序页面 MUST 不受影响
+- **AND** 后端 API 请求、响应、错误码、OpenAPI、Orval、SQLite/MySQL schema、Pydantic Schema、Docker Compose、MinIO 与媒体上传后端链路 MUST 保持不变
+- **AND** 若实现阶段发现必须触及上述范围，MUST 回到需求评审或拆分独立 REQ/Change。
+
+#### Scenario: 登录和无权限页移动端回归
+
+- **WHEN** 用户在 `375x812` 或 `390x844` 访问 `/admin/login`
+- **THEN** 登录页 MUST 保持 `<1024px` 单栏契约，左侧品牌区隐藏，登录表单居中且最大宽度不超过既有约束
+- **AND** 账号、密码、记住登录状态、登录按钮和语言占位 MUST 可见且可操作
+- **WHEN** 用户在移动视口访问 `/admin/forbidden`
+- **THEN** 无权限页文案和返回或跳转入口 MUST 可读、可点击且不溢出。
+
+### Requirement: Web 管理端列表与分页移动端基础可用
+
+Web 管理端列表型页面 MUST 在手机和小屏平板视口下保持筛选区、指标卡、表格、分页和行内操作基础可用。适用页面 MUST 包含 `/admin/brands`、`/admin/banners`、`/admin/tile-categories`、`/admin/tile-specs`、`/admin/tile-skus`、`/admin/users`、`/admin/logs` 与 `/admin/api-docs`。列表页 MUST 保留既有管理端列表横切一致性契约，包括模块顺序、指标卡 DOM、固定 toast、DS confirm modal、固定操作列与统一分页 DOM。
+
+#### Scenario: 筛选区移动端降级
+
+- **WHEN** 用户在 `≤1023px` 视口访问任一适用列表页
+- **THEN** 筛选区 MUST 降为 2 列、1 列或等价适配布局
+- **AND** 在 `≤639px` 视口下筛选输入框、选择框、重置按钮和其他筛选控件 MUST 不重叠、不超出父容器且可键盘聚焦
+- **AND** 筛选控件变化或重置后 MUST 保持既有业务筛选行为和权限边界。
+
+#### Scenario: 表格滚动限制在容器内
+
+- **WHEN** 任一适用列表页的表格内容宽于移动视口
+- **THEN** 横向滚动 MUST 限制在 `table-card` 或等价表格容器内
+- **AND** 页面 body、Shell、`.main-content` 与 `.content-inner` MUST NOT 出现不可控横向滚动
+- **AND** 关键标识列、状态列和操作列 MUST 可访问；隐藏次要列时 MUST NOT 隐藏核心操作。
+
+#### Scenario: 分页移动端可操作
+
+- **WHEN** 任一适用列表页在 `375px` 宽度展示分页
+- **THEN** 分页 MUST 使用左侧 `page-summary` 与右侧 `page-right` 的统一结构
+- **AND** `.page-buttons`、上一页、下一页、每页条数和总数摘要 MUST 可换行或分组展示
+- **AND** 页码和每页条数控件 MUST 不互相覆盖，且可点击页码数量仍 MUST 不超过 5 个。
+
+#### Scenario: 列表横切 AC 保持
+
+- **WHEN** 本 Change 触及任一适用列表页
+- **THEN** 指标卡 MUST 保留 `.metric-label`、`.metric-value`、`.metric-desc` 或等价共享结构
+- **AND** 操作成功或失败反馈 MUST 使用 fixed toast 或等价固定反馈区域，不得用文档流 notice 推挤 hero、筛选区或表格
+- **AND** 启停、上下架、冻结、删除、重置密码等风险操作 MUST 使用 DS confirm modal，MUST NOT 使用 `window.confirm`。
+
+### Requirement: Web 管理端表单弹窗与抽屉移动端基础可用
+
+Web 管理端表单页、业务弹窗、确认弹窗与日志详情抽屉 MUST 在 `375px` 宽度及移动视口高度下保持可读、可滚动、可关闭和可提交。适用范围 MUST 包含品牌、Banner、类目、规格、SKU、用户、重置密码、修改密码、系统设置确认、日志详情抽屉以及已有上传控件所在弹窗或表单。
+
+#### Scenario: 业务弹窗窄屏可操作
+
+- **WHEN** 用户在 `375px` 宽度打开新增、编辑、状态确认、删除、重置密码、修改密码或系统设置确认弹窗
+- **THEN** 弹窗 MUST 不超出视口宽度
+- **AND** 头部标题、关闭按钮、内容区和底部操作区域 MUST 可访问
+- **AND** 矮视口下弹窗 body MUST 可滚动，底部主操作按钮不得丢失。
+
+#### Scenario: 宽弹窗保留专属宽度策略
+
+- **WHEN** 用户在移动视口打开 SKU、Banner 或等价大表单弹窗
+- **THEN** 弹窗 MUST 保留专属 card class 或等价宽度策略，MUST NOT 同时挂载通用 `modal-card` 与专属类导致 CSS 层叠覆盖
+- **AND** 实现验收 MUST 检查 computed width 与 max-width，而不只检查源 CSS
+- **AND** 关闭按钮、取消按钮和主操作按钮 MUST 可点击。
+
+#### Scenario: 表单和设置页移动端可读
+
+- **WHEN** 用户在移动视口访问 `/admin/profile` 或 `/admin/settings/:tab`
+- **THEN** 主信息、账号安全、设置导航、配置字段、保存、重置和确认入口 MUST 单列或等价可读布局展示
+- **AND** 全页主要保存 CTA MUST 仅保留一处
+- **AND** dirty Tab 切换、恢复默认、修改密码取消等风险操作 MUST 使用 DS modal，MUST NOT 使用 `window.confirm` 或 `window.alert`。
+
+#### Scenario: 日志详情抽屉移动端可关闭可滚动
+
+- **WHEN** 用户在手机宽度打开 `/admin/logs` 的日志详情抽屉
+- **THEN** 抽屉 MUST 可关闭
+- **AND** 详情内容 MUST 可滚动查看
+- **AND** 抽屉宽度 MUST NOT 导致页面整体横向失控滚动。
+
+#### Scenario: 上传控件移动端状态不回归
+
+- **WHEN** 用户在移动视口使用品牌 Logo、Banner 图片、SKU 图片/视频或用户头像等已有上传控件
+- **THEN** 上传控件 MUST 保持 `idle -> uploading -> done/failed` 或等价状态机可见
+- **AND** 同会话上传成功后 MUST 即时回显缩略图或文件卡片
+- **AND** 上传失败信息 MUST 展示在控件附近、既有错误区域或 fixed toast 中，且不得遮挡底部操作按钮
+- **AND** 本 Change MUST NOT 新增媒体 API、存储桶、上传大小限制、Nginx 或 Docker 配置。
+
+### Requirement: Web 管理端移动端 smoke 验收
+
+Web 管理端移动端适配实现 MUST 补充 Playwright 或等价浏览器 smoke 验收。smoke MUST 以固定视口和必测页面矩阵验证基础可用性，并在 Change trace 或等价验收记录中说明结果、N/A 理由和剩余风险。
+
+#### Scenario: 必测页面 smoke 覆盖
+
+- **WHEN** 实现阶段运行移动端 smoke 验收
+- **THEN** 必测路由 MUST 至少包含 `/admin/login`、`/admin/dashboard`、`/admin/tile-skus`、`/admin/brands`、`/admin/users`、`/admin/logs` 与 `/admin/settings/basic`
+- **AND** smoke MUST 覆盖 `375x812`、`390x844`、`768x1024` 与 `1440x1024`
+- **AND** 每个必测路由 MUST 记录页面级横向溢出、控件重叠、弹窗不可关闭、底部按钮不可达、筛选或分页不可操作检查结果。
+
+#### Scenario: 测试命令和截图证据
+
+- **WHEN** 本 Change apply 完成
+- **THEN** `pnpm --dir src/web test` 或项目等价前端测试 MUST 通过；若只执行子集，MUST 在 trace 中记录原因和剩余风险
+- **AND** SHOULD 补充移动端 Playwright screenshot、trace 或等价截图，覆盖至少一个宽表格页面、一个业务弹窗、一个 Shell/Dashboard 页面和一个设置或表单页面
+- **AND** 本 Change 不要求 Orval；若实现阶段改 API，MUST 重新运行 OpenAPI/Orval 门禁。
 

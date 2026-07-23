@@ -1,0 +1,43 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "d0bc35b5a24e42bb9ec74a0fae518972c9bc604a7cbcfe862a25009c3df6be8f",
+      "source_data_file": "~/.codex/sessions/2026/07/23/rollout-2026-07-23T08-35-39-019f8c66-3f96-7f61-b495-5c1bec319341.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 153,
+      "turn_hash": "0b8911fc79241edf",
+      "started_at": "2026-07-23T00:35:54.383Z",
+      "ended_at": "2026-07-23T00:40:03.554Z",
+      "command": "bug.capture",
+      "workflow_event": "bug.capture",
+      "requirements": [],
+      "bugs": [
+        "BUG-0081-prod-cos-video-upload-fails"
+      ],
+      "changes": [],
+      "sprint_id": null,
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 13,
+      "input_tokens": 689748,
+      "cached_input_tokens": 605056,
+      "output_tokens": 6552,
+      "reasoning_output_tokens": 594,
+      "total_tokens": 696300,
+      "tool_call_count": 46,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

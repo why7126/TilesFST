@@ -19,6 +19,8 @@ Use this skill when the user asks `/release-prepare <version>` or wants to run p
 - 从 `releases/<version>/release.json` 开始，只读取发布对象中列出的 Sprint / REQ / BUG / Change。
 - 门禁失败时按脚本报告定位具体文件片段；不要全量读取 `docs/**`、`issues/**`、`iterations/**` 或归档目录。
 - 测试、Docker、Orval、Mintlify 输出只保留摘要；失败时展开关键错误。
+- 测试失败时 MUST 先做失败分类并写入输出或 release blockers：`archived_path_residual`（active Change 路径在归档后失效）、`fixture_schema_drift`（测试 fixture / snapshot 字段落后于契约）、`helper_payload_invalid`（共享 helper 仍提交废弃字段或非法 payload）、`product_regression`（真实产品行为回归）、`environment_blocker`（本地依赖、网络、权限或真实环境不可用）。
+- 若失败属于前三类治理漂移，MUST 建议同步测试 helper、归档路径 resolver 或 fixture 契约；不得只要求人工复跑。
 
 ## Input
 
@@ -61,7 +63,7 @@ Prepare MUST verify and record evidence for each applicable gate in `release.jso
 | `tests` | Relevant pytest / Vitest / smoke commands and pass summary. |
 | `orval` | API changes have OpenAPI / Orval / docs sync evidence, or `na` rationale. |
 | `docker_compose` | Deployment changes have Compose config/docs evidence, or `na` rationale. |
-| `database_migration` | DB changes have schema/migration/docs/rollback evidence, or `na` rationale. |
+| `database_migration` | DB changes have schema/migration/docs/rollback evidence plus MySQL schema drift or target MySQL smoke evidence, or `na` rationale. |
 | `env_example` | Env changes have `.env.example` evidence, or `na` rationale. |
 | `product_version` | `PRODUCT_VERSION` equals release version, or rationale is explicit. |
 | `mintlify_preview` | Mintlify build/preview or equivalent static MDX safety check evidence. |
@@ -84,9 +86,12 @@ pnpm --dir src/web test -- --run
 python scripts/validate-api-standard.py
 ./scripts/generate-openapi-client.sh
 docker compose config --quiet
+python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
 ```
 
 Only run expensive or environment-dependent checks when they match release scope or user requested full validation. If a command cannot run locally, record the blocker; do not invent evidence.
+
+If `impact_scope.database` is not `none` / `na` / `不涉及`, `database_migration` MUST be `pass` and its evidence MUST explicitly mention MySQL or `schema.mysql.sql`, a schema drift / target MySQL smoke check, and database rollback or backup evidence. Do not paste raw `DATABASE_URL` or credentials into release artifacts.
 
 ## Artifacts（非 `--dry-run` MUST）
 

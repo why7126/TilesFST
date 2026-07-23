@@ -1,10 +1,34 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 64
+next_id: 68
 entries:
+  - id: REQ-0067-admin-category-edit-modal-validation
+    title: 管理端类目编辑弹窗字段与校验规则
+    status: done
+    iteration: sprint-010
+    created: "2026-07-22 09:10:43"
+    parent_requirement: REQ-0005-tile-category-management
+  - id: REQ-0066-admin-sku-image-removal-main-image-rules
+    title: 管理端 SKU 编辑弹窗支持商品图片移除与主图兜底规则
+    status: done
+    iteration: null
+    created: "2026-07-22 08:54:30"
+    parent_requirement: REQ-0006-tile-sku-management
+  - id: REQ-0065-sku-metadata-name-sku-dedup
+    title: 瓷砖 SKU 元数据名称与 SKU 字段去重
+    status: done
+    iteration: null
+    created: "2026-07-21 16:30:18"
+    parent_requirement: REQ-0006-tile-sku-management
+  - id: REQ-0064-miniapp-wechat-share-pages
+    title: 微信小程序多页面支持微信分享
+    status: done
+    iteration: sprint-010
+    created: "2026-07-21 08:39:14"
+    parent_requirement:
   - id: REQ-0063-password-validation-policy-simplification
     title: 密码校验规则简化
-    status: in_sprint
+    status: done
     iteration: sprint-010
     created: "2026-07-20 19:19:09"
     parent_requirement: REQ-0015-password-change
@@ -220,7 +244,7 @@ entries:
     parent_requirement: REQ-0000-build-design-system
   - id: REQ-0027-mobile-page-adaptation
     title: Web 管理端移动端基础适配优化
-    status: approved
+    status: done
     iteration: null
     created: "2026-07-04 14:55:35"
     parent_requirement: REQ-0004-admin-home

@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-01 13:52:03
-updated_at: 2026-07-09 08:44:00
+updated_at: 2026-07-22 08:47:26
 knowledge_base_refs:
   - docs/knowledge-base/best-practices/admin-list-page-consistency.md
   - docs/knowledge-base/retrospectives/sprint-003-retrospective.md
@@ -85,3 +85,4 @@ expected_openspec_change: add-product-usage-logging
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0060-audit-log-request-id-copy-error | medium | done | fix-audit-log-request-id-copy-error | 日志审计页复制 request_id 时报错 |
+| BUG-0072-miniapp-usage-events-bad-request | high | done | fix-miniapp-usage-events-contract-drift | 微信小程序 usage-events 上报接口频繁返回 400 |

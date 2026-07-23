@@ -1,0 +1,86 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "0abc189bb76a219ac0597fd75c8aee514540ca32ff1df6640d1d3d0d8fe01d49",
+      "source_data_file": "~/.codex/sessions/2026/07/22/rollout-2026-07-22T09-17-38-019f8766-566a-7ce1-a2e5-d59eab80dbff.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 562,
+      "turn_hash": "8d0cf5318c3348df",
+      "started_at": "2026-07-22T01:17:44.533Z",
+      "ended_at": "2026-07-22T01:39:12.175Z",
+      "command": "opsx.apply",
+      "workflow_event": "opsx.apply",
+      "requirements": [
+        "REQ-0065-sku-metadata-name-sku-dedup"
+      ],
+      "bugs": [],
+      "changes": [
+        "refine-sku-metadata-name-code-display"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 73,
+      "input_tokens": 10110538,
+      "cached_input_tokens": 9888128,
+      "output_tokens": 26706,
+      "reasoning_output_tokens": 3669,
+      "total_tokens": 10137244,
+      "tool_call_count": 111,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "0abc189bb76a219ac0597fd75c8aee514540ca32ff1df6640d1d3d0d8fe01d49",
+      "source_data_file": "~/.codex/sessions/2026/07/22/rollout-2026-07-22T09-17-38-019f8766-566a-7ce1-a2e5-d59eab80dbff.jsonl",
+      "source_line_start": 833,
+      "source_line_end": 911,
+      "turn_hash": "3c04479fdce0af9f",
+      "started_at": "2026-07-22T01:57:53.292Z",
+      "ended_at": "2026-07-22T01:59:41.564Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0065-sku-metadata-name-sku-dedup"
+      ],
+      "bugs": [],
+      "changes": [
+        "refine-sku-metadata-name-code-display"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 10,
+      "input_tokens": 861816,
+      "cached_input_tokens": 826752,
+      "output_tokens": 2339,
+      "reasoning_output_tokens": 321,
+      "total_tokens": 884017,
+      "tool_call_count": 19,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

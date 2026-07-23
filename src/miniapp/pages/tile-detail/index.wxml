@@ -135,10 +135,6 @@
       <text class="action-icon">{{product.favorite ? '♥' : '♡'}}</text>
       <text class="action-label">{{product.favorite ? '已收藏' : '收藏'}}</text>
     </button>
-    <button class="action-btn" bindtap="openBrand">
-      <text class="action-icon">▱</text>
-      <text class="action-label">品牌</text>
-    </button>
     <button class="share-btn" open-type="share">分享给客户</button>
   </view>
 </view>

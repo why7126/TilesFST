@@ -121,6 +121,7 @@ describe('BrandCertificateComponents', () => {
     );
 
     expect(screen.getByText('未上传证书文件')).toBeInTheDocument();
+    expect(screen.getByText('支持 JPG / PNG / WebP / PDF，单文件最大 25MB')).toBeInTheDocument();
     expect(screen.getByText('选择文件')).toBeInTheDocument();
 
     const selected = new File(['pdf'], 'new.pdf', { type: 'application/pdf' });

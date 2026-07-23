@@ -5,14 +5,14 @@ source: AI自动生成初稿，项目团队确认
 update_method: 新增数据类型、上传目录、视频处理流程、数据库持久化方式时由AI辅助更新，人工Review
 note: data目录用于本地开发、演示、测试样例和运行时数据；生产环境应使用正式对象存储和持久化卷
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-12 00:42:30
+updated_at: 2026-07-21 13:44:26
 ---
 
 # data 目录规范
 
 `data/` 用于承载本地开发、演示、测试样例和运行时数据。该目录不是业务源码目录，也不是正式文档目录。
 
-**业务媒体正式存储**：MinIO 单桶 `MINIO_BUCKET`（本地 Docker 物理落盘为 `data/minio/tile-info-platform/`）。
+**业务媒体正式存储**：MinIO 单桶 `MINIO_BUCKET`（本地 Docker 物理落盘为 `data/minio/tilesfst/`）。
 
 **本地日志审计数据**：REQ-0024 新增 `request_logs` 与 `usage_events` 表，随 SQLite 运行时数据库一起位于 `data/sqlite/`。这些日志仅用于本地开发、演示和排查，不得提交真实运行数据库文件。
 
@@ -28,7 +28,7 @@ data/
 │   ├── videos/              # 占位目录（.gitkeep）
 │   └── documents/           # 占位目录（.gitkeep）
 ├── minio/                   # Docker Compose 本地 MinIO 持久化卷（桶内对象增长属预期）
-│   └── tile-info-platform/  # 默认 MINIO_BUCKET 物理存储
+│   └── tilesfst/  # 默认 MINIO_BUCKET 物理存储
 ├── processed/               # 处理后产物
 │   ├── videos/              # 视频转码、压缩、格式化产物
 │   └── thumbnails/          # 图片/视频封面图
@@ -93,7 +93,7 @@ python scripts/clean_legacy_uploads.py --check-only
 ## 媒体排查原则
 
 1. 查 DB 中的 `object_key` / `logo_object_key` / `avatar_object_key`。
-2. 在 MinIO Console 或 `data/minio/tile-info-platform/{object_key}` 确认对象存在。
+2. 在 MinIO Console 或 `data/minio/tilesfst/{object_key}` 确认对象存在。
 3. **不要**以 `data/uploads` 是否有同名文件判断上传是否成功。
 
 ## 日志审计排查原则

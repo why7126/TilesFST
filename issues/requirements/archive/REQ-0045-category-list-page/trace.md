@@ -3,7 +3,7 @@ requirement_id: REQ-0045-category-list-page
 status: done
 priority: P1
 created_at: 2026-07-18 20:52:54
-updated_at: 2026-07-19 12:13:31
+updated_at: 2026-07-22 09:14:53
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-18 20:52:54
@@ -15,7 +15,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-category-list-page
     type: add
-    status: archived
+    status: proposed
 related_requirements: []
 knowledge_base_refs: []
 cross_cutting_tags: []
@@ -30,7 +30,7 @@ requirement_id: REQ-0045-category-list-page
 status: done
 priority: P1
 created_at: 2026-07-18 20:52:54
-updated_at: 2026-07-19 12:13:31
+updated_at: 2026-07-21 15:24:52
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-18 20:52:54
@@ -42,7 +42,7 @@ iteration: sprint-008
 openspec_changes:
   - change_id: add-miniapp-category-list-page
     type: add
-    status: archived
+    status: proposed
 related_requirements: []
 knowledge_base_refs: []
 cross_cutting_tags: []
@@ -54,6 +54,7 @@ retrospective_refs:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
+| BUG-0077-miniapp-category-secondary-name-truncated | medium | done | fix-miniapp-category-secondary-name-truncated | 微信小程序分类页二级分类名称超过 4 个字被省略 |
 
 ## 变更记录
 

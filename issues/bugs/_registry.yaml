@@ -1,15 +1,114 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 71
+next_id: 82
 entries:
+  - id: BUG-0081-prod-cos-video-upload-fails
+    title: 生产环境腾讯 COS 视频上传失败
+    status: captured
+    severity: high
+    created: "2026-07-23 08:37:33"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0080-admin-banner-image-preview-cropped
+    title: 管理端 Banner 列表和弹窗中 Banner 图片显示不全
+    status: done
+    severity: medium
+    created: "2026-07-22 08:41:49"
+    related_requirement: REQ-0016-banner-management
+    related_bug: null
+    related_change: fix-admin-banner-image-preview-cropped
+    iteration: null
+  - id: BUG-0079-admin-dashboard-overview-mock-data
+    title: 管理端首页数据概览仍使用 Mock 数据
+    status: done
+    severity: medium
+    created: "2026-07-22 08:21:05"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-dashboard-overview-real-data
+    iteration: null
+  - id: BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search
+    title: 生产环境小程序商品详情页品牌卡片误跳搜索页
+    status: done
+    severity: medium
+    created: "2026-07-21 10:29:03"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: null
+    related_change: fix-miniapp-sku-detail-brand-card-route
+    iteration: sprint-010
+  - id: BUG-0077-miniapp-category-secondary-name-truncated
+    title: 微信小程序分类页二级分类名称超过 4 个字被省略
+    status: done
+    severity: medium
+    created: "2026-07-21 10:25:27"
+    related_requirement: REQ-0045-category-list-page
+    related_bug: null
+    related_change: fix-miniapp-category-secondary-name-truncated
+    iteration: sprint-010
+  - id: BUG-0076-prod-miniapp-video-temporarily-unplayable
+    title: 生产环境微信小程序提示视频暂时无法播放
+    status: approved
+    severity: high
+    created: "2026-07-21 10:23:03"
+    related_requirement: null
+    related_bug: BUG-0069-miniapp-sku-detail-carousel-video-not-playable
+    related_change: fix-prod-miniapp-video-upstream-502
+    iteration: null
+  - id: BUG-0075-prod-admin-brand-banner-save-fails
+    title: 生产环境管理端品牌类型 Banner 配置无法保存
+    status: done
+    severity: high
+    created: "2026-07-21 10:17:39"
+    related_requirement: REQ-0062-admin-banner-placement-scope
+    related_bug: null
+    related_change: fix-prod-admin-brand-banner-save
+    iteration: sprint-010
+  - id: BUG-0074-prod-theme-preference-sync-toast-persistent
+    title: 生产环境主题偏好同步失败提示持续不消失
+    status: done
+    severity: medium
+    created: "2026-07-21 10:14:45"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-theme-preference-sync-toast-persistent
+    iteration: sprint-010
+  - id: BUG-0073-video-upload-23m-file-fails
+    title: 上传 23M 文件失败，图片、视频和文档均受影响
+    status: done
+    severity: high
+    created: "2026-07-21 10:12:43"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-upload-size-limit-consistency
+    iteration: sprint-010
+  - id: BUG-0072-miniapp-usage-events-bad-request
+    title: 微信小程序 usage-events 上报接口频繁返回 400
+    status: done
+    severity: high
+    created: "2026-07-21 08:38:39"
+    related_requirement: REQ-0024-product-usage-logging
+    related_bug: null
+    related_change: fix-miniapp-usage-events-contract-drift
+    iteration: sprint-010
+  - id: BUG-0071-login-page-theme-language-selector-misalignment
+    title: 登录页右上角主题选择模块与语言选择模块没有对齐
+    status: done
+    severity: medium
+    created: "2026-07-21 08:35:25"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-login-page-tool-selector-alignment
+    iteration: sprint-010
   - id: BUG-0070-miniapp-sku-detail-duplicate-brand-button
     title: 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复
-    status: draft
+    status: done
     severity: medium
     created: "2026-07-21 08:10:00"
     related_requirement: REQ-0044-miniapp-sku-detail-page
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-miniapp-sku-detail-duplicate-brand-button
+    iteration: sprint-010
   - id: BUG-0069-miniapp-sku-detail-carousel-video-not-playable
     title: SKU 商品详情页轮播图视频不能显示和播放
     status: done

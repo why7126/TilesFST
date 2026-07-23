@@ -7,4 +7,4 @@
 
 set -euo pipefail
 
-docker compose down
+docker compose --profile self-hosted-storage down

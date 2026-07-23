@@ -19,6 +19,7 @@ import '../../features/admin/styles/password-change-modal.css';
 
 const PLACEHOLDER_MESSAGE = '功能建设中，将在后续迭代开放。';
 const PASSWORD_CHANGE_SUCCESS_MESSAGE = '密码修改成功，请使用新密码重新登录。';
+const ADMIN_TOAST_AUTO_DISMISS_MS = 3200;
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -80,6 +81,15 @@ export function AdminLayout() {
     setToast(themeError);
     clearThemeError();
   }, [clearThemeError, themeError]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setToast(null), ADMIN_TOAST_AUTO_DISMISS_MS);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   const loadProfileShell = useCallback(async () => {
     if (!user || (user.role !== 'admin' && user.role !== 'employee')) {

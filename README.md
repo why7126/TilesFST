@@ -4,7 +4,7 @@ content: 项目介绍、技术栈、启动方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-02 14:56:58
+updated_at: 2026-07-21 13:44:26
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -134,7 +134,7 @@ python scripts/validate-directory-structure.py
 
 ## 新增能力
 
-- 新增根目录 `.env.example`，统一管理本地开发、Docker Compose、MinIO、SQLite、图片/视频上传相关环境变量。
+- 新增根目录 `.env.example`，统一管理本地开发、Docker Compose、MinIO、SQLite、图片/视频/文档上传相关环境变量。
 - 新增 `data/` 目录，用于本地SQLite、上传缓存、视频处理产物、样例素材和运行时数据。
 - 新增 `rules/data-management.md`、`rules/environment.md`、`rules/media.md`。
 - 新增 `docs/06-video-asset-management.md`。
@@ -175,7 +175,7 @@ releases/vX.Y.Z/announcement.mdx
 默认：
 
 ```env
-MINIO_BUCKET=tile-info-platform
+MINIO_BUCKET=tilesfst
 ```
 
 ### 端口策略

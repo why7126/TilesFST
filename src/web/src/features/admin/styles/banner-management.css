@@ -50,12 +50,15 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-shell .banner-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .admin-shell .banner-main {
@@ -221,12 +224,15 @@
   background: color-mix(in srgb, var(--admin-card) 80%, var(--admin-gold) 20%);
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-shell .banner-upload-preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .admin-shell .banner-upload-desc {
@@ -269,12 +275,15 @@
   background: color-mix(in srgb, var(--admin-card) 80%, var(--admin-gold) 20%);
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-shell .banner-source-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .admin-shell .banner-source-title {
@@ -414,5 +423,20 @@
 
   .admin-shell .banner-upload-box {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .banner-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .banner-modal-card {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+  }
+
+  .admin-shell .banner-upload-box {
+    height: auto;
   }
 }

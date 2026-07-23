@@ -3,6 +3,8 @@ purpose: 视频资产管理说明
 content: 瓷砖视频上传、存储、封面、转码、预览、前端展示、小程序适配和测试规则
 source: AI自动生成初稿，项目团队确认
 update_method: 视频上传、转码、封面、播放、存储策略变化时更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-21 13:44:26
 note: 本文档用于指导视频相关需求、开发、测试和验收
 ---
 
@@ -31,14 +33,14 @@ note: 本文档用于指导视频相关需求、开发、测试和验收
 视频原文件存储在 MinIO：
 
 ```text
-bucket: tile-info-platform
+bucket: tilesfst
 key: videos/default/tiles/{tile_id}/<object_id>.mp4
 ```
 
 视频封面存储在：
 
 ```text
-bucket: tile-info-platform
+bucket: tilesfst
 key: videos/covers/default/tiles/{tile_id}/<object_id>.jpg
 ```
 

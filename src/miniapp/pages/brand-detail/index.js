@@ -10,6 +10,10 @@ function titleText(brand) {
   return (brand && brand.brand_name) || '品牌主页';
 }
 
+function brandSharePath(brandId) {
+  return `/pages/brand-detail/index?brandId=${encodeURIComponent(String(brandId || 0))}&source=share`;
+}
+
 function fileKindFromUrl(url) {
   const cleanUrl = String(url || '').split('?')[0].toLowerCase();
   if (!cleanUrl) return 'unknown';
@@ -75,9 +79,20 @@ Page({
   },
 
   onShareAppMessage() {
+    this.trackShare('wechat_friend');
     return {
       title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
-      path: `/pages/brand-detail/index?brandId=${this.data.brandId}&source=share`,
+      path: brandSharePath(this.data.brandId),
+      imageUrl: (this.data.brand && this.data.brand.brand_logo_url) || this.data.imageFallback,
+    };
+  },
+
+  onShareTimeline() {
+    this.trackShare('wechat_timeline');
+    return {
+      title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
+      query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
+      imageUrl: (this.data.brand && this.data.brand.brand_logo_url) || this.data.imageFallback,
     };
   },
 
@@ -268,6 +283,13 @@ Page({
       resultCount: this.data.activeTab === 'products' ? this.data.productTotal : this.data.certificates.length,
       requestId: this.data.requestId,
       ...extra,
+    });
+  },
+
+  trackShare(shareChannel) {
+    this.trackDetailEvent('brand_detail_share_click', {
+      share_channel: shareChannel,
+      share_path: brandSharePath(this.data.brandId),
     });
   },
 });

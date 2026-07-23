@@ -300,6 +300,21 @@
   white-space: nowrap;
 }
 
+.admin-shell .table-card {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-shell .table-card > table,
+.admin-shell .table-card .user-mgmt-table,
+.admin-shell .table-card .sku-mgmt-table,
+.admin-shell .table-card .banner-mgmt-table,
+.admin-shell .table-card .tile-spec-mgmt-table,
+.admin-shell .table-card .cat-mgmt-table {
+  min-width: 760px;
+}
+
 .admin-shell .link-btn {
   border: 0;
   background: transparent;
@@ -403,20 +418,25 @@
 .admin-shell .modal-card {
   width: 520px;
   max-width: 100%;
+  max-height: calc(100vh - 48px);
   border: 0.5px solid var(--admin-line-strong);
   border-radius: 3px;
   background: color-mix(in srgb, var(--admin-card) 98%, transparent);
   box-shadow: 0 30px 90px rgb(0 0 0 / 0.58);
   backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .admin-shell .modal-head {
-  height: 64px;
+  min-height: 64px;
   padding: 0 20px;
   border-bottom: 0.5px solid var(--admin-line);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .admin-shell .modal-title {
@@ -443,6 +463,8 @@
 
 .admin-shell .modal-body {
   padding: 20px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .admin-shell .form-row {
@@ -460,13 +482,14 @@
 }
 
 .admin-shell .modal-footer {
-  height: 64px;
+  min-height: 64px;
   padding: 0 20px;
   border-top: 0.5px solid var(--admin-line);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .admin-shell .avatar-upload {
@@ -487,5 +510,116 @@
 
   .admin-shell .summary-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-shell .page-hero,
+  .admin-shell .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .pagination {
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 18px;
+  }
+
+  .admin-shell .page-right,
+  .admin-shell .page-buttons,
+  .admin-shell .page-size-wrap {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-shell .filter-grid,
+  .admin-shell .brand-filter-row,
+  .admin-shell .tile-spec-filter-row,
+  .admin-shell .cat-filter-grid,
+  .admin-shell .sku-filter-grid,
+  .admin-shell .banner-filter-grid,
+  .admin-shell .api-docs-filter-grid,
+  .admin-shell .log-audit-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .filter-actions,
+  .admin-shell .brand-filter-actions,
+  .admin-shell .tile-spec-filter-actions,
+  .admin-shell .cat-filter-actions,
+  .admin-shell .sku-filter-actions,
+  .admin-shell .banner-filter-actions,
+  .admin-shell .log-audit-filter-actions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
+
+  .admin-shell .btn,
+  .admin-shell .filter-actions .btn,
+  .admin-shell .brand-filter-actions .btn,
+  .admin-shell .tile-spec-filter-actions .btn,
+  .admin-shell .cat-filter-actions .btn,
+  .admin-shell .sku-filter-actions .btn,
+  .admin-shell .banner-filter-actions .btn,
+  .admin-shell .log-audit-filter-actions .btn {
+    width: 100%;
+  }
+
+  .admin-shell .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-shell .page-right {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .admin-shell .page-buttons {
+    width: 100%;
+  }
+
+  .admin-shell .page-btn {
+    flex: 0 0 30px;
+  }
+
+  .admin-shell .page-size-wrap {
+    justify-content: space-between;
+  }
+
+  .admin-shell .modal-backdrop {
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .admin-shell .modal-card {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+  }
+
+  .admin-shell .modal-head,
+  .admin-shell .modal-body,
+  .admin-shell .modal-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .admin-shell .modal-footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    justify-content: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .admin-shell .modal-footer .btn {
+    width: 100%;
   }
 }

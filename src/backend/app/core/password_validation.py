@@ -7,18 +7,13 @@ import re
 from app.services.effective_settings_service import PasswordPolicy
 
 _HAS_LETTER = re.compile(r"[A-Za-z]")
-_HAS_DIGIT = re.compile(r"\d")
-_HAS_UPPER = re.compile(r"[A-Z]")
-_HAS_LOWER = re.compile(r"[a-z]")
-_HAS_SPECIAL = re.compile(r"[!@#$%^&*\-_=+]")
+_HAS_DIGIT = re.compile(r"[0-9]")
 
 PASSWORD_POLICY_MESSAGES: dict[str, str] = {
     "min_length": "新密码至少需要 {min_length} 位字符",
     "max_length": "新密码不能超过 {max_length} 位字符",
-    "missing_uppercase": "新密码需要包含大写字母",
-    "missing_lowercase": "新密码需要包含小写字母",
+    "missing_letter": "新密码需要包含英文字符",
     "missing_digit": "新密码需要包含数字",
-    "missing_special": "新密码需要包含特殊字符",
     "same_as_old": "新密码不能与原密码相同",
     "weak": "新密码过于常见，请更换",
 }
@@ -109,14 +104,10 @@ def collect_password_policy_violations(
         violations.append("min_length")
     if len(password) > policy.max_length:
         violations.append("max_length")
-    if policy.require_uppercase and not _HAS_UPPER.search(password):
-        violations.append("missing_uppercase")
-    if policy.require_lowercase and not _HAS_LOWER.search(password):
-        violations.append("missing_lowercase")
-    if policy.require_digit and not _HAS_DIGIT.search(password):
+    if not _HAS_LETTER.search(password):
+        violations.append("missing_letter")
+    if not _HAS_DIGIT.search(password):
         violations.append("missing_digit")
-    if policy.require_special and not _HAS_SPECIAL.search(password):
-        violations.append("missing_special")
     if old_password is not None and password == old_password:
         violations.append("same_as_old")
     if is_weak_password(password):
@@ -137,13 +128,17 @@ def password_policy_error_message(violations: list[str], policy: PasswordPolicy)
 
 
 def validate_new_password(new_password: str, *, old_password: str | None = None) -> str | None:
-    """Legacy default-policy validation (8–32, letter+digit)."""
-    if len(new_password) < 8 or len(new_password) > 32:
-        return "policy"
-    if not _HAS_LETTER.search(new_password) or not _HAS_DIGIT.search(new_password):
-        return "policy"
-    if old_password is not None and new_password == old_password:
+    """Default basic validation (5-32, ASCII letter + ASCII digit)."""
+    policy = PasswordPolicy()
+    violations = collect_password_policy_violations(
+        new_password,
+        policy,
+        old_password=old_password,
+    )
+    if "same_as_old" in violations:
         return "same_as_old"
-    if is_weak_password(new_password):
+    if "weak" in violations:
         return "weak"
+    if violations:
+        return "policy"
     return None

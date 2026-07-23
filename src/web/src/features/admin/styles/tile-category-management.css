@@ -205,9 +205,21 @@
   letter-spacing: 0.08em;
 }
 
+.admin-shell .required-mark {
+  margin-left: 4px;
+  color: var(--admin-danger);
+}
+
 .admin-shell .cat-modal-help {
   margin-top: 6px;
   color: var(--admin-weak);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-shell .field-error {
+  margin: 6px 0 0;
+  color: var(--admin-danger);
   font-size: 11px;
   line-height: 1.5;
 }

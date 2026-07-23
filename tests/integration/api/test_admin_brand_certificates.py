@@ -202,3 +202,47 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         assert invalid.json()["code"] == 50004
     finally:
         set_media_storage_client(None)
+
+
+def test_brand_certificate_upload_uses_effective_file_limit(api_client: TestClient) -> None:
+    storage = InMemoryMediaStorage(objects={})
+    set_media_storage_client(storage)
+    headers = _admin_headers(api_client)
+    try:
+        patch = api_client.patch(
+            "/api/v1/admin/system-settings/media",
+            headers=headers,
+            json={"max_file_size_mb": 25},
+        )
+        assert patch.status_code == 200
+
+        pdf_23m = b"%PDF-1.4\n" + b"x" * (23 * 1024 * 1024)
+        accepted = api_client.post(
+            "/api/v1/admin/uploads/brand-certificates",
+            headers=headers,
+            files={"file": ("certificate.pdf", pdf_23m, "application/pdf")},
+        )
+        assert accepted.status_code == 200
+        assert accepted.json()["data"]["file_key"].startswith("files/")
+
+        api_client.patch(
+            "/api/v1/admin/system-settings/media",
+            headers=headers,
+            json={"max_file_size_mb": 1},
+        )
+        rejected = api_client.post(
+            "/api/v1/admin/uploads/brand-certificates",
+            headers=headers,
+            files={
+                "file": (
+                    "certificate.pdf",
+                    b"%PDF-1.4\n" + b"x" * (2 * 1024 * 1024),
+                    "application/pdf",
+                )
+            },
+        )
+        assert rejected.status_code == 400
+        assert rejected.json()["code"] == 50005
+        assert "1MB" in rejected.json()["message"]
+    finally:
+        set_media_storage_client(None)

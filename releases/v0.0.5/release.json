@@ -1,0 +1,317 @@
+{
+  "version": "v0.0.5",
+  "release_time": "2026-07-22 12:46:48",
+  "owner": "product",
+  "summary": "TILESFST v0.0.5 准备发布 sprint-010 的已归档交付范围，覆盖密码校验规则简化、小程序多页面微信分享、Web 管理端移动端基础适配、SKU 名称/编码展示去重、SKU 图片移除与主图规则、类目编辑校验收敛、媒体上传大小限制一致性、生产 Banner 保存修复、Dashboard 真实数据接入，以及小程序和 Web 管理端多项体验修复。当前发布前准备已完成结构、测试、API/Orval、Docker Compose、数据库 schema 和公告安全校验。",
+  "formal_scope_only": true,
+  "version_change_rationale": "",
+  "publish_ready": true,
+  "sprints": [
+    "sprint-010"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0063-password-validation-policy-simplification",
+      "title": "密码校验规则简化",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0064-miniapp-wechat-share-pages",
+      "title": "微信小程序多页面支持微信分享",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0027-mobile-page-adaptation",
+      "title": "Web 管理端移动端基础适配优化",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0065-sku-metadata-name-sku-dedup",
+      "title": "SKU 元数据名称与编码展示去重",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0067-admin-category-edit-modal-validation",
+      "title": "管理端类目编辑弹窗字段与校验规则",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0066-admin-sku-image-removal-main-image-rules",
+      "title": "管理端 SKU 编辑弹窗商品图片移除与主图规则",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0070-miniapp-sku-detail-duplicate-brand-button",
+      "title": "小程序商品详情页底部品牌按钮与内容区查看品牌主页重复",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0071-login-page-theme-language-selector-misalignment",
+      "title": "登录页右上角主题选择模块与语言选择模块没有对齐",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0072-miniapp-usage-events-bad-request",
+      "title": "微信小程序 usage-events 上报接口频繁返回 400",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0073-video-upload-23m-file-fails",
+      "title": "上传 23M 文件失败，图片、视频和文档均受影响",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0074-prod-theme-preference-sync-toast-persistent",
+      "title": "生产环境主题偏好同步失败提示持续不消失",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search",
+      "title": "生产环境小程序商品详情页品牌卡片误跳搜索页",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0077-miniapp-category-secondary-name-truncated",
+      "title": "微信小程序分类页二级分类名称超过 4 个字被省略",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0075-prod-admin-brand-banner-save-fails",
+      "title": "生产环境管理端品牌类型 Banner 配置无法保存",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0079-admin-dashboard-overview-mock-data",
+      "title": "管理端首页数据概览仍使用 Mock 数据",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0080-admin-banner-image-preview-cropped",
+      "title": "管理端 Banner 列表和弹窗图片显示不全",
+      "sprint": "sprint-010",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "update-password-validation-policy",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-update-password-validation-policy"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-duplicate-brand-button",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-sku-detail-duplicate-brand-button"
+    },
+    {
+      "id": "fix-login-page-tool-selector-alignment",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-login-page-tool-selector-alignment"
+    },
+    {
+      "id": "fix-miniapp-usage-events-contract-drift",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-usage-events-contract-drift"
+    },
+    {
+      "id": "fix-upload-size-limit-consistency",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-upload-size-limit-consistency"
+    },
+    {
+      "id": "fix-theme-preference-sync-toast-persistent",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-theme-preference-sync-toast-persistent"
+    },
+    {
+      "id": "add-miniapp-wechat-share-pages",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-add-miniapp-wechat-share-pages"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-brand-card-route",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-sku-detail-brand-card-route"
+    },
+    {
+      "id": "fix-miniapp-category-secondary-name-truncated",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-category-secondary-name-truncated"
+    },
+    {
+      "id": "fix-prod-admin-brand-banner-save",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-prod-admin-brand-banner-save"
+    },
+    {
+      "id": "refine-sku-metadata-name-code-display",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-refine-sku-metadata-name-code-display"
+    },
+    {
+      "id": "update-web-admin-mobile-adaptation",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-update-web-admin-mobile-adaptation"
+    },
+    {
+      "id": "fix-admin-dashboard-overview-real-data",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-admin-dashboard-overview-real-data"
+    },
+    {
+      "id": "fix-admin-banner-image-preview-cropped",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-fix-admin-banner-image-preview-cropped"
+    },
+    {
+      "id": "refine-admin-category-edit-modal-validation",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-refine-admin-category-edit-modal-validation"
+    },
+    {
+      "id": "add-admin-sku-image-removal-main-image-rules",
+      "sprint": "sprint-010",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/changes/archive/2026-07-22-add-admin-sku-image-removal-main-image-rules"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-22 12:54:25 release.prepare 复核：iterations/archive/sprint-010/acceptance-report.md 记录 2026-07-22 11:17:51 已关闭 sprint-010，16/16 个 Change 已归档；release.json 中 16 个正式 Change 均指向 openspec/changes/archive/2026-07-22-* 归档目录。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-22 13:01:43 修复 release.prepare 记录的 5 个 pytest 失败后复跑：uv run pytest 通过，384 passed / 1 skipped / 720 warnings，耗时 115.38s；精确回归 tests/test_generate_sprint_fact_sheet.py::test_fact_sheet_reads_ai_usage_snapshot、tests/test_generate_sprint_fact_sheet.py::test_fact_sheet_interprets_sprint_dates_as_project_timezone、tests/test_miniapp_static.py::test_miniapp_wechat_share_evidence_records_static_and_follow_up_boundaries、src/backend/tests/test_admin_banners.py::test_jump_validation_sku_detail、src/backend/tests/test_admin_dashboard.py::test_admin_dashboard_summary_uses_real_counts 通过，5 passed。Web 测试 pnpm --dir src/web test -- --run 通过，55 files / 276 tests。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 执行 ./scripts/generate-openapi-client.sh 成功，orval v8.17.0 生成 tileApi；随后 python scripts/validate-api-standard.py 通过。涉及文件：src/web/openapi.json、src/web/src/shared/api/generated.ts、docs/03-api-index.md。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 执行 docker compose config --quiet 通过；src/web/nginx.conf 设置 client_max_body_size 512m，覆盖默认 MAX_VIDEO_SIZE_MB=500 的上传边界；docker-compose.yml 使用 .env 注入端口、数据库与对象存储配置。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 执行 python scripts/check-mysql-schema-drift.py --schema-only --json 成功解析 src/backend/app/db/schema.mysql.sql，共 19 张 MySQL 目标表；uv run pytest 中 tests/test_mysql_migrations.py 与 tests/test_mysql_schema_drift.py 均通过，覆盖旧 banners 表缺 brand_id 的幂等补齐、schema drift 检测，并在 BUG-0075 implementation/db.md 记录发布前备份、rollback/回滚和证据要求。当前本地未连接生产 MySQL，不记录目标库凭据。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 复核 .env.example：包含 MAX_IMAGE_SIZE_MB=20、MAX_VIDEO_SIZE_MB=500、MAX_FILE_SIZE_MB=25、ALLOWED_IMAGE_TYPES、ALLOWED_VIDEO_TYPES，以及 OBJECT_STORAGE_* 单桶与前缀配置；变量旁保留用途和安全边界注释。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v0.0.5；python scripts/validate-release.py --release-dir releases/v0.0.5 通过版本一致性校验。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-22 release.prepare 更新 releases/v0.0.5/announcement.mdx，并执行 python scripts/validate-release.py --release-dir releases/v0.0.5 通过；该校验覆盖 announcement.mdx 存在性、release.json 结构、Mintlify 配置存在性和公开安全敏感模式扫描。未执行真实 Mintlify preview。"
+    }
+  },
+  "known_issues": [
+    "发布前仍需人工生产 smoke：品牌类型 Banner 保存、媒体上传边界、Dashboard 真实数据、主题偏好同步和小程序真机/等价设备 evidence。"
+  ],
+  "upgrade_steps": [
+    "确认 PRODUCT_VERSION 已为 v0.0.5，并在发布前重新执行 release validation。",
+    "发布前按需复跑 uv run pytest 与 pnpm --dir src/web test -- --run。",
+    "确认 OpenAPI/Orval 生成物、docs/03-api-index.md 与 API 实现保持一致。",
+    "如目标 MySQL 仍缺 banners.brand_id，先完成备份，再执行幂等迁移或 schema drift 修复。",
+    "部署后执行管理端、店主端、小程序核心 smoke 与媒体上传边界验证。"
+  ],
+  "rollback": {
+    "conditions": [
+      "生产登录、Dashboard、品牌 Banner 保存或小程序核心浏览路径 smoke 失败",
+      "媒体上传、对象读取或 MySQL schema drift 修复出现阻断性异常",
+      "出现权限越界、敏感信息泄露或真实数据一致性风险"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包",
+      "恢复上一版本环境变量、Web/Nginx/Compose 配置和静态资源",
+      "按 BUG-0075 数据库回滚/备份方案处理 MySQL 变更",
+      "复跑健康检查、管理端 smoke、小程序关键页面 smoke 和对象读取验证"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：登录页工具区、移动端基础适配、SKU/类目/Banner/Dashboard、上传提示与主题偏好反馈",
+    "owner_web": "涉及：SKU 名称/编码展示语义，公开展示不突出 SKU 编码",
+    "miniapp": "涉及：微信分享、SKU 详情品牌入口、分类长名称、usage-events、商品展示与分享标题",
+    "backend": "涉及：密码策略、usage-events 契约、上传大小限制、SKU/类目/Dashboard/Banner API 与错误响应",
+    "database": "涉及：生产 MySQL banners.brand_id schema drift/幂等迁移路径；不新增运行时真实数据",
+    "object_storage": "涉及：媒体上传大小限制和 /media/{object_key} 受控读取边界；不改变 MinIO 单桶策略",
+    "docker": "可能涉及：上传大小限制的 Web/Nginx/生产入口边界确认；未记录 Compose 正式变更"
+  },
+  "announcement": "announcement.mdx",
+  "prepared_at": "2026-07-22 12:54:25",
+  "published_at": "2026-07-22 13:16:36",
+  "publish_confirmation": {
+    "published_at": "2026-07-22 13:16:36",
+    "announcement_url": "releases/v0.0.5/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "用户执行 /release-publish v0.0.5；发布门禁已通过，最终公告位置记录为仓库内 announcement.mdx。外部 Mintlify URL 未提供。"
+  }
+}

@@ -48,13 +48,13 @@ class InMemoryMediaStorageClient:
 def client(tmp_path, monkeypatch) -> Generator[TestClient, None, None]:
     db_path = tmp_path / "test.db"
     media_storage = InMemoryMediaStorageClient()
-    monkeypatch.setenv("SQLITE_DATABASE_URL", f"sqlite:///{db_path}")
-    monkeypatch.setenv("MINIO_BUCKET", "tile-info-platform")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
+    monkeypatch.setenv("OBJECT_STORAGE_BUCKET", "tilesfst")
     monkeypatch.setenv("ADMIN_INITIAL_PASSWORD", "AdminPass123!")
     monkeypatch.setenv("APP_SECRET_KEY", "test-secret-key")
     reset_engine()
-    settings.sqlite_database_url = f"sqlite:///{db_path}"
-    settings.minio_bucket = "tile-info-platform"
+    settings.database_url = f"sqlite:///{db_path}"
+    settings.object_storage_bucket = "tilesfst"
     settings.admin_username = DEFAULT_ADMIN_USERNAME
     settings.admin_initial_password = "AdminPass123!"
     settings.admin_reset_password_on_startup = False
@@ -99,13 +99,13 @@ def _prepare_seed_database(
     reset_on_startup: bool = False,
 ) -> None:
     db_path = tmp_path / "seed.db"
-    monkeypatch.setenv("SQLITE_DATABASE_URL", f"sqlite:///{db_path}")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
     monkeypatch.setenv("ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME)
     monkeypatch.setenv("ADMIN_INITIAL_PASSWORD", password)
     monkeypatch.setenv("ADMIN_RESET_PASSWORD_ON_STARTUP", str(reset_on_startup).lower())
     monkeypatch.setenv("APP_SECRET_KEY", "test-secret-key")
     reset_engine()
-    settings.sqlite_database_url = f"sqlite:///{db_path}"
+    settings.database_url = f"sqlite:///{db_path}"
     settings.admin_username = DEFAULT_ADMIN_USERNAME
     settings.admin_initial_password = password
     settings.admin_reset_password_on_startup = reset_on_startup

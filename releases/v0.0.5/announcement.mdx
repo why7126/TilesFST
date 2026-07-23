@@ -1,0 +1,76 @@
+---
+title: "TILESFST v0.0.5"
+description: "sprint-010 产品版本发布准备公告"
+---
+
+# TILESFST v0.0.5
+
+发布时间：2026-07-22 12:46:48
+
+关联 Sprint：sprint-010
+
+> 当前状态：发布准备完成。后端全量 pytest、Web Vitest、OpenAPI / Orval、Docker Compose 配置、数据库 schema 和发布结构校验已通过。
+
+## 新增功能
+
+- 小程序首页、商品详情页、商品列表页、品牌详情页支持微信朋友与朋友圈分享。
+- Web 管理端已实现页面完成移动端基础适配，覆盖登录页、Dashboard、SKU、品牌、用户、日志、系统设置等核心页面。
+- 管理端 SKU 编辑弹窗支持图片移除、主图前置与主图移除后的兜底选择。
+
+## 体验优化
+
+- 密码校验规则简化为 5-32 位，并同时包含英文字符和数字。
+- SKU 名称与编码展示语义收敛，公开侧优先展示商品名称，SKU 编码保留为系统内部识别字段。
+- 管理端类目编辑弹窗隐藏可编辑编码，类目名称和同层级唯一校验更严格。
+- 管理端图片、视频、文档上传大小限制和提示更一致。
+
+## 修复 BUG
+
+- 修复小程序 SKU 详情页重复品牌入口。
+- 修复登录页主题选择与语言选择工具区未对齐。
+- 修复小程序 usage-events 合法行为上报频繁返回 400。
+- 修复生产小程序 SKU 详情页品牌卡片误跳搜索页。
+- 修复小程序分类页二级分类长名称过早省略。
+- 修复生产管理端品牌类型 Banner 保存失败。
+- 修复管理端 Dashboard 使用 Mock 数据作为成功态。
+- 修复管理端 Banner 列表和弹窗图片预览裁切问题。
+
+## 发布注意事项
+
+- 后端全量测试已通过：`uv run pytest`，384 个用例通过、1 个跳过。
+- Web 测试已通过：`pnpm --dir src/web test -- --run`，55 个文件、276 个用例通过。
+- OpenAPI / Orval 已重新生成并通过 API 标准校验。
+- Docker Compose 配置解析通过。
+- 数据库影响涉及 MySQL `banners.brand_id` 兼容路径；发布前需按备份与回滚方案执行目标环境确认。
+- 公告源文件已通过发布结构和公开安全校验，但未执行真实 Mintlify preview。
+
+## 已知问题
+
+- 生产 smoke 和小程序真机或等价设备 evidence 仍需人工确认。
+
+## 升级步骤
+
+1. 复核 `uv run pytest`、`pnpm --dir src/web test -- --run`、发布校验和必要 smoke。
+2. 确认 OpenAPI / Orval 生成物与 API 实现保持一致。
+3. 确认 `src/shared/product-version.ts` 为 `v0.0.5`。
+4. 如目标 MySQL 存在 schema drift，先完成备份，再执行幂等迁移或 drift 修复。
+5. 部署后验证管理端、店主端、小程序核心路径和媒体上传边界。
+
+## 回滚说明
+
+1. 回退到上一 Git tag 或上一部署包。
+2. 恢复上一版本环境变量、Web/Nginx/Compose 配置和静态资源。
+3. 按数据库备份与回滚方案处理 MySQL 变更。
+4. 复跑健康检查、管理端 smoke、小程序关键页面 smoke 和对象读取验证。
+
+## 影响范围
+
+| 范围 | 影响 |
+|---|---|
+| Web 管理端 | 登录页工具区、移动端基础适配、SKU、类目、Banner、Dashboard、上传提示与主题偏好反馈 |
+| 店主 Web | SKU 名称/编码展示语义，公开展示不突出 SKU 编码 |
+| 小程序 | 微信分享、SKU 详情品牌入口、分类长名称、usage-events、商品展示与分享标题 |
+| 后端 | 密码策略、usage-events 契约、上传大小限制、SKU/类目/Dashboard/Banner API 与错误响应 |
+| 数据库 | MySQL `banners.brand_id` schema drift / 幂等迁移路径 |
+| 对象存储 | 媒体上传大小限制和 `/media/{object_key}` 受控读取边界；不改变 MinIO 单桶策略 |
+| Docker | Compose 配置解析通过；上传大小边界依赖 Nginx `client_max_body_size 512m` |

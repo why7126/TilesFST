@@ -12,7 +12,6 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
-from app.repositories.system_settings_repository import SystemSettingsRepository
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401
 
@@ -38,15 +37,6 @@ def _create_user(
             display_name="运营一号",
             role=role,
         )
-    finally:
-        session.close()
-
-
-def _set_system_setting(key: str, value: str) -> None:
-    session = get_session_factory()()
-    try:
-        repo = SystemSettingsRepository(session)
-        repo.set(key, value, updated_by=None)
     finally:
         session.close()
 
@@ -94,6 +84,32 @@ def test_change_password_success(client: TestClient) -> None:
     assert login.status_code == 200
 
 
+@pytest.mark.parametrize(
+    ("username", "new_password"),
+    [
+        ("policyminok", "Abc12"),
+        ("policymaxok", "A1" + "a" * 30),
+        ("policysymbolok", "Abc12!"),
+    ],
+)
+def test_change_password_policy_accepts_simplified_valid_passwords(
+    client: TestClient,
+    username: str,
+    new_password: str,
+) -> None:
+    _create_user(username=username)
+    headers = _auth_headers(client, username, "Operator123!")
+    response = client.post(
+        "/api/v1/admin/profile/password",
+        headers=headers,
+        json={
+            "old_password": "Operator123!",
+            "new_password": new_password,
+        },
+    )
+    assert response.status_code == 200
+
+
 def test_change_password_old_incorrect(client: TestClient) -> None:
     _create_user()
     headers = _auth_headers(client, "operator01", "Operator123!")
@@ -107,9 +123,6 @@ def test_change_password_old_incorrect(client: TestClient) -> None:
 
 
 def test_change_password_weak(client: TestClient) -> None:
-    _set_system_setting("security.password_min_length", "8")
-    _set_system_setting("security.require_uppercase", "false")
-    _set_system_setting("security.require_special", "false")
     _create_user()
     headers = _auth_headers(client, "operator01", "Operator123!")
     response = client.post(
@@ -124,12 +137,10 @@ def test_change_password_weak(client: TestClient) -> None:
 @pytest.mark.parametrize(
     ("username", "new_password", "expected_violation"),
     [
-        ("policyshort", "Short1!", "min_length"),
-        ("policymax", "A1!" + "a" * 30, "max_length"),
-        ("policyupper", "lowercase123!", "missing_uppercase"),
-        ("policylower", "UPPERCASE123!", "missing_lowercase"),
-        ("policydigit", "NoDigitsHere!", "missing_digit"),
-        ("policyspecial", "NoSpecial123", "missing_special"),
+        ("policyshort", "A1b2", "min_length"),
+        ("policymax", "A1" + "a" * 31, "max_length"),
+        ("policyletter", "12345", "missing_letter"),
+        ("policydigit", "NoDigitsHere", "missing_digit"),
     ],
 )
 def test_change_password_policy_details(
@@ -150,8 +161,10 @@ def test_change_password_policy_details(
     body = response.json()
     assert body["code"] == 40021
     assert expected_violation in body["data"]["violations"]
-    assert body["data"]["policy"]["min_length"] == 12
+    assert body["data"]["policy"]["min_length"] == 5
     assert body["data"]["policy"]["max_length"] == 32
+    assert body["data"]["policy"]["require_letter"] is True
+    assert body["data"]["policy"]["require_digit"] is True
     assert new_password not in json.dumps(body, ensure_ascii=False)
     after = _get_user_security(username)
     assert after["password_hash"] == before["password_hash"]
@@ -164,13 +177,13 @@ def test_change_password_policy_reports_multiple_details(client: TestClient) -> 
     response = client.post(
         "/api/v1/admin/profile/password",
         headers=headers,
-        json={"old_password": "Operator123!", "new_password": "short1"},
+        json={"old_password": "Operator123!", "new_password": "!!!!"},
     )
     assert response.status_code == 400
     body = response.json()
     assert body["code"] == 40021
-    assert set(body["data"]["violations"]) >= {"min_length", "missing_uppercase", "missing_special"}
-    assert "至少需要 12 位字符" in body["message"]
+    assert set(body["data"]["violations"]) >= {"min_length", "missing_letter", "missing_digit"}
+    assert "至少需要 5 位字符" in body["message"]
 
 
 def test_change_password_same_as_old(client: TestClient) -> None:

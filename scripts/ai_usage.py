@@ -7,11 +7,18 @@ import os
 import hashlib
 import json
 import re
+import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from workflow_sync import collect as workflow_collect
+except ModuleNotFoundError:
+    sys.path.append(str(Path(__file__).resolve().parent))
+    from workflow_sync import collect as workflow_collect
 
 
 TOKEN_FIELDS = (
@@ -26,6 +33,35 @@ COUNT_FIELDS = (
     "model_call_count",
     "tool_call_count",
     "retry_count",
+)
+SPRINT_MATRIX_COMMAND_COLUMNS = (
+    ("capture", "Capture"),
+    ("bug.capture", "BUG-Capture"),
+    ("req.capture", "REQ-Capture"),
+    ("bug.explore", "BUG-Explore"),
+    ("req.explore", "REQ-Explore"),
+    ("req.generate", "REQ-Generate"),
+    ("bug.generate", "BUG-Generate"),
+    ("req.complete", "REQ-Complete"),
+    ("bug.complete", "BUG-Complete"),
+    ("req.review", "REQ-Review"),
+    ("bug.review", "BUG-Review"),
+    ("req.opsx", "REQ-Opsx"),
+    ("bug.opsx", "BUG-Opsx"),
+    ("opsx.explore", "Opsx-Explore"),
+    ("opsx.propose", "Opsx-Propose"),
+    ("opsx.apply", "Opsx-Apply"),
+    ("opsx.archive", "Opsx-Archive"),
+    ("sprint.propose", "Sprint-Propose"),
+    ("sprint.explore", "Sprint-Explore"),
+    ("sprint.apply", "Sprint-Apply"),
+    ("sprint.archive", "Sprint-Archive"),
+)
+SPRINT_MATRIX_METRICS = (
+    "total_tokens",
+    "input_tokens",
+    "output_tokens",
+    "model_call_count",
 )
 
 USAGE_MODE_ACTUAL = "actual"
@@ -787,13 +823,152 @@ def model_identity(row: dict[str, Any]) -> dict[str, Any]:
     return {field: row.get(field) for field in MODEL_FIELDS if row.get(field) not in (None, "")}
 
 
+def resolve_sprint_yaml_path(sprint_id: str, root: Path | None = None) -> Path | None:
+    base = root or Path.cwd()
+    for candidate in (
+        base / "iterations" / "change" / sprint_id / "sprint.yaml",
+        base / "iterations" / "archive" / sprint_id / "sprint.yaml",
+        base / "iterations" / sprint_id / "sprint.yaml",
+    ):
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def sprint_scope_for_usage(sprint_id: str, root: Path | None = None) -> dict[str, list[str]]:
+    path = resolve_sprint_yaml_path(sprint_id, root=root)
+    if path is None:
+        return {"requirements": [], "bugs": [], "changes": []}
+    data = workflow_collect.parse_simple_yaml(path.read_text(encoding="utf-8"))
+    return {
+        "requirements": [str(item) for item in data.get("requirements") or []],
+        "bugs": [str(item) for item in data.get("bugs") or []],
+        "changes": [str(item) for item in data.get("changes") or []],
+    }
+
+
+def record_matches_sprint_scope(record: dict[str, Any], sprint_id: str, scope: dict[str, list[str]]) -> bool:
+    if record.get("sprint_id") == sprint_id:
+        return True
+    record_requirements = set(str(item) for item in record.get("requirements", []))
+    record_bugs = set(str(item) for item in record.get("bugs", []))
+    record_changes = set(str(item) for item in record.get("changes", []))
+    return bool(
+        record_requirements & set(scope.get("requirements") or [])
+        or record_bugs & set(scope.get("bugs") or [])
+        or record_changes & set(scope.get("changes") or [])
+    )
+
+
+def sprint_issue_alias_map(rows: list[dict[str, Any]], scope: dict[str, list[str]]) -> dict[str, str]:
+    grouped: dict[str, set[str]] = {}
+    for value in [
+        *(scope.get("requirements") or []),
+        *(scope.get("bugs") or []),
+        *[item for row in rows for item in row.get("requirements", [])],
+        *[item for row in rows for item in row.get("bugs", [])],
+    ]:
+        text = str(value)
+        short = issue_short_id(text)
+        if short and text != short:
+            grouped.setdefault(short, set()).add(text)
+    return {short: next(iter(values)) for short, values in grouped.items() if len(values) == 1}
+
+
+def normalize_sprint_issue_aliases(rows: list[dict[str, Any]], scope: dict[str, list[str]]) -> list[dict[str, Any]]:
+    alias_map = sprint_issue_alias_map(rows, scope)
+    if not alias_map:
+        return rows
+    normalized_rows: list[dict[str, Any]] = []
+    for row in rows:
+        normalized = dict(row)
+        for key in ("requirements", "bugs"):
+            normalized[key] = canonicalize_issue_ids(set(row.get(key, [])), canonical_map=alias_map)
+        normalized_rows.append(normalized)
+    return normalized_rows
+
+
+def empty_sprint_usage_matrix_cells() -> dict[str, dict[str, int]]:
+    return {
+        metric: {label: 0 for _, label in SPRINT_MATRIX_COMMAND_COLUMNS}
+        for metric in SPRINT_MATRIX_METRICS
+    }
+
+
+def add_sprint_usage_matrix_values(cells: dict[str, dict[str, int]], record: dict[str, Any]) -> None:
+    event = record.get("workflow_event") or record.get("command") or "unknown"
+    label_by_event = dict(SPRINT_MATRIX_COMMAND_COLUMNS)
+    label = label_by_event.get(str(event))
+    if label is None:
+        return
+    for metric in SPRINT_MATRIX_METRICS:
+        cells[metric][label] += int(record.get(metric) or 0)
+
+
+def build_sprint_usage_matrices(
+    rows: list[dict[str, Any]],
+    sprint_id: str,
+    scope: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
+    scope = scope or {}
+    ordered_row_keys: list[tuple[str, str]] = [
+        ("total", "Total"),
+        ("sprint", sprint_id),
+    ]
+    scope_requirements = [str(item) for item in scope.get("requirements") or []]
+    scope_bugs = [str(item) for item in scope.get("bugs") or []]
+    row_requirements = sorted({item for row in rows for item in row.get("requirements", [])})
+    row_bugs = sorted({item for row in rows for item in row.get("bugs", [])})
+    ordered_row_keys.extend(
+        ("requirement", issue_id)
+        for issue_id in [*scope_requirements, *[item for item in row_requirements if item not in scope_requirements]]
+    )
+    ordered_row_keys.extend(
+        ("bug", issue_id)
+        for issue_id in [*scope_bugs, *[item for item in row_bugs if item not in scope_bugs]]
+    )
+
+    row_cells = {
+        row_id: {
+            "object_type": object_type,
+            "object_id": row_id,
+            "metrics": empty_sprint_usage_matrix_cells(),
+        }
+        for object_type, row_id in ordered_row_keys
+    }
+    for record in rows:
+        add_sprint_usage_matrix_values(row_cells["Total"]["metrics"], record)
+        add_sprint_usage_matrix_values(row_cells[sprint_id]["metrics"], record)
+        for issue_id in record.get("requirements", []):
+            if issue_id in row_cells:
+                add_sprint_usage_matrix_values(row_cells[issue_id]["metrics"], record)
+        for issue_id in record.get("bugs", []):
+            if issue_id in row_cells:
+                add_sprint_usage_matrix_values(row_cells[issue_id]["metrics"], record)
+
+    return {
+        "source": "data/ai-usage command-runs",
+        "metrics": list(SPRINT_MATRIX_METRICS),
+        "columns": [
+            {"workflow_event": event, "label": label}
+            for event, label in SPRINT_MATRIX_COMMAND_COLUMNS
+        ],
+        "rows": [row_cells[row_id] for _, row_id in ordered_row_keys],
+        "note": (
+            "Total and sprint rows aggregate unique command runs. Requirement and bug rows "
+            "are attribution views; a multi-issue command run may be counted in multiple object rows."
+        ),
+    }
+
+
 def aggregate_sprint(records: list[dict[str, Any]], sprint_id: str) -> dict[str, Any]:
     records = normalize_records(records)
+    scope = sprint_scope_for_usage(sprint_id)
     unique: dict[str, dict[str, Any]] = {}
     for record in records:
-        if record.get("sprint_id") == sprint_id or sprint_id in record.get("changes", []):
+        if record_matches_sprint_scope(record, sprint_id, scope):
             unique[record["turn_hash"]] = record
-    rows = list(unique.values())
+    rows = normalize_sprint_issue_aliases(list(unique.values()), scope)
     totals = {field: sum(int(row.get(field) or 0) for row in rows) for field in TOKEN_FIELDS}
     totals.update(
         {
@@ -843,6 +1018,7 @@ def aggregate_sprint(records: list[dict[str, Any]], sprint_id: str) -> dict[str,
         "totals": totals,
         "by_workflow_event": {key: dict(value) for key, value in sorted(by_event.items())},
         "by_model": {key: dict(value) for key, value in sorted(by_model.items())},
+        "usage_matrices": build_sprint_usage_matrices(rows, sprint_id, scope=scope),
     }
 
 
@@ -912,6 +1088,7 @@ def _status_payload(
     generated_at: str | None = None,
     coverage: dict[str, Any] | None = None,
     totals: dict[str, Any] | None = None,
+    usage_matrices: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "snapshot_status": status,
@@ -923,6 +1100,7 @@ def _status_payload(
         "warnings": warnings or [],
         "warning_count": len(warnings or []),
         "totals": totals or {},
+        "usage_matrices": usage_matrices or {},
         "recommended_action": None
         if status == "present"
         else f"Run `python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id>` and re-check {path.name}.",
@@ -951,6 +1129,7 @@ def check_sprint_snapshot(
     warnings: list[str] = []
     generated_at = data.get("generated_at") if isinstance(data.get("generated_at"), str) else None
     totals = data.get("totals") if isinstance(data.get("totals"), dict) else {}
+    usage_matrices = data.get("usage_matrices") if isinstance(data.get("usage_matrices"), dict) else {}
     coverage_data = data.get("coverage") if isinstance(data.get("coverage"), dict) else {}
     coverage: dict[str, Any] = {}
 
@@ -971,6 +1150,8 @@ def check_sprint_snapshot(
     metric_values = [int(totals.get(field) or 0) for field in (*COUNT_FIELDS, *TOKEN_FIELDS)]
     if not totals or not any(metric_values):
         warnings.append("required-metrics-empty")
+    if not usage_matrices:
+        warnings.append("usage-matrices-missing")
 
     expected_scope = expected_scope or {}
     for key in ("requirements", "bugs", "changes"):
@@ -990,7 +1171,12 @@ def check_sprint_snapshot(
 
     if any(warning in warnings for warning in ("sprint-id-mismatch", "snapshot-estimated", "required-metrics-empty")):
         status = "failed"
-    elif any("stale" in warning or "coverage-" in warning or warning == "generated-at-missing" for warning in warnings):
+    elif any(
+        "stale" in warning
+        or "coverage-" in warning
+        or warning in {"generated-at-missing", "usage-matrices-missing"}
+        for warning in warnings
+    ):
         status = "stale"
     else:
         status = "present"
@@ -1002,6 +1188,7 @@ def check_sprint_snapshot(
         generated_at=generated_at,
         coverage=coverage,
         totals=totals,
+        usage_matrices=usage_matrices,
     )
 
 

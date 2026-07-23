@@ -442,6 +442,22 @@ export function SystemSettingsPage() {
                 ))}
               </select>
             </label>
+            <label>
+              <span className="settings-field-label">
+                文档最大尺寸 (MB)<span className="required">*</span>
+              </span>
+              <select
+                className="settings-select"
+                value={String(form.max_file_size_mb ?? 25)}
+                onChange={(e) => updateField('max_file_size_mb', Number(e.target.value))}
+              >
+                {[10, 20, 25, 50, 100, 200].map((mb) => (
+                  <option key={mb} value={mb}>
+                    {mb} MB
+                  </option>
+                ))}
+              </select>
+            </label>
             <div>
               <span className="settings-field-label">支持图片格式</span>
               <div className="settings-chips">
@@ -526,9 +542,9 @@ export function SystemSettingsPage() {
             <input
               type="number"
               className="settings-input"
-              min={8}
+              min={5}
               max={32}
-              value={Number(form.password_min_length ?? 12)}
+              value={Number(form.password_min_length ?? 5)}
               onChange={(e) => updateField('password_min_length', Number(e.target.value))}
             />
           </label>

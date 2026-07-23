@@ -48,7 +48,9 @@
 
 ### Requirement: 密码安全存储
 
-系统 MUST 使用 bcrypt 算法哈希存储用户密码，数据库中 MUST NOT 存在明文密码。用户设置新密码或管理员重置/创建用户密码时，系统 MUST 按 **effective** 安全策略（`system_settings` merge 代码/env 默认值）校验：最小长度、大写/小写/数字/特殊字符复杂度（若对应开关启用）。校验失败 MUST 返回 400 及统一业务错误码，并 SHOULD 提供可被客户端展示的具体失败项。具体失败项 MUST NOT 包含明文密码。
+系统 MUST 使用 bcrypt 算法哈希存储用户密码，数据库中 MUST NOT 存在明文密码。用户设置新密码或管理员重置/创建用户密码时，系统 MUST 使用统一基础密码策略校验：长度 5-32 位，至少包含 1 个 ASCII 英文字符（`A-Z` / `a-z`），至少包含 1 个 ASCII 数字（`0-9`）。符号等其他字符 MAY 与英文/数字共同出现；非 ASCII 字母或数字 MUST NOT 被计入英文字符或数字满足项，除非后续规范明确扩展字符集。
+
+校验失败 MUST 返回 400 及统一业务错误码，并 SHOULD 提供可被客户端展示的具体失败项。失败项至少 MUST 能区分 `min_length`、`max_length`、`missing_letter`、`missing_digit`。具体失败项 MUST NOT 包含明文密码。
 
 #### Scenario: 密码哈希验证
 
@@ -56,13 +58,39 @@
 - **THEN** 系统 MUST 使用 passlib bcrypt 进行哈希与校验
 - **AND** 日志与 API 响应 MUST NOT 包含明文密码
 
-#### Scenario: 密码不符合 effective 策略
+#### Scenario: 密码长度不足
 
-- **GIVEN** effective 最小长度为 12 且要求数字
-- **WHEN** 用户或管理员提交不含数字的 10 位密码
+- **WHEN** 用户或管理员提交少于 5 位的新密码
 - **THEN** MUST 返回 400 及密码策略错误码
-- **AND** MUST 提供可识别的失败项，至少能表达长度不足与缺少数字
-- **AND** MUST NOT 更新 password_hash
+- **AND** MUST 提供可识别的 `min_length` 失败项
+- **AND** MUST NOT 更新 `password_hash`
+
+#### Scenario: 密码长度超限
+
+- **WHEN** 用户或管理员提交超过 32 位的新密码
+- **THEN** MUST 返回 400 及密码策略错误码
+- **AND** MUST 提供可识别的 `max_length` 失败项
+- **AND** MUST NOT 更新 `password_hash`
+
+#### Scenario: 密码缺少英文字符
+
+- **WHEN** 用户或管理员提交长度合规但不含 ASCII 英文字符的新密码
+- **THEN** MUST 返回 400 及密码策略错误码
+- **AND** MUST 提供可识别的 `missing_letter` 失败项
+- **AND** MUST NOT 更新 `password_hash`
+
+#### Scenario: 密码缺少数字
+
+- **WHEN** 用户或管理员提交长度合规但不含 ASCII 数字的新密码
+- **THEN** MUST 返回 400 及密码策略错误码
+- **AND** MUST 提供可识别的 `missing_digit` 失败项
+- **AND** MUST NOT 更新 `password_hash`
+
+#### Scenario: 密码满足基础策略
+
+- **WHEN** 用户或管理员提交 5-32 位且同时包含 ASCII 英文字符和 ASCII 数字的新密码
+- **THEN** 基础密码策略校验 MUST 通过
+- **AND** 后续业务规则 MAY 继续校验弱密码、新旧密码相同、受保护账号或限流
 
 ### Requirement: 当前用户信息查询
 
@@ -231,7 +259,7 @@
 
 ### Requirement: 当前用户主题偏好 API
 
-The authentication capability MUST expose the current user's theme preference and allow authenticated users to update their own theme preference. Supported values are `system`, `dark_flagship`, `comfort_dark`, and `light`.
+The authentication capability MUST expose the current user's theme preference and allow authenticated users to update their own theme preference. Supported values are `system`, `dark_flagship`, `comfort_dark`, and `light`. Production and local deployments MUST keep this API route, persistence field, authentication behavior, and unified response envelope consistent so Web clients can distinguish successful account preference persistence from recoverable client-side fallback.
 
 #### Scenario: 当前用户信息包含主题偏好
 
@@ -244,7 +272,15 @@ The authentication capability MUST expose the current user's theme preference an
 - **WHEN** an authenticated user submits a valid theme mode to the current-user theme preference endpoint
 - **THEN** the system SHALL persist the value for that user
 - **AND** the response SHALL use the unified `ApiResponse` envelope
+- **AND** the response `data.theme_mode` SHALL equal the persisted value
 - **AND** a later `GET /api/v1/auth/me` SHALL return the updated `theme_mode`.
+
+#### Scenario: 主题偏好生产链路可用
+
+- **WHEN** a production or production-equivalent deployment serves the Web admin client and backend together
+- **THEN** `PATCH /api/v1/auth/me/theme` SHALL be reachable through the configured `/api/` route
+- **AND** authenticated requests with valid Bearer tokens SHALL preserve the Authorization context through reverse proxies
+- **AND** the deployment database SHALL include the `users.theme_mode` persistence field with the supported values.
 
 #### Scenario: 无效主题偏好被拒绝
 

@@ -10,6 +10,7 @@ const hideBrandCertificateMock = vi.hoisted(() => vi.fn());
 const deleteBrandCertificateMock = vi.hoisted(() => vi.fn());
 const uploadBrandCertificateFileMock = vi.hoisted(() => vi.fn());
 const fetchBrandsMock = vi.hoisted(() => vi.fn());
+const fetchSettingsGroupMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/auth/api/auth-api', () => ({
   getErrorMessage: (_err: unknown, fallback: string) => fallback,
@@ -32,6 +33,10 @@ vi.mock('@/features/admin/api/brand-certificates-api', () => ({
 
 vi.mock('@/features/admin/api/brands-api', () => ({
   fetchBrands: (...args: unknown[]) => fetchBrandsMock(...args),
+}));
+
+vi.mock('@/features/admin/api/system-settings-api', () => ({
+  fetchSettingsGroup: (...args: unknown[]) => fetchSettingsGroupMock(...args),
 }));
 
 import { BrandCertificateManagementPage } from './BrandCertificateManagementPage';
@@ -88,6 +93,7 @@ describe('BrandCertificateManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchBrandsMock.mockResolvedValue(brandPayload);
+    fetchSettingsGroupMock.mockResolvedValue({ max_file_size_mb: 50 });
     fetchBrandCertificatesMock.mockResolvedValue(certificatePayload);
     createBrandCertificateMock.mockResolvedValue(certificatePayload.items[0]);
     updateBrandCertificateMock.mockResolvedValue(certificatePayload.items[0]);
@@ -145,6 +151,9 @@ describe('BrandCertificateManagementPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '＋ 新增证书' }));
     const dialog = screen.getByRole('dialog', { name: '新增证书' });
+    await waitFor(() => {
+      expect(within(dialog).getByText('支持 JPG / PNG / WebP / PDF，单文件最大 50MB')).toBeInTheDocument();
+    });
     fireEvent.change(within(dialog).getByLabelText('所属品牌 *'), { target: { value: '1' } });
     fireEvent.change(within(dialog).getByLabelText('证书名称 *'), {
       target: { value: '绿色建材证书' },

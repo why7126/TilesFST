@@ -3,9 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from path_helpers import resolve_change_file
+
 
 ROOT = Path(__file__).resolve().parents[1]
 MINIAPP = ROOT / "src" / "miniapp"
+SKILLS = ROOT / ".agents" / "skills"
 
 
 def _read(path: str) -> str:
@@ -86,7 +89,7 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "sku_share_click" in detail_ts
     assert "sku_favorite" in detail_ts
     assert "sku_unfavorite" in detail_ts
-    assert "sku_brand_click" in detail_ts
+    assert 'source-module="sku-detail-brand"' in _read("pages/tile-detail/index.wxml")
     assert "sku_recommend_click" in detail_ts
     assert "sku_load_error" in detail_ts
     assert "brand_list_page_view" in brand_list_ts
@@ -117,12 +120,30 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     app_ts = _read("app.ts")
     api_js = _read("services/api.js")
     api_ts = _read("services/api.ts")
+    env_js = _read("utils/env.js")
+    env_ts = _read("utils/env.ts")
     project_config = json.loads(_read("project.config.json"))
     private_config = json.loads(_read("project.private.config.json"))
 
-    assert "apiBaseUrl: 'http://127.0.0.1:8010'" in app_js
-    assert "apiFallbackBaseUrls: ['http://localhost:8010', 'http://localhost:8000']" in app_js
-    assert "apiFallbackBaseUrls: ['http://localhost:8010', 'http://localhost:8000']" in app_ts
+    for source in [env_js, env_ts]:
+        assert "environment: 'development'" in source
+        assert "apiBaseUrl: 'http://127.0.0.1:8010'" in source
+        assert "apiFallbackBaseUrls: ['http://localhost:8010', 'http://localhost:8000']" in source
+        assert "environment: 'production'" in source
+        assert "apiBaseUrl: 'https://tilesfst.wjoyhappy.site'" in source
+        assert any(
+            marker in source
+            for marker in [
+                "return 'development'",
+                "return 'production'",
+                "envVersion === 'develop' ? 'development' : 'production'",
+            ]
+        )
+    assert "environment: miniappApiConfig.environment" in app_js
+    assert "apiBaseUrl: miniappApiConfig.apiBaseUrl" in app_js
+    assert "apiFallbackBaseUrls: miniappApiConfig.apiFallbackBaseUrls" in app_ts
+    assert "const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl" in api_js
+    assert "const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl" in api_ts
     assert "function baseUrls()" in api_js
     assert "function baseUrls(): string[]" in api_ts
     assert "tryRequest(index + 1)" in api_js
@@ -130,8 +151,35 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     assert "function normalizeMediaUrls" in api_js
     assert "value.indexOf('/media/') === 0" in api_js
     assert "resolve(normalizeMediaUrls(body.data, currentBaseUrl))" in api_js
+    is_prod_strategy = "return 'production'" in env_js and "return 'production'" in env_ts
     assert project_config["setting"]["urlCheck"] is False
-    assert private_config["setting"]["urlCheck"] is False
+    assert private_config["setting"]["urlCheck"] is (True if is_prod_strategy else False)
+
+
+def test_miniapp_environment_command_skills_exist() -> None:
+    for command in [
+        "miniapp-env",
+        "miniapp-check",
+        "miniapp-prepare",
+        "miniapp-confirm",
+        "miniapp-restore",
+    ]:
+        source = (SKILLS / command / "SKILL.md").read_text(encoding="utf-8")
+        assert f'name: "{command}"' in source
+        assert "rules/agent-context-budget.md" in source
+
+    for command in ["miniapp-env", "miniapp-check", "miniapp-prepare", "miniapp-restore"]:
+        source = (SKILLS / command / "SKILL.md").read_text(encoding="utf-8")
+        assert "project.private.config.json" in source
+        assert "urlCheck" in source
+
+
+def test_miniapp_env_script_manages_devtools_url_check() -> None:
+    script = (ROOT / "scripts" / "miniapp-env.py").read_text(encoding="utf-8")
+
+    assert "PROJECT_PRIVATE_CONFIG" in script
+    assert "_set_devtools_url_check(strategy == \"prod\")" in script
+    assert "\"expected_urlCheck\": True if strategy == \"prod\" else False" in script
 
 
 def test_miniapp_runtime_entry_scripts_are_not_empty_templates() -> None:
@@ -168,6 +216,35 @@ def test_miniapp_runtime_entry_scripts_are_not_empty_templates() -> None:
 
         assert "Component({" in js_source
         assert len(js_source) > 0.45 * len(ts_source)
+
+
+def test_miniapp_category_secondary_names_support_long_labels() -> None:
+    category_wxml = _read("pages/category/index.wxml")
+    category_wxss = _read("pages/category/index.wxss")
+    category_ts = _read("pages/category/index.ts")
+    category_js = _read("pages/category/index.js")
+
+    assert 'class="secondary-grid"' in category_wxml
+    assert 'class="secondary-card"' in category_wxml
+    assert '<view class="secondary-name">{{item.name}}</view>' in category_wxml
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr));" in category_wxss
+    assert ".secondary-card {\n  min-width: 0;\n  min-height: 132rpx;" in category_wxss
+    assert ".secondary-name {\n  width: 100%;" in category_wxss
+    assert "line-height: 36rpx;" in category_wxss
+    assert "white-space: normal;" in category_wxss
+    assert "word-break: break-all;" in category_wxss
+    assert "-webkit-line-clamp: 2;" in category_wxss
+    assert ".secondary-name" in category_wxss
+    secondary_name_block = category_wxss.split(".secondary-name {", 1)[1].split("}", 1)[0]
+    assert "white-space: nowrap" not in secondary_name_block
+    assert "text-overflow: ellipsis" not in secondary_name_block
+
+    for source in [category_ts, category_js]:
+        assert "categoryLevel=secondary&sourcePage=category" in source
+        assert "categoryName=${encodeURIComponent(name)}" in source
+        assert "rightScrollTop: 0" in source
+        assert "this.data.categories.length && savedState.currentPrimaryId" in source
+        assert "分类加载失败，请检查网络后重试" in source
 
 
 def test_miniapp_runtime_js_avoids_preview_incompatible_syntax() -> None:
@@ -504,8 +581,10 @@ def test_miniapp_search_matches_req0046_prototype_structure() -> None:
     assert 'bindtap="selectPriceRange"' not in search_wxml
     assert 'bindtap="applyFilters"' not in search_wxml
 
-    for token in ["empty-icon", "检查 SKU 编码", "缩短关键词", "替换相近品牌"]:
+    for token in ["empty-icon", "检查商品名称或型号", "缩短关键词", "替换相近品牌"]:
         assert token in search_wxml
+    assert "检查 SKU 编码" not in search_wxml
+    assert "sectionItem.sku_code" not in search_wxml
     forbidden_empty_actions = ["联系商家", "提交找砖", "购物车", "在线下单", "客服找砖"]
     for token in forbidden_empty_actions:
         assert token not in search_wxml
@@ -565,7 +644,9 @@ def test_miniapp_category_page_covers_tree_cache_navigation_and_states() -> None
     assert "grid-template-columns: repeat(3, minmax(0, 1fr))" in category_wxss
     assert "aspect-ratio: 1 / 1" not in category_wxss
     assert ".secondary-image" not in category_wxss
-    assert "min-height: 96rpx" in category_wxss
+    assert "min-height: 132rpx" in category_wxss
+    assert "white-space: normal" in category_wxss
+    assert "-webkit-line-clamp: 2" in category_wxss
     assert "min-height: 112rpx" in category_wxss
     assert "background: #18160F" in category_wxss
     assert "color: #C8A055" in category_wxss
@@ -643,6 +724,114 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert ".filter-drawer" not in product_list_wxss
     assert ".sort-tabs" not in product_list_wxss
     assert "min-height: 88rpx" in product_list_wxss
+
+
+def test_miniapp_wechat_share_pages_cover_friend_timeline_and_runtime_sync() -> None:
+    target_pages = [
+        "pages/index/index",
+        "pages/tile-detail/index",
+        "pages/product-list/index",
+        "pages/brand-detail/index",
+    ]
+
+    for page in target_pages:
+        ts_source = _read(f"{page}.ts")
+        js_source = _read(f"{page}.js")
+
+        assert "onShareAppMessage()" in ts_source
+        assert "onShareTimeline()" in ts_source
+        assert "onShareAppMessage()" in js_source
+        assert "onShareTimeline()" in js_source
+        assert "wechat_friend" in ts_source
+        assert "wechat_timeline" in ts_source
+        assert "wechat_friend" in js_source
+        assert "wechat_timeline" in js_source
+        assert "Authorization" not in ts_source
+        assert "Cookie" not in ts_source
+        assert "raw_payload" not in ts_source
+        assert "raw_object_key" not in ts_source
+
+    home_ts = _read("pages/index/index.ts")
+    home_js = _read("pages/index/index.js")
+    detail_ts = _read("pages/tile-detail/index.ts")
+    detail_js = _read("pages/tile-detail/index.js")
+    product_list_ts = _read("pages/product-list/index.ts")
+    product_list_js = _read("pages/product-list/index.js")
+    brand_detail_ts = _read("pages/brand-detail/index.ts")
+    brand_detail_js = _read("pages/brand-detail/index.js")
+
+    for source in [home_ts, home_js]:
+        assert "HOME_SHARE_PATH = '/pages/index/index?source=share'" in source
+        assert "trackHomeShare" in source
+        assert "query: 'source=share'" in source
+
+    for source in [detail_ts, detail_js]:
+        assert "trackSkuShare" in source
+        assert "skuShareTitle" in source
+        assert "skuShareImage" in source
+        assert "skuId=${encodeURIComponent(String(skuId || 0))}&source=share" in source
+        assert "pagePath(skuId, 'share')" in source
+        assert "this.data.imageFallback" in source
+
+    for source in [product_list_ts, product_list_js]:
+        assert "PRODUCT_LIST_SHARE_KEYS" in source
+        assert "buildShareQuery" in source
+        assert "encodeShareValue" in source
+        assert "sourcePage: 'share'" in source
+        assert "product_list_share_click" in source
+        assert "share_path" in source
+        assert "categoryName" in source
+        assert "keyword" in source
+        assert "section" in source
+        assert "requestId" in source
+
+    expected_order = [
+        "'categoryId'",
+        "'categoryLevel'",
+        "'categoryName'",
+        "'brandId'",
+        "'keyword'",
+        "'section'",
+        "'sourcePage'",
+    ]
+    last_index = -1
+    for token in expected_order:
+        index = product_list_js.index(token)
+        assert index > last_index
+        last_index = index
+    assert "page=" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
+    assert "pageSize" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
+    assert "requestId" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
+
+    for source in [brand_detail_ts, brand_detail_js]:
+        assert "brandSharePath" in source
+        assert "brand_detail_share_click" in source
+        assert "brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share" in source
+        assert "this.data.imageFallback" in source
+
+
+def test_miniapp_wechat_share_evidence_records_static_and_follow_up_boundaries() -> None:
+    evidence_path = resolve_change_file(
+        ROOT,
+        "add-miniapp-wechat-share-pages",
+        "implementation/share-evidence.md",
+    )
+    evidence = evidence_path.read_text(encoding="utf-8")
+
+    for page in [
+        "pages/index/index?source=share",
+        "pages/tile-detail/index?skuId=1&source=share",
+        "pages/product-list/index?keyword=%E5%AE%A2%E5%8E%85&sourcePage=share",
+        "pages/brand-detail/index?brandId=1&source=share",
+    ]:
+        assert page in evidence
+    for viewport in ["320pt", "375pt", "430pt"]:
+        assert viewport in evidence
+    assert "static_review" in evidence
+    assert "real_device_follow_up" in evidence
+    assert "not reported as DevTools or real-device pass" in evidence
+    for forbidden in ["Authorization", "Cookie", ".env", "raw object key"]:
+        assert forbidden in evidence
 
 
 def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -> None:
@@ -794,8 +983,6 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "sku_video_play" in detail_js
     assert "sku_share_click" in detail_js
     assert "sku_recommend_click" in detail_js
-    assert "brand_card_click" in detail_js
-    assert "brand_card_unavailable_click" in detail_js
     assert "商品暂不可查看" in detail_js
     assert detail_json["usingComponents"]["brand-card"] == "../../components/brand-card/index"
     assert "skeleton" in detail_wxml
@@ -803,6 +990,7 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert detail_wxml.index('<view class="summary">') < detail_wxml.index('<view class="brand-card-wrap">')
     assert detail_wxml.index('<view class="brand-card-wrap">') < detail_wxml.index('<view class="panel-title">商品参数</view>')
     assert "{{product.sku_code}}" not in detail_wxml[detail_wxml.index('<view class="summary">'):detail_wxml.index('<view class="brand-card-wrap">')]
+    assert "SKU 编码" not in detail_wxml
     assert "<video" in detail_wxml
     assert 'src="{{item.url}}"' in detail_wxml
     assert 'poster="{{item.cover_url || \'\'}}"' in detail_wxml
@@ -816,16 +1004,32 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "视频暂时无法播放" in detail_js
     assert "media-count" in detail_wxml
     assert "<brand-card" in detail_wxml
+    assert 'hint="查看品牌主页"' in detail_wxml
     assert 'source-module="sku-detail-brand"' in detail_wxml
+    assert 'bindtap="openBrand"' not in detail_wxml
+    assert "openBrand()" not in detail_js
+    assert "openBrand()" not in detail_ts
+    assert "sku-detail-bottom-bar" not in detail_js
+    assert "sku-detail-bottom-bar" not in detail_ts
+    assert "brandNavigating" not in detail_js
+    assert "brandNavigating" not in detail_ts
+    assert "sku_brand_click" not in detail_js
+    assert "sku_brand_click" not in detail_ts
     assert "brand-logo" not in detail_wxml
     assert "action-icon" in detail_wxml
+    assert detail_wxml.count('class="action-btn') == 1
+    assert detail_wxml.count('class="share-btn"') == 1
+    assert detail_wxml.index('bindtap="toggleFavorite"') < detail_wxml.index('open-type="share"')
+    bottom_actions = detail_wxml[detail_wxml.index('<view wx:if="{{product}}" class="actions">'):]
+    assert ">品牌</text>" not in bottom_actions
     assert "分享给客户" in detail_wxml
     assert "同系列推荐" in detail_wxml
     assert "同品牌推荐" in detail_wxml
     assert "购物车" not in detail_wxml
     assert "立即购买" not in detail_wxml
     assert "库存" not in detail_wxml
-    assert "grid-template-columns: repeat(3, minmax(0, 1fr))" in detail_wxss
+    assert "grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr)" in detail_wxss
+    assert "repeat(3, minmax(0, 1fr))" not in detail_wxss
     assert "height: 88rpx" in detail_wxss
     assert "padding: 0" in detail_wxss
     assert "background: transparent" in detail_wxss

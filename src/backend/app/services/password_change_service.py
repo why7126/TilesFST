@@ -101,10 +101,8 @@ class PasswordChangeService:
                 policy={
                     "min_length": policy.min_length,
                     "max_length": policy.max_length,
-                    "require_uppercase": policy.require_uppercase,
-                    "require_lowercase": policy.require_lowercase,
-                    "require_digit": policy.require_digit,
-                    "require_special": policy.require_special,
+                    "require_letter": True,
+                    "require_digit": True,
                 }
                 if policy is not None
                 else None,

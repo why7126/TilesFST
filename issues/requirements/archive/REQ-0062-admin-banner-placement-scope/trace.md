@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-20 13:23:12
-updated_at: 2026-07-20 23:30:55
+updated_at: 2026-07-22 08:59:01
 ---
 
 # 需求追踪
@@ -38,7 +38,7 @@ iteration: sprint-009
 openspec_changes:
   - change_id: update-admin-banner-placement-scope
     type: update
-    status: archived
+    status: proposed
 readiness: Ready
 readiness_notes: 五件套已补齐；UI 原型策略已提供 prototype/web/context.md 与 prototype.html，PNG 待后续导出但不阻塞评审。
 documents:
@@ -101,4 +101,4 @@ expected_openspec_change: update-admin-banner-placement-scope
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-- 2026-07-20 23:08:05 workflow-sync：状态同步为 done（Change archived）
+| BUG-0075-prod-admin-brand-banner-save-fails | high | done | fix-prod-admin-brand-banner-save | 生产环境管理端品牌类型 Banner 配置无法保存 |

@@ -394,4 +394,22 @@
   .admin-shell .log-audit-filter-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-shell .log-drawer {
+    width: 100vw;
+    max-width: 100vw;
+  }
+
+  .admin-shell .log-drawer-head {
+    min-height: 0;
+    padding: 18px 16px;
+  }
+
+  .admin-shell .log-drawer-body {
+    padding: 14px 16px 22px;
+  }
+
+  .admin-shell .detail-row {
+    grid-template-columns: 1fr;
+  }
 }

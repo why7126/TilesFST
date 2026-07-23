@@ -106,6 +106,7 @@ describe('TileSkuManagementPage', () => {
     expect(screen.getByRole('combobox', { name: '每页显示条数' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('商品名称 / SKU 编码')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
       'admin-sticky-action-cell',
     );
@@ -206,8 +207,8 @@ describe('TileSkuManagementPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '恢复' }));
 
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByText('上架 SKU')).toBeInTheDocument();
-    expect(within(dialog).getByText('确认上架 SKU「已下架 SKU」？')).toBeInTheDocument();
+    expect(within(dialog).getByText('上架商品')).toBeInTheDocument();
+    expect(within(dialog).getByText('确认上架商品「已下架 SKU」？')).toBeInTheDocument();
     expect(publishTileSkuMock).not.toHaveBeenCalled();
 
     fireEvent.click(within(dialog).getByRole('button', { name: '确认上架' }));
@@ -249,9 +250,9 @@ describe('TileSkuManagementPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '下架' }));
 
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByText('下架 SKU')).toBeInTheDocument();
+    expect(within(dialog).getByText('下架商品')).toBeInTheDocument();
     expect(
-      within(dialog).getByText('确认下架 SKU「已上架 SKU」？下架后前台将不再展示该商品。'),
+      within(dialog).getByText('确认下架商品「已上架 SKU」？下架后前台将不再展示该商品。'),
     ).toBeInTheDocument();
     expect(unpublishTileSkuMock).not.toHaveBeenCalled();
 

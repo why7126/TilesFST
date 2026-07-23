@@ -252,6 +252,7 @@ CREATE TABLE IF NOT EXISTS banners (
   CONSTRAINT chk_banners_jump_type CHECK (jump_type IN ('SKU_DETAIL', 'BRAND_DETAIL', 'EXTERNAL_LINK', 'TOPIC_PAGE', 'NO_JUMP')),
   CONSTRAINT chk_banners_image_source CHECK (image_source IN ('sku_main_image', 'sku_gallery_image', 'custom_upload', 'topic_cover', 'brand_logo')),
   INDEX idx_banners_status_position (display_client, position, status),
+  INDEX idx_banners_brand (brand_id),
   INDEX idx_banners_sort (sort_order, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type {
@@ -11,12 +11,19 @@ import type {
 import { fetchTileSpecs } from '../api/tile-specs-api';
 import { fetchBrands } from '../api/brands-api';
 import { fetchCategoryTree } from '../api/tile-categories-api';
+import { fetchSettingsGroup } from '../api/system-settings-api';
 import {
   createTileSku,
   updateTileSku,
   uploadTileImage,
   uploadTileVideo,
 } from '../api/tile-skus-api';
+import {
+  buildAcceptValue,
+  DEFAULT_MEDIA_UPLOAD_SETTINGS,
+  formatMimeLabels,
+  mediaUploadSettingsFromResponse,
+} from '../lib/media-upload-settings';
 
 interface CategoryOption {
   id: number;
@@ -38,11 +45,54 @@ function buildCategoryOptions(tree: TileCategoryTreeNode[]): CategoryOption[] {
   return options;
 }
 
-interface ImageDraft {
+export interface ImageDraft {
   object_key: string;
   url: string;
   is_main: boolean;
   sort_order: number;
+}
+
+export function normalizeImages(drafts: ImageDraft[]): ImageDraft[] {
+  if (drafts.length === 0) {
+    return [];
+  }
+
+  const mainIndex = drafts.findIndex((img) => img.is_main);
+  const normalized = drafts.map((img, index) => ({
+    ...img,
+    is_main: mainIndex >= 0 ? index === mainIndex : index === 0,
+  }));
+  const selectedMain = normalized.find((img) => img.is_main) ?? normalized[0]!;
+  const ordered = [
+    selectedMain,
+    ...normalized.filter((img) => img.object_key !== selectedMain.object_key),
+  ];
+
+  return ordered.map((img, index) => ({
+    ...img,
+    is_main: index === 0,
+    sort_order: index,
+  }));
+}
+
+export function removeImageDraft(drafts: ImageDraft[], index: number): ImageDraft[] {
+  const removing = drafts[index];
+  if (!removing) {
+    return drafts;
+  }
+  const remaining = drafts.filter((_, i) => i !== index);
+  if (remaining.length === 0) {
+    return [];
+  }
+  if (!removing.is_main) {
+    return normalizeImages(remaining);
+  }
+
+  const nextMain = drafts[index + 1] ?? remaining[0]!;
+  return normalizeImages(remaining.map((img) => ({
+    ...img,
+    is_main: img.object_key === nextMain.object_key,
+  })));
 }
 
 interface VideoDraft {
@@ -80,7 +130,6 @@ interface TileSkuFormModalProps {
 
 export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSkuFormModalProps) {
   const [name, setName] = useState('');
-  const [skuCode, setSkuCode] = useState('');
   const [brandId, setBrandId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [specId, setSpecId] = useState('');
@@ -94,6 +143,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [brands, setBrands] = useState<BrandAdminItem[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [tileSpecs, setTileSpecs] = useState<TileSpecAdminItem[]>([]);
+  const [mediaSettings, setMediaSettings] = useState(DEFAULT_MEDIA_UPLOAD_SETTINGS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
@@ -118,13 +168,19 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
   useEffect(() => {
     if (!open) return;
+    void fetchSettingsGroup('media')
+      .then((data) => setMediaSettings(mediaUploadSettingsFromResponse(data)))
+      .catch(() => setMediaSettings(DEFAULT_MEDIA_UPLOAD_SETTINGS));
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     setError(null);
     setVideoUploadState('idle');
     setVideoUploadProgress(0);
     setVideoUploadError(null);
     if (mode === 'edit' && sku) {
       setName(sku.name);
-      setSkuCode(sku.sku_code);
       setBrandId(String(sku.brand_id));
       setCategoryId(String(sku.category_id));
       setSpecId(sku.spec_id != null ? String(sku.spec_id) : '');
@@ -136,12 +192,12 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       );
       setRemark(sku.remark ?? '');
       setImages(
-        (sku.images ?? []).map((img, idx) => ({
+        normalizeImages((sku.images ?? []).map((img, idx) => ({
           object_key: img.object_key,
           url: img.url,
           is_main: img.is_main,
           sort_order: img.sort_order ?? idx,
-        })),
+        }))),
       );
       setVideos(
         (sku.videos ?? []).map((vid, idx) => ({
@@ -155,7 +211,6 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       );
     } else {
       setName('');
-      setSkuCode('');
       setBrandId('');
       setCategoryId('');
       setSpecId('');
@@ -168,6 +223,25 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setVideos([]);
     }
   }, [open, mode, sku]);
+
+  const imageAccept = useMemo(
+    () => buildAcceptValue(mediaSettings.allowedImageTypes),
+    [mediaSettings.allowedImageTypes],
+  );
+  const videoAccept = useMemo(
+    () => buildAcceptValue(mediaSettings.allowedVideoTypes),
+    [mediaSettings.allowedVideoTypes],
+  );
+  const imageUploadHint = useMemo(
+    () =>
+      `支持 ${formatMimeLabels(mediaSettings.allowedImageTypes)}，单张最大 ${mediaSettings.maxImageSizeMb}MB；可上传多张，并指定一张主图`,
+    [mediaSettings.allowedImageTypes, mediaSettings.maxImageSizeMb],
+  );
+  const videoUploadHint = useMemo(
+    () =>
+      `支持 ${formatMimeLabels(mediaSettings.allowedVideoTypes)}，单个视频最大 ${mediaSettings.maxVideoSizeMb}MB；可上传多个视频`,
+    [mediaSettings.allowedVideoTypes, mediaSettings.maxVideoSizeMb],
+  );
 
   if (!open) return null;
 
@@ -185,11 +259,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
   const validateSubmitFields = (): boolean => {
     if (!name.trim()) {
-      setError('SKU 名称不能为空');
-      return false;
-    }
-    if (!skuCode.trim()) {
-      setError('SKU 编码不能为空');
+      setError('商品名称不能为空');
       return false;
     }
     if (!brandId) {
@@ -213,9 +283,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
   const buildPayload = () => {
     const price = parseReferencePrice() ?? 0;
+    const normalizedImages = normalizeImages(images);
     return {
       name: name.trim(),
-      sku_code: skuCode.trim() || undefined,
       brand_id: brandId ? Number.parseInt(brandId, 10) : undefined,
       category_id: categoryId ? Number.parseInt(categoryId, 10) : undefined,
       spec_id: specId ? Number.parseInt(specId, 10) : undefined,
@@ -224,7 +294,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       color_family: colorFamily.trim() || null,
       reference_price: price,
       remark: remark.trim() || null,
-      images: images.map((img, idx) => ({
+      images: normalizedImages.map((img, idx) => ({
         object_key: img.object_key,
         url: img.url,
         is_main: img.is_main,
@@ -248,7 +318,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     setSubmitting(true);
     setError(null);
     if (saveMode === 'draft' && !name.trim()) {
-      setError('SKU 名称不能为空');
+      setError('商品名称不能为空');
       setSubmitting(false);
       return;
     }
@@ -281,15 +351,17 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     if (!file) return;
     try {
       const result = await uploadTileImage(file, sku?.id);
-      setImages((prev) => [
-        ...prev,
-        {
+      setImages((prev) =>
+        normalizeImages([
+          ...prev,
+          {
           object_key: result.object_key,
           url: result.url,
           is_main: prev.length === 0,
           sort_order: prev.length,
-        },
-      ]);
+          },
+        ]),
+      );
     } catch (err) {
       setError(getErrorMessage(err, '图片上传失败'));
     }
@@ -335,7 +407,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const isVideoUploading = videoUploadState === 'uploading';
 
   const setMainImage = (index: number) => {
-    setImages((prev) => prev.map((img, i) => ({ ...img, is_main: i === index })));
+    setImages((prev) => normalizeImages(prev.map((img, i) => ({ ...img, is_main: i === index }))));
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => removeImageDraft(prev, index));
   };
 
   return (
@@ -373,15 +449,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
           <div className="sku-form-grid">
             <div className="brand-form-item">
               <label>
-                SKU 名称 <span className="req">*</span>
+                商品名称 <span className="req">*</span>
               </label>
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="brand-form-item">
-              <label>
-                SKU 编码 <span className="req">*</span>
-              </label>
-              <input className="input" value={skuCode} onChange={(e) => setSkuCode(e.target.value)} />
             </div>
             <div className="brand-form-item">
               <label>
@@ -442,11 +512,16 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               ) : null}
             </div>
             <div className="brand-form-item">
-              <label>表面工艺</label>
+              <label>
+                参考价格（元） <span className="req">*</span>
+              </label>
               <input
                 className="input"
-                value={surfaceFinish}
-                onChange={(e) => setSurfaceFinish(e.target.value)}
+                type="number"
+                step="0.01"
+                min="0"
+                value={referencePrice}
+                onChange={(e) => setReferencePrice(e.target.value)}
               />
             </div>
             <div className="brand-form-item">
@@ -458,16 +533,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               />
             </div>
             <div className="brand-form-item">
-              <label>
-                参考价格（元） <span className="req">*</span>
-              </label>
+              <label>表面工艺</label>
               <input
                 className="input"
-                type="number"
-                step="0.01"
-                min="0"
-                value={referencePrice}
-                onChange={(e) => setReferencePrice(e.target.value)}
+                value={surfaceFinish}
+                onChange={(e) => setSurfaceFinish(e.target.value)}
               />
             </div>
             <div className="brand-form-item sku-form-full">
@@ -496,6 +566,14 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                         设为主图
                       </button>
                     ) : null}
+                    <button
+                      type="button"
+                      className="sku-remove-image"
+                      aria-label={`移除图片 ${index + 1}`}
+                      onClick={() => removeImage(index)}
+                    >
+                      移除
+                    </button>
                   </div>
                 ))}
                 <button
@@ -507,11 +585,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                   继续添加图片
                 </button>
               </div>
-              <p className="sku-help">支持 JPG、PNG、WebP；可上传多张并指定一张主图</p>
+              <p className="sku-help">{imageUploadHint}</p>
               <input
                 ref={imageInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept={imageAccept}
                 hidden
                 onChange={(e) => void handleImageUpload(e.target.files?.[0])}
               />
@@ -519,7 +597,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
             <p className="sku-section-label">商品视频</p>
             <div className="sku-form-full sku-video-section">
-              <div className="sku-video-list" ref={videoListRef}>
+              <div className="sku-upload-grid sku-video-grid" ref={videoListRef}>
                 {videos.map((vid) => (
                   <div key={vid.object_key} className="sku-video-card">
                     <div className="sku-video-player-wrap">
@@ -552,6 +630,16 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                     </div>
                   </div>
                 ))}
+                <button
+                  type="button"
+                  className={`sku-add-tile${isVideoUploading ? ' disabled' : ''}`}
+                  aria-disabled={isVideoUploading}
+                  disabled={isVideoUploading}
+                  onClick={() => videoInputRef.current?.click()}
+                >
+                  <span style={{ fontSize: 20 }}>＋</span>
+                  {isVideoUploading ? '上传中' : '继续添加视频'}
+                </button>
               </div>
               {isVideoUploading ? (
                 <div className="sku-video-upload-status">
@@ -580,19 +668,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                   {videoUploadError}
                 </span>
               ) : null}
-              <button
-                type="button"
-                className={`btn sku-video-upload-btn${isVideoUploading ? ' disabled' : ''}`}
-                aria-disabled={isVideoUploading}
-                disabled={isVideoUploading}
-                onClick={() => videoInputRef.current?.click()}
-              >
-                {isVideoUploading ? '上传中' : '上传视频'}
-              </button>
+              <p className="sku-help">{videoUploadHint}</p>
               <input
                 ref={videoInputRef}
                 type="file"
-                accept="video/mp4"
+                accept={videoAccept}
                 hidden
                 disabled={isVideoUploading}
                 onChange={(e) => {

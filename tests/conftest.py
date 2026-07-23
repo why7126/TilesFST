@@ -18,7 +18,7 @@ os.environ.setdefault("APP_ENV", "test")
 def tmp_sqlite_url(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     db_path = tmp_path / "test.db"
     url = f"sqlite:///{db_path}"
-    monkeypatch.setenv("SQLITE_DATABASE_URL", url)
+    monkeypatch.setenv("DATABASE_URL", url)
     monkeypatch.setenv("ADMIN_INITIAL_PASSWORD", "AdminPass123!")
     monkeypatch.setenv("APP_SECRET_KEY", "test-secret-key")
     return url
@@ -32,7 +32,7 @@ def api_client(tmp_sqlite_url: str, monkeypatch: pytest.MonkeyPatch) -> Generato
     from app.main import app
 
     reset_engine()
-    settings.sqlite_database_url = tmp_sqlite_url
+    settings.database_url = tmp_sqlite_url
     settings.admin_username = "admin"
     settings.admin_initial_password = "AdminPass123!"
     settings.admin_reset_password_on_startup = False

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import re
+from uuid import uuid4
+
 from app.core.exceptions import (
     AuthInvalidRequestError,
     CategoryCodeDuplicatedError,
     CategoryDeleteForbiddenError,
     CategoryInvalidSortOrderError,
     CategoryMaxDepthExceededError,
+    CategoryNameDuplicatedError,
     CategoryNotFoundError,
 )
 from app.repositories.tile_category_repository import TileCategoryRecord, TileCategoryRepository
@@ -23,6 +27,9 @@ from app.schemas.tile_category_admin import (
 VALID_PAGE_SIZES = frozenset({10, 20, 50})
 VALID_STATUSES = frozenset({"ENABLED", "DISABLED"})
 MAX_CATEGORY_LEVEL = 2
+CATEGORY_CODE_PREFIX = "CAT-"
+MAX_CATEGORY_CODE_GENERATION_ATTEMPTS = 5
+VALID_CATEGORY_NAME_RE = re.compile(r"^[A-Za-z0-9\u4e00-\u9fff]+$")
 
 
 class TileCategoryAdminService:
@@ -56,18 +63,32 @@ class TileCategoryAdminService:
         trimmed = name.strip()
         if not trimmed:
             raise AuthInvalidRequestError("类目名称不能为空")
-        if len(trimmed) > 30:
-            raise AuthInvalidRequestError("类目名称不能超过 30 个字符")
+        if len(trimmed) > 10:
+            raise AuthInvalidRequestError("类目名称不能超过 10 个字符")
+        if not VALID_CATEGORY_NAME_RE.fullmatch(trimmed):
+            raise AuthInvalidRequestError("类目名称只能包含中文、英文和数字")
         return trimmed
 
-    @staticmethod
-    def _validate_code(code: str) -> str:
-        trimmed = code.strip().upper()
-        if not trimmed:
-            raise AuthInvalidRequestError("类目编码不能为空")
-        if len(trimmed) > 32:
-            raise AuthInvalidRequestError("类目编码不能超过 32 个字符")
-        return trimmed
+    def _generate_category_code(self) -> str:
+        for _ in range(MAX_CATEGORY_CODE_GENERATION_ATTEMPTS):
+            code = f"{CATEGORY_CODE_PREFIX}{uuid4().hex[:8].upper()}"
+            if self._repo.get_by_code(code) is None:
+                return code
+        raise CategoryCodeDuplicatedError("类目编码生成失败，请重试")
+
+    def _ensure_name_unique(
+        self,
+        *,
+        parent_id: int | None,
+        name: str,
+        exclude_id: int | None = None,
+    ) -> None:
+        if self._repo.get_by_parent_and_name(
+            parent_id=parent_id,
+            name=name,
+            exclude_id=exclude_id,
+        ):
+            raise CategoryNameDuplicatedError()
 
     def _compute_path(self, name: str, parent: TileCategoryRecord | None) -> tuple[int, str]:
         if parent is None:
@@ -170,12 +191,9 @@ class TileCategoryAdminService:
 
     def create_category(self, payload: TileCategoryCreateRequest) -> TileCategoryAdminItem:
         name = self._validate_name(payload.name)
-        code = self._validate_code(payload.code)
         self._validate_sort_order(payload.sort_order)
         if payload.status not in VALID_STATUSES:
             raise AuthInvalidRequestError("无效的状态")
-        if self._repo.get_by_code(code):
-            raise CategoryCodeDuplicatedError()
 
         parent = None
         if payload.parent_id is not None:
@@ -184,10 +202,11 @@ class TileCategoryAdminService:
                 raise CategoryNotFoundError("上级类目不存在")
 
         level, path = self._compute_path(name, parent)
+        self._ensure_name_unique(parent_id=payload.parent_id, name=name)
         category = self._repo.create(
             parent_id=payload.parent_id,
             name=name,
-            code=code,
+            code=self._generate_category_code(),
             sort_order=payload.sort_order,
             level=level,
             description=(payload.description or "").strip() or None,
@@ -210,6 +229,7 @@ class TileCategoryAdminService:
             self._repo.get_by_id(category.parent_id) if category.parent_id is not None else None
         )
         _, path = self._compute_path(name, parent)
+        self._ensure_name_unique(parent_id=category.parent_id, name=name, exclude_id=category_id)
 
         updated = self._repo.update(
             category_id,

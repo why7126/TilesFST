@@ -44,6 +44,27 @@ SENSITIVE_PATTERNS = (
     re.compile(r"\bpassword\s*=", re.I),
 )
 
+NO_IMPACT_VALUES = {"", "none", "na", "n/a", "not_applicable", "not applicable", "无", "不涉及"}
+MYSQL_EVIDENCE_PATTERNS = (
+    re.compile(r"\bmysql\b", re.I),
+    re.compile(r"schema\.mysql\.sql", re.I),
+)
+MYSQL_CHECK_PATTERNS = (
+    re.compile(r"check-mysql-schema-drift\.py", re.I),
+    re.compile(r"schema\s*drift", re.I),
+    re.compile(r"information_schema", re.I),
+    re.compile(r"mysql\s+smoke", re.I),
+    re.compile(r"目标\s*mysql", re.I),
+    re.compile(r"生产\s*mysql", re.I),
+)
+DATABASE_ROLLBACK_PATTERNS = (
+    re.compile(r"rollback", re.I),
+    re.compile(r"backup", re.I),
+    re.compile(r"回滚"),
+    re.compile(r"备份"),
+)
+DATABASE_GATE_EFFECTIVE_AT = "2026-07-21 00:00:00"
+
 
 def load_json(path: Path) -> dict[str, Any]:
     try:
@@ -82,6 +103,46 @@ def gate_is_passing(name: str, gate: Any, errors: list[str]) -> None:
         require(bool(gate.get("rationale")), f"gate {name} status na requires rationale", errors)
         return
     errors.append(f"gate {name} must be pass or na, got {status or '<missing>'}")
+
+
+def impact_value_requires_gate(value: Any) -> bool:
+    return str(value or "").strip().lower() not in NO_IMPACT_VALUES
+
+
+def validate_database_impact_gate(data: dict[str, Any], errors: list[str]) -> None:
+    impact = data.get("impact_scope")
+    gates = data.get("gates")
+    if not isinstance(impact, dict) or not isinstance(gates, dict):
+        return
+    if str(data.get("release_time", "")) < DATABASE_GATE_EFFECTIVE_AT:
+        return
+    if not impact_value_requires_gate(impact.get("database")):
+        return
+
+    gate = gates.get("database_migration")
+    if not isinstance(gate, dict):
+        return
+    status = str(gate.get("status", "")).lower()
+    if status != "pass":
+        errors.append("database impact requires gate database_migration status pass")
+        return
+
+    evidence = str(gate.get("evidence", ""))
+    require(
+        any(pattern.search(evidence) for pattern in MYSQL_EVIDENCE_PATTERNS),
+        "database impact requires database_migration evidence to mention MySQL or schema.mysql.sql",
+        errors,
+    )
+    require(
+        any(pattern.search(evidence) for pattern in MYSQL_CHECK_PATTERNS),
+        "database impact requires MySQL schema drift or target MySQL smoke evidence",
+        errors,
+    )
+    require(
+        any(pattern.search(evidence) for pattern in DATABASE_ROLLBACK_PATTERNS),
+        "database impact requires database rollback or backup evidence",
+        errors,
+    )
 
 
 def scan_public_safety(release_dir: Path, release_data: dict[str, Any], errors: list[str]) -> None:
@@ -125,6 +186,7 @@ def validate_release(release_dir: Path, product_version_file: Path = PRODUCT_VER
             require(name in gates, f"gate {name} is required", errors)
             if name in gates:
                 gate_is_passing(name, gates[name], errors)
+    validate_database_impact_gate(data, errors)
 
     product_version = extract_product_version(product_version_file)
     if version != product_version:

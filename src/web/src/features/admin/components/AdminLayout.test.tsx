@@ -1,16 +1,19 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ADMIN_SIDEBAR_COLLAPSED_KEY } from '../lib/admin-sidebar-preference';
 import { trackUsageEvent } from '../../../features/tracking/api/usage-tracking';
 import { AdminLayout } from '../../../pages/admin/AdminLayout';
 import { DashboardPage } from '../../../pages/admin/DashboardPage';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 import { ThemeProvider } from '@/features/theme/ThemeContext';
 import { THEME_STORAGE_KEY } from '@/features/theme/theme';
+import { updateThemePreference } from '@/features/theme/theme-api';
+import type { UserProfile } from '@/shared/api/generated';
 
 const adminStylesDir = path.resolve(process.cwd(), 'src/features/admin/styles');
 const readAdminCss = (filename: string) =>
@@ -42,10 +45,29 @@ vi.mock('../../../features/tracking/api/usage-tracking', () => ({
   trackUsageEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('@/features/theme/theme-api', () => ({
+  updateThemePreference: vi.fn(),
+}));
+
 describe('AdminLayout', () => {
   beforeEach(() => {
     localStorage.clear();
+    document.documentElement.removeAttribute('data-theme-mode');
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.className = '';
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
     vi.mocked(trackUsageEvent).mockClear();
+    vi.mocked(updateThemePreference).mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders FST brand sidebar shell without header logout', async () => {
@@ -123,6 +145,145 @@ describe('AdminLayout', () => {
       expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
     });
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+  });
+
+  it('auto-dismisses theme sync failure toast while keeping the local theme active', async () => {
+    vi.useFakeTimers();
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    const user = {
+      id: '1',
+      username: 'admin',
+      display_name: 'Admin User',
+      role: 'admin',
+      status: 'active',
+      theme_mode: 'system',
+    } satisfies UserProfile;
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: true,
+    });
+    useAuthStore.setState({
+      user,
+      token: 'token',
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    });
+    vi.mocked(updateThemePreference).mockRejectedValueOnce(new Error('network'));
+
+    renderAdminLayout();
+
+    fireEvent.change(screen.getByLabelText('界面主题'), {
+      target: { value: 'light' },
+    });
+
+    const toastMessage = '主题已在本机生效，但账号偏好同步失败，请稍后重试。';
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByText(toastMessage)).toBeInTheDocument();
+    expect(document.documentElement.dataset.themeMode).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+    expect(updateThemePreference).toHaveBeenCalledWith('light');
+
+    act(() => {
+      vi.advanceTimersByTime(3200);
+    });
+    expect(screen.queryByText(toastMessage)).not.toBeInTheDocument();
+    expect(document.documentElement.dataset.themeMode).toBe('light');
+  });
+
+  it('keeps repeated theme sync failures to one readable layout toast', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    const user = {
+      id: '1',
+      username: 'admin',
+      display_name: 'Admin User',
+      role: 'admin',
+      status: 'active',
+      theme_mode: 'system',
+    } satisfies UserProfile;
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      isLoading: false,
+      user,
+      token: 'token',
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: true,
+    });
+    useAuthStore.setState({
+      user,
+      token: 'token',
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    });
+    vi.mocked(updateThemePreference)
+      .mockRejectedValueOnce(new Error('network'))
+      .mockRejectedValueOnce(new Error('network'));
+
+    const { container } = renderAdminLayout();
+
+    fireEvent.change(screen.getByLabelText('界面主题'), {
+      target: { value: 'light' },
+    });
+    await waitFor(() => {
+      expect(updateThemePreference).toHaveBeenCalledWith('light');
+    });
+
+    fireEvent.change(screen.getByLabelText('界面主题'), {
+      target: { value: 'comfort_dark' },
+    });
+
+    await waitFor(() => {
+      expect(updateThemePreference).toHaveBeenCalledWith('comfort_dark');
+    });
+
+    expect(container.querySelectorAll('.admin-toast')).toHaveLength(1);
+    expect(screen.getAllByText('主题已在本机生效，但账号偏好同步失败，请稍后重试。')).toHaveLength(1);
+    expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+  });
+
+  it('does not call account theme sync when switching theme before login', async () => {
+    const { useAuth } = await import('../../../features/auth/hooks/useAuth');
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      token: null,
+      error: null,
+      login: vi.fn(),
+      logout: vi.fn(),
+      restoreSession: vi.fn(),
+      clearError: vi.fn(),
+      isAdmin: false,
+    });
+
+    renderAdminLayout();
+
+    fireEvent.change(screen.getByLabelText('界面主题'), {
+      target: { value: 'comfort_dark' },
+    });
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+    });
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+    expect(updateThemePreference).not.toHaveBeenCalled();
   });
 
   it('tracks page views for admin pages from the shared layout', async () => {

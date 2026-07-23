@@ -19,7 +19,6 @@ def reset_database_settings() -> Iterator[None]:
     original = {
         "app_env": settings.app_env,
         "database_url": settings.database_url,
-        "sqlite_database_url": settings.sqlite_database_url,
         "admin_username": settings.admin_username,
         "admin_initial_password": settings.admin_initial_password,
         "admin_reset_password_on_startup": settings.admin_reset_password_on_startup,
@@ -53,10 +52,9 @@ def test_production_rejects_sqlite_database_url_without_password_leak() -> None:
     assert "password" not in str(excinfo.value).lower()
 
 
-def test_non_production_falls_back_to_sqlite_url() -> None:
+def test_non_production_uses_database_url_sqlite_default() -> None:
     settings.app_env = "development"
-    settings.database_url = None
-    settings.sqlite_database_url = "sqlite:////tmp/tilesfst-dev.db"
+    settings.database_url = "sqlite:////tmp/tilesfst-dev.db"
 
     assert db_session._resolve_database_url() == "sqlite:////tmp/tilesfst-dev.db"
 

@@ -215,7 +215,7 @@ export function TileSkuManagementPage() {
             <label>关键词</label>
             <input
               className="input"
-              placeholder="SKU 名称 / SKU 编码"
+              placeholder="商品名称 / SKU 编码"
               value={keyword}
               onChange={(e) => {
                 setKeyword(e.target.value);
@@ -383,7 +383,7 @@ export function TileSkuManagementPage() {
                         type="button"
                         className={`link-btn${deletable ? ' danger' : ' disabled'}`}
                         disabled={!deletable}
-                        title={deletable ? undefined : '已上架 SKU 不允许删除'}
+                        title={deletable ? undefined : '已上架商品不允许删除'}
                         onClick={() => deletable && setDeleteTarget(item)}
                       >
                         删除
@@ -475,7 +475,7 @@ export function TileSkuManagementPage() {
           >
             <div className="modal-head">
               <span id="status-sku-title" className="modal-title">
-                {statusConfirmIsPublish ? '上架 SKU' : '下架 SKU'}
+                {statusConfirmIsPublish ? '上架商品' : '下架商品'}
               </span>
               <button
                 type="button"
@@ -489,8 +489,8 @@ export function TileSkuManagementPage() {
             <div className="modal-body">
               <p className="page-desc">
                 {statusConfirmIsPublish
-                  ? `确认上架 SKU「${statusConfirmTarget.name}」？`
-                  : `确认下架 SKU「${statusConfirmTarget.name}」？下架后前台将不再展示该商品。`}
+                  ? `确认上架商品「${statusConfirmTarget.name}」？`
+                  : `确认下架商品「${statusConfirmTarget.name}」？下架后前台将不再展示该商品。`}
               </p>
             </div>
             <div className="modal-footer">
@@ -516,7 +516,7 @@ export function TileSkuManagementPage() {
           >
             <div className="modal-head">
               <span id="delete-sku-title" className="modal-title">
-                删除 SKU
+                删除商品
               </span>
               <button
                 type="button"
@@ -529,7 +529,7 @@ export function TileSkuManagementPage() {
             </div>
             <div className="modal-body">
               <p className="page-desc">
-                确认删除 SKU「{deleteTarget.name}」？此操作不可恢复。
+                确认删除商品「{deleteTarget.name}」？此操作不可恢复。
               </p>
             </div>
             <div className="modal-footer">
@@ -537,7 +537,7 @@ export function TileSkuManagementPage() {
                 取消
               </button>
               <button type="button" className="btn primary" onClick={() => void handleDeleteConfirm()}>
-                删除 SKU
+                删除商品
               </button>
             </div>
           </div>

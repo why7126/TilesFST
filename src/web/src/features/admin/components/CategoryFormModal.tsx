@@ -30,28 +30,30 @@ export function CategoryFormModal({
 }: CategoryFormModalProps) {
   const [parentId, setParentId] = useState<number | null>(null);
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
   const [sortOrder, setSortOrder] = useState('10');
   const [description, setDescription] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    sortOrder?: string;
+  }>({});
 
   const parentOptions = buildParentOptions(tree);
 
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setFieldErrors({});
     if (mode === 'edit' && category) {
       setName(category.name);
-      setCode(category.code);
       setSortOrder(String(category.sort_order));
       setDescription(category.description ?? '');
       setParentId(category.parent_id);
     } else {
       setParentId(defaultParentId);
       setName('');
-      setCode('');
       setSortOrder('10');
       setDescription('');
       setEnabled(true);
@@ -63,29 +65,34 @@ export function CategoryFormModal({
   const handleSubmit = async () => {
     setSubmitting(true);
     setError(null);
-    const sort = Number.parseInt(sortOrder, 10);
-    if (!name.trim()) {
-      setError('类目名称不能为空');
+    setFieldErrors({});
+
+    const nextFieldErrors: { name?: string; sortOrder?: string } = {};
+    const trimmedName = name.trim();
+    const trimmedSortOrder = sortOrder.trim();
+    if (!trimmedName) {
+      nextFieldErrors.name = '类目名称不能为空';
+    } else if (trimmedName.length > 10) {
+      nextFieldErrors.name = '类目名称不能超过 10 个字符';
+    } else if (!/^[A-Za-z0-9\u4e00-\u9fff]+$/.test(trimmedName)) {
+      nextFieldErrors.name = '类目名称只能包含中文、英文和数字';
+    }
+    if (!/^[1-9]\d*$/.test(trimmedSortOrder)) {
+      nextFieldErrors.sortOrder = '排序权重必须为正整数';
+    }
+
+    if (nextFieldErrors.name || nextFieldErrors.sortOrder) {
+      setFieldErrors(nextFieldErrors);
       setSubmitting(false);
       return;
     }
-    if (mode === 'create' && !code.trim()) {
-      setError('类目编码不能为空');
-      setSubmitting(false);
-      return;
-    }
-    if (!Number.isFinite(sort) || sort < 1) {
-      setError('排序权重必须为正整数');
-      setSubmitting(false);
-      return;
-    }
+    const sort = Number.parseInt(trimmedSortOrder, 10);
 
     try {
       if (mode === 'create') {
         await createCategory({
           parent_id: parentId,
-          name: name.trim(),
-          code: code.trim().toUpperCase(),
+          name: trimmedName,
           sort_order: sort,
           description: description.trim() || null,
           status: enabled ? 'ENABLED' : 'DISABLED',
@@ -93,7 +100,7 @@ export function CategoryFormModal({
         onSuccess('类目已创建');
       } else if (category) {
         await updateCategory(category.id, {
-          name: name.trim(),
+          name: trimmedName,
           sort_order: sort,
           description: description.trim() || null,
         });
@@ -127,7 +134,9 @@ export function CategoryFormModal({
         <div className="modal-body">
           {mode === 'create' ? (
             <div className="cat-modal-row">
-              <label htmlFor="cat-parent">上级类目</label>
+              <label htmlFor="cat-parent">
+                上级类目<span className="required-mark" aria-hidden="true">*</span>
+              </label>
               <select
                 id="cat-parent"
                 className="select"
@@ -143,43 +152,48 @@ export function CategoryFormModal({
                 ))}
               </select>
               <p className="cat-modal-help">
-                选择上级类目后自动生成层级；当前最多支持二级类目。
+                选择上级类目后自动生成层级；当前最多支持二级类目。类目编码由系统自动生成。
               </p>
             </div>
           ) : null}
           <div className="cat-modal-row">
-            <label htmlFor="cat-name">类目名称</label>
+            <label htmlFor="cat-name">
+              类目名称<span className="required-mark" aria-hidden="true">*</span>
+            </label>
             <input
               id="cat-name"
               className="input"
               value={name}
               placeholder="例如：岩板"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? 'cat-name-error' : undefined}
               onChange={(e) => setName(e.target.value)}
             />
+            <p className="cat-modal-help">最多 10 个字符，只能包含中文、英文和数字。</p>
+            {fieldErrors.name ? (
+              <p id="cat-name-error" className="field-error">
+                {fieldErrors.name}
+              </p>
+            ) : null}
           </div>
           <div className="cat-modal-row">
-            <label htmlFor="cat-code">类目编码</label>
-            <input
-              id="cat-code"
-              className={`input${mode === 'edit' ? ' readonly' : ''}`}
-              value={code}
-              readOnly={mode === 'edit'}
-              placeholder="系统唯一编码，例如 CAT-SLAB"
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <p className="cat-modal-help">
-              编码保存后不建议修改，用于接口、导入模板与前台路由映射。
-            </p>
-          </div>
-          <div className="cat-modal-row">
-            <label htmlFor="cat-sort">排序权重</label>
+            <label htmlFor="cat-sort">
+              排序权重<span className="required-mark" aria-hidden="true">*</span>
+            </label>
             <input
               id="cat-sort"
               className="input"
               value={sortOrder}
               placeholder="数字越小越靠前"
+              aria-invalid={Boolean(fieldErrors.sortOrder)}
+              aria-describedby={fieldErrors.sortOrder ? 'cat-sort-error' : undefined}
               onChange={(e) => setSortOrder(e.target.value)}
             />
+            {fieldErrors.sortOrder ? (
+              <p id="cat-sort-error" className="field-error">
+                {fieldErrors.sortOrder}
+              </p>
+            ) : null}
           </div>
           <div className="cat-modal-row">
             <label htmlFor="cat-desc">类目描述</label>

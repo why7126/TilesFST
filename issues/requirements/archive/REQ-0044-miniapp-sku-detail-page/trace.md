@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-18 18:48:34
-updated_at: 2026-07-21 08:14:55
+updated_at: 2026-07-22 08:30:37
 lifecycle:
   captured: 2026-07-18 18:48:34
   generated: 2026-07-18 18:55:47
@@ -137,4 +137,5 @@ kb_cross_cutting_report:
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0069-miniapp-sku-detail-carousel-video-not-playable | high | done | fix-miniapp-sku-detail-video-url | SKU 商品详情页轮播图视频不能显示和播放 |
-| BUG-0070-miniapp-sku-detail-duplicate-brand-button | medium | draft | — | 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | medium | done | fix-miniapp-sku-detail-duplicate-brand-button | 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复 |
+| BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search | medium | done | fix-miniapp-sku-detail-brand-card-route | 生产环境小程序商品详情页品牌卡片误跳搜索页 |

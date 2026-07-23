@@ -43,7 +43,7 @@
     },
     "database_migration": {
       "status": "na",
-      "rationale": "模板文件，正式发布时按数据库影响判断"
+      "rationale": "模板文件，正式发布时按数据库影响判断；若 impact_scope.database 非 none/na，必须记录 schema.mysql.sql、MySQL schema drift 或目标 MySQL smoke、回滚/备份证据"
     },
     "env_example": {
       "status": "na",

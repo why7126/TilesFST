@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-06-28 10:55:38
-updated_at: 2026-06-28 19:40:42
+updated_at: 2026-07-22 09:35:32
 lifecycle:
   captured: 2026-06-28 10:55:38
   generated: 2026-06-28 11:06:00
@@ -47,7 +47,7 @@ iteration: sprint-003
 openspec_changes:
   - change_id: add-banner-management
     type: add
-    status: archived
+    status: proposed
 readiness: Ready
 readiness_notes: 评审通过；五件套 + review + prototype HTML/PNG/context 齐全
 documents:
@@ -73,13 +73,14 @@ documents:
   - prototype/web/banner-management-modal-no-jump.html
   - prototype/web/banner-management-modal-no-jump.png
   - prototype/web/banner-management-modal-no-jump-context.md
-expected_openspec_change: add-banner-management```
+expected_openspec_change: add-banner-management
+```
 
 ## 变更记录
 
-| 2026-06-28 19:23:08 | lifecycle-stage-migrate | review → archive（backfill opsx-archive hook (sprint-003)） |
 | 日期 | 动作 | 说明 |
 |---|---|---|
+| 2026-06-28 19:23:08 | lifecycle-stage-migrate | review → archive（backfill opsx-archive hook (sprint-003)） |
 | 2026-06-28 15:40:00 | `/sprint-apply` | add-banner-management 实现完成；openspec status → applied |
 | 2026-06-28 11:25:53 | `/req-opsx` | 创建 OpenSpec `add-banner-management`；status proposed |
 | 2026-06-28 11:18:03 | `/sprint-propose` | 纳入 sprint-003；status → in_sprint |
@@ -102,7 +103,8 @@ expected_openspec_change: add-banner-management```
 | BUG-0036-banner-modal-datetime-picker | medium | done | fix-banner-admin-ui | Banner弹窗有效期DateTime选择器无法选择时分秒 |
 | BUG-0039-banner-list-display-position-column | medium | done | fix-banner-list-and-modal-ui | Banner列表第一列标题与展示位置挤在同一列 |
 | BUG-0040-banner-modal-width-too-narrow | medium | done | fix-banner-list-and-modal-ui | Banner弹窗宽度偏小未对齐SKU弹窗 |
-| BUG-0048-banner-modal-width-css-cascade-overridden | medium | done | fix-banner-modal-width-css-cascade | Banner弹窗880px样式被modal-card全局规则层叠覆盖 |
+| BUG-0048-banner-modal-width-css-cascade-overridden | medium | done | fix-banner-list-and-modal-ui | Banner弹窗880px样式被modal-card全局规则层叠覆盖 |
+| BUG-0080-admin-banner-image-preview-cropped | medium | done | fix-admin-banner-image-preview-cropped | 管理端 Banner 列表和弹窗中 Banner 图片显示不全 |
 
 ## 视觉验收 Trace（PNG 并排）
 

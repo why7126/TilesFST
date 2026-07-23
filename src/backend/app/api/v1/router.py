@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     admin_banners,
     admin_brands,
+    admin_dashboard,
     admin_profile,
     admin_tile_categories,
     admin_tile_skus,
@@ -35,6 +36,11 @@ api_router.include_router(
     tags=["admin-system-settings"],
 )
 api_router.include_router(admin_api_docs.router, prefix="/admin/api-docs", tags=["admin-api-docs"])
+api_router.include_router(
+    admin_dashboard.router,
+    prefix="/admin/dashboard",
+    tags=["admin-dashboard"],
+)
 api_router.include_router(admin_logs.router, prefix="/admin/logs", tags=["admin-logs"])
 api_router.include_router(usage_events.router, prefix="/usage-events", tags=["usage-events"])
 api_router.include_router(admin_brands.router, prefix="/admin/brands", tags=["admin-brands"])

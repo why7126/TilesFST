@@ -36,6 +36,7 @@
     linear-gradient(135deg, var(--admin-page), var(--admin-deep));
   color: var(--admin-text);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .admin-shell[data-sidebar-state='collapsed'] {
@@ -510,6 +511,7 @@
 
 .admin-shell .main-content {
   min-width: 0;
+  width: 100%;
   height: 100vh;
   padding: 24px 24px 48px;
   overflow: auto;
@@ -597,6 +599,40 @@
   margin-top: 10px;
   color: var(--admin-weak);
   font-size: 11px;
+}
+
+.admin-shell .metric-card.is-loading .metric-value,
+.admin-shell .metric-card.is-loading .metric-desc {
+  color: var(--admin-muted);
+}
+
+.admin-shell .metrics-state {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-danger) 44%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-danger) 10%, transparent);
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.admin-shell .metrics-retry {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 0.5px solid var(--admin-gold-border);
+  border-radius: 2px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-shell .metrics-retry:hover {
+  border-color: var(--admin-gold-border-strong);
 }
 
 .admin-shell .quick-grid {
@@ -748,7 +784,9 @@
     position: relative;
     width: 100%;
     height: auto;
+    max-height: 100vh;
     padding: 22px 20px;
+    overflow: auto;
   }
 
   .admin-shell .sidebar-head {
@@ -759,7 +797,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    overflow: visible;
+    overflow: auto;
   }
 
   .admin-shell .sidebar-user {
@@ -768,7 +806,9 @@
 
   .admin-shell .main-content {
     height: auto;
+    min-height: 0;
     padding: 20px 16px 40px;
+    overflow-x: hidden;
   }
 
   .admin-shell .metric-grid,
@@ -778,17 +818,51 @@
 }
 
 @media (max-width: 639px) {
+  .admin-shell .sidebar {
+    padding: 18px 12px;
+  }
+
+  .admin-shell .brand-block {
+    grid-template-columns: 36px minmax(0, 1fr);
+    padding-right: 0;
+  }
+
+  .admin-shell .sidebar-brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-shell .brand-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .admin-shell .brand-subtitle {
+    white-space: normal;
+  }
+
+  .admin-shell .nav-scroll {
+    grid-template-columns: 1fr;
+    max-height: 48vh;
+  }
+
   .admin-shell .metric-grid,
   .admin-shell .quick-grid {
     grid-template-columns: 1fr;
   }
 
-  .admin-shell th:nth-child(4),
-  .admin-shell td:nth-child(4) {
-    display: none;
-  }
-
   .admin-shell .main-content {
     padding: 16px 12px 32px;
+  }
+
+  .admin-shell .admin-toast-region {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+  }
+
+  .admin-shell .admin-toast {
+    width: 100%;
+    max-width: none;
   }
 }

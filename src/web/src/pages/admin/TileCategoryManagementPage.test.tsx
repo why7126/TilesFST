@@ -76,6 +76,19 @@ const disabledDeletableCategory = {
   updated_at: '2026-06-02T00:00:00Z',
 };
 
+const childCategory = {
+  id: 3,
+  name: '二级类目',
+  code: 'CAT-CHILD',
+  path: '父级类目 / 二级类目',
+  level: 2,
+  sort_order: 3,
+  sku_count: 1,
+  status: 'ENABLED' as const,
+  parent_id: 1,
+  updated_at: '2026-06-03T00:00:00Z',
+};
+
 function mockListResponse(items: typeof enabledCategory[], total: number) {
   fetchCategoriesMock.mockResolvedValue({
     items,
@@ -221,5 +234,21 @@ describe('TileCategoryManagementPage', () => {
       expect(screen.getByText(/共 2 个类目/)).toBeInTheDocument();
     });
     expect(screen.getByText('每页显示')).toBeInTheDocument();
+  });
+
+  it('shows only category code on the second line of the name column', async () => {
+    mockListResponse([enabledCategory, childCategory], 2);
+
+    render(<TileCategoryManagementPage />);
+
+    await waitFor(() => {
+      expect(fetchCategoriesMock).toHaveBeenCalled();
+    });
+
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('启用类目')).toBeInTheDocument();
+    expect(within(table).getByText('EN')).toBeInTheDocument();
+    expect(within(table).getByText('CAT-CHILD')).toBeInTheDocument();
+    expect(within(table).queryByText('父级类目 / 二级类目')).not.toBeInTheDocument();
   });
 });

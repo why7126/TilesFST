@@ -22,6 +22,7 @@ class BasicSettingsPatch(BaseModel):
 class MediaSettingsPatch(BaseModel):
     max_image_size_mb: int | None = None
     max_video_size_mb: int | None = None
+    max_file_size_mb: int | None = None
     allowed_image_types: str | None = None
     allowed_video_types: str | None = None
 
@@ -79,6 +80,7 @@ class MediaSettingsData(BaseModel):
 
     max_image_size_mb: int
     max_video_size_mb: int
+    max_file_size_mb: int
     allowed_image_types: str
     allowed_video_types: str
     minio_bucket: str

@@ -196,6 +196,13 @@ class CategoryCodeDuplicatedError(AppError):
         super().__init__(status_code=409, code=30021, message=message)
 
 
+class CategoryNameDuplicatedError(AppError):
+    def __init__(self, message: str = "同一层级下已存在同名类目") -> None:
+        from app.core.error_codes import CATEGORY_NAME_DUPLICATED
+
+        super().__init__(status_code=409, code=CATEGORY_NAME_DUPLICATED, message=message)
+
+
 class CategoryDeleteForbiddenError(AppError):
     def __init__(self, message: str = "仅允许删除未绑定SKU且已停用的类目") -> None:
         super().__init__(status_code=409, code=30022, message=message)

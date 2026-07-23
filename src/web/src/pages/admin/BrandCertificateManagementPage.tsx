@@ -13,6 +13,7 @@ import {
   uploadBrandCertificateFile,
 } from '@/features/admin/api/brand-certificates-api';
 import { fetchBrands } from '@/features/admin/api/brands-api';
+import { fetchSettingsGroup } from '@/features/admin/api/system-settings-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
 import {
   CertificateFileCard,
@@ -29,6 +30,10 @@ import {
   certificateTypeLabel,
   formatCertificateDateTime,
 } from '@/features/admin/lib/brand-certificate-display';
+import {
+  DEFAULT_MEDIA_UPLOAD_SETTINGS,
+  mediaUploadSettingsFromResponse,
+} from '@/features/admin/lib/media-upload-settings';
 import { AdminListPage } from '@/shared/templates';
 import type {
   BrandAdminItem,
@@ -169,6 +174,7 @@ function CertificateFormModal({
   certificate,
   brands,
   initialBrandId,
+  maxFileSizeMb,
   onClose,
   onSuccess,
 }: {
@@ -177,6 +183,7 @@ function CertificateFormModal({
   certificate: BrandCertificateItem | null;
   brands: BrandAdminItem[];
   initialBrandId: string;
+  maxFileSizeMb: number;
   onClose: () => void;
   onSuccess: (message: string) => void;
 }) {
@@ -416,6 +423,7 @@ function CertificateFormModal({
                 state={uploadState}
                 progress={uploadProgress}
                 error={uploadError}
+                maxFileSizeMb={maxFileSizeMb}
                 onRemove={() => updateForm({ file: null })}
                 onSelectFile={(selectedFile) => void handleFileChange(selectedFile)}
               />
@@ -578,6 +586,9 @@ export function BrandCertificateManagementPage() {
   const [pageSize, setPageSize] = useState(Number(searchParams.get('page_size') ?? '20') || 20);
   const [data, setData] = useState<BrandCertificateListData | null>(null);
   const [brands, setBrands] = useState<BrandAdminItem[]>([]);
+  const [maxFileSizeMb, setMaxFileSizeMb] = useState(
+    DEFAULT_MEDIA_UPLOAD_SETTINGS.maxFileSizeMb,
+  );
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -634,6 +645,14 @@ export function BrandCertificateManagementPage() {
 
   useEffect(() => {
     void fetchBrands({ page: 1, page_size: 100 }).then((result) => setBrands(result.items));
+  }, []);
+
+  useEffect(() => {
+    void fetchSettingsGroup('media')
+      .then((settings) => {
+        setMaxFileSizeMb(mediaUploadSettingsFromResponse(settings).maxFileSizeMb);
+      })
+      .catch(() => setMaxFileSizeMb(DEFAULT_MEDIA_UPLOAD_SETTINGS.maxFileSizeMb));
   }, []);
 
   useEffect(() => {
@@ -959,6 +978,7 @@ export function BrandCertificateManagementPage() {
             certificate={editingCertificate}
             brands={brands}
             initialBrandId={brandId}
+            maxFileSizeMb={maxFileSizeMb}
             onClose={() => setFormOpen(false)}
             onSuccess={(message) => {
               setNotice(message);

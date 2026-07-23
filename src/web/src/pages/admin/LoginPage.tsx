@@ -5,6 +5,7 @@ import { LoginForm } from '../../features/auth/components/LoginForm';
 import { LoginFormPanel } from '../../features/auth/components/LoginFormPanel';
 import { LoginHeader } from '../../features/auth/components/LoginHeader';
 import { LoginSecurityNotice } from '../../features/auth/components/LoginSecurityNotice';
+import { LanguageSwitcher } from '../../features/auth/components/LanguageSwitcher';
 import '../../features/auth/styles/login-page.css';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { ThemeSwitcher } from '../../features/theme/ThemeSwitcher';
@@ -21,10 +22,11 @@ export function LoginPage() {
     <main className="login-shell">
       <AuthBrandPanel />
       <LoginFormPanel>
+        <div className="login-tools" aria-label="登录页辅助工具">
+          <ThemeSwitcher compact />
+          <LanguageSwitcher />
+        </div>
         <div className="login-card">
-          <div className="login-theme-row">
-            <ThemeSwitcher compact />
-          </div>
           <LoginHeader />
           <LoginForm onSuccess={() => navigate('/admin/dashboard', { replace: true })} />
           <LoginSecurityNotice />

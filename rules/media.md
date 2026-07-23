@@ -3,6 +3,8 @@ purpose: 图片与视频媒体资产管理规范
 content: 瓷砖图片、视频、封面、转码、上传、MinIO存储、前端展示和安全限制
 source: AI自动生成初稿，项目团队确认
 update_method: 新增媒体类型、视频转码、封面生成、上传限制、对象存储策略时更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-07-21 13:44:26
 note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 ---
 
@@ -27,7 +29,7 @@ note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 项目默认存储桶：
 
 ```text
-MINIO_BUCKET=tile-info-platform
+MINIO_BUCKET=tilesfst
 ```
 
 推荐对象前缀：

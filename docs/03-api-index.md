@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-20 22:51:30
+updated_at: 2026-07-21 00:00:00
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -100,6 +100,7 @@ Authorization: Bearer <access_token>
 | 管理端用户 | `/api/v1/admin/users` | 是（仅 admin） | 用户 CRUD、状态、重置密码 | ✓ Sprint 002 |
 | 管理端系统设置 | `/api/v1/admin/system-settings` | 是（仅 admin） | 分组配置 GET/PATCH/reset、审计 recent | ✓ Sprint 003 |
 | 管理端接口文档 | `/api/v1/admin/api-docs` | 是（仅 admin） | 运行时接口目录、OpenAPI/Swagger/Orval 映射、非 `/api/v1` 路由清单 | ✓ Sprint 004 |
+| 管理端 Dashboard | `/api/v1/admin/dashboard` | 是（admin/employee） | 首页数据概览：SKU、品牌、Banner、用户指标 | ✓ Sprint 010 |
 | 管理端日志审计 | `/api/v1/admin/logs` | 是（仅 admin） | API 请求日志、产品行为事件、审计操作统一查询与详情 | ✓ Sprint 004 |
 | 产品行为事件 | `/api/v1/usage-events` | 可选登录 | 前端上报人为定义的产品使用埋点事件 | ✓ Sprint 004 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
@@ -213,7 +214,7 @@ OpenSpec：`openspec/changes/add-system-settings/`
 | POST | `/api/v1/admin/system-settings/{group}/reset` | Bearer（admin） |
 | GET | `/api/v1/admin/system-settings/audit/recent` | Bearer（admin） |
 
-`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组含只读 `minio_bucket`、`object_key_rule`。
+`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组可写 `max_image_size_mb`、`max_video_size_mb`、`max_file_size_mb`、`allowed_image_types`、`allowed_video_types`，并含只读 `minio_bucket`、`object_key_rule`。
 
 ### 3.4.2 管理端接口文档（Sprint 004）
 
@@ -254,6 +255,24 @@ Swagger Web 代理与生产只读 checklist：
 - Vite dev proxy、Docker Web Nginx 与生产反向代理策略需要在相关 Change 的 design、acceptance 或 trace 中记录；生产不可验证时记录具体 N/A 原因。
 - 生产或生产等价环境可展示 Swagger 文档，但 `Try It Out` 必须由后端环境策略禁用、隐藏或保持只读，不得只依赖前端文案。
 - Swagger 链接、hash、query、localStorage 新键、页面文案与验收记录不得包含 Bearer Token、JWT Secret、数据库 DSN、MinIO 凭据或真实环境变量值。
+
+### 3.4.2a 管理端 Dashboard（Sprint 010 / BUG-0079）
+
+实现：`src/backend/app/api/v1/admin_dashboard.py`  
+OpenSpec：`openspec/changes/fix-admin-dashboard-overview-real-data/`
+
+| 方法 | 路径 | 认证 |
+|---|---|---|
+| GET | `/api/v1/admin/dashboard/summary` | Bearer（admin/employee） |
+
+响应 `data` 为 `AdminDashboardSummary`，包含 `sku_total`、`brand_total`、`banner_total`、`user_total` 四个指标。每个指标结构为 `{ value, description, visible }`。
+
+- `sku_total` 统计 `tiles` 当前记录数。
+- `brand_total` 统计 `brands` 当前记录数。
+- `banner_total` 统计当前有效 Banner：状态在线、在展示时间窗口内，且展示端与位置合法。
+- `user_total` 仅 `admin` 返回真实用户数；`employee` 返回 `visible=false`，前端以隐藏态展示，避免越权泄露。
+
+前端页面：`/admin/dashboard` 数据概览区使用 Orval 方法 `getAdminDashboardSummaryApiV1AdminDashboardSummaryGet`，不得再引用 `dashboardMetrics` mock 数据；请求失败时展示错误态与重试入口。
 
 ### 3.4.3 管理端日志审计（Sprint 004 / REQ-0024）
 
@@ -515,7 +534,7 @@ OpenSpec：`openspec/changes/add-tile-category-management/`
 | DELETE | `/api/v1/admin/tile-categories/{id}` | Bearer（admin/employee） |
 
 列表参数：`page`、`page_size`（10/20/50）、`keyword`、`status`、`level`（仅 1/2）、`parent_id`（含子孙扁平分页）。
-树节点 `sku_count` 为含子级汇总；列表行 `sku_count` 为当前节点直接绑定数。管理端类目最多允许创建二级类目；`POST /api/v1/admin/tile-categories` 若 `parent_id` 指向二级类目，返回 `422 / code=30023`。
+树节点 `sku_count` 为含子级汇总；列表行 `sku_count` 为当前节点直接绑定数。管理端类目最多允许创建二级类目；`POST /api/v1/admin/tile-categories` 请求不再要求或信任客户端提交 `code`，后端创建时自动生成 `CAT-` 前缀唯一编码并在响应对象中返回。类目名称创建 / 更新时最多 10 个字符，仅允许中文、英文、数字；同一 `parent_id` 下名称重复返回 `409 / code=30024`。若 `parent_id` 指向二级类目，返回 `422 / code=30023`。
 
 ### 3.7 管理端瓷砖 SKU（Sprint 002）
 
@@ -691,22 +710,20 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 ```json
 {
   "code": 40021,
-  "message": "新密码至少需要 12 位字符；新密码需要包含特殊字符",
+  "message": "新密码至少需要 5 位字符；新密码需要包含英文字符",
   "data": {
-    "violations": ["min_length", "missing_special"],
+    "violations": ["min_length", "missing_letter"],
     "policy": {
-      "min_length": 12,
+      "min_length": 5,
       "max_length": 32,
-      "require_uppercase": true,
-      "require_lowercase": true,
-      "require_digit": true,
-      "require_special": true
+      "require_letter": true,
+      "require_digit": true
     }
   }
 }
 ```
 
-`violations` 稳定枚举：`min_length`、`max_length`、`missing_uppercase`、`missing_lowercase`、`missing_digit`、`missing_special`。响应不得包含明文密码。
+`violations` 稳定枚举：`min_length`、`max_length`、`missing_letter`、`missing_digit`。响应不得包含明文密码。
 
 ---
 

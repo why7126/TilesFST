@@ -239,6 +239,130 @@ def test_aggregate_sprint_normalizes_requirement_coverage_aliases() -> None:
     assert snapshot["source_data_files"] == ["~/.codex/sessions/2026/07/14/session.jsonl"]
 
 
+def test_aggregate_sprint_includes_scope_records_without_sprint_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-999",
+                "requirements:",
+                "  - REQ-0999-scope-only",
+                "bugs:",
+                "  - BUG-0999-scope-only",
+                "changes:",
+                "  - fix-scope-only",
+            ]
+        )
+        + "\n"
+    )
+    monkeypatch.chdir(tmp_path)
+
+    snapshot = ai_usage.aggregate_sprint(
+        [
+            {
+                "turn_hash": "req-capture",
+                "sprint_id": None,
+                "workflow_event": "req.capture",
+                "requirements": ["REQ-0999-scope-only"],
+                "bugs": [],
+                "changes": [],
+                "total_tokens": 11,
+                "input_tokens": 7,
+                "output_tokens": 4,
+                "model_call_count": 1,
+            },
+            {
+                "turn_hash": "bug-capture",
+                "sprint_id": None,
+                "workflow_event": "bug.capture",
+                "requirements": [],
+                "bugs": ["BUG-0999-scope-only"],
+                "changes": [],
+                "total_tokens": 13,
+                "input_tokens": 9,
+                "output_tokens": 4,
+                "model_call_count": 2,
+            },
+            {
+                "turn_hash": "apply",
+                "sprint_id": None,
+                "workflow_event": "opsx.apply",
+                "requirements": [],
+                "bugs": [],
+                "changes": ["fix-scope-only"],
+                "total_tokens": 17,
+                "input_tokens": 15,
+                "output_tokens": 2,
+                "model_call_count": 3,
+            },
+        ],
+        "sprint-999",
+    )
+
+    assert snapshot["totals"]["command_run_count"] == 3
+    assert snapshot["by_workflow_event"]["req.capture"]["total_tokens"] == 11
+    assert snapshot["by_workflow_event"]["bug.capture"]["total_tokens"] == 13
+    matrix_rows = {row["object_id"]: row for row in snapshot["usage_matrices"]["rows"]}
+    assert matrix_rows["Total"]["metrics"]["total_tokens"]["REQ-Capture"] == 11
+    assert matrix_rows["Total"]["metrics"]["total_tokens"]["BUG-Capture"] == 13
+    assert matrix_rows["Total"]["metrics"]["total_tokens"]["Opsx-Apply"] == 17
+    assert matrix_rows["REQ-0999-scope-only"]["metrics"]["total_tokens"]["REQ-Capture"] == 11
+    assert matrix_rows["BUG-0999-scope-only"]["metrics"]["total_tokens"]["BUG-Capture"] == 13
+
+
+def test_aggregate_sprint_merges_short_issue_alias_with_unique_snapshot_alias(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-999",
+                "requirements: []",
+                "bugs:",
+                "  - BUG-0999-canonical",
+                "changes: []",
+            ]
+        )
+        + "\n"
+    )
+    monkeypatch.chdir(tmp_path)
+
+    snapshot = ai_usage.aggregate_sprint(
+        [
+            {
+                "turn_hash": "short",
+                "sprint_id": "sprint-999",
+                "workflow_event": "bug.generate",
+                "requirements": [],
+                "bugs": ["BUG-0999"],
+                "changes": [],
+                "total_tokens": 7,
+                "model_call_count": 1,
+            },
+            {
+                "turn_hash": "full",
+                "sprint_id": "sprint-999",
+                "workflow_event": "bug.complete",
+                "requirements": [],
+                "bugs": ["BUG-0999-canonical"],
+                "changes": [],
+                "total_tokens": 11,
+                "model_call_count": 2,
+            },
+        ],
+        "sprint-999",
+    )
+
+    assert snapshot["coverage"]["bugs"] == ["BUG-0999-canonical"]
+    matrix_rows = {row["object_id"]: row for row in snapshot["usage_matrices"]["rows"]}
+    assert "BUG-0999" not in matrix_rows
+    assert matrix_rows["BUG-0999-canonical"]["metrics"]["total_tokens"]["BUG-Generate"] == 7
+    assert matrix_rows["BUG-0999-canonical"]["metrics"]["total_tokens"]["BUG-Complete"] == 11
+
+
 def test_aggregate_sprint_groups_model_metadata() -> None:
     snapshot = ai_usage.aggregate_sprint(
         [
@@ -458,6 +582,7 @@ def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Pat
                 "changes": ["add-demo"],
             },
             "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 12},
+            "usage_matrices": {"metrics": ["total_tokens"], "columns": [], "rows": []},
             "warnings": [],
         },
     )
@@ -714,9 +839,25 @@ def test_post_command_hook_auto_discovers_session_by_workflow_context(tmp_path: 
     assert str(tmp_path) not in json.dumps(summary)
 
 
-def test_post_command_hook_merges_multiple_target_runs_from_same_session(tmp_path: Path) -> None:
+def test_post_command_hook_merges_multiple_target_runs_from_same_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     session = tmp_path / "session.jsonl"
     out_dir = tmp_path / "ai-usage"
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-007"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-007",
+                "requirements:",
+                "  - REQ-0038-brand-certificate-management",
+                "bugs: []",
+                "changes:",
+                "  - add-brand-certificate-management",
+            ]
+        )
+        + "\n"
+    )
+    monkeypatch.chdir(tmp_path)
     write_jsonl(
         session,
         [
@@ -751,8 +892,8 @@ def test_post_command_hook_merges_multiple_target_runs_from_same_session(tmp_pat
     snapshot = json.loads((out_dir / "sprints" / "sprint-007.json").read_text())
 
     assert events == ["req.opsx", "sprint.propose"]
-    assert snapshot["totals"]["command_run_count"] == 1
-    assert snapshot["totals"]["total_tokens"] == 34
+    assert snapshot["totals"]["command_run_count"] == 2
+    assert snapshot["totals"]["total_tokens"] == 55
 
 
 def test_post_command_hook_warns_on_malformed_or_missing_token_count(tmp_path: Path) -> None:

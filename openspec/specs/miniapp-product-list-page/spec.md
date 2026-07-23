@@ -66,39 +66,47 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 页面 SHALL NOT 清空已有可浏览内容。
 
 ### Requirement: 商品卡片
-商品列表页 SHALL 使用统一商品卡片展示用户选砖所需的公开 SKU 信息，并支持进入 SKU 详情页。商品列表页双列卡片 SHALL 参照首页热销推荐展示主图、商品名称、品牌或规格信息、参考价格和状态徽标；SKU 编码 MAY 在空间允许时展示，但不得挤压主图、名称、品牌/规格和价格。
+
+商品列表页 SHALL 使用统一商品卡片展示用户选砖所需的公开 SKU 信息，并支持进入 SKU 详情页。商品列表页双列卡片 SHALL 参照首页热销推荐展示主图、商品名称、品牌或规格信息、参考价格和状态徽标；SKU 编码 SHALL NOT 在小程序/店主端商品卡片中展示。
 
 #### Scenario: 商品卡片字段
+
 - **WHEN** 商品列表接口返回 SKU 数据
 - **THEN** 商品卡片 SHALL 展示主图、商品名称、品牌或规格信息、参考价格和状态徽标
-- **AND** 商品卡片 MAY 展示 SKU 编码、分类名称或适用空间等辅助信息
+- **AND** 商品卡片 SHALL NOT 展示 SKU 编码、`sku_code` 字段名、内部编号或等价内部识别字段
 - **AND** 辅助信息 SHALL NOT 挤压商品名称、主图、品牌或规格信息、参考价格和状态徽标。
 
 #### Scenario: 图片稳定展示
+
 - **WHEN** 商品主图加载中或加载完成
 - **THEN** 商品图片区域 SHALL 使用稳定比例
 - **AND** 加载前后 SHALL NOT 导致列表明显跳动。
 
 #### Scenario: 图片加载失败
+
 - **WHEN** 商品主图加载失败
 - **THEN** 商品卡片 SHALL 展示统一占位图或占位背景
 - **AND** 页面 SHALL NOT 展示破图图标
 - **AND** 其他商品信息 SHALL 保持可浏览。
 
 #### Scenario: 商品卡片进入详情
+
 - **WHEN** 用户点击商品卡片任意主要区域
 - **THEN** 小程序 SHALL 携带 `skuId` 进入 SKU 详情页
 - **AND** 目标不可达时 SHALL 展示可恢复提示
 - **AND** 页面 SHALL 保留返回能力。
 
 #### Scenario: 卡片不提供交易操作
+
 - **WHEN** 团队验收商品列表卡片
 - **THEN** 商品卡片 SHALL NOT 展示收藏、加入询价、购物车、立即购买、在线下单或联系商家快捷按钮。
 
 ### Requirement: 商品列表公开数据接口
-系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。
+
+系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。响应 MAY 保留 SKU 编码作为内部兼容字段，但公开商品列表 UI SHALL NOT 渲染该编码。
 
 #### Scenario: 商品列表查询参数
+
 - **WHEN** 小程序请求商品列表
 - **THEN** 请求 SHALL 支持 `categoryId`、`categoryLevel`、`keyword`、`brandId`、`spec`、`priceRange`、`sort`、`page` 和 `pageSize` 中适用参数
 - **AND** `categoryLevel` 有值时 SHALL 仅允许 `primary` 或 `secondary`
@@ -106,6 +114,7 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 非法参数 SHALL 返回统一错误或可恢复空状态所需信息。
 
 #### Scenario: 一级分类聚合查询
+
 - **WHEN** 商品列表请求携带 `categoryId={primaryCategoryId}` 且 `categoryLevel=primary`
 - **THEN** 服务端 SHALL 查询该一级分类下所有启用二级分类关联的可公开 SKU
 - **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
@@ -113,21 +122,26 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
 
 #### Scenario: 二级分类精确查询
+
 - **WHEN** 商品列表请求携带 `categoryId={secondaryCategoryId}` 且 `categoryLevel=secondary`
 - **THEN** 服务端 SHALL 仅查询该二级分类关联的可公开 SKU
 - **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
 - **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
 
 #### Scenario: 商品列表响应字段
+
 - **WHEN** 商品列表请求成功
 - **THEN** 响应 SHALL 返回商品列表、分页信息、是否有更多数据和可用筛选项
-- **AND** 每个商品 SHALL 至少包含公开 `skuId`、商品名称、SKU 编码、品牌、规格、参考价格和安全主图 URL。
+- **AND** 每个商品 SHALL 至少包含公开 `skuId`、商品名称、品牌、规格、参考价格和安全主图 URL
+- **AND** 响应 MAY 包含 `sku_code` 作为兼容字段，但公开端 UI SHALL NOT 展示该字段。
 
 #### Scenario: 公开字段过滤
+
 - **WHEN** 服务端返回商品列表数据
 - **THEN** 响应 SHALL NOT 暴露后台内部字段、库存管理、内部备注、未授权素材、原始 object key、Authorization header、Cookie 或敏感配置。
 
 #### Scenario: 不可公开 SKU 过滤
+
 - **WHEN** SKU、品牌、分类或规格处于不可公开、停用、下架或删除状态
 - **THEN** 商品列表 SHALL 过滤相关 SKU
 - **AND** 页面 SHALL NOT 展示不可公开商品。
@@ -198,4 +212,33 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **WHEN** 团队验收 REQ-0056 商品列表页收敛
 - **THEN** 微信小程序搜索页 SHALL 继续保留自身搜索、筛选、结果展示和相关埋点能力
 - **AND** 商品列表页的控件移除 SHALL NOT 删除或破坏搜索页代码路径。
+
+### Requirement: 商品列表页微信分享
+商品列表页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前搜索、分类、品牌和榜单上下文。
+
+#### Scenario: 商品列表分享给微信朋友
+- **WHEN** 用户在商品列表页触发微信朋友分享
+- **THEN** 小程序 SHALL 返回微信原生分享对象
+- **AND** 分享标题 SHALL 反映当前搜索、分类、品牌、榜单或全部商品语义
+- **AND** 分享路径 SHALL 指向商品列表页并保留可恢复当前列表的白名单 query 参数
+- **AND** 白名单参数 SHOULD 包含 `categoryId`、`categoryLevel`、`categoryName`、`brandId`、`keyword`、`section` 和 `sourcePage` 中适用字段。
+
+#### Scenario: 商品列表分享到朋友圈
+- **WHEN** 用户在商品列表页触发分享到朋友圈
+- **THEN** 小程序 SHALL 返回朋友圈分享配置
+- **AND** 点击朋友圈入口后 SHALL 进入商品列表页
+- **AND** 页面标题、筛选结果、空状态和错误态 SHALL 与分享参数语义一致
+- **AND** 缺失可选参数时 SHALL 降级为可浏览列表或明确错误态，不得白屏。
+
+#### Scenario: 商品列表分享参数编码
+- **WHEN** 商品列表分享路径包含中文分类名、品牌名或搜索词
+- **THEN** 小程序 SHALL 对 query 参数进行安全编码
+- **AND** 被分享用户打开页面后 SHALL 正确解码并恢复列表语义
+- **AND** 分享路径 SHALL NOT 包含 raw payload、Authorization header、Cookie、手机号、raw object key 或未授权素材路径。
+
+#### Scenario: 商品列表分享埋点非阻断
+- **WHEN** 商品列表页记录分享行为
+- **THEN** 事件 SHOULD 包含页面路径、分享渠道、分类、品牌、关键词、榜单和结果上下文中的可用字段
+- **AND** 埋点失败 SHALL NOT 阻断分享
+- **AND** 分享行为 SHALL NOT 影响下拉刷新、加载更多、商品卡片点击或错误重试。
 

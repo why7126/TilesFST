@@ -70,9 +70,9 @@ describe('ChangePasswordModal', () => {
     fireEvent.change(screen.getByLabelText(/确认新密码/), { target: { value: 'short' } });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
-    expect(await screen.findByText(/新密码至少需要 12 位字符/)).toBeInTheDocument();
+    expect(await screen.findByText(/新密码需要包含数字/)).toBeInTheDocument();
     expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toHaveTextContent(
-      '新密码至少需要 12 位字符',
+      '新密码需要包含数字',
     );
     expect(fieldContainer('pwd-old')?.querySelector('.error-text')).toBeNull();
     expect(changePasswordMock).not.toHaveBeenCalled();
@@ -187,15 +187,16 @@ describe('ChangePasswordModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('renders effective default policy rules instead of the legacy static rule', () => {
+  it('renders the simplified password policy rules without legacy complexity hints', () => {
     renderModal();
-    expect(screen.getByText('至少 12 位字符')).toBeInTheDocument();
-    expect(screen.getByText('包含大写字母')).toBeInTheDocument();
-    expect(screen.getByText('包含小写字母')).toBeInTheDocument();
-    expect(screen.getByText('包含数字')).toBeInTheDocument();
-    expect(screen.getByText('包含特殊字符')).toBeInTheDocument();
+    expect(screen.getByText('密码至少需要 5 位')).toBeInTheDocument();
+    expect(screen.getByText('密码至多 32 位')).toBeInTheDocument();
+    expect(screen.getByText('密码需包含英文字符')).toBeInTheDocument();
+    expect(screen.getByText('密码需包含数字')).toBeInTheDocument();
     expect(screen.queryByText('8-32 位字符')).not.toBeInTheDocument();
-    expect(screen.queryByText('至少包含字母和数字')).not.toBeInTheDocument();
+    expect(screen.queryByText(/大写字母/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/小写字母/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/特殊字符/)).not.toBeInTheDocument();
   });
 
   it('uses a single password-modal class to avoid modal-card width cascade', () => {
@@ -208,14 +209,12 @@ describe('ChangePasswordModal', () => {
   it('maps API policy violation details to concrete new-password messages', async () => {
     changePasswordMock.mockRejectedValue(
       createApiError(40021, '新密码不符合安全策略', {
-        violations: ['missing_uppercase', 'missing_special'],
+        violations: ['missing_letter', 'missing_digit'],
         policy: {
-          min_length: 12,
+          min_length: 5,
           max_length: 32,
-          require_uppercase: true,
-          require_lowercase: true,
+          require_letter: true,
           require_digit: true,
-          require_special: true,
         },
       }),
     );
@@ -228,9 +227,9 @@ describe('ChangePasswordModal', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
 
-    expect(await screen.findByText(/新密码需要包含大写字母/)).toBeInTheDocument();
+    expect(await screen.findByText(/新密码需要包含英文字符/)).toBeInTheDocument();
     expect(fieldContainer('pwd-new')?.querySelector('.error-text')).toHaveTextContent(
-      '新密码需要包含特殊字符',
+      '新密码需要包含数字',
     );
     expect(fieldContainer('pwd-old')?.querySelector('.error-text')).toBeNull();
   });
@@ -254,12 +253,12 @@ describe('mapPasswordChangeApiError', () => {
       mapPasswordChangeApiError(
         createApiError(40021, '新密码不符合安全策略', {
           violations: ['min_length', 'missing_digit'],
-          policy: { min_length: 12, max_length: 32 },
+          policy: { min_length: 5, max_length: 32 },
         }),
       ),
     ).toEqual({
       oldPasswordError: null,
-      newPasswordError: '新密码至少需要 12 位字符；新密码需要包含数字',
+      newPasswordError: '新密码至少需要 5 位字符；新密码需要包含数字',
     });
   });
 });

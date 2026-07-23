@@ -21,9 +21,22 @@ type ProductListResponse = {
 
 const PAGE_SIZE = 12;
 const CATEGORY_LEVELS = new Set(['primary', 'secondary']);
+const PRODUCT_LIST_SHARE_KEYS = [
+  'categoryId',
+  'categoryLevel',
+  'categoryName',
+  'brandId',
+  'keyword',
+  'section',
+  'sourcePage',
+] as const;
 
 function requestId(): string {
   return `plist-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+}
+
+function encodeShareValue(value: unknown): string {
+  return encodeURIComponent(String(value).slice(0, 80));
 }
 
 Page({
@@ -88,6 +101,24 @@ Page({
 
   onReachBottom() {
     this.loadProducts({ reset: false, eventName: 'product_list_load_more' });
+  },
+
+  onShareAppMessage() {
+    this.trackShare('wechat_friend');
+    return {
+      title: this.shareTitle(),
+      path: `/pages/product-list/index?${this.buildShareQuery()}`,
+      imageUrl: this.data.items[0]?.cover_image || this.data.imageFallback,
+    };
+  },
+
+  onShareTimeline() {
+    this.trackShare('wechat_timeline');
+    return {
+      title: this.shareTitle(),
+      query: this.buildShareQuery(),
+      imageUrl: this.data.items[0]?.cover_image || this.data.imageFallback,
+    };
   },
 
   loadProducts(options: { reset: boolean; eventName?: string }) {
@@ -156,6 +187,34 @@ Page({
       this.data.categoryName && !this.data.categoryId ? `filter_value=${encodeURIComponent(this.data.categoryName)}` : '',
     ];
     return params.filter(Boolean).join('&');
+  },
+
+  buildShareQuery(): string {
+    const values: Record<(typeof PRODUCT_LIST_SHARE_KEYS)[number], string | number> = {
+      categoryId: this.data.categoryId,
+      categoryLevel: this.data.categoryId ? this.data.categoryLevel : '',
+      categoryName: this.data.categoryName,
+      brandId: this.data.brandId,
+      keyword: this.data.keyword,
+      section: this.data.section,
+      sourcePage: 'share',
+    };
+    return PRODUCT_LIST_SHARE_KEYS
+      .map((key) => {
+        const value = values[key];
+        return value ? `${key}=${encodeShareValue(value)}` : '';
+      })
+      .filter(Boolean)
+      .join('&');
+  },
+
+  shareTitle(): string {
+    if (this.data.keyword) return `搜索：${this.data.keyword}`;
+    if (this.data.categoryName) return `${this.data.categoryName}瓷砖`;
+    if (this.data.brandId) return '品牌商品';
+    if (this.data.section === 'new') return '新品榜';
+    if (this.data.section === 'hot') return '热销榜';
+    return '全部商品';
   },
 
   mergeProducts(current: ProductCard[], incoming: ProductCard[]): ProductCard[] {
@@ -235,6 +294,13 @@ Page({
       resultCount: this.data.total,
       requestId: this.data.requestId,
       ...extra,
+    });
+  },
+
+  trackShare(shareChannel: 'wechat_friend' | 'wechat_timeline') {
+    this.trackListEvent('product_list_share_click', {
+      share_channel: shareChannel,
+      share_path: `/pages/product-list/index?${this.buildShareQuery()}`,
     });
   },
 });

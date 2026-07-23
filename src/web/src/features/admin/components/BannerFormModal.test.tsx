@@ -229,4 +229,25 @@ describe('BannerFormModal', () => {
       /\.admin-shell \.banner-display-client-select:disabled\s*\{[^}]*opacity:\s*1;[^}]*line-height:\s*40px;/s,
     );
   });
+
+  it('keeps banner list, modal, and source thumbnails as complete image previews', () => {
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-thumb\s*\{[^}]*width:\s*86px;[^}]*height:\s*38px;[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-thumb img\s*\{[^}]*object-fit:\s*contain;/s,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-upload-preview\s*\{[^}]*height:\s*92px;[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-upload-preview img\s*\{[^}]*object-fit:\s*contain;/s,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-source-thumb\s*\{[^}]*width:\s*46px;[^}]*height:\s*34px;[^}]*display:\s*flex;[^}]*justify-content:\s*center;/s,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-source-thumb img\s*\{[^}]*object-fit:\s*contain;/s,
+    );
+  });
 });

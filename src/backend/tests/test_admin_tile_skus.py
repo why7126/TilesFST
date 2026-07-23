@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
+from app.repositories.tile_sku_repository import TileSkuRepository
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 
@@ -49,7 +50,7 @@ def _create_category(client: TestClient, headers: dict[str, str]) -> int:
     response = client.post(
         "/api/v1/admin/tile-categories",
         headers=headers,
-        json={"name": f"SKU Test Category {suffix}", "code": f"SKU-CAT-{suffix}", "sort_order": 10},
+        json={"name": f"测类{suffix[:4]}", "sort_order": 10},
     )
     assert response.status_code == 200
     return response.json()["data"]["id"]
@@ -73,13 +74,12 @@ def _create_sku_payload(
     brand_id: int,
     category_id: int,
     spec_id: int,
-    sku_code: str = "SKU-TEST-001",
+    sku_code: str | None = None,
     save_mode: str = "create",
 ) -> dict:
-    return {
+    payload = {
         "save_mode": save_mode,
         "name": "Test SKU",
-        "sku_code": sku_code,
         "brand_id": brand_id,
         "category_id": category_id,
         "spec_id": spec_id,
@@ -94,6 +94,9 @@ def _create_sku_payload(
             }
         ],
     }
+    if sku_code is not None:
+        payload["sku_code"] = sku_code
+    return payload
 
 
 def test_create_sku_without_surface_finish(client: TestClient) -> None:
@@ -195,9 +198,29 @@ def test_create_sku_draft_and_create(client: TestClient) -> None:
     )
     assert create_response.status_code == 200
     created = create_response.json()["data"]
-    assert created["sku_code"] == "SKU-TEST-001"
+    assert created["sku_code"].startswith("SKU-")
     assert created["status"] == "DRAFT"
     assert created["has_main_image"] is True
+
+
+def test_create_sku_ignores_manual_sku_code(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    payload = _create_sku_payload(
+        brand_id=brand_id,
+        category_id=category_id,
+        spec_id=spec_id,
+        sku_code="SKU-MANUAL-IGNORED",
+    )
+
+    response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["sku_code"].startswith("SKU-")
+    assert data["sku_code"] != "SKU-MANUAL-IGNORED"
 
 
 def test_create_sku_needs_completion_without_main_image(client: TestClient) -> None:
@@ -214,18 +237,197 @@ def test_create_sku_needs_completion_without_main_image(client: TestClient) -> N
     assert response.json()["data"]["status"] == "NEEDS_COMPLETION"
 
 
-def test_duplicate_sku_code(client: TestClient) -> None:
+def test_generated_sku_code_collision_retries(client: TestClient, monkeypatch) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
     category_id = _create_category(client, headers)
     spec_id = _create_spec(client, headers)
-    payload = _create_sku_payload(
-        brand_id=brand_id, category_id=category_id, spec_id=spec_id, sku_code="SKU-DUPE-001"
+    generated = iter(["SKU-DUPE-001", "SKU-DUPE-001", "SKU-DUPE-RETRY-OK"])
+    monkeypatch.setattr(
+        TileSkuRepository,
+        "generate_sku_code",
+        staticmethod(lambda: next(generated)),
     )
+    payload = _create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id)
     assert client.post("/api/v1/admin/tile-skus", headers=headers, json=payload).status_code == 200
-    response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
-    assert response.status_code == 409
-    assert response.json()["code"] == 30031
+
+    response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(
+            brand_id=brand_id,
+            category_id=category_id,
+            spec_id=spec_id,
+        ),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["sku_code"] == "SKU-DUPE-RETRY-OK"
+
+
+def test_update_sku_keeps_generated_code_stable(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    create_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(
+            brand_id=brand_id,
+            category_id=category_id,
+            spec_id=spec_id,
+        ),
+    )
+    created = create_response.json()["data"]
+
+    update = client.put(
+        f"/api/v1/admin/tile-skus/{created['id']}",
+        headers=headers,
+        json={
+            "name": "Updated Product Name",
+            "sku_code": "SKU-SHOULD-NOT-CHANGE",
+            "brand_id": brand_id,
+            "category_id": category_id,
+            "spec_id": spec_id,
+            "reference_price": created["reference_price"],
+        },
+    )
+
+    assert update.status_code == 200
+    data = update.json()["data"]
+    assert data["name"] == "Updated Product Name"
+    assert data["sku_code"] == created["sku_code"]
+
+
+def test_update_sku_images_removes_missing_images_and_moves_main_first(
+    client: TestClient,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    create_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(
+            brand_id=brand_id,
+            category_id=category_id,
+            spec_id=spec_id,
+        ),
+    )
+    created = create_response.json()["data"]
+
+    update = client.put(
+        f"/api/v1/admin/tile-skus/{created['id']}",
+        headers=headers,
+        json={
+            "name": created["name"],
+            "brand_id": brand_id,
+            "category_id": category_id,
+            "spec_id": spec_id,
+            "reference_price": created["reference_price"],
+            "images": [
+                {
+                    "object_key": "tiles/1/images/removed.jpg",
+                    "url": "/media/tiles/1/images/removed.jpg",
+                    "is_main": False,
+                    "sort_order": 0,
+                },
+                {
+                    "object_key": "tiles/1/images/secondary.jpg",
+                    "url": "/media/tiles/1/images/secondary.jpg",
+                    "is_main": False,
+                    "sort_order": 1,
+                },
+                {
+                    "object_key": "tiles/1/images/new-main.jpg",
+                    "url": "/media/tiles/1/images/new-main.jpg",
+                    "is_main": True,
+                    "sort_order": 2,
+                },
+            ],
+        },
+    )
+
+    assert update.status_code == 200
+    images = update.json()["data"]["images"]
+    assert [img["object_key"] for img in images] == [
+        "tiles/1/images/new-main.jpg",
+        "tiles/1/images/removed.jpg",
+        "tiles/1/images/secondary.jpg",
+    ]
+    assert [img["is_main"] for img in images] == [True, False, False]
+    assert [img["sort_order"] for img in images] == [0, 1, 2]
+
+    update_without_removed = client.put(
+        f"/api/v1/admin/tile-skus/{created['id']}",
+        headers=headers,
+        json={
+            "name": created["name"],
+            "brand_id": brand_id,
+            "category_id": category_id,
+            "spec_id": spec_id,
+            "reference_price": created["reference_price"],
+            "images": [
+                {
+                    "object_key": "tiles/1/images/new-main.jpg",
+                    "url": "/media/tiles/1/images/new-main.jpg",
+                    "is_main": True,
+                    "sort_order": 0,
+                },
+                {
+                    "object_key": "tiles/1/images/secondary.jpg",
+                    "url": "/media/tiles/1/images/secondary.jpg",
+                    "is_main": False,
+                    "sort_order": 1,
+                },
+            ],
+        },
+    )
+
+    assert update_without_removed.status_code == 200
+    images = update_without_removed.json()["data"]["images"]
+    assert [img["object_key"] for img in images] == [
+        "tiles/1/images/new-main.jpg",
+        "tiles/1/images/secondary.jpg",
+    ]
+
+
+def test_update_sku_images_accepts_empty_list(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    create_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(
+            brand_id=brand_id,
+            category_id=category_id,
+            spec_id=spec_id,
+        ),
+    )
+    created = create_response.json()["data"]
+
+    update = client.put(
+        f"/api/v1/admin/tile-skus/{created['id']}",
+        headers=headers,
+        json={
+            "name": created["name"],
+            "brand_id": brand_id,
+            "category_id": category_id,
+            "spec_id": spec_id,
+            "reference_price": created["reference_price"],
+            "images": [],
+        },
+    )
+
+    assert update.status_code == 200
+    data = update.json()["data"]
+    assert data["images"] == []
+    assert data["has_main_image"] is False
+    assert data["material_completeness"] == "missing_images"
 
 
 def test_publish_and_unpublish_sku(client: TestClient) -> None:

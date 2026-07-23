@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-07-15 23:57:27
+updated_at: 2026-07-23 08:07:38
 owner: 项目团队
 status: draft
 ---
@@ -331,8 +331,8 @@ services:
   # FastAPI 后端服务
   # 生产环境只连接外部 MySQL 和外部 MinIO，不在本 compose 内启动数据库/对象存储
   backend:
-    image: tilesfst-backend:v0.0.1
-    container_name: tilesfst-backend-prod
+    image: ${TILESFST_BACKEND_IMAGE:?Set TILESFST_BACKEND_IMAGE}
+    container_name: tilesfst-backend
 
     # 后端生产环境变量
     # 敏感信息从同目录 .env 注入，不要直接写死在 compose 中
@@ -342,6 +342,8 @@ services:
 
       # 应用密钥：生产必须替换为强随机值
       APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-120}
+      JWT_REMEMBER_ME_EXPIRE_DAYS: ${JWT_REMEMBER_ME_EXPIRE_DAYS:-7}
 
       # 外部 MySQL 8.0+ 连接串
       # 示例：mysql+pymysql://user:password@mysql-host:3306/tilesfst?charset=utf8mb4
@@ -357,22 +359,26 @@ services:
       ADMIN_RESET_PASSWORD_ON_STARTUP: ${ADMIN_RESET_PASSWORD_ON_STARTUP:-false}
 
       # 外部 MinIO / S3 兼容对象存储配置
-      # MINIO_ENDPOINT 示例：minio.example.com:9000；不要包含 http:// 或 https://
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT:?Set external MinIO endpoint}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set external MinIO access key}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set external MinIO secret key}
-      MINIO_SECURE: ${MINIO_SECURE:-true}
-      MINIO_BUCKET: ${MINIO_BUCKET:?Set existing bucket}
+      # OBJECT_STORAGE_ENDPOINT 示例：minio.example.com:9000；不要包含 http:// 或 https://
+      OBJECT_STORAGE_PROVIDER: ${OBJECT_STORAGE_PROVIDER:-s3-compatible}
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?Set external object storage endpoint}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?Set external object storage access key}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?Set external object storage secret key}
+      OBJECT_STORAGE_SECURE: ${OBJECT_STORAGE_SECURE:-true}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?Set existing bucket}
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:-}
+      OBJECT_STORAGE_PATH_STYLE: ${OBJECT_STORAGE_PATH_STYLE:-false}
+      OBJECT_STORAGE_AUTO_CREATE_BUCKET: ${OBJECT_STORAGE_AUTO_CREATE_BUCKET:-false}
 
       # 对象存储前缀：一个 Bucket 内按前缀区分资源类型
-      MINIO_PREFIX_IMAGES: ${MINIO_PREFIX_IMAGES:-images/}
-      MINIO_PREFIX_FILES: ${MINIO_PREFIX_FILES:-files/}
-      MINIO_PREFIX_THUMBNAILS: ${MINIO_PREFIX_THUMBNAILS:-thumbnails/}
-      MINIO_PREFIX_PROCESSED: ${MINIO_PREFIX_PROCESSED:-processed/}
-      MINIO_PREFIX_TEMP: ${MINIO_PREFIX_TEMP:-tmp/}
-      MINIO_PREFIX_VIDEO: ${MINIO_PREFIX_VIDEO:-videos/}
-      MINIO_PREFIX_VIDEO_COVER: ${MINIO_PREFIX_VIDEO_COVER:-videos/covers/}
-      MINIO_PREFIX_VIDEO_TRANSCODED: ${MINIO_PREFIX_VIDEO_TRANSCODED:-videos/transcoded/}
+      OBJECT_STORAGE_PREFIX_IMAGES: ${OBJECT_STORAGE_PREFIX_IMAGES:-images/}
+      OBJECT_STORAGE_PREFIX_FILES: ${OBJECT_STORAGE_PREFIX_FILES:-files/}
+      OBJECT_STORAGE_PREFIX_THUMBNAILS: ${OBJECT_STORAGE_PREFIX_THUMBNAILS:-thumbnails/}
+      OBJECT_STORAGE_PREFIX_PROCESSED: ${OBJECT_STORAGE_PREFIX_PROCESSED:-processed/}
+      OBJECT_STORAGE_PREFIX_TEMP: ${OBJECT_STORAGE_PREFIX_TEMP:-tmp/}
+      OBJECT_STORAGE_PREFIX_VIDEO: ${OBJECT_STORAGE_PREFIX_VIDEO:-videos/}
+      OBJECT_STORAGE_PREFIX_VIDEO_COVER: ${OBJECT_STORAGE_PREFIX_VIDEO_COVER:-videos/covers/}
+      OBJECT_STORAGE_PREFIX_VIDEO_TRANSCODED: ${OBJECT_STORAGE_PREFIX_VIDEO_TRANSCODED:-videos/transcoded/}
 
       # 上传限制；需与 Web 容器 Nginx client_max_body_size 保持兼容
       MAX_IMAGE_SIZE_MB: ${MAX_IMAGE_SIZE_MB:-20}
@@ -392,8 +398,8 @@ services:
   # Web 前端服务
   # Nginx 托管 React 静态资源，并反向代理 /api/ 和 /media/ 到 backend
   web:
-    image: tilesfst-web:v0.0.1
-    container_name: tilesfst-web-prod
+    image: ${TILESFST_WEB_IMAGE:?Set TILESFST_WEB_IMAGE}
+    container_name: tilesfst-web
 
     # 宿主机端口映射
     # 正式生产推荐 HOST_PORT_WEB=127.0.0.1:3000，由宿主机 Nginx 反代访问
@@ -417,9 +423,14 @@ networks:
 在云服务器交付目录中创建 `.env`，不要提交真实 `.env`：
 
 ```env
+TILESFST_BACKEND_IMAGE=tilesfst-backend:v0.0.4
+TILESFST_WEB_IMAGE=tilesfst-web:v0.0.4
+
 APP_ENV=production
 APP_DEBUG=false
 APP_SECRET_KEY=replace-with-strong-random-secret
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=120
+JWT_REMEMBER_ME_EXPIRE_DAYS=7
 
 DATABASE_URL=mysql+pymysql://tiles_user:replace-with-secret@mysql.example.com:3306/tilesfst?charset=utf8mb4
 
@@ -431,7 +442,7 @@ MINIO_ENDPOINT=minio.example.com:9000
 MINIO_ACCESS_KEY=replace-with-external-access-key
 MINIO_SECRET_KEY=replace-with-external-secret-key
 MINIO_SECURE=true
-MINIO_BUCKET=tile-info-platform
+MINIO_BUCKET=tilesfst
 
 MINIO_PREFIX_IMAGES=images/
 MINIO_PREFIX_FILES=files/

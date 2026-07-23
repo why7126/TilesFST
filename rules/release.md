@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-14 19:05:47
+updated_at: 2026-07-21 10:35:42
 ---
 
 # 发布规范
@@ -64,12 +64,18 @@ releases/vX.Y.Z/announcement.mdx
 | 测试 | 按变更范围执行并记录结果 |
 | API / Orval | 涉及 API 变更时，OpenAPI 与 Orval 已同步 |
 | Docker Compose | 涉及部署变更时，Compose 配置与部署文档已同步 |
-| 数据库 | 涉及数据库迁移时，迁移脚本、数据库文档和回滚说明已同步 |
+| 数据库 | 涉及数据库迁移或 schema 影响时，迁移脚本、数据库文档、回滚说明、MySQL schema drift 或目标 MySQL smoke 证据已同步 |
 | 环境变量 | 涉及环境变量时，`.env.example` 与相邻注释已同步 |
 | 产品版本 | `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 与发布对象版本一致；如不更新，必须记录原因 |
 | Mintlify | 公告 build / preview 或等价校验通过 |
 
 任一必填门禁失败时，发布流程 MUST 阻断，并输出失败原因与修复建议。
+
+数据库影响不允许只记录 SQLite、本地测试或文档同步证据。`impact_scope.database` 非 `none` / `na` / `不涉及` 时，`database_migration` 门禁 MUST 为 `pass`，且 evidence MUST 明确包含：
+
+- MySQL 或 `schema.mysql.sql` 目标路径证据。
+- `scripts/check-mysql-schema-drift.py`、目标 MySQL smoke、`information_schema` 校验或等价证据。
+- 数据库回滚或备份证据。
 
 ## 发布命令族
 

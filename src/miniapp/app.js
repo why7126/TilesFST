@@ -1,3 +1,5 @@
+const { miniappApiConfig } = require('./utils/env');
+
 App({
   onLaunch() {
     try {
@@ -8,7 +10,8 @@ App({
   },
 
   globalData: {
-    apiBaseUrl: 'http://127.0.0.1:8010',
-    apiFallbackBaseUrls: ['http://localhost:8010', 'http://localhost:8000'],
+    environment: miniappApiConfig.environment,
+    apiBaseUrl: miniappApiConfig.apiBaseUrl,
+    apiFallbackBaseUrls: miniappApiConfig.apiFallbackBaseUrls,
   },
 });

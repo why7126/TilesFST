@@ -176,6 +176,7 @@ export function CertificateFileCard({
   error,
   onSelectFile,
   onRemove,
+  maxFileSizeMb = 25,
 }: {
   file: CertificateFileLike | null;
   state: CertificateFileCardState;
@@ -183,6 +184,7 @@ export function CertificateFileCard({
   error?: string | null;
   onSelectFile: (file: File) => void;
   onRemove: () => void;
+  maxFileSizeMb?: number;
 }) {
   const isUploading = state === 'uploading';
   const normalizedProgress = Math.min(100, Math.max(0, Math.round(progress)));
@@ -208,7 +210,7 @@ export function CertificateFileCard({
         <span className="certificate-file-meta">
           <span className="user-main">{file ? file.file_name : '未上传证书文件'}</span>
           <span className="user-sub">
-            {file?.file_size_bytes ? `${Math.ceil(file.file_size_bytes / 1024)} KB` : '支持 JPG / PNG / WebP / PDF，单文件最大 20MB'}
+            {file?.file_size_bytes ? `${Math.ceil(file.file_size_bytes / 1024)} KB` : `支持 JPG / PNG / WebP / PDF，单文件最大 ${maxFileSizeMb}MB`}
           </span>
           {isUploading ? (
             <span className="brand-logo-status">

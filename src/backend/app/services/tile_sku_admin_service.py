@@ -25,6 +25,7 @@ from app.schemas.tile_sku_admin import (
 )
 
 VALID_PAGE_SIZES = frozenset({10, 20, 50, 100})
+SKU_CODE_GENERATION_ATTEMPTS = 5
 
 
 def _video_url(object_key: str) -> str:
@@ -59,7 +60,7 @@ class TileSkuAdminService:
                     "object_key": img.object_key.strip(),
                     "url": img.url.strip(),
                     "is_main": img.is_main,
-                    "sort_order": img.sort_order if img.sort_order else idx,
+                    "sort_order": idx,
                 }
             )
         if main_index is None and normalized:
@@ -67,7 +68,12 @@ class TileSkuAdminService:
         elif main_index is not None:
             for i, item in enumerate(normalized):
                 item["is_main"] = i == main_index
-        return normalized
+        main_item = next((item for item in normalized if item["is_main"]), normalized[0])
+        ordered = [main_item, *[item for item in normalized if item is not main_item]]
+        for idx, item in enumerate(ordered):
+            item["is_main"] = idx == 0
+            item["sort_order"] = idx
+        return ordered
 
     @staticmethod
     def _normalize_videos(videos: list[TileSkuVideoInput]) -> list[dict]:
@@ -107,8 +113,7 @@ class TileSkuAdminService:
     def _resolve_draft_defaults(
         self,
         payload: TileSkuCreateRequest,
-    ) -> tuple[str, int, int, str, str]:
-        sku_code = (payload.sku_code or "").strip() or self._repo.generate_draft_sku_code()
+    ) -> tuple[int, int, str, str]:
         brand_id = payload.brand_id or self._repo.get_first_brand_id()
         category_id = payload.category_id or self._repo.get_first_category_id()
         if brand_id is None:
@@ -117,7 +122,7 @@ class TileSkuAdminService:
             raise AuthInvalidRequestError("请先创建类目后再保存 SKU")
         size = (payload.size or "").strip() or "-"
         surface_finish = (payload.surface_finish or "").strip() or "-"
-        return sku_code, brand_id, category_id, size, surface_finish
+        return brand_id, category_id, size, surface_finish
 
     @staticmethod
     def _validate_reference_price(value: float | None) -> float:
@@ -134,9 +139,7 @@ class TileSkuAdminService:
 
     def _validate_create_fields(self, payload: TileSkuCreateRequest) -> None:
         if not payload.name.strip():
-            raise AuthInvalidRequestError("SKU 名称不能为空")
-        if not (payload.sku_code or "").strip():
-            raise AuthInvalidRequestError("SKU 编码不能为空")
+            raise AuthInvalidRequestError("商品名称不能为空")
         if payload.brand_id is None:
             raise AuthInvalidRequestError("请选择品牌")
         if payload.category_id is None:
@@ -153,6 +156,18 @@ class TileSkuAdminService:
         existing = self._repo.get_by_sku_code(sku_code, exclude_id=exclude_id)
         if existing:
             raise TileSkuCodeDuplicatedError()
+
+    def _generate_unique_sku_code(self) -> str:
+        for _ in range(SKU_CODE_GENERATION_ATTEMPTS):
+            sku_code = self._repo.generate_sku_code()
+            if not self._repo.get_by_sku_code(sku_code):
+                return sku_code
+        raise TileSkuCodeDuplicatedError()
+
+    def _ensure_record_sku_code(self, record: TileSkuRecord) -> TileSkuRecord:
+        if record.sku_code.strip():
+            return record
+        return self._repo.update_sku_code(record.id, self._generate_unique_sku_code())
 
     def to_item(self, record: TileSkuRecord, *, include_media: bool = False) -> TileSkuAdminItem:
         material = self._repo.compute_material_completeness(record)
@@ -250,17 +265,17 @@ class TileSkuAdminService:
     def create_sku(self, payload: TileSkuCreateRequest) -> TileSkuAdminItem:
         name = payload.name.strip()
         if not name:
-            raise AuthInvalidRequestError("SKU 名称不能为空")
+            raise AuthInvalidRequestError("商品名称不能为空")
 
+        sku_code = self._generate_unique_sku_code()
         if payload.save_mode == "create":
             self._validate_create_fields(payload)
-            sku_code = payload.sku_code.strip()  # type: ignore[union-attr]
             brand_id = payload.brand_id  # type: ignore[assignment]
             category_id = payload.category_id  # type: ignore[assignment]
             spec_id, size = self._resolve_spec(payload.spec_id)
             surface_finish = self._normalize_surface_finish(payload.surface_finish)
         else:
-            sku_code, brand_id, category_id, size, surface_finish = self._resolve_draft_defaults(
+            brand_id, category_id, size, surface_finish = self._resolve_draft_defaults(
                 payload
             )
             spec_id = payload.spec_id
@@ -271,7 +286,6 @@ class TileSkuAdminService:
             payload.reference_price if payload.reference_price is not None else 0.0
         )
 
-        self._ensure_unique_sku_code(sku_code)
         images = self._normalize_images(payload.images)
         videos = self._normalize_videos(payload.videos)
         has_main = any(img["is_main"] for img in images)
@@ -302,9 +316,10 @@ class TileSkuAdminService:
         record = self._repo.get_by_id(tile_id)
         if record is None:
             raise TileSkuNotFoundError()
+        record = self._ensure_record_sku_code(record)
 
         name = payload.name.strip() if payload.name is not None else record.name
-        sku_code = payload.sku_code.strip() if payload.sku_code is not None else record.sku_code
+        sku_code = record.sku_code
         brand_id = payload.brand_id if payload.brand_id is not None else record.brand_id
         category_id = (
             payload.category_id if payload.category_id is not None else record.category_id
@@ -325,17 +340,13 @@ class TileSkuAdminService:
         )
 
         if not name:
-            raise AuthInvalidRequestError("SKU 名称不能为空")
-        if not sku_code:
-            raise AuthInvalidRequestError("SKU 编码不能为空")
+            raise AuthInvalidRequestError("商品名称不能为空")
         if not size:
             raise AuthInvalidRequestError("规格尺寸不能为空")
         if not self._repo.brand_exists(brand_id):
             raise AuthInvalidRequestError("所选品牌不存在")
         if not self._repo.category_exists(category_id):
             raise AuthInvalidRequestError("所选类目不存在")
-
-        self._ensure_unique_sku_code(sku_code, exclude_id=tile_id)
 
         reference_price = self._validate_reference_price(
             payload.reference_price
@@ -388,6 +399,7 @@ class TileSkuAdminService:
         record = self._repo.get_by_id(tile_id)
         if record is None:
             raise TileSkuNotFoundError()
+        record = self._ensure_record_sku_code(record)
         if not record.has_main_image:
             raise TileSkuPublishForbiddenError("缺少主图，无法上架")
         if not record.name.strip() or not record.sku_code.strip():
@@ -396,8 +408,6 @@ class TileSkuAdminService:
             raise TileSkuPublishForbiddenError("规格尺寸不完整，无法上架")
         if record.spec_id is None:
             raise TileSkuPublishForbiddenError("请先选择瓷砖规格后再上架")
-        if record.sku_code.startswith("DRAFT-"):
-            raise TileSkuPublishForbiddenError("请先完善 SKU 编码后再上架")
         updated = self._repo.update_status(tile_id, "PUBLISHED")
         return self.to_item(updated)
 

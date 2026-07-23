@@ -44,9 +44,10 @@ const basicPayload = {
 const mediaPayload = {
   max_image_size_mb: 20,
   max_video_size_mb: 500,
+  max_file_size_mb: 25,
   allowed_image_types: 'image/jpeg,image/png,image/webp',
   allowed_video_types: 'video/mp4',
-  minio_bucket: 'tile-info-platform',
+  minio_bucket: 'tilesfst',
   object_key_rule: '{prefix}/{tenant}/{resource_type}/{uuid}.{ext}',
 };
 
@@ -174,6 +175,7 @@ describe('SystemSettingsPage', () => {
       expect(screen.getByText('对象存储策略')).toBeInTheDocument();
     });
     expect(fetchSettingsGroupMock).toHaveBeenCalledWith('media');
+    expect(screen.getByText('文档最大尺寸 (MB)')).toBeInTheDocument();
     for (const label of ['JPG', 'PNG', 'WebP', 'GIF', 'SVG', 'BMP', 'TIFF', 'HEIC']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.db.migrations import apply_migrations
+from app.db.mysql_migrations import apply_mysql_compat_migrations
 
 _engine: Engine | None = None
 _SessionLocal: sessionmaker[Session] | None = None
@@ -59,7 +60,9 @@ def _resolve_database_url() -> str:
                 f"APP_ENV=production requires a MySQL DATABASE_URL, got {safe_url}."
             )
         return settings.database_url
-    return settings.database_url or settings.sqlite_database_url
+    if not settings.database_url:
+        raise DatabaseConfigurationError("DATABASE_URL is required.")
+    return settings.database_url
 
 
 def _database_backend(database_url: str) -> str:
@@ -147,6 +150,7 @@ def _init_mysql_schema(connection) -> None:
         """,
         (MYSQL_BASELINE_VERSION,),
     )
+    apply_mysql_compat_migrations(connection)
 
 
 def reset_engine() -> None:

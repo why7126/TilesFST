@@ -235,19 +235,47 @@ html:has(.login-shell) body {
     var(--login-page);
 }
 
-.login-shell .language {
+.login-shell .login-tools {
   position: absolute;
   right: 72px;
   top: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  max-width: min(420px, calc(100% - 144px));
+  z-index: 2;
+}
+
+.login-shell .login-tools .theme-switcher {
+  min-height: 36px;
+}
+
+.login-shell .login-tools .theme-switcher-label {
+  color: var(--login-muted);
+}
+
+.login-shell .login-tools .theme-switcher-select,
+.login-shell .language {
+  height: 36px;
   border: 0.5px solid var(--login-line-strong);
   border-radius: 2px;
-  padding: 9px 12px;
+  background: transparent;
   color: var(--login-muted);
+  font-family: inherit;
+}
+
+.login-shell .login-tools .theme-switcher-select {
+  min-width: 104px;
+  padding-block: 0;
+}
+
+.login-shell .language {
+  padding: 9px 12px;
   font-size: 12px;
   letter-spacing: 0.02em;
-  background: transparent;
   cursor: pointer;
-  font-family: inherit;
+  white-space: nowrap;
 }
 
 .login-shell .language:hover {
@@ -257,12 +285,6 @@ html:has(.login-shell) body {
 .login-shell .login-card {
   width: 100%;
   max-width: 420px;
-}
-
-.login-shell .login-theme-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 24px;
 }
 
 .login-shell .eyebrow {
@@ -496,24 +518,31 @@ html:has(.login-shell) body {
     padding: 32px 24px;
   }
 
-  .login-shell .language {
+  .login-shell .login-tools {
     right: 24px;
     top: 24px;
+    max-width: calc(100% - 48px);
   }
 
   .login-shell .login-card {
     max-width: 520px;
-  }
-
-  .login-shell .login-theme-row {
-    justify-content: flex-start;
   }
 }
 
 @media (max-width: 639px) {
   .login-shell .form-panel {
     align-items: center;
+    flex-direction: column;
     padding: 32px 24px;
+  }
+
+  .login-shell .login-tools {
+    position: static;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto 24px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .login-shell .field-input {

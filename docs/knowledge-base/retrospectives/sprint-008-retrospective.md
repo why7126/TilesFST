@@ -3,7 +3,7 @@ sprint_id: sprint-008
 title: Sprint 008 迭代经验复盘
 status: draft
 created_at: 2026-07-19 15:38:56
-updated_at: 2026-07-19 15:38:56
+updated_at: 2026-07-22 12:13:05
 owner: product
 related_iteration: iterations/archive/sprint-008/
 related_requirements:
@@ -101,53 +101,107 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 | 指标 | 值 | 证据/说明 |
 |------|----|-----------|
-| 精确 token 统计 | 有 | 来源：`data/ai-usage/sprints/sprint-008.json`，由 Fact Sheet 暴露 |
-| AI usage mode | actual | Fact Sheet: `ai_usage_snapshot.ai_usage_mode` |
-| Snapshot status | present | Fact Sheet: `ai_usage_snapshot.snapshot_status` |
-| Command run 数 | 33 | snapshot totals |
-| Model call 数 | 679 | snapshot totals |
-| Tool call 数 | 1345 | snapshot totals |
-| Input tokens | 84,351,510 | snapshot totals |
-| Cached input tokens | 80,639,872 | snapshot totals |
-| Output tokens | 397,060 | snapshot totals |
-| Reasoning output tokens | 38,757 | snapshot totals |
-| Total tokens | 84,791,457 | snapshot totals |
+| 精确 token 统计 | 有 | 来源：`data/ai-usage/sprints/sprint-008.json`，由修复后的 Sprint scope 聚合生成 |
+| AI usage mode | actual | snapshot 字段 `ai_usage_mode` |
+| Snapshot status | present | snapshot 字段 `snapshot_status` |
+| Command run 数 | 95 | snapshot totals |
+| Model call 数 | 1,466 | snapshot totals |
+| Tool call 数 | 2,955 | snapshot totals |
+| Input tokens | 178,529,286 | snapshot totals |
+| Cached input tokens | 170,055,424 | snapshot totals |
+| Output tokens | 876,075 | snapshot totals |
+| Reasoning output tokens | 78,177 | snapshot totals |
+| Total tokens | 179,489,249 | snapshot totals |
 | Retry count | 0 | snapshot totals |
-| 主要输入消耗 | 高 | 10 个 REQ、1 个 BUG、11 个 Change、245 tasks、小程序多页面链路、归档与复盘命令 |
-| 主要输出消耗 | 中 | Workflow Sync、readiness、Fact Sheet、路径残留检查、AI usage hook 与测试摘要 |
-| 重复/浪费来源 | 中 | 连续命令中规则/Skill 读取、Sprint 四件套超过 200 行、归档路径核对、Change tasks 反复状态读取 |
-| 已采用节省策略 | 有 | Fact Sheet 优先、残留检查脚本化、同会话规则摘要复用、只分段读取索引和样例复盘 |
+| 非零命令列 | `BUG-Capture`、`REQ-Capture`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Archive` | 按固定矩阵列统计；`sprint.exps` 等额外事件不进入矩阵列 |
+| 仍为 0 的列 | `Capture`、`BUG-Explore`、`REQ-Explore`、`Opsx-Explore`、`Opsx-Propose`、`Sprint-Explore`、`Sprint-Apply` | 当前 Sprint scope 未匹配到这些固定命令列 |
+| 矩阵外事件 | `req.archive`、`sprint.exps` | 已计入 totals，但不属于当前规范要求的横向列 |
 
-### 高消耗来源
+说明：下列表格按 Sprint scope 聚合，除显式 `sprint_id` 外，也会纳入与本 Sprint 的 REQ、BUG、Change 关联的命令记录；同一需求或 BUG 的短 ID 与完整目录名会在 Sprint 内合并，避免重复行。
 
-| 来源 | 影响 | 证据 | 优化方案 |
-|------|------|------|----------|
-| Sprint 四件套 | high | Fact Sheet 标记 `sprint.md` >= 200 行 | 复盘与关闭默认消费 Fact Sheet；只在 warnings 指向具体文件时分段回读 |
-| OpenSpec changes | high | 11 个 Change，241/245 tasks | 按 Change 分批处理；成功路径只输出计数、状态和 archive path |
-| 小程序多页面链路 | high | 首页、导航、详情、分类、搜索、商品列表均纳入 Sprint | 对共享组件和页面接入建立统一静态测试，减少每页重复验收文字 |
-| 设备/视口验收残留 | medium | 2 个 Change 共 4 个未完成 task | 将手工设备验收结果结构化为单独 evidence 文件，避免在 tasks、acceptance、trace 之间重复描述 |
-| Archive lookup | medium | Fact Sheet 标记 archive lookup 风险 | 通过 `sprint.yaml` 精确解析归档目录；禁止宽泛扫描 `openspec/changes/archive/**` |
-| 规则与 Skill 读取 | medium | Sprint close/exps 都要求读取 AGENTS、rules 与命令 Skill | 同一会话复用已读摘要；仅在文件变化、门禁失败或任务升级时补读 |
-| Workflow Sync 输出 | medium | `sprint.archive` 更新 4 个文件，`--check` 跳过 26 个无差异文件 | 成功路径保持 summary；失败时再用 `--output detail` |
+### 总Token消耗数【total_tokens】
 
-### 对照预算规则
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Total | 0 | 12,396,465 | 3,925,748 | 0 | 0 | 3,538,171 | 1,095,621 | 10,461,701 | 446,019 | 11,341,526 | 643,655 | 31,061,146 | 1,840,212 | 0 | 0 | 59,426,957 | 20,207,655 | 18,603,550 | 0 | 0 | 282,333 |
+| sprint-008 | 0 | 12,396,465 | 3,925,748 | 0 | 0 | 3,538,171 | 1,095,621 | 10,461,701 | 446,019 | 11,341,526 | 643,655 | 31,061,146 | 1,840,212 | 0 | 0 | 59,426,957 | 20,207,655 | 18,603,550 | 0 | 0 | 282,333 |
+| REQ-0039-xl-admin-page-layered-acceptance-template | 0 | 0 | 285,124 | 0 | 0 | 514,956 | 0 | 695,215 | 0 | 1,516,697 | 0 | 2,093,741 | 0 | 0 | 0 | 1,519,560 | 1,026,379 | 1,860,219 | 0 | 0 | 0 |
+| REQ-0040-rule-skill-read-summary-reuse-context-budget | 0 | 0 | 639,196 | 0 | 0 | 357,060 | 0 | 521,730 | 0 | 1,070,010 | 0 | 2,204,579 | 0 | 0 | 0 | 1,752,758 | 1,753,216 | 2,517,586 | 0 | 0 | 0 |
+| REQ-0041-miniapp-home | 0 | 9,997,076 | 0 | 0 | 0 | 351,401 | 0 | 855,429 | 0 | 868,366 | 0 | 3,539,876 | 0 | 0 | 0 | 0 | 1,147,749 | 960,117 | 0 | 0 | 0 |
+| REQ-0042-custom-navigation-bar | 0 | 0 | 438,399 | 0 | 0 | 310,193 | 0 | 2,712,649 | 0 | 989,878 | 0 | 4,938,385 | 0 | 0 | 0 | 2,226,233 | 2,069,542 | 2,987,300 | 0 | 0 | 0 |
+| REQ-0043-miniapp-home-style-optimization | 0 | 0 | 680,003 | 0 | 0 | 1,114,832 | 0 | 2,292,558 | 0 | 663,866 | 0 | 1,926,444 | 0 | 0 | 0 | 5,031,583 | 1,599,002 | 1,378,852 | 0 | 0 | 0 |
+| REQ-0044-miniapp-sku-detail-page | 0 | 0 | 310,992 | 0 | 0 | 0 | 0 | 581,941 | 0 | 988,333 | 0 | 2,975,633 | 0 | 0 | 0 | 14,022,243 | 5,988,517 | 1,088,464 | 0 | 0 | 0 |
+| REQ-0045-category-list-page | 0 | 0 | 350,128 | 0 | 0 | 0 | 0 | 441,268 | 0 | 846,026 | 0 | 3,302,192 | 0 | 0 | 0 | 4,885,774 | 2,843,937 | 850,971 | 0 | 0 | 0 |
+| REQ-0046-search-component-application | 0 | 0 | 343,352 | 0 | 0 | 430,199 | 0 | 385,416 | 0 | 2,160,139 | 0 | 3,226,011 | 0 | 0 | 0 | 16,027,666 | 0 | 1,540,101 | 0 | 0 | 0 |
+| REQ-0047-product-list-common-component-application | 0 | 0 | 299,410 | 0 | 0 | 200,341 | 0 | 1,439,859 | 0 | 1,196,929 | 0 | 4,515,420 | 0 | 0 | 0 | 6,452,010 | 2,862,703 | 2,132,852 | 0 | 0 | 0 |
+| REQ-0048-miniapp-global-custom-navigation-bar | 0 | 0 | 579,144 | 0 | 0 | 259,189 | 0 | 535,636 | 0 | 1,041,282 | 0 | 2,338,865 | 0 | 0 | 0 | 4,185,881 | 916,610 | 860,225 | 0 | 0 | 0 |
+| BUG-0065-miniapp-home-preview-deviation | 0 | 12,396,465 | 0 | 0 | 0 | 0 | 1,095,621 | 0 | 446,019 | 0 | 643,655 | 0 | 1,840,212 | 0 | 0 | 3,323,249 | 459,530 | 1,716,759 | 0 | 0 | 0 |
+| BUG-0066-search-component-prototype-deviation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 7,247,066 | 0 | 0 | 0 | 0 | 0 |
+| BUG-0069-miniapp-sku-detail-carousel-video-not-playable | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 4,837,499 | 1,243,383 | 0 | 0 | 0 | 0 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1,137,683 | 0 | 0 | 0 | 0 |
 
-| 行为 | 结论 | 说明 |
-|------|------|------|
-| Fact Sheet 优先 | 符合 | 本次复盘先运行 `generate-sprint-fact-sheet.py --json`，并基于 `warnings` 和 `token_risks` 决定是否回读 |
-| 搜索排除 | 基本符合 | 未全文读取 `openspec/changes/archive/**`、generated、node_modules、dist；仅按报告修复过两处路径残留 |
-| 分段读取 | 符合 | 只读取 sprint-007 复盘样例、知识库索引和 sprint-008 回链片段 |
-| 大输出处理 | 需继续优化 | Fact Sheet 结构化但仍很长，后续可提供 `--summary` 或 `--fields` 输出 |
-| 精确 token 计量 | 符合 | snapshot 为 actual/present，coverage pass，warning_count 0 |
+### 总输入Token消耗数【input_tokens】
 
-### 优化行动项
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Total | 0 | 12,355,886 | 3,893,637 | 0 | 0 | 3,499,426 | 1,091,618 | 10,375,130 | 440,018 | 11,270,208 | 641,030 | 30,922,092 | 1,833,078 | 0 | 0 | 59,131,731 | 20,144,127 | 18,474,052 | 0 | 0 | 279,103 |
+| sprint-008 | 0 | 12,355,886 | 3,893,637 | 0 | 0 | 3,499,426 | 1,091,618 | 10,375,130 | 440,018 | 11,270,208 | 641,030 | 30,922,092 | 1,833,078 | 0 | 0 | 59,131,731 | 20,144,127 | 18,474,052 | 0 | 0 | 279,103 |
+| REQ-0039-xl-admin-page-layered-acceptance-template | 0 | 0 | 282,246 | 0 | 0 | 509,256 | 0 | 685,576 | 0 | 1,506,282 | 0 | 2,085,806 | 0 | 0 | 0 | 1,507,759 | 1,022,663 | 1,853,634 | 0 | 0 | 0 |
+| REQ-0040-rule-skill-read-summary-reuse-context-budget | 0 | 0 | 633,617 | 0 | 0 | 353,022 | 0 | 516,796 | 0 | 1,066,753 | 0 | 2,195,434 | 0 | 0 | 0 | 1,742,683 | 1,748,608 | 2,504,961 | 0 | 0 | 0 |
+| REQ-0041-miniapp-home | 0 | 9,960,768 | 0 | 0 | 0 | 345,095 | 0 | 846,664 | 0 | 866,068 | 0 | 3,529,640 | 0 | 0 | 0 | 0 | 1,122,270 | 952,610 | 0 | 0 | 0 |
+| REQ-0042-custom-navigation-bar | 0 | 0 | 434,527 | 0 | 0 | 305,932 | 0 | 2,694,727 | 0 | 963,392 | 0 | 4,924,260 | 0 | 0 | 0 | 2,213,943 | 2,066,135 | 2,973,658 | 0 | 0 | 0 |
+| REQ-0043-miniapp-home-style-optimization | 0 | 0 | 677,015 | 0 | 0 | 1,109,222 | 0 | 2,285,735 | 0 | 659,265 | 0 | 1,909,840 | 0 | 0 | 0 | 4,985,036 | 1,596,012 | 1,368,887 | 0 | 0 | 0 |
+| REQ-0044-miniapp-sku-detail-page | 0 | 0 | 307,390 | 0 | 0 | 0 | 0 | 574,908 | 0 | 985,064 | 0 | 2,959,991 | 0 | 0 | 0 | 13,972,523 | 5,977,421 | 1,079,920 | 0 | 0 | 0 |
+| REQ-0045-category-list-page | 0 | 0 | 346,430 | 0 | 0 | 0 | 0 | 435,139 | 0 | 842,341 | 0 | 3,287,373 | 0 | 0 | 0 | 4,859,830 | 2,837,092 | 842,433 | 0 | 0 | 0 |
+| REQ-0046-search-component-application | 0 | 0 | 340,811 | 0 | 0 | 425,532 | 0 | 379,469 | 0 | 2,149,804 | 0 | 3,206,706 | 0 | 0 | 0 | 15,963,372 | 0 | 1,522,993 | 0 | 0 | 0 |
+| REQ-0047-product-list-common-component-application | 0 | 0 | 296,372 | 0 | 0 | 196,415 | 0 | 1,428,575 | 0 | 1,193,192 | 0 | 4,496,959 | 0 | 0 | 0 | 6,418,664 | 2,859,330 | 2,121,256 | 0 | 0 | 0 |
+| REQ-0048-miniapp-global-custom-navigation-bar | 0 | 0 | 575,229 | 0 | 0 | 254,952 | 0 | 527,541 | 0 | 1,038,047 | 0 | 2,326,083 | 0 | 0 | 0 | 4,164,410 | 914,596 | 850,156 | 0 | 0 | 0 |
+| BUG-0065-miniapp-home-preview-deviation | 0 | 12,355,886 | 0 | 0 | 0 | 0 | 1,091,618 | 0 | 440,018 | 0 | 641,030 | 0 | 1,833,078 | 0 | 0 | 3,303,511 | 458,378 | 1,705,860 | 0 | 0 | 0 |
+| BUG-0066-search-component-prototype-deviation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 7,225,187 | 0 | 0 | 0 | 0 | 0 |
+| BUG-0069-miniapp-sku-detail-carousel-video-not-playable | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 4,823,469 | 1,238,215 | 0 | 0 | 0 | 0 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1,135,602 | 0 | 0 | 0 | 0 |
 
-| ID | 优先级 | 描述 | 建议下一步 | 状态 |
-|----|--------|------|------------|------|
-| T-001 | P1 | 为 `generate-sprint-fact-sheet.py` 增加 summary/fields 模式，复盘默认不输出完整 evidence hints | `/opsx-propose` | open |
-| T-002 | P1 | 为小程序 DevTools/真机验收建立可复用 evidence 模板，避免设备验收散落在 tasks 与 acceptance 中 | `/req-capture` | open |
-| T-003 | P2 | 将 force-proceed 关闭自动生成 follow-up Issue 或至少输出标准 capture 文案 | `/opsx-propose` | open |
-| T-004 | P2 | 对 10+ Change Sprint 增加分批 archive/exps 摘要，减少一次性读取 tasks 和 trace 的上下文峰值 | `/opsx-propose` | open |
+### 总输出Token消耗数【output_tokens】
+
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Total | 0 | 40,579 | 32,111 | 0 | 0 | 38,745 | 4,003 | 86,571 | 6,001 | 50,529 | 2,625 | 139,054 | 7,134 | 0 | 0 | 274,437 | 41,430 | 129,498 | 0 | 0 | 3,230 |
+| sprint-008 | 0 | 40,579 | 32,111 | 0 | 0 | 38,745 | 4,003 | 86,571 | 6,001 | 50,529 | 2,625 | 139,054 | 7,134 | 0 | 0 | 274,437 | 41,430 | 129,498 | 0 | 0 | 3,230 |
+| REQ-0039-xl-admin-page-layered-acceptance-template | 0 | 0 | 2,878 | 0 | 0 | 5,700 | 0 | 9,639 | 0 | 10,415 | 0 | 7,935 | 0 | 0 | 0 | 11,801 | 3,716 | 6,585 | 0 | 0 | 0 |
+| REQ-0040-rule-skill-read-summary-reuse-context-budget | 0 | 0 | 5,579 | 0 | 0 | 4,038 | 0 | 4,934 | 0 | 3,257 | 0 | 9,145 | 0 | 0 | 0 | 10,075 | 4,608 | 12,625 | 0 | 0 | 0 |
+| REQ-0041-miniapp-home | 0 | 36,308 | 0 | 0 | 0 | 6,306 | 0 | 8,765 | 0 | 2,298 | 0 | 10,236 | 0 | 0 | 0 | 0 | 3,381 | 7,507 | 0 | 0 | 0 |
+| REQ-0042-custom-navigation-bar | 0 | 0 | 3,872 | 0 | 0 | 4,261 | 0 | 17,922 | 0 | 5,697 | 0 | 14,125 | 0 | 0 | 0 | 12,290 | 3,407 | 13,642 | 0 | 0 | 0 |
+| REQ-0043-miniapp-home-style-optimization | 0 | 0 | 2,988 | 0 | 0 | 5,610 | 0 | 6,823 | 0 | 4,601 | 0 | 16,604 | 0 | 0 | 0 | 25,758 | 2,990 | 9,965 | 0 | 0 | 0 |
+| REQ-0044-miniapp-sku-detail-page | 0 | 0 | 3,602 | 0 | 0 | 0 | 0 | 7,033 | 0 | 3,269 | 0 | 15,642 | 0 | 0 | 0 | 49,720 | 11,096 | 8,544 | 0 | 0 | 0 |
+| REQ-0045-category-list-page | 0 | 0 | 3,698 | 0 | 0 | 0 | 0 | 6,129 | 0 | 3,685 | 0 | 14,819 | 0 | 0 | 0 | 25,944 | 6,845 | 8,538 | 0 | 0 | 0 |
+| REQ-0046-search-component-application | 0 | 0 | 2,541 | 0 | 0 | 4,667 | 0 | 5,947 | 0 | 10,335 | 0 | 19,305 | 0 | 0 | 0 | 64,294 | 0 | 17,108 | 0 | 0 | 0 |
+| REQ-0047-product-list-common-component-application | 0 | 0 | 3,038 | 0 | 0 | 3,926 | 0 | 11,284 | 0 | 3,737 | 0 | 18,461 | 0 | 0 | 0 | 33,346 | 3,373 | 11,596 | 0 | 0 | 0 |
+| REQ-0048-miniapp-global-custom-navigation-bar | 0 | 0 | 3,915 | 0 | 0 | 4,237 | 0 | 8,095 | 0 | 3,235 | 0 | 12,782 | 0 | 0 | 0 | 21,471 | 2,014 | 10,069 | 0 | 0 | 0 |
+| BUG-0065-miniapp-home-preview-deviation | 0 | 40,579 | 0 | 0 | 0 | 0 | 4,003 | 0 | 6,001 | 0 | 2,625 | 0 | 7,134 | 0 | 0 | 19,738 | 1,152 | 10,899 | 0 | 0 | 0 |
+| BUG-0066-search-component-prototype-deviation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 21,879 | 0 | 0 | 0 | 0 | 0 |
+| BUG-0069-miniapp-sku-detail-carousel-video-not-playable | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 14,030 | 5,168 | 0 | 0 | 0 | 0 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 2,081 | 0 | 0 | 0 | 0 |
+
+### 模型调用次数【model_call_count】
+
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Total | 0 | 68 | 85 | 0 | 0 | 40 | 12 | 87 | 4 | 126 | 5 | 182 | 12 | 0 | 0 | 520 | 139 | 143 | 0 | 0 | 6 |
+| sprint-008 | 0 | 68 | 85 | 0 | 0 | 40 | 12 | 87 | 4 | 126 | 5 | 182 | 12 | 0 | 0 | 520 | 139 | 143 | 0 | 0 | 6 |
+| REQ-0039-xl-admin-page-layered-acceptance-template | 0 | 0 | 7 | 0 | 0 | 6 | 0 | 6 | 0 | 20 | 0 | 12 | 0 | 0 | 0 | 25 | 11 | 9 | 0 | 0 | 0 |
+| REQ-0040-rule-skill-read-summary-reuse-context-budget | 0 | 0 | 14 | 0 | 0 | 4 | 0 | 5 | 0 | 9 | 0 | 15 | 0 | 0 | 0 | 25 | 15 | 14 | 0 | 0 | 0 |
+| REQ-0041-miniapp-home | 0 | 57 | 0 | 0 | 0 | 4 | 0 | 7 | 0 | 5 | 0 | 17 | 0 | 0 | 0 | 0 | 13 | 11 | 0 | 0 | 0 |
+| REQ-0042-custom-navigation-bar | 0 | 0 | 10 | 0 | 0 | 4 | 0 | 17 | 0 | 20 | 0 | 31 | 0 | 0 | 0 | 26 | 12 | 25 | 0 | 0 | 0 |
+| REQ-0043-miniapp-home-style-optimization | 0 | 0 | 5 | 0 | 0 | 6 | 0 | 10 | 0 | 13 | 0 | 14 | 0 | 0 | 0 | 27 | 11 | 14 | 0 | 0 | 0 |
+| REQ-0044-miniapp-sku-detail-page | 0 | 0 | 8 | 0 | 0 | 0 | 0 | 7 | 0 | 10 | 0 | 18 | 0 | 0 | 0 | 112 | 44 | 9 | 0 | 0 | 0 |
+| REQ-0045-category-list-page | 0 | 0 | 9 | 0 | 0 | 0 | 0 | 6 | 0 | 9 | 0 | 20 | 0 | 0 | 0 | 44 | 13 | 7 | 0 | 0 | 0 |
+| REQ-0046-search-component-application | 0 | 0 | 9 | 0 | 0 | 8 | 0 | 5 | 0 | 19 | 0 | 18 | 0 | 0 | 0 | 129 | 0 | 12 | 0 | 0 | 0 |
+| REQ-0047-product-list-common-component-application | 0 | 0 | 9 | 0 | 0 | 4 | 0 | 18 | 0 | 12 | 0 | 24 | 0 | 0 | 0 | 53 | 14 | 16 | 0 | 0 | 0 |
+| REQ-0048-miniapp-global-custom-navigation-bar | 0 | 0 | 14 | 0 | 0 | 4 | 0 | 6 | 0 | 9 | 0 | 13 | 0 | 0 | 0 | 41 | 6 | 6 | 0 | 0 | 0 |
+| BUG-0065-miniapp-home-preview-deviation | 0 | 68 | 0 | 0 | 0 | 0 | 12 | 0 | 4 | 0 | 5 | 0 | 12 | 0 | 0 | 38 | 3 | 9 | 0 | 0 | 0 |
+| BUG-0066-search-component-prototype-deviation | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 52 | 0 | 0 | 0 | 0 | 0 |
+| BUG-0069-miniapp-sku-detail-carousel-video-not-playable | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 38 | 19 | 0 | 0 | 0 | 0 |
+| BUG-0070-miniapp-sku-detail-duplicate-brand-button | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 8 | 0 | 0 | 0 | 0 |
 
 ## 3. 需求与设计
 

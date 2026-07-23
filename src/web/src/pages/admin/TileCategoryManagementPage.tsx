@@ -302,9 +302,7 @@ export function TileCategoryManagementPage() {
                     <tr key={category.id}>
                       <td className="admin-sticky-action-cell">
                         <span className="cat-name">{category.name}</span>
-                        <span className="cat-path">
-                          {category.code} / {category.path}
-                        </span>
+                        <span className="cat-path">{category.code}</span>
                       </td>
                       <td>
                         <span className="cat-badge">{categoryLevelLabel(category.level)}</span>

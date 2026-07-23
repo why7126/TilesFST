@@ -20,7 +20,7 @@ SIZE_PATTERN = re.compile(r"^(\d+)\s*[×xX]\s*(\d+)\s*mm$", re.IGNORECASE)
 
 
 def default_db_path(project_root: Path) -> Path:
-    return project_root / "data" / "sqlite" / "tile-info-platform.db"
+    return project_root / "data" / "sqlite" / "tilesfst.db"
 
 
 def ensure_tile_specs_table(conn: sqlite3.Connection) -> None:

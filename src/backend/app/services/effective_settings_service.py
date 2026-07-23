@@ -63,6 +63,7 @@ SETTING_GROUPS: dict[str, list[str]] = {
     "media": [
         "media.max_image_size_mb",
         "media.max_video_size_mb",
+        "media.max_file_size_mb",
         "media.allowed_image_types",
         "media.allowed_video_types",
     ],
@@ -82,7 +83,7 @@ SETTING_GROUPS: dict[str, list[str]] = {
 
 READONLY_FIELDS: dict[str, dict[str, Any]] = {
     "media": {
-        "minio_bucket": settings.minio_bucket,
+        "minio_bucket": settings.effective_object_storage_bucket(),
         "object_key_rule": OBJECT_KEY_RULE_DESCRIPTION,
     },
     "audit": {
@@ -98,6 +99,7 @@ def _env_default(key: str) -> Any | None:
     mapping: dict[str, Callable[[], Any]] = {
         "media.max_image_size_mb": lambda: settings.max_image_size_mb,
         "media.max_video_size_mb": lambda: settings.max_video_size_mb,
+        "media.max_file_size_mb": lambda: settings.max_file_size_mb,
         "media.allowed_image_types": lambda: settings.allowed_image_types,
         "media.allowed_video_types": lambda: settings.allowed_video_types,
         "security.jwt_access_token_expire_minutes": lambda: settings.jwt_access_token_expire_minutes,
@@ -118,12 +120,12 @@ CODE_DEFAULTS: dict[str, Any] = {
     ),
     "basic.show_dashboard_metrics": True,
     "basic.show_maintenance_notice": True,
-    "security.password_min_length": 12,
+    "security.password_min_length": 5,
     "security.password_expiry_days": 0,
-    "security.require_uppercase": True,
-    "security.require_lowercase": True,
+    "security.require_uppercase": False,
+    "security.require_lowercase": False,
     "security.require_digit": True,
-    "security.require_special": True,
+    "security.require_special": False,
     "security.must_change_password_on_first_login": False,
     "security.login_lock_enabled": False,
     "security.login_failure_threshold": 5,
@@ -141,12 +143,12 @@ CODE_DEFAULTS: dict[str, Any] = {
 
 @dataclass(frozen=True)
 class PasswordPolicy:
-    min_length: int = 12
+    min_length: int = 5
     max_length: int = 32
-    require_uppercase: bool = True
-    require_lowercase: bool = True
+    require_uppercase: bool = False
+    require_lowercase: bool = False
     require_digit: bool = True
-    require_special: bool = True
+    require_special: bool = False
 
 
 class EffectiveSettingsService:
@@ -176,13 +178,7 @@ class EffectiveSettingsService:
         return result
 
     def get_password_policy(self) -> PasswordPolicy:
-        return PasswordPolicy(
-            min_length=int(self.get_effective("security.password_min_length")),
-            require_uppercase=bool(self.get_effective("security.require_uppercase")),
-            require_lowercase=bool(self.get_effective("security.require_lowercase")),
-            require_digit=bool(self.get_effective("security.require_digit")),
-            require_special=bool(self.get_effective("security.require_special")),
-        )
+        return PasswordPolicy()
 
     def get_jwt_access_expire_minutes(self) -> int:
         return int(self.get_effective("security.jwt_access_token_expire_minutes"))
@@ -192,6 +188,9 @@ class EffectiveSettingsService:
 
     def max_video_size_mb(self) -> int:
         return int(self.get_effective("media.max_video_size_mb"))
+
+    def max_file_size_mb(self) -> int:
+        return int(self.get_effective("media.max_file_size_mb"))
 
     def allowed_image_type_set(self) -> frozenset[str]:
         raw = str(self.get_effective("media.allowed_image_types"))

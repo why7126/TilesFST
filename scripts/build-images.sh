@@ -82,12 +82,17 @@ assert_platform() {
 
 write_checksum() {
   local file_path="$1"
+  local file_dir
+  local file_name
+  file_dir="$(dirname "${file_path}")"
+  file_name="$(basename "${file_path}")"
+
   if command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 "${file_path}" > "${file_path}.sha256"
+    (cd "${file_dir}" && shasum -a 256 "${file_name}") > "${file_path}.sha256"
     return
   fi
   if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "${file_path}" > "${file_path}.sha256"
+    (cd "${file_dir}" && sha256sum "${file_name}") > "${file_path}.sha256"
     return
   fi
   echo "缺少命令：shasum 或 sha256sum" >&2
@@ -138,11 +143,11 @@ assert_platform "${BACKEND_REF}"
 assert_platform "${WEB_REF}"
 
 echo "验证后端依赖"
-docker run --rm "${BACKEND_REF}" \
+docker run --rm --platform "${IMAGE_BUILD_PLATFORM}" "${BACKEND_REF}" \
   uv run --no-sync python -c "import fastapi, sqlalchemy, pymysql, minio; print('backend deps ok')"
 
 echo "验证 Web Nginx 配置"
-docker run --rm "${WEB_REF}" nginx -t
+docker run --rm --platform "${IMAGE_BUILD_PLATFORM}" --add-host backend:127.0.0.1 "${WEB_REF}" nginx -t
 
 if [[ "${IMAGE_BUILD_EXPORT_TAR}" == "true" ]]; then
   mkdir -p "$(dirname "${TAR_PATH}")"

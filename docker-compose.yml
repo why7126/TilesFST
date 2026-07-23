@@ -1,15 +1,15 @@
 # 本地开发 / 演示 Docker Compose 编排。
 # 维护要求：新增或修改 service、environment、ports、volumes、networks 时，必须同步补充注释并更新 .env.example。
 services:
-  # FastAPI 后端服务，负责 API、认证、媒体元数据与受控 MinIO 读取。
+  # FastAPI 后端服务，负责 API、认证、媒体元数据与受控对象存储读取。
   backend:
     # 后端镜像构建上下文限定在 src/backend。
     build:
       context: ./src/backend
       dockerfile: Dockerfile
     # 固定容器名便于本地 docker logs / exec 调试。
-    container_name: tile-info-platform-backend
-    # 根目录 .env 提供本地端口、数据库、MinIO 与管理员初始化配置。
+    container_name: tilesfst-backend
+    # 根目录 .env 提供本地端口、数据库、对象存储与管理员初始化配置。
     env_file:
       - .env
     # 宿主机端口可通过 HOST_PORT_BACKEND 覆盖；容器内 FastAPI 固定 8000。
@@ -20,12 +20,9 @@ services:
       - ./data/sqlite:/app/data/sqlite
       - ./data/processed:/app/data/processed
       - ./data/tmp:/app/data/tmp
-    # 后端启动依赖 MinIO 服务可解析；业务侧仍需处理对象存储短暂不可用。
-    depends_on:
-      - minio
     # 所有服务加入同一个 bridge 网络，使用 service name 互访。
     networks:
-      - tile-info-platform
+      - tilesfst
 
   # React Web 展示端 / 管理端，容器内由 Nginx 托管静态资源并反代 API。
   web:
@@ -34,7 +31,7 @@ services:
       context: .
       dockerfile: src/web/Dockerfile
     # 固定容器名便于本地访问与排障。
-    container_name: tile-info-platform-web
+    container_name: tilesfst-web
     # 读取 HOST_PORT_WEB 等前端/部署变量；构建期变量仍由 Dockerfile 控制。
     env_file:
       - .env
@@ -45,19 +42,22 @@ services:
     depends_on:
       - backend
     networks:
-      - tile-info-platform
+      - tilesfst
 
   # MinIO 对象存储，本地开发用于图片、视频、文档等媒体资产。
   minio:
+    # 仅在明确使用本地自建对象存储时启动；云上 COS/TOS 等场景不启用该 profile。
+    profiles:
+      - self-hosted-storage
     # 本地 demo 使用官方最新镜像；生产部署应评估固定版本标签。
     image: minio/minio:latest
-    container_name: tile-info-platform-minio
+    container_name: tilesfst-minio
     # /data 为对象数据目录，9001 为控制台端口。
     command: server /data --console-address ":9001"
-    # MinIO root 账号从 .env 读取；默认值仅允许本地开发使用。
+    # MinIO root 账号从对象存储示例密钥读取；默认值仅允许本地开发使用。
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_ROOT_USER: ${OBJECT_STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${OBJECT_STORAGE_SECRET_KEY:-minioadmin}
     # API 与 Console 宿主机端口均可通过 .env 覆盖，容器内端口保持固定。
     ports:
       - "${HOST_PORT_MINIO_API:-9000}:9000"
@@ -66,32 +66,35 @@ services:
     volumes:
       - ./data/minio:/data
     networks:
-      - tile-info-platform
+      - tilesfst
 
   # MinIO 初始化任务：创建单一项目 Bucket，并关闭匿名访问。
   minio-init:
+    # 仅随本地自建 MinIO profile 启动；云上对象存储由运维提前创建 Bucket。
+    profiles:
+      - self-hosted-storage
     # mc 客户端镜像只执行初始化命令，不承载业务流量。
     image: minio/mc:latest
-    container_name: tile-info-platform-minio-init
+    container_name: tilesfst-minio-init
     # 等待 minio 容器启动后再尝试 alias / bucket 初始化。
     depends_on:
       - minio
-    # 复用 .env 中的 MINIO_ACCESS_KEY、MINIO_SECRET_KEY、MINIO_BUCKET。
+    # 复用 .env 中的 OBJECT_STORAGE_ACCESS_KEY、OBJECT_STORAGE_SECRET_KEY、OBJECT_STORAGE_BUCKET。
     env_file:
       - .env
     # 初始化脚本保持幂等：Bucket 已存在时不报错，并确保匿名访问为 none。
     entrypoint: >
       /bin/sh -c "
       sleep 5;
-      mc alias set local http://minio:9000 $${MINIO_ACCESS_KEY:-minioadmin} $${MINIO_SECRET_KEY:-minioadmin};
-      mc mb --ignore-existing local/$${MINIO_BUCKET:-tile-info-platform};
-      mc anonymous set none local/$${MINIO_BUCKET:-tile-info-platform};
-      echo 'MinIO bucket initialized: '$${MINIO_BUCKET:-tile-info-platform};
+      mc alias set local http://minio:9000 $${OBJECT_STORAGE_ACCESS_KEY:-minioadmin} $${OBJECT_STORAGE_SECRET_KEY:-minioadmin};
+      mc mb --ignore-existing local/$${OBJECT_STORAGE_BUCKET:-tilesfst};
+      mc anonymous set none local/$${OBJECT_STORAGE_BUCKET:-tilesfst};
+      echo 'Object storage bucket initialized: '$${OBJECT_STORAGE_BUCKET:-tilesfst};
       "
     networks:
-      - tile-info-platform
+      - tilesfst
 
 networks:
   # 本地开发 bridge 网络；服务间通过 backend、web、minio 名称互访。
-  tile-info-platform:
+  tilesfst:
     driver: bridge

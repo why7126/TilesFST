@@ -83,7 +83,7 @@
       <view class="empty-title">没有找到“{{normalizedKeyword}}”</view>
       <view class="empty-copy">可以尝试下面的调整方式</view>
       <view class="empty-suggestions">
-        <view>检查 SKU 编码或型号是否完整</view>
+        <view>检查商品名称或型号是否完整</view>
         <view>缩短关键词，只保留品牌、规格或名称</view>
         <view>替换相近品牌、类目或规格重新搜索</view>
       </view>
@@ -151,10 +151,10 @@
                 <text>{{item.card_label}}</text>
               </view>
               <view class="section-card-content">
-                <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || sectionItem.sku_code}}</view>
+                <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || '查看详情'}}</view>
                 <view class="section-card-brand">{{item.card_label}}</view>
                 <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
-                <view class="section-card-price"><text>相关信息</text>{{sectionItem.sku_code || sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+                <view class="section-card-price"><text>相关信息</text>{{sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
               </view>
             </view>
           </block>
@@ -184,10 +184,10 @@
               <text>{{activeDisplaySection.card_label}}</text>
             </view>
             <view class="section-card-content">
-              <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || sectionItem.sku_code}}</view>
+              <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || '查看详情'}}</view>
               <view class="section-card-brand">{{activeDisplaySection.card_label}}</view>
               <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
-              <view class="section-card-price"><text>相关信息</text>{{sectionItem.sku_code || sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+              <view class="section-card-price"><text>相关信息</text>{{sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
             </view>
           </view>
         </block>

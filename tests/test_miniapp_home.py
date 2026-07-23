@@ -1,13 +1,56 @@
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
+from app.services.log_service import EVENT_DEFINITIONS
+from app.repositories.miniapp_home_repository import MiniappHomeRepository
+
 
 def _now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+MINIAPP_DYNAMIC_USAGE_EVENT_SAMPLES = {
+    "brand_products_load",
+    "brand_products_load_more",
+    "certificate_list_load",
+    "certificate_list_refresh",
+    "certificate_list_load_more",
+    "product_list_filter_open",
+    "product_list_filter_apply",
+    "product_list_sort_change",
+    "product_list_refresh",
+    "product_list_load_more",
+    "miniapp_home_new_product_click",
+    "miniapp_home_hot_product_click",
+    "miniapp_home_waterfall_product_click",
+    "miniapp_home_favorite_visual_click",
+}
+
+
+def test_miniapp_new_product_filter_uses_mysql_date_expression() -> None:
+    where, params = MiniappHomeRepository._product_filters(
+        keyword=None,
+        category_id=None,
+        category_level=None,
+        brand_id=None,
+        spec=None,
+        price_min=None,
+        price_max=None,
+        filter_type=None,
+        filter_value=None,
+        only_new=True,
+        dialect_name="mysql",
+    )
+
+    assert "DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)" in where
+    assert "datetime('now', '-90 days')" not in where
+    assert params == {}
 
 
 def _seed_public_catalog(api_client: TestClient) -> None:
@@ -794,6 +837,7 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["product_id"] == 1
     assert data["brand"]["brand_id"] == 1
     assert data["brand"]["brand_logo_url"] == "/media/logos/fst.webp"
+    assert data["brand"]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
     assert data["image_count"] == 2
     assert data["video_count"] == 1
     assert data["media"][0]["media_type"] == "image"
@@ -803,14 +847,14 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["media"][-1]["url"] == "/media/videos/1.mp4"
     assert "original/default" not in response.text
     assert "original-upload-name.mp4" not in response.text
-    assert data["parameters"][0]["label"] == "SKU 编码"
     assert [item["label"] for item in data["parameters"]] == [
-        "SKU 编码",
         "类目",
         "规格",
         "主色系",
         "表面工艺",
     ]
+    assert all(item["label"] != "SKU 编码" for item in data["parameters"])
+    assert "FST-001" not in data["share"]["title"]
     assert data["category_path"] == ["客厅"]
     assert data["favorite"] is False
     assert data["share"]["path"] == "/pages/tile-detail/index?skuId=1&source=share"
@@ -1126,7 +1170,8 @@ def test_miniapp_search_suggestions_exclude_certificates_and_unpublished_items(
     data = response.json()["data"]
     assert data["request_id"] == "req-1"
     assert 1 <= len(data["suggestions"]) <= 8
-    assert any(item["entity_type"] == "sku" and "FST-001" in item["text"] for item in data["suggestions"])
+    assert any(item["entity_type"] == "sku" and item["text"] == "银河灰" for item in data["suggestions"])
+    assert all("FST-" not in item["text"] for item in data["suggestions"])
     assert all(item["entity_type"] in {"sku", "brand"} for item in data["suggestions"])
     assert "FST-DRAFT" not in response.text
     assert "检测证书" not in response.text
@@ -1354,6 +1399,21 @@ def test_miniapp_product_list_usage_events_validate_dictionary_and_forbidden_pro
                 "client_type": "wechat_miniapp",
             },
         ),
+        (
+            "product_list_share_click",
+            {
+                "page_path": "/pages/product-list/index",
+                "sourcePage": "share",
+                "categoryId": "1",
+                "categoryName": "客厅",
+                "categoryLevel": "primary",
+                "keyword": "客厅砖",
+                "share_channel": "wechat_friend",
+                "share_path": "/pages/product-list/index?categoryId=1&categoryLevel=primary&categoryName=%E5%AE%A2%E5%8E%85&keyword=%E5%AE%A2%E5%8E%85%E7%A0%96&sourcePage=share",
+                "requestId": "plist-share",
+                "client_type": "wechat_miniapp",
+            },
+        ),
     ]
 
     for event_name, properties in accepted_events:
@@ -1387,3 +1447,404 @@ def test_miniapp_product_list_usage_events_validate_dictionary_and_forbidden_pro
     )
     assert rejected.status_code == 400
     assert rejected.json()["code"] == 40001
+
+
+def test_miniapp_contract_drift_usage_events_are_registered_and_persisted(
+    api_client: TestClient,
+) -> None:
+    accepted_events = [
+        (
+            "favorite_list_page_view",
+            {
+                "page_path": "/pages/favorites/index",
+                "terminal": "miniapp",
+                "sourcePage": "tabbar",
+                "hasLogin": False,
+                "resultCount": 2,
+                "requestId": "fav-1",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "favorite_list_load_failed",
+            {
+                "page_path": "/pages/favorites/index",
+                "terminal": "miniapp",
+                "sourcePage": "retry",
+                "errorCode": "storage_read_failed",
+                "requestId": "fav-2",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "favorite_list_empty_action_click",
+            {
+                "page_path": "/pages/favorites/index",
+                "terminal": "miniapp",
+                "target": "product_list",
+                "requestId": "fav-3",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "favorite_list_item_click",
+            {
+                "page_path": "/pages/favorites/index",
+                "terminal": "miniapp",
+                "objectType": "sku",
+                "objectId": 1,
+                "index": 0,
+                "sourcePage": "favorites",
+                "hasLogin": False,
+                "resultCount": 2,
+                "requestId": "fav-4",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "favorite_list_remove",
+            {
+                "page_path": "/pages/favorites/index",
+                "terminal": "miniapp",
+                "objectType": "sku",
+                "objectId": 1,
+                "sourcePage": "favorites",
+                "hasLogin": False,
+                "resultCount": 1,
+                "requestId": "fav-5",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_detail_view",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "brandName": "菲尚特",
+                "tab": "products",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 3,
+                "requestId": "brand-1",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_detail_load_failed",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "products",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 0,
+                "requestId": "brand-2",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_detail_tab_click",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "certificates",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 2,
+                "requestId": "brand-3",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_products_load",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "products",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 3,
+                "requestId": "brand-4",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_products_load_more",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "products",
+                "page": 2,
+                "pageSize": 12,
+                "resultCount": 6,
+                "requestId": "brand-5",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_products_load_failed",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "products",
+                "page": 2,
+                "pageSize": 12,
+                "resultCount": 3,
+                "requestId": "brand-6",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_certificates_load",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "certificates",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 2,
+                "requestId": "brand-7",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_certificates_load_failed",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "certificates",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 0,
+                "requestId": "brand-8",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_certificate_click",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "certificates",
+                "certificateId": 2,
+                "index": 0,
+                "requestId": "brand-9",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_detail_share_click",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "share",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "products",
+                "page": 1,
+                "pageSize": 12,
+                "resultCount": 3,
+                "share_channel": "wechat_timeline",
+                "share_path": "/pages/brand-detail/index?brandId=1&source=share",
+                "requestId": "brand-share",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "product_card_exposure",
+            {
+                "page_path": "/components/product-card/index",
+                "skuId": 1,
+                "skuCode": "FST-001",
+                "sourcePage": "home",
+                "sourceModule": "waterfall",
+                "listContext": "首页瀑布流",
+                "index": 0,
+                "requestId": "card-1",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "product_card_click",
+            {
+                "page_path": "/components/product-card/index",
+                "skuId": 1,
+                "skuCode": "FST-001",
+                "sourcePage": "home",
+                "sourceModule": "waterfall",
+                "listContext": "首页瀑布流",
+                "index": 0,
+                "requestId": "card-2",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "product_card_unavailable_click",
+            {
+                "page_path": "/components/product-card/index",
+                "sourcePage": "home",
+                "sourceModule": "waterfall",
+                "listContext": "首页瀑布流",
+                "index": 0,
+                "requestId": "card-3",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "product_card_image_failed",
+            {
+                "page_path": "/components/product-card/index",
+                "skuId": 1,
+                "sourcePage": "home",
+                "sourceModule": "waterfall",
+                "listContext": "首页瀑布流",
+                "index": 0,
+                "requestId": "card-4",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_card_click",
+            {
+                "page_path": "/components/brand-card/index",
+                "brandId": 1,
+                "brandName": "菲尚特",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand-card",
+                "skuId": 1,
+                "listContext": "SKU 品牌入口",
+                "index": 0,
+                "requestId": "brand-card-1",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_card_unavailable_click",
+            {
+                "page_path": "/components/brand-card/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand-card",
+                "listContext": "SKU 品牌入口",
+                "index": 0,
+                "requestId": "brand-card-2",
+                "unavailableReason": "missing_brand_name",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_card_image_failed",
+            {
+                "page_path": "/components/brand-card/index",
+                "brandId": 1,
+                "brandName": "菲尚特",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand-card",
+                "listContext": "SKU 品牌入口",
+                "index": 0,
+                "requestId": "brand-card-3",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+    ]
+
+    for event_name, properties in accepted_events:
+        response = api_client.post(
+            "/api/v1/usage-events",
+            json={
+                "event_name": event_name,
+                "client_type": "wechat_miniapp",
+                "page_path": properties["page_path"],
+                "properties": properties,
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["data"]["accepted"] is True
+
+    from app.db.session import get_session_factory
+
+    session = get_session_factory()()
+    try:
+        persisted = (
+            session.execute(
+                text(
+                    """
+                    SELECT event_name, client_type
+                    FROM usage_events
+                    """
+                )
+            )
+            .mappings()
+            .all()
+        )
+    finally:
+        session.close()
+
+    assert {row["event_name"] for row in persisted} == {
+        event_name for event_name, _properties in accepted_events
+    }
+    assert {row["client_type"] for row in persisted} == {"wechat_miniapp"}
+
+    unknown = api_client.post(
+        "/api/v1/usage-events",
+        json={
+            "event_name": "miniapp_contract_drift_unknown",
+            "client_type": "wechat_miniapp",
+            "page_path": "/pages/favorites/index",
+            "properties": {"page_path": "/pages/favorites/index", "client_type": "wechat_miniapp"},
+        },
+    )
+    assert unknown.status_code == 400
+    assert unknown.json()["code"] == 40001
+
+    forbidden = api_client.post(
+        "/api/v1/usage-events",
+        json={
+            "event_name": "brand_card_click",
+            "client_type": "wechat_miniapp",
+            "page_path": "/components/brand-card/index",
+            "properties": {
+                "page_path": "/components/brand-card/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand-card",
+                "listContext": "SKU 品牌入口",
+                "index": 0,
+                "requestId": "brand-card-4",
+                "client_type": "wechat_miniapp",
+                "raw_object_key": "logos/private.webp",
+            },
+        },
+    )
+    assert forbidden.status_code == 400
+    assert forbidden.json()["code"] == 40001
+
+
+def test_miniapp_track_literal_events_are_registered_in_backend_dictionary() -> None:
+    source_root = Path(__file__).resolve().parents[1] / "src" / "miniapp"
+    literal_events: set[str] = set()
+    pattern = re.compile(
+        r"\b(?:track|trackListEvent|trackDetailEvent|trackCard|trackBrandCard|trackBrandListEvent)"
+        r"\(\s*['\"]([a-zA-Z0-9_]+)['\"]"
+    )
+    for path in source_root.rglob("*.ts"):
+        literal_events.update(pattern.findall(path.read_text()))
+
+    missing = sorted((literal_events | MINIAPP_DYNAMIC_USAGE_EVENT_SAMPLES) - set(EVENT_DEFINITIONS))
+
+    assert missing == []

@@ -1,6 +1,6 @@
 project:
   name: 瓷砖信息管理平台
-  code: tile-info-platform
+  code: tilesfst
   description: 面向瓷砖零售店店主和企业内部员工的瓷砖信息展示、维护、媒体资产管理平台。
 
 users:
@@ -67,7 +67,7 @@ constraints:
 # object storage and ports
 object_storage:
   strategy: single_bucket_with_prefix
-  bucket: tile-info-platform
+  bucket: tilesfst
   prefixes:
     original: original/
     thumbnails: thumbnails/

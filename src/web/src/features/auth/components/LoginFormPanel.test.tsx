@@ -26,7 +26,7 @@ describe('LoginFormPanel', () => {
     expect(screen.queryByText('功能建设中')).not.toBeInTheDocument();
   });
 
-  it('renders language switcher in form panel', () => {
+  it('keeps language switcher out of the form panel layout container', () => {
     render(
       <main className="login-shell">
         <LoginFormPanel>
@@ -34,7 +34,7 @@ describe('LoginFormPanel', () => {
         </LoginFormPanel>
       </main>,
     );
-    expect(screen.getByRole('button', { name: '切换语言' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '切换语言' })).not.toBeInTheDocument();
   });
 
   it('uses port CSS form-panel class', () => {

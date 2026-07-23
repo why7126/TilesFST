@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-07-20 23:09:54
+updated_at: 2026-07-21 22:57:26
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -48,7 +48,8 @@ note: AI新增文件前必须确认目录边界
 - 列表容器统一处理首屏骨架屏、下拉刷新、上拉加载更多、无更多、空状态、错误状态和加载更多失败重试。
 - 商品卡片仅展示主图、SKU 名称、品牌、规格和参考价格；整卡点击进入 SKU 详情页，不提供收藏、询价、购物车、立即购买、在线下单或联系商家快捷按钮。
 - 底部筛选抽屉支持品牌、分类、规格和价格区间，排序支持默认、最新、价格升序和价格降序；筛选或排序变更后重置分页并重新请求第一页。
-- 商品列表埋点通过 `track()` 上报 `product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`；埋点失败不得阻断列表加载、筛选、排序、刷新、加载更多或详情跳转。
+- 商品列表支持微信朋友分享和朋友圈分享，分享路径只保留 `categoryId`、`categoryLevel`、`categoryName`、`brandId`、`keyword`、`section`、`sourcePage` 白名单参数，中文参数必须编码，缺少可选参数时降级为可浏览列表。
+- 商品列表埋点通过 `track()` 上报 `product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`product_list_share_click`；埋点失败不得阻断列表加载、筛选、排序、刷新、加载更多、详情跳转或分享。
 - 本期不包含 Web 管理端商品列表组件、店主 Web 商品列表、后台商品管理列表、购物车、询价、在线下单或收藏能力。
 
 ## 品牌入口页与品牌主页
@@ -60,7 +61,8 @@ note: AI新增文件前必须确认目录边界
 - 后端只返回启用品牌、公开 SKU 和可见证书，不暴露后台备注、审计字段、对象存储原始 key、Authorization header、Cookie 或敏感配置。启用品牌即使商品数为 0，也必须允许进入品牌主页；品牌详情接口返回 `product_count=0`，商品 Tab 展示空态，不得将 0 商品品牌误判为“暂不可查看”。
 - 品牌入口页和品牌主页均使用 `custom-navigation`，需要按 `docs/knowledge-base/best-practices/miniapp-custom-navigation.md` 记录 DevTools 320/375/430 pt evidence；真机不可用时标记 blocked 或 follow_up。
 - 品牌主页 Tab 样式需与搜索结果页“综合 / 品牌”等 Tab 保持一致；证书 Tab 的证书卡片需与 `pages/certificates/index.*` 的证书卡片保持一致。
-- 品牌页埋点通过 `track()` 上报 `brand_list_page_view`、`brand_list_carousel_click`、`brand_list_card_click`、`brand_detail_view`、`brand_detail_tab_click`、`brand_products_load`、`brand_certificates_load` 和 `brand_certificate_click`；埋点失败不得阻断页面加载、Tab 切换、预览或详情跳转。
+- 品牌主页支持微信朋友分享和朋友圈分享，分享路径保留 `brandId` 与 `source=share`，标题优先使用品牌名称，图片优先使用公开品牌 Logo 并降级到本地占位图。
+- 品牌页埋点通过 `track()` 上报 `brand_list_page_view`、`brand_list_carousel_click`、`brand_list_card_click`、`brand_detail_view`、`brand_detail_tab_click`、`brand_products_load`、`brand_certificates_load`、`brand_certificate_click` 和 `brand_detail_share_click`；埋点失败不得阻断页面加载、Tab 切换、预览、详情跳转或分享。
 
 ## 证书列表页
 
@@ -84,7 +86,12 @@ note: AI新增文件前必须确认目录边界
 
 ## 本地调试
 
-- `project.config.json` 与 `project.private.config.json` 均关闭 `urlCheck`，用于本地 HTTP 后端调试。
-- API 基础地址按 `http://127.0.0.1:8010`、`http://localhost:8010`、`http://localhost:8000` 顺序降级探测。
+- 小程序环境配置集中在 `utils/env.*`，通过 `/miniapp-env` 命令族维护，禁止手工只改 `.ts` 或只改 `.js`。
+- `/miniapp-env dev`：所有运行形态使用本地 API，基础地址为 `http://127.0.0.1:8010`，并按 `http://localhost:8010`、`http://localhost:8000` 顺序降级探测。
+- `/miniapp-env prod`：所有运行形态使用生产 API，基础地址固定为 `https://tilesfst.wjoyhappy.site`，不配置本地 fallback。
+- `/miniapp-env auto`：开发版使用本地 API，体验版和正式版使用生产 API；发布后默认恢复到该策略。
+- `/miniapp-env dev` 与 `/miniapp-env auto` 会把 `project.private.config.json` 的 `setting.urlCheck` 设为 `false`，用于本地 HTTP 后端调试；`/miniapp-env prod` 与 `/miniapp-prepare` 会设为 `true`，用于生产域名校验。
+- `/miniapp-check` 检查当前策略、运行入口同步和生产接口；`/miniapp-prepare` 用于上传体验版/提审前切生产、跑静态测试和生产 smoke；`/miniapp-confirm` 记录体验版/正式版验证结论；`/miniapp-restore` 恢复默认策略。
+- `project.config.json` 默认关闭 `urlCheck` 用于本地 HTTP 后端调试；`project.private.config.json` 可在发布验证时打开 `urlCheck`，提交正式版前需在微信公众平台配置生产域名合法域名。
 - 后端代码变更后需重新构建运行镜像，例如 `docker compose up -d --build backend`，否则微信开发者工具可能仍访问到旧接口。
 - 小程序静态与首页聚合回归检查：`uv run pytest tests/test_miniapp_static.py tests/test_miniapp_home.py`。

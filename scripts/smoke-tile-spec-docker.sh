@@ -3,8 +3,16 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WEB_URL="${SMOKE_WEB_URL:-http://localhost:3000}"
-BACKEND_CONTAINER="${SMOKE_BACKEND_CONTAINER:-tile-info-platform-backend}"
+if [[ -f "${ROOT}/.env" ]]; then
+  # shellcheck disable=SC1091
+  set -a
+  # shellcheck source=/dev/null
+  source "${ROOT}/.env"
+  set +a
+fi
+
+WEB_URL="${SMOKE_WEB_URL:-http://localhost:${HOST_PORT_WEB:-3000}}"
+BACKEND_CONTAINER="${SMOKE_BACKEND_CONTAINER:-tilesfst-backend}"
 
 echo "==> Docker tile-spec smoke (web=${WEB_URL})"
 

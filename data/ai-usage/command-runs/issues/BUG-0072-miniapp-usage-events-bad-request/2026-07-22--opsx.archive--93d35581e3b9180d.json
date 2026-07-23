@@ -1,0 +1,45 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "93d35581e3b9180df4daaaa71becd1bc812b63abe9b5431fdcbc145888e6e55e",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T22-47-37-019f8525-8788-7a03-b048-aa326516052a.jsonl",
+      "source_line_start": 315,
+      "source_line_end": 446,
+      "turn_hash": "812fa766336b63d4",
+      "started_at": "2026-07-22T00:44:40.480Z",
+      "ended_at": "2026-07-22T00:48:52.930Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [],
+      "bugs": [
+        "BUG-0072-miniapp-usage-events-bad-request"
+      ],
+      "changes": [
+        "fix-miniapp-usage-events-contract-drift"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 18,
+      "input_tokens": 2792065,
+      "cached_input_tokens": 2631424,
+      "output_tokens": 4125,
+      "reasoning_output_tokens": 595,
+      "total_tokens": 2796190,
+      "tool_call_count": 34,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

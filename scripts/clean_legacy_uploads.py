@@ -31,7 +31,7 @@ def default_project_root() -> Path:
 
 
 def default_db_path(project_root: Path) -> Path:
-    return project_root / "data" / "sqlite" / "tile-info-platform.db"
+    return project_root / "data" / "sqlite" / "tilesfst.db"
 
 
 def default_uploads_root(project_root: Path) -> Path:
@@ -123,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--db-path",
         type=Path,
         default=None,
-        help="SQLite database path (default: data/sqlite/tile-info-platform.db).",
+        help="SQLite database path (default: data/sqlite/tilesfst.db).",
     )
     parser.add_argument(
         "--uploads-root",

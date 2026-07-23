@@ -37,7 +37,7 @@
 
 ### Requirement: 管理端用户创建 API
 
-系统 MUST 提供 `POST /api/v1/admin/users`，仅 `admin` 可调用。请求 MUST 接受 username、可选 display_name、role、可选 avatar_object_key。新用户 status MUST 默认为 `active`。系统 MUST 生成随机初始密码并在响应 `data.initial_password` 中一次性返回明文；数据库 MUST 仅存 bcrypt 哈希。
+系统 MUST 提供 `POST /api/v1/admin/users`，仅 `admin` 可调用。请求 MUST 接受 username、可选 display_name、role、可选 avatar_object_key。新用户 status MUST 默认为 `active`。系统 MUST 生成满足统一基础密码策略（5-32 位、包含 ASCII 英文字符、包含 ASCII 数字）的随机初始密码，并在响应 `data.initial_password` 中一次性返回明文；数据库 MUST 仅存 bcrypt 哈希。
 
 用户名校验失败时，系统 MUST 返回项目统一错误结构 `{ code, message, data }`，MUST NOT 将 FastAPI 默认 422 `detail` 列表作为面向前端用户的唯一错误体。`message` MUST 明确指出用户名字段与具体原因，至少覆盖长度、首字符、字符集、连续特殊符号与保留字。用户名长度不足或超长 SHOULD 返回 HTTP 400 与 `USER_INVALID_USERNAME`；若实现保留 HTTP 422，响应体仍 MUST 符合统一错误结构且包含明确中文 `message`。
 
@@ -46,6 +46,7 @@
 - **WHEN** `admin` 提交合法 username（4–32 位及格式规则）、role 与可选字段
 - **THEN** 系统返回 HTTP 200，包含用户对象与 `initial_password`
 - **AND** 用户 status MUST 为 `active`
+- **AND** `initial_password` MUST 满足 5-32 位、包含英文字符、包含数字
 
 #### Scenario: 用户名重复
 
@@ -106,14 +107,14 @@
 
 ### Requirement: 管理端重置密码 API
 
-系统 MUST 提供 `POST /api/v1/admin/users/{id}/reset-password`，仅 `admin` 可调用。系统 MUST 生成满足 **effective** 密码策略的随机密码（长度与复杂度按 `system_settings` security 分组 merge 默认值）并在响应中一次性返回明文；后续 GET 接口 MUST NOT 再返回该密码。当目标用户为受保护账号时，系统 MUST 返回 HTTP 403 与已登记错误码，MUST NOT 生成新随机明文密码，MUST NOT 更新 `password_hash`。
+系统 MUST 提供 `POST /api/v1/admin/users/{id}/reset-password`，仅 `admin` 可调用。系统 MUST 生成满足统一基础密码策略（5-32 位、包含 ASCII 英文字符、包含 ASCII 数字）的随机密码，并在响应中一次性返回明文；后续 GET 接口 MUST NOT 再返回该密码。当目标用户为受保护账号时，系统 MUST 返回 HTTP 403 与已登记错误码，MUST NOT 生成新随机明文密码，MUST NOT 更新 `password_hash`。
 
 #### Scenario: 重置密码成功
 
 - **WHEN** `admin` 对存在且非 `deleted` 的用户调用重置密码
 - **THEN** 系统返回 HTTP 200，`data.password` 为一次性明文
 - **AND** 用户 password_hash MUST 已更新
-- **AND** 生成密码 MUST 满足 effective 最小长度与复杂度开关
+- **AND** 生成密码 MUST 满足 5-32 位、包含英文字符、包含数字
 
 #### Scenario: 受保护账号禁止重置密码
 

@@ -52,7 +52,6 @@
       <view class="favorite-main">
         <view class="favorite-name">{{item.product_name}}</view>
         <view class="favorite-meta">{{item.brand_name || '品牌待确认'}} · {{item.specification || '规格待补充'}}</view>
-        <view class="favorite-code">{{item.sku_code || 'SKU 待补充'}}</view>
         <view class="favorite-price">{{item.status == 'available' ? item.price_display : '暂不可查看'}}</view>
       </view>
       <button

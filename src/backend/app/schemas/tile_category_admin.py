@@ -47,15 +47,14 @@ class TileCategoryTreeNode(BaseModel):
 
 class TileCategoryCreateRequest(BaseModel):
     parent_id: int | None = None
-    name: str = Field(..., min_length=1, max_length=30)
-    code: str = Field(..., min_length=1, max_length=32)
+    name: str = Field(..., description="最多 10 个字符，仅允许中文、英文和数字")
     sort_order: int
     description: str | None = Field(None, max_length=200)
     status: str = "ENABLED"
 
 
 class TileCategoryUpdateRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=30)
+    name: str = Field(..., description="最多 10 个字符，仅允许中文、英文和数字")
     sort_order: int
     description: str | None = Field(None, max_length=200)
 

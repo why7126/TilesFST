@@ -1,0 +1,45 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "0380d9d09b8232a9018dd3c64d43123097e6e7c30c141d99d34c36726304c456",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T22-46-48-019f8524-c82d-7343-a7e2-a136cbbaf260.jsonl",
+      "source_line_start": 395,
+      "source_line_end": 473,
+      "turn_hash": "a9c7343df3537d62",
+      "started_at": "2026-07-22T00:08:18.323Z",
+      "ended_at": "2026-07-22T00:09:20.337Z",
+      "command": "opsx.archive",
+      "workflow_event": "opsx.archive",
+      "requirements": [
+        "REQ-0063-password-validation-policy-simplification"
+      ],
+      "bugs": [],
+      "changes": [
+        "update-password-validation-policy"
+      ],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 9,
+      "input_tokens": 1414465,
+      "cached_input_tokens": 1249664,
+      "output_tokens": 2261,
+      "reasoning_output_tokens": 212,
+      "total_tokens": 1416726,
+      "tool_call_count": 21,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

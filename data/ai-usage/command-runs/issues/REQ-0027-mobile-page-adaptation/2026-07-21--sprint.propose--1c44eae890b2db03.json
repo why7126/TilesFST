@@ -1,0 +1,43 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "1c44eae890b2db035865a9b409735e9433467910938daea8a92afb9640125206",
+      "source_data_file": "~/.codex/sessions/2026/07/21/rollout-2026-07-21T16-30-42-019f83cc-73b7-7893-8596-3717895c10e0.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 166,
+      "turn_hash": "8f6820d76c3d6ccc",
+      "started_at": "2026-07-21T08:30:51.392Z",
+      "ended_at": "2026-07-21T08:34:54.205Z",
+      "command": "sprint.propose",
+      "workflow_event": "sprint.propose",
+      "requirements": [
+        "REQ-0027-mobile-page-adaptation"
+      ],
+      "bugs": [],
+      "changes": [],
+      "sprint_id": "sprint-010",
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 16,
+      "input_tokens": 1164300,
+      "cached_input_tokens": 1067008,
+      "output_tokens": 11529,
+      "reasoning_output_tokens": 973,
+      "total_tokens": 1175829,
+      "tool_call_count": 38,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Migrate legacy MinIO object keys to REQ-0012 semantic layout.
+"""Migrate legacy object storage keys to REQ-0012 semantic layout.
 
 Backup before apply:
-  - SQLite: cp data/sqlite/tile-info-platform.db data/sqlite/tile-info-platform.db.bak
-  - MinIO: snapshot bucket or export referenced objects
+  - SQLite: cp data/sqlite/tilesfst.db data/sqlite/tilesfst.db.bak
+  - Object storage: snapshot bucket or export referenced objects
 
 Rollback:
   - Restore SQLite backup
-  - Restore MinIO bucket snapshot (or re-run with reversed mapping — not automated)
+  - Restore object storage bucket snapshot (or re-run with reversed mapping — not automated)
 
 Usage:
   python scripts/migrate_object_keys.py --dry-run
@@ -31,21 +31,26 @@ from app.modules.media.key_migration import KeyMigration, collect_migrations  # 
 
 
 def default_db_path(project_root: Path) -> Path:
-    return project_root / "data" / "sqlite" / "tile-info-platform.db"
+    return project_root / "data" / "sqlite" / "tilesfst.db"
 
 
-def _minio_client():
+def _object_storage_client():
     from minio import Minio
 
-    endpoint = os.environ.get("MINIO_ENDPOINT", "localhost:9000")
-    access_key = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
-    secret_key = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
-    secure = os.environ.get("MINIO_SECURE", "false").lower() in {"1", "true", "yes"}
-    bucket = os.environ.get("MINIO_BUCKET", "tile-info-platform")
-    return Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure), bucket
+    endpoint = os.environ.get("OBJECT_STORAGE_ENDPOINT", "localhost:9000")
+    access_key = os.environ.get("OBJECT_STORAGE_ACCESS_KEY", "minioadmin")
+    secret_key = os.environ.get("OBJECT_STORAGE_SECRET_KEY", "minioadmin")
+    secure = os.environ.get("OBJECT_STORAGE_SECURE", "false").lower() in {"1", "true", "yes"}
+    bucket = os.environ.get("OBJECT_STORAGE_BUCKET", "tilesfst")
+    region = os.environ.get("OBJECT_STORAGE_REGION") or None
+    path_style = os.environ.get("OBJECT_STORAGE_PATH_STYLE", "true").lower() in {"1", "true", "yes"}
+    client = Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure, region=region)
+    if not path_style:
+        client._base_url._virtual_style_flag = True
+    return client, bucket
 
 
-def migrate_minio_object(client, bucket: str, old_key: str, new_key: str, *, apply: bool) -> None:
+def migrate_object_storage_object(client, bucket: str, old_key: str, new_key: str, *, apply: bool) -> None:
     from minio.commonconfig import CopySource
 
     try:
@@ -53,7 +58,7 @@ def migrate_minio_object(client, bucket: str, old_key: str, new_key: str, *, app
     except Exception as exc:
         code = getattr(exc, "code", "")
         if code in {"NoSuchKey", "NoSuchObject"}:
-            raise RuntimeError(f"MinIO object missing for DB key: {old_key}") from exc
+            raise RuntimeError(f"Object storage object missing for DB key: {old_key}") from exc
         raise
 
     if not apply:
@@ -94,14 +99,14 @@ def run_migration(db_path: Path, *, apply: bool) -> int:
         print("Dry-run complete; no changes written.")
         return 0
 
-    client, bucket = _minio_client()
+    client, bucket = _object_storage_client()
     seen: set[tuple[str, str]] = set()
     for item in migrations:
         pair = (item.old_key, item.new_key)
         if pair in seen:
             continue
         seen.add(pair)
-        migrate_minio_object(client, bucket, item.old_key, item.new_key, apply=apply)
+        migrate_object_storage_object(client, bucket, item.old_key, item.new_key, apply=apply)
 
     apply_db_updates(db_path, migrations, apply=True)
     print("Migration applied successfully.")
@@ -110,9 +115,9 @@ def run_migration(db_path: Path, *, apply: bool) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Migrate legacy MinIO object keys to REQ-0012 layout.",
+        description="Migrate legacy object storage keys to REQ-0012 layout.",
         epilog=(
-            "Backup SQLite and MinIO before --apply. "
+            "Backup SQLite and object storage before --apply. "
             "Rollback by restoring backups; this script does not auto-reverse."
         ),
     )
@@ -125,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Copy objects in MinIO and update SQLite references",
+        help="Copy objects in object storage and update SQLite references",
     )
     args = parser.parse_args(argv)
 

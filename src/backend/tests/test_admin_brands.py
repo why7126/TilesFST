@@ -230,6 +230,44 @@ def test_upload_tile_video_allows_configured_mime(client: TestClient, monkeypatc
     assert response.json()["data"]["object_key"].endswith(".mov")
 
 
+def test_upload_brand_logo_accepts_23mb_image_when_effective_limit_allows(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    monkeypatch.setattr(settings, "max_image_size_mb", 25)
+    content = b"RIFF\x10\x00\x00\x00WEBPVP8X" + b"x" * (23 * 1024 * 1024)
+
+    response = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.webp", content, "image/webp")},
+    )
+
+    assert response.status_code == 200
+    object_key = response.json()["data"]["object_key"]
+    assert object_key.startswith("images/default/brands/logos/")
+    assert object_key in get_media_storage_client().objects
+
+
+def test_upload_tile_video_accepts_23mb_mp4_with_default_video_limit(
+    client: TestClient,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    content = b"\x00\x00\x00 ftypmp42" + b"x" * (23 * 1024 * 1024)
+
+    response = client.post(
+        "/api/v1/admin/uploads/tile-videos",
+        headers=headers,
+        files={"file": ("tile.mp4", content, "video/mp4")},
+    )
+
+    assert response.status_code == 200
+    object_key = response.json()["data"]["object_key"]
+    assert object_key.startswith("videos/default/tiles/pending/")
+    assert object_key in get_media_storage_client().objects
+
+
 def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     cases = [

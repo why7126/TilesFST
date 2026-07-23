@@ -17,28 +17,22 @@ interface ChangePasswordModalProps {
 interface PasswordPolicy {
   min_length: number;
   max_length: number;
-  require_uppercase: boolean;
-  require_lowercase: boolean;
+  require_letter: boolean;
   require_digit: boolean;
-  require_special: boolean;
 }
 
 const DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
-  min_length: 12,
+  min_length: 5,
   max_length: 32,
-  require_uppercase: true,
-  require_lowercase: true,
+  require_letter: true,
   require_digit: true,
-  require_special: true,
 };
 
 const POLICY_MESSAGES: Record<string, (policy: PasswordPolicy) => string> = {
   min_length: (policy) => `新密码至少需要 ${policy.min_length} 位字符`,
   max_length: (policy) => `新密码不能超过 ${policy.max_length} 位字符`,
-  missing_uppercase: () => '新密码需要包含大写字母',
-  missing_lowercase: () => '新密码需要包含小写字母',
+  missing_letter: () => '新密码需要包含英文字符',
   missing_digit: () => '新密码需要包含数字',
-  missing_special: () => '新密码需要包含特殊字符',
   same_as_old: () => '新密码不能与原密码相同',
   weak: () => '新密码过于常见，请更换',
 };
@@ -62,17 +56,11 @@ function collectPolicyViolations(
   if (newPassword.length > policy.max_length) {
     violations.push('max_length');
   }
-  if (policy.require_uppercase && !/[A-Z]/.test(newPassword)) {
-    violations.push('missing_uppercase');
+  if (policy.require_letter && !/[A-Za-z]/.test(newPassword)) {
+    violations.push('missing_letter');
   }
-  if (policy.require_lowercase && !/[a-z]/.test(newPassword)) {
-    violations.push('missing_lowercase');
-  }
-  if (policy.require_digit && !/\d/.test(newPassword)) {
+  if (policy.require_digit && !/[0-9]/.test(newPassword)) {
     violations.push('missing_digit');
-  }
-  if (policy.require_special && !/[!@#$%^&*\-_=+]/.test(newPassword)) {
-    violations.push('missing_special');
   }
   if (newPassword.length > 0 && newPassword === oldPassword) {
     violations.push('same_as_old');
@@ -206,10 +194,8 @@ export function ChangePasswordModal({
     return {
       minLength: newPassword.length >= policy.min_length,
       maxLength: newPassword.length <= policy.max_length,
-      uppercase: !policy.require_uppercase || /[A-Z]/.test(newPassword),
-      lowercase: !policy.require_lowercase || /[a-z]/.test(newPassword),
-      digit: !policy.require_digit || /\d/.test(newPassword),
-      special: !policy.require_special || /[!@#$%^&*\-_=+]/.test(newPassword),
+      letter: !policy.require_letter || /[A-Za-z]/.test(newPassword),
+      digit: !policy.require_digit || /[0-9]/.test(newPassword),
       different: newPassword.length > 0 && newPassword !== oldPassword,
     };
   }, [newPassword, oldPassword]);
@@ -308,27 +294,19 @@ export function ChangePasswordModal({
           <div className="rule-list" aria-label="密码规则">
             <div className={`rule-item${rules.minLength ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              至少 {DEFAULT_PASSWORD_POLICY.min_length} 位字符
+              密码至少需要 {DEFAULT_PASSWORD_POLICY.min_length} 位
             </div>
             <div className={`rule-item${rules.maxLength ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              不超过 {DEFAULT_PASSWORD_POLICY.max_length} 位字符
+              密码至多 {DEFAULT_PASSWORD_POLICY.max_length} 位
             </div>
-            <div className={`rule-item${rules.uppercase ? ' ok' : ''}`}>
+            <div className={`rule-item${rules.letter ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              包含大写字母
-            </div>
-            <div className={`rule-item${rules.lowercase ? ' ok' : ''}`}>
-              <span className="rule-dot" />
-              包含小写字母
+              密码需包含英文字符
             </div>
             <div className={`rule-item${rules.digit ? ' ok' : ''}`}>
               <span className="rule-dot" />
-              包含数字
-            </div>
-            <div className={`rule-item${rules.special ? ' ok' : ''}`}>
-              <span className="rule-dot" />
-              包含特殊字符
+              密码需包含数字
             </div>
             <div className={`rule-item${rules.different ? ' ok' : ''}`}>
               <span className="rule-dot" />

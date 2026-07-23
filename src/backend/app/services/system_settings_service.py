@@ -157,6 +157,11 @@ class SystemSettingsService:
             if size < 1 or size > 2000:
                 raise AppError(status_code=400, code=40000, message="视频最大尺寸须为 1–2000 MB")
             return size
+        if short_key == "max_file_size_mb":
+            size = int(value)
+            if size < 1 or size > 200:
+                raise AppError(status_code=400, code=40000, message="文档最大尺寸须为 1–200 MB")
+            return size
         if short_key == "allowed_image_types":
             types = self._normalize_mime_list(str(value))
             env_default = str(_env_default("media.allowed_image_types") or "")
@@ -202,8 +207,8 @@ class SystemSettingsService:
     def _validate_security(self, short_key: str, value: Any) -> Any:
         if short_key == "password_min_length":
             length = int(value)
-            if length < 8 or length > 32:
-                raise AppError(status_code=400, code=40000, message="密码最小长度须为 8–32")
+            if length < 5 or length > 32:
+                raise AppError(status_code=400, code=40000, message="密码最小长度须为 5–32")
             return length
         if short_key == "password_expiry_days":
             days = int(value)
