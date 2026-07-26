@@ -4,6 +4,10 @@ const FALLBACK_IMAGE = '/assets/tile-placeholder.png';
 const NAV_LOCK_MS = 800;
 const MAX_PARAM_LENGTH = 80;
 
+function telemetryId() {
+  return `product-card-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
 function safeText(value, fallback) {
   if (typeof value !== 'string') return fallback;
   const text = value.trim();
@@ -71,6 +75,7 @@ Component({
     normalized: normalizeProduct({}),
     imageFailed: false,
     navigating: false,
+    telemetryRequestId: '',
   },
 
   observers: {
@@ -110,7 +115,7 @@ Component({
         queryPair('keyword', this.properties.keyword),
         queryPair('listContext', this.properties.listContext),
         queryPair('index', this.properties.index),
-        queryPair('requestId', this.properties.requestId),
+        queryPair('requestId', this.resolveTelemetryRequestId()),
       ].filter(Boolean).join('&');
       wx.navigateTo({
         url: `/pages/tile-detail/index?${params}`,
@@ -126,19 +131,27 @@ Component({
       this.trackCard('product_card_image_failed', this.data.normalized);
     },
 
+    resolveTelemetryRequestId() {
+      if (this.properties.requestId) return this.properties.requestId;
+      if (this.data.telemetryRequestId) return this.data.telemetryRequestId;
+      const requestId = telemetryId();
+      this.setData({ telemetryRequestId: requestId });
+      return requestId;
+    },
+
     trackCard(eventName, normalized) {
       track(eventName, {
         page_path: '/components/product-card/index',
         skuId: normalized.skuId || undefined,
         skuCode: normalized.skuCode,
         sourcePage: this.properties.sourcePage,
-        sourceModule: this.properties.sourceModule,
-        listContext: this.properties.listContext,
+        sourceModule: this.properties.sourceModule || 'product-card',
+        listContext: this.properties.listContext || this.properties.sourceModule || 'product-card',
         index: this.properties.index,
         categoryId: this.properties.categoryId || undefined,
         brandId: this.properties.brandId || undefined,
         keyword: this.properties.keyword || undefined,
-        requestId: this.properties.requestId || undefined,
+        requestId: this.resolveTelemetryRequestId(),
       });
     },
   },

@@ -1,0 +1,79 @@
+sprint_id: sprint-012
+status: planning
+lifecycle_stage: change
+start_date: 2026-07-26 15:15:24
+end_date: 2026-08-08 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0071-request-snapshot-logging
+  - REQ-0072-client-request-identity-standard
+  - REQ-0073-task-trace-parent-request-model
+  - REQ-0074-task-trace-coverage-expansion
+  - REQ-0075-audit-log-task-trace-linking
+  - REQ-0076-observability-dashboard
+bugs: []
+changes:
+  - update-request-snapshot-logging
+  - standardize-client-request-identity
+  - fix-task-trace-parent-request-model
+  - update-task-trace-coverage-expansion
+  - link-audit-logs-to-task-trace
+  - add-observability-dashboard
+
+estimated_story_points: 26
+estimated_person_days: 26.0
+capacity_usage: 0.8667
+fix_buffer_person_days: 4.0
+fix_buffer_ratio: 0.1333
+
+scope_estimates:
+  - id: REQ-0071-request-snapshot-logging
+    change: update-request-snapshot-logging
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "API 请求日志统一 Request Snapshot：P1 平台治理 update 能力，影响请求日志 middleware、日志服务/仓储、SQLite/MySQL schema 或 metadata、日志详情 API、OpenAPI/Orval、管理端日志详情抽屉、跨端 client_type 兼容与敏感字段脱敏测试；不包含外部 APM、日志全文检索、历史日志回填、运维级日志接入或完整原始请求/响应体保存。"
+  - id: REQ-0072-client-request-identity-standard
+    change: standardize-client-request-identity
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "前台后台与小程序统一客户端请求标识规范：P1 平台治理 update 能力，影响后端 request logging middleware、日志 schema / repository / service、Web 管理端与店主 Web API client、小程序 request 封装、日志审计列表/详情展示、OpenAPI/Orval、SQLite/MySQL schema/docs/tests；不引入外部分布式链路追踪平台，不改变认证授权边界，不保存敏感 Header/Cookie/Token/完整敏感请求体。"
+  - id: REQ-0073-task-trace-parent-request-model
+    change: fix-task-trace-parent-request-model
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "Task Trace 主请求与子请求关联模型：P1 fix 型平台治理补强，影响 Task Trace parent_request_id、span request_id、任务型接口 task_trace_id 串联、日志详情双向定位、SQLite/MySQL schema 或 metadata 兼容、OpenAPI/Orval/docs/tests 与 media-upload Docker :3000 上传边界验收；不包含完整 APM、历史数据回填、视频转码增强或店主端/小程序展示入口。"
+  - id: REQ-0074-task-trace-coverage-expansion
+    change: update-task-trace-coverage-expansion
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "任务型接口 Task Trace 覆盖扩展：P1 update 型平台治理能力，影响后端 Task Trace helper、同步/异步/批量任务 span、管理端复杂任务追踪标识反馈、API/DB/OpenAPI/Orval/docs/tests 与 smoke evidence stub；不建设完整 APM，不一次性覆盖所有历史接口，不新增导入导出业务能力。"
+  - id: REQ-0075-audit-log-task-trace-linking
+    change: link-audit-logs-to-task-trace
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "审计操作日志补齐任务链路关联字段：P2 update 型日志审计链路治理，影响 audit_logs 写入入口、系统设置/品牌证书/媒体上传/SKU/Banner 等敏感审计写入点清单、SQLite/MySQL 字段一致性、日志审计 audit 类型 Task Trace 展示、OpenAPI/Orval/docs/tests；不新增独立审计页面，不回填历史 audit log，不扩大全量任务型接口治理。"
+  - id: REQ-0076-observability-dashboard
+    change: add-observability-dashboard
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "日志审计与链路观测仪表：P1 管理端可观测性 add 能力，影响后端日志聚合 API、Task Trace 聚合、请求/行为/审计关联查询、Web 管理端 /admin/logs 观测模式、OpenAPI/Orval/docs/tests 与 admin-list 横切验收；默认不接入外部 APM，不新增小程序页面，不改变对象存储链路，DB 默认复用现有日志与 Task Trace 表，若新增索引需同步 SQLite/MySQL。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 26.0
+  capacity_usage: 0.8667
+  note: "REQ-0071、REQ-0072、REQ-0073、REQ-0074、REQ-0075 与 REQ-0076 均已评审通过并创建 Change；本 Sprint 当前纳入 5 个 P1 平台治理增强和 1 个 P2 日志审计链路治理增强，占用 86.67%，低于容量上限。fix 缓冲 4.0 人天 / 13.33%，低于 30% 建议值但未触发容量硬阻断；apply 时必须优先控制 REQ-0073/REQ-0074/REQ-0075/REQ-0076 的 Task Trace 与链路观测 MVP 边界。REQ-0073 仅补强 Task Trace 主请求、子请求与 span 关联模型；REQ-0075 仅补齐 audit log 与 Task Trace 关联字段，不扩大为历史回填或全量任务型接口治理；REQ-0076 仅建设管理端日志审计与链路观测仪表，不扩大为完整外部 APM、全量历史回填或小程序观测入口。"
+
+deferred_items: []

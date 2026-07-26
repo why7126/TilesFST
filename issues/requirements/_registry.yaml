@@ -1,7 +1,61 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 68
+next_id: 77
 entries:
+  - id: REQ-0076-observability-dashboard
+    title: 日志审计升级为链路观测仪表
+    status: in_sprint
+    iteration: sprint-012
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0075-audit-log-task-trace-linking
+    title: 审计操作日志补齐任务链路关联字段
+    status: in_sprint
+    iteration: sprint-012
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0074-task-trace-coverage-expansion
+    title: 任务型接口全面接入 Task Trace
+    status: in_sprint
+    iteration: sprint-012
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0073-task-trace-parent-request-model
+    title: Task Trace 建立主请求与子请求强关联模型
+    status: in_sprint
+    iteration: sprint-012
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0072-client-request-identity-standard
+    title: 前台后台与小程序统一客户端请求标识
+    status: in_sprint
+    iteration: null
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0071-request-snapshot-logging
+    title: API 请求日志补齐完整请求快照
+    status: in_sprint
+    iteration: sprint-012
+    created: "2026-07-26 12:49:31"
+    parent_requirement:
+  - id: REQ-0070-audit-log-operator-name-filter
+    title: 日志审计页面操作者名称筛选
+    status: done
+    iteration: sprint-011
+    created: "2026-07-25 11:41:21"
+    parent_requirement:
+  - id: REQ-0069-upload-observability-trace-logs
+    title: 上传链路日志与单次上传追踪
+    status: done
+    iteration: sprint-011
+    created: "2026-07-25 11:35:41"
+    parent_requirement:
+  - id: REQ-0068-miniapp-sku-video-fullscreen-actions
+    title: 小程序商品详情页视频全屏播放与长按操作菜单
+    status: done
+    iteration: sprint-011
+    created: "2026-07-23 23:11:09"
+    parent_requirement: REQ-0044-miniapp-sku-detail-page
   - id: REQ-0067-admin-category-edit-modal-validation
     title: 管理端类目编辑弹窗字段与校验规则
     status: done

@@ -1,15 +1,51 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 82
+next_id: 86
 entries:
+  - id: BUG-0085-admin-video-upload-stuck-at-99
+    title: 管理后台视频上传长时间卡在 99%
+    status: done
+    severity: high
+    created: "2026-07-24 20:25:05"
+    related_requirement: null
+    related_bug: BUG-0081-prod-cos-video-upload-fails
+    related_change: fix-admin-video-upload-stuck-at-99
+    iteration: sprint-011
+  - id: BUG-0084-miniapp-sku-video-fullscreen-reloads-slow
+    title: 小程序 SKU 详情页视频内嵌可播放但进入全屏后重新加载很久
+    status: done
+    severity: medium
+    created: "2026-07-24 20:15:24"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: BUG-0082-prod-miniapp-sku-video-slow-start
+    related_change: fix-miniapp-sku-video-fullscreen-reload
+    iteration: null
+  - id: BUG-0083-prod-admin-brand-banner-save-500
+    title: 生产环境创建品牌类型 Banner 保存接口返回 500
+    status: done
+    severity: high
+    created: "2026-07-23 10:35:53"
+    related_requirement: REQ-0062-admin-banner-placement-scope
+    related_bug: BUG-0075-prod-admin-brand-banner-save-fails
+    related_change: fix-admin-banner-create-schema-drift
+    iteration: sprint-011
+  - id: BUG-0082-prod-miniapp-sku-video-slow-start
+    title: 生产环境小程序商品详情页视频播放启动很慢
+    status: done
+    severity: high
+    created: "2026-07-23 10:34:30"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: BUG-0069-miniapp-sku-detail-carousel-video-not-playable
+    related_change: fix-miniapp-sku-video-slow-start
+    iteration: sprint-011
   - id: BUG-0081-prod-cos-video-upload-fails
     title: 生产环境腾讯 COS 视频上传失败
-    status: captured
+    status: done
     severity: high
     created: "2026-07-23 08:37:33"
     related_requirement: null
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-upload-proxy-timeout-config
+    iteration: sprint-011
   - id: BUG-0080-admin-banner-image-preview-cropped
     title: 管理端 Banner 列表和弹窗中 Banner 图片显示不全
     status: done
@@ -48,7 +84,7 @@ entries:
     iteration: sprint-010
   - id: BUG-0076-prod-miniapp-video-temporarily-unplayable
     title: 生产环境微信小程序提示视频暂时无法播放
-    status: approved
+    status: done
     severity: high
     created: "2026-07-21 10:23:03"
     related_requirement: null

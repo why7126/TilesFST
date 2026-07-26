@@ -270,10 +270,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   domain VARCHAR(64) NOT NULL,
   action_type VARCHAR(64) NOT NULL,
   summary VARCHAR(255) NOT NULL,
+  task_trace_id VARCHAR(96),
+  task_type VARCHAR(64),
   metadata TEXT NULL,
   created_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_audit_logs_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
-  INDEX idx_audit_logs_domain_created (domain, created_at)
+  INDEX idx_audit_logs_domain_created (domain, created_at),
+  INDEX idx_audit_logs_task_trace (task_trace_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS request_logs (
@@ -282,6 +285,7 @@ CREATE TABLE IF NOT EXISTS request_logs (
   actor_user_id CHAR(36) NULL,
   actor_role VARCHAR(32),
   client_type VARCHAR(32) NOT NULL DEFAULT 'backend',
+  client_request_id VARCHAR(128),
   method VARCHAR(16) NOT NULL,
   path VARCHAR(768) NOT NULL,
   status_code INT NOT NULL,
@@ -291,15 +295,19 @@ CREATE TABLE IF NOT EXISTS request_logs (
   summary VARCHAR(255) NOT NULL,
   error_code VARCHAR(64),
   result VARCHAR(32) NOT NULL DEFAULT 'success',
+  task_trace_id VARCHAR(96),
+  task_type VARCHAR(64),
   metadata TEXT,
   created_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_request_logs_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
   CONSTRAINT chk_request_logs_result CHECK (result IN ('success', 'failed')),
   INDEX idx_request_logs_created (created_at),
   INDEX idx_request_logs_request_id (request_id),
+  INDEX idx_request_logs_client_request_id (client_request_id),
   INDEX idx_request_logs_actor_created (actor_user_id, created_at),
   INDEX idx_request_logs_status_created (status_code, created_at),
-  INDEX idx_request_logs_path_created (path(255), created_at)
+  INDEX idx_request_logs_path_created (path(255), created_at),
+  INDEX idx_request_logs_task_trace (task_trace_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS usage_events (
@@ -317,6 +325,8 @@ CREATE TABLE IF NOT EXISTS usage_events (
   summary VARCHAR(255) NOT NULL,
   duration_ms INT NULL,
   result VARCHAR(32) NOT NULL DEFAULT 'success',
+  task_trace_id VARCHAR(96),
+  task_type VARCHAR(64),
   metadata TEXT,
   created_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_usage_events_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
@@ -324,5 +334,59 @@ CREATE TABLE IF NOT EXISTS usage_events (
   INDEX idx_usage_events_created (created_at),
   INDEX idx_usage_events_event_created (event_name, created_at),
   INDEX idx_usage_events_request_id (request_id),
-  INDEX idx_usage_events_actor_created (actor_user_id, created_at)
+  INDEX idx_usage_events_actor_created (actor_user_id, created_at),
+  INDEX idx_usage_events_task_trace (task_trace_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS task_traces (
+  id CHAR(36) PRIMARY KEY,
+  task_trace_id VARCHAR(96) NOT NULL UNIQUE,
+  task_type VARCHAR(64) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  actor_user_id CHAR(36) NULL,
+  client_type VARCHAR(32),
+  parent_request_id VARCHAR(128),
+  resource_type VARCHAR(64),
+  resource_id VARCHAR(128),
+  started_at VARCHAR(64) NOT NULL,
+  ended_at VARCHAR(64),
+  duration_ms INT NULL,
+  slowest_span_name VARCHAR(96),
+  error_code VARCHAR(64),
+  summary VARCHAR(255) NOT NULL,
+  metadata TEXT,
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_task_traces_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
+  CONSTRAINT chk_task_traces_status CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+  INDEX idx_task_traces_task_trace_id (task_trace_id),
+  INDEX idx_task_traces_parent_request_id (parent_request_id, created_at),
+  INDEX idx_task_traces_type_created (task_type, created_at),
+  INDEX idx_task_traces_status_created (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS task_trace_spans (
+  id CHAR(36) PRIMARY KEY,
+  task_trace_id VARCHAR(96) NOT NULL,
+  task_type VARCHAR(64) NOT NULL,
+  span_name VARCHAR(96) NOT NULL,
+  status VARCHAR(32) NOT NULL,
+  started_at VARCHAR(64) NOT NULL,
+  ended_at VARCHAR(64),
+  duration_ms INT NULL,
+  sequence INT NOT NULL DEFAULT 0,
+  request_id VARCHAR(128),
+  actor_user_id CHAR(36) NULL,
+  client_type VARCHAR(32),
+  resource_type VARCHAR(64),
+  resource_id VARCHAR(128),
+  error_code VARCHAR(64),
+  summary VARCHAR(255) NOT NULL,
+  metadata TEXT,
+  created_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_task_trace_spans_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
+  CONSTRAINT chk_task_trace_spans_status CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+  INDEX idx_task_trace_spans_trace_sequence (task_trace_id, sequence, started_at),
+  INDEX idx_task_trace_spans_request_id (request_id),
+  INDEX idx_task_trace_spans_type_created (task_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

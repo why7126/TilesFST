@@ -1,0 +1,94 @@
+sprint_id: sprint-011
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-23 09:17:23
+end_date: 2026-07-25 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0068-miniapp-sku-video-fullscreen-actions
+  - REQ-0069-upload-observability-trace-logs
+  - REQ-0070-audit-log-operator-name-filter
+bugs:
+  - BUG-0081-prod-cos-video-upload-fails
+  - BUG-0082-prod-miniapp-sku-video-slow-start
+  - BUG-0083-prod-admin-brand-banner-save-500
+  - BUG-0084-miniapp-sku-video-fullscreen-reloads-slow
+  - BUG-0085-admin-video-upload-stuck-at-99
+changes:
+  - fix-upload-proxy-timeout-config
+  - fix-miniapp-sku-video-slow-start
+  - fix-admin-banner-create-schema-drift
+  - add-miniapp-sku-video-fullscreen-actions
+  - fix-miniapp-sku-video-fullscreen-reload
+  - fix-admin-video-upload-stuck-at-99
+  - add-task-trace-audit-log-view
+  - improve-audit-log-operator-filter
+
+estimated_story_points: 24
+estimated_person_days: 24.0
+capacity_usage: 0.8
+fix_buffer_person_days: 6.0
+fix_buffer_ratio: 0.2
+
+scope_estimates:
+  - id: BUG-0081-prod-cos-video-upload-fails
+    change: fix-upload-proxy-timeout-config
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "生产环境腾讯 COS 视频上传 99% 后返回 504 修复：fix 型部署/媒体上传治理，影响外层 HTTPS Nginx 配置说明、容器内 Web Nginx 上传专用 location、上传反代超时环境变量化、.env/Compose/docs/tests 与生产 smoke；不改变上传 API Schema、DB 表结构、小程序或对象存储单桶策略。"
+  - id: BUG-0082-prod-miniapp-sku-video-slow-start
+    change: fix-miniapp-sku-video-slow-start
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "生产环境小程序 SKU 详情视频播放启动慢修复：fix 型媒体播放链路治理，覆盖后端 /media Range/206、对象存储受控读取、小程序视频封面兜底、静态/后端测试与生产真机首帧验收；默认不新增 DB 表结构，不改变对象存储单桶策略。"
+  - id: BUG-0083-prod-admin-brand-banner-save-500
+    change: fix-admin-banner-create-schema-drift
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "生产环境创建品牌类型 Banner 保存接口返回 500 修复：fix 型 DB/deployment/API 治理，影响 MySQL banners 兼容迁移、schema drift 检查、Admin Banner 新增/编辑回归、docs/04-database-design.md、docs/02-deployment.md 与生产 smoke；默认不改变 Admin Banner API Schema、SQLite schema、小程序视觉或对象存储策略。"
+  - id: REQ-0068-miniapp-sku-video-fullscreen-actions
+    change: add-miniapp-sku-video-fullscreen-actions
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "小程序商品详情页视频全屏播放与长按操作菜单增强：P1 小程序体验能力，影响 SKU 详情页 video 全屏入口、平台能力确认、长按菜单或等价入口、转发/保存/取消、静态测试、DevTools 与真机 evidence；默认不新增 API、数据库、Orval 或对象存储权限，若保存视频需要签名下载 URL 则在 apply 阶段同步扩展。"
+  - id: BUG-0084-miniapp-sku-video-fullscreen-reloads-slow
+    change: fix-miniapp-sku-video-fullscreen-reload
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "小程序 SKU 详情页视频内嵌可播放但进入全屏后重新加载很久修复：fix 型小程序媒体交互修复，复用当前视频上下文、补充全屏切换加载反馈、静态测试与真机耗时 evidence；默认不新增 API、数据库、Orval、Docker 或对象存储权限。"
+  - id: BUG-0085-admin-video-upload-stuck-at-99
+    change: fix-admin-video-upload-stuck-at-99
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "管理后台 SKU 视频上传长时间停留 99% 修复：fix 型管理端媒体上传体验与部署验收修复，区分客户端上传与服务端保存状态，确认上传代理运行配置和对象存储响应闭环，补充前端 Vitest、部署/媒体 pytest 与生产或等价 smoke；默认不新增 API 字段、不改 DB schema、不引入前端直连对象存储。"
+  - id: REQ-0069-upload-observability-trace-logs
+    change: add-task-trace-audit-log-view
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "任务链路追踪与审计日志查看：P1 平台治理 add 能力，影响后端 task trace 模型、日志审计 API/详情、SQLite/MySQL schema、OpenAPI/Orval、管理端日志审计 UI、上传首批 span、Docker :3000 上传边界验证；不包含完整 APM、外部日志系统、完整请求/响应体保存和视频转码增强。"
+  - id: REQ-0070-audit-log-operator-name-filter
+    change: improve-audit-log-operator-filter
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "日志审计页面操作者名称筛选优化：P1 管理端列表页筛选体验增强，优先复用现有用户列表 API 与 SearchableSelect，将界面选择改为用户名称/账号单选下拉但日志查询仍传 actor_user_id；默认不新增 DB、对象存储、小程序或 Docker 变更，若新增轻量候选 API 则同步 OpenAPI/Orval/docs/tests。"
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 24.0
+  capacity_usage: 0.8
+  note: "BUG-0081、BUG-0082、BUG-0083、BUG-0084、BUG-0085、REQ-0068、REQ-0069 与 REQ-0070 均已评审通过并创建 Change；REQ-0073 已改纳入 sprint-012。本 Sprint 当前纳入 5 个 high 级生产/体验阻断缺陷修复、1 个 P1 小程序体验增强、1 个 P1 平台治理增强和 1 个 P1 管理端列表体验增强，占用 80.0%，低于 30 人天容量。fix 缓冲 6.0 人天 / 20.0%。"
+
+deferred_items: []

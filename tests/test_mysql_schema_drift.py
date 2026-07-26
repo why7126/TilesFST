@@ -46,3 +46,34 @@ def test_compare_schema_reports_missing_tables_and_columns() -> None:
     assert report["missing_columns"] == {"brands": ["logo_object_key"]}
     assert report["extra_columns"] == {"brands": ["legacy_note"]}
     assert check_mysql_schema_drift_script.has_blocking_drift(report) is True
+
+
+def test_compare_schema_reports_missing_banner_write_columns() -> None:
+    expected = {
+        "banners": {
+            "id",
+            "title",
+            "image_source",
+            "sku_gallery_asset_id",
+            "topic_id",
+            "brand_id",
+            "valid_from",
+            "valid_to",
+            "remark",
+        },
+    }
+    actual = {"banners": {"id", "title", "brand_id"}}
+
+    report = check_mysql_schema_drift_script.compare_schema(expected, actual)
+
+    assert report["missing_columns"] == {
+        "banners": [
+            "image_source",
+            "remark",
+            "sku_gallery_asset_id",
+            "topic_id",
+            "valid_from",
+            "valid_to",
+        ]
+    }
+    assert check_mysql_schema_drift_script.has_blocking_drift(report) is True

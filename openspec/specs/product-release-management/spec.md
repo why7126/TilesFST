@@ -55,24 +55,13 @@
 - **THEN** 公告 SHALL NOT 暴露密钥、真实客户数据、私有数据库连接串、MinIO 凭据、非公开域名或敏感运维细节。
 
 ### Requirement: 发布前校验门禁
-发布流程 SHALL 在必填发布就绪检查通过前阻断发布确认；若某项不适用，必须明确标记不适用并说明理由。
+发布流程 SHALL 在必填发布就绪检查通过前阻断发布确认；若某项不适用，必须明确标记不适用并说明理由。测试门禁失败时，发布准备流程 SHALL classify failures before reporting blockers so governance drift can be fixed at the right layer.
 
-#### Scenario: 必填发布检查
-- **WHEN** 发布准备流程运行
-- **THEN** 流程 SHALL 检查 OpenSpec 归档状态、测试、Orval 同步、Docker Compose 同步、数据库迁移同步、`.env.example` 同步、`PRODUCT_VERSION` 一致性，以及 Mintlify build 或 preview 校验。
-
-#### Scenario: API 变更门禁
-- **WHEN** 发布范围包含 API 变更
-- **THEN** 发布门禁 SHALL 要求提供 OpenAPI 与 Orval 同步证据。
-
-#### Scenario: 数据库变更门禁
-- **WHEN** 发布范围包含数据库变更
-- **THEN** 发布门禁 SHALL 要求提供迁移、数据库文档和回滚说明证据。
-
-#### Scenario: 门禁失败阻断发布
-- **WHEN** 任一必填发布门禁失败
-- **THEN** 发布确认 SHALL 停止。
-- **AND** 流程 SHALL 报告失败门禁和建议修复方式。
+#### Scenario: 测试失败分类
+- **WHEN** release preparation runs automated tests and any test fails
+- **THEN** the release preparation output SHALL classify representative failures as archived path residual, fixture/schema drift, helper payload invalid, product regression, or environment blocker
+- **AND** governance-drift failures SHALL include a concrete remediation such as updating shared test helpers, archived Change path resolution, or fixture schema
+- **AND** the release object SHALL NOT mark the tests gate as pass until the focused regression and relevant suite pass.
 
 ### Requirement: releases 目录治理
 项目 SHALL 在目录规则更新后，使用受治理的顶层 `releases/` 目录存放产品版本发布对象和公开发布公告源文件。
@@ -125,3 +114,4 @@
 #### Scenario: 不新增后端公告服务
 - **WHEN** 实现发布公告
 - **THEN** 实现 SHALL NOT 新增后端公告 API 或数据库表，除非后续 OpenSpec Change 明确要求。
+

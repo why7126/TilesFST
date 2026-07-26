@@ -13,6 +13,7 @@ from scripts.workflow_sync.derive import DerivedChange, DerivedIssue
 from scripts.workflow_sync.engine import SyncEngine, SyncReport
 from scripts.workflow_sync.patch import (
     PatchResult,
+    append_workflow_event_record,
     normalize_change_record_table,
     patch_issue_trace,
     persist_markdown,
@@ -92,6 +93,35 @@ def test_workflow_sync_main_returns_nonzero_for_errors(monkeypatch, capsys) -> N
     assert exit_code == 1
     assert "**Errors:**" in output
     assert "Drift detected in 1 file(s)" in output
+
+
+def test_workflow_sync_records_opsx_apply_for_in_progress_change() -> None:
+    text = """# 需求追踪
+
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+| 2026-07-23 10:00:00 | `/sprint-propose` | 纳入 sprint |
+"""
+    derived = DerivedIssue(
+        issue_id="REQ-0001-demo",
+        kind="requirement",
+        display_status="in_sprint",
+        linked_change="add-demo",
+        note="in_progress 1/2",
+    )
+
+    updated = append_workflow_event_record(
+        text,
+        event="opsx.apply",
+        change_id="add-demo",
+        derived=derived,
+        change_status_map={"add-demo": "in_progress"},
+    )
+
+    assert "| /opsx-apply | Change `add-demo` apply 进行中，待补齐剩余验收。 |" in updated
+    assert updated.index("/opsx-apply") < updated.index("/sprint-propose")
 
 
 def test_archive_timestamp_ignores_mutable_issue_updated_at(tmp_path: Path) -> None:
@@ -448,6 +478,109 @@ updated_at: 2026-07-03 10:00:00
     assert "BUG：`BUG-9999` 已纳入正式范围" in text
     assert "所有已纳入范围项均已关联 Change" in text
     assert "<!-- workflow-sync:scope-bugs:start -->" in text
+
+
+def test_patch_sprint_md_rewrites_legacy_scope_table_from_derived_state(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    sprint_dir = tmp_path / "iterations/change/sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        """sprint_id: sprint-999
+status: planning
+requirements: []
+bugs:
+  - BUG-9999-demo
+changes:
+  - fix-demo
+
+scope_estimates:
+  - id: BUG-9999-demo
+    change: fix-demo
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "demo"
+""",
+        encoding="utf-8",
+    )
+    (sprint_dir / "sprint.md").write_text(
+        """---
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# Sprint 999
+
+## 2. Scope
+
+| 类型 | ID | Change | 优先级 | 估算 | 状态 | 说明 |
+|---|---|---|---|---:|---|---|
+| BUG | BUG-9999-demo | fix-demo | high | 1.0 人天 | in_sprint | stale |
+
+### 包含需求
+
+### 包含 BUG
+
+### 包含 Change
+""",
+        encoding="utf-8",
+    )
+    bug_dir = tmp_path / "issues/bugs/archive/BUG-9999-demo"
+    bug_dir.mkdir(parents=True)
+    issue = IssueRecord(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        path=bug_dir,
+        title="Demo bug",
+        priority="high",
+        trace_status="done",
+        openspec_changes=[{"change_id": "fix-demo", "status": "archived"}],
+    )
+    sprint = collect.SprintRecord(
+        sprint_id="sprint-999",
+        path=sprint_dir,
+        status="planning",
+        requirements=[],
+        bugs=["BUG-9999-demo"],
+        changes=["fix-demo"],
+    )
+    derived_issue = DerivedIssue(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        display_status="done",
+        linked_change="fix-demo",
+        note="archived `fix-demo`（2026-07-19 23:59:59）",
+    )
+    change = DerivedChange(
+        change_id="fix-demo",
+        state="archived",
+        display_status="archived",
+        note="archived `fix-demo`（2026-07-19 23:59:59）",
+        tasks_done=5,
+        tasks_total=5,
+        linked_req=None,
+        linked_bug="BUG-9999-demo",
+        archive_date="2026-07-19 23:59:59",
+    )
+
+    result = sync_patch.patch_sprint_md(
+        sprint,
+        {"BUG-9999-demo": issue},
+        {"BUG-9999-demo": derived_issue},
+        {"fix-demo": change},
+        "workflow-sync 自动同步 — 1/1 Change archived；0 applied；Sprint `planning`",
+        write=True,
+    )
+
+    text = (sprint_dir / "sprint.md").read_text(encoding="utf-8")
+    assert result.changed is True
+    assert "| 类型 | 编号 | 标题 | 状态 | 估算 | 说明 |" in text
+    assert "| BUG | BUG-9999-demo | Demo bug | done | 1.0 人天 | archived `fix-demo`" in text
+    assert "| 类型 | ID | Change | 优先级 | 估算 | 状态 | 说明 |" not in text
+    assert "stale" not in text
 
 
 def test_normalize_change_record_table_moves_header_before_rows() -> None:

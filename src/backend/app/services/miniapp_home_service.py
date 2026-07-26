@@ -718,6 +718,14 @@ class MiniappHomeService:
                     is_main=True,
                 )
             ]
+        image_cover_url = next(
+            (
+                self._media_url(item.url)
+                for item in sorted(media, key=lambda item: (not item.is_main, item.sort_order, item.id))
+                if item.media_type == "image"
+            ),
+            self._media_url(record.main_image_url) if record.main_image_url else None,
+        )
         items: list[MiniappSkuMediaItem] = []
         for item in media:
             url = self._media_url(item.url)
@@ -727,7 +735,7 @@ class MiniappHomeService:
                     media_type="video" if item.media_type == "video" else "image",
                     url=url,
                     preview_url=url if item.media_type == "image" else None,
-                    cover_url=None,
+                    cover_url=image_cover_url if item.media_type == "video" else None,
                     sort_order=item.sort_order,
                     is_main=item.is_main,
                     duration_seconds=item.duration_seconds,

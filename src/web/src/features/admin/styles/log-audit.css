@@ -2,15 +2,114 @@
   align-items: center;
 }
 
+.admin-shell .log-audit-filter {
+  position: relative;
+  z-index: 40;
+  overflow: visible;
+}
+
 .admin-shell .log-audit-filter-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1.35fr auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.35fr 1.35fr auto;
   gap: 10px;
   align-items: end;
 }
 
 .admin-shell .log-audit-filter-grid > * {
   min-width: 0;
+  overflow: visible;
+}
+
+.admin-shell .log-audit-filter .searchable-select {
+  position: relative;
+}
+
+.admin-shell .log-audit-filter .searchable-select-input {
+  width: 100%;
+  padding-right: 30px;
+}
+
+.admin-shell .log-audit-filter .searchable-select-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-weak);
+  cursor: pointer;
+}
+
+.admin-shell .log-audit-filter .searchable-select-clear:hover {
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+  color: var(--admin-text);
+}
+
+.admin-shell .log-audit-filter .searchable-select-dropdown {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-card) 98%, transparent);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.admin-shell .log-audit-filter .searchable-select-option {
+  display: grid;
+  width: 100%;
+  min-height: 44px;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-muted);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-shell .log-audit-filter .searchable-select-option:hover,
+.admin-shell .log-audit-filter .searchable-select-option.is-selected {
+  background: color-mix(in srgb, var(--admin-gold) 12%, transparent);
+  color: var(--admin-text);
+}
+
+.admin-shell .log-audit-filter .searchable-select-option-label,
+.admin-shell .log-audit-filter .searchable-select-option-desc {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-shell .log-audit-filter .searchable-select-option-desc {
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .log-audit-filter .searchable-select-option-label {
+  color: var(--admin-text);
+}
+
+.admin-shell .log-audit-filter .searchable-select-empty {
+  padding: 10px 12px;
+  color: var(--admin-weak);
+  font-size: 12px;
 }
 
 .admin-shell .log-audit-filter-actions {
@@ -28,6 +127,11 @@
   font-size: 11px;
 }
 
+.admin-shell .log-audit-filter + .table-card {
+  position: relative;
+  z-index: 1;
+}
+
 @media (max-width: 1279px) {
   .admin-shell .log-audit-filter-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -38,6 +142,10 @@
   .admin-shell .log-audit-filter-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-shell .log-audit-filter .searchable-select-dropdown {
+    max-width: 100%;
+  }
 }
 
 .admin-shell .log-audit-table-wrap {
@@ -46,7 +154,7 @@
 
 .admin-shell .log-audit-table {
   width: 100%;
-  min-width: 1180px;
+  min-width: 1360px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -98,6 +206,16 @@
   color: var(--admin-gold);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.admin-shell .actor-account {
+  display: inline-block;
+  max-width: 132px;
+  overflow: hidden;
+  color: var(--admin-text);
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .admin-shell .log-type {
@@ -173,11 +291,191 @@
   color: var(--admin-danger);
 }
 
-.admin-shell .request-id-cell {
+.admin-shell .log-observability-panel {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.admin-shell .observability-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-shell .observability-header h2 {
+  margin: 4px 0 0;
+  color: var(--admin-text);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.admin-shell .observability-grid,
+.admin-shell .observability-rankings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-shell .observability-rankings {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-shell .observability-block {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+  padding: 14px;
+  border: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 38%, transparent);
+}
+
+.admin-shell .observability-block h3 {
+  margin: 0;
+  color: var(--admin-gold);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .observability-bars,
+.admin-shell .observability-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-shell .observability-bars li {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-shell .observability-bars li > div,
+.admin-shell .observability-list li,
+.admin-shell .trace-result-grid {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-shell .observability-bars span,
+.admin-shell .observability-list span,
+.admin-shell .trace-result-grid span {
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .observability-bars strong,
+.admin-shell .observability-list strong,
+.admin-shell .trace-result-grid strong {
+  min-width: 0;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .observability-bar-track {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--admin-line-strong) 48%, transparent);
+}
+
+.admin-shell .observability-bar-track > span {
+  display: block;
+  height: 100%;
+  background: var(--admin-gold);
+}
+
+.admin-shell .observability-list li {
+  padding: 9px 0;
+  border-bottom: 0.5px solid var(--admin-line);
+}
+
+.admin-shell .observability-list li:last-child {
+  border-bottom: 0;
+}
+
+.admin-shell .observability-list li > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.admin-shell .observability-list code,
+.admin-shell .observability-list button {
+  flex: 0 0 auto;
+  font-size: 11px;
+}
+
+.admin-shell .observability-list code {
+  color: var(--admin-muted);
+}
+
+.admin-shell .observability-list button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0.5px solid var(--admin-gold-border);
+  border-radius: 2px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-shell .observability-list button:hover {
+  border-color: var(--admin-gold-border-strong);
+}
+
+.admin-shell .observability-empty {
+  margin: 0;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .trace-result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-shell .trace-result-grid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 52%, transparent);
+}
+
+.admin-shell .request-id-cell,
+.admin-shell .task-trace-cell {
   display: inline-flex;
   min-width: 154px;
   align-items: center;
   gap: 8px;
+}
+
+.admin-shell .task-trace-cell {
+  min-width: 188px;
+  max-width: 240px;
+}
+
+.admin-shell .task-trace-cell > code,
+.admin-shell .request-id-cell > code {
+  min-width: 0;
+}
+
+.admin-shell .task-trace-id {
+  color: var(--admin-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
 }
 
 .admin-shell .request-id {
@@ -277,7 +575,7 @@
 .admin-shell .log-drawer-layer {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 70;
 }
 
 .admin-shell .log-drawer-backdrop {
@@ -379,8 +677,235 @@
   white-space: pre-wrap;
 }
 
+.admin-shell .request-snapshot-section {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-shell .snapshot-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 44%, transparent);
+}
+
+.admin-shell .snapshot-block h4 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-shell .snapshot-grid {
+  gap: 8px;
+}
+
+.admin-shell .snapshot-grid .detail-row {
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+
+.admin-shell .snapshot-empty,
+.admin-shell .snapshot-warning {
+  margin: 0;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .snapshot-warning {
+  color: var(--admin-gold);
+}
+
+.admin-shell .snapshot-field-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-shell .snapshot-field-list li {
+  display: grid;
+  grid-template-columns: minmax(86px, 1fr) 70px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 0.5px solid var(--admin-line);
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+
+.admin-shell .snapshot-field-list span,
+.admin-shell .snapshot-field-list strong,
+.admin-shell .snapshot-field-list em,
+.admin-shell .snapshot-field-list code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .snapshot-field-list strong {
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+.admin-shell .snapshot-field-list em {
+  color: var(--admin-weak);
+  font-style: normal;
+}
+
+.admin-shell .snapshot-json summary {
+  color: var(--admin-gold);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.admin-shell .snapshot-json pre {
+  margin-top: 10px;
+}
+
+.admin-shell .task-trace-section {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-shell .task-trace-group {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-shell .task-trace-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-shell .task-trace-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 10px;
+  border: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 54%, transparent);
+}
+
+.admin-shell .task-trace-summary span {
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .task-trace-summary strong,
+.admin-shell .task-trace-summary code {
+  min-width: 0;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .task-copy-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-shell .task-copy-button:hover {
+  color: var(--admin-gold);
+}
+
+.admin-shell .task-trace-timeline {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-shell .task-trace-timeline li {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 9px;
+}
+
+.admin-shell .task-trace-timeline li.slowest .timeline-body {
+  border-color: var(--admin-gold-border);
+  background: color-mix(in srgb, var(--admin-gold) 7%, transparent);
+}
+
+.admin-shell .timeline-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 12px;
+  border: 0.5px solid var(--admin-gold-border);
+  border-radius: 50%;
+  background: var(--admin-gold);
+}
+
+.admin-shell .timeline-body {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0.5px solid var(--admin-line);
+  background: color-mix(in srgb, var(--admin-deep) 36%, transparent);
+}
+
+.admin-shell .timeline-head,
+.admin-shell .timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-shell .timeline-head strong {
+  color: var(--admin-text);
+  font-size: 12px;
+}
+
+.admin-shell .timeline-head span,
+.admin-shell .timeline-meta span,
+.admin-shell .timeline-meta button {
+  min-height: 22px;
+  padding: 0 7px;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-weak);
+  font-size: 11px;
+}
+
+.admin-shell .timeline-meta button {
+  cursor: pointer;
+}
+
+.admin-shell .timeline-meta button:hover {
+  border-color: var(--admin-gold-border);
+  color: var(--admin-gold);
+}
+
+.admin-shell .timeline-body p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1120px) {
   .admin-shell .log-audit-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-shell .observability-grid,
+  .admin-shell .observability-rankings {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -400,6 +925,17 @@
     max-width: 100vw;
   }
 
+  .admin-shell .observability-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-shell .observability-grid,
+  .admin-shell .observability-rankings,
+  .admin-shell .trace-result-grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-shell .log-drawer-head {
     min-height: 0;
     padding: 18px 16px;
@@ -410,6 +946,15 @@
   }
 
   .admin-shell .detail-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .snapshot-grid .detail-row,
+  .admin-shell .snapshot-field-list li {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .task-trace-summary {
     grid-template-columns: 1fr;
   }
 }

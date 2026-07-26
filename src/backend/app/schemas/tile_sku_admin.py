@@ -70,6 +70,8 @@ class TileSkuAdminItem(BaseModel):
     videos: list[TileSkuVideoItem] = Field(default_factory=list)
     created_at: str
     updated_at: str
+    task_trace_id: str | None = None
+    task_type: str | None = None
 
 
 class TileSkuAdminSummary(BaseModel):

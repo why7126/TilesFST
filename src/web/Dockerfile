@@ -4,10 +4,12 @@
 # 更新方式：前端构建命令、共享资源路径、Nginx 配置或端口变化时必须同步更新注释
 # 备注：构建上下文为项目根目录，需同时包含 src/web 与 src/shared
 
-# 构建阶段：官方 Node 镜像备用写法；当前启用国内镜像源以提升本地构建稳定性。
-# FROM node:22-alpine AS builder
+# 构建阶段基础镜像可由 Compose build args 覆盖；默认使用官方镜像，避免单一镜像源故障阻断构建。
+ARG WEB_NODE_BASE_IMAGE=node:22-alpine
+# 运行阶段基础镜像可由 Compose build args 覆盖；默认使用官方镜像，避免单一镜像源故障阻断构建。
+ARG WEB_NGINX_BASE_IMAGE=nginx:1.27-alpine
 # Node 22 Alpine 构建 React 19 / TypeScript 前端产物。
-FROM m.daocloud.io/docker.io/node:22-alpine AS builder
+FROM ${WEB_NODE_BASE_IMAGE} AS builder
 
 # Web 子项目工作目录；npm 命令在该目录下执行。
 WORKDIR /app/src/web
@@ -22,12 +24,20 @@ COPY src/shared/ ../shared/
 # 生成生产静态资源到 /app/src/web/dist。
 RUN npm run build
 
-# 运行阶段：官方 Nginx 镜像备用写法；当前启用国内镜像源以提升拉取稳定性。
-# FROM nginx:1.27-alpine
 # Nginx 运行时仅承载静态资源与 API / media 反代配置。
-FROM m.daocloud.io/docker.io/nginx:1.27-alpine
-# 覆盖默认站点配置，保持 SPA fallback、API 反代与上传体积限制一致。
-COPY src/web/nginx.conf /etc/nginx/conf.d/default.conf
+FROM ${WEB_NGINX_BASE_IMAGE}
+# 仅渲染上传配置变量，保留 $host、$remote_addr 等 Nginx 运行时变量。
+ENV NGINX_ENVSUBST_FILTER="^UPLOAD_"
+# 上传反代默认值；Compose 可按生产环境覆盖。
+ENV UPLOAD_CLIENT_MAX_BODY_SIZE="512m"
+ENV UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS="600"
+ENV UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS="60"
+ENV UPLOAD_PROXY_SEND_TIMEOUT_SECONDS="600"
+ENV UPLOAD_PROXY_READ_TIMEOUT_SECONDS="600"
+ENV UPLOAD_SEND_TIMEOUT_SECONDS="600"
+ENV UPLOAD_PROXY_REQUEST_BUFFERING="off"
+# 运行时渲染站点配置，允许通过环境变量调整上传路径的 body 限制与反代超时。
+COPY src/web/nginx.conf.template /etc/nginx/templates/default.conf.template
 # 从构建阶段复制静态产物，避免把 node_modules 带入运行镜像。
 COPY --from=builder /app/src/web/dist /usr/share/nginx/html
 # 声明容器内 Nginx 监听端口；宿主机映射由 docker-compose 控制。

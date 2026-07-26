@@ -243,6 +243,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   domain TEXT NOT NULL,
   action_type TEXT NOT NULL,
   summary TEXT NOT NULL,
+  task_trace_id TEXT,
+  task_type TEXT,
   metadata TEXT NULL,
   created_at TEXT NOT NULL
 );
@@ -250,12 +252,16 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_logs_domain_created
   ON audit_logs(domain, created_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_audit_logs_task_trace
+  ON audit_logs(task_trace_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS request_logs (
   id TEXT PRIMARY KEY,
   request_id TEXT NOT NULL,
   actor_user_id TEXT NULL REFERENCES users(id),
   actor_role TEXT,
   client_type TEXT NOT NULL DEFAULT 'backend',
+  client_request_id TEXT,
   method TEXT NOT NULL,
   path TEXT NOT NULL,
   status_code INTEGER NOT NULL,
@@ -265,6 +271,8 @@ CREATE TABLE IF NOT EXISTS request_logs (
   summary TEXT NOT NULL,
   error_code TEXT,
   result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+  task_trace_id TEXT,
+  task_type TEXT,
   metadata TEXT,
   created_at TEXT NOT NULL
 );
@@ -295,6 +303,8 @@ CREATE TABLE IF NOT EXISTS usage_events (
   summary TEXT NOT NULL,
   duration_ms INTEGER,
   result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+  task_trace_id TEXT,
+  task_type TEXT,
   metadata TEXT,
   created_at TEXT NOT NULL
 );
@@ -307,3 +317,61 @@ CREATE INDEX IF NOT EXISTS idx_usage_events_request_id
   ON usage_events(request_id);
 CREATE INDEX IF NOT EXISTS idx_usage_events_actor_created
   ON usage_events(actor_user_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS task_traces (
+  id TEXT PRIMARY KEY,
+  task_trace_id TEXT NOT NULL UNIQUE,
+  task_type TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+  actor_user_id TEXT NULL REFERENCES users(id),
+  client_type TEXT,
+  parent_request_id TEXT,
+  resource_type TEXT,
+  resource_id TEXT,
+  started_at TEXT NOT NULL,
+  ended_at TEXT,
+  duration_ms INTEGER,
+  slowest_span_name TEXT,
+  error_code TEXT,
+  summary TEXT NOT NULL,
+  metadata TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_traces_task_trace_id
+  ON task_traces(task_trace_id);
+CREATE INDEX IF NOT EXISTS idx_task_traces_parent_request_id
+  ON task_traces(parent_request_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_task_traces_type_created
+  ON task_traces(task_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_task_traces_status_created
+  ON task_traces(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS task_trace_spans (
+  id TEXT PRIMARY KEY,
+  task_trace_id TEXT NOT NULL,
+  task_type TEXT NOT NULL,
+  span_name TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+  started_at TEXT NOT NULL,
+  ended_at TEXT,
+  duration_ms INTEGER,
+  sequence INTEGER NOT NULL DEFAULT 0,
+  request_id TEXT,
+  actor_user_id TEXT NULL REFERENCES users(id),
+  client_type TEXT,
+  resource_type TEXT,
+  resource_id TEXT,
+  error_code TEXT,
+  summary TEXT NOT NULL,
+  metadata TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_trace_spans_trace_sequence
+  ON task_trace_spans(task_trace_id, sequence, started_at);
+CREATE INDEX IF NOT EXISTS idx_task_trace_spans_request_id
+  ON task_trace_spans(request_id);
+CREATE INDEX IF NOT EXISTS idx_task_trace_spans_type_created
+  ON task_trace_spans(task_type, created_at DESC);

@@ -194,6 +194,53 @@
   gap: 15px 14px;
 }
 
+.admin-shell .sku-task-trace-feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--admin-gold-bg) 74%, transparent);
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+
+.admin-shell .sku-task-trace-feedback > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-shell .sku-task-trace-label,
+.admin-shell .sku-task-trace-feedback code,
+.admin-shell .sku-task-trace-type,
+.admin-shell .sku-task-trace-copy-notice {
+  display: block;
+}
+
+.admin-shell .sku-task-trace-label {
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+.admin-shell .sku-task-trace-feedback code {
+  margin-top: 4px;
+  color: var(--admin-gold);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.admin-shell .sku-task-trace-type {
+  margin-top: 3px;
+  color: var(--admin-weak);
+}
+
+.admin-shell .sku-task-trace-copy-notice {
+  flex-shrink: 0;
+  color: var(--admin-gold);
+}
+
 .admin-shell .sku-form-full {
   grid-column: 1 / -1;
 }
@@ -435,6 +482,11 @@
   .admin-shell .sku-form-grid,
   .admin-shell .sku-upload-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-shell .sku-task-trace-feedback {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .admin-shell .sku-modal-card {

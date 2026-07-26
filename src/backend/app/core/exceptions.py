@@ -304,3 +304,10 @@ class BannerExternalUrlInvalidError(AppError):
         from app.core.error_codes import BANNER_EXTERNAL_URL_INVALID
 
         super().__init__(status_code=400, code=BANNER_EXTERNAL_URL_INVALID, message=message)
+
+
+class BannerSchemaDriftError(AppError):
+    def __init__(self, message: str = "Banner 表结构未完成迁移，请联系管理员执行发布前检查") -> None:
+        from app.core.error_codes import BANNER_SCHEMA_DRIFT
+
+        super().__init__(status_code=503, code=BANNER_SCHEMA_DRIFT, message=message)

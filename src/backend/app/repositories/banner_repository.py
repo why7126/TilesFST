@@ -9,6 +9,8 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.db.mysql_migrations import BANNER_WRITE_FIELD_COLUMNS, apply_mysql_compat_migrations
+
 VALID_BANNER_SCOPE_SQL = (
     "display_client = 'MINIAPP_HOME' "
     "AND position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')"
@@ -97,6 +99,34 @@ def _time_status_sql(time_status: str, now_iso: str) -> str:
 class BannerRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+
+    def ensure_write_schema_ready(self) -> list[str]:
+        """Best-effort MySQL self-heal for legacy banners tables before writes."""
+        if self._db.get_bind().dialect.name != "mysql":
+            return []
+        missing = self._missing_write_columns()
+        if not missing:
+            return []
+        apply_mysql_compat_migrations(self._db.connection())
+        self._db.commit()
+        return self._missing_write_columns()
+
+    def rollback(self) -> None:
+        self._db.rollback()
+
+    def _missing_write_columns(self) -> list[str]:
+        rows = self._db.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'banners'
+                """
+            )
+        ).scalars()
+        columns = {str(row) for row in rows}
+        return sorted(set(BANNER_WRITE_FIELD_COLUMNS) - columns)
 
     @staticmethod
     def _to_record(row: dict[str, Any]) -> BannerRecord:

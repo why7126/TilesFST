@@ -102,4 +102,28 @@ describe('REQ-0027 admin mobile adaptation smoke contract', () => {
     expect(logAuditCss).toContain('.admin-shell .log-drawer-body');
     expect(logAuditCss).toContain('grid-template-columns: 1fr;');
   });
+
+  it('keeps the log audit layers ordered as table, filter dropdown, then detail drawer', () => {
+    expect(logAuditCss).toContain('.admin-shell .log-audit-filter');
+    expect(logAuditCss).toContain('z-index: 40;');
+    expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-dropdown');
+    expect(logAuditCss).toContain('z-index: 50;');
+    expect(logAuditCss).toContain('.admin-shell .log-audit-filter + .table-card');
+    expect(logAuditCss).toContain('z-index: 1;');
+    expect(logAuditCss).toContain('.admin-shell .log-drawer-layer');
+    expect(logAuditCss).toContain('z-index: 70;');
+  });
+
+  it('keeps the log audit actor account in one line', () => {
+    expect(logAuditCss).toContain('.admin-shell .actor-account');
+    expect(logAuditCss).toContain('text-overflow: ellipsis;');
+    expect(logAuditCss).toContain('white-space: nowrap;');
+  });
+
+  it('keeps operator dropdown candidate rows limited to account and display name lines', () => {
+    expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-option-label');
+    expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-option-desc');
+    expect(logAuditCss).toContain('text-overflow: ellipsis;');
+    expect(logAuditCss).toContain('white-space: nowrap;');
+  });
 });

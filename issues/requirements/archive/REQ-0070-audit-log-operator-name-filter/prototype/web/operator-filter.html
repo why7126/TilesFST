@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0070 操作者名称筛选原型</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #18160f;
+      --surface: #211e16;
+      --surface-2: #2a261b;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --faint: rgba(237, 232, 223, 0.32);
+      --border: rgba(237, 232, 223, 0.12);
+      --gold: #c8a055;
+      --danger: #d36b4d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .page-hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 400;
+    }
+
+    .page-desc {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric-card,
+    .filter-card,
+    .table-card {
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface);
+    }
+
+    .metric-card {
+      padding: 14px 16px;
+    }
+
+    .metric-label {
+      color: var(--faint);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 22px;
+    }
+
+    .metric-desc {
+      margin-top: 4px;
+      color: var(--muted);
+    }
+
+    .filter-card {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr 1fr 1.4fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      padding: 0 10px;
+      font: inherit;
+    }
+
+    .operator-select {
+      position: relative;
+    }
+
+    .operator-input {
+      border-color: rgba(200, 160, 85, 0.55);
+      padding-right: 34px;
+    }
+
+    .clear {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-left: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: absolute;
+      z-index: 5;
+      top: 42px;
+      left: 0;
+      right: 0;
+      overflow: hidden;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      border-radius: 3px;
+      background: #252116;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+    }
+
+    .option {
+      display: grid;
+      gap: 3px;
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      padding: 10px 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option:hover,
+    .option.is-selected {
+      background: rgba(200, 160, 85, 0.1);
+    }
+
+    .option small {
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 12px;
+      color: var(--muted);
+    }
+
+    .btn {
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--text);
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .table-card {
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 400;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .log-type,
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0 7px;
+      color: var(--muted);
+    }
+
+    .status.success {
+      border-color: rgba(200, 160, 85, 0.35);
+      color: var(--gold);
+    }
+
+    .request-id {
+      color: var(--gold);
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .page-summary {
+      color: var(--muted);
+    }
+
+    .page-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .page-btn {
+      min-width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .page-btn.active {
+      background: var(--gold);
+      color: #18160f;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      border: 1px solid rgba(200, 160, 85, 0.36);
+      border-radius: 3px;
+      background: #262117;
+      color: var(--text);
+      padding: 12px 14px;
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.36);
+    }
+
+    @media (max-width: 900px) {
+      .page { padding: 18px; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filter-grid { grid-template-columns: 1fr; }
+      .table-card { overflow-x: auto; }
+      table { min-width: 860px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="page-hero">
+      <div>
+        <h1 class="page-title">日志审计</h1>
+        <p class="page-desc">查询 API 请求日志、产品行为事件与审计操作，通过 request_id 快速定位异常链路。</p>
+      </div>
+      <button class="btn" type="button">查看审计配置</button>
+    </section>
+
+    <section class="summary-grid" aria-label="日志摘要">
+      <article class="metric-card">
+        <div class="metric-label">TOTAL LOGS</div>
+        <div class="metric-value">1,248</div>
+        <div class="metric-desc">最近 24 小时</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">API ERRORS</div>
+        <div class="metric-value">12</div>
+        <div class="metric-desc">异常请求</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">SLOW REQUESTS</div>
+        <div class="metric-value">7</div>
+        <div class="metric-desc">超过 1000ms</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">SENSITIVE OPS</div>
+        <div class="metric-value">18</div>
+        <div class="metric-desc">审计操作</div>
+      </article>
+    </section>
+
+    <section class="filter-card" aria-label="日志筛选">
+      <div class="filter-grid">
+        <label>
+          <span class="field-label">日志类型</span>
+          <select class="select">
+            <option>全部日志</option>
+            <option>请求日志</option>
+            <option>行为事件</option>
+            <option>审计操作</option>
+          </select>
+        </label>
+        <label>
+          <span class="field-label">时间范围</span>
+          <select class="select">
+            <option>最近 24 小时</option>
+            <option>最近 7 天</option>
+            <option>全部时间</option>
+          </select>
+        </label>
+        <label>
+          <span class="field-label">操作者</span>
+          <span class="operator-select">
+            <input class="input operator-input" value="管理员" aria-label="操作者：搜索用户名称或账号">
+            <button class="clear" type="button" aria-label="清空操作者">×</button>
+            <span class="dropdown" role="listbox">
+              <button class="option is-selected" type="button" role="option" aria-selected="true">
+                <strong>管理员</strong>
+                <small>admin · 系统管理员 · active</small>
+              </button>
+              <button class="option" type="button" role="option">
+                <strong>门店运营</strong>
+                <small>operator01 · 员工 · active</small>
+              </button>
+              <span class="empty">继续输入可按名称或账号模糊搜索</span>
+            </span>
+          </span>
+        </label>
+        <label>
+          <span class="field-label">状态 / 结果</span>
+          <select class="select">
+            <option>全部状态</option>
+            <option>成功</option>
+            <option>失败</option>
+          </select>
+        </label>
+        <label>
+          <span class="field-label">路径 / request_id</span>
+          <input class="input" placeholder="接口路径或 request_id">
+        </label>
+        <button class="btn" type="button">重置</button>
+      </div>
+      <p class="hint">默认展示最近 24 小时；选择操作者名称后仍使用 actor_user_id 精确过滤。</p>
+    </section>
+
+    <section class="table-card" aria-label="日志列表">
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>类型</th>
+            <th>事件 / 摘要</th>
+            <th>操作者</th>
+            <th>客户端</th>
+            <th>状态</th>
+            <th>耗时</th>
+            <th>request_id</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2026-07-25 11:55</td>
+            <td><span class="log-type">请求日志</span></td>
+            <td>GET /api/v1/admin/logs</td>
+            <td>管理员</td>
+            <td>web-admin</td>
+            <td><span class="status success">success</span></td>
+            <td>82ms</td>
+            <td><code class="request-id">req_8fd...</code></td>
+            <td><button class="btn" type="button">查看</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="page-summary">共 1 条日志</span>
+        <span class="page-right">
+          <button class="page-btn active" type="button">1</button>
+          <select class="select" aria-label="每页显示条数">
+            <option>20 / 页</option>
+          </select>
+        </span>
+      </div>
+    </section>
+  </main>
+  <aside class="toast" role="status">用户候选已加载，日志列表按管理员筛选</aside>
+</body>
+</html>

@@ -4,10 +4,10 @@
 # 更新方式：后端依赖、启动命令、运行目录或端口变化时必须同步更新注释
 # 备注：用于 docker-compose 本地部署、演示环境与生产镜像构建
 
-# 官方基础镜像备用写法；当前启用国内镜像源以提升本地构建稳定性。
-# FROM python:3.12-slim
+# 基础镜像可由 Compose build args 覆盖；默认使用官方镜像，避免单一镜像源故障阻断构建。
+ARG BACKEND_PYTHON_BASE_IMAGE=python:3.12-slim
 # Python 3.12 slim 运行时，满足项目后端技术栈约束。
-FROM m.daocloud.io/docker.io/python:3.12-slim
+FROM ${BACKEND_PYTHON_BASE_IMAGE}
 
 # pip / uv 国内索引备用写法；仅在网络环境需要时取消注释。
 # ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple

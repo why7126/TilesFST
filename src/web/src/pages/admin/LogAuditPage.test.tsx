@@ -1,14 +1,20 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchLogDetail, fetchLogs } from '@/features/admin/api/logs-api';
+import { fetchLogDetail, fetchLogObservability, fetchLogs } from '@/features/admin/api/logs-api';
+import { fetchUsers } from '@/features/admin/api/users-api';
 import { trackUsageEvent } from '@/features/tracking/api/usage-tracking';
-import type { LogDetailData, LogListData } from '@/shared/api/generated';
+import type { LogDetailData, LogListData, LogObservabilityData, UserAdminListData } from '@/shared/api/generated';
 import { LogAuditPage } from './LogAuditPage';
 
 vi.mock('@/features/admin/api/logs-api', () => ({
   fetchLogs: vi.fn(),
   fetchLogDetail: vi.fn(),
+  fetchLogObservability: vi.fn(),
+}));
+
+vi.mock('@/features/admin/api/users-api', () => ({
+  fetchUsers: vi.fn(),
 }));
 
 vi.mock('@/features/tracking/api/usage-tracking', () => ({
@@ -23,12 +29,19 @@ const logListData: LogListData = {
       created_at: '2026-07-02T14:26:18+00:00',
       summary: 'GET /api/v1/admin/logs · 200',
       actor_name: '系统管理员',
+      actor_username: 'admin',
       actor_role: 'admin',
       client_type: 'web_admin',
       result: '成功',
       status_code: 200,
       duration_ms: 84,
       request_id: 'req_1234567890abcdef',
+      client_request_id: 'web:client-request-abcdef1234567890',
+      task_trace_id: 'task_upload_video_abcdef1234567890',
+      task_type: 'upload_video',
+      task_status: 'success',
+      task_duration_ms: 2345,
+      task_slowest_span_name: 'storage_put_object',
       method: 'GET',
       path: '/api/v1/admin/logs',
     },
@@ -82,7 +95,257 @@ const detailData: LogDetailData = {
       module: '-',
     },
   },
+  request_snapshot: {
+    request: {
+      method: 'GET',
+      path: '/api/v1/admin/logs',
+      route_template: '/api/v1/admin/logs',
+      route_match_status: 'matched',
+      request_id: 'req_1234567890abcdef',
+      client_request_id: 'web:client-request-abcdef1234567890',
+      trusted_request_id_header: 'x-request-id',
+      client_request_id_header: 'x-client-request-id',
+    },
+    input: {
+      query: {
+        allowed: { page: '1' },
+        ignored_keys: ['debug'],
+        redacted_keys: ['token'],
+        policy: 'allowlist',
+      },
+      body_schema_summary: {
+        body_type: 'none',
+        content_type: null,
+        content_length: null,
+        stored_raw_body: false,
+        fields: [],
+      },
+      redaction_summary: {
+        policy: 'backend_allowlist_and_sensitive_blacklist',
+        stored_raw_body: false,
+      },
+    },
+    resource: {
+      resource_type: null,
+      resource_id: null,
+      id_source: 'unidentified',
+    },
+    response: {
+      status_code: 200,
+      error_code: null,
+      duration_ms: 84,
+      result: 'success',
+      error_summary: null,
+    },
+    actor: {
+      actor_user_id: 'user_admin',
+      actor_username: 'admin',
+      actor_role: 'admin',
+      client_type: 'web_admin',
+      ip_summary: '127.0.*.*',
+      user_agent_summary: 'vitest',
+    },
+    timing: {
+      environment: 'test',
+      started_at: '2026-07-02T14:26:18+00:00',
+      finished_at: '2026-07-02T14:26:18+00:00',
+    },
+    raw_json: '{\n  "request": {\n    "route_template": "/api/v1/admin/logs"\n  }\n}',
+    parse_error: null,
+  },
+  task_trace: {
+    task_trace_id: 'task_upload_video_abcdef1234567890',
+    task_type: 'upload_video',
+    status: 'success',
+    parent_request_id: 'req_1234567890abcdef',
+    duration_ms: 2345,
+    resource_type: 'media',
+    resource_id: 'media_1',
+    slowest_span_name: 'storage_put_object',
+    error_code: null,
+    summary: 'upload_video · success · 2345 ms · slowest=storage_put_object',
+    spans: [
+      {
+        span_name: 'frontend_upload_body_done',
+        status: 'success',
+        started_at: '2026-07-02T14:26:18+00:00',
+        ended_at: '2026-07-02T14:26:18+00:00',
+        duration_ms: 0,
+        request_id: 'req_1234567890abcdef',
+        error_code: null,
+        summary: '请求体已到达后端，前端 99% 阶段开始',
+        is_slowest: false,
+      },
+      {
+        span_name: 'storage_put_object',
+        status: 'success',
+        started_at: '2026-07-02T14:26:19+00:00',
+        ended_at: '2026-07-02T14:26:21+00:00',
+        duration_ms: 1800,
+        request_id: 'req_1234567890abcdef',
+        error_code: null,
+        summary: '对象存储写入完成',
+        is_slowest: true,
+      },
+    ],
+  },
+  related_task_traces: [
+    {
+      task_trace_id: 'task_upload_video_abcdef1234567890',
+      task_type: 'upload_video',
+      status: 'success',
+      parent_request_id: 'req_1234567890abcdef',
+      duration_ms: 2345,
+      resource_type: 'media',
+      resource_id: 'media_1',
+      slowest_span_name: 'storage_put_object',
+      error_code: null,
+      summary: 'upload_video · success · 2345 ms · slowest=storage_put_object',
+      spans: [
+        {
+          span_name: 'frontend_upload_body_done',
+          status: 'success',
+          started_at: '2026-07-02T14:26:18+00:00',
+          ended_at: '2026-07-02T14:26:18+00:00',
+          duration_ms: 0,
+          request_id: 'req_1234567890abcdef',
+          error_code: null,
+          summary: '请求体已到达后端，前端 99% 阶段开始',
+          is_slowest: false,
+        },
+        {
+          span_name: 'storage_put_object',
+          status: 'success',
+          started_at: '2026-07-02T14:26:19+00:00',
+          ended_at: '2026-07-02T14:26:21+00:00',
+          duration_ms: 1800,
+          request_id: 'req_1234567890abcdef',
+          error_code: null,
+          summary: '对象存储写入完成',
+          is_slowest: true,
+        },
+      ],
+    },
+  ],
   metadata_json: '{\n  "path": "/api/v1/admin/logs"\n}',
+};
+
+const userListData: UserAdminListData = {
+  items: [
+    {
+      id: 'user_admin',
+      username: 'admin',
+      display_name: '系统管理员',
+      role: 'admin',
+      status: 'active',
+      created_at: '2026-07-01T00:00:00+00:00',
+    },
+    {
+      id: 'user_operator',
+      username: 'operator01',
+      display_name: '运营一号',
+      role: 'employee',
+      status: 'disabled',
+      created_at: '2026-07-01T00:00:00+00:00',
+    },
+  ],
+  page: 1,
+  page_size: 20,
+  total: 2,
+  summary: {
+    total: 2,
+    filtered: 2,
+    active_count: 1,
+    disabled_count: 1,
+  },
+};
+
+const observabilityData: LogObservabilityData = {
+  summary: {
+    total_logs: 42,
+    api_errors: 3,
+    api_error_rate: 0.0714,
+    slow_requests: 5,
+    task_success_rate: 0.875,
+    failed_tasks: 1,
+    slow_tasks: 2,
+    audit_operations: 6,
+  },
+  distributions: {
+    clients: [
+      { label: 'web_admin', count: 30, rate: 0.714 },
+      { label: 'miniapp', count: 12, rate: 0.286 },
+    ],
+    task_statuses: [
+      { label: 'success', count: 7, rate: 0.875 },
+      { label: 'failed', count: 1, rate: 0.125 },
+    ],
+    failure_reasons: [
+      { label: 'UPSTREAM_TIMEOUT', count: 1, rate: 1 },
+    ],
+    behavior_events: [
+      { label: 'detail_view', count: 8, rate: 1 },
+    ],
+  },
+  endpoint_errors: [
+    {
+      path: '/api/v1/admin/uploads',
+      method: 'POST',
+      status_code: 500,
+      request_count: 4,
+      error_count: 3,
+      error_rate: 0.75,
+    },
+  ],
+  rankings: {
+    slow_requests: [
+      {
+        log_id: 'log_1',
+        path: '/api/v1/admin/uploads',
+        method: 'POST',
+        status_code: 500,
+        duration_ms: 1800,
+        client_type: 'web_admin',
+        request_id: 'req_1234567890abcdef',
+      },
+    ],
+    slow_tasks: [
+      {
+        task_trace_id: 'task_upload_video_abcdef1234567890',
+        task_type: 'upload_video',
+        status: 'failed',
+        duration_ms: 2400,
+        client_type: 'web_admin',
+        trigger_source: 'admin_upload',
+        error_code: 'UPSTREAM_TIMEOUT',
+        summary: 'upload_video · failed',
+      },
+    ],
+    slowest_spans: [
+      {
+        task_trace_id: 'task_upload_video_abcdef1234567890',
+        task_type: 'upload_video',
+        span_name: 'storage_put_object',
+        status: 'success',
+        duration_ms: 1800,
+        request_id: 'req_1234567890abcdef',
+        error_code: null,
+        summary: '对象存储写入完成',
+      },
+    ],
+  },
+  trace_results: {
+    request_id: null,
+    task_trace_id: null,
+    log_ids: [],
+    request_ids: [],
+    task_trace_ids: [],
+    reason: null,
+  },
+  thresholds: {
+    request_duration_ms: 1000,
+    task_duration_ms: 1000,
+  },
 };
 
 function setClipboard(value: unknown) {
@@ -94,11 +357,16 @@ function setClipboard(value: unknown) {
 
 describe('LogAuditPage', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     vi.mocked(fetchLogs).mockReset();
     vi.mocked(fetchLogDetail).mockReset();
+    vi.mocked(fetchLogObservability).mockReset();
+    vi.mocked(fetchUsers).mockReset();
     vi.mocked(trackUsageEvent).mockClear();
     vi.mocked(fetchLogs).mockResolvedValue(logListData);
     vi.mocked(fetchLogDetail).mockResolvedValue(detailData);
+    vi.mocked(fetchLogObservability).mockResolvedValue(observabilityData);
+    vi.mocked(fetchUsers).mockResolvedValue(userListData);
     setClipboard({
       writeText: vi.fn().mockResolvedValue(undefined),
     });
@@ -110,6 +378,15 @@ describe('LogAuditPage', () => {
     expect(await screen.findByText('日志审计')).toBeInTheDocument();
     expect(screen.getByText('TODAY LOGS')).toBeInTheDocument();
     expect(screen.getByText('1,286')).toBeInTheDocument();
+    expect(await screen.findByText('链路观测')).toBeInTheDocument();
+    expect(screen.getByText('API ERROR RATE')).toBeInTheDocument();
+    expect(screen.getByText('7.1%')).toBeInTheDocument();
+    expect(screen.getByText('TASK SUCCESS')).toBeInTheDocument();
+    expect(screen.getByText('87.5%')).toBeInTheDocument();
+    expect(screen.getByText('客户端分布')).toBeInTheDocument();
+    expect(screen.getByText('错误接口')).toBeInTheDocument();
+    expect(screen.getAllByText('POST /api/v1/admin/uploads').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('storage_put_object').length).toBeGreaterThan(0);
     expect(screen.getByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
 
     const summary = screen.getByLabelText('日志摘要');
@@ -139,20 +416,81 @@ describe('LogAuditPage', () => {
     );
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' }).closest('.log-audit-filter-actions')).toBeInTheDocument();
+    expect(screen.getByLabelText('时间范围')).toHaveValue('1d');
+    [
+      '最近5分钟',
+      '最近10分钟',
+      '最近30分钟',
+      '最近1小时',
+      '最近3小时',
+      '最近6小时',
+      '最近12小时',
+      '最近1天',
+      '最近2天',
+      '最近3天',
+      '最近7天',
+    ].forEach((label) => {
+      expect(screen.getByRole('option', { name: label })).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('option', { name: '全部时间' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('状态 / 结果').tagName).toBe('SELECT');
+    expect(screen.getByLabelText('路径 / Request ID')).toHaveAttribute('placeholder', '接口路径或 request_id');
+    expect(screen.getByLabelText('Task Trace ID')).toHaveAttribute('placeholder', 'task_upload_video_xxx');
     expect(screen.getByRole('option', { name: '422 参数校验错误' })).toBeInTheDocument();
+    expect(screen.getByLabelText('操作者')).toHaveAttribute('role', 'combobox');
+    expect(screen.getByLabelText('操作者')).toHaveAttribute('placeholder', '搜索用户名称或账号');
+    const filterLabels = Array.from(container.querySelectorAll('.log-audit-filter-grid .field-label')).map((label) => label.textContent);
+    expect(filterLabels).toEqual([
+      '日志类型',
+      '时间范围',
+      '状态 / 结果',
+      '操作者',
+      'Task Trace ID',
+      '路径 / Request ID',
+    ]);
+    expect(screen.queryByPlaceholderText('User ID')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('路径 / request_id / task_trace_id')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('资源 / ID')).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: '复制' })).not.toBeInTheDocument();
     expect(container.querySelector('.request-id-cell')?.querySelector('.request-copy-action')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'client_request_id' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '复制 client_request_id' })).toBeInTheDocument();
+    expect(screen.getByText(/web:client/)).toBeInTheDocument();
+    const taskTraceCell = container.querySelector('.task-trace-cell');
+    const tableRow = taskTraceCell?.closest('tr');
+    expect(taskTraceCell?.querySelector('.task-trace-id')).toHaveTextContent(/task_upload/);
+    expect(taskTraceCell?.querySelector('.request-copy-action')).toHaveAccessibleName('复制 task_trace_id');
+    expect(taskTraceCell?.querySelector('small')).not.toBeInTheDocument();
+    expect(screen.getByText(/task_upload/)).toBeInTheDocument();
+    expect(within(tableRow as HTMLTableRowElement).queryByText(/storage_put_object/)).not.toBeInTheDocument();
+    expect(container.querySelector('.actor-account')).toHaveTextContent('admin');
+    expect(container.querySelector('.actor-account')).toHaveAttribute('title', 'admin');
+    expect(screen.queryByText('系统管理员')).not.toBeInTheDocument();
     expect(container.querySelector('.log-type')).toHaveClass('type-request');
     expect(container.querySelector('.log-status')).toHaveClass('status-success');
   });
 
   it('submits filters through backend query params', async () => {
+    const beforeChange = Date.now();
     render(<LogAuditPage />);
     await screen.findByText('GET /api/v1/admin/logs · 200');
 
-    fireEvent.change(screen.getByLabelText('路径 / request_id'), {
+    fireEvent.change(screen.getByLabelText('时间范围'), {
+      target: { value: '5m' },
+    });
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          start_time: expect.any(String),
+          page: 1,
+        }),
+      );
+    });
+    const timeRangeQuery = vi.mocked(fetchLogs).mock.calls.at(-1)?.[0];
+    expect(new Date(timeRangeQuery?.start_time ?? '').getTime()).toBeGreaterThanOrEqual(beforeChange - 5 * 60 * 1000 - 1000);
+    expect(new Date(timeRangeQuery?.start_time ?? '').getTime()).toBeLessThanOrEqual(Date.now() - 5 * 60 * 1000 + 1000);
+
+    fireEvent.change(screen.getByLabelText('路径 / Request ID'), {
       target: { value: 'req_1234567890abcdef' },
     });
     expect(trackUsageEvent).toHaveBeenCalledWith('filter_change', {
@@ -167,6 +505,29 @@ describe('LogAuditPage', () => {
         expect.objectContaining({
           path_or_request_id: 'req_1234567890abcdef',
           page: 1,
+        }),
+      );
+      expect(fetchLogObservability).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          path_or_request_id: 'req_1234567890abcdef',
+          request_id: 'req_1234567890abcdef',
+        }),
+      );
+    });
+
+    fireEvent.change(screen.getByLabelText('Task Trace ID'), {
+      target: { value: 'task_upload_video_abcdef1234567890' },
+    });
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          task_trace_id: 'task_upload_video_abcdef1234567890',
+          page: 1,
+        }),
+      );
+      expect(fetchLogObservability).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          task_trace_id: 'task_upload_video_abcdef1234567890',
         }),
       );
     });
@@ -209,6 +570,154 @@ describe('LogAuditPage', () => {
         }),
       );
     });
+
+    fireEvent.focus(screen.getByLabelText('操作者'));
+    const adminOption = await screen.findByRole('option', { name: /admin/ });
+    expect(within(adminOption).getByText('admin')).toBeInTheDocument();
+    expect(within(adminOption).getByText('系统管理员')).toBeInTheDocument();
+    expect(screen.queryByText('admin / admin / active')).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('option', { name: /系统管理员/ }));
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          actor_user_id: 'user_admin',
+          page: 1,
+        }),
+      );
+    });
+    expect(screen.getByLabelText('操作者')).toHaveValue('系统管理员');
+
+    fireEvent.click(screen.getByRole('button', { name: '清空操作者筛选' }));
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          actor_user_id: undefined,
+          page: 1,
+        }),
+      );
+    });
+  });
+
+  it('opens details and filters logs from observability rankings', async () => {
+    render(<LogAuditPage />);
+    await screen.findByText('链路观测');
+
+    const slowRequest = screen.getAllByText('POST /api/v1/admin/uploads')[1].closest('li');
+    expect(slowRequest).not.toBeNull();
+    fireEvent.click(within(slowRequest as HTMLLIElement).getByRole('button', { name: '查看' }));
+    expect(await screen.findByLabelText('日志详情')).toBeInTheDocument();
+    expect(fetchLogDetail).toHaveBeenCalledWith('log_1');
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+
+    const slowTask = screen.getByText('upload_video').closest('li');
+    expect(slowTask).not.toBeNull();
+    fireEvent.click(within(slowTask as HTMLLIElement).getByRole('button', { name: '筛选' }));
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(expect.objectContaining({
+        task_trace_id: 'task_upload_video_abcdef1234567890',
+      }));
+    });
+    expect(screen.getByLabelText('Task Trace ID')).toHaveValue('task_upload_video_abcdef1234567890');
+  });
+
+  it('keeps log list usable when observability loading fails', async () => {
+    vi.mocked(fetchLogObservability).mockRejectedValueOnce(new Error('observability unavailable'));
+
+    render(<LogAuditPage />);
+
+    expect(await screen.findByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent('加载链路观测失败');
+    expect(screen.getAllByText('加载链路观测失败')).toHaveLength(2);
+  });
+
+  it('searches operator candidates and resets actor_user_id with all filters', async () => {
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.focus(screen.getByLabelText('操作者'));
+    fireEvent.change(screen.getByLabelText('操作者'), { target: { value: 'operator' } });
+
+    await waitFor(() => {
+      expect(fetchUsers).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          page_size: 20,
+          keyword: 'operator',
+        }),
+      );
+    });
+
+    fireEvent.click(await screen.findByRole('option', { name: /运营一号/ }));
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({ actor_user_id: 'user_operator' }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          actor_user_id: undefined,
+          log_type: undefined,
+          result: undefined,
+          status_code: undefined,
+          task_trace_id: undefined,
+          page: 1,
+        }),
+      );
+    });
+    expect(screen.getByLabelText('操作者')).toHaveValue('');
+  });
+
+  it('shows operator candidate empty, failed and duplicate-name account states', async () => {
+    vi.mocked(fetchUsers)
+      .mockResolvedValueOnce({
+        ...userListData,
+        items: [
+          { ...userListData.items[0], id: 'same_1', username: 'same_a', display_name: '同名用户' },
+          { ...userListData.items[1], id: 'same_2', username: 'same_b', display_name: '同名用户' },
+        ],
+        total: 2,
+      })
+      .mockResolvedValueOnce({ ...userListData, items: [], total: 0 })
+      .mockRejectedValueOnce(new Error('candidate failed'));
+
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.focus(screen.getByLabelText('操作者'));
+    expect(await screen.findAllByRole('option', { name: /同名用户/ })).toHaveLength(2);
+    expect(screen.getByText('same_a')).toBeInTheDocument();
+    expect(screen.getByText('same_b')).toBeInTheDocument();
+    expect(screen.queryByText('same_a / admin / active')).not.toBeInTheDocument();
+    expect(screen.queryByText('same_b / employee / disabled')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('操作者'), { target: { value: 'missing' } });
+    await screen.findByText('无匹配操作者');
+
+    fireEvent.change(screen.getByLabelText('操作者'), { target: { value: 'fail' } });
+    expect(await screen.findAllByText('加载操作者候选失败')).toHaveLength(2);
+    expect(await screen.findByRole('status')).toHaveTextContent('加载操作者候选失败');
+    expect(screen.getByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
+  });
+
+  it('keeps admin-list feedback stable and avoids native dialogs', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    const alertSpy = vi.spyOn(window, 'alert');
+    const { container } = render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 request_id' }));
+
+    expect(await screen.findByRole('status')).toHaveClass('admin-toast');
+    expect(document.querySelector('.admin-toast-region')).toBeInTheDocument();
+    expect(container.querySelector('.pagination .page-summary')).toBeInTheDocument();
+    expect(container.querySelector('.pagination .page-right')).toBeInTheDocument();
+    expect(screen.getByLabelText('日志摘要').querySelectorAll('.metric-label')).toHaveLength(4);
+    expect(screen.getByLabelText('链路观测摘要').querySelectorAll('.metric-label')).toHaveLength(4);
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
   it('copies request id with fixed toast feedback', async () => {
@@ -227,6 +736,59 @@ describe('LogAuditPage', () => {
       request_id: 'req_1234567890abcdef',
     });
     expect(await screen.findByRole('status')).toHaveTextContent('request_id 已复制');
+  });
+
+  it('copies task_trace_id with fixed toast feedback', async () => {
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 task_trace_id' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard?.writeText).toHaveBeenCalledWith('task_upload_video_abcdef1234567890');
+    });
+    expect(trackUsageEvent).toHaveBeenCalledWith('copy_request_id', expect.objectContaining({
+      entity_type: 'task_trace',
+      task_trace_id: 'task_upload_video_abcdef1234567890',
+    }));
+    expect(await screen.findByRole('status')).toHaveTextContent('task_trace_id 已复制');
+  });
+
+  it('copies parent_request_id with fixed toast feedback', async () => {
+    vi.mocked(fetchLogDetail).mockResolvedValueOnce(detailData);
+    render(<LogAuditPage />);
+    const row = (await screen.findByText('GET /api/v1/admin/logs · 200')).closest('tr');
+    expect(row).not.toBeNull();
+
+    fireEvent.click(within(row as HTMLTableRowElement).getByRole('button', { name: '查看' }));
+    const drawer = await screen.findByLabelText('日志详情');
+    const parentRow = within(drawer).getByText('parent_request_id').closest('div');
+    expect(parentRow).not.toBeNull();
+    fireEvent.click(within(parentRow as HTMLDivElement).getByRole('button'));
+
+    await waitFor(() => {
+      expect(trackUsageEvent).toHaveBeenCalledWith('copy_request_id', expect.objectContaining({
+        entity_type: 'parent_request',
+        request_id: 'req_1234567890abcdef',
+      }));
+    });
+    expect(await screen.findByRole('status')).toHaveTextContent('parent_request_id 已复制');
+  });
+
+  it('copies client_request_id with fixed toast feedback', async () => {
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 client_request_id' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard?.writeText).toHaveBeenCalledWith('web:client-request-abcdef1234567890');
+    });
+    expect(trackUsageEvent).toHaveBeenCalledWith('copy_request_id', expect.objectContaining({
+      entity_type: 'client_request',
+      client_request_id: 'web:client-request-abcdef1234567890',
+    }));
+    expect(await screen.findByRole('status')).toHaveTextContent('client_request_id 已复制');
   });
 
   it('shows manual copy guidance when Clipboard API is unavailable', async () => {
@@ -280,7 +842,25 @@ describe('LogAuditPage', () => {
       }),
     );
 
-    expect(await screen.findByLabelText('日志详情')).toBeInTheDocument();
+    const drawer = await screen.findByLabelText('日志详情');
+    expect(drawer).toBeInTheDocument();
+    expect(within(drawer).getByText('Request Snapshot')).toBeInTheDocument();
+    expect(within(drawer).getByText('Route Template')).toBeInTheDocument();
+    expect(within(drawer).getByText('Trusted Request ID')).toBeInTheDocument();
+    expect(within(drawer).getByText('Client Request ID')).toBeInTheDocument();
+    expect(within(drawer).getByText('Trusted Response Header')).toBeInTheDocument();
+    expect(within(drawer).getByText('x-request-id')).toBeInTheDocument();
+    expect(within(drawer).getByText('x-client-request-id')).toBeInTheDocument();
+    expect(within(drawer).getAllByText('web:client-request-abcdef1234567890').length).toBeGreaterThan(0);
+    expect(within(drawer).getAllByText('/api/v1/admin/logs').length).toBeGreaterThan(0);
+    expect(within(drawer).getByText('Query Allowlist')).toBeInTheDocument();
+    expect(within(drawer).getByText(/"page": "1"/)).toBeInTheDocument();
+    expect(within(drawer).getByText('Snapshot JSON')).toBeInTheDocument();
+    expect(within(drawer).getByText('Task Trace')).toBeInTheDocument();
+    expect(within(drawer).getByText('parent_request_id')).toBeInTheDocument();
+    expect(within(drawer).getByText('frontend_upload_body_done')).toBeInTheDocument();
+    expect(within(drawer).getByText('storage_put_object')).toBeInTheDocument();
+    expect(within(drawer).getByText('耗时最高节点')).toBeInTheDocument();
     expect(screen.getByText('METADATA JSON')).toBeInTheDocument();
     expect(fetchLogDetail).toHaveBeenCalledWith('log_1');
     expect(trackUsageEvent).toHaveBeenCalledWith('detail_view', {
@@ -295,6 +875,23 @@ describe('LogAuditPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '关闭' }));
     await waitFor(() => expect(screen.queryByLabelText('日志详情')).not.toBeInTheDocument());
+  });
+
+  it('shows request snapshot empty state when detail has no snapshot', async () => {
+    vi.mocked(fetchLogDetail).mockResolvedValueOnce({
+      ...detailData,
+      request_snapshot: null,
+    });
+
+    render(<LogAuditPage />);
+    const row = (await screen.findByText('GET /api/v1/admin/logs · 200')).closest('tr');
+    expect(row).not.toBeNull();
+
+    fireEvent.click(within(row as HTMLTableRowElement).getByRole('button', { name: '查看' }));
+
+    const drawer = await screen.findByLabelText('日志详情');
+    expect(within(drawer).getByText('未采集 Request Snapshot')).toBeInTheDocument();
+    expect(within(drawer).getByText('METADATA JSON')).toBeInTheDocument();
   });
 
   it('opens detail drawer from the sticky action column', async () => {

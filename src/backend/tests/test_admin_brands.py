@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.db.seed import DEFAULT_ADMIN_USERNAME
@@ -176,11 +179,74 @@ def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> N
     data = upload.json()["data"]
     assert data["object_key"].startswith("images/default/brands/logos/")
     assert data["url"] == f"/media/{data['object_key']}"
+    assert data["task_trace_id"].startswith("task_upload_image_")
+    assert data["task_type"] == "upload_image"
     assert data["object_key"] in get_media_storage_client().objects
 
     media = client.get(data["url"])
     assert media.status_code == 200
     assert media.content == b"webp-logo"
+
+
+def test_upload_brand_logo_records_task_trace_spans(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    upload = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.webp", b"webp-logo", "image/webp")},
+    )
+    assert upload.status_code == 200
+    task_trace_id = upload.json()["data"]["task_trace_id"]
+    parent_request_id = upload.headers["x-request-id"]
+
+    session = get_session_factory()()
+    try:
+        spans = (
+            session.execute(
+                text(
+                    """
+                    SELECT span_name, status, request_id
+                    FROM task_trace_spans
+                    WHERE task_trace_id = :task_trace_id
+                    ORDER BY sequence ASC
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .all()
+        )
+        trace = (
+            session.execute(
+                text(
+                    """
+                    SELECT task_type, status, parent_request_id, slowest_span_name
+                    FROM task_traces
+                    WHERE task_trace_id = :task_trace_id
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .one()
+        )
+    finally:
+        session.close()
+
+    span_names = [row["span_name"] for row in spans]
+    assert "frontend_upload_start" in span_names
+    assert "frontend_upload_body_done" in span_names
+    assert "api_receive" in span_names
+    assert "validate_file" in span_names
+    assert "storage_put_object" in span_names
+    assert "db_create_media" in span_names
+    assert "api_response" in span_names
+    assert "frontend_done" in span_names
+    assert {row["request_id"] for row in spans} == {parent_request_id}
+    assert trace["task_type"] == "upload_image"
+    assert trace["status"] == "success"
+    assert trace["parent_request_id"] == parent_request_id
+    assert trace["slowest_span_name"]
 
 
 def test_upload_brand_logo_rejects_invalid_mime(client: TestClient) -> None:
@@ -192,6 +258,49 @@ def test_upload_brand_logo_rejects_invalid_mime(client: TestClient) -> None:
     )
     assert response.status_code == 400
     assert response.json()["code"] == 50002
+
+    session = get_session_factory()()
+    try:
+        failed_trace = (
+            session.execute(
+                text(
+                    """
+                    SELECT task_trace_id, status, error_code
+                    FROM task_traces
+                    WHERE task_type = 'upload_image'
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+            )
+            .mappings()
+            .one()
+        )
+        failed_spans = (
+            session.execute(
+                text(
+                    """
+                    SELECT span_name, status, error_code, metadata
+                    FROM task_trace_spans
+                    WHERE task_trace_id = :task_trace_id
+                    ORDER BY sequence ASC
+                    """
+                ),
+                {"task_trace_id": failed_trace["task_trace_id"]},
+            )
+            .mappings()
+            .all()
+        )
+    finally:
+        session.close()
+
+    assert failed_trace["status"] == "failed"
+    assert failed_trace["error_code"] == "50002"
+    assert failed_spans[-2]["span_name"] == "api_response"
+    assert failed_spans[-2]["status"] == "failed"
+    serialized = " ".join(str(row["metadata"]) for row in failed_spans)
+    assert "logo.ico" not in serialized
+    assert "Authorization" not in serialized
 
 
 def test_upload_brand_logo_rejects_oversized_file(client: TestClient, monkeypatch) -> None:
@@ -263,9 +372,34 @@ def test_upload_tile_video_accepts_23mb_mp4_with_default_video_limit(
     )
 
     assert response.status_code == 200
-    object_key = response.json()["data"]["object_key"]
+    data = response.json()["data"]
+    object_key = data["object_key"]
     assert object_key.startswith("videos/default/tiles/pending/")
+    assert data["url"] == f"/media/{object_key}"
     assert object_key in get_media_storage_client().objects
+
+
+def test_upload_tile_video_emits_stage_timing_logs(client: TestClient, caplog) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+
+    with caplog.at_level(logging.INFO, logger="uvicorn.error"):
+        response = client.post(
+            "/api/v1/admin/uploads/tile-videos",
+            headers=headers,
+            files={"file": ("timing.mp4", b"\x00\x00\x00 ftypmp42timing", "video/mp4")},
+        )
+
+    assert response.status_code == 200
+    messages = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "uvicorn.error" and "upload_type=tile_video" in record.getMessage()
+    ]
+    assert any("stage=request_received" in message for message in messages)
+    assert any("stage=file_read_done" in message for message in messages)
+    assert any("stage=storage_put_done" in message for message in messages)
+    assert any("stage=response_ready" in message for message in messages)
+    assert all("Authorization" not in message for message in messages)
 
 
 def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> None:

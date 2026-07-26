@@ -3,6 +3,10 @@ const { track } = require('../../services/api');
 const NAV_LOCK_MS = 800;
 const MAX_PARAM_LENGTH = 80;
 
+function telemetryId() {
+  return `brand-card-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+}
+
 function safeText(value, fallback = '') {
   if (typeof value !== 'string') return fallback;
   const text = value.trim();
@@ -60,6 +64,7 @@ Component({
     normalized: normalizeBrand({}, '查看品牌主页与同品牌产品'),
     imageFailed: false,
     navigating: false,
+    telemetryRequestId: '',
   },
 
   observers: {
@@ -105,6 +110,14 @@ Component({
       this.trackBrandCard('brand_card_image_failed', this.data.normalized);
     },
 
+    resolveTelemetryRequestId() {
+      if (this.properties.requestId) return this.properties.requestId;
+      if (this.data.telemetryRequestId) return this.data.telemetryRequestId;
+      const requestId = telemetryId();
+      this.setData({ telemetryRequestId: requestId });
+      return requestId;
+    },
+
     trackBrandCard(eventName, normalized) {
       track(eventName, {
         page_path: '/components/brand-card/index',
@@ -113,9 +126,9 @@ Component({
         sourcePage: this.properties.sourcePage,
         sourceModule: this.properties.sourceModule,
         skuId: this.properties.skuId || undefined,
-        listContext: this.properties.listContext || undefined,
+        listContext: this.properties.listContext || this.properties.sourceModule || 'brand-card',
         index: this.properties.index,
-        requestId: this.properties.requestId || undefined,
+        requestId: this.resolveTelemetryRequestId(),
         unavailableReason: normalized.available ? undefined : normalized.unavailableReason,
       });
     },

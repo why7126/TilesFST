@@ -9,6 +9,9 @@ services:
     build:
       context: ./src/backend
       dockerfile: Dockerfile
+      args:
+        # 可在 .env 中覆盖为镜像源，例如 m.daocloud.io/docker.io/python:3.12-slim。
+        BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
     # 后端固定容器名，便于部署脚本与日志检索；与其他 Compose 变体保持一致。
     container_name: tilesfst-backend
     # 生产环境变量显式列出；带 :? 的变量缺失时 Compose 会快速失败。
@@ -101,7 +104,29 @@ services:
     build:
       context: .
       dockerfile: src/web/Dockerfile
+      args:
+        # 可在 .env 中覆盖为镜像源，例如 m.daocloud.io/docker.io/node:22-alpine。
+        WEB_NODE_BASE_IMAGE: ${WEB_NODE_BASE_IMAGE:-node:22-alpine}
+        # 可在 .env 中覆盖为镜像源，例如 m.daocloud.io/docker.io/nginx:1.27-alpine。
+        WEB_NGINX_BASE_IMAGE: ${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}
     container_name: tilesfst-web
+    # Nginx 模板仅替换 UPLOAD_* 变量，避免误替换 $host 等 Nginx 内置变量。
+    environment:
+      NGINX_ENVSUBST_FILTER: "^UPLOAD_"
+      # 上传专用 body 限制，须不小于 MAX_VIDEO_SIZE_MB / MAX_IMAGE_SIZE_MB / MAX_FILE_SIZE_MB。
+      UPLOAD_CLIENT_MAX_BODY_SIZE: ${UPLOAD_CLIENT_MAX_BODY_SIZE:-512m}
+      # 浏览器上传请求体读取超时，默认 600 秒用于较大视频。
+      UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS: ${UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS:-600}
+      # Web Nginx 到 backend 建连超时；默认 60 秒即可覆盖容器网络建连。
+      UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS: ${UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS:-60}
+      # Web Nginx 向 backend 发送上传请求超时，默认 600 秒。
+      UPLOAD_PROXY_SEND_TIMEOUT_SECONDS: ${UPLOAD_PROXY_SEND_TIMEOUT_SECONDS:-600}
+      # Web Nginx 等待 backend 上传响应超时，默认 600 秒。
+      UPLOAD_PROXY_READ_TIMEOUT_SECONDS: ${UPLOAD_PROXY_READ_TIMEOUT_SECONDS:-600}
+      # Web Nginx 向浏览器发送响应超时，默认 600 秒。
+      UPLOAD_SEND_TIMEOUT_SECONDS: ${UPLOAD_SEND_TIMEOUT_SECONDS:-600}
+      # 大文件上传默认关闭请求缓冲，减少先落 Nginx 临时文件导致的总耗时。
+      UPLOAD_PROXY_REQUEST_BUFFERING: ${UPLOAD_PROXY_REQUEST_BUFFERING:-off}
     # 宿主机端口可通过 HOST_PORT_WEB 覆盖；容器内 Nginx 固定 80。
     ports:
       - "${HOST_PORT_WEB:-3000}:80"

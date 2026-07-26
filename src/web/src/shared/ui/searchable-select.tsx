@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn';
 export interface SearchableSelectOption {
   value: string;
   label: string;
+  description?: string;
 }
 
 export interface SearchableSelectProps {
@@ -14,6 +15,12 @@ export interface SearchableSelectProps {
   onSearch: (keyword: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  loading?: boolean;
+  error?: string | null;
+  emptyText?: string;
+  loadingText?: string;
+  clearable?: boolean;
+  clearLabel?: string;
   className?: string;
   'aria-label'?: string;
 }
@@ -25,6 +32,12 @@ export function SearchableSelect({
   onSearch,
   placeholder = '搜索并选择',
   disabled = false,
+  loading = false,
+  error = null,
+  emptyText = '无匹配结果',
+  loadingText = '加载中...',
+  clearable = false,
+  clearLabel = '清空选择',
   className,
   'aria-label': ariaLabel,
 }: SearchableSelectProps) {
@@ -54,6 +67,8 @@ export function SearchableSelect({
 
   const displayValue = open ? query : selected?.label ?? '';
 
+  const showStatus = loading || error || options.length === 0;
+
   return (
     <div ref={containerRef} className={cn('searchable-select', className)}>
       <input
@@ -71,10 +86,26 @@ export function SearchableSelect({
         }}
         onFocus={() => setOpen(true)}
       />
+      {clearable && value && !disabled ? (
+        <button
+          type="button"
+          className="searchable-select-clear"
+          aria-label={clearLabel}
+          onClick={() => {
+            onChange(null);
+            setOpen(false);
+            setQuery('');
+          }}
+        >
+          ×
+        </button>
+      ) : null}
       {open && !disabled ? (
         <ul id={listId} className="searchable-select-dropdown" role="listbox">
-          {options.length === 0 ? (
-            <li className="searchable-select-empty">无匹配结果</li>
+          {showStatus ? (
+            <li className="searchable-select-empty">
+              {loading ? loadingText : error || emptyText}
+            </li>
           ) : (
             options.map((option) => (
               <li key={option.value}>
@@ -92,7 +123,10 @@ export function SearchableSelect({
                     setQuery('');
                   }}
                 >
-                  {option.label}
+                  {option.description ? (
+                    <span className="searchable-select-option-desc">{option.description}</span>
+                  ) : null}
+                  <span className="searchable-select-option-label">{option.label}</span>
                 </button>
               </li>
             ))

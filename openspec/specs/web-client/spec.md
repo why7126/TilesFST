@@ -402,86 +402,28 @@ Web 客户端管理端登录页（`/admin/login`）MUST 通过 port CSS 引用 D
 
 ### Requirement: 管理端瓷砖类目管理页
 
-Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `REQ-0067` 类目新增 / 编辑弹窗字段策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。
+Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `tile-category-management-add.html` 弹窗策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。新增类目表单 MUST 与小程序分类交互保持一致，最多只允许创建两级类目。
 
 #### Scenario: 类目页布局
 
-- **WHEN** 用户访问 `/admin/tile-categories`
+- **WHEN** 已登录 `admin` 或 `employee` 访问 `/admin/tile-categories`
 - **THEN** 页面 MUST 展示 page-header（eyebrow「CATEGORY MANAGEMENT」、标题「瓷砖类目管理」、说明、「＋ 新增类目」）
 - **AND** MUST 展示 4 指标卡、类目检索区（**无**外层 section 标题）、左侧类目树（280px）与右侧类目列表（**无**外层「类目列表」section 标题）
+- **AND** MUST NOT 展示导出按钮或批量操作入口
+- **AND** 页面内容宽度 MUST 跟随全局 Admin Shell 策略，不得通过页面级 `.content-inner` max-width 退回 1080px。
 
 #### Scenario: 类目树与列表联动
 
 - **WHEN** 用户点击左侧类目树节点
-- **THEN** 右侧类目列表 MUST 按节点及其子孙范围刷新
+- **THEN** 右侧列表 MUST 以所选节点为上下文刷新
+- **AND** 当前选中节点 MUST 有清晰 active 状态。
 
-#### Scenario: 类目列表名称列第二行仅展示编码
+#### Scenario: 新增类目最多两级
 
-- **WHEN** 管理端类目列表展示类目名称列
-- **THEN** 名称列第一行 MUST 展示类目名称
-- **AND** 名称列第二行 MUST 仅展示系统类目编码
-- **AND** 名称列第二行 MUST NOT 展示层级路径，例如 `父级类目 / 二级类目`
-
-#### Scenario: 新增类目弹窗字段
-
-- **WHEN** 用户点击「新增类目」
-- **THEN** 系统 MUST 打开新增类目弹窗
-- **AND** 弹窗 MUST 展示带必填标识的「上级类目」「类目名称」「排序权重」
-- **AND** 弹窗 MUST NOT 展示可填写的「类目编码」输入项
-- **AND** 弹窗 MUST 提示类目编码由系统自动生成或等价弱提示
-
-#### Scenario: 编辑类目弹窗字段
-
-- **WHEN** 用户点击类目行「编辑」
-- **THEN** 系统 MUST 打开编辑类目弹窗
-- **AND** 弹窗 MUST NOT 提供可编辑的「类目编码」输入项
-- **AND** 本期 MUST NOT 允许通过编辑弹窗修改上级类目
-
-#### Scenario: 上级类目选择
-
-- **WHEN** 用户在新增类目弹窗选择上级类目
-- **THEN** 下拉项 MUST 包含「无上级，创建一级类目」或等价顶级选项
-- **AND** 下拉项 MUST 仅包含可作为上级的一级类目
-- **AND** 二级类目 MUST NOT 出现在上级类目可选项中
-
-#### Scenario: 类目名称本地校验
-
-- **WHEN** 用户提交空名称、超过 10 个用户可见字符的名称，或包含中文/英文/数字之外字符的名称
-- **THEN** 前端 MUST 阻止保存
-- **AND** 错误提示 MUST 展示在类目名称字段或字段组下方
-
-#### Scenario: 排序权重本地校验
-
-- **WHEN** 用户提交空值、0、负数、小数或非数字排序权重
-- **THEN** 前端 MUST 阻止保存
-- **AND** 错误提示 MUST 展示在排序权重字段或字段组下方
-
-#### Scenario: 创建请求不包含编码
-
-- **WHEN** 用户提交新增类目弹窗
-- **THEN** 前端调用创建 API 的 payload MUST NOT 包含用户填写的 `code`
-- **AND** 前端 MUST 使用 Orval 生成类型或等价生成客户端契约
-
-#### Scenario: 服务端错误展示
-
-- **WHEN** 创建或更新 API 返回统一错误 envelope
-- **THEN** 前端 MUST 优先展示 `message`
-- **AND** 字段级错误 SHOULD 映射到对应字段
-- **AND** 无法映射字段的错误 MUST 展示在弹窗固定错误区域或等价表单错误区
-
-#### Scenario: 保存成功刷新
-
-- **WHEN** 类目创建或更新成功
-- **THEN** 弹窗 MUST 关闭
-- **AND** 类目树、类目列表和页面统计 MUST 刷新
-
-#### Scenario: 类目弹窗横切质量
-
-- **WHEN** 开发者实现或回归类目新增 / 编辑弹窗
-- **THEN** TSX MUST NOT 同时挂载通用 `modal-card` 与专属类
-- **AND** 1440px 视口下 computed width MUST 为 560px 或 design/tasks 中批准的宽度
-- **AND** 矮视口下弹窗 body MUST 可滚动且 footer 操作按钮始终可达
-- **AND** 实现 MUST 使用 Design System semantic token 或既有管理端样式，MUST NOT 新增裸 Hex
+- **WHEN** 用户打开新增类目弹窗
+- **THEN** 上级类目下拉框 MUST 仅允许选择“无上级”或一级类目
+- **AND** 页面 MUST 展示“当前最多支持二级类目”或等价提示
+- **AND** 页面 MUST NOT 允许选择二级类目作为上级。
 
 ### Requirement: 品牌管理 UI 一致性修复
 
@@ -1779,6 +1721,29 @@ Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索
 - **AND** 常见 HTTP status code MUST 至少包含 200、201、204、301、302、304、400、401、403、404、409、422、429、500、502、503、504
 - **AND** 若当前列表数据出现上述静态集合未覆盖的状态码，页面 SHOULD 将该状态码补充为可选项。
 
+#### Scenario: 日志审计操作者筛选使用可搜索单选下拉
+
+- **WHEN** 用户查看 `/admin/logs` 的操作者筛选项
+- **THEN** 页面 MUST 使用单选可搜索下拉，而不是 User ID 自由输入框
+- **AND** 下拉 MUST 支持按用户名称和账号模糊搜索
+- **AND** 候选项 MUST 只展示账号和用户名称两行，不展示角色或状态
+- **AND** 已选态 MUST 展示用户名称或名称加账号，不展示裸 User ID
+- **AND** 清空或重置后 MUST 恢复全部操作者筛选。
+
+#### Scenario: 日志审计时间范围使用固定最近窗口
+
+- **WHEN** 用户查看 `/admin/logs` 的时间范围筛选项
+- **THEN** 页面 MUST 提供最近5分钟、最近10分钟、最近30分钟、最近1小时、最近3小时、最近6小时、最近12小时、最近1天、最近2天、最近3天和最近7天
+- **AND** 页面 MUST NOT 提供全部时间选项
+- **AND** 默认时间范围 MUST 为最近1天。
+
+#### Scenario: 日志审计操作者候选状态可用
+
+- **WHEN** `/admin/logs` 操作者候选处于加载中、无结果或加载失败状态
+- **THEN** 下拉控件 MUST 展示可感知状态
+- **AND** 候选失败反馈 MUST 使用 fixed toast 或等价固定层时不得造成 hero、筛选区或表格纵向位移
+- **AND** 页面 MUST 允许用户继续使用日志类型、状态、时间范围、Task Trace ID、路径 / Request ID 等其他筛选。
+
 #### Scenario: 重置按钮统一
 
 - **WHEN** 用户对比任一适用页面的筛选/搜索模块
@@ -1793,28 +1758,6 @@ Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索
 - **AND** 固定列 MUST 使用与接口文档页一致的右侧背景、左侧分割线和阴影层次
 - **AND** 行 hover 时固定列背景 MUST 与当前行 hover 状态协调
 - **AND** 固定列内的编辑、启停、删除、查看、重置密码等操作权限、禁用态和确认流程 MUST 不回退。
-
-#### Scenario: 分页最多五个可点击页码
-
-- **WHEN** 任一适用页面展示分页
-- **THEN** 分页 MUST 使用左侧 `page-summary` 与右侧 `page-right` 的统一结构
-- **AND** 页码按钮 MUST 使用 `page-buttons`、`page-btn`、`active` 或等价统一 class
-- **AND** 可点击页码数量 MUST 不超过 5 个，不包含上一页/下一页按钮
-- **AND** 总页数为 1 时 MUST 仍展示统一分页结构，上一页/下一页为禁用态，页码 `1` 为当前态
-- **AND** 切换每页显示条数 MUST 将页码重置为 1。
-
-#### Scenario: 新增管理端列表页复用模板
-
-- **WHEN** 开发者新增或重构管理端列表型页面
-- **THEN** 页面 MUST 优先使用 `AdminListPage` 或等价模板组合承载标题、指标卡、筛选/搜索、列表和分页模块
-- **AND** 页面 MUST NOT 在业务页面内重复实现已有分页 DOM、sticky action column、固定 toast 或列表骨架
-- **AND** 业务页面 MAY 通过列定义、筛选项、行操作、状态态文案或受控 slot 插入领域内容，但 MUST NOT 破坏模块顺序、分页结构或操作列契约。
-
-#### Scenario: 非目标端不受影响
-
-- **WHEN** 本修复完成
-- **THEN** 店主 Web 展示端和微信小程序 MUST 不受此列表页一致性修复影响
-- **AND** 后端 API、数据库、MinIO、媒体上传和 Docker Compose MUST 不因本修复发生契约变化。
 
 ### Requirement: 管理端 MetricCard 基础组件
 Web 管理端 SHALL provide reusable `MetricCard` and `MetricCardGrid` or equivalent foundation components for admin list summary strips. The components MUST preserve the existing admin list DOM contract and MUST NOT change backend API behavior.
@@ -2106,6 +2049,13 @@ Web 管理端列表型页面 MUST 在手机和小屏平板视口下保持筛选�
 - **AND** 在 `≤639px` 视口下筛选输入框、选择框、重置按钮和其他筛选控件 MUST 不重叠、不超出父容器且可键盘聚焦
 - **AND** 筛选控件变化或重置后 MUST 保持既有业务筛选行为和权限边界。
 
+#### Scenario: 日志审计操作者下拉移动端可用
+
+- **WHEN** 用户在 `≤639px` 视口访问 `/admin/logs` 并打开操作者下拉
+- **THEN** 下拉面板 MUST 限制在筛选控件或视口可用宽度内
+- **AND** 用户名称、账号、加载态、空态和错误态 MUST 不与后续筛选项或表格内容重叠
+- **AND** 选择或清空操作者后页面 body、Shell、`.main-content` 与 `.content-inner` MUST NOT 出现不可控横向滚动。
+
 #### Scenario: 表格滚动限制在容器内
 
 - **WHEN** 任一适用列表页的表格内容宽于移动视口
@@ -2123,9 +2073,9 @@ Web 管理端列表型页面 MUST 在手机和小屏平板视口下保持筛选�
 #### Scenario: 列表横切 AC 保持
 
 - **WHEN** 本 Change 触及任一适用列表页
-- **THEN** 指标卡 MUST 保留 `.metric-label`、`.metric-value`、`.metric-desc` 或等价共享结构
-- **AND** 操作成功或失败反馈 MUST 使用 fixed toast 或等价固定反馈区域，不得用文档流 notice 推挤 hero、筛选区或表格
-- **AND** 启停、上下架、冻结、删除、重置密码等风险操作 MUST 使用 DS confirm modal，MUST NOT 使用 `window.confirm`。
+- **THEN** 指标卡 DOM MUST 使用 `.metric-label`、`.metric-value`、`.metric-desc`
+- **AND** 操作成功或失败反馈 MUST 不引起 hero、筛选区、表格或分页纵向位移
+- **AND** 页面实现 MUST NOT 使用 `window.confirm` 或 `window.alert`。
 
 ### Requirement: Web 管理端表单弹窗与抽屉移动端基础可用
 

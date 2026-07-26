@@ -162,12 +162,14 @@ class BrandCertificateAdminService:
         payload: BrandCertificateCreateRequest,
         *,
         actor_user_id: str | None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
     ) -> BrandCertificateItem:
         values = self._validate_payload(payload)
         if self._repo.get_by_brand_and_name(brand_id=payload.brand_id, name=values["name"]):
             raise BrandCertificateNameDuplicatedError()
         record = self._repo.create(values)
-        self._audit(actor_user_id, "brand_certificate_create", record, "新增品牌证书")
+        self._audit(actor_user_id, "brand_certificate_create", record, "新增品牌证书", task_trace_id, task_type)
         return self.to_item(record)
 
     def update_certificate(
@@ -176,6 +178,8 @@ class BrandCertificateAdminService:
         payload: BrandCertificateUpdateRequest,
         *,
         actor_user_id: str | None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
     ) -> BrandCertificateItem:
         existing = self._repo.get_by_id(certificate_id)
         if existing is None:
@@ -190,35 +194,56 @@ class BrandCertificateAdminService:
             raise BrandCertificateNameDuplicatedError()
         record = self._repo.update(certificate_id, values)
         assert record is not None
-        self._audit(actor_user_id, "brand_certificate_update", record, "编辑品牌证书")
+        self._audit(actor_user_id, "brand_certificate_update", record, "编辑品牌证书", task_trace_id, task_type)
         return self.to_item(record)
 
-    def show_certificate(self, certificate_id: int, *, actor_user_id: str | None) -> BrandCertificateItem:
+    def show_certificate(
+        self,
+        certificate_id: int,
+        *,
+        actor_user_id: str | None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
+    ) -> BrandCertificateItem:
         record = self._repo.get_by_id(certificate_id)
         if record is None:
             raise BrandCertificateNotFoundError()
         updated = self._repo.set_visibility(certificate_id, True)
         assert updated is not None
-        self._audit(actor_user_id, "brand_certificate_show", updated, "显示品牌证书")
+        self._audit(actor_user_id, "brand_certificate_show", updated, "显示品牌证书", task_trace_id, task_type)
         return self.to_item(updated)
 
-    def hide_certificate(self, certificate_id: int, *, actor_user_id: str | None) -> BrandCertificateItem:
+    def hide_certificate(
+        self,
+        certificate_id: int,
+        *,
+        actor_user_id: str | None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
+    ) -> BrandCertificateItem:
         record = self._repo.get_by_id(certificate_id)
         if record is None:
             raise BrandCertificateNotFoundError()
         updated = self._repo.set_visibility(certificate_id, False)
         assert updated is not None
-        self._audit(actor_user_id, "brand_certificate_hide", updated, "隐藏品牌证书")
+        self._audit(actor_user_id, "brand_certificate_hide", updated, "隐藏品牌证书", task_trace_id, task_type)
         return self.to_item(updated)
 
-    def delete_certificate(self, certificate_id: int, *, actor_user_id: str | None) -> None:
+    def delete_certificate(
+        self,
+        certificate_id: int,
+        *,
+        actor_user_id: str | None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
+    ) -> None:
         record = self._repo.get_by_id(certificate_id)
         if record is None:
             raise BrandCertificateNotFoundError()
         deleted = self._repo.soft_delete(certificate_id)
         if not deleted:
             raise BrandCertificateNotFoundError()
-        self._audit(actor_user_id, "brand_certificate_delete", record, "删除品牌证书")
+        self._audit(actor_user_id, "brand_certificate_delete", record, "删除品牌证书", task_trace_id, task_type)
 
     def _validate_payload(
         self,
@@ -267,6 +292,8 @@ class BrandCertificateAdminService:
         action_type: str,
         record: BrandCertificateRecord,
         action_label: str,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
     ) -> None:
         self._audit_repo.insert(
             actor_user_id=actor_user_id,
@@ -282,4 +309,6 @@ class BrandCertificateAdminService:
                 },
                 ensure_ascii=False,
             ),
+            task_trace_id=task_trace_id,
+            task_type=task_type,
         )

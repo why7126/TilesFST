@@ -7,7 +7,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.exc import ArgumentError
+from sqlalchemy.exc import ArgumentError, OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
@@ -131,7 +131,11 @@ def init_database() -> None:
             for statement in schema_sql.split(";"):
                 chunk = statement.strip()
                 if chunk:
-                    connection.execute(text(chunk))
+                    try:
+                        connection.execute(text(chunk))
+                    except OperationalError as exc:
+                        if not _is_legacy_sqlite_index_error(chunk, exc):
+                            raise
             apply_migrations(connection)
         else:
             raise DatabaseConfigurationError(f"Unsupported database dialect: {backend}")
@@ -151,6 +155,11 @@ def _init_mysql_schema(connection) -> None:
         (MYSQL_BASELINE_VERSION,),
     )
     apply_mysql_compat_migrations(connection)
+
+
+def _is_legacy_sqlite_index_error(statement: str, exc: OperationalError) -> bool:
+    message = str(exc.orig).lower() if getattr(exc, "orig", None) is not None else str(exc).lower()
+    return statement.upper().startswith("CREATE INDEX IF NOT EXISTS") and "no such column" in message
 
 
 def reset_engine() -> None:

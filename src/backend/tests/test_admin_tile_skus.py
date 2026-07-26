@@ -5,11 +5,14 @@ from __future__ import annotations
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
+from app.repositories.task_trace_repository import TaskTraceRepository
 from app.repositories.tile_sku_repository import TileSkuRepository
 from app.repositories.user_repository import UserRepository
+from app.services.task_trace_service import TaskTraceService
 from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 
 
@@ -113,6 +116,191 @@ def test_create_sku_without_surface_finish(client: TestClient) -> None:
     assert response.json()["data"]["surface_finish"] == "-"
 
 
+def test_create_sku_records_task_trace_spans_and_request_log(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    task_trace_id = data["task_trace_id"]
+    assert task_trace_id.startswith("task_sku_create_")
+    assert data["task_type"] == "sku_create"
+
+    session = get_session_factory()()
+    try:
+        trace = (
+            session.execute(
+                text(
+                    """
+                    SELECT task_type, status, resource_type, resource_id, error_code
+                    FROM task_traces
+                    WHERE task_trace_id = :task_trace_id
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .one()
+        )
+        spans = (
+            session.execute(
+                text(
+                    """
+                    SELECT span_name, status, request_id, resource_id
+                    FROM task_trace_spans
+                    WHERE task_trace_id = :task_trace_id
+                    ORDER BY sequence ASC
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .all()
+        )
+        request_log = (
+            session.execute(
+                text(
+                    """
+                    SELECT request_id, task_type
+                    FROM request_logs
+                    WHERE task_trace_id = :task_trace_id
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .one()
+        )
+    finally:
+        session.close()
+
+    assert trace["task_type"] == "sku_create"
+    assert trace["status"] == "success"
+    assert trace["resource_type"] == "tile_sku"
+    assert trace["resource_id"] == str(data["id"])
+    assert trace["error_code"] is None
+    assert [span["span_name"] for span in spans] == [
+        "api_receive",
+        "input_validate",
+        "business_persist",
+        "api_response",
+    ]
+    assert {span["status"] for span in spans} == {"success"}
+    assert {span["request_id"] for span in spans} == {response.headers["x-request-id"]}
+    assert spans[-1]["resource_id"] == str(data["id"])
+    assert request_log["request_id"] == response.headers["x-request-id"]
+    assert request_log["task_type"] == "sku_create"
+
+
+def test_update_sku_business_error_records_failed_task_trace(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    create_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+    )
+    sku_id = create_response.json()["data"]["id"]
+
+    response = client.put(
+        f"/api/v1/admin/tile-skus/{sku_id}",
+        headers=headers,
+        json={
+            "name": "Invalid Brand SKU",
+            "brand_id": 999999,
+            "category_id": category_id,
+            "spec_id": spec_id,
+            "reference_price": 10,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == 40001
+    session = get_session_factory()()
+    try:
+        trace = (
+            session.execute(
+                text(
+                    """
+                    SELECT task_trace_id, status, error_code
+                    FROM task_traces
+                    WHERE task_type = 'sku_update'
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+            )
+            .mappings()
+            .one()
+        )
+        failed_span = (
+            session.execute(
+                text(
+                    """
+                    SELECT span_name, status, error_code
+                    FROM task_trace_spans
+                    WHERE task_trace_id = :task_trace_id AND status = 'failed'
+                    ORDER BY sequence DESC
+                    LIMIT 1
+                    """
+                ),
+                {"task_trace_id": trace["task_trace_id"]},
+            )
+            .mappings()
+            .one()
+        )
+    finally:
+        session.close()
+
+    assert trace["status"] == "failed"
+    assert trace["error_code"] == "40001"
+    assert failed_span["span_name"] == "business_process"
+    assert failed_span["error_code"] == "40001"
+
+
+def test_task_trace_context_helpers_for_async_and_safe_failure(monkeypatch) -> None:
+    session = get_session_factory()()
+    try:
+        service = TaskTraceService(TaskTraceRepository(session))
+        context = service.build_context(
+            task_type="sku_create",
+            task_trace_id="invalid id",
+            request_id="req_001",
+            actor_user_id="user_001",
+            resource_type="tile_sku",
+            resource_id="42",
+        )
+        assert context.task_trace_id.startswith("task_sku_create_")
+        assert TaskTraceService.serialize_async_context(context) == {
+            "task_trace_id": context.task_trace_id,
+            "task_type": "sku_create",
+            "parent_request_id": "req_001",
+            "actor_user_id": "user_001",
+            "client_type": "web_admin",
+            "resource_type": "tile_sku",
+            "resource_id": "42",
+        }
+
+        def fail_record_context_span(*_args, **_kwargs) -> None:
+            raise RuntimeError("trace table unavailable")
+
+        monkeypatch.setattr(service, "record_context_span", fail_record_context_span)
+        assert service.record_context_span_safe(context, span_name="api_receive") is False
+    finally:
+        session.close()
+
+
 def test_create_sku_requires_reference_price(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)
@@ -138,6 +326,46 @@ def test_create_sku_with_zero_reference_price(client: TestClient) -> None:
     response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
     assert response.status_code == 200
     assert response.json()["data"]["reference_price"] == 0.0
+
+
+def test_upload_tile_video_then_save_sku_video_closure(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+
+    upload = client.post(
+        "/api/v1/admin/uploads/tile-videos",
+        headers=headers,
+        files={"file": ("closure.mp4", b"\x00\x00\x00 ftypmp42closure", "video/mp4")},
+    )
+    assert upload.status_code == 200
+    upload_data = upload.json()["data"]
+    object_key = upload_data["object_key"]
+    assert upload_data["url"] == f"/media/{object_key}"
+
+    payload = _create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id)
+    payload["videos"] = [
+        {
+            "object_key": object_key,
+            "file_name": "closure.mp4",
+            "file_size_bytes": 21,
+            "duration_seconds": None,
+            "sort_order": 0,
+        }
+    ]
+
+    create_response = client.post("/api/v1/admin/tile-skus", headers=headers, json=payload)
+    assert create_response.status_code == 200
+    created = create_response.json()["data"]
+    assert created["video_count"] == 1
+
+    detail = client.get(f"/api/v1/admin/tile-skus/{created['id']}", headers=headers)
+    assert detail.status_code == 200
+    videos = detail.json()["data"]["videos"]
+    assert videos[0]["object_key"] == object_key
+    assert videos[0]["url"] == f"/media/{object_key}"
+    assert videos[0]["file_name"] == "closure.mp4"
 
 
 def test_publish_sku_with_empty_surface_finish(client: TestClient) -> None:

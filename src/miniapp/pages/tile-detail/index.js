@@ -160,6 +160,8 @@ Page({
     favoriteBusy: false,
     mediaIndex: 0,
     mediaPaused: false,
+    fullscreenVideoId: 0,
+    fullscreenSwitching: false,
     mediaError: '',
     error: '',
     errorDetail: '',
@@ -288,6 +290,7 @@ Page({
     const current = Number(event.detail.current || 0);
     const product = this.data.product;
     const media = product && product.media[current];
+    this.pauseVideo();
     this.setData({ mediaIndex: current, mediaPaused: false });
     if (product && media) {
       track('sku_media_swipe', {
@@ -326,6 +329,72 @@ Page({
     }
   },
 
+  openVideoFullscreen(event) {
+    const mediaId = Number(event.currentTarget.dataset.id || 0);
+    const product = this.data.product;
+    if (!product || !mediaId) {
+      wx.showToast({ title: '视频暂时无法全屏播放', icon: 'none' });
+      return;
+    }
+    const activeVideo = product.media.find((item) => item.media_id === mediaId && item.media_type === 'video');
+    if (!activeVideo || !activeVideo.url) {
+      wx.showToast({ title: '视频暂时无法全屏播放', icon: 'none' });
+      return;
+    }
+    const videoContext = wx.createVideoContext(`sku-video-${mediaId}`, this);
+    this.setData({
+      fullscreenVideoId: mediaId,
+      fullscreenSwitching: true,
+      mediaPaused: true,
+      mediaError: '正在进入全屏播放…',
+    });
+    track('sku_video_play', {
+      sku_id: product.product_id,
+      media_id: mediaId,
+      page_path: pagePath(product.product_id, this.data.source),
+      action: 'fullscreen_context',
+    });
+    videoContext.requestFullScreen({
+      direction: 0,
+      success: () => {
+        this.setData({ mediaError: '' });
+      },
+      fail: (error) => {
+        this.setData({ fullscreenSwitching: false, fullscreenVideoId: 0, mediaError: '全屏播放暂不可用，请在视频控制条中重试' });
+        wx.showToast({ title: '全屏播放暂不可用', icon: 'none' });
+        track('sku_load_error', {
+          sku_id: product.product_id,
+          page_path: pagePath(product.product_id, this.data.source),
+          error_code: 'video_fullscreen_failed',
+          stage: 'fullscreen_context',
+          media_id: mediaId,
+          url_scheme: activeVideo.url.startsWith('https://') ? 'https' : activeVideo.url.startsWith('http://') ? 'http' : 'relative',
+          url_ext: activeVideo.url.split('?')[0].split('.').pop() || '',
+          err_msg: String((error && error.errMsg) || '').slice(0, 120),
+        });
+      },
+    });
+  },
+
+  onVideoFullscreenChange(event) {
+    const mediaId = Number(event.currentTarget.dataset.id || 0);
+    const fullScreen = Boolean(event.detail && event.detail.fullScreen);
+    if (fullScreen) {
+      this.setData({ fullscreenVideoId: mediaId, fullscreenSwitching: false, mediaPaused: true, mediaError: '' });
+      return;
+    }
+    if (this.data.fullscreenVideoId === mediaId) {
+      this.setData({ fullscreenVideoId: 0, fullscreenSwitching: false, mediaError: '' });
+    }
+  },
+
+  onVideoWaiting(event) {
+    const mediaId = Number(event.currentTarget.dataset.id || 0);
+    if (this.data.fullscreenSwitching && this.data.fullscreenVideoId === mediaId) {
+      this.setData({ mediaError: '全屏切换中，视频正在恢复播放…' });
+    }
+  },
+
   pauseVideo() {
     const product = this.data.product;
     if (!product) {
@@ -336,12 +405,14 @@ Page({
         wx.createVideoContext(`sku-video-${item.media_id}`, this).pause();
       }
     });
-    this.setData({ mediaPaused: false });
+    this.setData({ mediaPaused: false, fullscreenVideoId: 0, fullscreenSwitching: false });
   },
 
   onMediaError(event) {
     const mediaType = String(event.currentTarget.dataset.type || 'media');
-    this.setData({ mediaError: mediaType === 'video' ? '视频暂时无法播放' : '图片加载失败，可稍后重试' });
+    this.setData({
+      mediaError: mediaType === 'video' ? '视频暂时无法播放' : '图片加载失败，可稍后重试',
+    });
   },
 
   toggleFavorite() {

@@ -104,7 +104,7 @@ interface VideoDraft {
   sort_order: number;
 }
 
-type VideoUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+type VideoUploadState = 'idle' | 'transferring' | 'saving' | 'uploaded' | 'failed';
 
 function resolveVideoUrl(video: Pick<VideoDraft, 'object_key' | 'url'>): string {
   return video.url || `/media/${video.object_key}`;
@@ -128,6 +128,12 @@ interface TileSkuFormModalProps {
   onSuccess: (message: string) => void;
 }
 
+interface TaskTraceFeedback {
+  task_trace_id: string;
+  task_type?: string | null;
+  message: string;
+}
+
 export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSkuFormModalProps) {
   const [name, setName] = useState('');
   const [brandId, setBrandId] = useState('');
@@ -146,6 +152,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [mediaSettings, setMediaSettings] = useState(DEFAULT_MEDIA_UPLOAD_SETTINGS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [taskTraceFeedback, setTaskTraceFeedback] = useState<TaskTraceFeedback | null>(null);
+  const [taskTraceCopyNotice, setTaskTraceCopyNotice] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
@@ -176,6 +184,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setTaskTraceFeedback(null);
+    setTaskTraceCopyNotice(null);
     setVideoUploadState('idle');
     setVideoUploadProgress(0);
     setVideoUploadError(null);
@@ -311,12 +321,14 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   };
 
   const handleSave = async (saveMode: 'draft' | 'create') => {
-    if (videoUploadState === 'uploading') {
+    if (videoUploadState === 'transferring' || videoUploadState === 'saving') {
       setError('视频上传中，请稍后保存');
       return;
     }
     setSubmitting(true);
     setError(null);
+    setTaskTraceFeedback(null);
+    setTaskTraceCopyNotice(null);
     if (saveMode === 'draft' && !name.trim()) {
       setError('商品名称不能为空');
       setSubmitting(false);
@@ -332,18 +344,40 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     }
 
     try {
+      let result: TileSkuAdminItem | null = null;
+      let successMessage = '';
       if (mode === 'create') {
-        await createTileSku({ ...buildPayload(), save_mode: saveMode });
-        onSuccess(saveMode === 'draft' ? '草稿已保存' : 'SKU 创建成功，已保存为草稿');
+        result = await createTileSku({ ...buildPayload(), save_mode: saveMode });
+        successMessage = saveMode === 'draft' ? '草稿已保存' : 'SKU 创建成功，已保存为草稿';
       } else if (sku) {
-        await updateTileSku(sku.id, buildPayload());
-        onSuccess('SKU 已更新');
+        result = await updateTileSku(sku.id, buildPayload());
+        successMessage = 'SKU 已更新';
       }
-      onClose();
+      if (result?.task_trace_id) {
+        setTaskTraceFeedback({
+          task_trace_id: result.task_trace_id,
+          task_type: result.task_type,
+          message: successMessage,
+        });
+        onSuccess(`${successMessage}，任务追踪已生成`);
+      } else {
+        onSuccess(successMessage);
+        onClose();
+      }
     } catch (err) {
       setError(getErrorMessage(err, '保存失败'));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const copyTaskTraceId = async () => {
+    if (!taskTraceFeedback) return;
+    try {
+      await navigator.clipboard.writeText(taskTraceFeedback.task_trace_id);
+      setTaskTraceCopyNotice('追踪 ID 已复制');
+    } catch {
+      setTaskTraceCopyNotice('复制失败，请手动复制');
     }
   };
 
@@ -370,11 +404,17 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const handleVideoUpload = async (file: File | undefined) => {
     if (!file) return;
     setVideoUploadError(null);
-    setVideoUploadState('uploading');
+    setVideoUploadState('transferring');
     setVideoUploadProgress(8);
     try {
       const result = await uploadTileVideo(file, sku?.id, (progress) => {
-        setVideoUploadProgress(progress);
+        const normalizedProgress = Math.min(99, Math.max(1, progress));
+        setVideoUploadProgress(normalizedProgress);
+        if (normalizedProgress >= 99) {
+          setVideoUploadState('saving');
+        } else {
+          setVideoUploadState('transferring');
+        }
       });
       setVideos((prev) => [
         ...prev,
@@ -404,7 +444,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     }
   };
 
-  const isVideoUploading = videoUploadState === 'uploading';
+  const isVideoUploading = videoUploadState === 'transferring' || videoUploadState === 'saving';
+  const videoUploadStatusText =
+    videoUploadState === 'saving'
+      ? '正在保存视频，请稍候'
+      : `上传中 ${videoUploadProgress}%`;
 
   const setMainImage = (index: number) => {
     setImages((prev) => normalizeImages(prev.map((img, i) => ({ ...img, is_main: i === index }))));
@@ -446,6 +490,27 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
         <div className="modal-body">
           {error ? <p className="admin-notice">{error}</p> : null}
+          {taskTraceFeedback ? (
+            <div className="sku-task-trace-feedback" role="status">
+              <div>
+                <span className="sku-task-trace-label">{taskTraceFeedback.message}</span>
+                <code>{taskTraceFeedback.task_trace_id}</code>
+                {taskTraceFeedback.task_type ? (
+                  <span className="sku-task-trace-type">{taskTraceFeedback.task_type}</span>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => void copyTaskTraceId()}
+              >
+                复制追踪ID
+              </button>
+              {taskTraceCopyNotice ? (
+                <span className="sku-task-trace-copy-notice">{taskTraceCopyNotice}</span>
+              ) : null}
+            </div>
+          ) : null}
           <div className="sku-form-grid">
             <div className="brand-form-item">
               <label>
@@ -638,7 +703,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                   onClick={() => videoInputRef.current?.click()}
                 >
                   <span style={{ fontSize: 20 }}>＋</span>
-                  {isVideoUploading ? '上传中' : '继续添加视频'}
+                  {videoUploadState === 'saving' ? '保存中' : isVideoUploading ? '上传中' : '继续添加视频'}
                 </button>
               </div>
               {isVideoUploading ? (
@@ -655,9 +720,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                       style={{ width: `${videoUploadProgress}%` }}
                     />
                   </span>
-                  <span className="sku-video-progress-text">
-                    上传中 {videoUploadProgress}%
-                  </span>
+                  <span className="sku-video-progress-text">{videoUploadStatusText}</span>
                 </div>
               ) : null}
               {videoUploadState === 'uploaded' ? (
@@ -693,9 +756,13 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             onClick={onClose}
             disabled={submitting || isVideoUploading}
           >
-            取消
+            {taskTraceFeedback ? '关闭' : '取消'}
           </button>
-          {mode === 'create' ? (
+          {taskTraceFeedback ? (
+            <button type="button" className="btn primary" onClick={onClose}>
+              完成
+            </button>
+          ) : mode === 'create' ? (
             <>
               <button
                 type="button"

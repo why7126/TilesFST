@@ -39,19 +39,31 @@
             bindtap="previewImage"
             binderror="onMediaError"
           ></image>
-          <video
-            wx:else
-            id="sku-video-{{item.media_id}}"
-            class="gallery-image"
-            src="{{item.url}}"
-            poster="{{item.cover_url || ''}}"
-            controls
-            autoplay="{{false}}"
-            object-fit="cover"
-            data-type="video"
-            bindplay="onVideoPlay"
-            binderror="onMediaError"
-          ></video>
+          <view wx:else class="video-layer">
+            <video
+              id="sku-video-{{item.media_id}}"
+              class="gallery-image"
+              src="{{item.url}}"
+              poster="{{item.cover_url || product.cover_image || imageFallback}}"
+              controls
+              show-fullscreen-btn="{{false}}"
+              autoplay="{{false}}"
+              object-fit="cover"
+              data-id="{{item.media_id}}"
+              data-url="{{item.url}}"
+              data-type="video"
+              bindplay="onVideoPlay"
+              bindwaiting="onVideoWaiting"
+              bindfullscreenchange="onVideoFullscreenChange"
+              binderror="onMediaError"
+            ></video>
+            <cover-view
+              class="video-fullscreen-btn"
+              data-id="{{item.media_id}}"
+              data-url="{{item.url}}"
+              bindtap="openVideoFullscreen"
+            >⛶</cover-view>
+          </view>
         </swiper-item>
         <swiper-item wx:if="{{!product.media.length}}">
           <view class="gallery-image image-empty">暂无图片</view>

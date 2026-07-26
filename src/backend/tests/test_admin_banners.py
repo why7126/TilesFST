@@ -5,14 +5,18 @@ from __future__ import annotations
 from io import BytesIO
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
+from app.core.error_codes import BANNER_SCHEMA_DRIFT
 from app.db.migrations import BANNER_SCOPE_DELETE_CONDITION, _cleanup_legacy_banner_scope
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
+from app.repositories.banner_repository import BannerRepository
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login
 
@@ -450,6 +454,40 @@ def test_brand_detail_banner_rejects_disabled_missing_logo_and_logo_mismatch(
     assert mismatch.json()["code"] == 30052
     assert "品牌 Logo 引用不一致" in mismatch.text
     _assert_error_is_sanitized(mismatch.text)
+
+
+def test_banner_create_returns_stable_error_when_database_write_fails(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(
+        client,
+        headers,
+        logo_object_key="images/default/brands/logos/db-drift.webp",
+    )
+
+    def raise_db_error(*args, **kwargs):
+        raise SQLAlchemyError("INSERT INTO banners failed: Unknown column image_source")
+
+    monkeypatch.setattr(BannerRepository, "create", raise_db_error)
+
+    response = client.post(
+        "/api/v1/admin/banners",
+        headers=headers,
+        json=_banner_payload(
+            title=f"DB Drift {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=brand_id,
+            image_object_key="images/default/brands/logos/db-drift.webp",
+            image_source="brand_logo",
+        ),
+    )
+
+    assert response.status_code == 503
+    assert response.json()["code"] == BANNER_SCHEMA_DRIFT
+    assert response.json()["message"] == "Banner 表结构未完成迁移，请联系管理员执行发布前检查"
+    _assert_error_is_sanitized(response.text)
 
 
 def test_external_url_validation(client: TestClient) -> None:

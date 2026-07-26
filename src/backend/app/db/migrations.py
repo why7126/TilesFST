@@ -147,6 +147,7 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   actor_user_id TEXT NULL REFERENCES users(id),
                   actor_role TEXT,
                   client_type TEXT NOT NULL DEFAULT 'backend',
+                  client_request_id TEXT,
                   method TEXT NOT NULL,
                   path TEXT NOT NULL,
                   status_code INTEGER NOT NULL,
@@ -156,12 +157,22 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   summary TEXT NOT NULL,
                   error_code TEXT,
                   result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+                  task_trace_id TEXT,
+                  task_type TEXT,
                   metadata TEXT,
                   created_at TEXT NOT NULL
                 )
                 """
             )
         )
+    else:
+        columns = _column_names(connection, "request_logs")
+        if "task_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE request_logs ADD COLUMN task_trace_id TEXT"))
+        if "task_type" not in columns:
+            connection.execute(text("ALTER TABLE request_logs ADD COLUMN task_type TEXT"))
+        if "client_request_id" not in columns:
+            connection.execute(text("ALTER TABLE request_logs ADD COLUMN client_request_id TEXT"))
 
     request_indexes = {
         "idx_request_logs_created": "CREATE INDEX idx_request_logs_created ON request_logs(created_at DESC)",
@@ -169,6 +180,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         "idx_request_logs_actor_created": "CREATE INDEX idx_request_logs_actor_created ON request_logs(actor_user_id, created_at DESC)",
         "idx_request_logs_status_created": "CREATE INDEX idx_request_logs_status_created ON request_logs(status_code, created_at DESC)",
         "idx_request_logs_path_created": "CREATE INDEX idx_request_logs_path_created ON request_logs(path, created_at DESC)",
+        "idx_request_logs_task_trace": "CREATE INDEX idx_request_logs_task_trace ON request_logs(task_trace_id, created_at DESC)",
+        "idx_request_logs_client_request_id": "CREATE INDEX idx_request_logs_client_request_id ON request_logs(client_request_id)",
     }
     for name, sql in request_indexes.items():
         if not _index_exists(connection, name):
@@ -193,6 +206,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   summary TEXT NOT NULL,
                   duration_ms INTEGER,
                   result TEXT NOT NULL DEFAULT 'success' CHECK (result IN ('success', 'failed')),
+                  task_trace_id TEXT,
+                  task_type TEXT,
                   metadata TEXT,
                   created_at TEXT NOT NULL
                 )
@@ -203,14 +218,109 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         columns = _column_names(connection, "usage_events")
         if "duration_ms" not in columns:
             connection.execute(text("ALTER TABLE usage_events ADD COLUMN duration_ms INTEGER"))
+        if "task_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE usage_events ADD COLUMN task_trace_id TEXT"))
+        if "task_type" not in columns:
+            connection.execute(text("ALTER TABLE usage_events ADD COLUMN task_type TEXT"))
 
     usage_indexes = {
         "idx_usage_events_created": "CREATE INDEX idx_usage_events_created ON usage_events(created_at DESC)",
         "idx_usage_events_event_created": "CREATE INDEX idx_usage_events_event_created ON usage_events(event_name, created_at DESC)",
         "idx_usage_events_request_id": "CREATE INDEX idx_usage_events_request_id ON usage_events(request_id)",
         "idx_usage_events_actor_created": "CREATE INDEX idx_usage_events_actor_created ON usage_events(actor_user_id, created_at DESC)",
+        "idx_usage_events_task_trace": "CREATE INDEX idx_usage_events_task_trace ON usage_events(task_trace_id, created_at DESC)",
     }
     for name, sql in usage_indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
+
+    if _table_exists(connection, "audit_logs"):
+        columns = _column_names(connection, "audit_logs")
+        if "task_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE audit_logs ADD COLUMN task_trace_id TEXT"))
+        if "task_type" not in columns:
+            connection.execute(text("ALTER TABLE audit_logs ADD COLUMN task_type TEXT"))
+        if not _index_exists(connection, "idx_audit_logs_task_trace"):
+            connection.execute(
+                text("CREATE INDEX idx_audit_logs_task_trace ON audit_logs(task_trace_id, created_at DESC)")
+            )
+
+    if not _table_exists(connection, "task_traces"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE task_traces (
+                  id TEXT PRIMARY KEY,
+                  task_trace_id TEXT NOT NULL UNIQUE,
+                  task_type TEXT NOT NULL,
+                  status TEXT NOT NULL CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+                  actor_user_id TEXT NULL REFERENCES users(id),
+                  client_type TEXT,
+                  parent_request_id TEXT,
+                  resource_type TEXT,
+                  resource_id TEXT,
+                  started_at TEXT NOT NULL,
+                  ended_at TEXT,
+                  duration_ms INTEGER,
+                  slowest_span_name TEXT,
+                  error_code TEXT,
+                  summary TEXT NOT NULL,
+                  metadata TEXT,
+                  created_at TEXT NOT NULL,
+                  updated_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+    else:
+        columns = _column_names(connection, "task_traces")
+        if "parent_request_id" not in columns:
+            connection.execute(text("ALTER TABLE task_traces ADD COLUMN parent_request_id TEXT"))
+
+    trace_indexes = {
+        "idx_task_traces_task_trace_id": "CREATE INDEX idx_task_traces_task_trace_id ON task_traces(task_trace_id)",
+        "idx_task_traces_parent_request_id": "CREATE INDEX idx_task_traces_parent_request_id ON task_traces(parent_request_id, created_at DESC)",
+        "idx_task_traces_type_created": "CREATE INDEX idx_task_traces_type_created ON task_traces(task_type, created_at DESC)",
+        "idx_task_traces_status_created": "CREATE INDEX idx_task_traces_status_created ON task_traces(status, created_at DESC)",
+    }
+    for name, sql in trace_indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
+
+    if not _table_exists(connection, "task_trace_spans"):
+        connection.execute(
+            text(
+                """
+                CREATE TABLE task_trace_spans (
+                  id TEXT PRIMARY KEY,
+                  task_trace_id TEXT NOT NULL,
+                  task_type TEXT NOT NULL,
+                  span_name TEXT NOT NULL,
+                  status TEXT NOT NULL CHECK (status IN ('processing', 'success', 'failed', 'timeout', 'cancelled', 'skipped')),
+                  started_at TEXT NOT NULL,
+                  ended_at TEXT,
+                  duration_ms INTEGER,
+                  sequence INTEGER NOT NULL DEFAULT 0,
+                  request_id TEXT,
+                  actor_user_id TEXT NULL REFERENCES users(id),
+                  client_type TEXT,
+                  resource_type TEXT,
+                  resource_id TEXT,
+                  error_code TEXT,
+                  summary TEXT NOT NULL,
+                  metadata TEXT,
+                  created_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+
+    span_indexes = {
+        "idx_task_trace_spans_trace_sequence": "CREATE INDEX idx_task_trace_spans_trace_sequence ON task_trace_spans(task_trace_id, sequence, started_at)",
+        "idx_task_trace_spans_request_id": "CREATE INDEX idx_task_trace_spans_request_id ON task_trace_spans(request_id)",
+        "idx_task_trace_spans_type_created": "CREATE INDEX idx_task_trace_spans_type_created ON task_trace_spans(task_type, created_at DESC)",
+    }
+    for name, sql in span_indexes.items():
         if not _index_exists(connection, name):
             connection.execute(text(sql))
 
@@ -268,6 +378,8 @@ def _ensure_system_settings_support(connection: Connection) -> None:
                   domain TEXT NOT NULL,
                   action_type TEXT NOT NULL,
                   summary TEXT NOT NULL,
+                  task_trace_id TEXT,
+                  task_type TEXT,
                   metadata TEXT NULL,
                   created_at TEXT NOT NULL
                 )
@@ -279,6 +391,14 @@ def _ensure_system_settings_support(connection: Connection) -> None:
                 """
                 CREATE INDEX idx_audit_logs_domain_created
                 ON audit_logs(domain, created_at DESC)
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX idx_audit_logs_task_trace
+                ON audit_logs(task_trace_id, created_at DESC)
                 """
             )
         )

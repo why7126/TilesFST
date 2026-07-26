@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from app.core.deps import require_system_admin
 from app.db.session import get_db
@@ -23,6 +23,7 @@ from app.schemas.system_settings import (
     SystemSettingsGroupResponse,
 )
 from app.services.system_settings_service import SystemSettingsService
+from app.services.task_trace_service import TaskTraceService
 from sqlalchemy.orm import Session
 
 router = APIRouter(dependencies=[Depends(require_system_admin)])
@@ -41,6 +42,23 @@ def get_system_settings_service(db: Session = Depends(get_db)) -> SystemSettings
         SystemSettingsRepository(db),
         AuditLogRepository(db),
     )
+
+
+def _task_trace_id_from_request(request: Request) -> str | None:
+    state_value = getattr(request.state, "task_trace_id", None)
+    if isinstance(state_value, str):
+        valid = TaskTraceService.validate_task_trace_id(state_value)
+        if valid:
+            return valid
+    return TaskTraceService.validate_task_trace_id(request.headers.get("x-task-trace-id"))
+
+
+def _task_type_from_request(request: Request) -> str | None:
+    state_value = getattr(request.state, "task_type", None)
+    if isinstance(state_value, str) and state_value.strip():
+        return state_value.strip()[:64]
+    header_value = request.headers.get("x-task-type")
+    return header_value.strip()[:64] if header_value and header_value.strip() else None
 
 
 @router.get(
@@ -77,6 +95,7 @@ def get_settings_group(
     summary="更新设置分组",
 )
 def patch_settings_group(
+    request: Request,
     group: str,
     payload: dict[str, Any],
     service: Annotated[SystemSettingsService, Depends(get_system_settings_service)],
@@ -89,7 +108,13 @@ def patch_settings_group(
         raise AppError(status_code=404, code=40400, message="未知的设置分组")
     validated = model_cls.model_validate(payload)
     patch_dict = validated.model_dump(exclude_unset=True)
-    data = service.patch_group(group, patch_dict, actor.id)
+    data = service.patch_group(
+        group,
+        patch_dict,
+        actor.id,
+        task_trace_id=_task_trace_id_from_request(request),
+        task_type=_task_type_from_request(request),
+    )
     return ApiResponse(data=SystemSettingsGroupResponse(group=group, data=data))
 
 
@@ -99,9 +124,15 @@ def patch_settings_group(
     summary="恢复设置分组默认",
 )
 def reset_settings_group(
+    request: Request,
     group: str,
     service: Annotated[SystemSettingsService, Depends(get_system_settings_service)],
     actor: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[SystemSettingsGroupResponse]:
-    data = service.reset_group(group, actor.id)
+    data = service.reset_group(
+        group,
+        actor.id,
+        task_trace_id=_task_trace_id_from_request(request),
+        task_type=_task_type_from_request(request),
+    )
     return ApiResponse(data=SystemSettingsGroupResponse(group=group, data=data))

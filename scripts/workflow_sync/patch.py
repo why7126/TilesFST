@@ -444,27 +444,54 @@ def render_scope_summary_paragraphs(
     )
 
 
+def _markdown_cells(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def _find_scope_main_table(section: str) -> tuple[int, int] | None:
+    lines = section.splitlines(keepends=True)
+    offset = 0
+    for index, line in enumerate(lines[:-1]):
+        cells = _markdown_cells(line)
+        next_line = lines[index + 1]
+        if not cells or "类型" not in cells:
+            offset += len(line)
+            continue
+        if not any(cell in {"编号", "ID"} for cell in cells):
+            offset += len(line)
+            continue
+        if "状态" not in cells:
+            offset += len(line)
+            continue
+        if not re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", next_line):
+            offset += len(line)
+            continue
+
+        end_index = index + 2
+        while end_index < len(lines) and lines[end_index].lstrip().startswith("|"):
+            end_index += 1
+        return offset, sum(len(item) for item in lines[:end_index])
+    return None
+
+
 def patch_main_scope_section(text: str, table: str, summary: str) -> tuple[str, bool]:
     section_match = re.search(r"(^## 2\. Scope\s*\n)(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
     if not section_match:
         return text, False
     section = section_match.group(2)
     original_section = section
-    table_match = re.search(
-        r"^\| 类型 \| 编号 \| 标题 \| 状态 \| 估算 \| 说明 \|\n"
-        r"^\|---\|---\|---\|---\|---:\|---\|\n"
-        r"(?:^\|.*\|\n?)+",
-        section,
-        re.MULTILINE,
-    )
-    if not table_match:
+    table_bounds = _find_scope_main_table(section)
+    if not table_bounds:
         return text, False
-    section = section[: table_match.start()] + table.rstrip() + "\n" + section[table_match.end() :]
+    table_start, table_end = table_bounds
+    section = section[:table_start] + table.rstrip() + "\n" + section[table_end:]
     summary_pattern = re.compile(r"^BUG：.*?\n\n^Change：.*?(?=\n\n|$)", re.MULTILINE | re.DOTALL)
     if summary_pattern.search(section):
         section = summary_pattern.sub(summary, section, count=1)
     elif "BUG：" not in section and "Change：" not in section:
         section = section.rstrip() + "\n\n" + summary + "\n"
+    if not section.endswith("\n\n"):
+        section = section.rstrip() + "\n\n"
     updated_section = section
     updated = text[: section_match.start(2)] + updated_section + text[section_match.end(2) :]
     return updated, updated_section != original_section
@@ -737,9 +764,13 @@ def append_workflow_event_record(
     if derived.linked_change != change_id:
         return text
     change_status = change_status_map.get(change_id)
-    if event == "opsx.apply" and change_status == "applied":
+    if event == "opsx.apply" and change_status in {"applied", "in_progress"}:
         command = "/opsx-apply"
-        description = f"Change `{change_id}` apply 完成，待 archive。"
+        description = (
+            f"Change `{change_id}` apply 完成，待 archive。"
+            if change_status == "applied"
+            else f"Change `{change_id}` apply 进行中，待补齐剩余验收。"
+        )
     elif event == "opsx.archive" and change_status == "archived":
         command = "/opsx-archive"
         description = f"Change `{change_id}` 已归档，状态同步完成。"

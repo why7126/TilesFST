@@ -9,7 +9,7 @@ from app.core.exceptions import AppError
 from app.core.request_logging import RequestLoggingMiddleware
 from app.db.seed import seed_admin_user
 from app.db.session import get_session_factory, init_database
-from app.modules.media.storage import get_media_file_response
+from app.modules.media.storage import get_media_file_response, get_media_head_response
 
 app = FastAPI(
     title="TilesFST API",
@@ -85,5 +85,10 @@ def health_check() -> dict[str, str]:
 
 
 @app.get("/media/{object_key:path}", include_in_schema=False)
-def read_media_file(object_key: str):
-    return get_media_file_response(object_key)
+def read_media_file(object_key: str, request: Request):
+    return get_media_file_response(object_key, request.headers.get("range"))
+
+
+@app.head("/media/{object_key:path}", include_in_schema=False)
+def head_media_file(object_key: str, request: Request):
+    return get_media_head_response(object_key, request.headers.get("range"))

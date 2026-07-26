@@ -4,7 +4,7 @@ content: REST 设计原则、URL/Method/版本、统一返回与 OpenAPI First
 source: rules/api.md / build-api-standard
 update_method: API 规范变更时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-11 18:51:16
+updated_at: 2026-07-26 15:44:14
 ---
 
 # API 治理体系
@@ -102,6 +102,19 @@ updated_at: 2026-07-11 18:51:16
 2. 导出 OpenAPI：`src/web/openapi.json`
 3. 生成客户端：`./scripts/generate-openapi-client.sh`
 4. 前端禁止手写接口类型
+
+## 跨端请求身份
+
+普通 API 请求 SHOULD 携带以下请求身份字段：
+
+| 字段 | 方向 | 说明 |
+|---|---|---|
+| `x-client-type` | request header | 允许值：`web_admin`、`web_catalog`、`wechat_miniapp`；未知值后端记录为 `unknown`，不得作为认证授权依据 |
+| `x-client-request-id` | request header | 客户端请求标识，最大 128 字符，仅允许字母、数字、`.`、`_`、`:`、`-`；非法、缺失或超长时后端忽略并继续生成可信请求 ID |
+| `client_request_id` | request body / response schema | 与 `x-client-request-id` 等价的客户端请求标识字段，可用于 usage event 或日志审计展示 |
+| `x-request-id` | response header | 服务端可信 `request_id`；由后端生成并返回，客户端传入的 `x-request-id` 不会默认覆盖该值 |
+
+日志审计 API 返回的 `request_id` 表示服务端可信请求 ID；`client_request_id` 仅用于跨端动作归因和排障。任何客户端字段均不得放宽管理端、店主端或小程序权限边界。
 
 主题偏好、个人资料等当前用户 self-service 接口也属于 API contract：新增字段（如 `UserProfile.theme_mode`）或新增路径（如 `PATCH /api/v1/auth/me/theme`）必须同步 OpenAPI、Orval、`docs/03-api-index.md` 与相关前后端测试。
 

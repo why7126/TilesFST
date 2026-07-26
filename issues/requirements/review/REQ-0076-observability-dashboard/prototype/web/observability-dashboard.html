@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0076 链路观测仪表原型</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --deep: #100f0a;
+        --line: rgba(255, 255, 255, 0.1);
+        --line-strong: rgba(255, 255, 255, 0.18);
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --weak: rgba(237, 232, 223, 0.36);
+        --gold: #c8a055;
+        --danger: #d66b57;
+        --ok: #74b087;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        background: var(--deep);
+        border-right: 1px solid var(--line);
+        padding: 24px 18px;
+      }
+
+      .brand {
+        color: var(--gold);
+        font-size: 13px;
+        letter-spacing: 0.16em;
+        margin-bottom: 34px;
+      }
+
+      .nav-title {
+        color: var(--weak);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        margin: 22px 0 10px;
+      }
+
+      .nav-item {
+        border: 1px solid transparent;
+        color: var(--muted);
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+
+      .nav-item.active {
+        border-color: rgba(200, 160, 85, 0.38);
+        color: var(--gold);
+        background: rgba(200, 160, 85, 0.08);
+      }
+
+      .main {
+        padding: 28px;
+      }
+
+      .page-head,
+      .toolbar,
+      .filters,
+      .panel,
+      .table-card {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+      }
+
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 20px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 8px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .tab,
+      .button,
+      .filter {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        border-radius: 2px;
+        font-size: 12px;
+        padding: 9px 12px;
+      }
+
+      .tab.active,
+      .button.primary {
+        border-color: rgba(200, 160, 85, 0.45);
+        background: rgba(200, 160, 85, 0.12);
+        color: var(--gold);
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric-card {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+        padding: 14px;
+      }
+
+      .metric-label {
+        color: var(--weak);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        margin-top: 10px;
+      }
+
+      .metric-desc {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(120px, 1fr));
+        gap: 10px;
+        margin: 18px 0;
+        padding: 14px;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr;
+        gap: 14px;
+      }
+
+      .panel {
+        min-height: 260px;
+        padding: 16px;
+      }
+
+      .panel h2 {
+        font-size: 15px;
+        font-weight: 400;
+        margin-bottom: 14px;
+      }
+
+      .bar-row,
+      .rank-row,
+      .trace-row {
+        border-top: 1px solid var(--line);
+        display: grid;
+        gap: 8px;
+        padding: 11px 0;
+      }
+
+      .bar-row {
+        grid-template-columns: 96px 1fr 48px;
+        align-items: center;
+      }
+
+      .bar {
+        height: 7px;
+        background: rgba(237, 232, 223, 0.08);
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        background: var(--gold);
+      }
+
+      .rank-row {
+        grid-template-columns: minmax(0, 1fr) 72px 84px;
+        align-items: center;
+      }
+
+      .trace-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+
+      .ok {
+        color: var(--ok);
+      }
+
+      .table-card {
+        margin-top: 14px;
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 12px 14px;
+        text-align: left;
+      }
+
+      th {
+        color: var(--weak);
+        font-weight: 400;
+        letter-spacing: 0.1em;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 14px;
+      }
+
+      .page-summary,
+      .page-right {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .page-right {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      @media (max-width: 1120px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .metric-grid,
+        .filters,
+        .dashboard-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .main {
+          padding: 16px;
+        }
+
+        .page-head,
+        .filters,
+        .metric-grid,
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .page-head {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">TILESFST</div>
+        <div class="nav-title">SYSTEM</div>
+        <div class="nav-item">用户管理</div>
+        <div class="nav-item">系统设置</div>
+        <div class="nav-item active">日志审计</div>
+        <div class="nav-item">接口文档</div>
+      </aside>
+      <main class="main">
+        <section class="page-head">
+          <div>
+            <h1>日志审计 + 链路观测</h1>
+            <p class="sub">统一查看请求、行为、审计与 Task Trace 的健康指标，并通过追踪 ID 下钻。</p>
+          </div>
+          <button class="button primary">刷新</button>
+        </section>
+
+        <div class="tabs">
+          <button class="tab active">链路观测</button>
+          <button class="tab">日志列表</button>
+          <button class="tab">Task Trace</button>
+        </div>
+
+        <section class="metric-grid">
+          <article class="metric-card">
+            <div class="metric-label">TOTAL LOGS</div>
+            <div class="metric-value">18,246</div>
+            <div class="metric-desc">最近 24 小时</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">API ERROR RATE</div>
+            <div class="metric-value danger">2.8%</div>
+            <div class="metric-desc">512 次异常</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">TASK SUCCESS</div>
+            <div class="metric-value ok">97.4%</div>
+            <div class="metric-desc">失败 31 个任务</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">SLOW TASKS</div>
+            <div class="metric-value">42</div>
+            <div class="metric-desc">超过 8s</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">SLOWEST SPAN</div>
+            <div class="metric-value">12.6s</div>
+            <div class="metric-desc">object_storage.put</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">CLIENT HOTSPOT</div>
+            <div class="metric-value">miniapp</div>
+            <div class="metric-desc">错误占比 41%</div>
+          </article>
+        </section>
+
+        <section class="filters">
+          <div class="filter">时间范围：最近 24 小时</div>
+          <div class="filter">日志类型：全部</div>
+          <div class="filter">客户端：全部</div>
+          <div class="filter">任务类型：全部</div>
+          <div class="filter">接口路径：/api/v1/*</div>
+          <div class="filter">状态：异常 + 慢</div>
+          <div class="filter">追踪 ID：输入查询</div>
+        </section>
+
+        <section class="dashboard-grid">
+          <div class="panel">
+            <h2>失败原因分布</h2>
+            <div class="bar-row"><span>VALIDATION</span><div class="bar"><span style="width: 72%"></span></div><b>184</b></div>
+            <div class="bar-row"><span>UPLOAD</span><div class="bar"><span style="width: 54%"></span></div><b>137</b></div>
+            <div class="bar-row"><span>AUTH</span><div class="bar"><span style="width: 29%"></span></div><b>74</b></div>
+            <div class="bar-row"><span>TIMEOUT</span><div class="bar"><span style="width: 18%"></span></div><b>46</b></div>
+          </div>
+
+          <div class="panel">
+            <h2>慢任务排行</h2>
+            <div class="rank-row"><span>media.upload.video</span><b>18.2s</b><button class="button">追踪</button></div>
+            <div class="rank-row"><span>banner.save</span><b>9.7s</b><button class="button">追踪</button></div>
+            <div class="rank-row"><span>audit.persist</span><b>8.9s</b><button class="button">追踪</button></div>
+            <p class="muted">点击后打开 Task Trace 时间线。</p>
+          </div>
+
+          <div class="panel">
+            <h2>一键追踪</h2>
+            <div class="trace-row"><span>req_019f...c7a</span><button class="button">打开日志</button></div>
+            <div class="trace-row"><span>task_019f...91e</span><button class="button">打开时间线</button></div>
+            <div class="trace-row"><span class="muted">未命中 ID 时展示空态</span><button class="button">复制 ID</button></div>
+          </div>
+        </section>
+
+        <section class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>类型</th>
+                <th>摘要</th>
+                <th>客户端</th>
+                <th>状态</th>
+                <th>耗时</th>
+                <th>追踪 ID</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>13:01:22</td>
+                <td>request</td>
+                <td>POST /api/v1/admin/uploads/videos</td>
+                <td>web_admin</td>
+                <td class="danger">500</td>
+                <td>18.2s</td>
+                <td>task_019f...91e</td>
+                <td><button class="button">详情</button></td>
+              </tr>
+              <tr>
+                <td>13:00:48</td>
+                <td>span</td>
+                <td>object_storage.put 写入耗时异常</td>
+                <td>backend</td>
+                <td class="danger">slow</td>
+                <td>12.6s</td>
+                <td>req_019f...c7a</td>
+                <td><button class="button">追踪</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <div class="page-summary">共 128 条</div>
+            <div class="page-right"><span>1</span><span>2</span><span>3</span><span>每页 20</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -25,6 +25,9 @@ set +a
 
 IMAGE_BUILD_TAG="${IMAGE_BUILD_TAG:-v0.0.1}"
 IMAGE_BUILD_PLATFORM="${IMAGE_BUILD_PLATFORM:-linux/amd64}"
+BACKEND_PYTHON_BASE_IMAGE="${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}"
+WEB_NODE_BASE_IMAGE="${WEB_NODE_BASE_IMAGE:-node:22-alpine}"
+WEB_NGINX_BASE_IMAGE="${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}"
 IMAGE_BUILD_BACKEND_IMAGE="${IMAGE_BUILD_BACKEND_IMAGE:-tilesfst-backend}"
 IMAGE_BUILD_WEB_IMAGE="${IMAGE_BUILD_WEB_IMAGE:-tilesfst-web}"
 IMAGE_BUILD_BUILDER="${IMAGE_BUILD_BUILDER:-tilesfst-builder}"
@@ -109,6 +112,9 @@ echo "- env: ${ENV_FILE}"
 echo "- platform: ${IMAGE_BUILD_PLATFORM}"
 echo "- backend: ${BACKEND_REF}"
 echo "- web: ${WEB_REF}"
+echo "- backend base image: ${BACKEND_PYTHON_BASE_IMAGE}"
+echo "- web node base image: ${WEB_NODE_BASE_IMAGE}"
+echo "- web nginx base image: ${WEB_NGINX_BASE_IMAGE}"
 echo "- builder: ${IMAGE_BUILD_BUILDER}"
 echo "- export tar: ${IMAGE_BUILD_EXPORT_TAR}"
 echo "- release dir: ${IMAGE_BUILD_RELEASE_DIR}"
@@ -125,6 +131,7 @@ fi
 echo "构建后端镜像：${BACKEND_REF}"
 docker buildx build \
   --platform "${IMAGE_BUILD_PLATFORM}" \
+  --build-arg "BACKEND_PYTHON_BASE_IMAGE=${BACKEND_PYTHON_BASE_IMAGE}" \
   -t "${BACKEND_REF}" \
   -f src/backend/Dockerfile \
   "${LOAD_FLAG}" \
@@ -133,6 +140,8 @@ docker buildx build \
 echo "构建 Web 镜像：${WEB_REF}"
 docker buildx build \
   --platform "${IMAGE_BUILD_PLATFORM}" \
+  --build-arg "WEB_NODE_BASE_IMAGE=${WEB_NODE_BASE_IMAGE}" \
+  --build-arg "WEB_NGINX_BASE_IMAGE=${WEB_NGINX_BASE_IMAGE}" \
   -t "${WEB_REF}" \
   -f src/web/Dockerfile \
   "${LOAD_FLAG}" \

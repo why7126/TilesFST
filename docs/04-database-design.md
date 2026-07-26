@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-21 23:04:48
+updated_at: 2026-07-26 15:54:58
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -55,6 +55,8 @@ users 1 ── * audit_logs.actor_user_id（Sprint 003，可选 FK）
 users 1 ── * request_logs.actor_user_id（Sprint 004，可选 FK）
 users 1 ── * usage_events.actor_user_id（Sprint 004，可选 FK）
 request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK）
+task_traces.task_trace_id ── * task_trace_spans.task_trace_id（逻辑关联，非 FK）
+task_traces.task_trace_id ── * request_logs / usage_events / audit_logs.task_trace_id（逻辑关联，非 FK）
 
 （users 与 tiles 无直接外键，权限通过 JWT role 控制）
 ```
@@ -72,6 +74,8 @@ request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK
 | audit_logs | ✓ Sprint 003 | 统一审计日志（含 system_settings） |
 | request_logs | ✓ Sprint 004 | API 请求日志（REQ-0024） |
 | usage_events | ✓ Sprint 004 / Sprint 008 | 产品使用行为埋点事件（REQ-0024）；小程序详情访问、分享、咨询、首页快捷入口、瀑布流与安全降级事件用于热销推荐辅助排序和产品优先级判断 |
+| task_traces | ✓ Sprint 011 / REQ-0069 | 可追踪业务任务摘要，用于串联上传等长耗时任务 |
+| task_trace_spans | ✓ Sprint 011 / REQ-0069 | Task Trace 节点时间线与耗时明细 |
 | tile_categories | 桩 | 分类 |
 | tile_specs | ✓ Sprint 003 | 瓷砖规格主数据 |
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
@@ -212,10 +216,12 @@ OpenSpec：`openspec/changes/add-system-settings/`（与 REQ-0014 统一目标�
 | domain | TEXT | NOT NULL | 如 `system_settings` |
 | action_type | TEXT | NOT NULL | 如 `settings_update`、`settings_reset` |
 | summary | TEXT | NOT NULL | 人类可读摘要 |
+| task_trace_id | TEXT | NULL | 关联 Task Trace，非 FK |
+| task_type | TEXT | NULL | 任务类型摘要 |
 | metadata | TEXT | NULL | JSON diff |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_audit_logs_domain_created (domain, created_at DESC)`
+索引：`idx_audit_logs_domain_created (domain, created_at DESC)`、`idx_audit_logs_task_trace (task_trace_id, created_at DESC)`
 
 Repository：`audit_log_repository.py`
 
@@ -228,10 +234,11 @@ API 请求日志。OpenSpec：`openspec/changes/add-product-usage-logging/`
 | 字段 | 类型 | 约束 | 说明 |
 |---|---|---|---|
 | id | TEXT | PK | UUID |
-| request_id | TEXT | NOT NULL | 请求链路 ID；响应头同步返回 `x-request-id` |
+| request_id | TEXT | NOT NULL | 服务端可信请求链路 ID；响应头同步返回 `x-request-id`，不得由客户端覆盖 |
 | actor_user_id | TEXT | NULL FK → users.id | 已登录操作人，匿名请求为空 |
 | actor_role | TEXT | NULL | `admin` / `employee` / `store_owner` 等 |
-| client_type | TEXT | NULL | `admin_web`、`storefront_web`、`mini_program`、`api` |
+| client_type | TEXT | NULL | `web_admin`、`web_catalog`、`wechat_miniapp`、`unknown` |
+| client_request_id | TEXT | NULL | 客户端请求标识，来自 `x-client-request-id` 或请求体 `client_request_id`，独立于可信 `request_id` |
 | method | TEXT | NOT NULL | HTTP Method |
 | path | TEXT | NOT NULL | API Path，不含 query |
 | status_code | INTEGER | NOT NULL | HTTP 状态码 |
@@ -241,10 +248,14 @@ API 请求日志。OpenSpec：`openspec/changes/add-product-usage-logging/`
 | summary | TEXT | NOT NULL | 管理端列表可读摘要 |
 | error_code | TEXT | NULL | 业务错误码或异常编码 |
 | result | TEXT | NOT NULL, CHECK | `success` \| `failed` |
-| metadata | TEXT | NULL | JSON 扩展信息，已做敏感字段过滤 |
+| task_trace_id | TEXT | NULL | 关联 Task Trace，非 FK |
+| task_type | TEXT | NULL | 任务类型摘要 |
+| metadata | TEXT | NULL | JSON 扩展信息，已做敏感字段过滤；请求日志可包含 `request_snapshot` 结构化请求快照 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_path_created`
+索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_client_request_id`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_path_created`、`idx_request_logs_task_trace`
+
+`metadata.request_snapshot` 作为详情展示契约存储统一 Request Snapshot。`client_request_id` 是独立查询列，用于辅助跨端请求归因和日志审计展示；它不作为认证授权依据，也不得覆盖服务端可信 `request_id`。当前快照字段仅用于管理端日志详情排障，不参与列表筛选；常用筛选仍依赖 `request_id`、`client_request_id`、`actor_user_id`、`status_code`、`path`、`created_at`、`task_trace_id` 等既有索引。REQ-0076 链路观测仪表复用 `request_logs`、`usage_events`、`audit_logs`、`task_traces`、`task_trace_spans` 的时间、状态和 trace 索引进行聚合，不新增表、字段或索引；若后续需要按 `route_template`、`resource_id` 或 `client_type` 聚合，应通过新的 OpenSpec Change 评估冗余列或索引，避免直接依赖 SQLite/MySQL JSON 方言差异。
 
 Repository：`log_repository.py`；Service：`log_service.py`；中间件：`request_logging.py`
 
@@ -270,12 +281,66 @@ Repository：`log_repository.py`；Service：`log_service.py`；中间件：`req
 | summary | TEXT | NOT NULL | 管理端列表可读摘要 |
 | duration_ms | INTEGER | NULL | 行为耗时毫秒；瞬时行为可为空 |
 | result | TEXT | NOT NULL, CHECK | `success` \| `failed` |
+| task_trace_id | TEXT | NULL | 关联 Task Trace，非 FK |
+| task_type | TEXT | NULL | 任务类型摘要 |
 | metadata | TEXT | NULL | JSON 属性快照，禁止 password/token/secret 等敏感字段 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_actor_created`
+索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_actor_created`、`idx_usage_events_task_trace`
 
 Repository：`log_repository.py`；Service：`log_service.py`
+
+---
+
+## 5.7 task_traces（Sprint 011 / REQ-0069）
+
+可追踪业务任务摘要表。当前首批用于图片、视频、文件上传；REQ-0074 扩展覆盖 SKU 创建、更新、上架、下架等任务型管理操作；后续可扩展导入、导出、发布、同步等任务。
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| task_trace_id | TEXT | UNIQUE, NOT NULL | 任务链路 ID，格式如 `task_upload_video_xxx` |
+| task_type | TEXT | NOT NULL | 任务类型，如 `upload_image`、`upload_video`、`upload_file` |
+| status | TEXT | CHECK | `processing` \| `success` \| `failed` \| `timeout` \| `cancelled` \| `skipped` |
+| actor_user_id | TEXT | NULL FK → users.id | 发起人 |
+| client_type | TEXT | NULL | 客户端类型 |
+| parent_request_id | TEXT | NULL | 触发 Task Trace 的后端可信主请求 `request_id`，仅用于追踪定位，不作为权限依据 |
+| resource_type | TEXT | NULL | 资源类型摘要 |
+| resource_id | TEXT | NULL | 资源 ID 摘要 |
+| started_at / ended_at | TEXT | NOT NULL / NULL | 任务起止时间 |
+| duration_ms | INTEGER | NULL | 聚合耗时 |
+| slowest_span_name | TEXT | NULL | 当前耗时最高节点 |
+| error_code | TEXT | NULL | 失败错误码 |
+| summary | TEXT | NOT NULL | 任务摘要 |
+| metadata | TEXT | NULL | 已脱敏 JSON |
+| created_at / updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_task_traces_task_trace_id`、`idx_task_traces_parent_request_id`、`idx_task_traces_type_created`、`idx_task_traces_status_created`
+
+## 5.8 task_trace_spans（Sprint 011 / REQ-0069）
+
+Task Trace 节点时间线。上传首批 span 包含 `frontend_upload_start`、`frontend_upload_body_done`、`api_receive`、`validate_file`、`storage_put_object`、`db_create_media`、`post_process`、`api_response`、`frontend_done/failed`。REQ-0074 的 SKU 保存和状态任务复用同表，不新增存储字段；span 包含 `api_receive`、`input_validate`、`business_persist`、`api_response`，业务失败时记录 `business_process` failed span。
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT | PK | UUID |
+| task_trace_id | TEXT | NOT NULL | 任务链路 ID，逻辑关联 `task_traces.task_trace_id` |
+| task_type | TEXT | NOT NULL | 任务类型 |
+| span_name | TEXT | NOT NULL | 节点名 |
+| status | TEXT | CHECK | 节点状态 |
+| started_at / ended_at | TEXT | NOT NULL / NULL | 节点起止时间 |
+| duration_ms | INTEGER | NULL | 节点耗时 |
+| sequence | INTEGER | NOT NULL | 时间线排序 |
+| request_id | TEXT | NULL | 关联 HTTP 请求 |
+| actor_user_id | TEXT | NULL FK → users.id | 操作人 |
+| client_type | TEXT | NULL | 客户端 |
+| resource_type / resource_id | TEXT | NULL | 资源摘要 |
+| error_code | TEXT | NULL | 节点失败错误码 |
+| summary | TEXT | NOT NULL | 节点摘要 |
+| metadata | TEXT | NULL | 已脱敏 JSON，不保存 Authorization、Cookie、AccessKey、SecretKey、DSN、`.env`、真实客户数据、完整敏感请求体或内部绝对路径 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_task_trace_spans_trace_sequence`、`idx_task_trace_spans_request_id`、`idx_task_trace_spans_type_created`
 
 ---
 
@@ -407,7 +472,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 UNIQUE `(display_client, position, title)`。ORM：`src/backend/app/models/banner.py`  
-迁移：SQLite `migrations.py` → `_ensure_banner_support`；MySQL `mysql_migrations.py` → `_ensure_banner_brand_id`，用于对既有生产 `banners` 表幂等补齐 `brand_id`、`idx_banners_status_position`、`idx_banners_sort`、`idx_banners_brand`，并在不存在脏品牌引用时补齐 `fk_banners_brand`。`update-admin-banner-placement-scope` 执行旧数据清理，删除条件为 `display_client != 'MINIAPP_HOME' OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')`。该清理仅删除 Banner 业务记录，不物理删除 MinIO 对象或其他业务表中的媒体引用；如需回滚旧 Banner 数据，依赖数据库备份恢复。
+迁移：SQLite `migrations.py` → `_ensure_banner_support`；MySQL `mysql_migrations.py` → `_ensure_banner_brand_id`，用于对既有生产 `banners` 表幂等补齐创建/编辑写入字段 `image_source`、`sku_gallery_asset_id`、`topic_id`、`brand_id`、`valid_from`、`valid_to`、`remark`，以及 `idx_banners_status_position`、`idx_banners_sort`、`idx_banners_brand`、`idx_banners_topic`、`idx_banners_gallery_asset`。外键 `fk_banners_brand`、`fk_banners_topic`、`fk_banners_gallery_asset` 添加前会检查历史脏引用；存在脏数据时记录跳过原因和计数，不阻断缺列补齐。MySQL 兼容迁移还会检测并重建 `chk_banners_display_client`、`chk_banners_position`、`chk_banners_jump_type`、`chk_banners_image_source`，修复旧生产 CHECK 约束不允许 `MINIAPP_BRAND_LIST_CAROUSEL`、`BRAND_DETAIL` 或 `brand_logo` 的 drift。`update-admin-banner-placement-scope` 执行旧数据清理，删除条件为 `display_client != 'MINIAPP_HOME' OR position NOT IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')`。该清理仅删除 Banner 业务记录，不物理删除 MinIO 对象或其他业务表中的媒体引用；如需回滚旧 Banner 数据，依赖数据库备份恢复。
 
 ---
 
@@ -541,7 +606,7 @@ MySQL baseline 保留关键唯一约束与索引：`users.username`、`tiles.sku
 
 - SQLite 路径继续执行 `schema.sql` 后再执行 `migrations.py`，保留 `sqlite_master` / `PRAGMA` 兼容迁移。
 - MySQL 路径只执行 `schema.mysql.sql`，不得调用 SQLite introspection 或 SQLite-only DDL。
-- MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等；随后执行 MySQL 兼容迁移并记录 `mysql_compat_banners_brand_id_v1`，覆盖旧生产 `banners` 表缺少 `brand_id` 的 drift 修复。
+- MySQL 初始化通过 `schema_migrations(version, applied_at)` 记录 `mysql_baseline_v1`，DDL 使用 `CREATE TABLE IF NOT EXISTS` 保证重复启动幂等；随后执行 MySQL 兼容迁移并记录 `mysql_compat_banners_brand_id_v1`、`mysql_compat_banners_write_fields_v2` 与 `mysql_compat_banners_checks_v3`，覆盖旧生产 `banners` 表缺少品牌详情字段、创建/编辑写入字段以及 CHECK 约束枚举值的 drift 修复。
 - 空库首次启动后，默认管理员 seed 继续使用 `ADMIN_USERNAME`、`ADMIN_INITIAL_PASSWORD`、`ADMIN_RESET_PASSWORD_ON_STARTUP`，密码以 bcrypt 哈希保存。
 
 ## 13.3 发布前 MySQL 兼容校验

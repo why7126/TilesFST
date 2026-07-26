@@ -268,12 +268,19 @@ export interface LogListItem {
   created_at: string;
   summary: string;
   actor_name?: string | null;
+  actor_username?: string | null;
   actor_role?: string | null;
   client_type: string;
   result: string;
   status_code?: number | null;
   duration_ms?: number | null;
   request_id?: string | null;
+  client_request_id?: string | null;
+  task_trace_id?: string | null;
+  task_type?: string | null;
+  task_status?: string | null;
+  task_duration_ms?: number | null;
+  task_slowest_span_name?: string | null;
   event_name?: string | null;
   method?: string | null;
   path?: string | null;
@@ -286,6 +293,104 @@ export interface LogDetailSection {
   fields: LogDetailSectionFields;
 }
 
+export interface TaskTraceSpanData {
+  span_name: string;
+  status: string;
+  started_at: string;
+  ended_at?: string | null;
+  duration_ms?: number | null;
+  request_id?: string | null;
+  error_code?: string | null;
+  summary: string;
+  is_slowest?: boolean;
+}
+
+export interface TaskTraceData {
+  task_trace_id: string;
+  task_type: string;
+  status: string;
+  parent_request_id?: string | null;
+  duration_ms?: number | null;
+  resource_type?: string | null;
+  resource_id?: string | null;
+  slowest_span_name?: string | null;
+  error_code?: string | null;
+  summary: string;
+  spans: TaskTraceSpanData[];
+}
+
+export type RequestSnapshotRequestDataRouteMatchStatus = typeof RequestSnapshotRequestDataRouteMatchStatus[keyof typeof RequestSnapshotRequestDataRouteMatchStatus];
+
+
+export const RequestSnapshotRequestDataRouteMatchStatus = {
+  matched: 'matched',
+  unmatched: 'unmatched',
+  unknown: 'unknown',
+} as const;
+
+export interface RequestSnapshotRequestData {
+  method?: string | null;
+  path?: string | null;
+  route_template?: string | null;
+  route_match_status?: RequestSnapshotRequestDataRouteMatchStatus;
+  request_id?: string | null;
+  client_request_id?: string | null;
+  trusted_request_id_header?: string | null;
+  client_request_id_header?: string | null;
+}
+
+export type RequestSnapshotInputDataQuery = { [key: string]: unknown };
+
+export type RequestSnapshotInputDataBodySchemaSummary = { [key: string]: unknown };
+
+export type RequestSnapshotInputDataRedactionSummary = { [key: string]: unknown };
+
+export interface RequestSnapshotInputData {
+  query?: RequestSnapshotInputDataQuery;
+  body_schema_summary?: RequestSnapshotInputDataBodySchemaSummary;
+  redaction_summary?: RequestSnapshotInputDataRedactionSummary;
+}
+
+export interface RequestSnapshotResourceData {
+  resource_type?: string | null;
+  resource_id?: string | null;
+  id_source?: string | null;
+}
+
+export interface RequestSnapshotResponseData {
+  status_code?: number | null;
+  error_code?: string | null;
+  duration_ms?: number | null;
+  result?: string | null;
+  error_summary?: string | null;
+}
+
+export interface RequestSnapshotActorData {
+  actor_user_id?: string | null;
+  actor_username?: string | null;
+  actor_role?: string | null;
+  client_type?: string | null;
+  ip_summary?: string | null;
+  user_agent_summary?: string | null;
+}
+
+export interface RequestSnapshotTimingData {
+  environment?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+}
+
+export interface RequestSnapshotData {
+  request?: RequestSnapshotRequestData;
+  input?: RequestSnapshotInputData;
+  resource?: RequestSnapshotResourceData;
+  response?: RequestSnapshotResponseData;
+  actor?: RequestSnapshotActorData;
+  timing?: RequestSnapshotTimingData;
+  raw_json: string;
+  parse_error?: string | null;
+}
+
 export interface LogDetailData {
   log: LogListItem;
   basic: LogDetailSection;
@@ -293,6 +398,9 @@ export interface LogDetailData {
   actor: LogDetailSection;
   context: LogDetailSection;
   event: LogDetailSection;
+  task_trace?: TaskTraceData | null;
+  related_task_traces?: TaskTraceData[];
+  request_snapshot?: RequestSnapshotData | null;
   metadata_json: string;
 }
 
@@ -321,6 +429,94 @@ export interface ApiResponseLogListData {
   code?: number;
   message?: string;
   data?: LogListData | null;
+}
+
+export interface ObservabilitySummaryData {
+  total_logs: number;
+  api_errors: number;
+  api_error_rate: number;
+  slow_requests: number;
+  task_success_rate?: number | null;
+  failed_tasks: number;
+  slow_tasks: number;
+  audit_operations: number;
+}
+
+export interface ObservabilityDistributionItem {
+  label: string;
+  count: number;
+  rate?: number | null;
+}
+
+export interface ObservabilityEndpointItem {
+  path: string;
+  method: string;
+  status_code?: number | null;
+  request_count: number;
+  error_count: number;
+  error_rate: number;
+}
+
+export interface ObservabilitySlowRequestItem {
+  log_id: string;
+  path: string;
+  method: string;
+  status_code: number;
+  duration_ms: number;
+  client_type: string;
+  request_id?: string | null;
+}
+
+export interface ObservabilityTaskItem {
+  task_trace_id: string;
+  task_type: string;
+  status: string;
+  duration_ms?: number | null;
+  client_type?: string | null;
+  trigger_source?: string | null;
+  error_code?: string | null;
+  summary: string;
+}
+
+export interface ObservabilitySpanItem {
+  task_trace_id: string;
+  task_type: string;
+  span_name: string;
+  status: string;
+  duration_ms?: number | null;
+  request_id?: string | null;
+  error_code?: string | null;
+  summary: string;
+}
+
+export interface ObservabilityTraceResultsData {
+  request_id?: string | null;
+  task_trace_id?: string | null;
+  log_ids?: string[];
+  request_ids?: string[];
+  task_trace_ids?: string[];
+  reason?: string | null;
+}
+
+export type LogObservabilityDataDistributions = {[key: string]: ObservabilityDistributionItem[]};
+
+export type LogObservabilityDataRankings = {[key: string]: (ObservabilitySlowRequestItem | ObservabilityTaskItem | ObservabilitySpanItem)[]};
+
+export type LogObservabilityDataThresholds = {[key: string]: number};
+
+export interface LogObservabilityData {
+  summary: ObservabilitySummaryData;
+  distributions: LogObservabilityDataDistributions;
+  endpoint_errors: ObservabilityEndpointItem[];
+  rankings: LogObservabilityDataRankings;
+  trace_results: ObservabilityTraceResultsData;
+  thresholds: LogObservabilityDataThresholds;
+}
+
+export interface ApiResponseLogObservabilityData {
+  code?: number;
+  message?: string;
+  data?: LogObservabilityData | null;
 }
 
 export interface UserProfile {
@@ -1004,6 +1200,8 @@ export interface TileSkuAdminItem {
   videos?: TileSkuVideoItem[];
   created_at: string;
   updated_at: string;
+  task_trace_id?: string | null;
+  task_type?: string | null;
 }
 
 export interface ApiResponseTileSkuAdminItem {
@@ -1098,6 +1296,8 @@ export interface ApiResponseTopicAdminListData {
 export interface UploadResult {
   object_key: string;
   url: string;
+  task_trace_id?: string | null;
+  task_type?: string | null;
   file_key?: string | null;
   file_url?: string | null;
   file_name?: string | null;
@@ -1666,6 +1866,9 @@ export interface UsageEventCreate {
   client_type?: string | null;
   page_path?: string | null;
   request_id?: string | null;
+  client_request_id?: string | null;
+  task_trace_id?: string | null;
+  task_type?: string | null;
   session_id?: string | null;
   duration_ms?: number | null;
   summary?: string | null;
@@ -1884,6 +2087,7 @@ status_code?: number | null;
 result?: string | null;
 resource_id?: string | null;
 path_or_request_id?: string | null;
+task_trace_id?: string | null;
 start_time?: string | null;
 end_time?: string | null;
 };
@@ -1892,6 +2096,28 @@ export type ListLogsApiV1AdminLogsGetLogType = typeof ListLogsApiV1AdminLogsGetL
 
 
 export const ListLogsApiV1AdminLogsGetLogType = {
+  request: 'request',
+  usage_event: 'usage_event',
+  audit: 'audit',
+} as const;
+
+export type GetLogObservabilityApiV1AdminLogsObservabilityGetParams = {
+log_type?: GetLogObservabilityApiV1AdminLogsObservabilityGetLogType;
+client_type?: string | null;
+task_type?: string | null;
+path_or_request_id?: string | null;
+status_code?: number | null;
+result?: string | null;
+request_id?: string | null;
+task_trace_id?: string | null;
+start_time?: string | null;
+end_time?: string | null;
+};
+
+export type GetLogObservabilityApiV1AdminLogsObservabilityGetLogType = typeof GetLogObservabilityApiV1AdminLogsObservabilityGetLogType[keyof typeof GetLogObservabilityApiV1AdminLogsObservabilityGetLogType] | null;
+
+
+export const GetLogObservabilityApiV1AdminLogsObservabilityGetLogType = {
   request: 'request',
   usage_event: 'usage_event',
   audit: 'audit',
@@ -2469,6 +2695,20 @@ const listLogsApiV1AdminLogsGet = (
  ): Promise<AxiosResponse<ApiResponseLogListData>> => {
     return axiosInstance.get(
       `/api/v1/admin/logs`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 系统管理员按统一筛选口径查询请求、行为、审计和 Task Trace 的摘要、分布、排行与追踪结果。
+ * @summary 日志链路观测聚合
+ */
+const getLogObservabilityApiV1AdminLogsObservabilityGet = (
+    params?: GetLogObservabilityApiV1AdminLogsObservabilityGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseLogObservabilityData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/logs/observability`,{
     ...options,
         params: {...params, ...options?.params},}
     );
@@ -3128,7 +3368,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -3166,6 +3406,7 @@ export type ResetSettingsGroupApiV1AdminSystemSettingsGroupResetPostResult = Axi
 export type GetApiDocsApiV1AdminApiDocsGetResult = AxiosResponse<ApiResponseApiDocsData>
 export type GetAdminDashboardSummaryApiV1AdminDashboardSummaryGetResult = AxiosResponse<ApiResponseAdminDashboardSummary>
 export type ListLogsApiV1AdminLogsGetResult = AxiosResponse<ApiResponseLogListData>
+export type GetLogObservabilityApiV1AdminLogsObservabilityGetResult = AxiosResponse<ApiResponseLogObservabilityData>
 export type GetLogDetailApiV1AdminLogsLogIdGetResult = AxiosResponse<ApiResponseLogDetailData>
 export type CreateUsageEventApiV1UsageEventsPostResult = AxiosResponse<ApiResponseUsageEventData>
 export type ListBrandsApiV1AdminBrandsGetResult = AxiosResponse<ApiResponseBrandAdminListData>

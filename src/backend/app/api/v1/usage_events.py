@@ -54,11 +54,13 @@ def create_usage_event(
 ) -> ApiResponse[UsageEventData]:
     service = LogService(LogRepository(db))
     request_id = getattr(request.state, "request_id", None)
+    client_request_id = getattr(request.state, "client_request_id", None)
     data = service.create_usage_event(
         payload,
         request_id=request_id,
         current_user=current_user,
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
+        client_request_id=client_request_id,
     )
     return ApiResponse(data=data)

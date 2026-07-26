@@ -11,7 +11,7 @@ from app.core.deps import require_system_admin
 from app.db.session import get_db
 from app.repositories.log_repository import LogRepository
 from app.schemas.common import ApiResponse
-from app.schemas.logs import LogDetailData, LogListData, LogQueryParams
+from app.schemas.logs import LogDetailData, LogListData, LogObservabilityData, LogObservabilityQueryParams, LogQueryParams
 from app.services.log_service import LogService
 
 router = APIRouter(dependencies=[Depends(require_system_admin)])
@@ -39,6 +39,7 @@ def list_logs(
     result: str | None = Query(default=None, pattern="^(success|failed)$"),
     resource_id: str | None = Query(default=None, max_length=128),
     path_or_request_id: str | None = Query(default=None, max_length=180),
+    task_trace_id: str | None = Query(default=None, max_length=96),
     start_time: str | None = Query(default=None, max_length=64),
     end_time: str | None = Query(default=None, max_length=64),
 ) -> ApiResponse[LogListData]:
@@ -53,10 +54,45 @@ def list_logs(
         result=cast("Literal['success', 'failed'] | None", result),
         resource_id=resource_id,
         path_or_request_id=path_or_request_id,
+        task_trace_id=task_trace_id,
         start_time=start_time,
         end_time=end_time,
     )
     return ApiResponse(data=service.list_logs(params))
+
+
+@router.get(
+    "/observability",
+    response_model=ApiResponse[LogObservabilityData],
+    summary="日志链路观测聚合",
+    description="系统管理员按统一筛选口径查询请求、行为、审计和 Task Trace 的摘要、分布、排行与追踪结果。",
+)
+def get_log_observability(
+    service: Annotated[LogService, Depends(get_log_service)],
+    log_type: Literal["request", "usage_event", "audit"] | None = Query(default=None),
+    client_type: str | None = Query(default=None, max_length=32),
+    task_type: str | None = Query(default=None, max_length=64),
+    path_or_request_id: str | None = Query(default=None, max_length=180),
+    status_code: int | None = Query(default=None, ge=100, le=599),
+    result: str | None = Query(default=None, pattern="^(success|failed)$"),
+    request_id: str | None = Query(default=None, max_length=128),
+    task_trace_id: str | None = Query(default=None, max_length=96),
+    start_time: str | None = Query(default=None, max_length=64),
+    end_time: str | None = Query(default=None, max_length=64),
+) -> ApiResponse[LogObservabilityData]:
+    params = LogObservabilityQueryParams(
+        log_type=log_type,
+        client_type=client_type,
+        task_type=task_type,
+        path_or_request_id=path_or_request_id,
+        status_code=status_code,
+        result=cast("Literal['success', 'failed'] | None", result),
+        request_id=request_id,
+        task_trace_id=task_trace_id,
+        start_time=start_time,
+        end_time=end_time,
+    )
+    return ApiResponse(data=service.get_observability(params))
 
 
 @router.get(

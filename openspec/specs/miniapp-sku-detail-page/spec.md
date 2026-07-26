@@ -53,21 +53,41 @@ SKU 详情页 SHALL 完整展示用户选砖所需的品牌、商品名称、价
 - **AND** 页面 SHALL 提示实际价格以门店最终确认为准。
 
 ### Requirement: 图片与视频混合媒体浏览
-SKU 详情页 SHALL 支持图片和视频混合轮播，并提供图片全屏预览和视频播放控制。
+
+SKU 详情页 SHALL 支持图片和视频混合轮播，并提供图片全屏预览和视频播放控制。视频播放体验 SHALL 适配生产环境受控媒体读取链路，避免用户点击播放后长时间空白或无反馈。
 
 #### Scenario: 视频播放控制
+
 - **WHEN** 用户点击视频媒体
 - **THEN** 视频 SHALL 由用户主动播放
 - **AND** 页面 SHALL NOT 默认自动播放视频
 - **AND** 视频播放期间轮播 SHALL NOT 自动切换
 - **AND** 页面隐藏、锁屏或跳转时 SHALL 暂停当前视频
-- **AND** 视频媒体的 `src` SHALL 使用详情接口返回的安全可播放 URL。
+- **AND** 视频媒体的 `src` SHALL 使用详情接口返回的安全可播放 URL
+- **AND** 生产验收 SHALL 使用实际反馈 SKU 的视频 URL 完成真机播放验证。
+
+#### Scenario: 视频首帧与封面兜底
+
+- **WHEN** SKU 详情页展示视频媒体项
+- **THEN** 页面 SHALL 优先使用视频媒体项的 `cover_url` 作为 `poster`
+- **AND** 当 `cover_url` 缺失或不可用时 SHALL 使用商品主图、首张图片或安全兜底图作为等待态展示
+- **AND** 页面 SHALL NOT 在视频未起播前长期展示空白或黑屏
+- **AND** 页面 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称或未授权素材路径。
+
+#### Scenario: 生产视频首播验收
+
+- **WHEN** 修复生产视频播放启动慢问题
+- **THEN** 验收 SHALL 记录至少一个实际 SKU 的视频文件大小、格式、编码、时长、机型、网络类型和点击播放到首帧耗时
+- **AND** 首播等待期间 SHALL 有封面、加载状态或等价可理解反馈
+- **AND** 验收 SHALL 附实际 `/media/{object_key}` Range 响应证据或生产等价证据。
 
 #### Scenario: 单项媒体失败
+
 - **WHEN** 单张图片或单个视频加载失败
 - **THEN** 页面 SHALL 展示该媒体项的失败占位或重试入口
 - **AND** 其他媒体和 SKU 文本信息 SHALL 继续可浏览
-- **AND** 视频 URL 无效时 SHALL 不阻断图片媒体展示和 SKU 文本信息浏览。
+- **AND** 视频 URL 无效时 SHALL 不阻断图片媒体展示和 SKU 文本信息浏览
+- **AND** 若生产域名、`/api/v1/health` 或 `/media/{object_key}` 返回 Nginx 502，验收记录 MUST 将该失败归入生产入口或反代链路，而不是仅归因于小程序播放器。
 
 ### Requirement: SKU 收藏与分享
 
@@ -161,23 +181,31 @@ SKU 详情页 SHALL 延续微信小程序首页 v6 深色企业轻奢风，并�
 - **AND** 删除品牌按钮后 SHALL NOT 出现空白占位、错位、异常间距或残留点击热区。
 
 ### Requirement: SKU 详情页范围控制与安全
+
 SKU 详情页 SHALL 明确不做购物交易能力，并保证富文本、媒体和埋点安全。
 
 #### Scenario: 安全媒体 URL
+
 - **WHEN** 详情响应包含图片、视频或分享图
 - **THEN** URL SHALL 来自后端授权、公开安全 URL 或对象存储适配层生成结果
 - **AND** 小程序 SHALL NOT 直接使用未授权 object key 拼接对象存储地址
 - **AND** 视频媒体 URL SHALL NOT 使用 `tile_videos.file_name` 原始上传文件名作为播放地址
-- **AND** 当视频记录包含 `tile_videos.object_key` 时，详情接口 SHALL 基于该对象 key 返回 `/media/{object_key}` 或完整公开安全 URL。
+- **AND** 当视频记录包含 `tile_videos.object_key` 时，详情接口 SHALL 基于该对象 key 返回 `/media/{object_key}` 或完整公开安全 URL
+- **AND** 实际反馈 SKU 的视频 `media[].url` MUST 在生产 smoke 中确认不为空且可通过同域受控链路读取。
 
 ### Requirement: SKU 详情页接口与测试同步
+
 SKU 详情页涉及的 API、数据库、OpenAPI、Orval、文档和测试 SHALL 保持同步。
 
 #### Scenario: 测试覆盖
-- **WHEN** SKU 详情页实现完成
+
+- **WHEN** SKU 详情页实现完成或生产视频播放缺陷修复完成
 - **THEN** 后端测试 SHALL 覆盖公开字段过滤、详情成功、不可公开状态、收藏幂等、推荐排除和安全媒体 URL
 - **AND** 小程序或静态测试 SHALL 覆盖页面入口、媒体状态、收藏分享交互、异常状态和范围外能力未出现
-- **AND** 后端测试 SHALL 覆盖 `tile_videos.object_key` 与 `tile_videos.file_name` 语义不同的场景，确保视频 `media[].url` 使用对象 key 生成安全媒体 URL。
+- **AND** 后端测试 SHALL 覆盖 `tile_videos.object_key` 与 `tile_videos.file_name` 语义不同的场景，确保视频 `media[].url` 使用对象 key 生成安全媒体 URL
+- **AND** 后端测试 SHALL 覆盖视频 `/media/{object_key}` Range/206 响应
+- **AND** 小程序测试 SHALL 覆盖视频封面或兜底 poster 展示
+- **AND** 生产修复验收 SHALL 附实际 SKU 接口、实际 `/media/{object_key}` 与微信真机播放证据。
 
 ### Requirement: 商品列表进入 SKU 详情
 SKU 详情页 SHALL 支持从小程序商品列表页商品卡片进入，并保持公开字段、安全媒体 URL、来源参数和不可公开状态边界。
@@ -220,4 +248,70 @@ SKU 详情页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并
 - **THEN** 事件 SHOULD 包含页面路径、分享渠道和 `skuId`
 - **AND** 埋点失败 SHALL NOT 阻断分享
 - **AND** 分享路径、分享图和埋点 SHALL NOT 暴露原始 object key、Authorization header、Cookie、手机号或未授权素材地址。
+
+### Requirement: SKU 详情页视频全屏操作
+
+SKU 详情页 SHALL 为视频媒体提供明确可感知的全屏播放入口，并在微信小程序平台能力允许范围内支持全屏态操作菜单或等价交互。全屏态操作 SHALL 覆盖转发给朋友、保存视频和取消三个用户意图，并 SHALL 保持既有图片预览、视频播放、分享、安全媒体 URL 和页面隐藏暂停能力不回归。对于已在内嵌区域开始播放的视频，点击全屏入口 SHALL 优先复用当前视频组件上下文或等价能力进入全屏播放态，避免重新进入长时间加载。
+
+#### Scenario: 视频全屏入口
+
+- **WHEN** SKU 详情页存在可播放视频媒体
+- **THEN** 小程序 SHALL 在视频媒体项展示明确可感知的全屏播放入口，或使用微信原生视频控制条中可见的全屏入口
+- **AND** 全屏入口 SHALL NOT 遮挡媒体计数、播放控制、轮播滑动、原生胶囊 reserve、返回按钮或底部操作栏
+- **AND** 无视频媒体、视频 URL 为空或视频加载失败时 SHALL NOT 展示误导性的可用全屏入口，或 SHALL 展示明确错误提示。
+
+#### Scenario: 进入与退出全屏播放
+
+- **WHEN** 用户点击视频全屏入口
+- **THEN** 当前视频 SHALL 进入微信小程序支持的视频全屏播放态
+- **AND** 全屏播放 SHALL 由用户主动触发，不得默认自动全屏或默认自动播放
+- **AND** 用户退出全屏后 SHALL 回到当前 SKU 详情页和当前媒体上下文
+- **AND** 页面隐藏、锁屏、跳转、返回上一页或切换媒体时 SHALL 暂停当前视频或保持既有暂停策略不回归。
+
+#### Scenario: 已播放视频切换全屏不重新长时间加载
+
+- **WHEN** 用户先在 SKU 详情页内嵌轮播区域播放视频并已看到视频起播
+- **AND** 用户点击当前视频的全屏入口
+- **THEN** 小程序 SHALL 优先复用当前视频组件上下文或平台等价能力进入全屏播放态
+- **AND** 全屏态 SHALL 在可接受时间内出现首帧或可播放反馈
+- **AND** 小程序 SHOULD NOT 将已播放视频的主全屏入口实现为会重新长时间加载同一视频的独立媒体预览链路
+- **AND** 若平台限制导致必须使用独立预览或重新加载，页面 SHALL 提供明确加载反馈或失败提示，并在验收材料中记录平台限制。
+
+#### Scenario: 全屏态长按操作菜单
+
+- **WHEN** 用户在视频全屏播放态长按当前视频
+- **THEN** 小程序 SHOULD 展示包含“转发给朋友”“保存视频”“取消”的操作菜单，或微信平台允许的等价交互入口
+- **AND** 点击“取消” SHALL 关闭菜单且不触发分享、保存、页面跳转或异常退出
+- **AND** 若微信原生全屏态不支持自定义长按菜单，验收材料 SHALL 记录平台限制、降级方案和用户可达路径
+- **AND** 系统 SHALL NOT 在验收材料中将不可自定义的原生能力宣称为已完全支持自定义长按菜单。
+
+#### Scenario: 全屏态转发给朋友
+
+- **WHEN** 用户从视频全屏态操作入口选择“转发给朋友”
+- **THEN** 小程序 SHALL 复用 SKU 详情页既有微信分享能力或等价分享路径构造
+- **AND** 分享路径 SHALL 指向当前 SKU 详情页并保留 `skuId` 与 `source=share` 或等价来源参数
+- **AND** 分享标题和分享图 SHALL 使用当前 SKU 商品名称、品牌名称、商品分享图、主图或安全兜底图
+- **AND** 分享埋点失败 SHALL NOT 阻断微信分享。
+
+#### Scenario: 全屏态保存视频
+
+- **WHEN** 用户从视频全屏态操作入口选择“保存视频”
+- **THEN** 小程序 SHOULD 尝试按微信平台能力将当前视频保存到用户相册
+- **AND** 视频 URL SHALL 来自详情接口返回的安全可播放 URL，不得使用原始 object key 拼接对象存储地址
+- **AND** 保存流程 SHALL 遵守微信授权、远程文件下载、临时文件和相册保存限制
+- **AND** 保存成功时 SHALL 展示明确成功提示
+- **AND** 保存失败时 SHALL 展示权限拒绝、网络异常、视频暂不可保存、格式不支持或平台不支持等可理解提示
+- **AND** 保存失败 SHALL NOT 阻断视频继续播放或商品详情继续浏览。
+
+#### Scenario: 平台、安全与测试验收
+
+- **WHEN** 团队实现或验收视频全屏操作能力
+- **THEN** OpenSpec apply 记录 SHALL 明确微信 `video` 组件全屏、长按、自定义菜单、下载和保存到相册的实际能力边界
+- **AND** 小程序静态测试 SHALL 覆盖视频全屏入口属性、分享路径、保存视频降级提示或等价关键逻辑
+- **AND** 小程序静态测试 SHALL 覆盖已播放视频切换全屏时使用当前视频上下文或等价主路径的关键逻辑
+- **AND** `src/miniapp/pages/tile-detail/index.ts` 与运行时 `index.js` 的视频全屏、菜单、分享和保存逻辑 SHALL 保持同步
+- **AND** DevTools evidence SHALL 覆盖 320 / 375 / 430 pt 视口下视频全屏入口不遮挡关键 UI
+- **AND** 至少一台真机 evidence SHALL 覆盖全屏入口、全屏播放、长按菜单或降级入口、转发、保存成功或失败提示、退出全屏回到详情页
+- **AND** 真机 evidence SHALL 记录同一 SKU 视频的内嵌播放首帧耗时与点击全屏到全屏首帧耗时
+- **AND** 若真机暂不可用，验收状态 SHALL 标记 `real_device_follow_up` 或 `blocked`，不得把静态测试或 DevTools 截图写成真机通过。
 

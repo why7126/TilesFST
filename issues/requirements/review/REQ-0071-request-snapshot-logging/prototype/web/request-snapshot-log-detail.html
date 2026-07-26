@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0071 Request Snapshot Log Detail</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --deep: #100f0a;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.56);
+        --faint: rgba(237, 232, 223, 0.28);
+        --gold: #c8a055;
+        --border: rgba(255, 255, 255, 0.1);
+        --danger: #e06a4f;
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page);
+        color: var(--text);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) 1fr minmax(420px, 520px);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--border);
+        background: var(--deep);
+        padding: 28px 22px;
+      }
+
+      .brand {
+        color: var(--gold);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .nav {
+        margin-top: 42px;
+        display: grid;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .nav strong {
+        color: var(--text);
+        border-left: 2px solid var(--gold);
+        padding-left: 10px;
+        font-weight: 400;
+      }
+
+      .main {
+        padding: 28px;
+      }
+
+      .eyebrow {
+        color: var(--gold);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 8px 0 20px;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .toolbar,
+      .table {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 3px;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        padding: 16px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .filter {
+        border: 1px solid var(--border);
+        padding: 10px;
+        min-height: 38px;
+      }
+
+      .table {
+        margin-top: 18px;
+        overflow: hidden;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1.1fr 1.4fr 0.8fr 0.7fr 1fr;
+        gap: 12px;
+        padding: 14px 16px;
+        border-top: 1px solid var(--border);
+        align-items: center;
+        font-size: 12px;
+      }
+
+      .row:first-child {
+        border-top: 0;
+        color: var(--faint);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .selected {
+        background: rgba(200, 160, 85, 0.08);
+      }
+
+      .drawer {
+        border-left: 1px solid var(--border);
+        background: var(--surface);
+        padding: 28px 24px;
+        overflow: auto;
+      }
+
+      .drawer-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 18px;
+      }
+
+      .drawer h2 {
+        margin: 6px 0 0;
+        font-size: 18px;
+        font-weight: 400;
+      }
+
+      .status {
+        color: var(--danger);
+        border: 1px solid rgba(224, 106, 79, 0.4);
+        padding: 4px 8px;
+        height: max-content;
+        font-size: 11px;
+      }
+
+      .section {
+        padding: 18px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .section h3 {
+        margin: 0 0 12px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 8px 14px;
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      .key {
+        color: var(--faint);
+      }
+
+      .value {
+        color: var(--text);
+        word-break: break-word;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      pre {
+        margin: 0;
+        padding: 14px;
+        overflow: auto;
+        background: var(--deep);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      @media (max-width: 1080px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .drawer {
+          border-left: 0;
+          border-top: 1px solid var(--border);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">TilesFST Admin</div>
+        <nav class="nav">
+          <span>Dashboard</span>
+          <span>Products</span>
+          <strong>Log Audit</strong>
+          <span>System Settings</span>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="eyebrow">SYSTEM / LOG AUDIT</div>
+        <h1>日志审计</h1>
+        <div class="toolbar">
+          <div class="filter">类型：请求日志</div>
+          <div class="filter">状态：500</div>
+          <div class="filter">客户端：web_admin</div>
+          <div class="filter">关键词：request_id</div>
+        </div>
+        <section class="table">
+          <div class="row">
+            <span>Time</span>
+            <span>Summary</span>
+            <span>Client</span>
+            <span>Status</span>
+            <span>Request ID</span>
+          </div>
+          <div class="row selected">
+            <span>2026-07-26 12:49:31</span>
+            <span>POST /api/v1/admin/products/42</span>
+            <span>web_admin</span>
+            <span>500</span>
+            <span>req_9f8a72</span>
+          </div>
+          <div class="row">
+            <span>2026-07-26 12:45:02</span>
+            <span>GET /api/v1/catalog/tiles</span>
+            <span>web_catalog</span>
+            <span>200</span>
+            <span>req_9f8a11</span>
+          </div>
+        </section>
+      </main>
+      <aside class="drawer">
+        <div class="drawer-head">
+          <div>
+            <div class="eyebrow">Request Snapshot</div>
+            <h2>LOG DETAIL</h2>
+          </div>
+          <div class="status">ERROR</div>
+        </div>
+        <section class="section">
+          <h3>请求信息</h3>
+          <div class="kv">
+            <div class="key">Method</div><div class="value"><code>POST</code></div>
+            <div class="key">Path</div><div class="value"><code>/api/v1/admin/products/42</code></div>
+            <div class="key">Route Template</div><div class="value"><code>/api/v1/admin/products/{product_id}</code></div>
+            <div class="key">Request ID</div><div class="value"><code>req_9f8a72</code></div>
+          </div>
+        </section>
+        <section class="section">
+          <h3>输入摘要</h3>
+          <div class="kv">
+            <div class="key">Query</div><div class="value"><code>{"preview": true}</code></div>
+            <div class="key">Body Schema</div><div class="value">fields: 8, changed_fields: name, category_id, status</div>
+            <div class="key">Redaction</div><div class="value">ignored: authorization, cookie, token, raw_payload</div>
+          </div>
+        </section>
+        <section class="section">
+          <h3>业务资源</h3>
+          <div class="kv">
+            <div class="key">Resource Type</div><div class="value">product</div>
+            <div class="key">Resource ID</div><div class="value">42</div>
+            <div class="key">ID Source</div><div class="value">path parameter</div>
+          </div>
+        </section>
+        <section class="section">
+          <h3>响应结果</h3>
+          <div class="kv">
+            <div class="key">Status Code</div><div class="value">500</div>
+            <div class="key">Error Code</div><div class="value"><code>PRODUCT_UPDATE_FAILED</code></div>
+            <div class="key">Duration</div><div class="value">846 ms</div>
+            <div class="key">Error Summary</div><div class="value">业务校验失败，内部细节已隐藏</div>
+          </div>
+        </section>
+        <section class="section">
+          <h3>操作者 / 客户端</h3>
+          <div class="kv">
+            <div class="key">Actor</div><div class="value">admin@example.com</div>
+            <div class="key">Client Type</div><div class="value">web_admin</div>
+            <div class="key">IP Summary</div><div class="value">192.168.*.*</div>
+            <div class="key">User Agent</div><div class="value">Chrome / macOS 摘要</div>
+          </div>
+        </section>
+        <section class="section">
+          <h3>结构化 JSON</h3>
+          <pre>{
+  "route_template": "/api/v1/admin/products/{product_id}",
+  "resource_type": "product",
+  "resource_id": "42",
+  "body_schema_summary": {
+    "field_count": 8,
+    "redacted": true
+  }
+}</pre>
+        </section>
+      </aside>
+    </div>
+  </body>
+</html>

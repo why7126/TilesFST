@@ -122,6 +122,14 @@ function renderModal(props: Partial<React.ComponentProps<typeof TileSkuFormModal
   );
 }
 
+function getVideoInput(container: HTMLElement): HTMLInputElement {
+  const input = container.querySelector(
+    'input[accept="video/mp4,video/quicktime,video/webm"]',
+  ) as HTMLInputElement | null;
+  expect(input).toBeTruthy();
+  return input!;
+}
+
 describe('TileSkuFormModal', () => {
   beforeEach(() => {
     fetchBrandsMock.mockResolvedValue({ items: [{ id: 1, name: '测试品牌' }] });
@@ -286,15 +294,11 @@ describe('TileSkuFormModal', () => {
       expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
     });
 
-    let input: HTMLInputElement | null = null;
     await waitFor(() => {
-      input = container.querySelector(
-        'input[accept="video/mp4,video/quicktime,video/webm"]',
-      ) as HTMLInputElement | null;
-      expect(input).toBeTruthy();
+      expect(getVideoInput(container)).toBeTruthy();
     });
 
-    fireEvent.change(input!, {
+    fireEvent.change(getVideoInput(container), {
       target: { files: [new File(['video'], 'demo.mp4', { type: 'video/mp4' })] },
     });
 
@@ -308,6 +312,42 @@ describe('TileSkuFormModal', () => {
       expect(player?.src).toContain('/media/tile-videos/demo.mp4');
       expect(screen.getByText('demo.mp4')).toBeInTheDocument();
       expect(screen.getByText('视频已添加')).toBeInTheDocument();
+    });
+  });
+
+  it('shows server saving state after browser upload reaches 99 percent', async () => {
+    let resolveUpload: ((value: { object_key: string; url: string }) => void) | undefined;
+    uploadTileVideoMock.mockImplementation((_file, _tileId, onProgress) => {
+      onProgress?.(99);
+      return new Promise((resolve) => {
+        resolveUpload = resolve;
+      });
+    });
+
+    const { container } = renderModal();
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    fireEvent.change(getVideoInput(container), {
+      target: { files: [new File(['video'], 'slow.mp4', { type: 'video/mp4' })] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('正在保存视频，请稍候')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('上传中 99%')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /保存中/ })).toBeDisabled();
+
+    resolveUpload?.({
+      object_key: 'tile-videos/slow.mp4',
+      url: '/media/tile-videos/slow.mp4',
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('视频已添加')).toBeInTheDocument();
+      expect(screen.getByText('slow.mp4')).toBeInTheDocument();
     });
   });
 
@@ -334,7 +374,8 @@ describe('TileSkuFormModal', () => {
 
   it('does not require or submit manual SKU code on create', async () => {
     const onSuccess = vi.fn();
-    const { container } = renderModal({ mode: 'create', onSuccess });
+    const onClose = vi.fn();
+    const { container } = renderModal({ mode: 'create', onSuccess, onClose });
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
@@ -363,6 +404,52 @@ describe('TileSkuFormModal', () => {
     });
     expect(createTileSkuMock.mock.calls[0]?.[0]).not.toHaveProperty('sku_code');
     expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿');
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('shows task trace feedback and copy action after traced SKU create', async () => {
+    const onSuccess = vi.fn();
+    const onClose = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    createTileSkuMock.mockResolvedValue({
+      id: 1,
+      task_trace_id: 'task_sku_create_abcdef1234567890',
+      task_type: 'sku_create',
+    });
+    const { container } = renderModal({ mode: 'create', onSuccess, onClose });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    const nameInput = container.querySelector('.brand-form-item .input') as HTMLInputElement;
+    fireEvent.change(nameInput, { target: { value: '追踪商品' } });
+
+    const selects = container.querySelectorAll('.brand-form-item .select');
+    fireEvent.change(selects[0]!, { target: { value: '1' } });
+    fireEvent.change(selects[1]!, { target: { value: '10' } });
+    fireEvent.change(selects[2]!, { target: { value: '5' } });
+
+    fireEvent.click(screen.getByRole('button', { name: '创建 SKU' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('SKU 创建成功，已保存为草稿');
+    });
+    expect(screen.getByText('task_sku_create_abcdef1234567890')).toBeInTheDocument();
+    expect(screen.getByText('sku_create')).toBeInTheDocument();
+    expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿，任务追踪已生成');
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '复制追踪ID' }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('task_sku_create_abcdef1234567890');
+      expect(screen.getByText('追踪 ID 已复制')).toBeInTheDocument();
+    });
   });
 
   it('removes a non-main image while keeping the current main image first in payload', async () => {
@@ -629,8 +716,13 @@ describe('TileSkuFormModal', () => {
     expect(screen.queryByText('历史 SKU 未匹配规格，请手动选择后保存')).toBeNull();
   });
 
-  it('shows video section error when upload fails', async () => {
-    uploadTileVideoMock.mockRejectedValue(new Error('network'));
+  it('shows video section error and allows retrying the same file without changing existing videos', async () => {
+    uploadTileVideoMock
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce({
+        object_key: 'tile-videos/retry.mp4',
+        url: '/media/tile-videos/retry.mp4',
+      });
 
     const { container } = renderModal();
 
@@ -638,14 +730,11 @@ describe('TileSkuFormModal', () => {
       expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
     });
 
-    let input: HTMLInputElement | null = null;
     await waitFor(() => {
-      input = container.querySelector(
-        'input[accept="video/mp4,video/quicktime,video/webm"]',
-      ) as HTMLInputElement | null;
-      expect(input).toBeTruthy();
+      expect(getVideoInput(container)).toBeTruthy();
     });
-    fireEvent.change(input!, {
+    const sameFile = new File(['video'], 'retry.mp4', { type: 'video/mp4' });
+    fireEvent.change(getVideoInput(container), {
       target: { files: [new File(['video'], 'bad.mp4', { type: 'video/mp4' })] },
     });
 
@@ -653,5 +742,50 @@ describe('TileSkuFormModal', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('视频上传失败');
     });
     expect(container.querySelector('video.sku-video-player')).toBeNull();
+    expect(screen.getByRole('button', { name: /继续添加视频/ })).not.toBeDisabled();
+
+    fireEvent.change(getVideoInput(container), {
+      target: { files: [sameFile] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('retry.mp4')).toBeInTheDocument();
+      expect(screen.getByText('视频已添加')).toBeInTheDocument();
+    });
+  });
+
+  it('keeps existing video cards when a new upload fails', async () => {
+    uploadTileVideoMock.mockRejectedValue(new Error('network'));
+
+    const { container } = renderModal({
+      mode: 'edit',
+      sku: {
+        ...editableSku([]),
+        videos: [
+          {
+            object_key: 'tile-videos/existing.mp4',
+            url: '/media/tile-videos/existing.mp4',
+            file_name: 'existing.mp4',
+            file_size_bytes: 1024,
+            duration_seconds: null,
+            sort_order: 0,
+          },
+        ],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('existing.mp4')).toBeInTheDocument();
+    });
+
+    fireEvent.change(getVideoInput(container), {
+      target: { files: [new File(['video'], 'bad.mp4', { type: 'video/mp4' })] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('视频上传失败');
+    });
+    expect(screen.getByText('existing.mp4')).toBeInTheDocument();
+    expect(container.querySelectorAll('video.sku-video-player')).toHaveLength(1);
   });
 });

@@ -107,8 +107,14 @@
 - **THEN** 系统 SHALL 返回统一响应，包含分页日志项、total、page、page_size 和指标摘要。
 
 #### Scenario: 支持日志列表筛选
-- **WHEN** admin 按日志类型、时间范围、操作者、client type、status code 或 result、resource id、path、keyword 或 request id 筛选
+- **WHEN** admin 按日志类型、时间范围、操作者、client type、status code 或 result、resource id、path、keyword、request id 或 task trace id 筛选
 - **THEN** 系统 SHALL 仅返回匹配日志，并按最新优先排序。
+
+#### Scenario: 操作者筛选保持 actor_user_id 语义
+- **WHEN** admin 通过日志审计页面选择某个操作者候选后查询日志
+- **THEN** 日志列表 API SHALL 使用该用户的稳定 `actor_user_id` 作为过滤条件
+- **AND** API SHALL NOT 将用户显示名称、昵称或账号字符串解释为 `actor_user_id`
+- **AND** API SHALL 保持既有 `actor_user_id` 查询参数兼容。
 
 #### Scenario: 管理员查询日志详情
 - **WHEN** 已认证 admin 针对已存在日志调用 `GET /api/v1/admin/logs/{id}`
@@ -154,13 +160,44 @@
 
 - **WHEN** admin 查看日志审计页
 - **THEN** 页面 SHALL 展示 TODAY LOGS、API ERRORS、SLOW REQUESTS 和 SENSITIVE OPS 指标卡
-- **AND** 页面 SHALL 展示日志类型、时间范围、操作者、状态或结果、资源或 ID、路径或 request id 筛选。
+- **AND** 页面 SHALL 展示日志类型、时间范围、状态或结果、操作者、Task Trace ID、路径 / Request ID 筛选。
+- **AND** 时间范围 SHALL 提供最近5分钟、最近10分钟、最近30分钟、最近1小时、最近3小时、最近6小时、最近12小时、最近1天、最近2天、最近3天和最近7天，不提供全部时间选项。
 - **AND** 状态或结果筛选 SHALL 使用下拉选择交互，支持成功、失败和常见 HTTP 状态码精确筛选，且 SHALL 至少包含 `422 参数校验错误`。
+
+#### Scenario: 操作者筛选使用可搜索单选下拉
+
+- **WHEN** admin 使用 `/admin/logs` 的操作者筛选项
+- **THEN** 页面 SHALL 提供单选可搜索下拉，而不是要求 admin 直接输入 User ID
+- **AND** 下拉 SHALL 支持按用户名称和账号搜索操作者候选
+- **AND** 候选项 SHALL 只展示两行：第一行账号 `username`，第二行用户名称 `display_name || username`
+- **AND** 候选项 SHALL 使用账号行区分同名用户。
+
+#### Scenario: 操作者筛选查询日志
+
+- **WHEN** admin 在操作者下拉中选择一个用户候选
+- **THEN** 页面 SHALL 使用该用户的 `id` 作为 `actor_user_id` 请求日志列表
+- **AND** 页面 SHALL NOT 将用户名称或账号字符串作为 `actor_user_id` 传给日志列表 API
+- **AND** 筛选变化 SHALL 将当前页重置为 1 并重新查询。
+
+#### Scenario: 操作者筛选清空与重置
+
+- **WHEN** admin 清空操作者筛选或点击页面重置
+- **THEN** 页面 SHALL 清除 `actor_user_id` 过滤条件
+- **AND** 日志列表 SHALL 按全部操作者和其他默认筛选条件重新查询。
+
+#### Scenario: 操作者候选异常状态
+
+- **WHEN** 操作者候选正在加载、无匹配结果或加载失败
+- **THEN** 页面 SHALL 在下拉或等价控件区域展示清晰状态
+- **AND** 候选加载失败 SHALL NOT 阻止 admin 使用日志类型、时间范围、状态、Task Trace ID、路径 / Request ID 等其他筛选
+- **AND** 候选加载失败反馈 SHALL 与日志列表查询失败反馈可区分。
 
 #### Scenario: 日志表格支持排障
 
 - **WHEN** admin 查看日志行
-- **THEN** 表格 SHALL 展示时间、类型、事件或摘要、操作者、客户端、状态或结果、耗时、request id、复制操作和详情操作。
+- **THEN** 表格 SHALL 展示时间、类型、事件或摘要、操作者账号、客户端、状态或结果、耗时、Task Trace、request id 和详情操作。
+- **AND** 操作者列 SHALL 使用 `actor_username` 单行展示，不展示用户名称。
+- **AND** Task Trace 与 request id 列 SHALL 均以单行短 ID 加复制操作展示。
 - **AND** 类型与状态或结果 SHALL 通过不同颜色或等价视觉样式区分不同值，便于管理员快速扫描异常日志。
 
 #### Scenario: request_id 可复制且不造成布局位移
@@ -182,7 +219,7 @@
 
 - **WHEN** 实现完成
 - **THEN** 后端测试 SHALL 覆盖日志记录、校验、脱敏、权限、筛选和 not-found 行为
-- **AND** 前端测试 SHALL 覆盖列表渲染、筛选、request_id 复制成功、Clipboard API 不可用兜底、复制写入失败兜底、详情抽屉、forbidden 状态和分页结构。
+- **AND** 前端测试 SHALL 覆盖列表渲染、筛选、操作者候选搜索、操作者选择、清空、重置、候选无结果、候选加载失败、同名用户区分、request_id 复制成功、Clipboard API 不可用兜底、复制写入失败兜底、详情抽屉、forbidden 状态和分页结构。
 
 ### Requirement: 日志详情抽屉
 系统 SHALL 在右侧抽屉中展示日志详情，且不丢失列表上下文。
@@ -205,6 +242,7 @@
 - **AND** 敏感字段 SHALL 被脱敏或省略。
 
 ### Requirement: OpenAPI、Orval 与文档治理
+
 系统 SHALL 保持产品使用日志相关 API、数据库、文档和生成客户端产物同步。
 
 #### Scenario: 生成 API 契约
@@ -212,14 +250,19 @@
 - **THEN** OpenAPI SHALL 暴露 response models、summaries、descriptions 和 tags
 - **AND** Orval SHALL 生成对应 Web client methods。
 
+#### Scenario: Task Trace 契约同步
+- **WHEN** 日志列表、日志详情或上传响应新增 `task_trace_id`、任务摘要或任务时间线字段
+- **THEN** OpenAPI SHALL 暴露这些字段
+- **AND** Orval SHALL 生成或更新对应 Web client types
+- **AND** generated files SHALL NOT be hand-edited。
+
 #### Scenario: 文档保持同步
 - **WHEN** 日志能力被实现
 - **THEN** `docs/03-api-index.md`、`docs/04-database-design.md` 和适用的错误码文档 SHALL 描述新增 endpoints、schemas、tables 和 errors。
 
 #### Scenario: 校验与测试覆盖能力
 - **WHEN** 实现完成
-- **THEN** 后端测试 SHALL 覆盖日志记录、校验、脱敏、权限、筛选和 not-found 行为
-- **AND** 前端测试 SHALL 覆盖列表渲染、筛选、request_id 复制、详情抽屉、forbidden 状态和分页结构。
+- **THEN** 后端和前端测试 SHALL 覆盖新增或修改的日志 API、任务时间线字段、权限、脱敏、筛选和错误场景。
 
 ### Requirement: 日志审计复制 helper 迁移边界
 
@@ -300,4 +343,38 @@ Product usage logging SHALL preserve the existing `/admin/logs` request id copy 
 #### Scenario: 商品列表事件敏感信息过滤
 - **WHEN** 系统记录商品列表行为事件
 - **THEN** 事件 SHALL NOT 包含手机号、Authorization header、Cookie、raw payload、原始 object key、内部备注或不必要个人敏感信息。
+
+### Requirement: 任务链路追踪
+
+系统 SHALL 为可追踪业务任务提供 Task Trace 模型，支持任务标识、任务节点、状态、耗时、错误码、资源关联和安全脱敏。
+
+#### Scenario: 生成任务追踪标识
+- **WHEN** 用户发起需要追踪的业务任务
+- **THEN** 系统 SHALL 生成或确认 `task_trace_id`
+- **AND** `task_trace_id` SHALL NOT 包含用户原始文件名、手机号、密钥、业务敏感信息或可枚举自增序列。
+
+#### Scenario: 记录任务节点
+- **WHEN** 任务进入关键处理节点
+- **THEN** 系统 SHALL 记录 task span
+- **AND** span SHALL 至少包含 `task_trace_id`、`task_type`、`span_name`、`status`、开始时间和耗时或结束时间。
+
+#### Scenario: 任务状态可推导
+- **WHEN** 任务结束、失败、超时或取消
+- **THEN** 系统 SHALL 将任务状态标记为 `success`、`failed`、`timeout` 或 `cancelled`
+- **AND** 进行中的任务 SHALL 可标记为 `processing`。
+
+#### Scenario: 任务节点关联请求
+- **WHEN** task span 发生在某个 HTTP 请求生命周期中
+- **THEN** span SHALL 关联对应 `request_id`
+- **AND** 同一 `task_trace_id` MAY 关联多个 request id。
+
+#### Scenario: 任务失败可诊断
+- **WHEN** 任务节点失败
+- **THEN** span SHALL 记录统一错误码或失败摘要
+- **AND** SHALL NOT 暴露 Authorization、Cookie、AccessKey、SecretKey、数据库 DSN、`.env` 内容、真实客户数据、内部绝对路径或完整敏感请求体。
+
+#### Scenario: 任务追踪持久化可查询
+- **WHEN** 系统持久化 task trace 或 task span
+- **THEN** 持久化结构 SHALL 支持按 `task_trace_id`、`task_type` 和创建时间查询
+- **AND** SQLite demo 与 MySQL production SHALL 使用兼容 schema。
 

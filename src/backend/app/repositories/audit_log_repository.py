@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -9,6 +10,9 @@ from uuid import uuid4
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
+from app.services.log_service import safe_json_dumps, sanitize_metadata
+from app.services.task_trace_service import TaskTraceService
 
 
 @dataclass
@@ -20,6 +24,8 @@ class AuditLogRecord:
     summary: str
     metadata: str | None
     created_at: str
+    task_trace_id: str | None = None
+    task_type: str | None = None
     actor_display_name: str | None = None
 
 
@@ -35,16 +41,23 @@ class AuditLogRepository:
         action_type: str,
         summary: str,
         metadata: str | None = None,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
     ) -> AuditLogRecord:
         now = datetime.now(UTC).isoformat()
         log_id = str(uuid4())
+        safe_task_trace_id = TaskTraceService.validate_task_trace_id(task_trace_id)
+        safe_task_type = _normalize_task_type(task_type) if safe_task_trace_id else None
+        safe_metadata = _sanitize_metadata_json(metadata)
         self._db.execute(
             text(
                 """
                 INSERT INTO audit_logs (
-                  id, actor_user_id, domain, action_type, summary, metadata, created_at
+                  id, actor_user_id, domain, action_type, summary,
+                  task_trace_id, task_type, metadata, created_at
                 ) VALUES (
-                  :id, :actor_user_id, :domain, :action_type, :summary, :metadata, :created_at
+                  :id, :actor_user_id, :domain, :action_type, :summary,
+                  :task_trace_id, :task_type, :metadata, :created_at
                 )
                 """
             ),
@@ -54,7 +67,9 @@ class AuditLogRepository:
                 "domain": domain,
                 "action_type": action_type,
                 "summary": summary,
-                "metadata": metadata,
+                "task_trace_id": safe_task_trace_id,
+                "task_type": safe_task_type,
+                "metadata": safe_metadata,
                 "created_at": now,
             },
         )
@@ -65,8 +80,10 @@ class AuditLogRepository:
             domain=domain,
             action_type=action_type,
             summary=summary,
-            metadata=metadata,
+            metadata=safe_metadata,
             created_at=now,
+            task_trace_id=safe_task_trace_id,
+            task_type=safe_task_type,
         )
 
     def list_recent_by_domain(
@@ -85,6 +102,8 @@ class AuditLogRepository:
                       a.domain,
                       a.action_type,
                       a.summary,
+                      a.task_trace_id,
+                      a.task_type,
                       a.metadata,
                       a.created_at,
                       u.display_name AS actor_display_name
@@ -112,5 +131,26 @@ class AuditLogRepository:
             summary=row["summary"],
             metadata=row.get("metadata"),
             created_at=row["created_at"],
+            task_trace_id=row.get("task_trace_id"),
+            task_type=row.get("task_type"),
             actor_display_name=row.get("actor_display_name"),
         )
+
+
+def _normalize_task_type(value: str | None) -> str | None:
+    if not value:
+        return None
+    stripped = value.strip()
+    return stripped[:64] or None
+
+
+def _sanitize_metadata_json(value: str | None) -> str | None:
+    if not value:
+        return value
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return value
+    if not isinstance(parsed, dict):
+        return value
+    return safe_json_dumps(sanitize_metadata(parsed))

@@ -173,55 +173,56 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 SHOULD 输出无法归因、缺少 token_count、发现本地绝对路径或疑似敏感内容被跳过的 warnings
 
 ### Requirement: Issue 归档子文档状态一致性门禁
-系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。
+系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。单个 Issue 的归档与子文档 reconcile MUST 以该 Issue 自身闭环为准，不得仅因所属 Sprint 尚未 completed 而阻断；Sprint completed 仅作为 `/sprint-archive` 整体归档门禁。
 
-#### Scenario: BUG 子文档存在非闭环状态
+#### Scenario: BUG 子文档残留状态阻断归档
 - **GIVEN** 一个 BUG 已满足关联 Change archived 与 `trace.md` done 条件
-- **AND** 该 BUG 包内任一 Markdown 子文档的 frontmatter 或 fenced YAML block 包含 `status: draft`、`status: pending_review`、`status: in_sprint`、`status: applied`、`status: todo` 或 `status: open`
+- **AND** `bug.md`、`root-cause.md`、`acceptance.md`、`workaround.md` 或其他维护状态字段的子文档仍包含 `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` 或等价非闭环状态
 - **WHEN** 系统执行 issue archive promote
 - **THEN** 系统 MUST 阻断该 BUG 迁入 `issues/bugs/archive/`
-- **AND** 报告 MUST 包含 BUG id、文件路径、状态来源与状态值
+- **AND** 报告 MUST 列出 issue id、文件路径、状态来源、当前状态
 - **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
 
-#### Scenario: REQ 子文档存在非闭环状态
+#### Scenario: REQ 子文档残留状态阻断归档
 - **GIVEN** 一个 REQ 已满足关联 Change archived 与 `trace.md` done 条件
-- **AND** 该 REQ 包内任一 Markdown 子文档的 frontmatter 或 fenced YAML block 包含非闭环状态
+- **AND** `requirement.md`、`acceptance.md`、`user-stories.md`、`business-flow.md`、`capture.md` 或其他维护状态字段的子文档仍包含非闭环状态
 - **WHEN** 系统执行 issue archive promote
 - **THEN** 系统 MUST 阻断该 REQ 迁入 `issues/requirements/archive/`
-- **AND** 报告 MUST 包含 REQ id、文件路径、状态来源与状态值
+- **AND** 报告 MUST 列出所有残留状态字段
 - **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
 
-#### Scenario: 子文档状态均已闭环
+#### Scenario: 子文档状态全部闭环后允许归档
 - **GIVEN** 一个 REQ 或 BUG 已满足 archive promote 的主状态条件
-- **AND** issue 包内 Markdown 子文档不存在非闭环状态残留
+- **AND** issue 包内所有维护状态字段均为 `done`、`archived`、`resolved`、`closed` 或等价闭环状态
 - **WHEN** 系统执行 issue archive promote
 - **THEN** 系统 MAY 将该 issue 从 `review/` 迁入 `archive/`
 
-#### Scenario: 输出可操作修正建议
+#### Scenario: Reconcile 建议区分自动修复与上游阻断
 - **WHEN** issue archive promote 因子文档状态残留被阻断
-- **THEN** 系统 MUST 输出建议，提示先完成评审/验收或将真实已闭环子文档状态同步为闭环状态
+- **THEN** 报告 MUST 提示先 dry-run 再 apply reconcile
 - **AND** 建议 MUST 区分“可自动 reconcile”的闭环 Issue 与“必须先推进上游流程”的未闭环 Issue
 
 #### Scenario: Dry-run 预览子文档状态 reconcile
-- **GIVEN** 一个 REQ 或 BUG 的主状态、关联 Change 与必要 Sprint 状态已闭环
-- **AND** issue 包内 Markdown 子文档存在非闭环状态残留
+- **GIVEN** 一个 REQ 或 BUG 的主状态与关联 Change 已闭环
+- **AND** 所属 Sprint 尚未 completed
 - **WHEN** 用户执行子文档状态 reconcile dry-run 命令
-- **THEN** 系统 MUST 不写入文件
-- **AND** 报告 MUST 列出 issue id、文件路径、状态来源、旧状态、目标状态与将刷新的 `updated_at`
+- **THEN** 系统 MUST 报告将被更新的文件、字段来源、旧状态与目标状态
+- **AND** 系统 MUST NOT 写入文件
+- **AND** 系统 MUST NOT 仅因所属 Sprint 尚未 completed 阻断 dry-run
 
 #### Scenario: 写入子文档状态 reconcile
-- **GIVEN** 一个 REQ 或 BUG 的主状态、关联 Change 与必要 Sprint 状态已闭环
-- **AND** dry-run 报告确认存在可修复的子文档状态残留
+- **GIVEN** 一个 REQ 或 BUG 的主状态与关联 Change 已闭环
+- **AND** 所属 Sprint 尚未 completed
 - **WHEN** 用户执行子文档状态 reconcile 写入命令
-- **THEN** 系统 MUST 将对应 Markdown 子文档 frontmatter 与 fenced YAML block 中的残留状态同步为闭环状态
+- **THEN** 系统 MUST 将子文档残留状态更新为该 issue 的闭环目标状态
 - **AND** 系统 MUST 刷新被修改 Markdown 的 `updated_at`
-- **AND** 系统 MUST 输出修改摘要，包含修改文件数、字段数、issue id、旧状态与新状态
+- **AND** 系统 MUST NOT 仅因所属 Sprint 尚未 completed 阻断写入
 
 #### Scenario: 未闭环 Issue 禁止 reconcile 写入
-- **GIVEN** 一个 REQ 或 BUG 的主状态、关联 Change 或必要 Sprint 状态尚未闭环
+- **GIVEN** 一个 REQ 或 BUG 的主状态或关联 Change 尚未闭环
 - **WHEN** 用户执行子文档状态 reconcile 写入命令
-- **THEN** 系统 MUST 拒绝写入并返回非零退出码
-- **AND** 报告 MUST 说明阻断原因与应先执行的上游工作流命令
+- **THEN** 系统 MUST 阻断写入
+- **AND** 报告 MUST 指出需要先完成的上游命令或状态
 
 ### Requirement: Archived Change trace 兜底摘要门禁
 系统 MUST 在 Sprint 或 OpenSpec 归档 readiness gate 中检查 archived Change 的归档验证证据；当 archived Change 缺失 `trace.md` 时，系统 MUST 要求 `proposal.md`、`design.md` 或 `tasks.md` 中至少一个文件包含标准化归档验证摘要。
@@ -779,4 +780,89 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **WHEN** 工作流命令发现多个独立 follow-up 事项
 - **THEN** 系统 MUST 分条输出标准 capture 文案
 - **AND** 每条文案 MUST 能独立用于后续 capture
+
+### Requirement: 小程序环境命令族
+系统 MUST 提供两段式小程序环境命令族，用于切换、检查、发布前准备、验证确认和发布后恢复小程序 API 环境策略。
+
+#### Scenario: 命令入口命名
+- **WHEN** 用户查看或使用小程序环境命令
+- **THEN** 系统 MUST 提供 `/miniapp-env`、`/miniapp-check`、`/miniapp-prepare`、`/miniapp-confirm` 和 `/miniapp-restore`
+- **AND** 命令名 MUST 保持两段式 `<domain>-<action>` 风格
+
+#### Scenario: 不越权发布
+- **WHEN** 用户执行 `/miniapp-prepare` 或 `/miniapp-confirm`
+- **THEN** 系统 MUST 明确这些命令不调用微信平台真实发布动作
+- **AND** 系统 MUST 输出需要人工在微信开发者工具或微信公众平台完成的步骤
+
+### Requirement: 小程序环境策略
+系统 MUST 支持 `dev`、`prod` 和 `auto` 三种小程序环境策略，并同步维护 TypeScript 源码和微信运行时 JavaScript 文件。
+
+#### Scenario: 切换到开发策略
+- **WHEN** 用户执行 `/miniapp-env dev`
+- **THEN** 系统 MUST 将小程序环境解析策略设置为使用本地开发 API 地址
+- **AND** 系统 MUST 同步更新 `src/miniapp/utils/env.ts` 与 `src/miniapp/utils/env.js`
+
+#### Scenario: 切换到生产策略
+- **WHEN** 用户执行 `/miniapp-env prod`
+- **THEN** 系统 MUST 将小程序环境解析策略设置为所有运行形态使用生产 API 地址
+- **AND** 生产 API 地址 MUST 为 `https://tilesfst.wjoyhappy.site`
+
+#### Scenario: 切换到自动策略
+- **WHEN** 用户执行 `/miniapp-env auto`
+- **THEN** 系统 MUST 将开发版解析为本地开发 API 地址
+- **AND** 系统 MUST 将体验版和正式版解析为生产 API 地址
+
+### Requirement: 小程序环境检查
+系统 MUST 提供环境检查命令，验证当前策略、运行入口同步、静态测试和生产公开接口可访问性。
+
+#### Scenario: 检查当前策略
+- **WHEN** 用户执行 `/miniapp-check`
+- **THEN** 系统 MUST 报告当前小程序环境策略、开发 API 地址、生产 API 地址和 fallback 配置
+- **AND** 系统 MUST 检查 `.ts` 与 `.js` 环境配置一致
+
+#### Scenario: 发布前接口 smoke
+- **WHEN** 用户执行 `/miniapp-prepare`
+- **THEN** 系统 MUST 检查 `GET /api/v1/miniapp/home` 和 `GET /api/v1/miniapp/brands?page=1&pageSize=2` 的生产 HTTPS 响应
+- **AND** 任一接口非 `200 OK` 或统一响应 `code != 0` 时 MUST 阻断发布准备
+
+### Requirement: 小程序发布确认与恢复
+系统 MUST 支持记录小程序体验版或正式版验证结论，并支持发布后恢复默认环境策略。
+
+#### Scenario: 记录验证确认
+- **WHEN** 用户执行 `/miniapp-confirm`
+- **THEN** 系统 MUST 记录或输出小程序版本、渠道、验证时间、验证范围、结果和剩余风险
+- **AND** 系统 MUST 不记录真实用户隐私、微信会话密钥、Authorization header、Cookie 或 `.env` 内容
+
+#### Scenario: 恢复默认策略
+- **WHEN** 用户执行 `/miniapp-restore`
+- **THEN** 系统 MUST 将小程序环境策略恢复为项目默认策略
+- **AND** 系统 MUST 运行环境静态检查并输出恢复后的策略摘要
+
+### Requirement: Sprint 复盘 AI 使用量矩阵
+`/sprint-exps` MUST 基于 `data/ai-usage` 的 Sprint snapshot 展示 AI 使用量矩阵，用于按 Sprint、REQ、BUG 与工作流命令交叉分析 token 与模型调用消耗。
+
+#### Scenario: 输出四张指标矩阵
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **AND** 对应 `data/ai-usage/sprints/<sprint-id>.json` 存在可用真实统计
+- **THEN** 复盘文档 MUST 在 `## 模型 Token 使用分析` 中输出 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵表
+- **AND** 四张表 MUST 使用相同的行列结构
+
+#### Scenario: 矩阵行列顺序
+- **WHEN** `/sprint-exps` 输出 AI 使用量矩阵
+- **THEN** 表格最上方 MUST 包含 `Total` 汇总行
+- **AND** 纵向对象行 MUST 按 Sprint、REQ、BUG 顺序排列
+- **AND** Sprint 行 MUST 使用 `sprint-xxx` 或规范大写展示名，REQ/BUG 行 MUST 使用对应 canonical ID
+- **AND** 横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 的顺序展示
+
+#### Scenario: 缺少矩阵统计
+- **WHEN** Sprint snapshot 缺失、过期、覆盖不足或缺少矩阵字段
+- **THEN** `/sprint-exps` MUST 标记 `ai_usage_mode: estimated_fallback` 或输出 warning
+- **AND** `/sprint-exps` MUST 提示刷新 `data/ai-usage` snapshot
+- **AND** `/sprint-exps` MUST NOT 编造矩阵数值
+
+#### Scenario: 对象归因口径
+- **WHEN** 同一 command run 同时关联多个 REQ 或 BUG
+- **THEN** Sprint 行与 `Total` 行 MUST 按唯一 command run 汇总
+- **AND** REQ/BUG 行 MAY 按对象归因分别计入同一 command run
+- **AND** 复盘说明 SHOULD 提醒对象行用于归因分析，不代表可与 `Total` 行直接相加
 

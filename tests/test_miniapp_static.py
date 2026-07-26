@@ -148,6 +148,14 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     assert "function baseUrls(): string[]" in api_ts
     assert "tryRequest(index + 1)" in api_js
     assert "res.statusCode >= 500 && index + 1 < urls.length" in api_js
+    assert "const CLIENT_TYPE = 'wechat_miniapp'" in api_js
+    assert "const CLIENT_TYPE = 'wechat_miniapp'" in api_ts
+    assert "'x-client-type': CLIENT_TYPE" in api_js
+    assert "'x-client-type': CLIENT_TYPE" in api_ts
+    assert "'x-client-request-id': clientRequestId" in api_js
+    assert "'x-client-request-id': clientRequestId" in api_ts
+    assert "const clientRequestId = createClientRequestId()" in api_js
+    assert "const clientRequestId = createClientRequestId()" in api_ts
     assert "function normalizeMediaUrls" in api_js
     assert "value.indexOf('/media/') === 0" in api_js
     assert "resolve(normalizeMediaUrls(body.data, currentBaseUrl))" in api_js
@@ -924,6 +932,8 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "product_card_click" in card_js
     assert "product_card_image_failed" in card_js
     assert "product_card_unavailable_click" in card_js
+    assert "resolveTelemetryRequestId" in card_js
+    assert "requestId: this.resolveTelemetryRequestId()" in card_js
     assert "NAV_LOCK_MS = 800" in card_js
     assert "queryPair('sourcePage'" in card_js
     assert "queryPair('sourceModule'" in card_js
@@ -993,8 +1003,8 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "SKU 编码" not in detail_wxml
     assert "<video" in detail_wxml
     assert 'src="{{item.url}}"' in detail_wxml
-    assert 'poster="{{item.cover_url || \'\'}}"' in detail_wxml
-    assert "poster=\"{{item.cover_url || product.cover_image || imageFallback}}\"" not in detail_wxml
+    assert 'poster="{{item.cover_url || product.cover_image || imageFallback}}"' in detail_wxml
+    assert "poster=\"{{item.cover_url || ''}}\"" not in detail_wxml
     assert 'bindplay="onVideoPlay"' in detail_wxml
     assert 'binderror="onMediaError"' in detail_wxml
     assert 'autoplay="{{false}}"' in detail_wxml
@@ -1019,8 +1029,8 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "action-icon" in detail_wxml
     assert detail_wxml.count('class="action-btn') == 1
     assert detail_wxml.count('class="share-btn"') == 1
-    assert detail_wxml.index('bindtap="toggleFavorite"') < detail_wxml.index('open-type="share"')
     bottom_actions = detail_wxml[detail_wxml.index('<view wx:if="{{product}}" class="actions">'):]
+    assert bottom_actions.index('bindtap="toggleFavorite"') < bottom_actions.index('open-type="share"')
     assert ">品牌</text>" not in bottom_actions
     assert "分享给客户" in detail_wxml
     assert "同系列推荐" in detail_wxml
@@ -1036,6 +1046,57 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "border-radius: 28rpx" in detail_wxss
     assert "env(safe-area-inset-bottom)" in detail_wxss
     assert "min-height: 88rpx" in detail_wxss
+
+
+def test_miniapp_sku_detail_video_fullscreen_actions_are_wired() -> None:
+    detail_js = _read("pages/tile-detail/index.js")
+    detail_ts = _read("pages/tile-detail/index.ts")
+    detail_wxml = _read("pages/tile-detail/index.wxml")
+    detail_wxss = _read("pages/tile-detail/index.wxss")
+
+    for source in [detail_js, detail_ts]:
+        assert "openVideoFullscreen" in source
+        assert "wx.createVideoContext(`sku-video-${mediaId}`, this)" in source
+        assert "videoContext.requestFullScreen" in source
+        assert "direction: 0" in source
+        assert "fullscreen_context" in source
+        assert "正在进入全屏播放" in source
+        assert "全屏切换中，视频正在恢复播放" in source
+        assert "全屏播放暂不可用" in source
+        assert "video_fullscreen_failed" in source
+        assert "onVideoFullscreenChange" in source
+        assert "onVideoWaiting" in source
+        assert "fullscreenVideoId" in source
+        assert "fullscreenSwitching" in source
+        assert "url_scheme" in source
+        assert "url_ext" in source
+        assert "sku_video_play" in source
+        assert "sku_load_error" in source
+        assert "sku_video_fullscreen_click" not in source
+        assert "wx.previewMedia" not in source
+        assert "wx.downloadFile" not in source
+        assert "wx.saveVideoToPhotosAlbum" not in source
+        assert "raw object" not in source.lower()
+        assert "bucket" not in source.lower()
+        assert "MINIO" not in source
+
+    assert 'show-fullscreen-btn="{{false}}"' in detail_wxml
+    assert "<cover-view" in detail_wxml
+    assert 'bindtap="openVideoFullscreen"' in detail_wxml
+    assert 'bindfullscreenchange="onVideoFullscreenChange"' in detail_wxml
+    assert 'bindwaiting="onVideoWaiting"' in detail_wxml
+    assert 'bindlongpress="openVideoActions"' not in detail_wxml
+    assert "video-more-btn" not in detail_wxml
+    assert ">操作</" not in detail_wxml
+    media_wrap = detail_wxml[detail_wxml.index('<view class="media-wrap">'):detail_wxml.index('<view class="summary">')]
+    assert 'open-type="share"' not in media_wrap
+    assert "转发给朋友" not in media_wrap
+    assert "保存视频" not in media_wrap
+    assert "取消" not in media_wrap
+    assert "video-fullscreen-btn" in detail_wxss
+    assert "right: 24rpx" in detail_wxss
+    assert "video-action-mask" not in detail_wxss
+    assert "top: 24rpx" in detail_wxss
 
 
 def test_miniapp_favorite_list_page_uses_local_storage_and_states() -> None:
@@ -1178,6 +1239,7 @@ def test_miniapp_brand_card_component_contract_and_states() -> None:
         assert "skuId" in source
         assert "listContext" in source
         assert "requestId" in source
+        assert "resolveTelemetryRequestId" in source
         assert "NAV_LOCK_MS = 800" in source
         assert "暂无内容" in source
         assert "品牌内容暂不可查看" not in source

@@ -1,6 +1,6 @@
 ---
 created_at: 2026-07-05 20:30:52
-updated_at: 2026-07-07 00:36:17
+updated_at: 2026-07-26 12:08:05
 title: 缺陷追踪
 purpose: BUG-0061 修改密码安全策略错误提示不清晰
 content: 记录修改密码时新密码安全策略失败未说明具体规则与修改建议
@@ -30,7 +30,7 @@ environment: local|docker|prod
 openspec_changes:
   - change_id: fix-change-password-policy-error-message
     type: fix
-    status: archived
+    status: proposed
 lifecycle:
   captured: 2026-07-05 20:30:52
   generated: 2026-07-06 23:37:21

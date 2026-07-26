@@ -39,6 +39,8 @@ class SystemSettingsService:
         group: str,
         payload: dict[str, Any],
         actor_user_id: str,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
     ) -> dict[str, Any]:
         self._assert_valid_group(group)
         allowed_short_keys = {k.split(".", 1)[1] for k in SETTING_GROUPS[group]}
@@ -60,11 +62,19 @@ class SystemSettingsService:
                 action_type="settings_update",
                 summary=summary,
                 metadata=json.dumps({"group": group, "changes": changes}, ensure_ascii=False),
+                task_trace_id=task_trace_id,
+                task_type=task_type,
             )
 
         return self.get_group(group)
 
-    def reset_group(self, group: str, actor_user_id: str) -> dict[str, Any]:
+    def reset_group(
+        self,
+        group: str,
+        actor_user_id: str,
+        task_trace_id: str | None = None,
+        task_type: str | None = None,
+    ) -> dict[str, Any]:
         self._assert_valid_group(group)
         prefix = f"{group}."
         deleted = self._settings_repo.delete_by_prefix(prefix)
@@ -75,6 +85,8 @@ class SystemSettingsService:
             action_type="settings_reset",
             summary=summary,
             metadata=json.dumps({"group": group, "deleted_count": deleted}, ensure_ascii=False),
+            task_trace_id=task_trace_id,
+            task_type=task_type,
         )
         return self.get_group(group)
 

@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-20 13:23:12
-updated_at: 2026-07-22 08:59:01
+updated_at: 2026-07-23 22:57:29
 ---
 
 # 需求追踪
@@ -102,3 +102,4 @@ expected_openspec_change: update-admin-banner-placement-scope
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0075-prod-admin-brand-banner-save-fails | high | done | fix-prod-admin-brand-banner-save | 生产环境管理端品牌类型 Banner 配置无法保存 |
+| BUG-0083-prod-admin-brand-banner-save-500 | high | done | fix-admin-banner-create-schema-drift | 生产环境创建品牌类型 Banner 保存接口返回 500 |

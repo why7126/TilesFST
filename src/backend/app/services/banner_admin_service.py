@@ -6,12 +6,15 @@ import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.core.exceptions import (
     AuthInvalidRequestError,
     BannerDeleteForbiddenError,
     BannerExternalUrlInvalidError,
     BannerJumpTargetInvalidError,
     BannerNotFoundError,
+    BannerSchemaDriftError,
     BannerTitleDuplicatedError,
 )
 from app.repositories.banner_repository import BannerRecord, BannerRepository, compute_time_status
@@ -330,7 +333,19 @@ class BannerAdminService:
             raise BannerNotFoundError()
         return self.to_item(banner)
 
+    def _ensure_write_schema_ready(self) -> None:
+        try:
+            missing_columns = self._banners.ensure_write_schema_ready()
+        except SQLAlchemyError as exc:
+            self._banners.rollback()
+            raise BannerSchemaDriftError() from exc
+        if missing_columns:
+            raise BannerSchemaDriftError(
+                "Banner 表结构未完成迁移，缺失字段: " + ", ".join(missing_columns)
+            )
+
     def create_banner(self, payload: BannerCreateRequest) -> BannerAdminItem:
+        self._ensure_write_schema_ready()
         title = self.validate_title(payload.title)
         self.validate_display_client_position(payload.display_client, payload.position)
         self.validate_sort_order(payload.sort_order)
@@ -348,26 +363,31 @@ class BannerAdminService:
         if self._banners.get_by_unique_key(payload.display_client, payload.position, title):
             raise BannerTitleDuplicatedError()
 
-        banner = self._banners.create(
-            title=title,
-            display_client=payload.display_client,
-            position=payload.position,
-            image_object_key=payload.image_object_key.strip(),
-            image_source=payload.image_source,
-            sku_gallery_asset_id=payload.sku_gallery_asset_id,
-            jump_type=payload.jump_type,
-            sku_id=payload.sku_id,
-            external_url=_normalize_optional(payload.external_url, max_len=500),
-            topic_id=payload.topic_id,
-            brand_id=payload.brand_id,
-            sort_order=payload.sort_order,
-            valid_from=payload.valid_from,
-            valid_to=payload.valid_to,
-            remark=_normalize_optional(payload.remark, max_len=500),
-        )
+        try:
+            banner = self._banners.create(
+                title=title,
+                display_client=payload.display_client,
+                position=payload.position,
+                image_object_key=payload.image_object_key.strip(),
+                image_source=payload.image_source,
+                sku_gallery_asset_id=payload.sku_gallery_asset_id,
+                jump_type=payload.jump_type,
+                sku_id=payload.sku_id,
+                external_url=_normalize_optional(payload.external_url, max_len=500),
+                topic_id=payload.topic_id,
+                brand_id=payload.brand_id,
+                sort_order=payload.sort_order,
+                valid_from=payload.valid_from,
+                valid_to=payload.valid_to,
+                remark=_normalize_optional(payload.remark, max_len=500),
+            )
+        except SQLAlchemyError as exc:
+            self._banners.rollback()
+            raise BannerSchemaDriftError() from exc
         return self.to_item(banner)
 
     def update_banner(self, banner_id: int, payload: BannerUpdateRequest) -> BannerAdminItem:
+        self._ensure_write_schema_ready()
         banner = self._banners.get_by_id(banner_id)
         if banner is None:
             raise BannerNotFoundError()
@@ -391,24 +411,28 @@ class BannerAdminService:
         ):
             raise BannerTitleDuplicatedError()
 
-        updated = self._banners.update(
-            banner_id,
-            title=title,
-            display_client=payload.display_client,
-            position=payload.position,
-            image_object_key=payload.image_object_key.strip(),
-            image_source=payload.image_source,
-            sku_gallery_asset_id=payload.sku_gallery_asset_id,
-            jump_type=payload.jump_type,
-            sku_id=payload.sku_id,
-            external_url=_normalize_optional(payload.external_url, max_len=500),
-            topic_id=payload.topic_id,
-            brand_id=payload.brand_id,
-            sort_order=payload.sort_order,
-            valid_from=payload.valid_from,
-            valid_to=payload.valid_to,
-            remark=_normalize_optional(payload.remark, max_len=500),
-        )
+        try:
+            updated = self._banners.update(
+                banner_id,
+                title=title,
+                display_client=payload.display_client,
+                position=payload.position,
+                image_object_key=payload.image_object_key.strip(),
+                image_source=payload.image_source,
+                sku_gallery_asset_id=payload.sku_gallery_asset_id,
+                jump_type=payload.jump_type,
+                sku_id=payload.sku_id,
+                external_url=_normalize_optional(payload.external_url, max_len=500),
+                topic_id=payload.topic_id,
+                brand_id=payload.brand_id,
+                sort_order=payload.sort_order,
+                valid_from=payload.valid_from,
+                valid_to=payload.valid_to,
+                remark=_normalize_optional(payload.remark, max_len=500),
+            )
+        except SQLAlchemyError as exc:
+            self._banners.rollback()
+            raise BannerSchemaDriftError() from exc
         assert updated is not None
         return self.to_item(updated)
 

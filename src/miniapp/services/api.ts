@@ -1,6 +1,8 @@
 import { miniappApiConfig } from '../utils/env';
 
 const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
+const CLIENT_TYPE = 'wechat_miniapp';
+const CLIENT_REQUEST_ID_PREFIX = 'miniapp';
 
 type ApiResponse<T> = {
   code: number;
@@ -46,8 +48,17 @@ function normalizeMediaUrls(value: unknown, currentBaseUrl: string): unknown {
   return mediaUrl(value, currentBaseUrl);
 }
 
+function createClientRequestId(): string | undefined {
+  try {
+    return `${CLIENT_REQUEST_ID_PREFIX}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export function request<T>(path: string, options: WechatMiniprogram.RequestOption = {}): Promise<T> {
   const urls = baseUrls();
+  const clientRequestId = createClientRequestId();
   const attempts: Array<{
     url: string;
     statusCode?: number;
@@ -65,6 +76,8 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
         header: {
           'content-type': 'application/json',
           ...(options.header || {}),
+          'x-client-type': CLIENT_TYPE,
+          ...(clientRequestId ? { 'x-client-request-id': clientRequestId } : {}),
         },
         success: (res) => {
           const body = res.data;
@@ -112,11 +125,12 @@ export function track(eventName: string, properties: Record<string, unknown>): v
     method: 'POST',
     data: {
       event_name: eventName,
-      client_type: 'wechat_miniapp',
+      client_type: CLIENT_TYPE,
       page_path: String(properties.page_path || ''),
+      client_request_id: createClientRequestId(),
       properties: {
         ...properties,
-        client_type: 'wechat_miniapp',
+        client_type: CLIENT_TYPE,
       },
     },
   }).catch(() => {

@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-07-23 08:07:38
+updated_at: 2026-07-24 16:06:17
 owner: 项目团队
 status: draft
 ---
@@ -130,6 +130,9 @@ cp scripts/build-images.env.example scripts/build-images.env
 ```env
 IMAGE_BUILD_TAG=v0.0.1
 IMAGE_BUILD_PLATFORM=linux/amd64
+BACKEND_PYTHON_BASE_IMAGE=python:3.12-slim
+WEB_NODE_BASE_IMAGE=node:22-alpine
+WEB_NGINX_BASE_IMAGE=nginx:1.27-alpine
 IMAGE_BUILD_BACKEND_IMAGE=tilesfst-backend
 IMAGE_BUILD_WEB_IMAGE=tilesfst-web
 IMAGE_BUILD_RELEASE_DIR=../releases/v0.0.1
@@ -164,7 +167,7 @@ IMAGE_BUILD_EXPORT_TAR=true
 ../releases/v0.0.1/images/tilesfst-v0.0.1-linux-amd64.tar.gz.sha256
 ```
 
-`scripts/build-images.env` 为本地构建配置，禁止提交；可提交的示例文件是 `scripts/build-images.env.example`。
+`scripts/build-images.env` 为本地构建配置，禁止提交；可提交的示例文件是 `scripts/build-images.env.example`。若构建环境访问 Docker Hub 不稳定，可将 `BACKEND_PYTHON_BASE_IMAGE`、`WEB_NODE_BASE_IMAGE`、`WEB_NGINX_BASE_IMAGE` 改为可访问的镜像源地址，脚本会通过 `--build-arg` 传给 Dockerfile。
 
 ## 5. 手工参考：构建后端镜像
 
@@ -173,6 +176,7 @@ IMAGE_BUILD_EXPORT_TAR=true
 ```bash
 docker buildx build \
   --platform linux/amd64 \
+  --build-arg BACKEND_PYTHON_BASE_IMAGE=python:3.12-slim \
   -t tilesfst-backend:v0.0.1 \
   -f src/backend/Dockerfile \
   --load \
@@ -207,6 +211,8 @@ docker run --rm tilesfst-backend:v0.0.1 \
 ```bash
 docker buildx build \
   --platform linux/amd64 \
+  --build-arg WEB_NODE_BASE_IMAGE=node:22-alpine \
+  --build-arg WEB_NGINX_BASE_IMAGE=nginx:1.27-alpine \
   -t tilesfst-web:v0.0.1 \
   -f src/web/Dockerfile \
   --load \
@@ -298,6 +304,7 @@ docker buildx inspect --bootstrap
 
 docker buildx build \
   --platform linux/amd64 \
+  --build-arg BACKEND_PYTHON_BASE_IMAGE=python:3.12-slim \
   -t tilesfst-backend:v0.0.1 \
   -f src/backend/Dockerfile \
   --load \
@@ -305,6 +312,8 @@ docker buildx build \
 
 docker buildx build \
   --platform linux/amd64 \
+  --build-arg WEB_NODE_BASE_IMAGE=node:22-alpine \
+  --build-arg WEB_NGINX_BASE_IMAGE=nginx:1.27-alpine \
   -t tilesfst-web:v0.0.1 \
   -f src/web/Dockerfile \
   --load \

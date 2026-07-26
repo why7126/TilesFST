@@ -9,6 +9,7 @@ from typing import Any
 
 from app.core.exceptions import AuthInvalidRequestError
 from app.repositories.log_repository import LogRecord, LogRepository
+from app.repositories.task_trace_repository import TaskTraceRepository
 from app.repositories.user_repository import UserRecord
 from app.schemas.logs import (
     LogDetailData,
@@ -16,10 +17,29 @@ from app.schemas.logs import (
     LogListData,
     LogListItem,
     LogMetricsData,
+    LogObservabilityData,
+    LogObservabilityQueryParams,
     LogQueryParams,
+    ObservabilityDistributionItem,
+    ObservabilityEndpointItem,
+    ObservabilitySlowRequestItem,
+    ObservabilitySpanItem,
+    ObservabilitySummaryData,
+    ObservabilityTaskItem,
+    ObservabilityTraceResultsData,
+    RequestSnapshotActorData,
+    RequestSnapshotData,
+    RequestSnapshotInputData,
+    RequestSnapshotRequestData,
+    RequestSnapshotResourceData,
+    RequestSnapshotResponseData,
+    RequestSnapshotTimingData,
+    TaskTraceData,
+    TaskTraceSpanData,
     UsageEventCreate,
     UsageEventData,
 )
+from app.services.task_trace_service import TaskTraceService
 
 SENSITIVE_KEYS = {
     "authorization",
@@ -29,13 +49,21 @@ SENSITIVE_KEYS = {
     "access_token",
     "refresh_token",
     "secret",
+    "secret_key",
+    "access_key",
     "dsn",
     "database_url",
+    "env",
+    ".env",
     "minio_access_key",
     "minio_secret_key",
+    "accesskey",
+    "secretkey",
     "raw_object_key",
     "object_key",
     "internal_path",
+    "customer_data",
+    "real_customer_data",
     "raw_response",
     "raw_payload",
 }
@@ -237,6 +265,56 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
     },
     "sku_video_play": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_fullscreen_click": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_fullscreen_enter": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_fullscreen_exit": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_fullscreen_failed": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_action_menu_open": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_action_cancel": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_action_share": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_action_save": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_save_success": {
+        "category": "miniapp_sku_detail",
+        "required": {"sku_id", "page_path", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "sku_video_save_failed": {
         "category": "miniapp_sku_detail",
         "required": {"sku_id", "page_path", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
@@ -637,6 +715,7 @@ class RequestLogContext:
     actor_user_id: str | None
     actor_role: str | None
     client_type: str
+    client_request_id: str | None
     method: str
     path: str
     status_code: int
@@ -645,6 +724,9 @@ class RequestLogContext:
     user_agent: str | None
     error_code: str | None = None
     metadata: dict[str, Any] | None = None
+    task_trace_id: str | None = None
+    task_type: str | None = None
+    actor_username: str | None = None
 
 
 class LogService:
@@ -659,6 +741,7 @@ class LogService:
             actor_user_id=context.actor_user_id,
             actor_role=context.actor_role,
             client_type=context.client_type,
+            client_request_id=context.client_request_id,
             method=context.method,
             path=context.path,
             status_code=context.status_code,
@@ -668,6 +751,8 @@ class LogService:
             summary=summary,
             error_code=context.error_code,
             result=result,
+            task_trace_id=context.task_trace_id,
+            task_type=context.task_type,
             metadata=safe_json_dumps(context.metadata or {}),
         )
 
@@ -679,6 +764,7 @@ class LogService:
         current_user: UserRecord | None,
         ip_address: str | None,
         user_agent: str | None,
+        client_request_id: str | None = None,
     ) -> UsageEventData:
         definition = EVENT_DEFINITIONS.get(payload.event_name)
         if definition is None:
@@ -696,6 +782,9 @@ class LogService:
             raise AuthInvalidRequestError(f"埋点事件包含禁止属性：{', '.join(forbidden_present)}")
 
         sanitized = sanitize_metadata(properties)
+        effective_client_request_id = truncate_text(payload.client_request_id or client_request_id, 128)
+        if effective_client_request_id:
+            sanitized["client_request_id"] = effective_client_request_id
         actor_user_id = current_user.id if current_user else None
         actor_role = current_user.role if current_user else "anonymous"
         client_type = payload.client_type or "web_admin"
@@ -714,6 +803,8 @@ class LogService:
             summary=truncate_text(summary, 220) or payload.event_name,
             duration_ms=payload.duration_ms,
             result=str(sanitized.get("result") or "success"),
+            task_trace_id=TaskTraceService.validate_task_trace_id(payload.task_trace_id),
+            task_type=truncate_text(payload.task_type, 64),
             metadata=safe_json_dumps(sanitized),
         )
         return UsageEventData(id=event_id, accepted=True)
@@ -730,6 +821,7 @@ class LogService:
             result=params.result,
             resource_id=params.resource_id,
             path_or_request_id=params.path_or_request_id,
+            task_trace_id=params.task_trace_id,
             start_time=params.start_time,
             end_time=params.end_time,
         )
@@ -747,6 +839,35 @@ class LogService:
             ),
         )
 
+    def get_observability(self, params: LogObservabilityQueryParams) -> LogObservabilityData:
+        slow_request_threshold_ms = 1000
+        slow_task_threshold_ms = 1000
+        data = self._repo.get_observability(
+            filters=params.model_dump(),
+            slow_request_threshold_ms=slow_request_threshold_ms,
+            slow_task_threshold_ms=slow_task_threshold_ms,
+            top_limit=8,
+        )
+        rankings = data["rankings"]
+        return LogObservabilityData(
+            summary=ObservabilitySummaryData(**data["summary"]),
+            distributions={
+                key: [ObservabilityDistributionItem(**item) for item in value]
+                for key, value in data["distributions"].items()
+            },
+            endpoint_errors=[ObservabilityEndpointItem(**item) for item in data["endpoint_errors"]],
+            rankings={
+                "slow_requests": [ObservabilitySlowRequestItem(**item) for item in rankings["slow_requests"]],
+                "slow_tasks": [ObservabilityTaskItem(**item) for item in rankings["slow_tasks"]],
+                "slowest_spans": [ObservabilitySpanItem(**item) for item in rankings["slowest_spans"]],
+            },
+            trace_results=ObservabilityTraceResultsData(**data["trace_results"]),
+            thresholds={
+                "slow_request_ms": slow_request_threshold_ms,
+                "slow_task_ms": slow_task_threshold_ms,
+            },
+        )
+
     def get_log_detail(self, log_id: str) -> LogDetailData:
         from app.core.exceptions import AppError
         from app.core.error_codes import LOG_NOT_FOUND
@@ -755,6 +876,9 @@ class LogService:
         if record is None:
             raise AppError(status_code=404, code=LOG_NOT_FOUND, message="日志不存在")
         metadata = parse_metadata(record.metadata)
+        request_snapshot = build_request_snapshot(record, metadata)
+        task_traces = self._build_related_task_traces(record.task_trace_id, record.request_id)
+        task_trace = task_traces[0] if task_traces else None
         return LogDetailData(
             log=to_list_item(record),
             basic=LogDetailSection(
@@ -764,6 +888,8 @@ class LogService:
                     "日志类型": record.log_type,
                     "状态 / 结果": format_result(record),
                     "request_id": record.request_id or "-",
+                    "client_request_id": record.client_request_id or metadata.get("client_request_id", "-") or "-",
+                    "task_trace_id": record.task_trace_id or "-",
                     "发生时间": record.created_at,
                 },
             ),
@@ -783,6 +909,7 @@ class LogService:
                     "操作者": record.actor_name or record.actor_role or "anonymous",
                     "User ID": record.actor_user_id or "-",
                     "客户端": record.client_type or "-",
+                    "Client Request ID": record.client_request_id or metadata.get("client_request_id", "-") or "-",
                     "IP": record.ip_address_masked or "-",
                     "User Agent": record.user_agent_summary or "-",
                 },
@@ -794,6 +921,7 @@ class LogService:
                     "操作摘要": record.summary,
                     "结果": record.result,
                     "路径 / 资源": record.path or "-",
+                    "Task Trace": record.task_trace_id or "-",
                 },
             ),
             event=LogDetailSection(
@@ -806,8 +934,90 @@ class LogService:
                     "changed_fields": metadata.get("changed_fields", "-"),
                 },
             ),
+            task_trace=task_trace,
+            related_task_traces=task_traces,
+            request_snapshot=request_snapshot,
             metadata_json=safe_json_dumps(metadata, pretty=True),
         )
+
+    def _build_task_trace(self, task_trace_id: str | None) -> TaskTraceData | None:
+        timeline = TaskTraceService(TaskTraceRepository(self._repo._db)).get_timeline(task_trace_id)
+        if timeline is None or timeline.trace is None:
+            return None
+        slowest_span_name = timeline.trace.slowest_span_name
+        return TaskTraceData(
+            task_trace_id=timeline.trace.task_trace_id,
+            task_type=timeline.trace.task_type,
+            status=timeline.trace.status,
+            parent_request_id=timeline.trace.parent_request_id,
+            duration_ms=timeline.trace.duration_ms,
+            resource_type=timeline.trace.resource_type,
+            resource_id=timeline.trace.resource_id,
+            slowest_span_name=slowest_span_name,
+            error_code=timeline.trace.error_code,
+            summary=timeline.trace.summary,
+            spans=[
+                TaskTraceSpanData(
+                    span_name=span.span_name,
+                    status=span.status,
+                    started_at=span.started_at,
+                    ended_at=span.ended_at,
+                    duration_ms=span.duration_ms,
+                    request_id=span.request_id,
+                    error_code=span.error_code,
+                    summary=span.summary,
+                    is_slowest=span.span_name == slowest_span_name,
+                )
+                for span in timeline.spans
+            ],
+        )
+
+    def _build_related_task_traces(self, task_trace_id: str | None, request_id: str | None) -> list[TaskTraceData]:
+        trace_service = TaskTraceService(TaskTraceRepository(self._repo._db))
+        timelines = []
+        primary = trace_service.get_timeline(task_trace_id)
+        if primary is not None and primary.trace is not None:
+            timelines.append(primary)
+        for timeline in trace_service.list_timelines_by_parent_request_id(request_id):
+            if timeline.trace is None:
+                continue
+            if any(item.trace and item.trace.task_trace_id == timeline.trace.task_trace_id for item in timelines):
+                continue
+            timelines.append(timeline)
+        traces: list[TaskTraceData] = []
+        for timeline in timelines:
+            if timeline.trace is None:
+                continue
+            slowest_span_name = timeline.trace.slowest_span_name
+            traces.append(
+                TaskTraceData(
+                    task_trace_id=timeline.trace.task_trace_id,
+                    task_type=timeline.trace.task_type,
+                    status=timeline.trace.status,
+                    parent_request_id=timeline.trace.parent_request_id,
+                    duration_ms=timeline.trace.duration_ms,
+                    resource_type=timeline.trace.resource_type,
+                    resource_id=timeline.trace.resource_id,
+                    slowest_span_name=slowest_span_name,
+                    error_code=timeline.trace.error_code,
+                    summary=timeline.trace.summary,
+                    spans=[
+                        TaskTraceSpanData(
+                            span_name=span.span_name,
+                            status=span.status,
+                            started_at=span.started_at,
+                            ended_at=span.ended_at,
+                            duration_ms=span.duration_ms,
+                            request_id=span.request_id,
+                            error_code=span.error_code,
+                            summary=span.summary,
+                            is_slowest=span.span_name == slowest_span_name,
+                        )
+                        for span in timeline.spans
+                    ],
+                )
+            )
+        return traces
 
 
 def to_list_item(record: LogRecord) -> LogListItem:
@@ -817,12 +1027,19 @@ def to_list_item(record: LogRecord) -> LogListItem:
         created_at=record.created_at,
         summary=record.summary,
         actor_name=record.actor_name,
+        actor_username=record.actor_username,
         actor_role=record.actor_role,
         client_type=record.client_type or "backend",
         result=format_result(record),
         status_code=record.status_code,
         duration_ms=record.duration_ms,
         request_id=record.request_id,
+        client_request_id=record.client_request_id,
+        task_trace_id=record.task_trace_id,
+        task_type=record.task_type,
+        task_status=record.task_status,
+        task_duration_ms=record.task_duration_ms,
+        task_slowest_span_name=record.task_slowest_span_name,
         event_name=record.event_name,
         method=record.method,
         path=record.path,
@@ -890,6 +1107,70 @@ def parse_metadata(value: str | None) -> dict[str, Any]:
     except json.JSONDecodeError:
         return {"metadata_parse_error": "metadata JSON 解析失败", "raw_summary": truncate_text(value, 500)}
     return parsed if isinstance(parsed, dict) else {"value": parsed}
+
+
+def build_request_snapshot(record: LogRecord, metadata: dict[str, Any]) -> RequestSnapshotData | None:
+    parse_error = metadata.get("metadata_parse_error")
+    snapshot = metadata.get("request_snapshot")
+    if isinstance(snapshot, dict):
+        return RequestSnapshotData(
+            request=RequestSnapshotRequestData(**_dict_value(snapshot.get("request"))),
+            input=RequestSnapshotInputData(**_dict_value(snapshot.get("input"))),
+            resource=RequestSnapshotResourceData(**_dict_value(snapshot.get("resource"))),
+            response=RequestSnapshotResponseData(**_dict_value(snapshot.get("response"))),
+            actor=RequestSnapshotActorData(**_dict_value(snapshot.get("actor"))),
+            timing=RequestSnapshotTimingData(**_dict_value(snapshot.get("timing"))),
+            raw_json=safe_json_dumps(snapshot, pretty=True),
+            parse_error=str(parse_error) if parse_error else None,
+        )
+    if record.log_type != "request" and not parse_error:
+        return None
+    fallback = {
+        "request": {
+            "method": record.method,
+            "path": record.path,
+            "route_template": "unknown",
+            "route_match_status": "unknown",
+            "request_id": record.request_id,
+            "client_request_id": record.client_request_id,
+        },
+        "input": {
+            "query": {},
+            "body_schema_summary": {},
+            "redaction_summary": {"policy": "unavailable", "stored_raw_body": False},
+        },
+        "resource": {"resource_type": None, "resource_id": None, "id_source": "unavailable"},
+        "response": {
+            "status_code": record.status_code,
+            "error_code": record.error_code,
+            "duration_ms": record.duration_ms,
+            "result": record.result,
+            "error_summary": record.error_code,
+        },
+        "actor": {
+            "actor_user_id": record.actor_user_id,
+            "actor_username": record.actor_username,
+            "actor_role": record.actor_role,
+            "client_type": record.client_type,
+            "ip_summary": record.ip_address_masked,
+            "user_agent_summary": record.user_agent_summary,
+        },
+        "timing": {"environment": None, "started_at": None, "finished_at": record.created_at},
+    }
+    return RequestSnapshotData(
+        request=RequestSnapshotRequestData(**fallback["request"]),
+        input=RequestSnapshotInputData(**fallback["input"]),
+        resource=RequestSnapshotResourceData(**fallback["resource"]),
+        response=RequestSnapshotResponseData(**fallback["response"]),
+        actor=RequestSnapshotActorData(**fallback["actor"]),
+        timing=RequestSnapshotTimingData(**fallback["timing"]),
+        raw_json=safe_json_dumps(fallback, pretty=True),
+        parse_error=str(parse_error) if parse_error else "request_snapshot_missing",
+    )
+
+
+def _dict_value(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
 
 
 def mask_ip(value: str | None) -> str | None:

@@ -845,6 +845,7 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["share"]["image_url"] == "/media/tiles/1.webp"
     assert data["media"][-1]["media_type"] == "video"
     assert data["media"][-1]["url"] == "/media/videos/1.mp4"
+    assert data["media"][-1]["cover_url"] == "/media/tiles/1.webp"
     assert "original/default" not in response.text
     assert "original-upload-name.mp4" not in response.text
     assert [item["label"] for item in data["parameters"]] == [
@@ -934,6 +935,34 @@ def test_miniapp_sku_detail_usage_events_validate_dictionary_and_forbidden_prope
     )
     assert rejected.status_code == 400
     assert rejected.json()["code"] == 40001
+
+    for event_name in [
+        "sku_video_fullscreen_click",
+        "sku_video_fullscreen_enter",
+        "sku_video_fullscreen_exit",
+        "sku_video_fullscreen_failed",
+        "sku_video_action_menu_open",
+        "sku_video_action_cancel",
+        "sku_video_action_share",
+        "sku_video_action_save",
+        "sku_video_save_success",
+        "sku_video_save_failed",
+    ]:
+        response = api_client.post(
+            "/api/v1/usage-events",
+            json={
+                "event_name": event_name,
+                "client_type": "wechat_miniapp",
+                "page_path": "/pages/tile-detail/index?skuId=1",
+                "properties": {
+                    "sku_id": 1,
+                    "media_id": 1000,
+                    "page_path": "/pages/tile-detail/index?skuId=1",
+                    "client_type": "wechat_miniapp",
+                },
+            },
+        )
+        assert response.status_code == 200, response.text
 
 
 def test_miniapp_home_style_usage_events_validate_dictionary_and_forbidden_properties(

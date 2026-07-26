@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_admin_user, require_system_admin
@@ -21,6 +21,7 @@ from app.schemas.brand_certificate_admin import (
 )
 from app.schemas.common import ApiResponse
 from app.services.brand_certificate_admin_service import BrandCertificateAdminService
+from app.services.task_trace_service import TaskTraceService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
 
@@ -33,6 +34,23 @@ def get_brand_certificate_service(
         BrandRepository(db),
         AuditLogRepository(db),
     )
+
+
+def _task_trace_id_from_request(request: Request) -> str | None:
+    state_value = getattr(request.state, "task_trace_id", None)
+    if isinstance(state_value, str):
+        valid = TaskTraceService.validate_task_trace_id(state_value)
+        if valid:
+            return valid
+    return TaskTraceService.validate_task_trace_id(request.headers.get("x-task-trace-id"))
+
+
+def _task_type_from_request(request: Request) -> str | None:
+    state_value = getattr(request.state, "task_type", None)
+    if isinstance(state_value, str) and state_value.strip():
+        return state_value.strip()[:64]
+    header_value = request.headers.get("x-task-type")
+    return header_value.strip()[:64] if header_value and header_value.strip() else None
 
 
 @router.get("", response_model=ApiResponse[BrandCertificateListData], summary="品牌证书列表")
@@ -61,11 +79,19 @@ def list_brand_certificates(
 
 @router.post("", response_model=ApiResponse[BrandCertificateItem], summary="创建品牌证书")
 def create_brand_certificate(
+    request: Request,
     payload: BrandCertificateCreateRequest,
     service: Annotated[BrandCertificateAdminService, Depends(get_brand_certificate_service)],
     current_user: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[BrandCertificateItem]:
-    return ApiResponse(data=service.create_certificate(payload, actor_user_id=current_user.id))
+    return ApiResponse(
+        data=service.create_certificate(
+            payload,
+            actor_user_id=current_user.id,
+            task_trace_id=_task_trace_id_from_request(request),
+            task_type=_task_type_from_request(request),
+        )
+    )
 
 
 @router.get(
@@ -86,13 +112,20 @@ def get_brand_certificate(
     summary="更新品牌证书",
 )
 def update_brand_certificate(
+    request: Request,
     certificate_id: int,
     payload: BrandCertificateUpdateRequest,
     service: Annotated[BrandCertificateAdminService, Depends(get_brand_certificate_service)],
     current_user: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[BrandCertificateItem]:
     return ApiResponse(
-        data=service.update_certificate(certificate_id, payload, actor_user_id=current_user.id)
+        data=service.update_certificate(
+            certificate_id,
+            payload,
+            actor_user_id=current_user.id,
+            task_trace_id=_task_trace_id_from_request(request),
+            task_type=_task_type_from_request(request),
+        )
     )
 
 
@@ -102,11 +135,19 @@ def update_brand_certificate(
     summary="显示品牌证书",
 )
 def show_brand_certificate(
+    request: Request,
     certificate_id: int,
     service: Annotated[BrandCertificateAdminService, Depends(get_brand_certificate_service)],
     current_user: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[BrandCertificateItem]:
-    return ApiResponse(data=service.show_certificate(certificate_id, actor_user_id=current_user.id))
+    return ApiResponse(
+        data=service.show_certificate(
+            certificate_id,
+            actor_user_id=current_user.id,
+            task_trace_id=_task_trace_id_from_request(request),
+            task_type=_task_type_from_request(request),
+        )
+    )
 
 
 @router.post(
@@ -115,18 +156,32 @@ def show_brand_certificate(
     summary="隐藏品牌证书",
 )
 def hide_brand_certificate(
+    request: Request,
     certificate_id: int,
     service: Annotated[BrandCertificateAdminService, Depends(get_brand_certificate_service)],
     current_user: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[BrandCertificateItem]:
-    return ApiResponse(data=service.hide_certificate(certificate_id, actor_user_id=current_user.id))
+    return ApiResponse(
+        data=service.hide_certificate(
+            certificate_id,
+            actor_user_id=current_user.id,
+            task_trace_id=_task_trace_id_from_request(request),
+            task_type=_task_type_from_request(request),
+        )
+    )
 
 
 @router.delete("/{certificate_id}", response_model=ApiResponse[None], summary="删除品牌证书")
 def delete_brand_certificate(
+    request: Request,
     certificate_id: int,
     service: Annotated[BrandCertificateAdminService, Depends(get_brand_certificate_service)],
     current_user: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> ApiResponse[None]:
-    service.delete_certificate(certificate_id, actor_user_id=current_user.id)
+    service.delete_certificate(
+        certificate_id,
+        actor_user_id=current_user.id,
+        task_trace_id=_task_trace_id_from_request(request),
+        task_type=_task_type_from_request(request),
+    )
     return ApiResponse(data=None)

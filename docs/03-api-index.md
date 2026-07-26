@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-21 00:00:00
+updated_at: 2026-07-26 15:54:58
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -229,7 +229,7 @@ OpenSpec：`openspec/changes/add-admin-api-docs-menu/`
 
 - `/api/v1/*` 下所有业务接口；
 - `/health` 健康检查；
-- `/media/{object_key:path}` 媒体直出路由（`include_in_schema=false`，不生成 Orval 方法）；
+- `/media/{object_key:path}` 媒体直出路由（支持 `GET`/`HEAD`，`include_in_schema=false`，不生成 Orval 方法）；
 - `/openapi.json`、`/docs`、`/redoc` 等 FastAPI 文档相关非 `/api/v1` 路由。
 
 单条路由字段：`method`、`path`、`tag`、`summary`、`auth_requirement`、`included_in_openapi`、`operation_id`、`orval_method_name`、`source`、`missing_orval_reason`。
@@ -282,6 +282,7 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | 方法 | 路径 | 认证 |
 |---|---|---|
 | GET | `/api/v1/admin/logs` | Bearer（admin） |
+| GET | `/api/v1/admin/logs/observability` | Bearer（admin） |
 | GET | `/api/v1/admin/logs/{log_id}` | Bearer（admin） |
 | POST | `/api/v1/usage-events` | 可选 Bearer（admin/employee 匿名均可上报） |
 
@@ -291,18 +292,21 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 |---|---|
 | `page` / `page_size` | 分页，`page_size` 1–100，默认 20 |
 | `log_type` | `request` / `usage_event` / `audit` |
-| `keyword` | 匹配摘要、路径、request_id、事件名、操作人 |
+| `keyword` | 匹配摘要、路径、request_id、client_request_id、事件名、操作人 |
 | `actor_user_id` | 操作人 ID |
-| `client_type` | 客户端类型，如 `admin_web`、`storefront_web`、`mini_program` |
+| `client_type` | 客户端类型，当前统一为 `web_admin`、`web_catalog`、`wechat_miniapp`，未知请求头记录为 `unknown` |
 | `status_code` | HTTP 状态码 100–599 |
 | `result` | `success` / `failed` |
 | `resource_id` | 资源 ID，匹配 metadata |
-| `path_or_request_id` | API path 或 request_id |
+| `path_or_request_id` | API path、request_id、client_request_id 或 task_trace_id 模糊匹配 |
+| `task_trace_id` | 精确匹配 Task Trace 任务链路 ID |
 | `start_time` / `end_time` | ISO8601 时间字符串 |
 
-列表响应 `data.metrics` 返回当日摘要：`today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`；`data.items` 同时包含请求日志、行为事件、既有 `audit_logs` 的统一列表行。
+列表响应 `data.metrics` 返回当日摘要：`today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`；`data.items` 同时包含请求日志、行为事件、既有 `audit_logs` 的统一列表行。列表行返回 `actor_name` 与 `actor_username`，管理端列表使用 `actor_username` 单行展示账号，详情可继续展示操作者名称。请求日志行额外返回 `client_request_id`，该字段来自 `x-client-request-id` 或请求体 `client_request_id`，只用于辅助排障，不覆盖服务端可信 `request_id`。若日志关联任务链路，列表行额外返回 `task_trace_id`、`task_type`、`task_status`、`task_duration_ms`、`task_slowest_span_name`，用于上传等长耗时任务排障。管理端日志审计页默认按最近1天查询，时间范围筛选固定为最近5分钟、10分钟、30分钟、1小时、3小时、6小时、12小时、1天、2天、3天和7天，不提供全部时间。
 
-`GET /api/v1/admin/logs/{log_id}` 返回详情抽屉数据，按 `basic`、`request`、`actor`、`operation`、`tracking`、`metadata` 分组展示，并保留 `request_id` 用于链路排查。未找到返回 `404 / code=30070`。
+`GET /api/v1/admin/logs/observability` 与日志列表共用筛选口径，额外支持 `request_id` 精确定位；响应 `data` 包含 `summary`、`distributions`、`endpoint_errors`、`rankings`、`trace_results` 和 `thresholds`。当前慢请求与慢任务阈值均为 1000ms；`rankings.slow_requests` 可下钻日志详情，`rankings.slow_tasks` 与 `rankings.slowest_spans` 可回填 `task_trace_id` 或 `request_id` 继续筛选。该接口仅返回聚合指标和已脱敏摘要，不返回原始 metadata、请求体或内部路径。未命中追踪 ID 时 `trace_results.reason=not_found`，接口本身仍返回 `200 / code=0`。
+
+`GET /api/v1/admin/logs/{log_id}` 返回详情抽屉数据，按 `basic`、`request`、`actor`、`operation`、`tracking`、`metadata` 分组展示，并保留 `request_id` 用于链路排查。请求日志详情额外返回 `request_snapshot`，结构包含 `request`、`input`、`resource`、`response`、`actor`、`timing` 与 `raw_json`：`request` 记录 method、path、route_template、route_match_status、request_id、client_request_id、trusted_request_id_header、client_request_id_header；`input` 记录 query 白名单摘要、body schema 摘要和 redaction_summary；`resource` 记录 resource_type、resource_id、id_source；`response` 记录 status_code、error_code、duration_ms、result、error_summary；`actor` 记录 actor_user_id、actor_username、actor_role、client_type、ip_summary、user_agent_summary；`timing` 记录 environment、started_at、finished_at。历史日志、metadata 为空或 metadata JSON 解析失败时，`request_snapshot` 使用空值 / 未采集 / `parse_error` 表达，不影响核心日志详情展示。若存在 `task_trace_id` 或请求 `request_id` 触发过 Task Trace，响应额外包含 `task_trace` 和 `related_task_traces[]`；任务摘要包含 `task_trace_id`、`parent_request_id`、任务类型、状态、耗时、资源、错误码和摘要，`related_task_traces[]` 支持一个主请求触发多个任务摘要；每个 span 包含 `span_name`、`status`、`started_at`、`ended_at`、`duration_ms`、`request_id`、`error_code`、`summary`、`is_slowest`。未找到返回 `404 / code=30070`。
 
 `POST /api/v1/usage-events` 请求体：
 
@@ -312,6 +316,9 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
   "page_path": "/admin/tile-skus/sku_843291",
   "session_id": "sess_abc",
   "request_id": "req_79f1c2b4a8d04e31",
+  "client_request_id": "web:client-request-abc123",
+  "task_trace_id": "task_upload_video_abcdef1234567890",
+  "task_type": "upload_video",
   "duration_ms": 1280,
   "properties": {
     "module": "SKU 管理",
@@ -324,7 +331,7 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 
 `duration_ms` 为行为本身耗时毫秒数，适用于页面加载、查询、详情加载、上传、保存等有过程耗时的行为；瞬时行为可省略，列表显示 `-`。
 
-行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`、`product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click`、`miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click`、`miniapp_certificate_tab_click`、`certificate_list_page_view`、`certificate_list_load`、`certificate_list_refresh`、`certificate_list_load_more`、`certificate_list_retry`、`certificate_click`、`certificate_preview_click`、`certificate_load_failed`、`miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed`、`miniapp_home_waterfall_end_reached`、`sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_favorite`、`sku_unfavorite`、`sku_share_click`、`sku_brand_click`、`sku_recommend_click`、`sku_load_error`、`category_page_view`、`primary_category_click`、`secondary_category_click`、`category_load_failed`、`product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization、cookie、raw_payload、raw_filename、raw_object_key、object_key、raw_response、internal_path）的上报，返回 `400 / code=40001`。
+行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`、`product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click`、`miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click`、`miniapp_certificate_tab_click`、`certificate_list_page_view`、`certificate_list_load`、`certificate_list_refresh`、`certificate_list_load_more`、`certificate_list_retry`、`certificate_click`、`certificate_preview_click`、`certificate_load_failed`、`miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed`、`miniapp_home_waterfall_end_reached`、`sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_video_fullscreen_click`、`sku_video_fullscreen_enter`、`sku_video_fullscreen_exit`、`sku_video_fullscreen_failed`、`sku_video_action_menu_open`、`sku_video_action_cancel`、`sku_video_action_share`、`sku_video_action_save`、`sku_video_save_success`、`sku_video_save_failed`、`sku_favorite`、`sku_unfavorite`、`sku_share_click`、`sku_brand_click`、`sku_recommend_click`、`sku_load_error`、`category_page_view`、`primary_category_click`、`secondary_category_click`、`category_load_failed`、`product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization、cookie、raw_payload、raw_filename、raw_object_key、object_key、raw_response、internal_path）的上报，返回 `400 / code=40001`。
 
 小程序事件要求：
 
@@ -352,6 +359,9 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | `sku_media_swipe` | `sku_id`、`page_path`、`media_type`、`client_type` | SKU 详情媒体切换 |
 | `sku_image_preview` | `sku_id`、`page_path`、`client_type` | SKU 图片全屏预览 |
 | `sku_video_play` | `sku_id`、`page_path`、`client_type` | SKU 视频播放 |
+| `sku_video_fullscreen_click` / `sku_video_fullscreen_enter` / `sku_video_fullscreen_exit` / `sku_video_fullscreen_failed` | `sku_id`、`page_path`、`client_type` | SKU 视频全屏入口点击、进入、退出和失败 |
+| `sku_video_action_menu_open` / `sku_video_action_cancel` / `sku_video_action_share` / `sku_video_action_save` | `sku_id`、`page_path`、`client_type` | SKU 视频长按操作菜单、取消、分享和保存动作 |
+| `sku_video_save_success` / `sku_video_save_failed` | `sku_id`、`page_path`、`client_type` | SKU 视频保存到相册成功或失败 |
 | `sku_favorite` / `sku_unfavorite` | `sku_id`、`page_path`、`client_type` | SKU 粒度收藏状态变更 |
 | `sku_share_click` | `sku_id`、`page_path`、`client_type` | SKU 分享点击 |
 | `sku_brand_click` | `sku_id`、`brand_id`、`page_path`、`client_type` | SKU 详情品牌入口点击 |
@@ -448,7 +458,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 公开商品卡片的 `cover_image` 来自 SKU 主图（`tile_images.is_main=1` 优先），不得暴露对象存储 raw object key。`price_display` 来自 SKU `reference_price` 格式化结果：正数显示为 `¥xx.xx`，缺失、空值或非正数显示为 `暂无参考价`。
 
-`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL，响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
+`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；视频 `media[]` 的 `cover_url` 优先使用商品主图或首张图片作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
 
 `PUT /api/v1/miniapp/skus/{sku_id}/favorite` 使用 `client_id` 与 `sku_id` 唯一约束实现幂等收藏/取消收藏；重复提交返回目标状态，不产生重复收藏记录。SKU 不存在、下架或不可公开时返回 `404 / code=30030`；请求体校验失败返回 `422 / code=40001`。
 
@@ -513,7 +523,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | DELETE | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
 | GET | `/api/v1/admin/topics` | Bearer（admin/employee） |
 
-列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。当前 `display_client` 仅支持 `MINIAPP_HOME`（管理端显示“小程序”）；Banner 保存仅允许 `MINIAPP_HOME_CAROUSEL`（首页轮播）与 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）。创建/更新请求体支持 `jump_type=SKU_DETAIL|BRAND_DETAIL|EXTERNAL_LINK|TOPIC_PAGE|NO_JUMP`，其中品牌详情使用 `brand_id` 作为唯一跳转目标，图片来源可使用品牌 `logo_object_key` 对应的 `brand_logo` 或自定义上传。旧 Web 首页、专题页和历史运营位 Banner 业务记录由迁移清理，不物理删除 MinIO 对象。
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。当前 `display_client` 仅支持 `MINIAPP_HOME`（管理端显示“小程序”）；Banner 保存仅允许 `MINIAPP_HOME_CAROUSEL`（首页轮播）与 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）。创建/更新请求体支持 `jump_type=SKU_DETAIL|BRAND_DETAIL|EXTERNAL_LINK|TOPIC_PAGE|NO_JUMP`，其中品牌详情使用 `brand_id` 作为唯一跳转目标，图片来源可使用品牌 `logo_object_key` 对应的 `brand_logo` 或自定义上传。旧 Web 首页、专题页和历史运营位 Banner 业务记录由迁移清理，不物理删除 MinIO 对象。生产 MySQL `banners` 表结构未完成兼容迁移或保存链路数据库写入异常时，接口返回 `503 / code=30055`，不暴露 SQL、DSN 或内部堆栈。
 响应 `data.summary`：`total`、`filtered_count`、`online_count`、`pending_count`。  
 Banner 图上传：`POST /api/v1/admin/uploads/banner-images`（`images/default/banners/...`）。
 
@@ -561,6 +571,8 @@ SKU 素材上传：`POST /api/v1/admin/uploads/tile-images`、`POST /api/v1/admi
 
 创建/更新请求体含 `spec_id`（`save_mode=create` 必填；须为 ENABLED 规格）。  
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
+
+REQ-0074 起，`POST /api/v1/admin/tile-skus`、`PUT /api/v1/admin/tile-skus/{id}`、`POST /api/v1/admin/tile-skus/{id}/publish`、`POST /api/v1/admin/tile-skus/{id}/unpublish` 的成功响应 `data` 额外返回可选 `task_trace_id` 与 `task_type`，任务类型分别为 `sku_create`、`sku_update`、`sku_publish`、`sku_unpublish`。这些接口复用统一 `ApiResponse`，不新增任务状态查询接口、不新增错误码；业务失败仍按既有错误码返回，并在 Task Trace 中记录失败 span。管理端可复制 `task_trace_id`，并通过日志审计 `task_trace_id` 精确筛选或在日志详情中查看任务时间线。
 
 ### 3.8 管理端瓷砖规格（Sprint 003）
 
@@ -760,7 +772,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 
 ## 6. 上传接口
 
-上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 至少保持 `{ object_key, url }`；证书文件额外返回 `file_key`、`file_url`、`file_name`、`mime_type`、`size`。
+上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 至少保持 `{ object_key, url, task_trace_id, task_type }`；证书文件额外返回 `file_key`、`file_url`、`file_name`、`mime_type`、`size`。图片上传、视频上传、文件上传首批写入 Task Trace span，覆盖 `frontend_upload_start`、`frontend_upload_body_done`、`api_receive`、`validate_file`、`storage_put_object`、`db_create_media`、`post_process`、`api_response`、`frontend_done/failed`。
 
 | 方法 | 路径 | 认证 | 对象前缀 | 说明 |
 |---|---|---|---|---|
@@ -770,7 +782,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 | POST | `/api/v1/admin/uploads/tile-videos` | admin/employee | `videos/default/tiles/{tile_id|pending}/` | SKU 视频上传 |
 | POST | `/api/v1/admin/uploads/brand-certificates` | admin | `files/default/brand-certificates/` | 品牌证书 JPG/PNG/WebP/PDF 上传 |
 
-媒体读取保持 `/media/{object_key}` URL 语义，由后端从 MinIO 受控读取。
+媒体读取保持 `/media/{object_key}` URL 语义，由后端从 MinIO 受控读取。视频读取支持 `Range` 请求并返回 `206 Partial Content`、`Content-Type: video/*`、`Accept-Ranges: bytes` 与 `Content-Range`；`HEAD /media/{object_key}` 返回媒体元信息头但不返回文件内容，用于微信小程序原生视频预览、保存和转发前的资源探测。该路由不进入 OpenAPI，不生成 Orval 方法。
 
 上传错误：
 

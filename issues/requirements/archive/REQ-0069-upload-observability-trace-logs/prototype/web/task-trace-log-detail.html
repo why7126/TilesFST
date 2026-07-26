@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0069 Task Trace Log Detail Prototype</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --surface-2: #2a261c;
+        --border: rgba(255, 255, 255, 0.1);
+        --border-strong: rgba(255, 255, 255, 0.18);
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --gold: #c8a055;
+        --danger: #d26a4a;
+        --ok: #7fb069;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--border);
+        background: #100f0a;
+        padding: 24px 18px;
+      }
+
+      .brand {
+        color: var(--gold);
+        font-size: 18px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .nav {
+        margin-top: 36px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .nav span {
+        padding: 10px 12px;
+        border: 1px solid transparent;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .nav .active {
+        border-color: rgba(200, 160, 85, 0.4);
+        color: var(--gold);
+        background: rgba(200, 160, 85, 0.08);
+      }
+
+      .main {
+        padding: 28px;
+      }
+
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+      }
+
+      h1 {
+        margin: 0;
+        font-weight: 400;
+        font-size: 22px;
+      }
+
+      .desc {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin: 24px 0;
+      }
+
+      .metric-card,
+      .panel,
+      .drawer {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+      }
+
+      .metric-card {
+        padding: 14px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin-top: 8px;
+        font-size: 24px;
+        color: var(--text);
+      }
+
+      .metric-desc {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 18px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr auto;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      input,
+      select,
+      button {
+        min-height: 34px;
+        border-radius: 2px;
+        border: 1px solid var(--border-strong);
+        background: #18160f;
+        color: var(--text);
+        padding: 0 10px;
+        font: inherit;
+        font-size: 12px;
+      }
+
+      button {
+        background: var(--gold);
+        color: #100f0a;
+        border-color: var(--gold);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        padding: 11px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .mono {
+        font-family: "SFMono-Regular", Consolas, monospace;
+      }
+
+      .status {
+        color: var(--ok);
+      }
+
+      .warning {
+        color: var(--danger);
+      }
+
+      .pager {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .page-right {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .drawer {
+        padding: 18px;
+        max-height: calc(100vh - 56px);
+        overflow: auto;
+      }
+
+      .drawer-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+
+      .drawer h2 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .section {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .section h3 {
+        margin: 0 0 10px;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 400;
+        text-transform: uppercase;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 120px minmax(0, 1fr);
+        gap: 8px;
+        font-size: 12px;
+      }
+
+      .kv span:nth-child(odd) {
+        color: var(--muted);
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .span {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        margin-top: 5px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+
+      .dot.warn {
+        background: var(--danger);
+      }
+
+      .span-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 12px;
+      }
+
+      .span-meta {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin: 0;
+        padding: 12px;
+        border-radius: 3px;
+        background: #100f0a;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">TilesFST</div>
+        <div class="nav">
+          <span>Dashboard</span>
+          <span>Products</span>
+          <span>Media</span>
+          <span class="active">Log Audit</span>
+          <span>Settings</span>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="page-head">
+          <div>
+            <h1>日志审计</h1>
+            <p class="desc">按 request_id、task_trace_id 和任务类型追踪关键操作。</p>
+          </div>
+          <button>刷新</button>
+        </div>
+
+        <section class="metrics">
+          <article class="metric-card">
+            <div class="metric-label">Today Logs</div>
+            <div class="metric-value">428</div>
+            <div class="metric-desc">今日记录</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Task Errors</div>
+            <div class="metric-value">6</div>
+            <div class="metric-desc">失败任务</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Slow Tasks</div>
+            <div class="metric-value">14</div>
+            <div class="metric-desc">超过阈值</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-label">Upload P95</div>
+            <div class="metric-value">8.4s</div>
+            <div class="metric-desc">首批场景</div>
+          </article>
+        </section>
+
+        <div class="layout">
+          <section class="panel">
+            <div class="filters">
+              <input value="task_20260725_upload_video_8f2c" aria-label="task trace id" />
+              <select aria-label="task type">
+                <option>upload_video</option>
+              </select>
+              <select aria-label="result">
+                <option>failed</option>
+              </select>
+              <button>查询</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>类型</th>
+                  <th>摘要</th>
+                  <th>状态</th>
+                  <th>耗时</th>
+                  <th>task_trace_id</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>11:42:18</td>
+                  <td>request</td>
+                  <td>POST /api/v1/uploads/videos · 200</td>
+                  <td class="status">success</td>
+                  <td>14.0s</td>
+                  <td class="mono">task_...8f2c</td>
+                </tr>
+                <tr>
+                  <td>11:42:15</td>
+                  <td>usage_event</td>
+                  <td>frontend upload stuck at 99%</td>
+                  <td class="warning">slow</td>
+                  <td>9.2s</td>
+                  <td class="mono">task_...8f2c</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pager">
+              <span class="page-summary">共 2 条</span>
+              <span class="page-right"><button>1</button><span>20 / 页</span></span>
+            </div>
+          </section>
+
+          <aside class="drawer">
+            <div class="drawer-head">
+              <div>
+                <h2>LOG DETAIL</h2>
+                <p class="desc mono">task_20260725_upload_video_8f2c</p>
+              </div>
+              <button>复制</button>
+            </div>
+
+            <section class="section">
+              <h3>Task Summary</h3>
+              <div class="kv">
+                <span>任务类型</span><span>upload_video</span>
+                <span>状态</span><span class="warning">slow / success</span>
+                <span>总耗时</span><span>14.0s</span>
+                <span>关联资源</span><span>media: 9321</span>
+              </div>
+            </section>
+
+            <section class="section">
+              <h3>Timeline</h3>
+              <div class="timeline">
+                <div class="span">
+                  <div class="dot"></div>
+                  <div>
+                    <div class="span-title"><span>frontend_upload_start</span><span>0ms</span></div>
+                    <div class="span-meta mono">request_id: req_82ab</div>
+                  </div>
+                </div>
+                <div class="span">
+                  <div class="dot"></div>
+                  <div>
+                    <div class="span-title"><span>validate_file</span><span>42ms</span></div>
+                    <div class="span-meta">video/mp4 · 23MB · passed</div>
+                  </div>
+                </div>
+                <div class="span">
+                  <div class="dot warn"></div>
+                  <div>
+                    <div class="span-title"><span>storage_put_object</span><span>9200ms</span></div>
+                    <div class="span-meta">耗时最高节点 · prefix videos/2026/07</div>
+                  </div>
+                </div>
+                <div class="span">
+                  <div class="dot"></div>
+                  <div>
+                    <div class="span-title"><span>db_create_media</span><span>128ms</span></div>
+                    <div class="span-meta">media row created</div>
+                  </div>
+                </div>
+                <div class="span">
+                  <div class="dot"></div>
+                  <div>
+                    <div class="span-title"><span>api_response</span><span>31ms</span></div>
+                    <div class="span-meta">200 · upload completed</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section">
+              <h3>Metadata JSON</h3>
+              <pre>{
+  "media_type": "video",
+  "file_size": 24117248,
+  "object_key_prefix": "videos/2026/07",
+  "slowest_span": "storage_put_object"
+}</pre>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
