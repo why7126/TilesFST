@@ -67,7 +67,7 @@ class TaskProgress:
 @dataclass
 class ChangeRecord:
     change_id: str
-    location: str  # active | archived | missing
+    location: str  # active | archived | legacy_archived | missing
     archive_dir: str | None = None
     archive_date: str | None = None
     tasks: TaskProgress = field(default_factory=TaskProgress)
@@ -235,11 +235,16 @@ def run_openspec_list() -> dict[str, Any]:
 
 
 def find_archived_change_dir(change_id: str) -> Path | None:
-    archive_root = ROOT / "openspec/changes/archive"
-    if not archive_root.exists():
-        return None
-    matches = sorted(archive_root.glob(f"*-{change_id}"))
-    return matches[-1] if matches else None
+    for archive_root in (
+        ROOT / "openspec/archive",
+        ROOT / "openspec/changes/archive",
+    ):
+        if not archive_root.exists():
+            continue
+        matches = sorted(archive_root.glob(f"*-{change_id}"))
+        if matches:
+            return matches[-1]
+    return None
 
 
 def extract_archive_date(archive_dir: Path) -> str | None:

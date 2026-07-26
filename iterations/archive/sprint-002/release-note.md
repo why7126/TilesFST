@@ -241,19 +241,19 @@ updated_at: 2026-06-27 15:52:00
 ## 关联验收
 
 - `iterations/archive/sprint-002/acceptance-report.md`（待人工 sign-off）
-- `openspec/changes/archive/2026-06-15-add-admin-home/trace.md`（PNG checklist）
-- `openspec/changes/archive/2026-06-20-add-user-management/trace.md`
-- `openspec/changes/archive/2026-06-20-fix-user-management-list-refine/trace.md`
-- `openspec/changes/archive/2026-06-20-add-login-remember-autofill/trace.md`
-- `openspec/changes/archive/2026-06-26-add-brand-management/trace.md`
-- `openspec/changes/archive/2026-06-25-fix-brand-ui-consistency/trace.md`
+- `openspec/archive/2026-06-15-add-admin-home/trace.md`（PNG checklist）
+- `openspec/archive/2026-06-20-add-user-management/trace.md`
+- `openspec/archive/2026-06-20-fix-user-management-list-refine/trace.md`
+- `openspec/archive/2026-06-20-add-login-remember-autofill/trace.md`
+- `openspec/archive/2026-06-26-add-brand-management/trace.md`
+- `openspec/archive/2026-06-25-fix-brand-ui-consistency/trace.md`
 - `issues/bugs/archive/BUG-0003-brand-image-display-layout-shift/acceptance.md`
 - `issues/bugs/archive/BUG-0004-brand-logo-upload-progress-missing/acceptance.md`
 - `issues/bugs/archive/BUG-0005-login-fails-after-service-restart/acceptance.md`
 - `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio/acceptance.md`
 - `issues/bugs/archive/BUG-0007-brand-logo-not-displayed-after-storage-fix/acceptance.md`
-- `openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/trace.md`
-- `openspec/changes/archive/2026-06-26-fix-brand-logo-upload-progress/trace.md`
-- `openspec/changes/archive/2026-06-20-add-tile-category-management/trace.md`
-- `openspec/changes/archive/2026-06-22-fix-tile-category-management-refine/trace.md`
+- `openspec/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/trace.md`
+- `openspec/archive/2026-06-26-fix-brand-logo-upload-progress/trace.md`
+- `openspec/archive/2026-06-20-add-tile-category-management/trace.md`
+- `openspec/archive/2026-06-22-fix-tile-category-management-refine/trace.md`
 - `issues/requirements/archive/REQ-0007-tile-category-management-refine/acceptance.md`

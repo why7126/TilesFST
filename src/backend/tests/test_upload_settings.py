@@ -66,6 +66,7 @@ def test_object_storage_public_summary_excludes_secrets() -> None:
         OBJECT_STORAGE_BUCKET="tiles-tos",
         OBJECT_STORAGE_SECURE=True,
         OBJECT_STORAGE_REGION="cn-beijing",
+        OBJECT_STORAGE_PATH_STYLE=False,
         OBJECT_STORAGE_AUTO_CREATE_BUCKET=False,
     )
 

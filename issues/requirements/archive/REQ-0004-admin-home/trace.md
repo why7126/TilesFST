@@ -8,7 +8,7 @@ update_method: 状态、迭代或 OpenSpec 变更时同步更新
 owner: 产品负责人
 status: done
 lifecycle_stage: archive
-note: add-admin-home 已归档至 openspec/changes/archive/2026-06-15-add-admin-home
+note: add-admin-home 已归档至 openspec/archive/2026-06-15-add-admin-home
 updated_at: 2026-06-27 22:33:15
 ---
 
@@ -43,7 +43,7 @@ openspec_changes:
     iteration: sprint-002
     requirement_id: REQ-0004-admin-home
     strategy: css-port
-    archive_path: openspec/changes/archive/2026-06-15-add-admin-home```
+    archive_path: openspec/archive/2026-06-15-add-admin-home```
 
 ## 2. 关联文档
 
@@ -61,7 +61,7 @@ openspec_changes:
 
 | 阶段 | 路径 | 状态 |
 |---|---|---|
-| Change | `openspec/changes/archive/2026-06-15-add-admin-home/` | archived |
+| Change | `openspec/archive/2026-06-15-add-admin-home/` | archived |
 | 依赖 Spec | `openspec/specs/auth/spec.md` | 已生效（登录、logout、路由守卫） |
 | 目标 Spec | `openspec/specs/admin-dashboard/spec.md` | 已合并 |
 

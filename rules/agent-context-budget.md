@@ -24,7 +24,7 @@ AI 执行任务时 MUST：
 - 先用 `rg -l`、`rg --files`、`find ... -maxdepth`、`git diff --name-only` 或 `git diff --stat` 定位，再读取必要片段。
 - 对 Markdown、Spec、代码文件优先使用 `sed -n '<start>,<end>p'` 或 `nl -ba ... | sed -n` 分段读取。
 - 命令输出默认控制在 `max_output_tokens <= 8000`；预期更大时先输出文件清单、命中数、失败摘要或 diff stat。
-- 不默认全量读取 `docs/**`、`issues/**`、`iterations/**`、`openspec/specs/**`、`openspec/changes/archive/**`。
+- 不默认全量读取 `docs/**`、`issues/**`、`iterations/**`、`openspec/specs/**`、`openspec/archive/**`、legacy `openspec/changes/archive/**`。
 
 AI 执行任务时 MUST NOT：
 
@@ -73,6 +73,7 @@ refresh_reason: <本次继续复用或需要补读的原因>
 --glob '!**/node_modules/**'
 --glob '!**/dist/**'
 --glob '!**/coverage/**'
+--glob '!openspec/archive/**'
 --glob '!openspec/changes/archive/**'
 --glob '!src/web/openapi.json'
 --glob '!src/web/src/shared/api/generated.ts'

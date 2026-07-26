@@ -131,118 +131,118 @@
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-update-password-validation-policy"
+      "archive_dir": "openspec/archive/2026-07-22-update-password-validation-policy"
     },
     {
       "id": "fix-miniapp-sku-detail-duplicate-brand-button",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-sku-detail-duplicate-brand-button"
+      "archive_dir": "openspec/archive/2026-07-22-fix-miniapp-sku-detail-duplicate-brand-button"
     },
     {
       "id": "fix-login-page-tool-selector-alignment",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-login-page-tool-selector-alignment"
+      "archive_dir": "openspec/archive/2026-07-22-fix-login-page-tool-selector-alignment"
     },
     {
       "id": "fix-miniapp-usage-events-contract-drift",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-usage-events-contract-drift"
+      "archive_dir": "openspec/archive/2026-07-22-fix-miniapp-usage-events-contract-drift"
     },
     {
       "id": "fix-upload-size-limit-consistency",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-upload-size-limit-consistency"
+      "archive_dir": "openspec/archive/2026-07-22-fix-upload-size-limit-consistency"
     },
     {
       "id": "fix-theme-preference-sync-toast-persistent",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-theme-preference-sync-toast-persistent"
+      "archive_dir": "openspec/archive/2026-07-22-fix-theme-preference-sync-toast-persistent"
     },
     {
       "id": "add-miniapp-wechat-share-pages",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-add-miniapp-wechat-share-pages"
+      "archive_dir": "openspec/archive/2026-07-22-add-miniapp-wechat-share-pages"
     },
     {
       "id": "fix-miniapp-sku-detail-brand-card-route",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-sku-detail-brand-card-route"
+      "archive_dir": "openspec/archive/2026-07-22-fix-miniapp-sku-detail-brand-card-route"
     },
     {
       "id": "fix-miniapp-category-secondary-name-truncated",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-miniapp-category-secondary-name-truncated"
+      "archive_dir": "openspec/archive/2026-07-22-fix-miniapp-category-secondary-name-truncated"
     },
     {
       "id": "fix-prod-admin-brand-banner-save",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-prod-admin-brand-banner-save"
+      "archive_dir": "openspec/archive/2026-07-22-fix-prod-admin-brand-banner-save"
     },
     {
       "id": "refine-sku-metadata-name-code-display",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-refine-sku-metadata-name-code-display"
+      "archive_dir": "openspec/archive/2026-07-22-refine-sku-metadata-name-code-display"
     },
     {
       "id": "update-web-admin-mobile-adaptation",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-update-web-admin-mobile-adaptation"
+      "archive_dir": "openspec/archive/2026-07-22-update-web-admin-mobile-adaptation"
     },
     {
       "id": "fix-admin-dashboard-overview-real-data",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-admin-dashboard-overview-real-data"
+      "archive_dir": "openspec/archive/2026-07-22-fix-admin-dashboard-overview-real-data"
     },
     {
       "id": "fix-admin-banner-image-preview-cropped",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-fix-admin-banner-image-preview-cropped"
+      "archive_dir": "openspec/archive/2026-07-22-fix-admin-banner-image-preview-cropped"
     },
     {
       "id": "refine-admin-category-edit-modal-validation",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-refine-admin-category-edit-modal-validation"
+      "archive_dir": "openspec/archive/2026-07-22-refine-admin-category-edit-modal-validation"
     },
     {
       "id": "add-admin-sku-image-removal-main-image-rules",
       "sprint": "sprint-010",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-22-add-admin-sku-image-removal-main-image-rules"
+      "archive_dir": "openspec/archive/2026-07-22-add-admin-sku-image-removal-main-image-rules"
     }
   ],
   "gates": {
     "openspec_archive": {
       "status": "pass",
-      "evidence": "2026-07-22 12:54:25 release.prepare 复核：iterations/archive/sprint-010/acceptance-report.md 记录 2026-07-22 11:17:51 已关闭 sprint-010，16/16 个 Change 已归档；release.json 中 16 个正式 Change 均指向 openspec/changes/archive/2026-07-22-* 归档目录。"
+      "evidence": "2026-07-22 12:54:25 release.prepare 复核：iterations/archive/sprint-010/acceptance-report.md 记录 2026-07-22 11:17:51 已关闭 sprint-010，16/16 个 Change 已归档；release.json 中 16 个正式 Change 均指向 openspec/archive/2026-07-22-* 归档目录。"
     },
     "tests": {
       "status": "pass",

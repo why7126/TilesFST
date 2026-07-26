@@ -629,7 +629,7 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 | 2026-07-02 15:27:36 | Codex | REQ-0026 实现通过 | 完成发布目录治理、模板、校验脚本、release 命令族、测试与同步 |
 | 2026-07-03 18:51:53 | Codex | 范围追加 | BUG-0054 已纳入 sprint-004；OpenSpec Change 已创建为 `fix-admin-content-padding-too-large` |
 | 2026-07-03 23:30:35 | Codex | 范围追加 | BUG-0055 已纳入 sprint-004；OpenSpec Change 已创建为 `fix-admin-list-layout-unification`，后续已完成 apply 与视觉验收确认 |
-| 2026-07-04 08:13:26 | Codex | 归档通过 | `openspec list --json` 返回无活动 Change；sprint.yaml 中 13 个 Change 均已在 `openspec/changes/archive/`，执行 Sprint 关闭 |
+| 2026-07-04 08:13:26 | Codex | 归档通过 | `openspec list --json` 返回无活动 Change；sprint.yaml 中 13 个 Change 均已在 `openspec/archive/`，执行 Sprint 关闭 |
 
 ## 遗留项
 
@@ -639,11 +639,11 @@ note: workflow-sync — 13/13 Change 已 archive；0 applied；待人工 sign-of
 | REQ-0019 OpenSpec Change | 待归档 | 执行 `/opsx-archive update-admin-superuser-protection` |
 | BUG-0050 OpenSpec Change | 待开发 | 执行 `/opsx-apply fix-user-create-validation-message-unclear` 后回填验收 |
 | REQ-0022 OpenSpec Change | 待归档 | 人工 sign-off 后执行 `/opsx-archive add-admin-api-docs-menu` |
-| BUG-0051 OpenSpec Change | 已归档 | `openspec/changes/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong/` |
-| BUG-0052 OpenSpec Change | 已归档 | `openspec/changes/archive/2026-07-02-fix-api-docs-metric-cards-inconsistent/` |
-| BUG-0053 OpenSpec Change | 已归档 | `openspec/changes/archive/2026-07-02-fix-api-docs-list-layout-pagination-inconsistent/` |
+| BUG-0051 OpenSpec Change | 已归档 | `openspec/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong/` |
+| BUG-0052 OpenSpec Change | 已归档 | `openspec/archive/2026-07-02-fix-api-docs-metric-cards-inconsistent/` |
+| BUG-0053 OpenSpec Change | 已归档 | `openspec/archive/2026-07-02-fix-api-docs-list-layout-pagination-inconsistent/` |
 | REQ-0023 OpenSpec Change | 待归档 | 人工 sign-off 后执行 `/opsx-archive add-api-docs-swagger-detail-link` |
-| REQ-0025 OpenSpec Change | 已归档 | `openspec/changes/archive/2026-07-02-update-brand-logo-fst-favicon/` |
+| REQ-0025 OpenSpec Change | 已归档 | `openspec/archive/2026-07-02-update-brand-logo-fst-favicon/` |
 | REQ-0026 OpenSpec Change | 已归档 | 已执行 `/opsx-archive add-product-release-management` 并同步正式规范 |
 | REQ-0024 OpenSpec Change | 已创建 | 后续执行 `/opsx-apply add-product-usage-logging` |
 | BUG-0054 OpenSpec Change | 已归档 | `fix-admin-content-padding-too-large` 已 archived，并作为 REQ-0013 当前实际归档依据 |

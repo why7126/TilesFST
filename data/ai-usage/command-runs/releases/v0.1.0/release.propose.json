@@ -1,0 +1,135 @@
+{
+  "release_version": "v0.1.0",
+  "workflow_event": "release.propose",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/26/rollout-2026-07-26T17-47-07-019f9dd2-36e8-7363-8a75-4270c31b08a2.jsonl"
+  ],
+  "generated_at": "2026-07-26T09:53:28.501219Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0068-miniapp-sku-video-fullscreen-actions",
+      "REQ-0069-upload-observability-trace-logs",
+      "REQ-0070-audit-log-operator-name-filter",
+      "REQ-0071-request-snapshot-logging",
+      "REQ-0072-client-request-identity-standard",
+      "REQ-0073-task-trace-parent-request-model",
+      "REQ-0074-task-trace-coverage-expansion",
+      "REQ-0075-audit-log-task-trace-linking",
+      "REQ-0076-observability-dashboard"
+    ],
+    "bugs": [
+      "BUG-0081-prod-cos-video-upload-fails",
+      "BUG-0082-prod-miniapp-sku-video-slow-start",
+      "BUG-0083-prod-admin-brand-banner-save-500",
+      "BUG-0084-miniapp-sku-video-fullscreen-reloads-slow",
+      "BUG-0085-admin-video-upload-stuck-at-99"
+    ],
+    "changes": [
+      "add-miniapp-sku-video-fullscreen-actions",
+      "add-observability-dashboard",
+      "add-task-trace-audit-log-view",
+      "fix-admin-banner-create-schema-drift",
+      "fix-admin-video-upload-stuck-at-99",
+      "fix-miniapp-sku-video-fullscreen-reload",
+      "fix-miniapp-sku-video-slow-start",
+      "fix-task-trace-parent-request-model",
+      "fix-upload-proxy-timeout-config",
+      "improve-audit-log-operator-filter",
+      "link-audit-logs-to-task-trace",
+      "standardize-client-request-identity",
+      "update-request-snapshot-logging",
+      "update-task-trace-coverage-expansion"
+    ],
+    "sprints": [
+      "sprint-011",
+      "sprint-012"
+    ]
+  },
+  "totals": {
+    "input_tokens": 880624,
+    "cached_input_tokens": 787328,
+    "output_tokens": 9849,
+    "reasoning_output_tokens": 384,
+    "total_tokens": 890473,
+    "command_run_count": 1,
+    "model_call_count": 13,
+    "tool_call_count": 41,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "bdf7f5c667b3d0a1df5c5646e853aa579f004a25ceec13d73197be323456da32",
+      "source_data_file": "~/.codex/sessions/2026/07/26/rollout-2026-07-26T17-47-07-019f9dd2-36e8-7363-8a75-4270c31b08a2.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 142,
+      "turn_hash": "0afea2d18923a7fd",
+      "started_at": "2026-07-26T09:48:01.782Z",
+      "ended_at": "2026-07-26T09:53:27.602Z",
+      "command": "release.propose",
+      "workflow_event": "release.propose",
+      "requirements": [
+        "REQ-0068-miniapp-sku-video-fullscreen-actions",
+        "REQ-0069-upload-observability-trace-logs",
+        "REQ-0070-audit-log-operator-name-filter",
+        "REQ-0071-request-snapshot-logging",
+        "REQ-0072-client-request-identity-standard",
+        "REQ-0073-task-trace-parent-request-model",
+        "REQ-0074-task-trace-coverage-expansion",
+        "REQ-0075-audit-log-task-trace-linking",
+        "REQ-0076-observability-dashboard"
+      ],
+      "bugs": [
+        "BUG-0081-prod-cos-video-upload-fails",
+        "BUG-0082-prod-miniapp-sku-video-slow-start",
+        "BUG-0083-prod-admin-brand-banner-save-500",
+        "BUG-0084-miniapp-sku-video-fullscreen-reloads-slow",
+        "BUG-0085-admin-video-upload-stuck-at-99"
+      ],
+      "changes": [
+        "add-miniapp-sku-video-fullscreen-actions",
+        "add-observability-dashboard",
+        "add-task-trace-audit-log-view",
+        "fix-admin-banner-create-schema-drift",
+        "fix-admin-video-upload-stuck-at-99",
+        "fix-miniapp-sku-video-fullscreen-reload",
+        "fix-miniapp-sku-video-slow-start",
+        "fix-task-trace-parent-request-model",
+        "fix-upload-proxy-timeout-config",
+        "improve-audit-log-operator-filter",
+        "link-audit-logs-to-task-trace",
+        "standardize-client-request-identity",
+        "update-request-snapshot-logging",
+        "update-task-trace-coverage-expansion"
+      ],
+      "sprint_id": "sprint-012",
+      "release_sprints": [
+        "sprint-011",
+        "sprint-012"
+      ],
+      "release_version": "v0.1.0",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 13,
+      "input_tokens": 880624,
+      "cached_input_tokens": 787328,
+      "output_tokens": 9849,
+      "reasoning_output_tokens": 384,
+      "total_tokens": 890473,
+      "tool_call_count": 41,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

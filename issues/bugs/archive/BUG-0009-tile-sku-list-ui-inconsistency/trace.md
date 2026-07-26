@@ -84,7 +84,7 @@ openspec_changes:
 | 代码线索 | `src/web/src/pages/admin/TileSkuManagementPage.tsx` |
 | 样式 | `src/web/src/features/admin/styles/tile-sku-management.css` |
 | 同类修复参考 | BUG-0002 / `BrandManagementPage.test.tsx` |
-| OpenSpec | `openspec/changes/archive/2026-06-27-fix-tile-sku-list-ui-inconsistency/` |
+| OpenSpec | `openspec/archive/2026-06-27-fix-tile-sku-list-ui-inconsistency/` |
 
 ## 5. 变更记录
 

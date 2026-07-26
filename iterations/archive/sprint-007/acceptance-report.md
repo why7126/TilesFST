@@ -31,7 +31,7 @@ source: /sprint-propose sprint-007
 ## 原始 AC 引用
 
 - `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/acceptance.md`
-- `openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs/tasks.md`
+- `openspec/archive/2026-07-11-add-clipboard-helper-best-practice-docs/tasks.md`
 - `issues/requirements/archive/REQ-0035-ai-usage-snapshot-sprint-close-exps/acceptance.md`
 - `openspec/changes/update-ai-usage-snapshot-sprint-close-exps/tasks.md`
 - `issues/requirements/archive/REQ-0037-auto-token-fact-source-for-workflow-commands/acceptance.md`
@@ -46,13 +46,13 @@ source: /sprint-propose sprint-007
 | 类型 | 编号 | 状态 | 验收结论 |
 |---|---|---|---|
 | REQ | `REQ-0036-clipboard-helper-best-practice-docs` | done | 已完成 `/opsx-archive`；AC-001 ~ AC-019 已在需求验收记录中勾选 |
-| Change | `add-clipboard-helper-best-practice-docs` | archived | 已归档到 `openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs/` |
+| Change | `add-clipboard-helper-best-practice-docs` | archived | 已归档到 `openspec/archive/2026-07-11-add-clipboard-helper-best-practice-docs/` |
 | REQ | `REQ-0035-ai-usage-snapshot-sprint-close-exps` | done | 已完成 `/opsx-archive`；物理迁入 archive 等待 Sprint close 后由 promote gate 处理 |
-| Change | `update-ai-usage-snapshot-sprint-close-exps` | archived | 已归档到 `openspec/changes/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps/` |
+| Change | `update-ai-usage-snapshot-sprint-close-exps` | archived | 已归档到 `openspec/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps/` |
 | REQ | `REQ-0037-auto-token-fact-source-for-workflow-commands` | done | 已完成 `/opsx-archive`；命令后置 Token fact source 能力已归档 |
-| Change | `add-auto-token-fact-source-for-workflow-commands` | archived | 已归档到 `openspec/changes/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands/` |
+| Change | `add-auto-token-fact-source-for-workflow-commands` | archived | 已归档到 `openspec/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands/` |
 | REQ | `REQ-0038-brand-certificate-management` | done | 已完成 `/opsx-archive`；品牌证书 DB/API/上传/Web/测试/文档验收通过 |
-| Change | `add-brand-certificate-management` | archived | 已归档到 `openspec/changes/archive/2026-07-15-add-brand-certificate-management/` |
+| Change | `add-brand-certificate-management` | archived | 已归档到 `openspec/archive/2026-07-15-add-brand-certificate-management/` |
 
 ## REQ-0035 关键 AC 摘要
 

@@ -15,7 +15,7 @@ related_bug:
 
 # 复现步骤
 
-1. 准备一个已进入归档流程或已归档到 `openspec/changes/archive/` 的 Change。
+1. 准备一个已进入归档流程或已归档到 `openspec/archive/` 的 Change。
 2. 删除或缺失该 Change 的 `trace.md`。
 3. 确保 `proposal.md`、`design.md`、`tasks.md` 中也没有归档验证摘要，例如测试结果、验收结论、归档时间、关联 Issue/Sprint 状态。
 4. 执行归档校验或检查归档包完整性。

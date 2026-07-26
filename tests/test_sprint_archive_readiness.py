@@ -26,7 +26,7 @@ def write_sprint(root: Path, sprint_id: str, changes: list[str], stage: str = "c
 
 def write_tasks(root: Path, change_id: str, tasks: list[str], archived: bool = False) -> None:
     if archived:
-        change_dir = root / "openspec" / "changes" / "archive" / f"2026-07-04-{change_id}"
+        change_dir = root / "openspec" / "archive" / f"2026-07-04-{change_id}"
     else:
         change_dir = root / "openspec" / "changes" / change_id
     change_dir.mkdir(parents=True)
@@ -34,7 +34,7 @@ def write_tasks(root: Path, change_id: str, tasks: list[str], archived: bool = F
 
 
 def archived_change_dir(root: Path, change_id: str) -> Path:
-    return root / "openspec" / "changes" / "archive" / f"2026-07-04-{change_id}"
+    return root / "openspec" / "archive" / f"2026-07-04-{change_id}"
 
 
 def test_ready_sprint_passes_when_all_tasks_complete(tmp_path: Path) -> None:
@@ -100,7 +100,7 @@ def test_archived_change_missing_trace_passes_with_complete_fallback_summary(tmp
 - 验证命令：`pytest tests/test_demo.py`，验证结果：pass。
 - 验收结论：通过。
 - Issue/Sprint 状态：BUG-9999 done，Sprint sprint-999 completed。
-- 归档路径：openspec/changes/archive/2026-07-04-fix-with-summary。
+- 归档路径：openspec/archive/2026-07-04-fix-with-summary。
 """
     (archived_change_dir(tmp_path, "fix-with-summary") / "proposal.md").write_text(summary, encoding="utf-8")
 
@@ -110,7 +110,7 @@ def test_archived_change_missing_trace_passes_with_complete_fallback_summary(tmp
     assert readiness.changes[0].trace_exists is False
     assert readiness.changes[0].fallback_summary_status == "pass"
     assert readiness.changes[0].fallback_summary_file == (
-        "openspec/changes/archive/2026-07-04-fix-with-summary/proposal.md"
+        "openspec/archive/2026-07-04-fix-with-summary/proposal.md"
     )
 
 

@@ -142,7 +142,7 @@ Release 命令成功路径还应输出 `release_artifact`，其 `path` 指向 `d
 
 ## opsx 归因
 
-- `opsx.*` command run 若包含 `changes`，且该 change 能从 `openspec/changes/<change-id>/trace.md`、`proposal.md`、`openspec/changes/archive/YYYY-MM-DD-<change-id>/trace.md`、归档 proposal 或 `issues/**/trace.md` 关联到 REQ/BUG，则 `requirements` 或 `bugs` 必须同步填写。
+- `opsx.*` command run 若包含 `changes`，且该 change 能从 `openspec/changes/<change-id>/trace.md`、`proposal.md`、`openspec/archive/YYYY-MM-DD-<change-id>/trace.md`、归档 proposal 或 `issues/**/trace.md` 关联到 REQ/BUG，则 `requirements` 或 `bugs` 必须同步填写。
 - 只有不经 REQ/BUG 创建的纯 OpenSpec change，才允许 `requirements` 与 `bugs` 同时为空。
 - 生成脚本必须在写入 `command-runs/**/*.json` 和刷新 Sprint snapshot 前自动反查 change → issue 关系，避免 opsx 用量只归到 change 而丢失需求/缺陷覆盖。
 

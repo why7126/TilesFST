@@ -82,7 +82,7 @@ lifecycle:
 | 2026-06-16 | 纳入 sprint-002 | 同步 `iterations/archive/sprint-002` 四件套 |
 | 2026-06-20 | 需求评审 | `/req-review` approved（REV-REQ-0005-list-refine-001） |
 | 2026-06-20 | sprint-apply | `fix-user-management-list-refine` 实现完成（18/20 tasks） |
-| 2026-06-20 | opsx-archive | 归档至 `openspec/changes/archive/2026-06-20-fix-user-management-list-refine/`（spec sync 待 add-user-management archive） |
+| 2026-06-20 | opsx-archive | 归档至 `openspec/archive/2026-06-20-fix-user-management-list-refine/`（spec sync 待 add-user-management archive） |
 
 ## 5. 后续动作
 

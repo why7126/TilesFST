@@ -96,6 +96,7 @@ describe('BrandFormModal', () => {
           sort_order: 10,
           sku_count: 0,
           status: 'ENABLED',
+          created_at: '2026-06-20T00:00:00Z',
           updated_at: '2026-06-20T00:00:00Z',
         }}
         onClose={vi.fn()}
@@ -187,6 +188,7 @@ describe('BrandFormModal', () => {
           sort_order: 10,
           sku_count: 0,
           status: 'ENABLED',
+          created_at: '2026-06-20T00:00:00Z',
           updated_at: '2026-06-20T00:00:00Z',
         }}
         onClose={vi.fn()}

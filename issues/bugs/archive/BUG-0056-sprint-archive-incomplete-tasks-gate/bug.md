@@ -19,7 +19,7 @@ related_change:
 # 影响范围
 
 - Sprint 归档质量门禁失效。
-- `openspec/changes/archive/` 与 `iterations/archive/` 可能记录尚未完成的 change。
+- `openspec/archive/` 与 `iterations/archive/` 可能记录尚未完成的 change。
 - 后续 `/sprint-exps` 与发布判断会基于错误的 completed 状态沉淀经验或发布依据。
 
 # 严重等级说明

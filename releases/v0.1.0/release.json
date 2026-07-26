@@ -1,0 +1,300 @@
+{
+  "version": "v0.1.0",
+  "release_time": "2026-07-26 18:05:00",
+  "owner": "product",
+  "summary": "TILESFST v0.1.0 已执行 release.prepare，纳入 sprint-011 与 sprint-012 的已归档交付范围，覆盖生产媒体上传与小程序视频播放修复、品牌 Banner 保存修复、小程序视频全屏交互、上传链路 Task Trace 与审计日志查看、日志操作者筛选优化、统一 Request Snapshot、跨端请求身份标准、Task Trace 主请求/子请求模型、任务型接口覆盖扩展、审计日志任务链路关联以及链路观测仪表。OpenSpec、后端 pytest、Web TypeScript 项目级类型检查、Web Vitest、Web build、OpenAPI / Orval、API 标准、Docker Compose、数据库 schema、产品版本和公告安全校验已完成；release blocker 已关闭，publish_ready=true。",
+  "formal_scope_only": true,
+  "version_change_rationale": "",
+  "publish_ready": true,
+  "sprints": [
+    "sprint-011",
+    "sprint-012"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0068-miniapp-sku-video-fullscreen-actions",
+      "title": "小程序商品详情页视频全屏播放与操作菜单增强",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0069-upload-observability-trace-logs",
+      "title": "上传任务链路追踪与审计日志查看",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0070-audit-log-operator-name-filter",
+      "title": "日志审计操作者名称筛选优化",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0071-request-snapshot-logging",
+      "title": "API 请求日志统一 Request Snapshot",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0072-client-request-identity-standard",
+      "title": "跨端客户端请求身份标准",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0073-task-trace-parent-request-model",
+      "title": "Task Trace 主请求与子请求关联模型",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0074-task-trace-coverage-expansion",
+      "title": "任务型接口 Task Trace 覆盖扩展",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0075-audit-log-task-trace-linking",
+      "title": "审计操作日志任务链路关联",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0076-observability-dashboard",
+      "title": "日志审计与链路观测仪表",
+      "sprint": "sprint-012",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0081-prod-cos-video-upload-fails",
+      "title": "生产管理端视频上传 99% 后返回 504",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0082-prod-miniapp-sku-video-slow-start",
+      "title": "生产小程序 SKU 详情页视频播放启动慢",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0083-prod-admin-brand-banner-save-500",
+      "title": "生产管理端创建品牌类型 Banner 保存接口返回 500",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0084-miniapp-sku-video-fullscreen-reloads-slow",
+      "title": "小程序 SKU 详情页视频进入全屏后重新加载很久",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0085-admin-video-upload-stuck-at-99",
+      "title": "管理后台 SKU 视频上传长时间停留 99%",
+      "sprint": "sprint-011",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "fix-upload-proxy-timeout-config",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-23-fix-upload-proxy-timeout-config"
+    },
+    {
+      "id": "fix-miniapp-sku-video-slow-start",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-23-fix-miniapp-sku-video-slow-start"
+    },
+    {
+      "id": "fix-admin-banner-create-schema-drift",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-23-fix-admin-banner-create-schema-drift"
+    },
+    {
+      "id": "add-miniapp-sku-video-fullscreen-actions",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-24-add-miniapp-sku-video-fullscreen-actions"
+    },
+    {
+      "id": "fix-miniapp-sku-video-fullscreen-reload",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-24-fix-miniapp-sku-video-fullscreen-reload"
+    },
+    {
+      "id": "fix-admin-video-upload-stuck-at-99",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-fix-admin-video-upload-stuck-at-99"
+    },
+    {
+      "id": "add-task-trace-audit-log-view",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-add-task-trace-audit-log-view"
+    },
+    {
+      "id": "improve-audit-log-operator-filter",
+      "sprint": "sprint-011",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-improve-audit-log-operator-filter"
+    },
+    {
+      "id": "update-request-snapshot-logging",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-update-request-snapshot-logging"
+    },
+    {
+      "id": "standardize-client-request-identity",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-standardize-client-request-identity"
+    },
+    {
+      "id": "fix-task-trace-parent-request-model",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-fix-task-trace-parent-request-model"
+    },
+    {
+      "id": "update-task-trace-coverage-expansion",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-update-task-trace-coverage-expansion"
+    },
+    {
+      "id": "link-audit-logs-to-task-trace",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-link-audit-logs-to-task-trace"
+    },
+    {
+      "id": "add-observability-dashboard",
+      "sprint": "sprint-012",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-26-add-observability-dashboard"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare 复核：openspec validate --specs --strict 通过，41 passed；iterations/archive/sprint-011/acceptance-report.md 记录 8/8 Change 已 archive，iterations/archive/sprint-012/sprint.yaml closure 记录 changes_archived=6，release.json 中 14 个正式 Change 均指向 openspec/archive/ 归档目录。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：uv run pytest 通过，423 passed / 1 skipped / 780 warnings；pnpm --dir src/web test -- --run 通过，56 files / 292 tests；pnpm --dir src/web build 通过。首次 Web Vitest 失败 classified as fixture_schema_drift，已修正 AdminLayout.test.tsx 异步 toast 断言并复跑通过；首次 pytest 失败 classified as fixture_schema_drift，已修正 opsx-archive 技能文案契约和对象存储测试环境隔离并复跑通过。2026-07-26 18:20:54 已关闭 Web tsc blocker：pnpm --dir src/web exec tsc --noEmit --ignoreDeprecations 6.0 --pretty false 通过；pnpm --dir src/web test -- --run 通过，56 files / 292 tests；pnpm --dir src/web build 通过。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：bash scripts/generate-openapi-client.sh 通过，orval v8.17.0 生成 tileApi；python scripts/validate-api-standard.py 通过；git diff 显示 src/web/openapi.json 与 src/web/src/shared/api/generated.ts 无新增差异。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：docker compose config --quiet、docker compose -f docker-compose.prod.yml config --quiet、docker compose -f docker-compose.prod.external.yml config --quiet 均通过；.env.example、docker-compose*.yml、src/web/nginx.conf(.template) 与 docs/02-deployment.md 均包含 UPLOAD_* 上传超时/body size 配置。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：python scripts/check-mysql-schema-drift.py --schema-only --json 解析 schema.mysql.sql 通过，expected_table_count=21，覆盖 audit_logs、request_logs、task_traces、task_trace_spans、usage_events、banners 等表；uv run pytest 覆盖 tests/test_mysql_migrations.py 与 tests/test_mysql_schema_drift.py；sprint-011 已记录生产 MySQL Banner schema drift 修复和备份/回滚边界，发布前仍按 rollback.steps 执行数据库备份与回滚预案。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：rg 复核 .env.example、docker-compose.yml、docker-compose.prod.yml、docker-compose.prod.external.yml、src/web/nginx.conf、src/web/nginx.conf.template、docs/02-deployment.md，确认 MAX_IMAGE_SIZE_MB / MAX_VIDEO_SIZE_MB / MAX_FILE_SIZE_MB 与 UPLOAD_CLIENT_MAX_BODY_SIZE、UPLOAD_PROXY_*_TIMEOUT_SECONDS、UPLOAD_PROXY_REQUEST_BUFFERING 已同步。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：src/shared/product-version.ts 的 PRODUCT_VERSION 已更新为 v0.1.0，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-26 18:03:15 release.prepare：releases/v0.1.0/announcement.mdx 已更新；python scripts/validate-release.py --release-dir releases/v0.1.0 通过，完成 release.json 结构、公告存在性和公开安全扫描；本地未执行真实 Mintlify preview，以项目 release validator 作为等价静态 MDX 安全校验。"
+    }
+  },
+  "blockers": [],
+  "resolved_blockers": [
+    {
+      "type": "fixture_schema_drift",
+      "title": "Web tsc --noEmit 项目级类型检查失败",
+      "status": "closed",
+      "evidence": "2026-07-26 18:20:54 已补齐 Web 项目类型声明、测试 fixture 与 Orval 契约字段、少量页面状态类型收敛；pnpm --dir src/web exec tsc --noEmit --ignoreDeprecations 6.0 --pretty false 通过；pnpm --dir src/web test -- --run 通过；pnpm --dir src/web build 通过。",
+      "closed_at": "2026-07-26 18:20:54"
+    }
+  ],
+  "known_issues": [
+    "sprint-011 仍建议在发布上线 sign-off 阶段补齐生产或生产等价媒体上传 smoke、小程序真机视频首帧/全屏切换 evidence。",
+    "sprint-012 acceptance-report 中仍保留部分“待实现/待实现与测试”占位；当前 Issue/Change archive、OpenSpec specs、pytest、Vitest 与 build 均已通过，判断为文档派生残留风险，发布前建议人工复核。"
+  ],
+  "upgrade_steps": [
+    "确认 release blockers 已关闭；Web tsc 项目级类型检查已于 2026-07-26 18:20:54 复跑通过。",
+    "确认 src/shared/product-version.ts 为 v0.1.0。",
+    "复核后端 pytest、前端 Vitest、Web build、OpenSpec、OpenAPI / Orval、Docker Compose、数据库与公告校验证据。",
+    "发布前完成数据库备份，复核 MySQL schema drift 或目标 MySQL smoke 证据。",
+    "部署后验证管理端视频上传、品牌 Banner 保存、日志审计/链路观测、小程序 SKU 视频播放与全屏交互。"
+  ],
+  "rollback": {
+    "conditions": [
+      "管理端媒体上传或 SKU 保存核心路径 smoke 失败",
+      "日志审计或 Task Trace 数据写入出现阻断性错误",
+      "目标 MySQL schema drift 修复或迁移影响既有读写",
+      "小程序 SKU 视频播放核心路径出现明显回退"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包",
+      "恢复上一版本环境变量、Web/Nginx/Compose 配置和静态资源",
+      "按数据库备份与回滚说明处理 MySQL schema 或数据变更",
+      "复跑健康检查、管理端 smoke、小程序关键页面 smoke 和对象读取验证"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "管理端上传体验、品牌 Banner 保存、日志审计列表/详情、操作者筛选、Task Trace 时间线与链路观测仪表",
+    "owner_web": "普通 API 请求身份与 Request Snapshot 兼容；无新增页面入口",
+    "miniapp": "SKU 详情页视频首帧、全屏切换、原生预览菜单；普通 API 请求身份标准化",
+    "backend": "上传代理/媒体读取、请求日志、Task Trace、审计日志、日志聚合 API、脱敏策略与权限边界",
+    "database": "涉及 request_logs、usage_events、audit_logs、Task Trace、banners 等 SQLite/MySQL schema 或兼容迁移影响",
+    "object_storage": "保持单桶策略与 /media/{object_key} 受控读取，补齐视频 Range/206、HEAD 与上传链路追踪",
+    "docker": "涉及 Web Nginx 上传专用 location、上传超时/body size 配置和 Docker Web 入口 smoke"
+  },
+  "announcement": "announcement.mdx",
+  "publish_confirmation": {
+    "published_at": "2026-07-26 18:22:51",
+    "announcement_url": "releases/v0.1.0/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已记录；release validator 通过，最终公告位置使用仓库内公告源文件。"
+  }
+}

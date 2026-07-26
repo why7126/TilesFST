@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { TileCategoryAdminItem } from '@/shared/api/generated';
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return {
@@ -50,7 +52,7 @@ const baseSummary = {
   sku_bound_count: 1,
 };
 
-const enabledCategory = {
+const enabledCategory: TileCategoryAdminItem = {
   id: 1,
   name: '启用类目',
   code: 'EN',
@@ -60,10 +62,11 @@ const enabledCategory = {
   sku_count: 3,
   status: 'ENABLED' as const,
   parent_id: null,
+  created_at: '2026-06-01T00:00:00Z',
   updated_at: '2026-06-01T00:00:00Z',
 };
 
-const disabledDeletableCategory = {
+const disabledDeletableCategory: TileCategoryAdminItem = {
   id: 2,
   name: '停用类目',
   code: 'DIS',
@@ -73,10 +76,11 @@ const disabledDeletableCategory = {
   sku_count: 0,
   status: 'DISABLED' as const,
   parent_id: null,
+  created_at: '2026-06-02T00:00:00Z',
   updated_at: '2026-06-02T00:00:00Z',
 };
 
-const childCategory = {
+const childCategory: TileCategoryAdminItem = {
   id: 3,
   name: '二级类目',
   code: 'CAT-CHILD',
@@ -86,10 +90,11 @@ const childCategory = {
   sku_count: 1,
   status: 'ENABLED' as const,
   parent_id: 1,
+  created_at: '2026-06-03T00:00:00Z',
   updated_at: '2026-06-03T00:00:00Z',
 };
 
-function mockListResponse(items: typeof enabledCategory[], total: number) {
+function mockListResponse(items: TileCategoryAdminItem[], total: number) {
   fetchCategoriesMock.mockResolvedValue({
     items,
     total,

@@ -251,7 +251,7 @@ note: Sprint 001 已于 2026-06-14 验收通过
 
 ### fix-login-left-panel-refine
 
-> 来源：`openspec/changes/archive/2026-06-14-fix-login-left-panel-refine/tasks.md`
+> 来源：`openspec/archive/2026-06-14-fix-login-left-panel-refine/tasks.md`
 
 | 任务组 | 总数 | 完成 | 状态 |
 |---|---|---|---|

@@ -114,7 +114,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 | OpenAPI / Orval 生成物 | high | BUG-0057、BUG-0061、REQ-0031 均涉及 OpenAPI / Orval | 默认只看 `git diff --stat`、目标 schema 片段和生成命令摘要，不展开 generated 全文 |
 | Workflow Sync 输出 | medium | sprint.archive 与 opsx.archive 会输出多条 issue/registry skipped/updated 行 | 成功时只保留 report 摘要；失败时再定位具体 marker |
 | 测试日志 | medium | pytest、Vitest、build、validate-api-standard 在多个 Change 中重复出现 | 成功只记录命令 + passed 数；失败只截取失败用例和关键堆栈 |
-| archive 目录宽泛搜索 | medium | 复盘天然需要读取已归档 Change | 从 `sprint.yaml` 的 Change 列表构造精确路径，避免 `rg` 全扫 `openspec/changes/archive/**` |
+| archive 目录宽泛搜索 | medium | 复盘天然需要读取已归档 Change | 从 `sprint.yaml` 的 Change 列表构造精确路径，避免 `rg` 全扫 `openspec/archive/**` |
 | 规则与 Skill 重复读取 | low to medium | source-command 类任务都需要读 AGENTS/rules/skill | 同一会话复用已读规则摘要；仅当文件有改动或任务类型新增时重读 |
 
 ### 对照预算规则

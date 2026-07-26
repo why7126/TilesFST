@@ -16,7 +16,7 @@ Use this skill when the user asks `/release-propose <version>` or wants to creat
 - 如用户明确授权并实际创建 follow-up Issue，MUST 按 `/req-capture`、`/bug-capture` 或 `/capture` 规则落盘，并运行对应 `req.capture` 或 `bug.capture` Workflow Sync。
 
 - MUST 遵守 `rules/agent-context-budget.md`；同一会话已读且无变更的规则和 Skill 用摘要承接，不重复全量读取。
-- 先从候选 Sprint 的 `sprint.yaml`、`release-note.md` 摘要和 Change/Issue 状态定位发布范围，不得全量读取所有 `iterations/**`、`issues/**` 或 `openspec/changes/archive/**`。
+- 先从候选 Sprint 的 `sprint.yaml`、`release-note.md` 摘要和 Change/Issue 状态定位发布范围，不得全量读取所有 `iterations/**`、`issues/**`、`openspec/archive/**` 或 legacy `openspec/changes/archive/**`。
 - 搜索历史归档时只按候选 Sprint / Change ID 精确定位；不要宽泛展开归档目录。
 - 命令输出优先摘要：版本、范围、门禁缺口、生成/更新文件、下一步。
 
@@ -47,7 +47,7 @@ iterations/change|archive/<sprint-id>/release-note.md
 iterations/change|archive/<sprint-id>/acceptance-report.md（门禁摘要）
 issues/requirements/{plan,review,archive}/<REQ>/trace.md（状态摘要）
 issues/bugs/{plan,review,archive}/<BUG>/trace.md（状态摘要）
-openspec/changes/<change-id>/trace.md 或 openspec/changes/archive/<date>-<change-id>/trace.md（存在时）
+openspec/changes/<change-id>/trace.md 或 openspec/archive/<date>-<change-id>/trace.md（存在时）
 src/shared/product-version.ts
 ```
 

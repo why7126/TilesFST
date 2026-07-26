@@ -79,7 +79,7 @@ openspec_changes:
 | 父需求 | `issues/requirements/archive/REQ-0006-tile-sku-management/` |
 | 需求 AC | AC-018、AC-037、FR-007 |
 | 业务流 | `issues/requirements/archive/REQ-0006-tile-sku-management/business-flow.md` §6 |
-| 参考修复 | `openspec/changes/archive/2026-06-20-fix-tile-category-enable-action/` |
+| 参考修复 | `openspec/archive/2026-06-20-fix-tile-category-enable-action/` |
 | 代码线索 | `src/web/src/pages/admin/TileSkuManagementPage.tsx`（L349–365） |
 | API | `src/web/src/features/admin/api/tile-skus-api.ts` |
 

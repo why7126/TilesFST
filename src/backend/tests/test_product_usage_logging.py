@@ -562,6 +562,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
     detail = client.get(f"/api/v1/admin/logs/{log_id}", headers=headers)
     assert detail.status_code == 200
     detail_data = detail.json()["data"]
+    assert detail_data["actor"]["fields"]["操作者"] == DEFAULT_ADMIN_USERNAME
     assert detail_data["task_trace"]["task_trace_id"] == task_trace_id
     assert detail_data["task_trace"]["parent_request_id"] == "req_task_trace_demo"
     related_ids = {trace["task_trace_id"] for trace in detail_data["related_task_traces"]}

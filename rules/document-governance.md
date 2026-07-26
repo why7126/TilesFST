@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-19 19:52:29
+updated_at: 2026-07-26 17:23:40
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -121,7 +121,8 @@ estimated_person_days: <number>
 
 - `openspec/specs/`：已生效能力；开发中不得直接修改。
 - `openspec/changes/`：开发中的需求、BUG 修复、技术改造。
-- `openspec/changes/archive/`：已完成变更。
+- `openspec/archive/`：已完成变更。
+- `openspec/changes/archive/`：禁止真实存在；仅允许作为历史兼容字符串出现在残留扫描、迁移工具或测试 fixture 中。
 
 以下变化必须创建 Change：新功能、行为性 BUG 修复、API/数据库/权限/Docker/环境变量/UI/上传存储/测试验收发布治理变化。
 
@@ -145,7 +146,9 @@ specs/
 implementation/
 ```
 
-归档时合并 delta spec 到 `openspec/specs/`，更新 Issue/Sprint 状态，并移动 Change；不得删除归档内容。正式 spec 正文使用中文，OpenSpec 关键字可保留英文；归档后清理脚手架占位文案。
+归档时合并 delta spec 到 `openspec/specs/`，更新 Issue/Sprint 状态，并移动 Change 到 `openspec/archive/YYYY-MM-DD-<change-id>/`；不得删除归档内容。正式 spec 正文使用中文，OpenSpec 关键字可保留英文；归档后清理脚手架占位文案。
+
+归档动作完成后 MUST 运行 `python scripts/validate-directory-structure.py` 或等价 CI 门禁。若发现 `openspec/changes/archive/` 真实目录存在，必须先迁移到 `openspec/archive/` 并删除空 legacy 目录，再继续 Workflow Sync、Issue promote 或 Sprint 收尾。
 
 ## 7. Workflow Sync（MUST）
 

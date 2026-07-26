@@ -4,6 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { TileSkuAdminItem } from '@/shared/api/generated';
+import {
+  TileSkuAdminItemMaterialCompleteness,
+  TileSkuAdminItemStatus,
+} from '@/shared/api/generated';
+
 import '../styles/tile-sku-management.css';
 import '../styles/user-management.css';
 
@@ -53,7 +59,17 @@ const uploadTileVideoMock = vi.mocked(uploadTileVideo);
 const createTileSkuMock = vi.mocked(createTileSku);
 const updateTileSkuMock = vi.mocked(updateTileSku);
 
-function editableSku(images: Array<{ object_key: string; url: string; is_main: boolean; sort_order?: number }>) {
+function editableSku(
+  images: Array<{ id?: number; object_key: string; url: string; is_main: boolean; sort_order?: number }>,
+): TileSkuAdminItem {
+  const normalizedImages = images.map((image, index) => ({
+    id: image.id ?? index + 1,
+    object_key: image.object_key,
+    url: image.url,
+    is_main: image.is_main,
+    sort_order: image.sort_order ?? index,
+  }));
+
   return {
     id: 99,
     name: '测试 SKU',
@@ -68,13 +84,15 @@ function editableSku(images: Array<{ object_key: string; url: string; is_main: b
     color_family: null,
     reference_price: 268,
     remark: null,
-    status: 'DRAFT',
-    main_image_url: images.find((img) => img.is_main)?.url ?? null,
-    image_count: images.length,
+    status: TileSkuAdminItemStatus.DRAFT,
+    main_image_url: normalizedImages.find((img) => img.is_main)?.url ?? null,
+    image_count: normalizedImages.length,
     video_count: 0,
-    has_main_image: images.some((img) => img.is_main),
-    material_completeness: images.some((img) => img.is_main) ? 'complete' : 'missing_main_image',
-    images,
+    has_main_image: normalizedImages.some((img) => img.is_main),
+    material_completeness: normalizedImages.some((img) => img.is_main)
+      ? TileSkuAdminItemMaterialCompleteness.complete
+      : TileSkuAdminItemMaterialCompleteness.missing_main_image,
+    images: normalizedImages,
     videos: [],
     created_at: '2026-06-27T00:00:00Z',
     updated_at: '2026-06-27T00:00:00Z',
@@ -147,8 +165,8 @@ describe('TileSkuFormModal', () => {
     uploadTileVideoMock.mockReset();
     createTileSkuMock.mockReset();
     updateTileSkuMock.mockReset();
-    createTileSkuMock.mockResolvedValue({ id: 1 });
-    updateTileSkuMock.mockResolvedValue({ id: 99 });
+    createTileSkuMock.mockResolvedValue(editableSku([]));
+    updateTileSkuMock.mockResolvedValue(editableSku([]));
   });
 
   it('defines scrollable modal body styles for the sku modal card', async () => {
@@ -189,31 +207,7 @@ describe('TileSkuFormModal', () => {
         <TileSkuFormModal
           open
           mode="edit"
-          sku={{
-            id: 99,
-            name: '测试 SKU',
-            sku_code: 'SKU-001',
-            brand_id: 1,
-            brand_name: '测试品牌',
-            category_id: 10,
-            category_name: '墙砖',
-            spec_id: 5,
-            size: '600×600mm',
-            surface_finish: '哑光',
-            color_family: null,
-            reference_price: 268,
-            remark: null,
-            status: 'DRAFT',
-            main_image_url: null,
-            image_count: 0,
-            video_count: 0,
-            has_main_image: false,
-            material_completeness: 'missing_main_image',
-            images: [],
-            videos: [],
-            created_at: '2026-06-27T00:00:00Z',
-            updated_at: '2026-06-27T00:00:00Z',
-          }}
+          sku={editableSku([])}
           onClose={vi.fn()}
           onSuccess={vi.fn()}
         />
@@ -416,6 +410,7 @@ describe('TileSkuFormModal', () => {
       value: { writeText },
     });
     createTileSkuMock.mockResolvedValue({
+      ...editableSku([]),
       id: 1,
       task_trace_id: 'task_sku_create_abcdef1234567890',
       task_type: 'sku_create',
@@ -629,29 +624,13 @@ describe('TileSkuFormModal', () => {
     const { container } = renderModal({
       mode: 'edit',
       sku: {
+        ...editableSku([]),
         id: 100,
         name: '历史 SKU',
         sku_code: 'SKU-LEGACY-001',
-        brand_id: 1,
-        brand_name: '测试品牌',
-        category_id: 10,
-        category_name: '墙砖',
         spec_id: null,
         size: '800×800mm',
-        surface_finish: '哑光',
-        color_family: null,
         reference_price: 100,
-        remark: null,
-        status: 'DRAFT',
-        main_image_url: null,
-        image_count: 0,
-        video_count: 0,
-        has_main_image: false,
-        material_completeness: 'missing_main_image',
-        images: [],
-        videos: [],
-        created_at: '2026-06-27T00:00:00Z',
-        updated_at: '2026-06-27T00:00:00Z',
       },
     });
 
@@ -667,29 +646,13 @@ describe('TileSkuFormModal', () => {
     const { container } = renderModal({
       mode: 'edit',
       sku: {
+        ...editableSku([]),
         id: 100,
         name: '历史 SKU',
         sku_code: 'SKU-LEGACY-001',
-        brand_id: 1,
-        brand_name: '测试品牌',
-        category_id: 10,
-        category_name: '墙砖',
         spec_id: null,
         size: '800×800mm',
-        surface_finish: '哑光',
-        color_family: null,
         reference_price: 100,
-        remark: null,
-        status: 'DRAFT',
-        main_image_url: null,
-        image_count: 0,
-        video_count: 0,
-        has_main_image: false,
-        material_completeness: 'missing_main_image',
-        images: [],
-        videos: [],
-        created_at: '2026-06-27T00:00:00Z',
-        updated_at: '2026-06-27T00:00:00Z',
       },
     });
 
@@ -763,6 +726,7 @@ describe('TileSkuFormModal', () => {
         ...editableSku([]),
         videos: [
           {
+            id: 1,
             object_key: 'tile-videos/existing.mp4',
             url: '/media/tile-videos/existing.mp4',
             file_name: 'existing.mp4',

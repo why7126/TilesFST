@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { DashboardMetrics } from '@/features/admin/components/DashboardMetrics';
 import { DashboardQuickActions } from '@/features/admin/components/DashboardQuickActions';
 import '@/features/admin/styles/admin-home.css';
@@ -5,6 +7,7 @@ import '@/features/admin/styles/user-management.css';
 import { getPaginationWindow } from '@/shared/lib/pagination-window';
 import { AdminListPage } from '@/shared/templates';
 import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
+import type { AdminListColumn } from '@shared/templates/types';
 
 import { DesignSection, DesignSubSection } from './components';
 
@@ -42,7 +45,9 @@ const adminListRows = [
   },
 ];
 
-const adminListColumns = [
+type AdminListRow = (typeof adminListRows)[number];
+
+const adminListColumns: AdminListColumn<AdminListRow, ReactNode>[] = [
   { key: 'name', header: '名称' },
   { key: 'category', header: '分类' },
   { key: 'status', header: '状态' },

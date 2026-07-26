@@ -132,7 +132,7 @@ python scripts/check-archived-path-residuals.py --sprint <sprint-id>
 
 - Exit code `0` means no stale `iterations/change/<sprint-id>/` or active `openspec/changes/<change-id>/` references were found in this Sprint scope.
 - Exit code `1` MUST block a silent success close-out. Report the file, line, old path, suggested path, and exact retry command from the residual report.
-- The check scope MUST come from `sprint.yaml` requirements / bugs / changes and Sprint four-piece documents; do not broad-scan all `issues/**` or `openspec/changes/archive/**`.
+- The check scope MUST come from `sprint.yaml` requirements / bugs / changes and Sprint four-piece documents; do not broad-scan all `issues/**`, `openspec/archive/**`, or legacy `openspec/changes/archive/**`.
 - Do not hand-edit workflow-sync marker blocks while fixing residual links.
 
 ## Final Step — Workflow Sync（MUST）

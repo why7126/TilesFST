@@ -36,7 +36,7 @@ status: completed
 - **类型**：Web 管理端 / Design System / admin-list 页面模板契约
 - **范围**：升级或重定义 `AdminListPage` 模板，覆盖标题、指标卡、筛选/搜索、列表/表格、分页和 sticky action column；扩展 `AdminListPageContent` 或等价类型；在 `/design-system` 增加 AdminListPage 验收样例。
 - **不包含**：不新增后端 API、数据库、MinIO、Docker Compose、店主 Web 或小程序能力；不直接重做 BUG-0055 已修复的 8 个页面；MetricCard 与分页窗口算法细节由 REQ-0029 承接。
-- **OpenSpec 状态**：Change `add-admin-list-page-contract` 已归档至 `openspec/changes/archive/2026-07-11-add-admin-list-page-contract/`。
+- **OpenSpec 状态**：Change `add-admin-list-page-contract` 已归档至 `openspec/archive/2026-07-11-add-admin-list-page-contract/`。
 - **验收重点**：模块顺序稳定；筛选变化/重置/每页条数变更回到第 1 页；分页 DOM 保留 `page-summary`、`page-right`、`page-buttons`、`page-btn`、`active` 或等价契约；sticky action column 统一；`/design-system` 样例展示正常、loading、empty、error、单页/多页边界；使用 semantic token 与 `cn()`。
 
 ### REQ-0029-admin-list-foundation-components 要点
@@ -54,7 +54,7 @@ status: completed
 - **类型**：API/docs governance / Web 代理策略 / 安全门禁
 - **范围**：将 `/docs`、`/redoc`、`/openapi.json`、Swagger UI 依赖资源、Vite dev proxy、Docker Nginx、生产反向代理、生产 `Try It Out` 禁用/只读策略写入接口文档页模板 checklist。
 - **不包含**：不重新设计 `/admin/api-docs` 页面；不新增业务 API；不改数据库；不开放生产 Swagger 在线调试；不新增店主 Web、小程序或未登录用户接口文档入口。
-- **OpenSpec 状态**：Change `update-api-docs-swagger-policy-checklist` 已归档至 `openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist/`。
+- **OpenSpec 状态**：Change `update-api-docs-swagger-policy-checklist` 已归档至 `openspec/archive/2026-07-11-update-api-docs-swagger-policy-checklist/`。
 - **验收重点**：后续 design/acceptance 固定包含 Swagger Web 代理与生产 Try It Out 策略；同源 `/docs` 不落入 SPA fallback；生产等价环境保持 `Try It Out` 禁用或只读；链接和文档不得泄露 token、DSN、MinIO 凭据或真实环境变量。
 
 ### REQ-0031-api-validation-envelope-governance 要点
@@ -73,7 +73,7 @@ status: completed
 - **现象**：`/sprint-archive` 应在归档前确认 Sprint 范围内所有 Change 的 `tasks.md` 均已完成，但当前流程缺少可执行硬门禁，可能遗漏未完成任务并继续归档。
 - **根因**：归档流程依赖人工阅读 Archive Queue Report，未调用会返回非零退出码的前置校验脚本；`workflow_sync` 能统计 task 进度，但不是归档前阻断点。
 - **修复范围**：新增 Sprint archive readiness 校验脚本，覆盖 active / archived change、未完成 task、缺失 `tasks.md`、缺失 Change 目录等 blocker；更新 `/sprint-archive` skill/命令文档并补 pytest。
-- **OpenSpec 状态**：Change `fix-sprint-archive-incomplete-tasks-gate` 已归档至 `openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/`；已通过 readiness gate、pytest、OpenSpec strict 与目录结构校验。
+- **OpenSpec 状态**：Change `fix-sprint-archive-incomplete-tasks-gate` 已归档至 `openspec/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/`；已通过 readiness gate、pytest、OpenSpec strict 与目录结构校验。
 
 ### BUG-0057-api-governance-tags-known-debt 要点
 
@@ -392,7 +392,7 @@ sprint-005
 | `issues/bugs/archive/BUG-0061-change-password-policy-error-message-unclear/` | BUG 包事实源 |
 | `openspec/changes/fix-user-password-copy-not-working/` | BUG-0059 修复 Change |
 | `openspec/changes/add-admin-list-foundation-components/` | REQ-0029 OpenSpec Change |
-| `openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` | BUG-0056 修复 Change 归档目录 |
+| `openspec/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` | BUG-0056 修复 Change 归档目录 |
 | `openspec/changes/fix-workflow-sync-check-time-drift-idempotency/` | BUG-0058 修复 Change |
 | `openspec/changes/fix-audit-log-request-id-copy-error/` | BUG-0060 修复 Change |
 | `openspec/changes/update-api-validation-envelope-governance/` | REQ-0031 OpenSpec Change |

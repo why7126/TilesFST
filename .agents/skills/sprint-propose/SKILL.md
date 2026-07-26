@@ -21,7 +21,7 @@ Use this skill when the user asks to run `/sprint-propose` or create/update a Sp
 - 复盘默认只读最近 1 份；只有 open 行动项跨 Sprint 复发或用户要求时读第 2 份。
 - `best-practices/` 只读取候选 REQ/BUG/Change 标签命中的文件。
 - 已存在 Sprint 时先读 `sprint.yaml` 和 `sprint.md` 的目标/Scope/知识库承接片段。
-- 搜索候选项默认排除 `openspec/changes/archive/**`；编号冲突只看目录名。
+- 搜索候选项默认排除 `openspec/archive/**` 与 legacy `openspec/changes/archive/**`；编号冲突只看目录名。
 - 命令输出优先 `max_output_tokens <= 8000`。
 
 ## Input

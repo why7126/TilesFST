@@ -36,7 +36,7 @@ python scripts/validate-sprint-archive-readiness.py --sprint sprint-005
 # 影响范围
 
 - 影响 `/opsx-archive`、`/sprint-archive` 后的归档审计和复盘追溯。
-- 影响 `openspec/changes/archive/**` 中缺少 `trace.md` 的历史归档包。
+- 影响 `openspec/archive/**` 中缺少 `trace.md` 的历史归档包。
 - 不影响后端 API、数据库、Web、小程序或管理端运行时功能。
 
 # 严重等级说明

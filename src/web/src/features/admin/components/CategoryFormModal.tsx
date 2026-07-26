@@ -50,7 +50,7 @@ export function CategoryFormModal({
       setName(category.name);
       setSortOrder(String(category.sort_order));
       setDescription(category.description ?? '');
-      setParentId(category.parent_id);
+      setParentId(category.parent_id ?? null);
     } else {
       setParentId(defaultParentId);
       setName('');

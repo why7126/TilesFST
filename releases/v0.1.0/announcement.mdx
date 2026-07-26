@@ -1,0 +1,72 @@
+---
+title: "TILESFST v0.1.0"
+description: "sprint-011 与 sprint-012 产品版本发布准备公告"
+---
+
+# TILESFST v0.1.0
+
+发布时间：2026-07-26 18:05:00
+
+关联 Sprint：sprint-011、sprint-012
+
+> 当前状态：发布准备已执行。OpenSpec、后端 pytest、Web TypeScript 项目级类型检查、Web Vitest、Web build、OpenAPI / Orval、API 标准、Docker Compose、数据库 schema、产品版本和公告安全校验已完成；Web tsc blocker 已关闭，等待最终发布确认。
+
+## 新增功能
+
+- 小程序商品详情页视频支持更清晰的全屏播放入口，并接入微信原生媒体预览菜单。
+- 管理端上传链路新增 Task Trace 与审计日志查看能力，可按 `task_trace_id` 串联长耗时任务节点。
+- 管理端日志审计操作者筛选支持按用户名称或账号搜索选择。
+- API 请求日志补齐统一 Request Snapshot，提升日志详情还原和错误排障能力。
+- Web 管理端、店主 Web 和微信小程序请求身份标准化，区分可信 `request_id` 与客户端请求标识。
+- Task Trace 支持主请求、子请求和 span 请求关联，并扩展到首批任务型接口。
+- 审计操作日志补齐任务链路关联字段，日志审计升级为链路观测仪表。
+
+## 修复 BUG
+
+- 修复生产管理端视频上传 99% 后返回 504 的问题。
+- 修复生产小程序 SKU 详情页视频播放启动慢的问题。
+- 修复生产管理端创建品牌类型 Banner 保存接口返回 500 的问题。
+- 修复小程序 SKU 详情页视频进入全屏后重新加载很久的问题。
+- 修复管理后台 SKU 视频上传长时间停留 99% 且状态不可感知的问题。
+
+## 发布注意事项
+
+- `PRODUCT_VERSION` 已更新为 `v0.1.0`。
+- 后端全量测试已通过：423 个用例通过、1 个跳过。
+- Web TypeScript 项目级类型检查已通过：`pnpm --dir src/web exec tsc --noEmit --ignoreDeprecations 6.0 --pretty false`。
+- Web Vitest 已通过：56 个文件、292 个用例通过；Web build 已通过。
+- OpenAPI / Orval 已重新生成并通过 API 标准校验。
+- Docker Compose 三套配置解析通过。
+- 数据库 schema 文件可解析，MySQL schema drift 相关测试通过；发布前仍应按数据库备份与回滚预案执行目标环境确认。
+- Web `tsc --noEmit` blocker 已关闭，修复范围为项目级类型声明、测试 fixture 与 Orval 契约字段、页面状态类型收敛。
+
+## 已知问题
+
+- 生产 smoke 和小程序真机 evidence 仍建议在上线 sign-off 阶段补齐。
+- 未执行真实 Mintlify preview，本次采用项目发布校验脚本完成静态 MDX 安全检查。
+
+## 升级步骤
+
+1. 复核 `v0.1.0` 发布门禁证据。
+2. 发布前完成数据库备份，复核 MySQL schema drift 或目标 MySQL smoke 证据。
+3. 部署新版本。
+4. 验证管理端上传、品牌 Banner、日志审计、链路观测和小程序 SKU 视频核心路径。
+
+## 回滚说明
+
+1. 回退到上一 Git tag 或上一部署包。
+2. 恢复上一版本环境变量、Web/Nginx/Compose 配置和静态资源。
+3. 按数据库备份与回滚说明处理 MySQL schema 或数据变更。
+4. 复跑健康检查、管理端 smoke、小程序关键页面 smoke 和对象读取验证。
+
+## 影响范围
+
+| 范围 | 影响 |
+|---|---|
+| Web 管理端 | 上传体验、品牌 Banner、日志审计、操作者筛选、Task Trace 与链路观测 |
+| 店主 Web | 普通 API 请求身份与 Request Snapshot 兼容 |
+| 小程序 | SKU 视频播放、全屏切换、媒体预览菜单、请求身份 |
+| 后端 | 上传代理、媒体读取、请求日志、Task Trace、审计日志、聚合 API 与脱敏策略 |
+| 数据库 | SQLite/MySQL 日志、Task Trace、审计日志和 Banner 兼容迁移 |
+| 对象存储 | 单桶策略不变，增强受控读取、Range/HEAD 与上传链路追踪 |
+| Docker | Web Nginx 上传配置、超时/body size 配置与 Docker Web 入口 smoke |

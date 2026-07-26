@@ -48,7 +48,7 @@ src/shared/product-version.ts
 iterations/change|archive/<sprint-id>/sprint.yaml
 iterations/change|archive/<sprint-id>/release-note.md
 iterations/change|archive/<sprint-id>/acceptance-report.md
-openspec/changes/archive/<date>-<change-id>/trace.md 或归档验证摘要
+openspec/archive/<date>-<change-id>/trace.md 或归档验证摘要
 issues/requirements/{archive,review,plan}/<REQ>/trace.md
 issues/bugs/{archive,review,plan}/<BUG>/trace.md
 ```

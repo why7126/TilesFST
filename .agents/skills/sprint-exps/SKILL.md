@@ -85,7 +85,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
     - 第四张：模型调用次数 `model_call_count`。
   - 四张矩阵表 MUST 使用相同结构：第一列为对象，表格最上方 MUST 是 `Total` 汇总行；之后纵向按 Sprint、REQ、BUG 排列（例如 `sprint-010` / `REQ-0001-*` / `BUG-0001-*`，展示时 MAY 保留 canonical ID）；横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 展示。
   - 矩阵口径 MUST 说明：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。
-  - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
+  - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/archive/**`、legacy `openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
   - MUST 优先引用自动 Fact Sheet summary 的 `token_risks`、Change/tasks 计数、四件套行数、warnings 与 evidence hint 计数，减少人工展开四件套、trace 与 tasks 的 token 消耗。
   - MUST 给出优化方案，至少包含：读取边界、搜索排除、输出截断、diff/stat 优先、失败日志摘要、复用已读规则摘要、按 Change 分段处理、必要时沉淀脚本或校验 gate。
   - MUST 将可执行优化项写入行动项表，建议下一命令可用 `/req-capture`、`/bug-capture`、`/opsx-propose` 或下一 Sprint 的 `/sprint-propose`。

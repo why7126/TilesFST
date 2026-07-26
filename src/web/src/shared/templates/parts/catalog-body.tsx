@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import { cn } from '@/shared/lib/cn';
 import { ProductGrid } from '@/shared/business/product-grid';
 import type { ProductGridProps } from '@/shared/business/product-grid';

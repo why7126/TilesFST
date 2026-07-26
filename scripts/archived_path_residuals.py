@@ -67,11 +67,16 @@ def active_change_path(change_id: str) -> str:
 
 
 def archived_change_dir(root: Path, change_id: str) -> Path | None:
-    archive_root = root / "openspec" / "changes" / "archive"
-    if not archive_root.exists():
-        return None
-    matches = sorted(archive_root.glob(f"*-{change_id}"))
-    return matches[-1] if matches else None
+    for archive_root in (
+        root / "openspec" / "archive",
+        root / "openspec" / "changes" / "archive",
+    ):
+        if not archive_root.exists():
+            continue
+        matches = sorted(archive_root.glob(f"*-{change_id}"))
+        if matches:
+            return matches[-1]
+    return None
 
 
 def load_sprint_record(root: Path, sprint_id: str) -> collect.SprintRecord:
@@ -148,6 +153,16 @@ def expected_paths(root: Path, sprint: collect.SprintRecord) -> list[ExpectedPat
                 new_path=f"{rel(archived, root)}/" if archived else None,
             )
         )
+        if archived and "openspec/changes/archive" not in rel(archived, root):
+            legacy_old_path = f"openspec/changes/archive/{archived.name}/"
+            expectations.append(
+                ExpectedPath(
+                    kind="legacy-change-archive-path",
+                    target=change_id,
+                    old_path=legacy_old_path,
+                    new_path=f"{rel(archived, root)}/",
+                )
+            )
     return expectations
 
 

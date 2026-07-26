@@ -77,7 +77,7 @@ openspec_changes:
 | 验收 | `acceptance.md` |
 | 评审 | `review.md` |
 | 参考 BUG | `issues/bugs/archive/BUG-0003-brand-image-display-layout-shift/` |
-| 参考 Change | `openspec/changes/archive/2026-06-26-fix-brand-image-display-layout-shift/` |
+| 参考 Change | `openspec/archive/2026-06-26-fix-brand-image-display-layout-shift/` |
 | 代码线索 | `UserManagementPage.tsx`、`TileCategoryManagementPage.tsx`、`TileSkuManagementPage.tsx`（`.admin-notice`）；`BrandManagementPage.tsx`（`.admin-toast-region`） |
 | 样式 | `admin-home.css`（`.admin-notice`）、`brand-management.css`（`.admin-toast-*`） |
 

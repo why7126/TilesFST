@@ -906,7 +906,7 @@ class LogService:
             actor=LogDetailSection(
                 title="操作者与客户端",
                 fields={
-                    "操作者": record.actor_name or record.actor_role or "anonymous",
+                    "操作者": record.actor_username or record.actor_role or "anonymous",
                     "User ID": record.actor_user_id or "-",
                     "客户端": record.client_type or "-",
                     "Client Request ID": record.client_request_id or metadata.get("client_request_id", "-") or "-",

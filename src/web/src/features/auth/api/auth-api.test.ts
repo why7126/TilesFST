@@ -29,9 +29,11 @@ describe('auth api client request identity', () => {
       },
     });
 
-    expect(captured?.headers?.Authorization).toBe('Bearer token-123');
-    expect(captured?.headers?.['x-client-type']).toBe('web_admin');
-    expect(captured?.headers?.['x-client-request-id']).toMatch(/^web:/);
+    expect(captured).toBeTruthy();
+    const headers = captured!.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer token-123');
+    expect(headers['x-client-type']).toBe('web_admin');
+    expect(headers['x-client-request-id']).toMatch(/^web:/);
   });
 
   it('uses web_catalog outside admin routes', () => {

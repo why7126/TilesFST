@@ -109,97 +109,97 @@
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-06-29-add-production-mysql-deployment"
+      "archive_dir": "openspec/archive/2026-06-29-add-production-mysql-deployment"
     },
     {
       "id": "update-admin-superuser-protection",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-06-30-update-admin-superuser-protection"
+      "archive_dir": "openspec/archive/2026-06-30-update-admin-superuser-protection"
     },
     {
       "id": "fix-user-create-validation-message-unclear",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-06-30-fix-user-create-validation-message-unclear"
+      "archive_dir": "openspec/archive/2026-06-30-fix-user-create-validation-message-unclear"
     },
     {
       "id": "add-admin-api-docs-menu",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-03-add-admin-api-docs-menu"
+      "archive_dir": "openspec/archive/2026-07-03-add-admin-api-docs-menu"
     },
     {
       "id": "add-api-docs-swagger-detail-link",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-03-add-api-docs-swagger-detail-link"
+      "archive_dir": "openspec/archive/2026-07-03-add-api-docs-swagger-detail-link"
     },
     {
       "id": "fix-api-docs-swagger-ui-link-wrong",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong"
+      "archive_dir": "openspec/archive/2026-07-01-fix-api-docs-swagger-ui-link-wrong"
     },
     {
       "id": "fix-api-docs-metric-cards-inconsistent",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-02-fix-api-docs-metric-cards-inconsistent"
+      "archive_dir": "openspec/archive/2026-07-02-fix-api-docs-metric-cards-inconsistent"
     },
     {
       "id": "fix-api-docs-list-layout-pagination-inconsistent",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-02-fix-api-docs-list-layout-pagination-inconsistent"
+      "archive_dir": "openspec/archive/2026-07-02-fix-api-docs-list-layout-pagination-inconsistent"
     },
     {
       "id": "update-brand-logo-fst-favicon",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-02-update-brand-logo-fst-favicon"
+      "archive_dir": "openspec/archive/2026-07-02-update-brand-logo-fst-favicon"
     },
     {
       "id": "add-product-release-management",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-02-add-product-release-management"
+      "archive_dir": "openspec/archive/2026-07-02-add-product-release-management"
     },
     {
       "id": "add-product-usage-logging",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-03-add-product-usage-logging"
+      "archive_dir": "openspec/archive/2026-07-03-add-product-usage-logging"
     },
     {
       "id": "fix-admin-content-padding-too-large",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-03-fix-admin-content-padding-too-large"
+      "archive_dir": "openspec/archive/2026-07-03-fix-admin-content-padding-too-large"
     },
     {
       "id": "fix-admin-list-layout-unification",
       "sprint": "sprint-004",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-04-fix-admin-list-layout-unification"
+      "archive_dir": "openspec/archive/2026-07-04-fix-admin-list-layout-unification"
     }
   ],
   "gates": {
     "openspec_archive": {
       "status": "pass",
-      "evidence": "2026-07-04 08:19:15: sprint-004 状态为 completed/archive；7 个 REQ 与 6 个 BUG 均位于 issues/*/archive；13/13 formal-scope Change 均匹配 openspec/changes/archive 下日期前缀归档目录。"
+      "evidence": "2026-07-04 08:19:15: sprint-004 状态为 completed/archive；7 个 REQ 与 6 个 BUG 均位于 issues/*/archive；13/13 formal-scope Change 均匹配 openspec/archive 下日期前缀归档目录。"
     },
     "tests": {
       "status": "pass",

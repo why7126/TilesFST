@@ -192,13 +192,13 @@ sprint-007
 - `iterations/archive/sprint-007/release-note.md`
 - `iterations/archive/sprint-007/acceptance-report.md`
 - `issues/requirements/archive/REQ-0036-clipboard-helper-best-practice-docs/`
-- `openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs/`
+- `openspec/archive/2026-07-11-add-clipboard-helper-best-practice-docs/`
 - `issues/requirements/archive/REQ-0035-ai-usage-snapshot-sprint-close-exps/`
-- `openspec/changes/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps/`
+- `openspec/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps/`
 - `issues/requirements/archive/REQ-0037-auto-token-fact-source-for-workflow-commands/`
-- `openspec/changes/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands/`
+- `openspec/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands/`
 - `issues/requirements/archive/REQ-0038-brand-certificate-management/`
-- `openspec/changes/archive/2026-07-15-add-brand-certificate-management/`
+- `openspec/archive/2026-07-15-add-brand-certificate-management/`
 - `docs/knowledge-base/retrospectives/sprint-006-retrospective.md`
 - `docs/knowledge-base/retrospectives/sprint-007-retrospective.md`
 - `issues/requirements/archive/REQ-0020-theme-comfort-refine/acceptance.md`

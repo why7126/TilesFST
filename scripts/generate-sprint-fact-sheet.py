@@ -74,7 +74,13 @@ def change_dir_for(root: Path, change: collect.ChangeRecord) -> Path | None:
     if change.location == "active":
         return root / "openspec" / "changes" / change.change_id
     if change.location == "archived" and change.archive_dir:
-        return root / "openspec" / "changes" / "archive" / change.archive_dir
+        canonical = root / "openspec" / "archive" / change.archive_dir
+        if canonical.exists():
+            return canonical
+        legacy = root / "openspec" / "changes" / "archive" / change.archive_dir
+        if legacy.exists():
+            return legacy
+        return canonical
     return None
 
 

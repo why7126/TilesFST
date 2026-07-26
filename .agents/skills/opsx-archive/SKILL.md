@@ -52,12 +52,14 @@ openspec status --change "<change-id>" --json
 | Task status | `- [ ]` exists => warn + require explicit user confirmation |
 | Delta spec | if `specs/` exists, assess ADDED/MODIFIED/REMOVED before moving |
 | MODIFIED title | matching `openspec/specs/<capability>/spec.md` requirement title MUST exist |
-| Archive target | `openspec/changes/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
+| Archive target | `openspec/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
+| Legacy archive root | `openspec/changes/archive/` MUST NOT exist before or after archive; if present, stop and migrate its children to `openspec/archive/` first |
 | Archive evidence | if a historical archived Change lacks `trace.md`, it MUST contain a complete `## 归档验证摘要` fallback in proposal/design/tasks before Sprint close readiness can pass |
 
 ## Steps
 
 1. Resolve change and verify active directory exists.
+   - Also verify `openspec/changes/archive/` does not exist as a real directory. Compatibility references in scripts/tests are allowed; the filesystem path is not.
 2. Count tasks and artifact status; stop on incomplete items unless user confirms.
 3. Assess delta specs:
    - no delta specs => archive as metadata-only change;
@@ -65,19 +67,21 @@ openspec status --change "<change-id>" --json
    - prefer `openspec archive "<change-id>" -y` for sync + move.
 4. If CLI is unavailable, manual fallback is allowed only after delta self-check:
    - merge delta into `openspec/specs/` according to OpenSpec semantics;
-   - move to `openspec/changes/archive/YYYY-MM-DD-<change-id>/`.
+   - move to `openspec/archive/YYYY-MM-DD-<change-id>/`.
 5. Update related issue/change trace only through workflow sync/promote scripts where possible.
 
 ## Final Steps（MUST）
 
-Run these commands strictly sequentially. Do not use parallel execution or `multi_tool_use.parallel` for Workflow Sync and issue promotion: promotion depends on the files written by Workflow Sync.
+Run these commands strictly sequentially. Do not use parallel execution or `multi_tool_use.parallel` for directory validation, Workflow Sync and issue promotion: each step depends on the files written by the previous step, and issue promotion depends on the files written by Workflow Sync.
 
 ```bash
+python scripts/validate-directory-structure.py
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
 python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
 ```
 
-- Both exit codes MUST be `0`.
+- All exit codes MUST be `0`.
+- Directory validation MUST fail if `openspec/changes/archive/` exists. Do not continue by treating it as a historical archive location; migrate to `openspec/archive/` first.
 - Print summary Workflow Sync Report and Promote Issue Stage report; use `--output detail` only for debugging.
 - `promote-issues-for-archive.py` includes the issue subdocument status gate. If it reports `Issue Subdocument Status Gate` blockers, stop and reconcile the listed child Markdown `status` values before retrying; do not move REQ/BUG packages to `archive/` with residual `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` or equivalent non-closed states.
 - Single REQ/BUG promote after `/opsx-archive <change-id>` MUST NOT be blocked solely because the containing Sprint is still planning/in_progress. Sprint completion remains a `/sprint-archive` gate, not a single Issue archive gate.

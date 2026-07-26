@@ -8,11 +8,11 @@ status: completed
 lifecycle_stage: archive
 iteration: sprint-000
 change_id: build-api-standard
-openspec_archive: openspec/changes/archive/2026-06-14-build-api-standard/
+openspec_archive: openspec/archive/2026-06-14-build-api-standard/
 ```
 
 ## 关联
 
 - `rules/api.md`
 - `openspec/specs/api-governance/spec.md`
-- `openspec/changes/archive/2026-06-14-build-api-standard/`
+- `openspec/archive/2026-06-14-build-api-standard/`

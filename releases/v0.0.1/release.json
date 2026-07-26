@@ -152,7 +152,7 @@
   "gates": {
     "openspec_archive": {
       "status": "pass",
-      "evidence": "2026-07-02 16:30: all formal-scope changes matched openspec/changes/archive date-prefixed archive directories; openspec validate --all --strict passed with 21 items."
+      "evidence": "2026-07-02 16:30: all formal-scope changes matched openspec/archive date-prefixed archive directories; openspec validate --all --strict passed with 21 items."
     },
     "tests": {
       "status": "pass",

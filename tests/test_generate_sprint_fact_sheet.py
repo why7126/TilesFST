@@ -59,7 +59,7 @@ def write_issue(root: Path, base: str, issue_id: str, trace: str) -> None:
 
 
 def write_change(root: Path) -> None:
-    change_dir = root / "openspec" / "changes" / "archive" / "2026-07-02-add-demo"
+    change_dir = root / "openspec" / "archive" / "2026-07-02-add-demo"
     change_dir.mkdir(parents=True)
     (change_dir / "tasks.md").write_text("- [x] implement\n- [x] test\n", encoding="utf-8")
     (change_dir / "trace.md").write_text("---\nstatus: done\n---\n", encoding="utf-8")
@@ -216,7 +216,7 @@ def test_render_markdown_includes_evidence_hints(tmp_path: Path) -> None:
 
     assert "# Sprint Fact Sheet: sprint-999" in markdown
     assert "## Evidence Hints" in markdown
-    assert "openspec/changes/archive/2026-07-02-add-demo/tasks.md" in markdown
+    assert "openspec/archive/2026-07-02-add-demo/tasks.md" in markdown
 
 
 def test_fact_sheet_exposes_archived_path_residual_warnings(tmp_path: Path) -> None:

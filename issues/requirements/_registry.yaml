@@ -4,37 +4,37 @@ next_id: 77
 entries:
   - id: REQ-0076-observability-dashboard
     title: 日志审计升级为链路观测仪表
-    status: in_sprint
+    status: done
     iteration: sprint-012
     created: "2026-07-26 12:49:31"
     parent_requirement:
   - id: REQ-0075-audit-log-task-trace-linking
     title: 审计操作日志补齐任务链路关联字段
-    status: in_sprint
+    status: done
     iteration: sprint-012
     created: "2026-07-26 12:49:31"
     parent_requirement:
   - id: REQ-0074-task-trace-coverage-expansion
     title: 任务型接口全面接入 Task Trace
-    status: in_sprint
+    status: done
     iteration: sprint-012
     created: "2026-07-26 12:49:31"
     parent_requirement:
   - id: REQ-0073-task-trace-parent-request-model
     title: Task Trace 建立主请求与子请求强关联模型
-    status: in_sprint
+    status: done
     iteration: sprint-012
     created: "2026-07-26 12:49:31"
     parent_requirement:
   - id: REQ-0072-client-request-identity-standard
     title: 前台后台与小程序统一客户端请求标识
-    status: in_sprint
+    status: done
     iteration: null
     created: "2026-07-26 12:49:31"
     parent_requirement:
   - id: REQ-0071-request-snapshot-logging
     title: API 请求日志补齐完整请求快照
-    status: in_sprint
+    status: done
     iteration: sprint-012
     created: "2026-07-26 12:49:31"
     parent_requirement:

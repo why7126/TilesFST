@@ -74,7 +74,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 ### 优化建议
 
 1. **把高 token 命令拆成摘要优先**：Fact Sheet、Workflow Sync、AI usage hook 成功路径只输出 status、计数、warning 与 recommended_action。
-2. **继续控制 archive 读取边界**：复盘和 close 命令从 `sprint.yaml` 精确解析 Change archive path，不全扫 `openspec/changes/archive/**`。
+2. **继续控制 archive 读取边界**：复盘和 close 命令从 `sprint.yaml` 精确解析 Change archive path，不全扫 `openspec/archive/**`。
 3. **XL 业务能力前置拆层验收**：后续 DB/API/上传/Web 同时出现时，在 tasks 中强制分层验证和失败日志摘要。
 4. **归档后自动修正文档路径**：Sprint archive 或 exps 可检查四件套中 `iterations/change/<sprint>` 的残留引用。
 
@@ -109,7 +109,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 | 品牌证书管理全链路 | high | `REQ-0038` 覆盖 DB/API/上传/Orval/Web/Docker，25 tasks | 按 DB/API、上传、Orval/Web、Docker 边界分段验证；测试失败只贴关键失败段 |
 | Sprint 四件套 | high | Fact Sheet 标记 `sprint.md` >= 200 行 | `/sprint-exps` 默认读自动 Fact Sheet；只有 warnings/needs_detail 时分段回读 |
 | OpenSpec changes | medium | 4 个 Change，73/73 tasks | 复盘只引用 Change 计数、状态和 archive path，不复制 tasks 原文 |
-| Archive lookup | medium | Fact Sheet 标记 archive lookup 风险 | 从 `sprint.yaml` 解析精确 archive 目录，默认排除 `openspec/changes/archive/**` 宽泛搜索 |
+| Archive lookup | medium | Fact Sheet 标记 archive lookup 风险 | 从 `sprint.yaml` 解析精确 archive 目录，默认排除 `openspec/archive/**` 宽泛搜索 |
 | 规则与 Skill 读取 | medium | AGENTS、通用 rules、Sprint skill 是命令前置要求 | 同一会话复用已读规则摘要；仅在文件变更或任务类型切换时补读 |
 | Workflow Sync / 校验输出 | medium | close 和 archive 类命令会产生 updated/skipped、readiness、validate 输出 | 成功路径保留摘要和计数；失败路径再展开具体 marker、文件和短片段 |
 
@@ -118,7 +118,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 | 行为 | 结论 | 说明 |
 |------|------|------|
 | Fact Sheet 优先 | 符合 | 先运行 `generate-sprint-fact-sheet.py --json`，并使用 `warnings` / `needs_detail` 决定回读范围 |
-| 搜索排除 | 符合 | 复盘阶段没有全量读取 `openspec/changes/archive/**`、generated、node_modules、dist |
+| 搜索排除 | 符合 | 复盘阶段没有全量读取 `openspec/archive/**`、generated、node_modules、dist |
 | 分段读取 | 符合 | 只读取知识库索引、Sprint 006 样例和 Sprint 007 相关片段 |
 | 大输出处理 | 基本符合 | Fact Sheet 输出较长但结构化；后续 hook 应继续压缩为紧凑 summary |
 | 精确 token 计量 | 符合 | 本 Sprint 已提供 actual snapshot，未使用 estimated fallback |

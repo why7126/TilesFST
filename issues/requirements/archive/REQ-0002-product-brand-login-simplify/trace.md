@@ -55,7 +55,7 @@ openspec_changes:
   - change_id: update-tilesfst-login-simplify
     type: update
     status: archived
-    archive_path: openspec/changes/archive/2026-06-14-update-tilesfst-login-simplify/
+    archive_path: openspec/archive/2026-06-14-update-tilesfst-login-simplify/
     requirement_id: REQ-0002-product-brand-login-simplify
     modified_capabilities:
       - web-client
@@ -63,7 +63,7 @@ openspec_changes:
 
 | 阶段 | 路径 | 状态 |
 |---|---|---|
-| Change | `openspec/changes/archive/2026-06-14-update-tilesfst-login-simplify/` | archived |
+| Change | `openspec/archive/2026-06-14-update-tilesfst-login-simplify/` | archived |
 | 正式 Spec | `openspec/specs/web-client/spec.md` | 已更新 |
 
 ## 4. 冲突决议（相对 REQ-0001 原型）

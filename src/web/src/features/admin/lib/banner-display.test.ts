@@ -69,7 +69,15 @@ describe('banner-display helpers', () => {
 
   it('extracts main image from sku detail when list item has empty images', () => {
     const result = extractSkuMainImage({
-      images: [{ id: 1, object_key: 'images/default/sku/main.webp', url: '/media/main.webp', is_main: true }],
+      images: [
+        {
+          id: 1,
+          object_key: 'images/default/sku/main.webp',
+          url: '/media/main.webp',
+          is_main: true,
+          sort_order: 0,
+        },
+      ],
       main_image_url: '/media/fallback.webp',
     });
     expect(result.objectKey).toBe('images/default/sku/main.webp');

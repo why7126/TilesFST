@@ -136,7 +136,6 @@ export function BrandManagementPage() {
   };
 
   const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const statusConfirmIsEnable = statusConfirmTarget?.status === 'DISABLED';
   const rows = data?.items ?? [];
 

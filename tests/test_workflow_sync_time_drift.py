@@ -706,7 +706,7 @@ related_change: fix-example
         encoding="utf-8",
     )
 
-    archived_change = tmp_path / "openspec/changes/archive/2026-07-03-fix-example"
+    archived_change = tmp_path / "openspec/archive/2026-07-03-fix-example"
     archived_change.mkdir(parents=True)
     (archived_change / "tasks.md").write_text("- [x] Done\n", encoding="utf-8")
     (archived_change / "trace.md").write_text(

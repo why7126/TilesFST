@@ -183,7 +183,7 @@ openspec_changes:
 
 - `.agents/skills/req-complete/SKILL.md`
 - `.agents/skills/opsx-apply/SKILL.md`、`opsx-archive.md`、`opsx-explore.md`
-- 归档样例：`openspec/changes/archive/`
+- 归档样例：`openspec/archive/`
 
 ---
 

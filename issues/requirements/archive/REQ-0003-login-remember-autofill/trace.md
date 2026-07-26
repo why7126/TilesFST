@@ -184,7 +184,7 @@ impact:
 | 2026-06-15 | `/requirement-to-change` | 统一编号、补 trace 分析、test-plan |
 | 2026-06-15 | `/requirement-to-opsx` | 创建 `add-login-remember-autofill` OpenSpec |
 | 2026-06-15 | 纳入 sprint-002 | 更新 `iterations/archive/sprint-002/` 四件套与本 trace |
-| 2026-06-20 | opsx-archive | 归档至 `openspec/changes/archive/2026-06-20-add-login-remember-autofill/` |
+| 2026-06-20 | opsx-archive | 归档至 `openspec/archive/2026-06-20-add-login-remember-autofill/` |
 
 ---
 

@@ -76,7 +76,7 @@ openspec_changes:
 | workaround | `workaround.md` |
 | acceptance | `acceptance.md` |
 | review | `review.md` |
-| 归档 Change | `openspec/changes/archive/2026-06-26-fix-object-storage-legacy-upload-residue/` |
+| 归档 Change | `openspec/archive/2026-06-26-fix-object-storage-legacy-upload-residue/` |
 | 正式 spec | `openspec/specs/object-storage/spec.md` |
 
 ## 5. 变更记录

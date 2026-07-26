@@ -36,7 +36,9 @@ export function TileSkuManagementPage() {
   const [brandId, setBrandId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('');
-  const [materialCompleteness, setMaterialCompleteness] = useState('');
+  const [materialCompleteness, setMaterialCompleteness] = useState<
+    (typeof MATERIAL_COMPLETENESS_OPTIONS)[number]['value']
+  >('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [data, setData] = useState<TileSkuListData | null>(null);
@@ -283,7 +285,9 @@ export function TileSkuManagementPage() {
               className="select"
               value={materialCompleteness}
               onChange={(e) => {
-                setMaterialCompleteness(e.target.value);
+                setMaterialCompleteness(
+                  e.target.value as (typeof MATERIAL_COMPLETENESS_OPTIONS)[number]['value'],
+                );
                 setPage(1);
               }}
             >

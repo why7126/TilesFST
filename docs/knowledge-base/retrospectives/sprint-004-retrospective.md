@@ -75,7 +75,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 ### 做得好的
 
-1. **归档闭环完整**：13 个 Change 全部进入 `openspec/changes/archive/`，Sprint 迁入 `iterations/archive/sprint-004/`，release-note 标记为 published。
+1. **归档闭环完整**：13 个 Change 全部进入 `openspec/archive/`，Sprint 迁入 `iterations/archive/sprint-004/`，release-note 标记为 published。
 2. **评审门禁基本有效**：BUG-0051 首次纳入时曾因未评审只进入延后项，评审通过后才写入正式范围。
 3. **跨 Sprint 知识有被引用**：REQ-0019、REQ-0022、REQ-0023、REQ-0024 均显式引用 `admin-list-page-consistency.md` 或 sprint-003 复盘，并写入横切 AC。
 4. **高风险基础设施有 smoke**：REQ-0018 记录了 MySQL schema init、admin seed、登录、MinIO 上传和 `/media/{object_key}` 读取验证。

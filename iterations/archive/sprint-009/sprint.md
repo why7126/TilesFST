@@ -344,9 +344,9 @@ sprint-009
 | REQ requirement | `issues/requirements/archive/REQ-0062-admin-banner-placement-scope/requirement.md` |
 | REQ acceptance | `issues/requirements/archive/REQ-0062-admin-banner-placement-scope/acceptance.md` |
 | 原型 | `issues/requirements/archive/REQ-0062-admin-banner-placement-scope/prototype/web/` |
-| Change | `openspec/changes/archive/2026-07-20-add-miniapp-share-add-guide/` |
-| Change | `openspec/changes/archive/2026-07-20-fix-miniapp-sku-detail-video-url/` |
-| Change | `openspec/changes/archive/2026-07-20-update-admin-banner-placement-scope/` |
+| Change | `openspec/archive/2026-07-20-add-miniapp-share-add-guide/` |
+| Change | `openspec/archive/2026-07-20-fix-miniapp-sku-detail-video-url/` |
+| Change | `openspec/archive/2026-07-20-update-admin-banner-placement-scope/` |
 | 复盘 | `docs/knowledge-base/retrospectives/sprint-009-retrospective.md` |
 
 ## 11. 变更记录

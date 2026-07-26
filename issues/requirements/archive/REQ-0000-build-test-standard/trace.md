@@ -15,7 +15,7 @@ related_changes:
 ## 关联
 
 - `rules/testing.md`
-- `openspec/changes/archive/2026-06-14-build-test-framework/`
+- `openspec/archive/2026-06-14-build-test-framework/`
 - 正式 Spec: `openspec/specs/testing/spec.md`
 
 ## 历史

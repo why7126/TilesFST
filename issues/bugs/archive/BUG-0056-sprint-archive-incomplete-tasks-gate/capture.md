@@ -27,5 +27,5 @@ related_bug:
 # 附件
 
 - sprint-004 归档后仍存在未完成 task 的历史样本：
-  - `openspec/changes/archive/2026-07-03-add-product-usage-logging/tasks.md`
-  - `openspec/changes/archive/2026-07-03-fix-admin-content-padding-too-large/tasks.md`
+  - `openspec/archive/2026-07-03-add-product-usage-logging/tasks.md`
+  - `openspec/archive/2026-07-03-fix-admin-content-padding-too-large/tasks.md`

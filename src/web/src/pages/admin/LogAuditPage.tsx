@@ -1,7 +1,7 @@
-import { Copy, RotateCcw, X } from 'lucide-react';
+import { Copy, Info, RotateCcw, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { fetchLogDetail, fetchLogObservability, fetchLogs, type LogObservabilityQuery, type LogQuery } from '@/features/admin/api/logs-api';
+import { fetchLogDetail, fetchLogs, type LogQuery } from '@/features/admin/api/logs-api';
 import { fetchUsers } from '@/features/admin/api/users-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
 import { copyTextToClipboard } from '@/shared/lib/clipboard';
@@ -16,12 +16,6 @@ import type {
   LogDetailSection,
   LogListData,
   LogListItem,
-  LogObservabilityData,
-  ObservabilityDistributionItem,
-  ObservabilityEndpointItem,
-  ObservabilitySlowRequestItem,
-  ObservabilitySpanItem,
-  ObservabilityTaskItem,
   RequestSnapshotData,
   TaskTraceData,
   UserAdminItem,
@@ -109,23 +103,6 @@ function buildQuery(filters: Filters, page: number, pageSize: number): LogQuery 
     path_or_request_id: pathOrRequestId || undefined,
     task_trace_id: taskTraceId || undefined,
     ...timeRangeToParams(filters.timeRange),
-  };
-}
-
-function buildObservabilityQuery(filters: Filters): LogObservabilityQuery {
-  const statusFilter = parseStatusFilter(filters.status);
-  const pathOrRequestId = filters.pathOrRequestId.trim();
-  const taskTraceId = filters.taskTraceId.trim();
-  const timeRange = timeRangeToParams(filters.timeRange);
-  return {
-    log_type: filters.logType === ALL_VALUE ? undefined : filters.logType as LogObservabilityQuery['log_type'],
-    status_code: statusFilter.status_code,
-    result: statusFilter.result,
-    path_or_request_id: pathOrRequestId || undefined,
-    request_id: pathOrRequestId.startsWith('req_') ? pathOrRequestId : undefined,
-    task_trace_id: taskTraceId || undefined,
-    start_time: timeRange.start_time,
-    end_time: timeRange.end_time,
   };
 }
 
@@ -252,29 +229,6 @@ function formatMetric(value?: number) {
   return typeof value === 'number' ? value.toLocaleString('en-US') : '--';
 }
 
-function formatPercent(value?: number | null) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return '--';
-  }
-  return `${Math.round(value * 1000) / 10}%`;
-}
-
-function maxDistributionCount(items: ObservabilityDistributionItem[]) {
-  return Math.max(1, ...items.map((item) => item.count));
-}
-
-function isSlowRequestItem(item: ObservabilitySlowRequestItem | ObservabilityTaskItem | ObservabilitySpanItem): item is ObservabilitySlowRequestItem {
-  return 'log_id' in item;
-}
-
-function isTaskItem(item: ObservabilitySlowRequestItem | ObservabilityTaskItem | ObservabilitySpanItem): item is ObservabilityTaskItem {
-  return 'task_trace_id' in item && 'task_type' in item && !('span_name' in item);
-}
-
-function isSpanItem(item: ObservabilitySlowRequestItem | ObservabilityTaskItem | ObservabilitySpanItem): item is ObservabilitySpanItem {
-  return 'span_name' in item;
-}
-
 function getOperatorLabel(user: UserAdminItem) {
   return user.display_name?.trim() || user.username;
 }
@@ -321,12 +275,119 @@ function getRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+const FIELD_DESCRIPTIONS: Record<string, string> = {
+  '日志 ID': '当前日志记录在系统中的唯一标识，用于定位这一条审计详情。',
+  '日志类型': '区分请求日志、行为事件和审计操作，帮助判断日志来源。',
+  '状态 / 结果': '本次请求、行为或审计操作的最终结果。',
+  request_id: '后端生成的可信请求 ID，可用于串联请求日志、Task Trace 和排障上下文。',
+  client_request_id: '前端或小程序生成的客户端请求 ID，仅用于辅助排障，不能替代后端可信 request_id。',
+  task_trace_id: '任务链路 ID，用于串联上传、保存等多节点任务的摘要和 span 时间线。',
+  '发生时间': '日志记录落库时间。',
+  Method: 'HTTP 请求方法，例如 GET、POST、PATCH 或 DELETE。',
+  Path: '请求访问的 API 路径。',
+  'Status Code': 'HTTP 响应状态码，4xx 通常表示客户端问题，5xx 通常表示服务端异常。',
+  Duration: '请求或任务执行耗时。',
+  'Error Code': '系统统一错误码，用于定位具体错误类型。',
+  操作者: '触发该日志的用户或系统角色。',
+  'User ID': '操作者的系统用户 ID。',
+  客户端: '请求来源端，例如 web_admin、web_catalog 或 wechat_miniapp。',
+  'Client Request ID': '客户端生成的请求标识，用于和服务端 request_id 对照排障。',
+  IP: '脱敏后的访问 IP 信息。',
+  'User Agent': '脱敏后的浏览器或客户端标识摘要。',
+  业务动作: '该日志对应的业务事件或请求动作。',
+  操作摘要: '系统生成的可读摘要，概括本条日志发生了什么。',
+  结果: '业务动作的成功或失败结果。',
+  '路径 / 资源': '请求路径或被操作的业务资源摘要。',
+  'Task Trace': '与本条日志关联的任务链路 ID。',
+  event_name: '前端或后端埋点事件名。',
+  module: '埋点所属业务模块。',
+  entity_type: '埋点关联的业务实体类型。',
+  entity_id: '埋点关联的业务实体 ID。',
+  changed_fields: '本次操作涉及变化的字段集合。',
+  'Route Template': '后端匹配到的路由模板，用于聚合相同 API。',
+  'Route Match': '路由模板匹配状态。',
+  'Trusted Request ID': '后端生成并通过响应头返回的可信 request_id。',
+  'Trusted Response Header': '承载后端可信 request_id 的响应头名称。',
+  'Client Request Header': '承载客户端请求标识的请求头名称。',
+  'Query Allowlist': '被允许写入日志的查询参数摘要。',
+  'Query Ignored': '未纳入日志详情的查询参数名。',
+  'Query Redacted': '已脱敏处理的查询参数名。',
+  'Body Type': '请求体类型摘要，不保存完整敏感原文。',
+  'Content Type': '请求体 MIME 类型。',
+  'Content Length': '请求体大小摘要。',
+  'Stored Raw Body': '是否保存了原始请求体；敏感请求不应保存原文。',
+  Policy: '当前摘要和脱敏策略。',
+  'Resource Type': '请求关联的业务资源类型。',
+  'Resource ID': '请求关联的业务资源 ID。',
+  'ID Source': '资源 ID 的识别来源。',
+  'Error Summary': '错误摘要，帮助快速判断失败原因。',
+  Result: '请求快照中的响应结果。',
+  Username: '操作者账号名。',
+  Role: '操作者角色。',
+  'Client Type': '客户端类型。',
+  Environment: '当前运行环境。',
+  'Started At': '请求或任务开始时间。',
+  'Finished At': '请求或任务结束时间。',
+  task_trace_summary_id: '任务链路 ID，可复制后用于筛选或定位完整任务时间线。',
+  parent_request_id: '触发该 Task Trace 的主请求 ID，来自后端请求上下文。',
+  task_type: '任务类型，例如上传图片、上传视频或保存 SKU。',
+  task_status: '任务聚合后的最终状态。',
+  task_duration_ms: 'Task Trace 聚合耗时，来自各 span 耗时汇总。',
+};
+
+function FieldHelp({ label, description }: { label: string; description?: string }) {
+  const [tooltip, setTooltip] = useState<{ left: number; top: number; placement: 'top' | 'bottom' } | null>(null);
+  if (!description) {
+    return <>{label}</>;
+  }
+  const showTooltip = (target: HTMLElement) => {
+    const rect = target.getBoundingClientRect();
+    const tooltipWidth = Math.min(280, window.innerWidth - 48);
+    const left = Math.min(
+      Math.max(rect.left + rect.width / 2, 24 + tooltipWidth / 2),
+      window.innerWidth - 24 - tooltipWidth / 2,
+    );
+    const canShowAbove = rect.top >= 96;
+    setTooltip({
+      left,
+      top: canShowAbove ? rect.top - 8 : rect.bottom + 8,
+      placement: canShowAbove ? 'top' : 'bottom',
+    });
+  };
+  return (
+    <span className="field-help-label">
+      <span>{label}</span>
+      <span
+        className="field-help-icon"
+        aria-label={`字段说明：${label}`}
+        data-tooltip={description}
+        onBlur={() => setTooltip(null)}
+        onFocus={(event) => showTooltip(event.currentTarget)}
+        onMouseEnter={(event) => showTooltip(event.currentTarget)}
+        onMouseLeave={() => setTooltip(null)}
+        tabIndex={0}
+      >
+        <Info size={12} aria-hidden />
+      </span>
+      {tooltip ? (
+        <span
+          className={`field-help-tooltip ${tooltip.placement === 'bottom' ? 'below' : 'above'}`}
+          role="tooltip"
+          style={{ left: tooltip.left, top: tooltip.top }}
+        >
+          {description}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function SnapshotRows({ rows }: { rows: Array<[string, unknown]> }) {
   return (
     <dl className="snapshot-grid">
       {rows.map(([label, value]) => (
         <div key={label} className="detail-row">
-          <dt>{label}</dt>
+          <dt><FieldHelp label={label} description={FIELD_DESCRIPTIONS[label]} /></dt>
           <dd>{renderSnapshotValue(value)}</dd>
         </div>
       ))}
@@ -456,81 +517,11 @@ function DetailSection({ section }: { section: LogDetailSection }) {
       <dl>
         {Object.entries(section.fields).map(([key, value]) => (
           <div key={key} className="detail-row">
-            <dt>{key}</dt>
+            <dt><FieldHelp label={key} description={FIELD_DESCRIPTIONS[key]} /></dt>
             <dd>{renderFieldValue(value)}</dd>
           </div>
         ))}
       </dl>
-    </section>
-  );
-}
-
-function DistributionList({ title, items }: { title: string; items?: ObservabilityDistributionItem[] }) {
-  const rows = items ?? [];
-  const maxCount = maxDistributionCount(rows);
-  return (
-    <section className="observability-block">
-      <h3>{title}</h3>
-      {rows.length ? (
-        <ul className="observability-bars">
-          {rows.map((item) => (
-            <li key={`${title}-${item.label}`}>
-              <div>
-                <span>{item.label || '-'}</span>
-                <strong>{formatMetric(item.count)}</strong>
-              </div>
-              <span className="observability-bar-track" aria-hidden>
-                <span style={{ width: `${Math.max(4, Math.round((item.count / maxCount) * 100))}%` }} />
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="observability-empty">暂无数据</p>}
-    </section>
-  );
-}
-
-function EndpointErrorList({ items }: { items: ObservabilityEndpointItem[] }) {
-  return (
-    <section className="observability-block">
-      <h3>错误接口</h3>
-      {items.length ? (
-        <ul className="observability-list">
-          {items.map((item) => (
-            <li key={`${item.method}-${item.path}-${item.status_code ?? 'none'}`}>
-              <div>
-                <strong>{item.method} {item.path}</strong>
-                <span>{item.status_code ?? '-'} · {formatPercent(item.error_rate)}</span>
-              </div>
-              <code>{formatMetric(item.error_count)} / {formatMetric(item.request_count)}</code>
-            </li>
-          ))}
-        </ul>
-      ) : <p className="observability-empty">暂无错误接口</p>}
-    </section>
-  );
-}
-
-function TraceResults({ data }: { data: LogObservabilityData['trace_results'] }) {
-  const hasQuery = Boolean(data.request_id || data.task_trace_id);
-  if (!hasQuery) {
-    return null;
-  }
-  const logIds = data.log_ids ?? [];
-  const requestIds = data.request_ids ?? [];
-  const taskTraceIds = data.task_trace_ids ?? [];
-  return (
-    <section className="observability-block trace-results">
-      <h3>链路定位</h3>
-      {data.reason === 'not_found' ? (
-        <p className="observability-empty">未找到匹配链路</p>
-      ) : (
-        <div className="trace-result-grid">
-          <div><span>日志</span><strong>{logIds.length}</strong></div>
-          <div><span>Request ID</span><strong>{requestIds.length}</strong></div>
-          <div><span>Task Trace</span><strong>{taskTraceIds.length}</strong></div>
-        </div>
-      )}
     </section>
   );
 }
@@ -551,14 +542,14 @@ function TaskTraceGroup({
     <div className="task-trace-group">
       <div className="task-trace-summary">
         <div>
-          <span>task_trace_id</span>
+          <span><FieldHelp label="task_trace_id" description={FIELD_DESCRIPTIONS.task_trace_summary_id} /></span>
           <button type="button" className="task-copy-button" onClick={() => onCopyTaskTraceId(trace.task_trace_id)}>
             <code>{trace.task_trace_id}</code>
             <Copy size={13} aria-hidden />
           </button>
         </div>
         <div>
-          <span>parent_request_id</span>
+          <span><FieldHelp label="parent_request_id" description={FIELD_DESCRIPTIONS.parent_request_id} /></span>
           {parentRequestId ? (
             <button type="button" className="task-copy-button" onClick={() => onCopyParentRequestId(parentRequestId)}>
               <code>{parentRequestId}</code>
@@ -568,9 +559,9 @@ function TaskTraceGroup({
             <strong>未记录</strong>
           )}
         </div>
-        <div><span>任务类型</span><strong>{trace.task_type}</strong></div>
-        <div><span>任务状态</span><strong>{getTaskStatusLabel(trace.status)}</strong></div>
-        <div><span>总耗时</span><strong>{trace.duration_ms ?? '-'} ms</strong></div>
+        <div><span><FieldHelp label="任务类型" description={FIELD_DESCRIPTIONS.task_type} /></span><strong>{trace.task_type}</strong></div>
+        <div><span><FieldHelp label="任务状态" description={FIELD_DESCRIPTIONS.task_status} /></span><strong>{getTaskStatusLabel(trace.status)}</strong></div>
+        <div><span><FieldHelp label="总耗时" description={FIELD_DESCRIPTIONS.task_duration_ms} /></span><strong>{trace.duration_ms ?? '-'} ms</strong></div>
       </div>
       <ol className="task-trace-timeline">
         {trace.spans.map((span, index) => (
@@ -616,12 +607,8 @@ export function LogAuditPage() {
   const [selectedOperator, setSelectedOperator] = useState<SearchableSelectOption | null>(null);
   const [operatorLoading, setOperatorLoading] = useState(false);
   const [operatorError, setOperatorError] = useState<string | null>(null);
-  const [observability, setObservability] = useState<LogObservabilityData | null>(null);
-  const [observabilityLoading, setObservabilityLoading] = useState(true);
-  const [observabilityError, setObservabilityError] = useState<string | null>(null);
 
   const query = useMemo(() => buildQuery(filters, page, pageSize), [filters, page, pageSize]);
-  const observabilityQuery = useMemo(() => buildObservabilityQuery(filters), [filters]);
   const statusFilterOptions = useMemo(() => getStatusFilterOptions(data?.items), [data?.items]);
 
   const loadLogs = useCallback(async () => {
@@ -642,25 +629,6 @@ export function LogAuditPage() {
   useEffect(() => {
     void loadLogs();
   }, [loadLogs]);
-
-  const loadObservability = useCallback(async () => {
-    setObservabilityLoading(true);
-    setObservabilityError(null);
-    try {
-      const nextData = await fetchLogObservability(observabilityQuery);
-      setObservability(nextData);
-    } catch (error) {
-      const message = getErrorMessage(error, '加载链路观测失败');
-      setObservabilityError(message);
-      setNotice(message);
-    } finally {
-      setObservabilityLoading(false);
-    }
-  }, [observabilityQuery]);
-
-  useEffect(() => {
-    void loadObservability();
-  }, [loadObservability]);
 
   const loadOperatorCandidates = useCallback(async (keyword: string) => {
     setOperatorLoading(true);
@@ -879,23 +847,6 @@ export function LogAuditPage() {
     setSelectedId(item.id);
   };
 
-  const openLogDetail = (logId: string) => {
-    setSelectedId(logId);
-  };
-
-  const filterByTaskTrace = (taskTraceId: string) => {
-    updateFilter('taskTraceId', taskTraceId);
-  };
-
-  const filterByRequestId = (requestId: string) => {
-    updateFilter('pathOrRequestId', requestId);
-  };
-
-  const rankingItems = observability?.rankings ?? {};
-  const slowRequests = (rankingItems.slow_requests ?? []).filter(isSlowRequestItem);
-  const slowTasks = (rankingItems.slow_tasks ?? []).filter(isTaskItem);
-  const slowestSpans = (rankingItems.slowest_spans ?? []).filter(isSpanItem);
-
   return (
     <>
       <AdminToast message={notice} />
@@ -931,109 +882,6 @@ export function LogAuditPage() {
         />
         <MetricCard label="SENSITIVE OPS" value={formatMetric(data?.summary.sensitive_ops)} description="审计操作" />
       </MetricCardGrid>
-
-      <section className="table-card log-observability-panel" aria-label="链路观测仪表">
-        <header className="observability-header">
-          <div>
-            <p className="eyebrow">OBSERVABILITY</p>
-            <h2>链路观测</h2>
-          </div>
-          <button className="btn" type="button" onClick={() => void loadObservability()}>
-            刷新
-          </button>
-        </header>
-        {observabilityLoading && !observability ? (
-          <p className="observability-empty">加载观测数据中...</p>
-        ) : observabilityError && !observability ? (
-          <p className="observability-empty">{observabilityError}</p>
-        ) : observability ? (
-          <>
-            <MetricCardGrid ariaLabel="链路观测摘要">
-              <MetricCard label="TOTAL LOGS" value={formatMetric(observability.summary.total_logs)} description="筛选范围" />
-              <MetricCard
-                label="API ERROR RATE"
-                value={formatPercent(observability.summary.api_error_rate)}
-                description={`${formatMetric(observability.summary.api_errors)} 个异常请求`}
-                dangerDescription={observability.summary.api_error_rate > 0}
-              />
-              <MetricCard
-                label="TASK SUCCESS"
-                value={formatPercent(observability.summary.task_success_rate)}
-                description={`${formatMetric(observability.summary.failed_tasks)} 个失败任务`}
-                dangerDescription={(observability.summary.failed_tasks ?? 0) > 0}
-              />
-              <MetricCard
-                label="SLOW TASKS"
-                value={formatMetric(observability.summary.slow_tasks)}
-                description={`超过 ${formatMetric(observability.thresholds.task_duration_ms)}ms`}
-                dangerDescription={observability.summary.slow_tasks > 0}
-              />
-            </MetricCardGrid>
-            <div className="observability-grid">
-              <DistributionList title="客户端分布" items={observability.distributions.clients} />
-              <DistributionList title="任务状态" items={observability.distributions.task_statuses} />
-              <DistributionList title="失败原因" items={observability.distributions.failure_reasons} />
-              <DistributionList title="行为事件" items={observability.distributions.behavior_events} />
-              <EndpointErrorList items={observability.endpoint_errors} />
-              <TraceResults data={observability.trace_results} />
-            </div>
-            <section className="observability-rankings" aria-label="慢链路排行">
-              <div className="observability-block">
-                <h3>慢请求</h3>
-                {slowRequests.length ? (
-                  <ul className="observability-list">
-                    {slowRequests.map((item) => (
-                      <li key={item.log_id}>
-                        <div>
-                          <strong>{item.method} {item.path}</strong>
-                          <span>{item.duration_ms}ms · {item.status_code}</span>
-                        </div>
-                        <button type="button" onClick={() => openLogDetail(item.log_id)}>查看</button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="observability-empty">暂无慢请求</p>}
-              </div>
-              <div className="observability-block">
-                <h3>慢任务</h3>
-                {slowTasks.length ? (
-                  <ul className="observability-list">
-                    {slowTasks.map((item) => (
-                      <li key={item.task_trace_id}>
-                        <div>
-                          <strong>{item.task_type}</strong>
-                          <span>{item.duration_ms ?? '-'}ms · {getTaskStatusLabel(item.status)}</span>
-                        </div>
-                        <button type="button" onClick={() => filterByTaskTrace(item.task_trace_id)}>筛选</button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="observability-empty">暂无慢任务</p>}
-              </div>
-              <div className="observability-block">
-                <h3>慢节点</h3>
-                {slowestSpans.length ? (
-                  <ul className="observability-list">
-                    {slowestSpans.map((item) => (
-                      <li key={`${item.task_trace_id}-${item.span_name}`}>
-                        <div>
-                          <strong>{item.span_name}</strong>
-                          <span>{item.duration_ms ?? '-'}ms · {item.task_type}</span>
-                        </div>
-                        {item.request_id ? (
-                          <button type="button" onClick={() => filterByRequestId(item.request_id ?? '')}>定位</button>
-                        ) : (
-                          <button type="button" onClick={() => filterByTaskTrace(item.task_trace_id)}>筛选</button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="observability-empty">暂无慢节点</p>}
-              </div>
-            </section>
-          </>
-        ) : null}
-      </section>
 
       <section className="filter-card log-audit-filter" aria-label="日志筛选">
         <div className="log-audit-filter-grid">
@@ -1109,9 +957,9 @@ export function LogAuditPage() {
                 <th>客户端</th>
                 <th>状态</th>
                 <th>耗时</th>
-                <th>Task Trace</th>
                 <th>request_id</th>
                 <th>client_request_id</th>
+                <th>task_trace_id</th>
                 <th className="log-audit-action-cell admin-sticky-action-cell">操作</th>
               </tr>
             </thead>
@@ -1139,16 +987,6 @@ export function LogAuditPage() {
                     <td><span className={`log-status ${statusClass(item)}`}>{item.result}</span></td>
                     <td className={item.duration_ms && item.duration_ms >= 1000 ? 'duration danger' : 'duration'}>{item.duration_ms ?? '-'}{item.duration_ms ? 'ms' : ''}</td>
                     <td>
-                      <div className="task-trace-cell">
-                        <code className="task-trace-id" title={item.task_trace_id?.trim() || undefined}>{shortTaskTraceId(item.task_trace_id?.trim())}</code>
-                        {item.task_trace_id?.trim() ? (
-                          <button className="request-copy-action" type="button" aria-label="复制 task_trace_id" onClick={() => void copyTaskTraceId(item.task_trace_id)}>
-                            <Copy size={13} aria-hidden />
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td>
                       <div className="request-id-cell">
                         <code className="request-id" title={item.request_id?.trim() || undefined}>{shortRequestId(item.request_id?.trim())}</code>
                         {item.request_id?.trim() ? (
@@ -1163,6 +1001,16 @@ export function LogAuditPage() {
                         <code className="request-id" title={item.client_request_id?.trim() || undefined}>{shortClientRequestId(item.client_request_id?.trim())}</code>
                         {item.client_request_id?.trim() ? (
                           <button className="request-copy-action" type="button" aria-label="复制 client_request_id" onClick={() => void copyClientRequestId(item.client_request_id)}>
+                            <Copy size={13} aria-hidden />
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="task-trace-cell">
+                        <code className="task-trace-id" title={item.task_trace_id?.trim() || undefined}>{shortTaskTraceId(item.task_trace_id?.trim())}</code>
+                        {item.task_trace_id?.trim() ? (
+                          <button className="request-copy-action" type="button" aria-label="复制 task_trace_id" onClick={() => void copyTaskTraceId(item.task_trace_id)}>
                             <Copy size={13} aria-hidden />
                           </button>
                         ) : null}

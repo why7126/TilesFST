@@ -4,7 +4,7 @@ content: 约束AI与开发人员遵循当前项目目录边界、文件归属和
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-06 22:49:35
+updated_at: 2026-07-26 17:23:40
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -160,7 +160,15 @@ src/shared/
 - 产品版本发布对象和公开发布公告源文件放入 `releases/`；禁止用 `docs/` 或 `iterations/` 临时代替产品发布目录。
 - 正式系统能力放入 `openspec/specs/`。
 - 开发中的变更放入 `openspec/changes/`。
-- 已完成变更放入 `openspec/changes/archive/`。
+- 已完成变更放入 `openspec/archive/`。
+
+### 4.1 OpenSpec 归档根目录（MUST）
+
+- 已归档 Change 的唯一合法目录为 `openspec/archive/YYYY-MM-DD-<change-id>/`。
+- `openspec/changes/` 只允许存放 active Change：`openspec/changes/<change-id>/`。
+- 禁止创建、恢复或继续写入 `openspec/changes/archive/`。该路径是历史兼容路径，只能在迁移脚本、残留引用扫描或测试 fixture 中作为 legacy 字符串出现，不得作为真实目录存在。
+- 若发现真实目录 `openspec/changes/archive/`，MUST 立即迁移其子目录到 `openspec/archive/`，确认目标不存在且文件完整后删除空的 legacy 目录，并运行 `python scripts/validate-directory-structure.py`。
+- `/opsx-archive` 与 `/sprint-archive` 后置校验 MUST 确认 `openspec/changes/archive/` 不存在。
 
 ## 5. Docker与部署文件规则
 
@@ -192,3 +200,4 @@ AI 在新增文件前必须回答：
 - 禁止在未更新 OpenSpec 的情况下新增业务能力。
 - 禁止把 Docker 环境变量硬编码到代码中。
 - 禁止用临时目录替代正式目录结构。
+- 禁止把已归档 OpenSpec Change 放入 `openspec/changes/archive/`。

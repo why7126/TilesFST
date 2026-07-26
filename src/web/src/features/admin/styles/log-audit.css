@@ -173,6 +173,7 @@
   color: var(--admin-weak);
   font-weight: 400;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .admin-shell .log-summary {
@@ -289,169 +290,6 @@
 .admin-shell .duration.danger,
 .admin-shell .metric-desc.danger {
   color: var(--admin-danger);
-}
-
-.admin-shell .log-observability-panel {
-  display: grid;
-  gap: 18px;
-  padding: 20px;
-}
-
-.admin-shell .observability-header {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.admin-shell .observability-header h2 {
-  margin: 4px 0 0;
-  color: var(--admin-text);
-  font-size: 22px;
-  font-weight: 400;
-}
-
-.admin-shell .observability-grid,
-.admin-shell .observability-rankings {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.admin-shell .observability-rankings {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.admin-shell .observability-block {
-  display: grid;
-  min-width: 0;
-  gap: 12px;
-  padding: 14px;
-  border: 0.5px solid var(--admin-line);
-  background: color-mix(in srgb, var(--admin-deep) 38%, transparent);
-}
-
-.admin-shell .observability-block h3 {
-  margin: 0;
-  color: var(--admin-gold);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-}
-
-.admin-shell .observability-bars,
-.admin-shell .observability-list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.admin-shell .observability-bars li {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.admin-shell .observability-bars li > div,
-.admin-shell .observability-list li,
-.admin-shell .trace-result-grid {
-  display: flex;
-  min-width: 0;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.admin-shell .observability-bars span,
-.admin-shell .observability-list span,
-.admin-shell .trace-result-grid span {
-  color: var(--admin-weak);
-  font-size: 11px;
-}
-
-.admin-shell .observability-bars strong,
-.admin-shell .observability-list strong,
-.admin-shell .trace-result-grid strong {
-  min-width: 0;
-  color: var(--admin-text);
-  font-size: 12px;
-  font-weight: 500;
-  overflow-wrap: anywhere;
-}
-
-.admin-shell .observability-bar-track {
-  display: block;
-  height: 4px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--admin-line-strong) 48%, transparent);
-}
-
-.admin-shell .observability-bar-track > span {
-  display: block;
-  height: 100%;
-  background: var(--admin-gold);
-}
-
-.admin-shell .observability-list li {
-  padding: 9px 0;
-  border-bottom: 0.5px solid var(--admin-line);
-}
-
-.admin-shell .observability-list li:last-child {
-  border-bottom: 0;
-}
-
-.admin-shell .observability-list li > div {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-}
-
-.admin-shell .observability-list code,
-.admin-shell .observability-list button {
-  flex: 0 0 auto;
-  font-size: 11px;
-}
-
-.admin-shell .observability-list code {
-  color: var(--admin-muted);
-}
-
-.admin-shell .observability-list button {
-  min-height: 28px;
-  padding: 0 10px;
-  border: 0.5px solid var(--admin-gold-border);
-  border-radius: 2px;
-  background: var(--admin-gold-bg);
-  color: var(--admin-gold);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.admin-shell .observability-list button:hover {
-  border-color: var(--admin-gold-border-strong);
-}
-
-.admin-shell .observability-empty {
-  margin: 0;
-  color: var(--admin-weak);
-  font-size: 12px;
-}
-
-.admin-shell .trace-result-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.admin-shell .trace-result-grid > div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  padding: 10px;
-  border: 0.5px solid var(--admin-line);
-  background: color-mix(in srgb, var(--admin-deep) 52%, transparent);
 }
 
 .admin-shell .request-id-cell,
@@ -655,6 +493,59 @@
 
 .admin-shell .detail-row dt {
   color: var(--admin-weak);
+}
+
+.admin-shell .field-help-label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-shell .field-help-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--admin-line);
+  border-radius: 50%;
+  color: var(--admin-muted);
+  cursor: help;
+}
+
+.admin-shell .field-help-icon:hover,
+.admin-shell .field-help-icon:focus-visible {
+  border-color: var(--admin-gold-border);
+  color: var(--admin-gold);
+  outline: none;
+}
+
+.admin-shell .field-help-tooltip {
+  position: fixed;
+  z-index: 120;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 48px));
+  padding: 8px 10px;
+  border: 0.5px solid var(--admin-gold-border);
+  background: var(--admin-deep);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 28%);
+  color: var(--admin-text);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.admin-shell .field-help-tooltip.above {
+  transform: translate(-50%, -100%);
+}
+
+.admin-shell .field-help-tooltip.below {
+  transform: translate(-50%, 0);
 }
 
 .admin-shell .detail-row dd {
@@ -904,10 +795,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-shell .observability-grid,
-  .admin-shell .observability-rankings {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 720px) {
@@ -923,17 +810,6 @@
   .admin-shell .log-drawer {
     width: 100vw;
     max-width: 100vw;
-  }
-
-  .admin-shell .observability-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .admin-shell .observability-grid,
-  .admin-shell .observability-rankings,
-  .admin-shell .trace-result-grid {
-    grid-template-columns: 1fr;
   }
 
   .admin-shell .log-drawer-head {

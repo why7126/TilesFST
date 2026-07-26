@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-14 19:05:47
+updated_at: 2026-07-26 17:23:40
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -128,6 +128,7 @@ rules/agent-context-budget.md
 | BUG | `issues/bugs/{plan,review,archive}/BUG-*` |
 | Sprint | `iterations/{change,archive}/sprint-*` |
 | OpenSpec 变更 | `openspec/changes/<change-id>/` |
+| OpenSpec 已归档变更 | `openspec/archive/YYYY-MM-DD-<change-id>/`（禁止 `openspec/changes/archive/`） |
 | 正式规格 | `openspec/specs/<capability>/spec.md` |
 | 复盘 / 事故知识 | `docs/knowledge-base/` |
 | 发布对象 | `releases/vX.Y.Z/` |

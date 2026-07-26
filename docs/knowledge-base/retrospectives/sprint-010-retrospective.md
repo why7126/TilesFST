@@ -42,7 +42,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 ### 做得好的
 
-1. **归档闭环完整**：16 个 Change 全部进入 `openspec/changes/archive/`，298 个 task 全部完成，readiness 最终 PASS。
+1. **归档闭环完整**：16 个 Change 全部进入 `openspec/archive/`，298 个 task 全部完成，readiness 最终 PASS。
 2. **大 Sprint 使用批次摘要控制上下文**：Fact Sheet 将 16 个 Change 分成 4 批，所有 batch blocker/warning 均为 0，复盘无需展开原始 tasks/trace。
 3. **路径残留门禁有效**：归档关闭前后 residual check 都为 0，复盘不传播旧 `iterations/change/sprint-010/` 或 active Change 路径。
 4. **Sprint 009 的经验被继续承接**：media-upload、admin-list、admin-modal、miniapp-custom-navigation 等 best-practice 被纳入横切验收。

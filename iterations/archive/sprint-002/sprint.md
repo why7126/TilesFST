@@ -689,19 +689,19 @@ REQ-0001（已 resolved）
 | 缺陷记录（品牌 Logo 上传进度反馈） | `issues/bugs/archive/BUG-0004-brand-logo-upload-progress-missing/` |
 | OpenSpec Change（品牌 Logo 上传进度反馈修复） | `openspec/changes/fix-brand-logo-upload-progress/` |
 | 缺陷记录（对象存储上传未写入 MinIO） | `issues/bugs/archive/BUG-0006-object-storage-upload-not-minio/` |
-| OpenSpec Change（对象存储上传未写入 MinIO 修复） | `openspec/changes/archive/2026-06-26-fix-object-storage-upload-not-minio/` |
+| OpenSpec Change（对象存储上传未写入 MinIO 修复） | `openspec/archive/2026-06-26-fix-object-storage-upload-not-minio/` |
 | 缺陷记录（对象存储修复后品牌 Logo 仍不显示） | `issues/bugs/archive/BUG-0007-brand-logo-not-displayed-after-storage-fix/` |
-| OpenSpec Change（对象存储修复后品牌 Logo 仍不显示修复） | `openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/` |
+| OpenSpec Change（对象存储修复后品牌 Logo 仍不显示修复） | `openspec/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/` |
 | 缺陷记录（服务重启后登录失败） | `issues/bugs/archive/BUG-0005-login-fails-after-service-restart/` |
 | OpenSpec Change（服务重启后登录失败修复） | `openspec/changes/fix-admin-login-service-restart/` |
 | 缺陷记录（对象存储 legacy uploads 残留） | `issues/bugs/archive/BUG-0008-object-storage-legacy-upload-residue/` |
-| OpenSpec Change（对象存储 legacy uploads 清理） | `openspec/changes/archive/2026-06-26-fix-object-storage-legacy-upload-residue/` |
+| OpenSpec Change（对象存储 legacy uploads 清理） | `openspec/archive/2026-06-26-fix-object-storage-legacy-upload-residue/` |
 | 需求 PRD（类目管理） | `issues/requirements/archive/REQ-0005-tile-category-management/requirement.md` |
 | 验收标准（类目管理） | `issues/requirements/archive/REQ-0005-tile-category-management/acceptance.md` |
-| OpenSpec Change（类目管理） | `openspec/changes/archive/2026-06-20-add-tile-category-management/` |
+| OpenSpec Change（类目管理） | `openspec/archive/2026-06-20-add-tile-category-management/` |
 | HTML 原型（类目管理） | `issues/requirements/archive/REQ-0005-tile-category-management/prototype/web/tile-category-management.html` |
 | 缺陷记录（类目启用） | `issues/bugs/archive/BUG-0001-tile-category-enable-missing/` |
-| OpenSpec Change（类目启用修复） | `openspec/changes/archive/2026-06-20-fix-tile-category-enable-action/` |
+| OpenSpec Change（类目启用修复） | `openspec/archive/2026-06-20-fix-tile-category-enable-action/` |
 | 需求 PRD（类目 UI 优化） | `issues/requirements/archive/REQ-0007-tile-category-management-refine/requirement.md` |
 | 验收标准（类目 UI 优化） | `issues/requirements/archive/REQ-0007-tile-category-management-refine/acceptance.md` |
 | OpenSpec Change（类目 UI 优化） | `openspec/changes/fix-tile-category-management-refine/` |
@@ -727,7 +727,7 @@ REQ-0001（已 resolved）
 | 缺陷记录（重置密码 confirm UI） | `issues/bugs/archive/BUG-0017-user-reset-password-confirm-ui-inconsistency/` |
 | 缺陷记录（SKU 视频上传即时回显） | `issues/bugs/archive/BUG-0018-tile-sku-modal-video-upload-display/` |
 | 缺陷记录（SKU 视频上传 413） | `issues/bugs/archive/BUG-0020-tile-sku-modal-video-upload-413/` |
-| OpenSpec Change（状态操作 confirm 修复） | `openspec/changes/archive/2026-06-27-fix-admin-list-status-action-confirm/` |
+| OpenSpec Change（状态操作 confirm 修复） | `openspec/archive/2026-06-27-fix-admin-list-status-action-confirm/` |
 
 ## 经验复盘
 

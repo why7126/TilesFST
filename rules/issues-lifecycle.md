@@ -4,7 +4,7 @@ content: plan / review / archive 三阶段目录职责、准入条件、迁移�
 source: 项目团队确认
 update_method: 需求/BUG 流程或目录边界变化时同步更新
 created_at: 2026-06-27 22:24:39
-updated_at: 2026-07-19 12:20:00
+updated_at: 2026-07-26 17:23:40
 note: REQ 与 BUG 共用；registry 与 _registry.yaml 仍位于 issues/* 根下
 ---
 
@@ -106,11 +106,13 @@ lifecycle_stage: plan | review | archive
 | `issues/*/review` | 已评审、开发中条目 |
 | `issues/*/archive` | 已交付条目（文档保留） |
 | `openspec/changes/` | Change 工件（与 review 阶段并行） |
-| `openspec/changes/archive/` | 已归档 Change |
+| `openspec/archive/` | 已归档 Change |
+| `openspec/changes/archive/` | 禁止真实存在；仅 legacy 引用扫描或迁移测试可出现该字符串 |
 | `iterations/change/sprint-xxx/` | 迭代四件套（进行中） |
 | `iterations/archive/sprint-xxx/` | 迭代四件套（已归档） |
 
-阶段目录 **不替代** OpenSpec archive；二者 MUST 在 `/opsx-archive` 时同步闭环（条目 → `issues/*/archive/`，Change → `openspec/changes/archive/`）。
+阶段目录 **不替代** OpenSpec archive；二者 MUST 在 `/opsx-archive` 时同步闭环（条目 → `issues/*/archive/`，Change → `openspec/archive/`）。
+若真实目录 `openspec/changes/archive/` 存在，MUST 先迁移并删除该 legacy 目录，`promote-issues-for-archive.py` 不得把它视为合法归档目标。
 
 ## 8. AI 检查清单
 

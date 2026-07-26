@@ -183,10 +183,13 @@ def _change_text_paths(base: Path, change_id: str) -> list[Path]:
         base / "openspec" / "changes" / change_id / "trace.md",
         base / "openspec" / "changes" / change_id / "proposal.md",
     ]
-    archive_root = base / "openspec" / "changes" / "archive"
-    if archive_root.exists():
-        for archived in sorted(archive_root.glob(f"*-{change_id}")):
-            paths.extend([archived / "trace.md", archived / "proposal.md"])
+    for archive_root in (
+        base / "openspec" / "archive",
+        base / "openspec" / "changes" / "archive",
+    ):
+        if archive_root.exists():
+            for archived in sorted(archive_root.glob(f"*-{change_id}")):
+                paths.extend([archived / "trace.md", archived / "proposal.md"])
     return paths
 
 
@@ -200,13 +203,16 @@ def _known_change_dirs(base: Path) -> list[tuple[str, Path]]:
         if change_dir.is_dir() and change_dir.name != "archive":
             items.append((change_dir.name, change_dir))
 
-    archive_root = changes_root / "archive"
-    if archive_root.exists():
-        for change_dir in archive_root.glob("*"):
-            if not change_dir.is_dir():
-                continue
-            change_id = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", change_dir.name)
-            items.append((change_id, change_dir))
+    for archive_root in (
+        base / "openspec" / "archive",
+        changes_root / "archive",
+    ):
+        if archive_root.exists():
+            for change_dir in archive_root.glob("*"):
+                if not change_dir.is_dir():
+                    continue
+                change_id = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", change_dir.name)
+                items.append((change_id, change_dir))
 
     return sorted(items, key=lambda item: (item[0], str(item[1])))
 

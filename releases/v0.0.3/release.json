@@ -167,153 +167,153 @@
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-add-admin-list-page-contract"
+      "archive_dir": "openspec/archive/2026-07-11-add-admin-list-page-contract"
     },
     {
       "id": "add-admin-list-foundation-components",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-10-add-admin-list-foundation-components"
+      "archive_dir": "openspec/archive/2026-07-10-add-admin-list-foundation-components"
     },
     {
       "id": "update-api-docs-swagger-policy-checklist",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist"
+      "archive_dir": "openspec/archive/2026-07-11-update-api-docs-swagger-policy-checklist"
     },
     {
       "id": "update-api-validation-envelope-governance",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-update-api-validation-envelope-governance"
+      "archive_dir": "openspec/archive/2026-07-11-update-api-validation-envelope-governance"
     },
     {
       "id": "fix-sprint-archive-incomplete-tasks-gate",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate"
+      "archive_dir": "openspec/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate"
     },
     {
       "id": "fix-api-governance-route-tags-known-debt",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-09-fix-api-governance-route-tags-known-debt"
+      "archive_dir": "openspec/archive/2026-07-09-fix-api-governance-route-tags-known-debt"
     },
     {
       "id": "fix-workflow-sync-check-time-drift-idempotency",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-09-fix-workflow-sync-check-time-drift-idempotency"
+      "archive_dir": "openspec/archive/2026-07-09-fix-workflow-sync-check-time-drift-idempotency"
     },
     {
       "id": "fix-user-password-copy-not-working",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-06-fix-user-password-copy-not-working"
+      "archive_dir": "openspec/archive/2026-07-06-fix-user-password-copy-not-working"
     },
     {
       "id": "fix-audit-log-request-id-copy-error",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-09-fix-audit-log-request-id-copy-error"
+      "archive_dir": "openspec/archive/2026-07-09-fix-audit-log-request-id-copy-error"
     },
     {
       "id": "fix-change-password-policy-error-message",
       "sprint": "sprint-005",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-06-fix-change-password-policy-error-message"
+      "archive_dir": "openspec/archive/2026-07-06-fix-change-password-policy-error-message"
     },
     {
       "id": "update-theme-comfort-refine",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-update-theme-comfort-refine"
+      "archive_dir": "openspec/archive/2026-07-11-update-theme-comfort-refine"
     },
     {
       "id": "add-clipboard-copy-helper-best-practice",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-add-clipboard-copy-helper-best-practice"
+      "archive_dir": "openspec/archive/2026-07-11-add-clipboard-copy-helper-best-practice"
     },
     {
       "id": "update-acceptance-report-summary-ac-reference",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-update-acceptance-report-summary-ac-reference"
+      "archive_dir": "openspec/archive/2026-07-11-update-acceptance-report-summary-ac-reference"
     },
     {
       "id": "add-ai-token-usage-observability",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-add-ai-token-usage-observability"
+      "archive_dir": "openspec/archive/2026-07-11-add-ai-token-usage-observability"
     },
     {
       "id": "fix-archive-issue-subdoc-status-consistency",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-fix-archive-issue-subdoc-status-consistency"
+      "archive_dir": "openspec/archive/2026-07-11-fix-archive-issue-subdoc-status-consistency"
     },
     {
       "id": "fix-archive-trace-fallback-summary-gate",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-fix-archive-trace-fallback-summary-gate"
+      "archive_dir": "openspec/archive/2026-07-11-fix-archive-trace-fallback-summary-gate"
     },
     {
       "id": "fix-theme-selector-sidebar-placement",
       "sprint": "sprint-006",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-fix-theme-selector-sidebar-placement"
+      "archive_dir": "openspec/archive/2026-07-11-fix-theme-selector-sidebar-placement"
     },
     {
       "id": "add-clipboard-helper-best-practice-docs",
       "sprint": "sprint-007",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs"
+      "archive_dir": "openspec/archive/2026-07-11-add-clipboard-helper-best-practice-docs"
     },
     {
       "id": "update-ai-usage-snapshot-sprint-close-exps",
       "sprint": "sprint-007",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps"
+      "archive_dir": "openspec/archive/2026-07-11-update-ai-usage-snapshot-sprint-close-exps"
     },
     {
       "id": "add-auto-token-fact-source-for-workflow-commands",
       "sprint": "sprint-007",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands"
+      "archive_dir": "openspec/archive/2026-07-15-add-auto-token-fact-source-for-workflow-commands"
     },
     {
       "id": "add-brand-certificate-management",
       "sprint": "sprint-007",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-15-add-brand-certificate-management"
+      "archive_dir": "openspec/archive/2026-07-15-add-brand-certificate-management"
     }
   ],
   "gates": {
     "openspec_archive": {
       "status": "pass",
-      "evidence": "2026-07-15 18:35:06: sprint-005、sprint-006、sprint-007 均为 completed/archive；21/21 formal-scope Change 均存在 openspec/changes/archive 下归档目录；12 个 REQ 与 9 个 BUG 均位于 issues/*/archive；Sprint 验收报告记录 sprint-005 10/10、sprint-006 7/7、sprint-007 4/4 Change archived。"
+      "evidence": "2026-07-15 18:35:06: sprint-005、sprint-006、sprint-007 均为 completed/archive；21/21 formal-scope Change 均存在 openspec/archive 下归档目录；12 个 REQ 与 9 个 BUG 均位于 issues/*/archive；Sprint 验收报告记录 sprint-005 10/10、sprint-006 7/7、sprint-007 4/4 Change archived。"
     },
     "tests": {
       "status": "pass",

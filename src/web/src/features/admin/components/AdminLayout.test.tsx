@@ -252,7 +252,9 @@ describe('AdminLayout', () => {
       expect(updateThemePreference).toHaveBeenCalledWith('comfort_dark');
     });
 
-    expect(container.querySelectorAll('.admin-toast')).toHaveLength(1);
+    await waitFor(() => {
+      expect(container.querySelectorAll('.admin-toast')).toHaveLength(1);
+    });
     expect(screen.getAllByText('主题已在本机生效，但账号偏好同步失败，请稍后重试。')).toHaveLength(1);
     expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');

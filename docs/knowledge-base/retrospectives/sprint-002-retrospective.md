@@ -164,7 +164,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 ### 归档质量
 
-- `add-tile-sku-management`：`openspec archive` 因 delta `ADDED` 与已合并 fix spec 冲突失败（见 `openspec/changes/archive/2026-06-27-add-tile-sku-management/` 归档记录）。
+- `add-tile-sku-management`：`openspec archive` 因 delta `ADDED` 与已合并 fix spec 冲突失败（见 `openspec/archive/2026-06-27-add-tile-sku-management/` 归档记录）。
 - 建议：fix change archive 时若 MODIFIED 父 capability，在 change `design.md` 注明「父 add 未 archive 时的 spec 预合并风险」。
 
 ## 5. 可复用抽象

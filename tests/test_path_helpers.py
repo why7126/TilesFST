@@ -11,7 +11,7 @@ def test_resolve_change_file_prefers_active_path(tmp_path: Path) -> None:
     active = tmp_path / "openspec" / "changes" / "add-demo" / "implementation" / "evidence.md"
     active.parent.mkdir(parents=True)
     active.write_text("active", encoding="utf-8")
-    archived = tmp_path / "openspec" / "changes" / "archive" / "2026-07-22-add-demo" / "implementation" / "evidence.md"
+    archived = tmp_path / "openspec" / "archive" / "2026-07-22-add-demo" / "implementation" / "evidence.md"
     archived.parent.mkdir(parents=True)
     archived.write_text("archived", encoding="utf-8")
 
@@ -19,14 +19,30 @@ def test_resolve_change_file_prefers_active_path(tmp_path: Path) -> None:
 
 
 def test_resolve_change_file_falls_back_to_latest_archive(tmp_path: Path) -> None:
-    older = tmp_path / "openspec" / "changes" / "archive" / "2026-07-21-add-demo" / "implementation" / "evidence.md"
+    older = tmp_path / "openspec" / "archive" / "2026-07-21-add-demo" / "implementation" / "evidence.md"
     older.parent.mkdir(parents=True)
     older.write_text("older", encoding="utf-8")
-    newer = tmp_path / "openspec" / "changes" / "archive" / "2026-07-22-add-demo" / "implementation" / "evidence.md"
+    newer = tmp_path / "openspec" / "archive" / "2026-07-22-add-demo" / "implementation" / "evidence.md"
     newer.parent.mkdir(parents=True)
     newer.write_text("newer", encoding="utf-8")
 
     assert resolve_change_file(tmp_path, "add-demo", "implementation/evidence.md") == newer
+
+
+def test_resolve_change_file_falls_back_to_legacy_archive(tmp_path: Path) -> None:
+    legacy = (
+        tmp_path
+        / "openspec"
+        / "changes"
+        / "archive"
+        / "2026-07-20-add-demo"
+        / "implementation"
+        / "evidence.md"
+    )
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text("legacy", encoding="utf-8")
+
+    assert resolve_change_file(tmp_path, "add-demo", "implementation/evidence.md") == legacy
 
 
 def test_resolve_change_file_reports_checked_paths(tmp_path: Path) -> None:

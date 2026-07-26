@@ -1,16 +1,15 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchLogDetail, fetchLogObservability, fetchLogs } from '@/features/admin/api/logs-api';
+import { fetchLogDetail, fetchLogs } from '@/features/admin/api/logs-api';
 import { fetchUsers } from '@/features/admin/api/users-api';
 import { trackUsageEvent } from '@/features/tracking/api/usage-tracking';
-import type { LogDetailData, LogListData, LogObservabilityData, UserAdminListData } from '@/shared/api/generated';
+import type { LogDetailData, LogListData, UserAdminListData } from '@/shared/api/generated';
 import { LogAuditPage } from './LogAuditPage';
 
 vi.mock('@/features/admin/api/logs-api', () => ({
   fetchLogs: vi.fn(),
   fetchLogDetail: vi.fn(),
-  fetchLogObservability: vi.fn(),
 }));
 
 vi.mock('@/features/admin/api/users-api', () => ({
@@ -78,7 +77,7 @@ const detailData: LogDetailData = {
   actor: {
     title: '操作者与客户端',
     fields: {
-      操作者: '系统管理员',
+      操作者: 'admin',
       客户端: 'web_admin',
     },
   },
@@ -260,94 +259,6 @@ const userListData: UserAdminListData = {
   },
 };
 
-const observabilityData: LogObservabilityData = {
-  summary: {
-    total_logs: 42,
-    api_errors: 3,
-    api_error_rate: 0.0714,
-    slow_requests: 5,
-    task_success_rate: 0.875,
-    failed_tasks: 1,
-    slow_tasks: 2,
-    audit_operations: 6,
-  },
-  distributions: {
-    clients: [
-      { label: 'web_admin', count: 30, rate: 0.714 },
-      { label: 'miniapp', count: 12, rate: 0.286 },
-    ],
-    task_statuses: [
-      { label: 'success', count: 7, rate: 0.875 },
-      { label: 'failed', count: 1, rate: 0.125 },
-    ],
-    failure_reasons: [
-      { label: 'UPSTREAM_TIMEOUT', count: 1, rate: 1 },
-    ],
-    behavior_events: [
-      { label: 'detail_view', count: 8, rate: 1 },
-    ],
-  },
-  endpoint_errors: [
-    {
-      path: '/api/v1/admin/uploads',
-      method: 'POST',
-      status_code: 500,
-      request_count: 4,
-      error_count: 3,
-      error_rate: 0.75,
-    },
-  ],
-  rankings: {
-    slow_requests: [
-      {
-        log_id: 'log_1',
-        path: '/api/v1/admin/uploads',
-        method: 'POST',
-        status_code: 500,
-        duration_ms: 1800,
-        client_type: 'web_admin',
-        request_id: 'req_1234567890abcdef',
-      },
-    ],
-    slow_tasks: [
-      {
-        task_trace_id: 'task_upload_video_abcdef1234567890',
-        task_type: 'upload_video',
-        status: 'failed',
-        duration_ms: 2400,
-        client_type: 'web_admin',
-        trigger_source: 'admin_upload',
-        error_code: 'UPSTREAM_TIMEOUT',
-        summary: 'upload_video · failed',
-      },
-    ],
-    slowest_spans: [
-      {
-        task_trace_id: 'task_upload_video_abcdef1234567890',
-        task_type: 'upload_video',
-        span_name: 'storage_put_object',
-        status: 'success',
-        duration_ms: 1800,
-        request_id: 'req_1234567890abcdef',
-        error_code: null,
-        summary: '对象存储写入完成',
-      },
-    ],
-  },
-  trace_results: {
-    request_id: null,
-    task_trace_id: null,
-    log_ids: [],
-    request_ids: [],
-    task_trace_ids: [],
-    reason: null,
-  },
-  thresholds: {
-    request_duration_ms: 1000,
-    task_duration_ms: 1000,
-  },
-};
-
 function setClipboard(value: unknown) {
   Object.defineProperty(navigator, 'clipboard', {
     configurable: true,
@@ -360,12 +271,10 @@ describe('LogAuditPage', () => {
     vi.useRealTimers();
     vi.mocked(fetchLogs).mockReset();
     vi.mocked(fetchLogDetail).mockReset();
-    vi.mocked(fetchLogObservability).mockReset();
     vi.mocked(fetchUsers).mockReset();
     vi.mocked(trackUsageEvent).mockClear();
     vi.mocked(fetchLogs).mockResolvedValue(logListData);
     vi.mocked(fetchLogDetail).mockResolvedValue(detailData);
-    vi.mocked(fetchLogObservability).mockResolvedValue(observabilityData);
     vi.mocked(fetchUsers).mockResolvedValue(userListData);
     setClipboard({
       writeText: vi.fn().mockResolvedValue(undefined),
@@ -378,15 +287,7 @@ describe('LogAuditPage', () => {
     expect(await screen.findByText('日志审计')).toBeInTheDocument();
     expect(screen.getByText('TODAY LOGS')).toBeInTheDocument();
     expect(screen.getByText('1,286')).toBeInTheDocument();
-    expect(await screen.findByText('链路观测')).toBeInTheDocument();
-    expect(screen.getByText('API ERROR RATE')).toBeInTheDocument();
-    expect(screen.getByText('7.1%')).toBeInTheDocument();
-    expect(screen.getByText('TASK SUCCESS')).toBeInTheDocument();
-    expect(screen.getByText('87.5%')).toBeInTheDocument();
-    expect(screen.getByText('客户端分布')).toBeInTheDocument();
-    expect(screen.getByText('错误接口')).toBeInTheDocument();
-    expect(screen.getAllByText('POST /api/v1/admin/uploads').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('storage_put_object').length).toBeGreaterThan(0);
+    expect(screen.queryByText('链路观测')).not.toBeInTheDocument();
     expect(screen.getByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
 
     const summary = screen.getByLabelText('日志摘要');
@@ -452,8 +353,24 @@ describe('LogAuditPage', () => {
     expect(screen.queryByLabelText('路径 / request_id / task_trace_id')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('资源 / ID')).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: '复制' })).not.toBeInTheDocument();
+    const columnHeaders = screen.getAllByRole('columnheader').map((header) => header.textContent);
+    expect(columnHeaders).toEqual([
+      '时间',
+      '类型',
+      '事件 / 摘要',
+      '操作者',
+      '客户端',
+      '状态',
+      '耗时',
+      'request_id',
+      'client_request_id',
+      'task_trace_id',
+      '操作',
+    ]);
+    expect(screen.queryByRole('columnheader', { name: 'Task Trace' })).not.toBeInTheDocument();
     expect(container.querySelector('.request-id-cell')?.querySelector('.request-copy-action')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'client_request_id' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'task_trace_id' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '复制 client_request_id' })).toBeInTheDocument();
     expect(screen.getByText(/web:client/)).toBeInTheDocument();
     const taskTraceCell = container.querySelector('.task-trace-cell');
@@ -507,12 +424,6 @@ describe('LogAuditPage', () => {
           page: 1,
         }),
       );
-      expect(fetchLogObservability).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          path_or_request_id: 'req_1234567890abcdef',
-          request_id: 'req_1234567890abcdef',
-        }),
-      );
     });
 
     fireEvent.change(screen.getByLabelText('Task Trace ID'), {
@@ -523,11 +434,6 @@ describe('LogAuditPage', () => {
         expect.objectContaining({
           task_trace_id: 'task_upload_video_abcdef1234567890',
           page: 1,
-        }),
-      );
-      expect(fetchLogObservability).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          task_trace_id: 'task_upload_video_abcdef1234567890',
         }),
       );
     });
@@ -596,38 +502,6 @@ describe('LogAuditPage', () => {
         }),
       );
     });
-  });
-
-  it('opens details and filters logs from observability rankings', async () => {
-    render(<LogAuditPage />);
-    await screen.findByText('链路观测');
-
-    const slowRequest = screen.getAllByText('POST /api/v1/admin/uploads')[1].closest('li');
-    expect(slowRequest).not.toBeNull();
-    fireEvent.click(within(slowRequest as HTMLLIElement).getByRole('button', { name: '查看' }));
-    expect(await screen.findByLabelText('日志详情')).toBeInTheDocument();
-    expect(fetchLogDetail).toHaveBeenCalledWith('log_1');
-    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
-
-    const slowTask = screen.getByText('upload_video').closest('li');
-    expect(slowTask).not.toBeNull();
-    fireEvent.click(within(slowTask as HTMLLIElement).getByRole('button', { name: '筛选' }));
-    await waitFor(() => {
-      expect(fetchLogs).toHaveBeenLastCalledWith(expect.objectContaining({
-        task_trace_id: 'task_upload_video_abcdef1234567890',
-      }));
-    });
-    expect(screen.getByLabelText('Task Trace ID')).toHaveValue('task_upload_video_abcdef1234567890');
-  });
-
-  it('keeps log list usable when observability loading fails', async () => {
-    vi.mocked(fetchLogObservability).mockRejectedValueOnce(new Error('observability unavailable'));
-
-    render(<LogAuditPage />);
-
-    expect(await screen.findByText('GET /api/v1/admin/logs · 200')).toBeInTheDocument();
-    expect(await screen.findByRole('status')).toHaveTextContent('加载链路观测失败');
-    expect(screen.getAllByText('加载链路观测失败')).toHaveLength(2);
   });
 
   it('searches operator candidates and resets actor_user_id with all filters', async () => {
@@ -715,7 +589,7 @@ describe('LogAuditPage', () => {
     expect(container.querySelector('.pagination .page-summary')).toBeInTheDocument();
     expect(container.querySelector('.pagination .page-right')).toBeInTheDocument();
     expect(screen.getByLabelText('日志摘要').querySelectorAll('.metric-label')).toHaveLength(4);
-    expect(screen.getByLabelText('链路观测摘要').querySelectorAll('.metric-label')).toHaveLength(4);
+    expect(screen.queryByLabelText('链路观测摘要')).not.toBeInTheDocument();
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(alertSpy).not.toHaveBeenCalled();
   });
@@ -849,6 +723,22 @@ describe('LogAuditPage', () => {
     expect(within(drawer).getByText('Trusted Request ID')).toBeInTheDocument();
     expect(within(drawer).getByText('Client Request ID')).toBeInTheDocument();
     expect(within(drawer).getByText('Trusted Response Header')).toBeInTheDocument();
+    expect(within(drawer).getAllByLabelText('字段说明：Method')[0]).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('HTTP 请求方法'),
+    );
+    expect(within(drawer).getByLabelText('字段说明：Route Template')).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('路由模板'),
+    );
+    expect(within(drawer).getAllByLabelText('字段说明：task_trace_id').length).toBeGreaterThan(0);
+    expect(within(drawer).getByLabelText('字段说明：parent_request_id')).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('触发该 Task Trace 的主请求 ID'),
+    );
+    fireEvent.mouseEnter(within(drawer).getByLabelText('字段说明：parent_request_id'));
+    expect(screen.getByRole('tooltip')).toHaveTextContent('触发该 Task Trace 的主请求 ID');
+    fireEvent.mouseLeave(within(drawer).getByLabelText('字段说明：parent_request_id'));
     expect(within(drawer).getByText('x-request-id')).toBeInTheDocument();
     expect(within(drawer).getByText('x-client-request-id')).toBeInTheDocument();
     expect(within(drawer).getAllByText('web:client-request-abcdef1234567890').length).toBeGreaterThan(0);

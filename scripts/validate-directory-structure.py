@@ -65,26 +65,46 @@ IGNORED_ROOT_NAMES = {
     ".pytest_cache",
 }
 
-errors = []
+FORBIDDEN_PATHS = {
+    "openspec/changes/archive": "OpenSpec 已归档 Change 必须位于 openspec/archive/，不得回退到 legacy openspec/changes/archive/。",
+}
 
-for item in REQUIRED_PATHS:
-    if not (ROOT / item).exists():
-        errors.append(f"缺少必需路径: {item}")
 
-for child in ROOT.iterdir():
-    if child.name in IGNORED_ROOT_NAMES:
-        continue
-    if child.name.startswith(".git"):
-        continue
-    if child.is_file() and child.name not in ALLOWED_ROOT_FILES:
-        errors.append(f"根目录存在未登记文件: {child.name}")
-    if child.is_dir() and child.name not in ALLOWED_ROOT_DIRS:
-        errors.append(f"根目录存在未登记目录: {child.name}")
+def validate(root: Path = ROOT) -> list[str]:
+    errors = []
 
-if errors:
-    print("目录结构校验失败：")
-    for err in errors:
-        print(f"- {err}")
-    sys.exit(1)
+    for item in REQUIRED_PATHS:
+        if not (root / item).exists():
+            errors.append(f"缺少必需路径: {item}")
 
-print("目录结构校验通过。")
+    for child in root.iterdir():
+        if child.name in IGNORED_ROOT_NAMES:
+            continue
+        if child.name.startswith(".git"):
+            continue
+        if child.is_file() and child.name not in ALLOWED_ROOT_FILES:
+            errors.append(f"根目录存在未登记文件: {child.name}")
+        if child.is_dir() and child.name not in ALLOWED_ROOT_DIRS:
+            errors.append(f"根目录存在未登记目录: {child.name}")
+
+    for item, reason in FORBIDDEN_PATHS.items():
+        if (root / item).exists():
+            errors.append(f"存在禁止路径: {item}。{reason}")
+
+    return errors
+
+
+def main() -> int:
+    errors = validate(ROOT)
+    if errors:
+        print("目录结构校验失败：")
+        for err in errors:
+            print(f"- {err}")
+        return 1
+
+    print("目录结构校验通过。")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

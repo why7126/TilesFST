@@ -130,4 +130,4 @@ delta spec **MODIFIED** 标题须与 `openspec/specs/design-system/spec.md` 一�
 ## 参考
 
 - `issues/requirements/archive/REQ-0000-build-design-system/`
-- `openspec/changes/archive/2026-06-13-add-design-system/`（如存在）
+- `openspec/archive/2026-06-13-add-design-system/`（如存在）

@@ -50,7 +50,7 @@ openspec_changes:
     requirement_id: REQ-0008-brand-status-confirm
     iteration: sprint-002
     archived_at: 2026-06-26 21:24:30
-    archive_path: openspec/changes/archive/2026-06-26-fix-brand-status-confirm```
+    archive_path: openspec/archive/2026-06-26-fix-brand-status-confirm```
 
 ## 2. Readiness
 
@@ -86,7 +86,7 @@ openspec_changes:
 | 评审 | `review.md` |
 | 启停确认 context | `prototype/web/brand-status-confirm-context.md` |
 | 父需求 | `issues/requirements/archive/REQ-0005-brand-management/` |
-| 归档 Change | `openspec/changes/archive/2026-06-26-fix-brand-status-confirm/` |
+| 归档 Change | `openspec/archive/2026-06-26-fix-brand-status-confirm/` |
 | 实现 | `src/web/src/pages/admin/BrandManagementPage.tsx` |
 
 ## 5. 变更记录

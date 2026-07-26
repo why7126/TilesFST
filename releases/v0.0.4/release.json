@@ -147,132 +147,132 @@
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-product-card-component"
+      "archive_dir": "openspec/archive/2026-07-19-update-miniapp-product-card-component"
     },
     {
       "id": "fix-miniapp-home-recommendation-routing",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-fix-miniapp-home-recommendation-routing"
+      "archive_dir": "openspec/archive/2026-07-19-fix-miniapp-home-recommendation-routing"
     },
     {
       "id": "update-miniapp-brand-header-title-rules",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-brand-header-title-rules"
+      "archive_dir": "openspec/archive/2026-07-19-update-miniapp-brand-header-title-rules"
     },
     {
       "id": "update-brand-certificate-common-component",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-update-brand-certificate-common-component"
+      "archive_dir": "openspec/archive/2026-07-19-update-brand-certificate-common-component"
     },
     {
       "id": "add-miniapp-device-evidence-template",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-device-evidence-template"
+      "archive_dir": "openspec/archive/2026-07-19-add-miniapp-device-evidence-template"
     },
     {
       "id": "fix-miniapp-search-prototype-alignment",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-fix-miniapp-search-prototype-alignment"
+      "archive_dir": "openspec/archive/2026-07-20-fix-miniapp-search-prototype-alignment"
     },
     {
       "id": "add-miniapp-brand-card-component",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-brand-card-component"
+      "archive_dir": "openspec/archive/2026-07-19-add-miniapp-brand-card-component"
     },
     {
       "id": "update-miniapp-category-product-list-entry",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-update-miniapp-category-product-list-entry"
+      "archive_dir": "openspec/archive/2026-07-19-update-miniapp-category-product-list-entry"
     },
     {
       "id": "fix-miniapp-home-device-acceptance",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-fix-miniapp-home-device-acceptance"
+      "archive_dir": "openspec/archive/2026-07-19-fix-miniapp-home-device-acceptance"
     },
     {
       "id": "add-miniapp-custom-navigation-best-practice",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-19-add-miniapp-custom-navigation-best-practice"
+      "archive_dir": "openspec/archive/2026-07-19-add-miniapp-custom-navigation-best-practice"
     },
     {
       "id": "update-miniapp-product-list-card-only-layout",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-update-miniapp-product-list-card-only-layout"
+      "archive_dir": "openspec/archive/2026-07-20-update-miniapp-product-list-card-only-layout"
     },
     {
       "id": "add-miniapp-certificate-list-page",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-certificate-list-page"
+      "archive_dir": "openspec/archive/2026-07-20-add-miniapp-certificate-list-page"
     },
     {
       "id": "add-miniapp-brand-detail-home-page",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-brand-detail-home-page"
+      "archive_dir": "openspec/archive/2026-07-20-add-miniapp-brand-detail-home-page"
     },
     {
       "id": "add-favorite-list-page",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-add-favorite-list-page"
+      "archive_dir": "openspec/archive/2026-07-20-add-favorite-list-page"
     },
     {
       "id": "add-brand-list-page",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-add-brand-list-page"
+      "archive_dir": "openspec/archive/2026-07-20-add-brand-list-page"
     },
     {
       "id": "add-miniapp-share-add-guide",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-add-miniapp-share-add-guide"
+      "archive_dir": "openspec/archive/2026-07-20-add-miniapp-share-add-guide"
     },
     {
       "id": "fix-miniapp-sku-detail-video-url",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-fix-miniapp-sku-detail-video-url"
+      "archive_dir": "openspec/archive/2026-07-20-fix-miniapp-sku-detail-video-url"
     },
     {
       "id": "update-admin-banner-placement-scope",
       "sprint": "sprint-009",
       "status": "archived",
       "scope": "formal",
-      "archive_dir": "openspec/changes/archive/2026-07-20-update-admin-banner-placement-scope"
+      "archive_dir": "openspec/archive/2026-07-20-update-admin-banner-placement-scope"
     }
   ],
   "gates": {
     "openspec_archive": {
       "status": "pass",
-      "evidence": "2026-07-20 23:39:49 CST: iterations/archive/sprint-009/sprint.yaml lists 18 formal changes and each resolves to openspec/changes/archive/2026-07-19|20-<change-id>; acceptance-report.md records Readiness PASS, 18/18 Change archived, 351/351 tasks complete."
+      "evidence": "2026-07-20 23:39:49 CST: iterations/archive/sprint-009/sprint.yaml lists 18 formal changes and each resolves to openspec/archive/2026-07-19|20-<change-id>; acceptance-report.md records Readiness PASS, 18/18 Change archived, 351/351 tasks complete."
     },
     "tests": {
       "status": "pass",

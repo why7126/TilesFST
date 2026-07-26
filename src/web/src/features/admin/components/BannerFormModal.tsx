@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
-import type { BannerAdminItem } from '@/shared/api/generated';
+import type {
+  BannerAdminItem,
+  BannerCreateRequest,
+  BannerCreateRequestDisplayClient,
+  BannerCreateRequestPosition,
+} from '@/shared/api/generated';
 import { SearchableSelect } from '@/shared/ui/searchable-select';
 
 import { fetchBrands } from '../api/brands-api';
@@ -9,7 +14,6 @@ import { fetchTileSku, fetchTileSkus } from '../api/tile-skus-api';
 import { createBanner, updateBanner, uploadBannerImage } from '../api/banners-api';
 import { fetchTopics } from '../api/topics-api';
 import {
-  DEFAULT_POSITION,
   JUMP_TYPE_OPTIONS,
   POSITIONS_BY_CLIENT,
   clearJumpFieldsForType,
@@ -20,7 +24,8 @@ import { BannerValidityField } from './BannerValidityField';
 
 type ImageUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
 
-const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME';
+const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME' satisfies BannerCreateRequestDisplayClient;
+const MINIAPP_HOME_POSITION = 'MINIAPP_HOME_CAROUSEL' satisfies BannerCreateRequestPosition;
 
 interface BannerFormModalProps {
   open: boolean;
@@ -71,7 +76,7 @@ function mergeBrandOption(options: BrandOption[], next: BrandOption): BrandOptio
 export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: BannerFormModalProps) {
   const [title, setTitle] = useState('');
   const [displayClient, setDisplayClient] = useState(MINIAPP_DISPLAY_CLIENT);
-  const [position, setPosition] = useState(DEFAULT_POSITION.MINIAPP_HOME!);
+  const [position, setPosition] = useState<BannerCreateRequestPosition>(MINIAPP_HOME_POSITION);
   const [jumpType, setJumpType] = useState('NO_JUMP');
   const [skuId, setSkuId] = useState<number | null>(null);
   const [externalUrl, setExternalUrl] = useState('');
@@ -186,8 +191,8 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       setDisplayClient(MINIAPP_DISPLAY_CLIENT);
       setPosition(
         POSITIONS_BY_CLIENT.MINIAPP_HOME.some((item) => item.value === banner.position)
-          ? banner.position
-          : DEFAULT_POSITION.MINIAPP_HOME!,
+          ? (banner.position as BannerCreateRequestPosition)
+          : MINIAPP_HOME_POSITION,
       );
       setJumpType(banner.jump_type);
       setSkuId(banner.sku_id ?? null);
@@ -254,7 +259,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     } else {
       setTitle('');
       setDisplayClient(MINIAPP_DISPLAY_CLIENT);
-      setPosition(DEFAULT_POSITION.MINIAPP_HOME!);
+      setPosition(MINIAPP_HOME_POSITION);
       setJumpType('NO_JUMP');
       setSkuId(null);
       setExternalUrl('');
@@ -360,7 +365,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       valid_from: validFrom ? `${validFrom}:00+00:00` : null,
       valid_to: validTo ? `${validTo}:59+00:00` : null,
       remark: remark.trim() || null,
-    };
+    } satisfies BannerCreateRequest;
 
     try {
       if (mode === 'create') {
@@ -458,7 +463,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                 aria-label="展示位置"
                 className="select"
                 value={position}
-                onChange={(e) => setPosition(e.target.value)}
+                onChange={(e) => setPosition(e.target.value as BannerCreateRequestPosition)}
               >
                 {positions.map((opt) => (
                   <option key={opt.value} value={opt.value}>

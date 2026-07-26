@@ -32,7 +32,7 @@ Sprint 归档 readiness gate 当前只校验 Change 目录存在性与 `tasks.md
 
 满足以下条件时会稳定触发：
 
-1. Change 已归档到 `openspec/changes/archive/YYYY-MM-DD-<change-id>/`。
+1. Change 已归档到 `openspec/archive/YYYY-MM-DD-<change-id>/`。
 2. 该归档目录缺失 `trace.md`。
 3. `tasks.md` 所有 checkbox 均已完成。
 4. `proposal.md`、`design.md`、`tasks.md` 没有统一格式的归档验证摘要，或现有脚本无法识别摘要。

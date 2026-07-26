@@ -404,10 +404,10 @@ REQ-0031 触发 `admin-form`、`admin-modal` 与 `media-upload` 横切 AC；REQ-
 
 | 项目 | 状态 | 处理建议 |
 |---|---|---|
-| REQ-0028 Change | archived | 已归档至 `openspec/changes/archive/2026-07-11-add-admin-list-page-contract/` |
+| REQ-0028 Change | archived | 已归档至 `openspec/archive/2026-07-11-add-admin-list-page-contract/` |
 | REQ-0029 Change | proposed | 执行 `/opsx-apply add-admin-list-foundation-components` |
-| REQ-0030 Change | archived | 已归档至 `openspec/changes/archive/2026-07-11-update-api-docs-swagger-policy-checklist/` |
-| BUG-0056 Change | archived | 已归档至 `openspec/changes/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` |
+| REQ-0030 Change | archived | 已归档至 `openspec/archive/2026-07-11-update-api-docs-swagger-policy-checklist/` |
+| BUG-0056 Change | archived | 已归档至 `openspec/archive/2026-07-09-fix-sprint-archive-incomplete-tasks-gate/` |
 | BUG 修复 Change | proposed | 执行 `/opsx-apply fix-api-governance-route-tags-known-debt` |
 | BUG-0058 Change | applied | 已完成 `/opsx-apply fix-workflow-sync-check-time-drift-idempotency`；待归档 |
 | BUG-0059 Change | proposed | 执行 `/opsx-apply fix-user-password-copy-not-working` |

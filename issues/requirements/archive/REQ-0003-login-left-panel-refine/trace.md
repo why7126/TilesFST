@@ -31,7 +31,7 @@ openspec_changes:
   - change_id: fix-login-left-panel-refine
     type: fix
     status: archived
-    archive_path: openspec/changes/archive/2026-06-14-fix-login-left-panel-refine/
+    archive_path: openspec/archive/2026-06-14-fix-login-left-panel-refine/
     requirement_id: REQ-0003-login-left-panel-refine
 ```
 
@@ -94,7 +94,7 @@ FR-004_stats_not_occluded:
 
 | 项目 | 状态 |
 |---|---|
-| OpenSpec Change | `openspec/changes/archive/2026-06-14-fix-login-left-panel-refine/` |
+| OpenSpec Change | `openspec/archive/2026-06-14-fix-login-left-panel-refine/` |
 | 类型 | fix（CSS Port 微调） |
 | 状态 | **archived** |
 | 正式 Spec | `openspec/specs/web-client/spec.md`（+6 MODIFIED） |

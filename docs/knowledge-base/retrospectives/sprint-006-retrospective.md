@@ -83,7 +83,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 1. **把 Issue 子文档状态修复前移**：在 `/opsx-archive` 的 promote 阶段通过脚本自动列出、必要时提供明确修复命令，而不是 Sprint close 后集中暴露。
 2. **新增 Sprint apply 状态同步检查**：当所有 Change 已 applied 时，四件套 `status` 应先从 `planning` 或 `in_progress` 对齐到交付中状态。
 3. **把 AI usage snapshot 生成纳入 Sprint close**：`REQ-0034` 已提供能力，后续 Sprint 应在 `/sprint-exps` 前生成 `data/ai-usage/sprints/<sprint>.json`。
-4. **保持 archive 查询精确路径**：继续从 `sprint.yaml` Change 列表解析 archive 目录，避免全扫 `openspec/changes/archive/**`。
+4. **保持 archive 查询精确路径**：继续从 `sprint.yaml` Change 列表解析 archive 目录，避免全扫 `openspec/archive/**`。
 
 ## 模型 Token 使用分析
 

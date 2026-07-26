@@ -26,7 +26,7 @@ source: /sprint-propose sprint-006
 
 | Gate | 当前结论 | 归档前要求 |
 |---|---|---|
-| OpenSpec archive | PASS | 7 个 Change 均已移动到 `openspec/changes/archive/2026-07-11-*` |
+| OpenSpec archive | PASS | 7 个 Change 均已移动到 `openspec/archive/2026-07-11-*` |
 | Sprint readiness | PASS | `python scripts/validate-sprint-archive-readiness.py --sprint sprint-006` |
 | Tests | PASS | 以各 Change `tasks.md` 与实现记录中的验证命令为准 |
 | API / Orval | PASS | `REQ-0020` 已同步 OpenAPI / Orval 与相关文档 |

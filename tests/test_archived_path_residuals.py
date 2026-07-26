@@ -47,7 +47,7 @@ def write_issue(root: Path, body: str = "# Trace\n") -> None:
 
 
 def write_archived_change(root: Path, body: str = "- [x] done\n") -> None:
-    change_dir = root / "openspec" / "changes" / "archive" / "2026-07-04-add-demo"
+    change_dir = root / "openspec" / "archive" / "2026-07-04-add-demo"
     change_dir.mkdir(parents=True)
     (change_dir / "tasks.md").write_text(body, encoding="utf-8")
 
@@ -92,14 +92,28 @@ def test_report_finds_active_change_path_residual_with_archive_suggestion(tmp_pa
     hit = report.residuals[0]
     assert hit.kind == "active-change-path"
     assert hit.old_path == "openspec/changes/add-demo/"
-    assert hit.new_path == "openspec/changes/archive/2026-07-04-add-demo/"
+    assert hit.new_path == "openspec/archive/2026-07-04-add-demo/"
+
+
+def test_report_finds_legacy_archive_path_residual(tmp_path: Path) -> None:
+    write_sprint(tmp_path)
+    write_issue(tmp_path, "Old archive: openspec/changes/archive/2026-07-04-add-demo/tasks.md\n")
+    write_archived_change(tmp_path)
+
+    report = archived_path_residuals.build_report("sprint-999", root=tmp_path)
+
+    assert report.ok is False
+    hit = report.residuals[0]
+    assert hit.kind == "legacy-change-archive-path"
+    assert hit.old_path == "openspec/changes/archive/2026-07-04-add-demo/"
+    assert hit.new_path == "openspec/archive/2026-07-04-add-demo/"
 
 
 def test_scope_does_not_scan_unrelated_archive_or_generated_files(tmp_path: Path) -> None:
     write_sprint(tmp_path)
     write_issue(tmp_path)
     write_archived_change(tmp_path)
-    unrelated = tmp_path / "openspec" / "changes" / "archive" / "2026-07-04-other"
+    unrelated = tmp_path / "openspec" / "archive" / "2026-07-04-other"
     unrelated.mkdir(parents=True)
     (unrelated / "notes.md").write_text("iterations/change/sprint-999/\n", encoding="utf-8")
     generated = tmp_path / "src" / "web" / "src" / "generated"
@@ -110,7 +124,7 @@ def test_scope_does_not_scan_unrelated_archive_or_generated_files(tmp_path: Path
 
     assert report.ok is True
     checked = {hit.file for hit in report.residuals}
-    assert "openspec/changes/archive/2026-07-04-other/notes.md" not in checked
+    assert "openspec/archive/2026-07-04-other/notes.md" not in checked
 
 
 def test_cli_json_returns_nonzero_for_residuals(tmp_path: Path) -> None:

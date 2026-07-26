@@ -120,5 +120,5 @@ toast.success("复制成功")
 ## 追溯
 
 - `REQ-0036-clipboard-helper-best-practice-docs`
-- `openspec/changes/archive/2026-07-11-add-clipboard-helper-best-practice-docs/`
+- `openspec/archive/2026-07-11-add-clipboard-helper-best-practice-docs/`
 - `docs/knowledge-base/retrospectives/sprint-006-retrospective.md` A-005 行动项

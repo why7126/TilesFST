@@ -61,7 +61,7 @@ updated_at: 2026-07-20 23:30:55
 - [x] 商品列表页双列卡片展示实现完成，并对照 REQ-0056 `acceptance.md` 的 AC-001 至 AC-017 与 AC-UI-001 至 AC-UI-012 验收；用户已确认完成真机验收。
 - [ ] 证书列表页实现完成，并对照 REQ-0057 `acceptance.md` 的 AC-001 至 AC-025 与 AC-XCUT-N/A 验收；需补公开证书 API、证书卡片、搜索筛选、图片/PDF 预览、安全过滤、埋点、自定义导航与 320/375/430 pt evidence。
 - [ ] 收藏列表页实现完成，并对照 REQ-0059 `acceptance.md` 的 AC-001 至 AC-022 与 AC-UI-001 至 AC-UI-009 验收；若覆盖小程序，需补自定义导航与 320/375/430 pt evidence。
-- [x] 品牌列表页实现完成，并对照 REQ-0060 `acceptance.md` 的 AC-001 至 AC-DOC-004 验收；品牌轮播、双列品牌卡片、TabBar、状态栏、胶囊 reserve 与 320/375/430 pt 静态视口 evidence 已记录在 `openspec/changes/archive/2026-07-20-add-brand-list-page/implementation/device-evidence.md`。
+- [x] 品牌列表页实现完成，并对照 REQ-0060 `acceptance.md` 的 AC-001 至 AC-DOC-004 验收；品牌轮播、双列品牌卡片、TabBar、状态栏、胶囊 reserve 与 320/375/430 pt 静态视口 evidence 已记录在 `openspec/archive/2026-07-20-add-brand-list-page/implementation/device-evidence.md`。
 - [x] 添加到我的小程序引导语实现完成，并对照 REQ-0061 `acceptance.md` 的 AC-001 至 AC-SCOPE-005 验收；首页轻量引导、两行文案、右上角小/大/小三点提示符、胶囊 bottom/right 定位、right 52px fallback、手工关闭、当前会话不重复展示、API / DB / Orval N/A、静态测试、用户确认真机验收与 320/375/430 pt 静态视口 evidence 已完成。
 - [ ] 管理后台 Banner 投放范围配置优化实现完成，并对照 REQ-0062 `acceptance.md` 的 AC-001 至 AC-XCUT-010 验收；需确认展示端仅小程序、展示位置仅首页轮播/品牌列表页轮播、旧 Web/专题/历史位置 Banner 业务记录删除、品牌列表页轮播不复用首页轮播、OpenAPI/Orval/DB 文档与测试同步。
 - [ ] 搜索组件原型偏差已修复，并对照 BUG-0066 `acceptance.md` 的 AC-BUG-001 至 AC-BUG-014 验收。

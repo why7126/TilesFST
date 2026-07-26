@@ -56,10 +56,10 @@ related_changes:
 | 阶段 | 路径 | 状态 |
 |---|---|---|
 | Change | `openspec/changes/add-user-login/` | 已实现，待验收归档 |
-| Change — Design System | `openspec/changes/archive/2026-06-13-add-design-system/` | 已归档 |
-| Change — 登录 UI 重构 | `openspec/changes/archive/2026-06-13-refactor-login-ui/` | 已归档 |
-| Change — checklist 对齐 | `openspec/changes/archive/2026-06-13-align-login-prototype/` | 已归档 |
-| Change — PNG 像素级 | `openspec/changes/archive/2026-06-13-fix-login-pixel-fidelity/` | 已归档 |
+| Change — Design System | `openspec/archive/2026-06-13-add-design-system/` | 已归档 |
+| Change — 登录 UI 重构 | `openspec/archive/2026-06-13-refactor-login-ui/` | 已归档 |
+| Change — checklist 对齐 | `openspec/archive/2026-06-13-align-login-prototype/` | 已归档 |
+| Change — PNG 像素级 | `openspec/archive/2026-06-13-fix-login-pixel-fidelity/` | 已归档 |
 | 目标 Spec | `openspec/specs/auth/spec.md` | 已生效 |
 | 关联 Spec | `openspec/specs/web-client/spec.md` | 已生效 |
 | 迭代 | `iterations/archive/sprint-001/sprint.md` | **completed（2026-06-14 验收通过）** |

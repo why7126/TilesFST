@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-07-19 19:52:29
+updated_at: 2026-07-26 17:23:40
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -127,9 +127,11 @@ lifecycle_stage: change | archive
 | `iterations/archive/` | 已结束 Sprint 四件套（历史保留） |
 | `issues/*/review/` | 已评审、开发中 REQ/BUG |
 | `openspec/changes/` | 进行中的 Change |
-| `openspec/changes/archive/` | 已归档 Change |
+| `openspec/archive/` | 已归档 Change |
+| `openspec/changes/archive/` | 禁止真实存在；仅 legacy 引用扫描或迁移测试可出现该字符串 |
 
-Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/changes/archive/`，关联 REQ/BUG → `issues/*/archive/`（若尚未迁入）。
+Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/archive/`，关联 REQ/BUG → `issues/*/archive/`（若尚未迁入）。
+`/sprint-archive` 完成前 MUST 通过 `python scripts/validate-directory-structure.py`，确保没有真实 `openspec/changes/archive/` 目录残留。
 
 ## 8. AI 检查清单
 
@@ -138,5 +140,6 @@ Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/ch
 □ sprint-archive 后是否迁入 archive/ ？
 □ sprint.yaml 是否更新 lifecycle_stage ？
 □ 路径引用是否使用 change/ 或 archive/ 前缀？
+□ 是否确认没有 openspec/changes/archive/ 真实目录？
 □ 是否运行 sync-workflow-status.py --check ？
 ```

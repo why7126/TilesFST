@@ -163,7 +163,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 | Opsx-Archive | high | `total_tokens=14053748`、`model_call_count=102` | 归档优先使用 readiness summary、Workflow Sync summary 和 residual JSON |
 | Sprint 四件套 | high | Fact Sheet token_risks：`sprint.md` 超 200 行 | 复盘默认使用 Fact Sheet summary；只在写回链和处理 warning 时读片段 |
 | OpenSpec changes | high | Fact Sheet token_risks：8 Change，157/157 tasks | 不默认读取每个 `tasks.md`；只按 warning 回读 `fix-miniapp-sku-video-slow-start` fallback |
-| Archive lookup | medium | Fact Sheet token_risks：archive path 由 sprint.yaml 解析 | 使用脚本 resolver，避免宽泛扫描 `openspec/changes/archive/**` |
+| Archive lookup | medium | Fact Sheet token_risks：archive path 由 sprint.yaml 解析 | 使用脚本 resolver，避免宽泛扫描 `openspec/archive/**` |
 
 ### 对照预算规则
 

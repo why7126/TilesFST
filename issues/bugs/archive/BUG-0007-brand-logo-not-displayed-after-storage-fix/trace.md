@@ -43,7 +43,7 @@ openspec_changes:
   - change_id: fix-brand-logo-display-after-storage-fix
     type: fix
     status: archived
-    archived_to: openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix```
+    archived_to: openspec/archive/2026-06-26-fix-brand-logo-display-after-storage-fix```
 
 ## 2. Readiness
 
@@ -86,7 +86,7 @@ openspec_changes:
 | 2026-06-26 15:24:16 | Sprint scope update | 纳入 `sprint-002`，等待 `/bug-opsx` 创建 `fix-*` Change |
 | 2026-06-26 15:28:42 | `/bug-opsx` | 创建 `fix-brand-logo-display-after-storage-fix` OpenSpec Change |
 | 2026-06-26 16:15:50 | `/opsx-apply` | 已完成实现与回归验证；待 `/opsx-archive` |
-| 2026-06-26 20:21:43 | `/opsx-archive` | 已同步 `brand-management` 正式 spec 并归档到 `openspec/changes/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/` |
+| 2026-06-26 20:21:43 | `/opsx-archive` | 已同步 `brand-management` 正式 spec 并归档到 `openspec/archive/2026-06-26-fix-brand-logo-display-after-storage-fix/` |
 
 ## 6. 后续动作
 

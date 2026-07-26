@@ -113,11 +113,16 @@ def parse_sprint_changes(sprint_yaml: Path) -> list[str]:
 
 
 def find_archived_change_dir(root: Path, change_id: str) -> Path | None:
-    archive_root = root / "openspec" / "changes" / "archive"
-    if not archive_root.exists():
-        return None
-    matches = sorted(archive_root.glob(f"*-{change_id}"))
-    return matches[-1] if matches else None
+    for archive_root in (
+        root / "openspec" / "archive",
+        root / "openspec" / "changes" / "archive",
+    ):
+        if not archive_root.exists():
+            continue
+        matches = sorted(archive_root.glob(f"*-{change_id}"))
+        if matches:
+            return matches[-1]
+    return None
 
 
 def resolve_change_dir(root: Path, change_id: str) -> tuple[str, Path | None]:
@@ -144,7 +149,7 @@ FALLBACK_SUMMARY_REQUIREMENTS = {
     "validation": ("验证命令", "验证结果", "测试命令", "test", "pytest", "validate"),
     "acceptance": ("验收结论", "验收结果", "acceptance", "verdict"),
     "issue_or_sprint_status": ("Issue", "Sprint", "REQ-", "BUG-", "状态"),
-    "archive_evidence": ("归档路径", "归档时间", "openspec/changes/archive", "archive"),
+    "archive_evidence": ("归档路径", "归档时间", "openspec/archive", "archive"),
 }
 
 

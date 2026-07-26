@@ -67,9 +67,16 @@ Archive a completed change in the experimental workflow.
 
 5. **Perform the archive**
 
+   Before moving anything, verify the legacy archive root is absent:
+   ```bash
+   test ! -e openspec/changes/archive
+   ```
+
+   If `openspec/changes/archive` exists, stop. Migrate any children to `openspec/archive/`, delete the empty legacy directory, and run `python scripts/validate-directory-structure.py` before continuing.
+
    Create the archive directory if it doesn't exist:
    ```bash
-   mkdir -p openspec/changes/archive
+   mkdir -p openspec/archive
    ```
 
    Generate target name using current date: `YYYY-MM-DD-<change-name>`
@@ -79,7 +86,8 @@ Archive a completed change in the experimental workflow.
    - If no: Move the change directory to archive
 
    ```bash
-   mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
+   mv openspec/changes/<name> openspec/archive/YYYY-MM-DD-<name>
+   python scripts/validate-directory-structure.py
    ```
 
 6. **Display summary**
@@ -98,7 +106,7 @@ Archive a completed change in the experimental workflow.
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** openspec/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
 
 All artifacts complete. All tasks complete.
@@ -112,3 +120,4 @@ All artifacts complete. All tasks complete.
 - Show clear summary of what happened
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- Never create or write to `openspec/changes/archive/`; archived changes belong only under `openspec/archive/`

@@ -13,7 +13,7 @@ updated_at: 2026-07-19 15:35:19
 
 ## 验收结论
 
-Sprint 008 于 2026-07-19 15:31:45 按用户确认执行强制关闭。正式范围内 11 个 OpenSpec Change 均已进入 `openspec/changes/archive/`，关联 REQ 已归档，`BUG-0065` 已由 `review/` 提升至 `archive/`。
+Sprint 008 于 2026-07-19 15:31:45 按用户确认执行强制关闭。正式范围内 11 个 OpenSpec Change 均已进入 `openspec/archive/`，关联 REQ 已归档，`BUG-0065` 已由 `review/` 提升至 `archive/`。
 
 本次关闭保留两项人工 follow-up 风险：`fix-miniapp-home-preview-runtime-entry` 尚余微信开发者工具真实预览与 320-430 pt 视口布局验收；`add-miniapp-global-custom-navigation-bar` 尚余 320/375/430 pt 胶囊避让与微信开发者工具/真机验收。自动化与静态检查已作为归档证据保留，但不得表述为真实设备验收已完成。
 

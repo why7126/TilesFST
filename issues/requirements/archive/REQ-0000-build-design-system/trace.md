@@ -16,8 +16,8 @@ related_changes:
 
 | 资产 | 路径 |
 |------|------|
-| OpenSpec（归档） | `openspec/changes/archive/2026-06-13-add-design-system/` |
-| OpenSpec（Sprint-000，已归档） | `openspec/changes/archive/2026-06-14-build-design-system/` |
+| OpenSpec（归档） | `openspec/archive/2026-06-13-add-design-system/` |
+| OpenSpec（Sprint-000，已归档） | `openspec/archive/2026-06-14-build-design-system/` |
 | 正式 Spec | `openspec/specs/design-system/spec.md` |
 
 ## 历史

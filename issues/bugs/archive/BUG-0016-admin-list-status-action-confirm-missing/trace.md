@@ -69,7 +69,7 @@ openspec_changes:
 | Golden Reference | `TileCategoryManagementPage.tsx`、`BrandManagementPage.tsx` |
 | 启停 context | `REQ-0008/.../brand-status-confirm-context.md` |
 | 建议 change | `fix-admin-list-status-action-confirm`（**archived**） |
-| OpenSpec | `openspec/changes/archive/2026-06-27-fix-admin-list-status-action-confirm/` |
+| OpenSpec | `openspec/archive/2026-06-27-fix-admin-list-status-action-confirm/` |
 
 ## 5. 变更记录
 

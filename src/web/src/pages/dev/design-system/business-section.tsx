@@ -7,51 +7,49 @@ import {
   ProductGrid,
   TextureRow,
 } from '@/shared/business';
+import type { FeaturedCardData, ProductGridEntry } from '@shared/business/types';
 
 import { DesignSection, DesignSubSection } from './components';
 
-const gridItems = [
+const featuredProduct: FeaturedCardData = {
+  id: 'f-demo',
+  name: '鱼肚白大理石',
+  spec: '1200×2400mm · 意大利',
+  price: '¥ 680',
+  specs: [
+    { label: '产地', value: '意大利' },
+    { label: '规格', value: '1200×2400' },
+    { label: '厚度', value: '9mm' },
+    { label: '表面', value: '抛光' },
+  ],
+  badges: [{ variant: 'inStock', label: '现货' }],
+  onCta: () => undefined,
+  onFavorite: () => undefined,
+};
+
+const gridItems: ProductGridEntry[] = [
   {
-    kind: 'featured' as const,
-    data: {
-      id: 'f-demo',
-      name: '鱼肚白大理石',
-      spec: '1200×2400mm · 意大利',
-      price: '¥ 680',
-      specs: [
-        { label: '产地', value: '意大利' },
-        { label: '规格', value: '1200×2400' },
-        { label: '厚度', value: '9mm' },
-        { label: '表面', value: '抛光' },
-      ] as [
-        { label: string; value: string },
-        { label: string; value: string },
-        { label: string; value: string },
-        { label: string; value: string },
-      ],
-      badges: [{ variant: 'inStock' as const, label: '现货' }],
-      onCta: () => undefined,
-      onFavorite: () => undefined,
-    },
+    kind: 'featured',
+    data: featuredProduct,
   },
   {
-    kind: 'product' as const,
+    kind: 'product',
     data: {
       id: 'p-demo-1',
       name: '卡拉拉白',
       spec: '800×800mm · 中国',
       price: '¥ 128',
-      badges: [{ variant: 'hotSale' as const, label: '热销' }],
+      badges: [{ variant: 'hotSale', label: '热销' }],
     },
   },
   {
-    kind: 'product' as const,
+    kind: 'product',
     data: {
       id: 'p-demo-2',
       name: '爵士白',
       spec: '900×1800mm · 中国',
       price: '¥ 156',
-      badges: [{ variant: 'new' as const, label: '新品' }],
+      badges: [{ variant: 'new', label: '新品' }],
     },
   },
 ];
@@ -87,7 +85,7 @@ export function BusinessSection() {
         </DesignSubSection>
 
         <DesignSubSection title="FeaturedCard">
-          <FeaturedCard product={gridItems[0].data} />
+          <FeaturedCard product={featuredProduct} />
         </DesignSubSection>
 
         <DesignSubSection title="ProductCardAction（28×28）">
