@@ -209,7 +209,7 @@
   position: relative;
   width: 100%;
   overflow: hidden;
-  aspect-ratio: 1 / 0.7;
+  aspect-ratio: 1 / 1.3;
   background: rgba(237,232,223,0.08);
 }
 

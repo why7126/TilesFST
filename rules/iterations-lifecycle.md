@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-07-26 17:23:40
+updated_at: 2026-07-29 08:36:28
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -68,6 +68,7 @@ capacity_usage = estimated_person_days / capacity_person_days
 - 当 `estimated_person_days > capacity_person_days * 1.2` 时，MUST 硬阻断正式规划：不得创建 `iterations/change/<sprint>/` 四件套，不得更新 `trace.md` 的 `iteration` 或 Change trace，并提示拆分 Sprint、移出低优先级项或替换范围后重新运行 `/sprint-propose`。
 - 当 `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时，MAY 继续生成 Sprint，但 MUST 在 `sprint.md` 记录容量风险、fix 缓冲影响和延后项建议。
 - 当 `estimated_person_days <= capacity_person_days` 时，按既有 Review Gate、Readiness Gate 和 Scope 规则继续。
+- `/sprint-propose` 写入或更新范围后，MUST 在 Workflow Sync 成功后运行 `python scripts/validate-sprint-scope.py <sprint-id> [--item <REQ|BUG|change-id>]`，确认新增或更新项出现在 `sprint.md` `## 2. Scope` 主表和派生表；该校验失败时必须修复后重跑，不得仅以 `sprint.yaml` 或 trace 一致作为完成依据。
 
 ## 3.2 opsx-apply 迭代纳入门禁（MUST）
 

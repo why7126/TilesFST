@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REQ-0077 类目名称输入最多 15 个字符</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --surface-2: #28241a;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.58);
+      --line: rgba(255, 255, 255, 0.1);
+      --gold: #c8a055;
+      --danger: #e26d5c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 264px 1fr;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.04), transparent 1px) 0 0 / 48px 48px,
+        var(--page);
+    }
+
+    .sidebar {
+      background: var(--deep);
+      border-right: 1px solid var(--line);
+      padding: 28px 18px;
+    }
+
+    .brand { color: var(--gold); font-size: 18px; margin-bottom: 28px; }
+    .nav-item {
+      padding: 10px 12px;
+      border-radius: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .nav-item.active {
+      color: var(--text);
+      background: rgba(200,160,85,0.12);
+      border-left: 2px solid var(--gold);
+    }
+
+    main { padding: 28px; }
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .eyebrow {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 { margin: 0; font-size: 22px; font-weight: 400; }
+    .desc { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .button {
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 2px;
+      min-height: 36px;
+      padding: 0 14px;
+    }
+    .button.primary {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--deep);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      min-width: 0;
+    }
+    .card-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tree { padding: 10px; }
+    .tree-node {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 2px;
+      font-size: 13px;
+      min-width: 0;
+    }
+    .tree-node.active { background: rgba(200,160,85,0.1); color: var(--gold); }
+    .tree-name, .name-main {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .count { color: var(--muted); flex: none; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { color: var(--muted); font-weight: 400; }
+    .name-sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .badge { color: var(--gold); }
+    .page-foot {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,0.54);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+    }
+    .category-modal-card {
+      width: min(560px, calc(100vw - 40px));
+      max-height: calc(100vh - 40px);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.48);
+    }
+    .modal-head, .modal-foot {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-foot {
+      border-bottom: 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-body {
+      overflow: auto;
+      padding: 18px;
+    }
+    label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    input, select {
+      width: 100%;
+      height: 38px;
+      border-radius: 2px;
+      border: 1px solid var(--line);
+      background: var(--deep);
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 13px;
+    }
+    .field { margin-bottom: 16px; }
+    .error { color: var(--danger); font-size: 12px; margin-top: 7px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 7px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">TILESFST</div>
+      <div class="nav-item">商品管理</div>
+      <div class="nav-item active">瓷砖类目</div>
+      <div class="nav-item">品牌管理</div>
+    </aside>
+
+    <main>
+      <header class="page-head">
+        <div>
+          <div class="eyebrow">CATEGORY MANAGEMENT</div>
+          <h1>瓷砖类目管理</h1>
+          <div class="desc">15 字符类目名称在弹窗、类目树和列表中保持可读。</div>
+        </div>
+        <button class="button primary">新增类目</button>
+      </header>
+
+      <section class="grid">
+        <aside class="card">
+          <div class="card-head">类目树</div>
+          <div class="tree">
+            <div class="tree-node active"><span class="tree-name">全部类目</span><span class="count">128</span></div>
+            <div class="tree-node"><span class="tree-name">岩板背景墙精选砖材</span><span class="count">24</span></div>
+            <div class="tree-node"><span class="tree-name">现代客厅地面砖A</span><span class="count">18</span></div>
+          </div>
+        </aside>
+        <section class="card">
+          <div class="card-head">当前节点：岩板背景墙精选砖材</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 38%">类目名称</th>
+                <th>层级</th>
+                <th>SKU 数量</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="name-main">岩板背景墙精选砖材</div>
+                  <div class="name-sub">CAT-20260728</div>
+                </td>
+                <td>一级</td>
+                <td>24</td>
+                <td><span class="badge">启用</span></td>
+                <td>编辑</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="name-main">ModernTile2026A</div>
+                  <div class="name-sub">CAT-20260729</div>
+                </td>
+                <td>二级</td>
+                <td>7</td>
+                <td><span class="badge">启用</span></td>
+                <td>编辑</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="page-foot">
+            <span>共 2 条</span>
+            <span>1 / 1　每页 10 条</span>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay">
+    <section class="category-modal-card">
+      <div class="modal-head">
+        <h1>编辑类目</h1>
+        <div class="desc">类目名称最多 15 个字符。</div>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>上级类目 *</label>
+          <select><option>无上级，创建一级类目</option></select>
+        </div>
+        <div class="field">
+          <label>类目名称 *</label>
+          <input value="岩板背景墙精选砖材" />
+          <div class="hint">当前 10 / 15，可保存。</div>
+        </div>
+        <div class="field">
+          <label>类目名称错误态</label>
+          <input value="岩板背景墙精选砖材加长" aria-invalid="true" />
+          <div class="error">类目名称最多 15 个字符</div>
+        </div>
+        <div class="field">
+          <label>排序权重 *</label>
+          <input value="10" />
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="button">取消</button>
+        <button class="button primary">保存类目</button>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

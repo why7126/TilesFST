@@ -218,6 +218,7 @@ class TileSkuAdminService:
             material_completeness=material,  # type: ignore[arg-type]
             images=images,
             videos=videos,
+            published_at=record.published_at,
             created_at=record.created_at,
             updated_at=record.updated_at,
         )

@@ -161,13 +161,6 @@
   word-break: break-all;
 }
 
-.remark {
-  color: #D8D0BE;
-  font-size: 26rpx;
-  line-height: 1.7;
-  white-space: pre-wrap;
-}
-
 .recommend-row {
   width: 100%;
   white-space: nowrap;

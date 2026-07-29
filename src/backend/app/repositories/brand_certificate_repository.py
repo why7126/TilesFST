@@ -11,6 +11,17 @@ from sqlalchemy.orm import Session
 
 
 @dataclass
+class BrandCertificateImageRecord:
+    file_url: str
+    file_key: str
+    file_name: str
+    file_mime_type: str
+    file_size_bytes: int
+    is_main: bool
+    sort_order: int
+
+
+@dataclass
 class BrandCertificateRecord:
     id: int
     brand_id: int
@@ -33,6 +44,7 @@ class BrandCertificateRecord:
     deleted_at: str | None
     created_at: str
     updated_at: str
+    images: list[BrandCertificateImageRecord]
 
 
 @dataclass
@@ -70,7 +82,51 @@ class BrandCertificateRepository:
             deleted_at=row.get("deleted_at"),
             created_at=row["created_at"],
             updated_at=row["updated_at"],
+            images=[],
         )
+
+    @staticmethod
+    def _to_image_record(row: dict[str, Any]) -> BrandCertificateImageRecord:
+        return BrandCertificateImageRecord(
+            file_url=row["file_url"],
+            file_key=row["file_key"],
+            file_name=row["file_name"],
+            file_mime_type=row["file_mime_type"],
+            file_size_bytes=int(row["file_size_bytes"]),
+            is_main=bool(row["is_main"]),
+            sort_order=int(row["sort_order"]),
+        )
+
+    def _attach_images(self, records: list[BrandCertificateRecord]) -> list[BrandCertificateRecord]:
+        if not records:
+            return records
+        ids = [record.id for record in records]
+        placeholders = ", ".join(f":id_{index}" for index, _ in enumerate(ids))
+        params = {f"id_{index}": certificate_id for index, certificate_id in enumerate(ids)}
+        rows = (
+            self._db.execute(
+                text(
+                    f"""
+                    SELECT *
+                    FROM brand_certificate_images
+                    WHERE certificate_id IN ({placeholders})
+                    ORDER BY certificate_id ASC, sort_order ASC, id ASC
+                    """
+                ),
+                params,
+            )
+            .mappings()
+            .all()
+        )
+        images_by_certificate: dict[int, list[BrandCertificateImageRecord]] = {}
+        for row in rows:
+            data = dict(row)
+            images_by_certificate.setdefault(int(data["certificate_id"]), []).append(
+                self._to_image_record(data)
+            )
+        for record in records:
+            record.images = images_by_certificate.get(record.id, [])
+        return records
 
     def list_certificates(
         self,
@@ -142,10 +198,12 @@ class BrandCertificateRepository:
             .mappings()
             .all()
         )
+        items = self._attach_images([self._to_record(dict(row)) for row in rows])
+        summary_records = self._attach_images([self._to_record(dict(row)) for row in summary_rows])
         return BrandCertificateListResult(
-            items=[self._to_record(dict(row)) for row in rows],
+            items=items,
             total=total,
-            summary_rows=[self._to_record(dict(row)) for row in summary_rows],
+            summary_rows=summary_records,
         )
 
     def get_by_id(self, certificate_id: int) -> BrandCertificateRecord | None:
@@ -164,7 +222,9 @@ class BrandCertificateRepository:
             .mappings()
             .first()
         )
-        return self._to_record(dict(row)) if row else None
+        if not row:
+            return None
+        return self._attach_images([self._to_record(dict(row))])[0]
 
     def get_by_brand_and_name(
         self,
@@ -186,7 +246,9 @@ class BrandCertificateRepository:
             sql += " AND bc.id != :exclude_id"
             params["exclude_id"] = exclude_id
         row = self._db.execute(text(sql), params).mappings().first()
-        return self._to_record(dict(row)) if row else None
+        if not row:
+            return None
+        return self._attach_images([self._to_record(dict(row))])[0]
 
     def count_active_by_brand(self, brand_id: int) -> int:
         return int(
@@ -202,7 +264,39 @@ class BrandCertificateRepository:
             or 0
         )
 
-    def create(self, values: dict[str, Any]) -> BrandCertificateRecord:
+    def _replace_images(
+        self,
+        certificate_id: int,
+        images: list[dict[str, Any]],
+        *,
+        now: str,
+    ) -> None:
+        self._db.execute(
+            text("DELETE FROM brand_certificate_images WHERE certificate_id = :certificate_id"),
+            {"certificate_id": certificate_id},
+        )
+        for image in images:
+            self._db.execute(
+                text(
+                    """
+                    INSERT INTO brand_certificate_images (
+                      certificate_id, file_url, file_key, file_name, file_mime_type,
+                      file_size_bytes, is_main, sort_order, created_at, updated_at
+                    ) VALUES (
+                      :certificate_id, :file_url, :file_key, :file_name, :file_mime_type,
+                      :file_size_bytes, :is_main, :sort_order, :created_at, :updated_at
+                    )
+                    """
+                ),
+                {
+                    **image,
+                    "certificate_id": certificate_id,
+                    "created_at": now,
+                    "updated_at": now,
+                },
+            )
+
+    def create(self, values: dict[str, Any], images: list[dict[str, Any]]) -> BrandCertificateRecord:
         now = datetime.now(UTC).isoformat()
         cursor = self._db.execute(
             text(
@@ -222,12 +316,19 @@ class BrandCertificateRepository:
             ),
             {**values, "created_at": now, "updated_at": now},
         )
+        certificate_id = int(cursor.lastrowid)
+        self._replace_images(certificate_id, images, now=now)
         self._db.commit()
-        record = self.get_by_id(int(cursor.lastrowid))
+        record = self.get_by_id(certificate_id)
         assert record is not None
         return record
 
-    def update(self, certificate_id: int, values: dict[str, Any]) -> BrandCertificateRecord | None:
+    def update(
+        self,
+        certificate_id: int,
+        values: dict[str, Any],
+        images: list[dict[str, Any]],
+    ) -> BrandCertificateRecord | None:
         now = datetime.now(UTC).isoformat()
         self._db.execute(
             text(
@@ -255,6 +356,7 @@ class BrandCertificateRepository:
             ),
             {**values, "id": certificate_id, "updated_at": now},
         )
+        self._replace_images(certificate_id, images, now=now)
         self._db.commit()
         return self.get_by_id(certificate_id)
 

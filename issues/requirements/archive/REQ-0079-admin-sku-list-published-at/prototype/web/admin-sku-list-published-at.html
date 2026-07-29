@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0079 管理端 SKU 列表发布时间列原型</title>
+    <style>
+      :root {
+        --bg-page: #18160f;
+        --bg-surface: #211e16;
+        --bg-deep: #100f0a;
+        --text-primary: #ede8df;
+        --text-secondary: rgba(237, 232, 223, 0.68);
+        --text-muted: rgba(237, 232, 223, 0.42);
+        --brand-gold: #c8a055;
+        --border-default: rgba(255, 255, 255, 0.1);
+        --border-strong: rgba(255, 255, 255, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg-page);
+        color: var(--text-primary);
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      .page {
+        padding: 28px;
+      }
+
+      .page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        font-weight: 400;
+      }
+
+      .subtle {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+
+      .button {
+        border: 1px solid var(--brand-gold);
+        background: var(--brand-gold);
+        color: var(--bg-deep);
+        min-height: 34px;
+        padding: 0 14px;
+        border-radius: 2px;
+        font-size: 13px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) 160px 160px auto;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .input {
+        min-height: 36px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-surface);
+        color: var(--text-secondary);
+        padding: 0 12px;
+        border-radius: 3px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+      }
+
+      .table-card {
+        border: 1px solid var(--border-default);
+        background: var(--bg-surface);
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        min-width: 1080px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--border-default);
+        text-align: left;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      th {
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+
+      td {
+        color: var(--text-secondary);
+      }
+
+      .sku-name {
+        color: var(--text-primary);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        height: 20px;
+        padding: 0 8px;
+        border: 1px solid rgba(200, 160, 85, 0.36);
+        color: var(--brand-gold);
+        border-radius: 2px;
+        font-size: 12px;
+      }
+
+      .actions {
+        color: var(--brand-gold);
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .page-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .page-button {
+        border: 1px solid var(--border-default);
+        background: var(--bg-deep);
+        color: var(--text-secondary);
+        min-width: 30px;
+        height: 30px;
+        border-radius: 2px;
+      }
+
+      .page-button.active {
+        background: var(--brand-gold);
+        color: var(--bg-deep);
+        border-color: var(--brand-gold);
+      }
+
+      .fixed-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        border: 1px solid var(--border-strong);
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        padding: 10px 12px;
+        border-radius: 3px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 18px;
+        }
+
+        .page-head,
+        .filters {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-head">
+        <div>
+          <h1>瓷砖 SKU</h1>
+          <p class="subtle">发布时间列位于更新时间之前，格式与更新时间一致。</p>
+        </div>
+        <button class="button" type="button">新增 SKU</button>
+      </header>
+
+      <section class="filters" aria-label="SKU 筛选">
+        <div class="input">搜索商品名称 / SKU 编码</div>
+        <div class="input">品牌：全部</div>
+        <div class="input">状态：全部</div>
+        <button class="button" type="button">查询</button>
+      </section>
+
+      <section class="table-card" aria-label="SKU 列表">
+        <table>
+          <thead>
+            <tr>
+              <th>商品名称</th>
+              <th>品牌</th>
+              <th>类目</th>
+              <th>状态</th>
+              <th>发布时间</th>
+              <th>更新时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sku-name">星河灰 750x1500</td>
+              <td>FST</td>
+              <td>岩板</td>
+              <td><span class="status">已发布</span></td>
+              <td>2026-07-28 10:18:35</td>
+              <td>2026-07-28 21:05:12</td>
+              <td class="actions">编辑</td>
+            </tr>
+            <tr>
+              <td class="sku-name">雪域白 600x1200</td>
+              <td>FST</td>
+              <td>通体砖</td>
+              <td><span class="status">草稿</span></td>
+              <td>-</td>
+              <td>2026-07-27 18:42:09</td>
+              <td class="actions">编辑</td>
+            </tr>
+          </tbody>
+        </table>
+        <footer class="pagination">
+          <div class="page-summary">共 2 条</div>
+          <div class="page-right">
+            <button class="page-button" type="button">1</button>
+            <button class="page-button active" type="button">2</button>
+            <div class="input">20 条/页</div>
+          </div>
+        </footer>
+      </section>
+
+      <div class="fixed-toast" role="status">列表操作反馈固定显示，不推挤布局</div>
+    </main>
+  </body>
+</html>

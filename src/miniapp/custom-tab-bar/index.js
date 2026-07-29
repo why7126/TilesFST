@@ -39,17 +39,27 @@ Component({
 
   lifetimes: {
     attached() {
-      const pages = getCurrentPages();
-      const currentPage = pages.length ? pages[pages.length - 1] : null;
-      const route = `/${(currentPage && currentPage.route) || 'pages/index/index'}`;
-      const selected = this.data.list.findIndex((item) => item.pagePath === route);
-      if (selected >= 0) {
-        this.setData({ selected });
-      }
+      this.syncSelectedWithCurrentPage();
+    },
+  },
+
+  pageLifetimes: {
+    show() {
+      this.syncSelectedWithCurrentPage();
     },
   },
 
   methods: {
+    syncSelectedWithCurrentPage() {
+      const pages = getCurrentPages();
+      const currentPage = pages.length ? pages[pages.length - 1] : null;
+      const route = `/${(currentPage && currentPage.route) || 'pages/index/index'}`;
+      const selected = this.data.list.findIndex((item) => item.pagePath === route);
+      if (selected >= 0 && selected !== this.data.selected) {
+        this.setData({ selected });
+      }
+    },
+
     switchTab(event) {
       const { path, index } = event.currentTarget.dataset;
       const item = this.data.list[index];

@@ -94,6 +94,20 @@ const childCategory: TileCategoryAdminItem = {
   updated_at: '2026-06-03T00:00:00Z',
 };
 
+const fifteenCharacterCategory: TileCategoryAdminItem = {
+  id: 4,
+  name: '一二三四五六七八九十12345',
+  code: 'CAT-LONG',
+  path: '一二三四五六七八九十12345',
+  level: 1,
+  sort_order: 4,
+  sku_count: 0,
+  status: 'ENABLED' as const,
+  parent_id: null,
+  created_at: '2026-06-04T00:00:00Z',
+  updated_at: '2026-06-04T00:00:00Z',
+};
+
 function mockListResponse(items: TileCategoryAdminItem[], total: number) {
   fetchCategoriesMock.mockResolvedValue({
     items,
@@ -242,7 +256,7 @@ describe('TileCategoryManagementPage', () => {
   });
 
   it('shows only category code on the second line of the name column', async () => {
-    mockListResponse([enabledCategory, childCategory], 2);
+    mockListResponse([enabledCategory, childCategory, fifteenCharacterCategory], 3);
 
     render(<TileCategoryManagementPage />);
 
@@ -254,6 +268,8 @@ describe('TileCategoryManagementPage', () => {
     expect(within(table).getByText('启用类目')).toBeInTheDocument();
     expect(within(table).getByText('EN')).toBeInTheDocument();
     expect(within(table).getByText('CAT-CHILD')).toBeInTheDocument();
+    expect(within(table).getByText('一二三四五六七八九十12345')).toHaveClass('cat-name');
+    expect(within(table).getByText('CAT-LONG')).toBeInTheDocument();
     expect(within(table).queryByText('父级类目 / 二级类目')).not.toBeInTheDocument();
   });
 });

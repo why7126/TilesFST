@@ -123,6 +123,118 @@
   border-color: color-mix(in srgb, var(--admin-danger) 42%, var(--admin-line-strong));
 }
 
+.admin-shell .certificate-image-upload {
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--admin-deep) 42%, transparent);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-shell .certificate-image-upload.is-failed {
+  border-color: color-mix(in srgb, var(--admin-danger) 42%, var(--admin-line-strong));
+}
+
+.admin-shell .certificate-image-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.admin-shell .certificate-image-tile {
+  height: 92px;
+  border: 0.5px solid var(--admin-line-strong);
+  border-radius: 3px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--admin-deep) 82%, var(--admin-gold)),
+    color-mix(in srgb, var(--admin-gold) 76%, var(--admin-card)) 52%,
+    color-mix(in srgb, var(--admin-deep) 94%, var(--admin-gold))
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-shell .certificate-image-tile .certificate-image-thumb {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.admin-shell .certificate-image-tile .certificate-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-shell .certificate-image-upload .sku-main-flag {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  background: var(--admin-gold);
+  color: var(--admin-deep);
+  font-size: 10px;
+  border-radius: 1px;
+  padding: 2px 6px;
+  font-weight: 600;
+}
+
+.admin-shell .certificate-image-upload .sku-set-main {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  height: 24px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-gold) 45%, transparent);
+  background: color-mix(in srgb, var(--admin-deep) 70%, transparent);
+  color: var(--admin-gold);
+  font-size: 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.admin-shell .certificate-image-upload .sku-remove-image {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  min-width: 42px;
+  height: 22px;
+  border: 0.5px solid color-mix(in srgb, var(--admin-danger, var(--admin-gold)) 52%, transparent);
+  background: color-mix(in srgb, var(--admin-deep) 78%, transparent);
+  color: var(--admin-danger, var(--admin-gold));
+  font-size: 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.admin-shell .certificate-image-upload .sku-add-tile {
+  height: 92px;
+  border: 0.5px dashed color-mix(in srgb, var(--admin-gold) 45%, transparent);
+  border-radius: 3px;
+  background: var(--admin-gold-bg);
+  color: var(--admin-gold);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.admin-shell .certificate-image-upload .sku-add-tile.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-shell .certificate-add-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
 .admin-shell .field-error {
   margin-top: 6px;
   color: var(--admin-danger);
@@ -186,6 +298,10 @@
     grid-template-columns: 1fr;
   }
 
+  .admin-shell .certificate-image-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .admin-shell .certificate-upload {
     align-items: stretch;
     flex-direction: column;
@@ -198,6 +314,10 @@
 
 @media (max-width: 639px) {
   .admin-shell .brand-certificate-page .brand-filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-shell .certificate-image-grid {
     grid-template-columns: 1fr;
   }
 }

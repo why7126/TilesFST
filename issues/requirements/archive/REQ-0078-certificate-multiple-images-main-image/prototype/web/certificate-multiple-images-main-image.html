@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0078 证书多图上传与主图设置原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --surface-2: #2a261c;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --weak: rgba(237, 232, 223, 0.34);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --gold: #c8a055;
+      --risk: #d66a4a;
+      --ok: #73b785;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .side {
+      background: var(--deep);
+      border-right: 1px solid var(--border);
+      padding: 24px 18px;
+    }
+
+    .brand {
+      color: var(--gold);
+      font-size: 18px;
+      letter-spacing: 0.16em;
+      margin-bottom: 28px;
+    }
+
+    .nav-item {
+      padding: 10px 12px;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+    }
+
+    .nav-item.active {
+      color: var(--text);
+      border-color: var(--gold);
+      background: rgba(200, 160, 85, 0.08);
+    }
+
+    .main {
+      padding: 28px;
+      overflow: auto;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 22px; font-weight: 400; margin-top: 4px; }
+    .desc { color: var(--muted); margin-top: 6px; }
+
+    button {
+      border: 1px solid var(--border-strong);
+      background: transparent;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 2px;
+      cursor: default;
+      font: inherit;
+    }
+
+    .primary {
+      background: var(--gold);
+      color: var(--deep);
+      border-color: var(--gold);
+    }
+
+    .ghost { color: var(--muted); }
+    .danger { color: var(--risk); border-color: rgba(214, 106, 74, 0.36); }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card, .table-card, .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .metric-card { padding: 14px; }
+    .metric-label { color: var(--muted); font-size: 12px; }
+    .metric-value { font-size: 22px; margin-top: 4px; }
+    .metric-desc { color: var(--weak); font-size: 12px; margin-top: 4px; }
+
+    .table-card { overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+    .cert-cell {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 260px;
+    }
+
+    .thumb {
+      width: 58px;
+      height: 42px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      background:
+        linear-gradient(135deg, rgba(200,160,85,.28), transparent 45%),
+        linear-gradient(45deg, #54442b, #1b1913);
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .thumb::after {
+      content: "主图";
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      padding: 1px 4px;
+      color: var(--deep);
+      background: var(--gold);
+      border-radius: 1px;
+      font-size: 10px;
+    }
+
+    .pdf {
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      background: var(--surface-2);
+      font-weight: 600;
+    }
+    .pdf::after { content: ""; display: none; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 1px;
+      padding: 1px 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .badge.gold { color: var(--gold); border-color: rgba(200,160,85,.35); }
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 14px;
+      color: var(--muted);
+    }
+    .page-right { display: flex; gap: 8px; align-items: center; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.58);
+      display: grid;
+      place-items: center;
+      padding: 34px;
+    }
+
+    .certificate-modal-card {
+      width: 880px;
+      max-width: calc(100vw - 48px);
+      max-height: calc(100vh - 80px);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 3px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.42);
+    }
+
+    .modal-head, .modal-foot {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-foot {
+      border-top: 1px solid var(--border);
+      border-bottom: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-body {
+      overflow: auto;
+      padding: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    label { display: block; color: var(--muted); margin-bottom: 6px; font-size: 12px; }
+    .input {
+      height: 36px;
+      border: 1px solid var(--border);
+      background: var(--deep);
+      border-radius: 2px;
+      color: var(--text);
+      padding: 8px 10px;
+    }
+
+    .upload-panel {
+      border: 1px dashed var(--border-strong);
+      padding: 14px;
+      background: rgba(16,15,10,.42);
+      border-radius: 3px;
+    }
+
+    .upload-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .image-card {
+      min-height: 154px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 3px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 86px auto;
+    }
+
+    .image-preview {
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(200,160,85,.32), transparent 48%),
+        linear-gradient(45deg, #4b3f2a, #17150f);
+    }
+
+    .main-pill, .state-pill {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      color: var(--deep);
+      background: var(--gold);
+      border-radius: 1px;
+      font-size: 11px;
+      padding: 2px 6px;
+    }
+
+    .remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      border: 1px solid rgba(255,255,255,.24);
+      background: rgba(16,15,10,.74);
+      color: var(--text);
+      width: 24px;
+      height: 24px;
+      padding: 0;
+    }
+
+    .image-meta { padding: 10px; }
+    .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-note { color: var(--weak); font-size: 12px; margin-top: 2px; }
+    .image-actions { display: flex; gap: 8px; margin-top: 9px; }
+    .image-actions button { padding: 4px 8px; font-size: 12px; }
+
+    .uploading .image-preview {
+      background: linear-gradient(90deg, rgba(200,160,85,.28) 64%, rgba(255,255,255,.08) 64%), var(--surface-2);
+    }
+    .failed .state-pill { background: var(--risk); color: var(--text); }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: var(--deep);
+      border: 1px solid rgba(200,160,85,.42);
+      padding: 12px 14px;
+      border-radius: 3px;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="side">
+      <div class="brand">TILESFST</div>
+      <div class="nav-item">瓷砖品牌</div>
+      <div class="nav-item active">品牌证书</div>
+      <div class="nav-item">瓷砖 SKU</div>
+      <div class="nav-item">系统设置</div>
+    </aside>
+    <main class="main">
+      <section class="page-head">
+        <div>
+          <div class="eyebrow">BRAND ASSETS</div>
+          <h1>品牌证书</h1>
+          <p class="desc">维护品牌资质、检测报告与荣誉证书，并控制店主端展示。</p>
+        </div>
+        <button class="primary">新增证书</button>
+      </section>
+
+      <section class="metrics">
+        <article class="metric-card">
+          <div class="metric-label">证书总数</div>
+          <div class="metric-value">42</div>
+          <div class="metric-desc">含多图证书 18 个</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">有效证书</div>
+          <div class="metric-value">36</div>
+          <div class="metric-desc">主图完整 34 个</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">即将到期</div>
+          <div class="metric-value">4</div>
+          <div class="metric-desc">30 天内需复核</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">图片缺失</div>
+          <div class="metric-value">2</div>
+          <div class="metric-desc">需补充主图或 PDF</div>
+        </article>
+      </section>
+
+      <section class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>证书</th>
+              <th>所属品牌</th>
+              <th>类型</th>
+              <th>图片</th>
+              <th>有效状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="cert-cell">
+                  <div class="thumb"></div>
+                  <div>
+                    <div>绿色建材产品认证</div>
+                    <div class="file-note">主图：certificate-cover.webp</div>
+                  </div>
+                </div>
+              </td>
+              <td>菲尚特</td>
+              <td><span class="badge">绿色环保</span></td>
+              <td>3 张图片</td>
+              <td><span class="badge gold">有效</span></td>
+              <td><button>预览</button> <button>编辑</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cert-cell">
+                  <div class="thumb pdf">PDF</div>
+                  <div>
+                    <div>产品检测报告</div>
+                    <div class="file-note">沿用 PDF 占位</div>
+                  </div>
+                </div>
+              </td>
+              <td>岩境</td>
+              <td><span class="badge">产品检测</span></td>
+              <td>无图片</td>
+              <td><span class="badge">未设置</span></td>
+              <td><button>预览</button> <button>编辑</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="page-summary">共 42 个证书</div>
+          <div class="page-right">
+            <button class="ghost">上一页</button>
+            <button class="primary">1</button>
+            <button class="ghost">2</button>
+            <button class="ghost">下一页</button>
+            <span>每页 20 条</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay">
+    <section class="certificate-modal-card">
+      <header class="modal-head">
+        <div class="eyebrow">EDIT CERTIFICATE</div>
+        <h2>编辑证书：绿色建材产品认证</h2>
+        <p class="desc">多图上传、主图设置和删除兜底在保存前即时体现。</p>
+      </header>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>所属品牌</label>
+            <div class="input">菲尚特</div>
+          </div>
+          <div class="field">
+            <label>证书类型</label>
+            <div class="input">绿色环保</div>
+          </div>
+          <div class="field full">
+            <label>证书名称</label>
+            <div class="input">绿色建材产品认证</div>
+          </div>
+        </div>
+
+        <section class="upload-panel">
+          <div class="upload-head">
+            <div>
+              <h3>证书图片</h3>
+              <p class="desc">最多 9 张；第一张成功上传图片默认为主图，可手动调整。</p>
+            </div>
+            <button>添加图片</button>
+          </div>
+
+          <div class="image-grid">
+            <article class="image-card">
+              <div class="image-preview">
+                <span class="main-pill">主图</span>
+                <button class="remove" aria-label="删除主图">x</button>
+              </div>
+              <div class="image-meta">
+                <div class="file-name">certificate-cover.webp</div>
+                <div class="file-note">排序 0 · 已上传</div>
+                <div class="image-actions">
+                  <button class="ghost">预览</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="image-card">
+              <div class="image-preview">
+                <button class="remove" aria-label="删除图片">x</button>
+              </div>
+              <div class="image-meta">
+                <div class="file-name">inspection-page-02.webp</div>
+                <div class="file-note">排序 1 · 已上传</div>
+                <div class="image-actions">
+                  <button>设为主图</button>
+                  <button class="ghost">预览</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="image-card uploading">
+              <div class="image-preview">
+                <span class="state-pill">64%</span>
+              </div>
+              <div class="image-meta">
+                <div class="file-name">appendix-page-03.webp</div>
+                <div class="file-note">上传中，可取消</div>
+                <div class="image-actions">
+                  <button class="ghost">取消</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="image-card failed">
+              <div class="image-preview">
+                <span class="state-pill">失败</span>
+              </div>
+              <div class="image-meta">
+                <div class="file-name">oversize-origin.png</div>
+                <div class="file-note">文件超过图片大小限制</div>
+                <div class="image-actions">
+                  <button>重新上传</button>
+                  <button class="danger">移除</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+      <footer class="modal-foot">
+        <button class="ghost">取消</button>
+        <button class="primary">保存证书</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="toast">证书图片已上传，主图缩略图已更新。</div>
+</body>
+</html>

@@ -186,6 +186,20 @@ class BrandCertificateFileRequiredError(AppError):
         super().__init__(status_code=400, code=BRAND_CERTIFICATE_FILE_REQUIRED, message=message)
 
 
+class BrandCertificateMainImageInvalidError(AppError):
+    def __init__(self, message: str = "证书图片必须且只能设置一张主图") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_MAIN_IMAGE_INVALID
+
+        super().__init__(status_code=400, code=BRAND_CERTIFICATE_MAIN_IMAGE_INVALID, message=message)
+
+
+class BrandCertificateImageReferenceInvalidError(AppError):
+    def __init__(self, message: str = "证书图片文件引用无效") -> None:
+        from app.core.error_codes import BRAND_CERTIFICATE_IMAGE_REFERENCE_INVALID
+
+        super().__init__(status_code=400, code=BRAND_CERTIFICATE_IMAGE_REFERENCE_INVALID, message=message)
+
+
 class CategoryNotFoundError(AppError):
     def __init__(self, message: str = "类目不存在") -> None:
         super().__init__(status_code=404, code=30020, message=message)

@@ -22,6 +22,9 @@ MYSQL_COMPAT_BANNER_WRITE_FIELDS_VERSION = "mysql_compat_banners_write_fields_v2
 MYSQL_COMPAT_BANNER_CHECKS_VERSION = "mysql_compat_banners_checks_v3"
 MYSQL_COMPAT_TASK_TRACE_VERSION = "mysql_compat_task_trace_v1"
 MYSQL_COMPAT_CLIENT_REQUEST_ID_VERSION = "mysql_compat_client_request_id_v1"
+MYSQL_COMPAT_BRAND_CERTIFICATE_IMAGES_VERSION = "mysql_compat_brand_certificate_images_v1"
+MYSQL_COMPAT_TILES_PUBLISHED_AT_VERSION = "mysql_compat_tiles_published_at_v1"
+MYSQL_COMPAT_USERS_THEME_MODE_VERSION = "mysql_compat_users_theme_mode_v1"
 
 BANNER_WRITE_FIELD_COLUMNS: dict[str, str] = {
     "image_source": "VARCHAR(64) NOT NULL DEFAULT 'custom_upload'",
@@ -174,6 +177,9 @@ def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMig
     """Apply MySQL-only migrations that CREATE TABLE IF NOT EXISTS cannot cover."""
     reports = [_ensure_banner_brand_id(connection)]
     _ensure_task_trace_support(connection)
+    _ensure_brand_certificate_images_support(connection)
+    _ensure_tiles_published_at_support(connection)
+    _ensure_users_theme_mode_support(connection)
     connection.exec_driver_sql(
         """
         INSERT IGNORE INTO schema_migrations (version, applied_at)
@@ -210,7 +216,80 @@ def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMig
         """,
         (MYSQL_COMPAT_CLIENT_REQUEST_ID_VERSION,),
     )
+    connection.exec_driver_sql(
+        """
+        INSERT IGNORE INTO schema_migrations (version, applied_at)
+        VALUES (%s, UTC_TIMESTAMP(3))
+        """,
+        (MYSQL_COMPAT_BRAND_CERTIFICATE_IMAGES_VERSION,),
+    )
+    connection.exec_driver_sql(
+        """
+        INSERT IGNORE INTO schema_migrations (version, applied_at)
+        VALUES (%s, UTC_TIMESTAMP(3))
+        """,
+        (MYSQL_COMPAT_TILES_PUBLISHED_AT_VERSION,),
+    )
+    connection.exec_driver_sql(
+        """
+        INSERT IGNORE INTO schema_migrations (version, applied_at)
+        VALUES (%s, UTC_TIMESTAMP(3))
+        """,
+        (MYSQL_COMPAT_USERS_THEME_MODE_VERSION,),
+    )
     return reports
+
+
+def _ensure_users_theme_mode_support(connection: Connection) -> None:
+    if not _has_table(connection, "users"):
+        return
+    if not _has_column(connection, "users", "theme_mode"):
+        connection.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN theme_mode VARCHAR(32) NOT NULL DEFAULT 'system'"
+        )
+
+
+def _ensure_tiles_published_at_support(connection: Connection) -> None:
+    if not _has_table(connection, "tiles"):
+        return
+    if not _has_column(connection, "tiles", "published_at"):
+        connection.exec_driver_sql("ALTER TABLE tiles ADD COLUMN published_at VARCHAR(64) NULL")
+        connection.exec_driver_sql(
+            """
+            UPDATE tiles
+            SET published_at = updated_at
+            WHERE status = 'PUBLISHED' AND published_at IS NULL
+            """
+        )
+    if not _has_index(connection, "tiles", "idx_tiles_published_at"):
+        connection.exec_driver_sql("CREATE INDEX idx_tiles_published_at ON tiles (published_at)")
+
+
+def _ensure_brand_certificate_images_support(connection: Connection) -> None:
+    if _has_table(connection, "brand_certificate_images"):
+        return
+    connection.exec_driver_sql(
+        """
+        CREATE TABLE brand_certificate_images (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          certificate_id BIGINT NOT NULL,
+          file_url VARCHAR(768) NOT NULL,
+          file_key VARCHAR(512) NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          file_mime_type VARCHAR(128) NOT NULL,
+          file_size_bytes BIGINT NOT NULL,
+          is_main TINYINT NOT NULL DEFAULT 0,
+          sort_order INT NOT NULL DEFAULT 0,
+          created_at VARCHAR(64) NOT NULL,
+          updated_at VARCHAR(64) NOT NULL,
+          CONSTRAINT fk_brand_certificate_images_certificate
+            FOREIGN KEY(certificate_id) REFERENCES brand_certificates(id),
+          CONSTRAINT chk_brand_certificate_images_file_size CHECK (file_size_bytes > 0),
+          CONSTRAINT chk_brand_certificate_images_main CHECK (is_main IN (0, 1)),
+          INDEX idx_brand_certificate_images_certificate_sort (certificate_id, sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+    )
 
 
 def _ensure_client_request_id_support(connection: Connection) -> None:

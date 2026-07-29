@@ -10,7 +10,7 @@ status: done
 lifecycle_stage: archive
 note: /req-review approved
 readiness: ready
-updated_at: 2026-06-28 19:40:42
+updated_at: 2026-07-29 08:04:51
 ---
 
 # 需求追踪
@@ -198,3 +198,4 @@ lifecycle:
 | BUG-0018-tile-sku-modal-video-upload-display | high | done | fix-tile-sku-modal-video-upload-display | SKU弹窗商品视频上传后未即时回显文件卡片 |
 | BUG-0020-tile-sku-modal-video-upload-413 | high | done | fix-tile-sku-modal-video-upload-413 | SKU弹窗视频上传返回413 Request Entity Too Large |
 | BUG-0038-tile-sku-modal-spec-hint-styling | low | done | fix-tile-sku-modal-spec-hint-styling | SKU弹窗规格字段下方提示字号过大且颜色不当 |
+| BUG-0088-admin-sku-edit-save-extra-step | medium | done | fix-admin-sku-edit-save-extra-step | 管理端 SKU 编辑保存成功后未直接关闭弹窗 |

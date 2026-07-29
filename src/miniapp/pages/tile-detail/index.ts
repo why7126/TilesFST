@@ -89,6 +89,21 @@ function safeText(value: unknown): string {
   return text && text !== 'null' && text !== 'undefined' ? text : '';
 }
 
+function normalizeRemark(value: unknown): string | undefined {
+  const text = safeText(value);
+  return text || undefined;
+}
+
+function normalizeSkuDetail(product: SkuDetail): SkuDetail {
+  const remark = normalizeRemark(product.remark);
+  const parameters = (product.parameters || []).filter((item) => item.label !== '备注说明');
+  const detail = {
+    ...product,
+    remark,
+    parameters: remark ? [...parameters, { label: '备注说明', value: remark }] : parameters,
+  };
+}
+
 function skuShareTitle(product: SkuDetail | null): string {
   if (!product) return '菲尚特瓷砖';
   return safeText(product.share?.title) || [safeText(product.brand?.brand_name), safeText(product.product_name)]
@@ -194,7 +209,7 @@ function legacyToSkuDetail(product: LegacyProductDetail): SkuDetail {
       { label: '主色系', value: product.color_family || '—' },
       { label: '表面工艺', value: product.surface_finish || '—' },
     ],
-    remark: undefined,
+    remark: normalizeRemark((product as LegacyProductDetail & { remark?: unknown }).remark),
     surface_finish: product.surface_finish,
     favorite: false,
     same_series_recommendations: [],
@@ -206,6 +221,7 @@ function legacyToSkuDetail(product: LegacyProductDetail): SkuDetail {
       summary: `${product.brand_name || '菲尚特'} · ${product.price_display}`,
     },
   };
+  return normalizeSkuDetail(detail);
 }
 
 Page({
@@ -309,7 +325,7 @@ Page({
     request<SkuDetail>(`/api/v1/miniapp/skus/${id}?client_id=${encodeURIComponent(clientIdValue)}`)
       .catch(() => request<LegacyProductDetail>(`/api/v1/miniapp/products/${id}`).then(legacyToSkuDetail))
       .then((product) => {
-        this.setData({ product, loading: false, mediaIndex: 0, mediaPaused: false });
+        this.setData({ product: normalizeSkuDetail(product), loading: false, mediaIndex: 0, mediaPaused: false });
         if (product.favorite) {
           syncLocalFavorite(product, true);
         }

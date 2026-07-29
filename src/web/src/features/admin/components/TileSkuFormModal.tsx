@@ -128,12 +128,6 @@ interface TileSkuFormModalProps {
   onSuccess: (message: string) => void;
 }
 
-interface TaskTraceFeedback {
-  task_trace_id: string;
-  task_type?: string | null;
-  message: string;
-}
-
 export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSkuFormModalProps) {
   const [name, setName] = useState('');
   const [brandId, setBrandId] = useState('');
@@ -152,8 +146,6 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [mediaSettings, setMediaSettings] = useState(DEFAULT_MEDIA_UPLOAD_SETTINGS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [taskTraceFeedback, setTaskTraceFeedback] = useState<TaskTraceFeedback | null>(null);
-  const [taskTraceCopyNotice, setTaskTraceCopyNotice] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
@@ -184,8 +176,6 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   useEffect(() => {
     if (!open) return;
     setError(null);
-    setTaskTraceFeedback(null);
-    setTaskTraceCopyNotice(null);
     setVideoUploadState('idle');
     setVideoUploadProgress(0);
     setVideoUploadError(null);
@@ -327,8 +317,6 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     }
     setSubmitting(true);
     setError(null);
-    setTaskTraceFeedback(null);
-    setTaskTraceCopyNotice(null);
     if (saveMode === 'draft' && !name.trim()) {
       setError('商品名称不能为空');
       setSubmitting(false);
@@ -344,40 +332,20 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     }
 
     try {
-      let result: TileSkuAdminItem | null = null;
       let successMessage = '';
       if (mode === 'create') {
-        result = await createTileSku({ ...buildPayload(), save_mode: saveMode });
+        await createTileSku({ ...buildPayload(), save_mode: saveMode });
         successMessage = saveMode === 'draft' ? '草稿已保存' : 'SKU 创建成功，已保存为草稿';
       } else if (sku) {
-        result = await updateTileSku(sku.id, buildPayload());
+        await updateTileSku(sku.id, buildPayload());
         successMessage = 'SKU 已更新';
       }
-      if (result?.task_trace_id) {
-        setTaskTraceFeedback({
-          task_trace_id: result.task_trace_id,
-          task_type: result.task_type,
-          message: successMessage,
-        });
-        onSuccess(`${successMessage}，任务追踪已生成`);
-      } else {
-        onSuccess(successMessage);
-        onClose();
-      }
+      onSuccess(successMessage);
+      onClose();
     } catch (err) {
       setError(getErrorMessage(err, '保存失败'));
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const copyTaskTraceId = async () => {
-    if (!taskTraceFeedback) return;
-    try {
-      await navigator.clipboard.writeText(taskTraceFeedback.task_trace_id);
-      setTaskTraceCopyNotice('追踪 ID 已复制');
-    } catch {
-      setTaskTraceCopyNotice('复制失败，请手动复制');
     }
   };
 
@@ -490,27 +458,6 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
 
         <div className="modal-body">
           {error ? <p className="admin-notice">{error}</p> : null}
-          {taskTraceFeedback ? (
-            <div className="sku-task-trace-feedback" role="status">
-              <div>
-                <span className="sku-task-trace-label">{taskTraceFeedback.message}</span>
-                <code>{taskTraceFeedback.task_trace_id}</code>
-                {taskTraceFeedback.task_type ? (
-                  <span className="sku-task-trace-type">{taskTraceFeedback.task_type}</span>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => void copyTaskTraceId()}
-              >
-                复制追踪ID
-              </button>
-              {taskTraceCopyNotice ? (
-                <span className="sku-task-trace-copy-notice">{taskTraceCopyNotice}</span>
-              ) : null}
-            </div>
-          ) : null}
           <div className="sku-form-grid">
             <div className="brand-form-item">
               <label>
@@ -756,13 +703,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             onClick={onClose}
             disabled={submitting || isVideoUploading}
           >
-            {taskTraceFeedback ? '关闭' : '取消'}
+            取消
           </button>
-          {taskTraceFeedback ? (
-            <button type="button" className="btn primary" onClick={onClose}>
-              完成
-            </button>
-          ) : mode === 'create' ? (
+          {mode === 'create' ? (
             <>
               <button
                 type="button"

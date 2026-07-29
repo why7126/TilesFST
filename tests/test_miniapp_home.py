@@ -105,7 +105,7 @@ def _seed_public_catalog(api_client: TestClient) -> None:
                   created_at, updated_at
                 ) VALUES
                   (1, '银河灰', 'FST-001', 1, 1, 1, '800×800', '现代简约',
-                   '灰色', 128.0, '内部备注不可公开', 'PUBLISHED', :now, :now),
+                   '灰色', 128.0, '适合客厅通铺，建议搭配浅色美缝。', 'PUBLISHED', :now, :now),
                   (2, '暖玉白', 'FST-002', 1, 1, 1, '800×800', '轻奢',
                    '白色', 168.0, '内部备注不可公开', 'PUBLISHED', :now, :now),
                   (4, '银河灰柔光', 'FST-004', 1, 1, 1, '800×800', '柔光',
@@ -312,6 +312,125 @@ def test_miniapp_product_list_supports_context_filters_sort_and_facets(api_clien
     assert any(item["value"] == "100-200" for item in data["facets"]["price_ranges"])
 
 
+def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    try:
+        db.execute(
+            text(
+                """
+                UPDATE tiles
+                SET published_at = CASE id
+                    WHEN 1 THEN '2026-06-03T00:00:00+00:00'
+                    WHEN 2 THEN '2026-06-01T00:00:00+00:00'
+                    WHEN 4 THEN '2026-06-01T00:00:00+00:00'
+                    ELSE published_at
+                  END,
+                  created_at = CASE id
+                    WHEN 1 THEN '2026-05-01T00:00:00+00:00'
+                    WHEN 2 THEN '2026-05-02T00:00:00+00:00'
+                    WHEN 4 THEN '2026-05-03T00:00:00+00:00'
+                    ELSE created_at
+                  END,
+                  updated_at = CASE id
+                    WHEN 1 THEN '2026-06-04T00:00:00+00:00'
+                    WHEN 2 THEN '2026-06-02T00:00:00+00:00'
+                    WHEN 4 THEN '2026-06-03T00:00:00+00:00'
+                    ELSE updated_at
+                  END
+                WHERE id IN (1, 2, 4)
+                """
+            )
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brands (
+                  id, name, sort_order, short_name, english_name, logo_object_key,
+                  description, status, sku_count, created_at, updated_at
+                ) VALUES
+                  (2, '另一品牌', 2, 'OTHER', 'OtherBrand', 'logos/other.webp',
+                   '启用品牌', 'ENABLED', 1, :now, :now)
+                """
+            ),
+            {"now": _now()},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO tiles (
+                  id, name, sku_code, brand_id, category_id, spec_id, size,
+                  surface_finish, color_family, reference_price, remark, status,
+                  published_at, created_at, updated_at
+                ) VALUES
+                  (5, '其他品牌砖', 'OTH-001', 2, 1, 1, '800×800', '柔光',
+                   '灰色', 118.0, NULL, 'PUBLISHED',
+                   '2026-05-01T00:00:00+00:00', '2026-05-01T00:00:00+00:00',
+                   '2026-07-01T00:00:00+00:00')
+                """
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    first_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "page": 1, "pageSize": 2},
+    )
+    second_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "page": 2, "pageSize": 2},
+    )
+
+    assert first_page.status_code == 200
+    assert second_page.status_code == 200
+    first_data = first_page.json()["data"]
+    second_data = second_page.json()["data"]
+    assert first_data["total"] == 3
+    assert first_data["has_more"] is True
+    assert second_data["has_more"] is False
+    merged_codes = [item["sku_code"] for item in first_data["items"] + second_data["items"]]
+    assert merged_codes == ["FST-002", "FST-004", "FST-001"]
+    assert "OTH-001" not in first_page.text + second_page.text
+
+    new_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "section": "new", "page": 1, "pageSize": 3},
+    )
+    hot_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "section": "hot", "page": 1, "pageSize": 3},
+    )
+    price_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "sort": "price_asc", "page": 1, "pageSize": 3},
+    )
+
+    assert new_response.status_code == 200
+    assert hot_response.status_code == 200
+    assert price_response.status_code == 200
+    assert [item["sku_code"] for item in new_response.json()["data"]["items"]] == [
+        "FST-001",
+        "FST-004",
+        "FST-002",
+    ]
+    assert [item["sku_code"] for item in hot_response.json()["data"]["items"]] == [
+        "FST-001",
+        "FST-004",
+        "FST-002",
+    ]
+    assert [item["sku_code"] for item in price_response.json()["data"]["items"]] == [
+        "FST-001",
+        "FST-004",
+        "FST-002",
+    ]
+
+
 def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     api_client: TestClient,
 ) -> None:
@@ -361,6 +480,20 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
             ),
             {"now": now},
         )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES
+                  (101, 1, '/media/certificates/green-main.webp',
+                   'certificates/green-main-key.webp', 'green-main.webp',
+                   'image/webp', 3072, 1, 0, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
         db.commit()
     finally:
         db.close()
@@ -399,8 +532,9 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     certificates = certificate_response.json()["data"]
     assert certificates["total"] == 1
     assert certificates["items"][0]["certificate_name"] == "绿色建材认证"
-    assert certificates["items"][0]["file_url"] == "/media/certificates/green.webp"
+    assert certificates["items"][0]["file_url"] == "/media/certificates/green-main.webp"
     assert "file_key" not in certificate_response.text
+    assert "green-main-key" not in certificate_response.text
     assert "内部证书备注" not in certificate_response.text
     assert "隐藏证书" not in certificate_response.text
     assert "停用品牌证书" not in certificate_response.text
@@ -471,6 +605,20 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
             ),
             {"now": now, "future": future, "soon": soon, "past": past},
         )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES
+                  (110, 10, '/media/certificates/green-main.webp',
+                   'certificates/raw-green-main.webp', 'green-main.webp',
+                   'image/webp', 3072, 1, 0, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
         db.commit()
     finally:
         db.close()
@@ -488,6 +636,8 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
     assert data["items"][0]["certificate_type_label"] == "绿色建材"
     assert data["items"][0]["validity_status"] == "VALID"
     assert data["items"][0]["file_kind"] == "image"
+    assert data["items"][0]["file_url"] == "/media/certificates/green-main.webp"
+    assert data["items"][0]["file_name"] == "green-main.webp"
     assert data["items"][1]["file_kind"] == "pdf"
     assert "file_key" not in response.text
     assert "raw-green" not in response.text
@@ -501,6 +651,116 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
     assert second_page.status_code == 200
     assert second_page.json()["data"]["total"] == 3
     assert second_page.json()["data"]["items"][0]["certificate_id"] == 12
+
+
+def test_miniapp_certificate_detail_returns_public_data_and_filters_private_records(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    future = (datetime.now(UTC).date() + timedelta(days=120)).isoformat()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO brands (
+                  id, name, sort_order, short_name, english_name, logo_object_key,
+                  description, status, sku_count, created_at, updated_at
+                ) VALUES
+                  (2, '停用品牌', 2, 'OFF', 'OffBrand', 'logos/off.webp',
+                   '内部品牌备注', 'DISABLED', 1, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificates (
+                  id, brand_id, name, sort_order, type, certificate_no, issuer,
+                  file_url, file_key, file_name, file_mime_type, file_size_bytes,
+                  is_permanent, effective_date, expiry_date, is_visible, remark,
+                  deleted_at, created_at, updated_at
+                ) VALUES
+                  (20, 1, '绿色建材详情证书', 1, 'GREEN_BUILDING', 'GB-DTL-001', '认证机构',
+                   '/media/certificates/legacy.webp', 'certificates/raw-legacy.webp',
+                   'legacy.webp', 'image/webp', 2048, 0, :now, :future, 1,
+                   '适用于门店公开展示的绿色建材认证说明。', NULL, :now, :now),
+                  (21, 1, '旧 PDF 证书', 2, 'INSPECTION', 'PDF-DTL-001', '检测中心',
+                   '/media/certificates/legacy.pdf', 'certificates/raw-legacy.pdf',
+                   'legacy.pdf', 'application/pdf', 4096, 1, NULL, NULL, 1,
+                   'PDF 内部备注', NULL, :now, :now),
+                  (22, 1, '隐藏证书详情', 3, 'QUALITY', 'HIDE-DTL', '内部机构',
+                   '/media/certificates/hidden.webp', 'certificates/raw-hidden.webp',
+                   'hidden.webp', 'image/webp', 2048, 1, NULL, NULL, 0,
+                   '隐藏备注', NULL, :now, :now),
+                  (23, 2, '停用品牌证书详情', 4, 'QUALITY', 'OFF-DTL', '内部机构',
+                   '/media/certificates/off.webp', 'certificates/raw-off.webp',
+                   'off.webp', 'image/webp', 2048, 1, NULL, NULL, 1,
+                   '停用品牌备注', NULL, :now, :now),
+                  (24, 1, '软删除证书详情', 5, 'QUALITY', 'DEL-DTL', '内部机构',
+                   '/media/certificates/deleted.webp', 'certificates/raw-deleted.webp',
+                   'deleted.webp', 'image/webp', 2048, 1, NULL, NULL, 1,
+                   '删除备注', :now, :now, :now)
+                """
+            ),
+            {"now": now, "future": future},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES
+                  (210, 20, '/media/certificates/detail-side.webp',
+                   'certificates/raw-detail-side.webp', 'detail-side.webp',
+                   'image/webp', 3072, 0, 1, :now, :now),
+                  (211, 20, '/media/certificates/detail-main.webp',
+                   'certificates/raw-detail-main.webp', 'detail-main.webp',
+                   'image/webp', 3072, 1, 9, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/certificates/20")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["certificate_id"] == 20
+    assert data["certificate_name"] == "绿色建材详情证书"
+    assert data["certificate_type_label"] == "绿色建材"
+    assert data["brand"]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
+    assert data["share"]["path"] == "/pages/certificate-detail/index?certificateId=20&source=share"
+    assert data["media"][0]["url"] == "/media/certificates/detail-main.webp"
+    assert data["media"][0]["is_main"] is True
+    assert data["media"][1]["url"] == "/media/certificates/detail-side.webp"
+    assert data["file_url"] == "/media/certificates/detail-main.webp"
+    assert data["validity_status"] == "VALID"
+    assert data["remark"] == "适用于门店公开展示的绿色建材认证说明。"
+    assert "file_key" not in response.text
+    assert "raw-detail" not in response.text
+
+    legacy_response = api_client.get("/api/v1/miniapp/certificates/21")
+    assert legacy_response.status_code == 200
+    legacy = legacy_response.json()["data"]
+    assert legacy["media"][0]["media_type"] == "pdf"
+    assert legacy["media"][0]["url"] == "/media/certificates/legacy.pdf"
+    assert legacy["main_media"]["file_name"] == "legacy.pdf"
+
+    for certificate_id in [22, 23, 24, 9999]:
+        hidden = api_client.get(f"/api/v1/miniapp/certificates/{certificate_id}")
+        assert hidden.status_code == 404
+        assert hidden.json()["code"] == 30030
+        assert "内部" not in hidden.text
+        assert "raw-" not in hidden.text
 
 
 def test_miniapp_product_list_primary_category_aggregates_self_and_enabled_children(api_client: TestClient) -> None:
@@ -825,6 +1085,32 @@ def test_miniapp_usage_events_validate_dictionary_and_forbidden_properties(
     assert rejected.json()["code"] == 40001
 
 
+def test_miniapp_certificate_detail_load_failed_usage_event_is_accepted(
+    api_client: TestClient,
+) -> None:
+    response = api_client.post(
+        "/api/v1/usage-events",
+        json={
+            "event_name": "certificate_detail_load_failed",
+            "client_type": "wechat_miniapp",
+            "page_path": "/pages/certificate-detail/index",
+            "properties": {
+                "page_path": "/pages/certificate-detail/index",
+                "client_type": "wechat_miniapp",
+                "terminal": "wechat_miniapp",
+                "certificateId": 1,
+                "sourcePage": "certificate-list",
+                "sourceModule": "certificate-card",
+                "requestId": "debug",
+                "errorCode": "detail_request_failed",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["accepted"] is True
+
+
 def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     api_client: TestClient,
 ) -> None:
@@ -859,11 +1145,29 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["category_path"] == ["客厅"]
     assert data["favorite"] is False
     assert data["share"]["path"] == "/pages/tile-detail/index?skuId=1&source=share"
+    assert data["remark"] == "适合客厅通铺，建议搭配浅色美缝。"
     assert data["same_series_recommendations"][0]["product_id"] in {2, 4}
     assert all(item["product_id"] != 1 for item in data["same_series_recommendations"])
     assert "object_key" not in data
     assert "内部备注" not in response.text
     assert "库存" not in response.text
+
+
+def test_miniapp_sku_detail_omits_empty_or_placeholder_remark(api_client: TestClient) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    try:
+        db.execute(text("UPDATE tiles SET status = 'PUBLISHED', remark = ' undefined ' WHERE id = 3"))
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/skus/3")
+
+    assert response.status_code == 200
+    assert response.json()["data"]["remark"] is None
 
 
 def test_miniapp_sku_detail_rejects_unpublished_sku(api_client: TestClient) -> None:

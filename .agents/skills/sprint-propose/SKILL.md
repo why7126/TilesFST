@@ -156,6 +156,17 @@ python scripts/sync-workflow-status.py --event sprint.propose --sprint <sprint-i
 - Print summary Workflow Sync Report；use `--output detail` only for debugging。
 - Do not hand-edit workflow-sync marker blocks。
 
+Then validate the user-readable Sprint Scope view:
+
+```bash
+python scripts/validate-sprint-scope.py <sprint-id> \
+  [--item <REQ-id>] [--item <BUG-id>] [--item <change-id>]
+```
+
+- Exit code MUST be `0` before finishing `/sprint-propose`.
+- Pass every REQ/BUG/Change newly added or updated by this run.
+- This check is required because `sprint.yaml` is the machine source, but `sprint.md` `## 2. Scope` is the product-facing planning source; both MUST contain the same formal scope.
+
 ## Final Step — AI Usage Post-command Hook (MUST)
 
 After Workflow Sync exits with code `0`, run:

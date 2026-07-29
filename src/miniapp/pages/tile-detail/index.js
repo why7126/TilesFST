@@ -17,6 +17,21 @@ function safeText(value) {
   return text && text !== 'null' && text !== 'undefined' ? text : '';
 }
 
+function normalizeRemark(value) {
+  const text = safeText(value);
+  return text || undefined;
+}
+
+function normalizeSkuDetail(product) {
+  const remark = normalizeRemark(product.remark);
+  const parameters = (product.parameters || []).filter((item) => item.label !== '备注说明');
+  return {
+    ...product,
+    remark,
+    parameters: remark ? [...parameters, { label: '备注说明', value: remark }] : parameters,
+  };
+}
+
 function skuShareTitle(product) {
   if (!product) return '菲尚特瓷砖';
   const title = safeText(product.share && product.share.title);
@@ -110,7 +125,7 @@ function legacyToSkuDetail(product) {
       is_main: false,
     });
   });
-  return {
+  const detail = {
     ...product,
     brand: {
       brand_id: 0,
@@ -127,7 +142,7 @@ function legacyToSkuDetail(product) {
       { label: '主色系', value: product.color_family || '—' },
       { label: '表面工艺', value: product.surface_finish || '—' },
     ],
-    remark: undefined,
+    remark: normalizeRemark(product.remark),
     surface_finish: product.surface_finish,
     favorite: false,
     same_series_recommendations: [],
@@ -139,6 +154,7 @@ function legacyToSkuDetail(product) {
       summary: `${product.brand_name || '菲尚特'} · ${product.price_display}`,
     },
   };
+  return normalizeSkuDetail(detail);
 }
 
 Page({
@@ -242,7 +258,7 @@ Page({
     request(`/api/v1/miniapp/skus/${id}?client_id=${encodeURIComponent(clientIdValue)}`)
       .catch(() => request(`/api/v1/miniapp/products/${id}`).then(legacyToSkuDetail))
       .then((product) => {
-        this.setData({ product, loading: false, mediaIndex: 0, mediaPaused: false });
+        this.setData({ product: normalizeSkuDetail(product), loading: false, mediaIndex: 0, mediaPaused: false });
         if (product.favorite) {
           syncLocalFavorite(product, true);
         }

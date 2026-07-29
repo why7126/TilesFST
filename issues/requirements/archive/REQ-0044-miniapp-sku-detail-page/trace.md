@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-18 18:48:34
-updated_at: 2026-07-24 21:13:02
+updated_at: 2026-07-29 07:54:54
 lifecycle:
   captured: 2026-07-18 18:48:34
   generated: 2026-07-18 18:55:47
@@ -139,5 +139,6 @@ kb_cross_cutting_report:
 | BUG-0069-miniapp-sku-detail-carousel-video-not-playable | high | done | fix-miniapp-sku-detail-video-url | SKU 商品详情页轮播图视频不能显示和播放 |
 | BUG-0070-miniapp-sku-detail-duplicate-brand-button | medium | done | fix-miniapp-sku-detail-duplicate-brand-button | 小程序商品详情页底部品牌按钮与内容区查看品牌主页重复 |
 | BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search | medium | done | fix-miniapp-sku-detail-brand-card-route | 生产环境小程序商品详情页品牌卡片误跳搜索页 |
-| BUG-0082-prod-miniapp-sku-video-slow-start | high | done | fix-miniapp-sku-video-slow-start | 生产环境小程序商品详情页视频播放启动很慢 |
-| BUG-0084-miniapp-sku-video-fullscreen-reloads-slow | medium | done | fix-miniapp-sku-video-fullscreen-reload | 小程序 SKU 详情页视频内嵌可播放但进入全屏后重新加载很久 |
+| BUG-0082-prod-miniapp-sku-video-slow-start | high | done | — | 生产环境小程序商品详情页视频播放启动很慢 |
+| BUG-0084-miniapp-sku-video-fullscreen-reloads-slow | medium | done | — | 小程序 SKU 详情页视频内嵌可播放但进入全屏后重新加载很久 |
+| BUG-0086-miniapp-sku-detail-remark-not-shown | medium | done | fix-miniapp-sku-detail-remark-display | 小程序商品详情页备注说明信息没有显示 |

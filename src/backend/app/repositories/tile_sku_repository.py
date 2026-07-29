@@ -24,6 +24,7 @@ class TileSkuRecord:
     reference_price: float | None
     remark: str | None
     status: str
+    published_at: str | None
     created_at: str
     updated_at: str
     brand_name: str
@@ -78,7 +79,9 @@ class TileSkuRepository:
             SELECT
               t.id, t.name, t.sku_code, t.brand_id, t.category_id, t.spec_id,
               t.size, t.surface_finish, t.color_family, t.reference_price,
-              t.remark, t.status, t.created_at, t.updated_at,
+              t.remark, t.status,
+              CASE WHEN t.status = 'PUBLISHED' THEN t.published_at ELSE NULL END AS published_at,
+              t.created_at, t.updated_at,
               b.name AS brand_name,
               c.name AS category_name,
               (
@@ -114,6 +117,7 @@ class TileSkuRepository:
             reference_price=row.get("reference_price"),
             remark=row.get("remark"),
             status=row["status"],
+            published_at=row.get("published_at"),
             created_at=row["created_at"],
             updated_at=row["updated_at"],
             brand_name=row["brand_name"],
@@ -286,10 +290,10 @@ class TileSkuRepository:
                 """
                 INSERT INTO tiles (
                   name, sku_code, brand_id, category_id, spec_id, size, surface_finish,
-                  color_family, reference_price, remark, status, created_at, updated_at
+                  color_family, reference_price, remark, status, published_at, created_at, updated_at
                 ) VALUES (
                   :name, :sku_code, :brand_id, :category_id, :spec_id, :size, :surface_finish,
-                  :color_family, :reference_price, :remark, :status, :created_at, :updated_at
+                  :color_family, :reference_price, :remark, :status, :published_at, :created_at, :updated_at
                 )
                 """
             ),
@@ -305,6 +309,7 @@ class TileSkuRepository:
                 "reference_price": reference_price,
                 "remark": remark,
                 "status": status,
+                "published_at": now if status == "PUBLISHED" else None,
                 "created_at": now,
                 "updated_at": now,
             },
@@ -384,10 +389,22 @@ class TileSkuRepository:
 
     def update_status(self, tile_id: int, status: str) -> TileSkuRecord:
         now = self._now()
-        self._db.execute(
-            text("UPDATE tiles SET status = :status, updated_at = :updated_at WHERE id = :id"),
-            {"id": tile_id, "status": status, "updated_at": now},
-        )
+        if status == "PUBLISHED":
+            self._db.execute(
+                text(
+                    """
+                    UPDATE tiles
+                    SET status = :status, published_at = :published_at, updated_at = :updated_at
+                    WHERE id = :id
+                    """
+                ),
+                {"id": tile_id, "status": status, "published_at": now, "updated_at": now},
+            )
+        else:
+            self._db.execute(
+                text("UPDATE tiles SET status = :status, updated_at = :updated_at WHERE id = :id"),
+                {"id": tile_id, "status": status, "updated_at": now},
+            )
         self._db.commit()
         record = self.get_by_id(tile_id)
         assert record is not None

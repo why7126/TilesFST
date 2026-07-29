@@ -27,6 +27,7 @@ from app.schemas.tile_category_admin import (
 VALID_PAGE_SIZES = frozenset({10, 20, 50})
 VALID_STATUSES = frozenset({"ENABLED", "DISABLED"})
 MAX_CATEGORY_LEVEL = 2
+MAX_CATEGORY_NAME_LENGTH = 15
 CATEGORY_CODE_PREFIX = "CAT-"
 MAX_CATEGORY_CODE_GENERATION_ATTEMPTS = 5
 VALID_CATEGORY_NAME_RE = re.compile(r"^[A-Za-z0-9\u4e00-\u9fff]+$")
@@ -63,8 +64,8 @@ class TileCategoryAdminService:
         trimmed = name.strip()
         if not trimmed:
             raise AuthInvalidRequestError("类目名称不能为空")
-        if len(trimmed) > 10:
-            raise AuthInvalidRequestError("类目名称不能超过 10 个字符")
+        if len(trimmed) > MAX_CATEGORY_NAME_LENGTH:
+            raise AuthInvalidRequestError("类目名称最多 15 个字符")
         if not VALID_CATEGORY_NAME_RE.fullmatch(trimmed):
             raise AuthInvalidRequestError("类目名称只能包含中文、英文和数字")
         return trimmed

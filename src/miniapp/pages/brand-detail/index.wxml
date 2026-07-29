@@ -79,7 +79,7 @@
           wx:for="{{certificates}}"
           wx:key="certificate_id"
           class="certificate-card"
-          bindtap="previewCertificate"
+          bindtap="openCertificateDetail"
           data-index="{{index}}"
           hover-class="card-press"
         >

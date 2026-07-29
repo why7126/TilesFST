@@ -71,6 +71,24 @@ CREATE TABLE IF NOT EXISTS brand_certificates (
   INDEX idx_brand_certificates_type_deleted (type, deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS brand_certificate_images (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  certificate_id BIGINT NOT NULL,
+  file_url VARCHAR(768) NOT NULL,
+  file_key VARCHAR(512) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_mime_type VARCHAR(128) NOT NULL,
+  file_size_bytes BIGINT NOT NULL,
+  is_main TINYINT NOT NULL DEFAULT 0,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at VARCHAR(64) NOT NULL,
+  updated_at VARCHAR(64) NOT NULL,
+  CONSTRAINT fk_brand_certificate_images_certificate FOREIGN KEY(certificate_id) REFERENCES brand_certificates(id),
+  CONSTRAINT chk_brand_certificate_images_file_size CHECK (file_size_bytes > 0),
+  CONSTRAINT chk_brand_certificate_images_main CHECK (is_main IN (0, 1)),
+  INDEX idx_brand_certificate_images_certificate_sort (certificate_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS tile_categories (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   parent_id BIGINT,
@@ -124,6 +142,7 @@ CREATE TABLE IF NOT EXISTS tiles (
   reference_price DOUBLE,
   remark TEXT,
   status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+  published_at VARCHAR(64),
   created_at VARCHAR(64) NOT NULL,
   updated_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_tiles_brand FOREIGN KEY(brand_id) REFERENCES brands(id),
@@ -132,6 +151,7 @@ CREATE TABLE IF NOT EXISTS tiles (
   CONSTRAINT chk_tiles_status CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
   INDEX idx_tiles_brand_status (brand_id, status),
   INDEX idx_tiles_category_status (category_id, status),
+  INDEX idx_tiles_published_at (published_at),
   INDEX idx_tiles_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -9,6 +9,8 @@ from app.core.exceptions import (
     AuthInvalidRequestError,
     BrandCertificateDateInvalidError,
     BrandCertificateFileRequiredError,
+    BrandCertificateImageReferenceInvalidError,
+    BrandCertificateMainImageInvalidError,
     BrandCertificateNameDuplicatedError,
     BrandCertificateNotFoundError,
     BrandNotFoundError,
@@ -21,6 +23,8 @@ from app.repositories.brand_certificate_repository import (
 from app.repositories.brand_repository import BrandRepository
 from app.schemas.brand_certificate_admin import (
     BrandCertificateCreateRequest,
+    BrandCertificateFile,
+    BrandCertificateImage,
     BrandCertificateItem,
     BrandCertificateListData,
     BrandCertificateSummary,
@@ -32,6 +36,8 @@ VALID_PAGE_SIZES = frozenset({20, 50, 100})
 CERTIFICATE_TYPES = {"QUALITY", "INSPECTION", "GREEN_BUILDING", "HONOR", "OTHER"}
 VALIDITY_STATUSES = {"PERMANENT", "VALID", "EXPIRING_SOON", "EXPIRED", "UNSET"}
 DISPLAY_STATUSES = {"VISIBLE", "HIDDEN"}
+CERTIFICATE_IMAGE_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
+MAX_CERTIFICATE_IMAGES = 9
 
 
 def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
@@ -50,6 +56,16 @@ def _parse_date(value: str | None) -> date | None:
         return date.fromisoformat(value[:10])
     except ValueError as exc:
         raise BrandCertificateDateInvalidError() from exc
+
+
+def _is_backend_media_reference(file_key: str, file_url: str) -> bool:
+    if not file_key or not file_url:
+        return False
+    if "://" in file_key or file_key.startswith("/"):
+        return False
+    if ".." in file_key.split("/"):
+        return False
+    return file_url == f"/media/{file_key}"
 
 
 class BrandCertificateAdminService:
@@ -79,6 +95,31 @@ class BrandCertificateAdminService:
 
     @classmethod
     def to_item(cls, record: BrandCertificateRecord) -> BrandCertificateItem:
+        images = [
+            BrandCertificateImage(
+                file_url=image.file_url,
+                file_key=image.file_key,
+                file_name=image.file_name,
+                file_mime_type=image.file_mime_type,
+                file_size_bytes=image.file_size_bytes,
+                is_main=image.is_main,
+                sort_order=image.sort_order,
+            )
+            for image in record.images
+        ]
+        if not images and record.file_mime_type in CERTIFICATE_IMAGE_MIME_TYPES:
+            images = [
+                BrandCertificateImage(
+                    file_url=record.file_url,
+                    file_key=record.file_key,
+                    file_name=record.file_name,
+                    file_mime_type=record.file_mime_type,
+                    file_size_bytes=record.file_size_bytes,
+                    is_main=True,
+                    sort_order=0,
+                )
+            ]
+        main_image = next((image for image in images if image.is_main), images[0] if images else None)
         return BrandCertificateItem(
             id=record.id,
             brand_id=record.brand_id,
@@ -93,6 +134,8 @@ class BrandCertificateAdminService:
             file_name=record.file_name,
             file_mime_type=record.file_mime_type,
             file_size_bytes=record.file_size_bytes,
+            images=images,
+            main_image=main_image,
             is_permanent=record.is_permanent,
             effective_date=record.effective_date,
             expiry_date=record.expiry_date,
@@ -165,10 +208,10 @@ class BrandCertificateAdminService:
         task_trace_id: str | None = None,
         task_type: str | None = None,
     ) -> BrandCertificateItem:
-        values = self._validate_payload(payload)
+        values, images = self._validate_payload(payload)
         if self._repo.get_by_brand_and_name(brand_id=payload.brand_id, name=values["name"]):
             raise BrandCertificateNameDuplicatedError()
-        record = self._repo.create(values)
+        record = self._repo.create(values, images)
         self._audit(actor_user_id, "brand_certificate_create", record, "新增品牌证书", task_trace_id, task_type)
         return self.to_item(record)
 
@@ -184,7 +227,7 @@ class BrandCertificateAdminService:
         existing = self._repo.get_by_id(certificate_id)
         if existing is None:
             raise BrandCertificateNotFoundError()
-        values = self._validate_payload(payload)
+        values, images = self._validate_payload(payload)
         duplicated = self._repo.get_by_brand_and_name(
             brand_id=payload.brand_id,
             name=values["name"],
@@ -192,7 +235,7 @@ class BrandCertificateAdminService:
         )
         if duplicated is not None:
             raise BrandCertificateNameDuplicatedError()
-        record = self._repo.update(certificate_id, values)
+        record = self._repo.update(certificate_id, values, images)
         assert record is not None
         self._audit(actor_user_id, "brand_certificate_update", record, "编辑品牌证书", task_trace_id, task_type)
         return self.to_item(record)
@@ -248,17 +291,21 @@ class BrandCertificateAdminService:
     def _validate_payload(
         self,
         payload: BrandCertificateCreateRequest | BrandCertificateUpdateRequest,
-    ) -> dict:
+    ) -> tuple[dict, list[dict]]:
         brand = self._brand_repo.get_by_id(payload.brand_id)
         if brand is None:
             raise BrandNotFoundError()
         name = payload.name.strip()
         if not name:
             raise AuthInvalidRequestError("证书名称不能为空")
-        if payload.file is None:
+        images = self._normalize_images(payload.images)
+        fallback_file = payload.file or self._main_image_as_file(images)
+        if fallback_file is None:
             raise BrandCertificateFileRequiredError()
-        if not payload.file.file_key or not payload.file.file_url:
+        if not fallback_file.file_key or not fallback_file.file_url:
             raise BrandCertificateFileRequiredError()
+        if not _is_backend_media_reference(fallback_file.file_key, fallback_file.file_url):
+            raise BrandCertificateImageReferenceInvalidError("证书文件引用无效")
         effective_date = None if payload.is_permanent else payload.effective_date
         expiry_date = None if payload.is_permanent else payload.expiry_date
         effective = _parse_date(effective_date)
@@ -267,24 +314,67 @@ class BrandCertificateAdminService:
             raise BrandCertificateDateInvalidError("非长期有效证书必须填写到期日期")
         if effective and expiry and expiry < effective:
             raise BrandCertificateDateInvalidError()
-        return {
-            "brand_id": payload.brand_id,
-            "name": name,
-            "sort_order": payload.sort_order,
-            "type": payload.type,
-            "certificate_no": _normalize_optional(payload.certificate_no, max_len=120),
-            "issuer": _normalize_optional(payload.issuer, max_len=120),
-            "file_url": payload.file.file_url,
-            "file_key": payload.file.file_key,
-            "file_name": payload.file.file_name,
-            "file_mime_type": payload.file.file_mime_type,
-            "file_size_bytes": payload.file.file_size_bytes,
-            "is_permanent": int(payload.is_permanent),
-            "effective_date": effective_date,
-            "expiry_date": expiry_date,
-            "is_visible": int(payload.is_visible),
-            "remark": _normalize_optional(payload.remark, max_len=500),
-        }
+        return (
+            {
+                "brand_id": payload.brand_id,
+                "name": name,
+                "sort_order": payload.sort_order,
+                "type": payload.type,
+                "certificate_no": _normalize_optional(payload.certificate_no, max_len=120),
+                "issuer": _normalize_optional(payload.issuer, max_len=120),
+                "file_url": fallback_file.file_url,
+                "file_key": fallback_file.file_key,
+                "file_name": fallback_file.file_name,
+                "file_mime_type": fallback_file.file_mime_type,
+                "file_size_bytes": fallback_file.file_size_bytes,
+                "is_permanent": int(payload.is_permanent),
+                "effective_date": effective_date,
+                "expiry_date": expiry_date,
+                "is_visible": int(payload.is_visible),
+                "remark": _normalize_optional(payload.remark, max_len=500),
+            },
+            images,
+        )
+
+    def _normalize_images(self, images: list[BrandCertificateImage]) -> list[dict]:
+        if len(images) > MAX_CERTIFICATE_IMAGES:
+            raise BrandCertificateMainImageInvalidError(f"证书图片最多支持 {MAX_CERTIFICATE_IMAGES} 张")
+        if not images:
+            return []
+        main_count = sum(1 for image in images if image.is_main)
+        if main_count != 1:
+            raise BrandCertificateMainImageInvalidError()
+        normalized: list[dict] = []
+        for index, image in enumerate(sorted(images, key=lambda item: item.sort_order)):
+            if image.file_mime_type not in CERTIFICATE_IMAGE_MIME_TYPES:
+                raise BrandCertificateImageReferenceInvalidError("证书图片仅支持 JPG、PNG、WebP")
+            if not _is_backend_media_reference(image.file_key, image.file_url):
+                raise BrandCertificateImageReferenceInvalidError()
+            normalized.append(
+                {
+                    "file_url": image.file_url,
+                    "file_key": image.file_key,
+                    "file_name": image.file_name,
+                    "file_mime_type": image.file_mime_type,
+                    "file_size_bytes": image.file_size_bytes,
+                    "is_main": int(image.is_main),
+                    "sort_order": index,
+                }
+            )
+        return normalized
+
+    @staticmethod
+    def _main_image_as_file(images: list[dict]) -> BrandCertificateFile | None:
+        main_image = next((image for image in images if image["is_main"]), None)
+        if main_image is None:
+            return None
+        return BrandCertificateFile(
+            file_url=main_image["file_url"],
+            file_key=main_image["file_key"],
+            file_name=main_image["file_name"],
+            file_mime_type=main_image["file_mime_type"],
+            file_size_bytes=main_image["file_size_bytes"],
+        )
 
     def _audit(
         self,

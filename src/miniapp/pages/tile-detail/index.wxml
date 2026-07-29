@@ -100,11 +100,6 @@
       </view>
     </view>
 
-    <view wx:if="{{product.remark}}" class="panel">
-      <view class="panel-title">备注说明</view>
-      <view class="remark">{{product.remark}}</view>
-    </view>
-
     <view wx:if="{{product.same_series_recommendations.length}}" class="panel">
       <view class="panel-title">同系列推荐</view>
       <scroll-view class="recommend-row" scroll-x enhanced>

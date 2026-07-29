@@ -316,6 +316,7 @@ export function TileSkuManagementPage() {
               <th>参考价格</th>
               <th>素材</th>
               <th>状态</th>
+              <th>发布时间</th>
               <th>更新时间</th>
               <th className="admin-sticky-action-cell">操作</th>
             </tr>
@@ -360,6 +361,7 @@ export function TileSkuManagementPage() {
                       {tileSkuStatusLabel(item.status)}
                     </span>
                   </td>
+                  <td>{formatSkuDateTime(item.published_at)}</td>
                   <td>{formatSkuDateTime(item.updated_at)}</td>
                   <td className="admin-sticky-action-cell">
                     <div className="sku-actions">

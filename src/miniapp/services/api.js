@@ -44,6 +44,17 @@ function createClientRequestId() {
   }
 }
 
+function cleanProperties(properties) {
+  const next = {};
+  Object.keys(properties).forEach((key) => {
+    const value = properties[key];
+    if (value !== undefined && value !== null) {
+      next[key] = value;
+    }
+  });
+  return next;
+}
+
 function request(path, options = {}) {
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
@@ -103,15 +114,16 @@ function request(path, options = {}) {
 }
 
 function track(eventName, properties) {
+  const cleanedProperties = cleanProperties(properties);
   request('/api/v1/usage-events', {
     method: 'POST',
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,
-      page_path: String(properties.page_path || ''),
+      page_path: String(cleanedProperties.page_path || ''),
       client_request_id: createClientRequestId(),
       properties: {
-        ...properties,
+        ...cleanedProperties,
         client_type: CLIENT_TYPE,
       },
     },

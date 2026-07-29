@@ -69,6 +69,24 @@ def _file_payload(name: str = "iso.pdf") -> dict:
     }
 
 
+def _image_payload(
+    *,
+    name: str,
+    key: str,
+    is_main: bool,
+    sort_order: int,
+) -> dict:
+    return {
+        "file_url": f"/media/{key}",
+        "file_key": key,
+        "file_name": name,
+        "file_mime_type": "image/webp",
+        "file_size_bytes": 256,
+        "is_main": is_main,
+        "sort_order": sort_order,
+    }
+
+
 def _certificate_payload(brand_id: int, name: str = "ISO 9001 质量管理体系认证") -> dict:
     return {
         "brand_id": brand_id,
@@ -154,6 +172,96 @@ def test_brand_certificate_validation_errors(api_client: TestClient) -> None:
 
     assert response.status_code == 400
     assert response.json()["code"] == 40024
+
+
+def test_brand_certificate_saves_images_main_order_and_image_only_fallback(
+    api_client: TestClient,
+) -> None:
+    headers = _admin_headers(api_client)
+    brand_id = _create_brand(api_client, headers, "多图品牌")
+    payload = _certificate_payload(brand_id, "多页检测报告")
+    payload["file"] = None
+    payload["images"] = [
+        _image_payload(
+            name="page-2.webp",
+            key="files/default/brand-certificates/page-2.webp",
+            is_main=False,
+            sort_order=20,
+        ),
+        _image_payload(
+            name="cover.webp",
+            key="files/default/brand-certificates/cover.webp",
+            is_main=True,
+            sort_order=10,
+        ),
+    ]
+
+    create = api_client.post("/api/v1/admin/brand-certificates", headers=headers, json=payload)
+
+    assert create.status_code == 200
+    data = create.json()["data"]
+    assert data["file_key"] == "files/default/brand-certificates/cover.webp"
+    assert data["main_image"]["file_name"] == "cover.webp"
+    assert [image["file_name"] for image in data["images"]] == ["cover.webp", "page-2.webp"]
+    assert [image["sort_order"] for image in data["images"]] == [0, 1]
+    assert [image["is_main"] for image in data["images"]] == [True, False]
+
+    detail = api_client.get(f"/api/v1/admin/brand-certificates/{data['id']}", headers=headers)
+    assert detail.status_code == 200
+    assert detail.json()["data"]["main_image"]["file_key"].endswith("cover.webp")
+
+    listed = api_client.get("/api/v1/admin/brand-certificates", headers=headers)
+    assert listed.status_code == 200
+    listed_item = listed.json()["data"]["items"][0]
+    assert listed_item["main_image"]["file_name"] == "cover.webp"
+    assert len(listed_item["images"]) == 2
+
+
+def test_brand_certificate_rejects_invalid_main_image_payload(api_client: TestClient) -> None:
+    headers = _admin_headers(api_client)
+    brand_id = _create_brand(api_client, headers, "主图校验品牌")
+    payload = _certificate_payload(brand_id, "多主图检测报告")
+    payload["images"] = [
+        _image_payload(
+            name="a.webp",
+            key="files/default/brand-certificates/a.webp",
+            is_main=True,
+            sort_order=0,
+        ),
+        _image_payload(
+            name="b.webp",
+            key="files/default/brand-certificates/b.webp",
+            is_main=True,
+            sort_order=1,
+        ),
+    ]
+
+    response = api_client.post("/api/v1/admin/brand-certificates", headers=headers, json=payload)
+
+    assert response.status_code == 400
+    assert response.json()["code"] == 40026
+
+
+def test_brand_certificate_rejects_forged_image_reference(api_client: TestClient) -> None:
+    headers = _admin_headers(api_client)
+    brand_id = _create_brand(api_client, headers, "伪造引用品牌")
+    payload = _certificate_payload(brand_id, "伪造图片检测报告")
+    payload["images"] = [
+        {
+            **_image_payload(
+                name="evil.webp",
+                key="https://example.com/evil.webp",
+                is_main=True,
+                sort_order=0,
+            ),
+            "file_url": "https://example.com/evil.webp",
+        }
+    ]
+
+    response = api_client.post("/api/v1/admin/brand-certificates", headers=headers, json=payload)
+
+    assert response.status_code == 400
+    assert response.json()["code"] == 40027
 
 
 def test_employee_can_list_but_cannot_mutate_brand_certificates(api_client: TestClient) -> None:

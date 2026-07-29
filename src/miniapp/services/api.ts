@@ -56,6 +56,17 @@ function createClientRequestId(): string | undefined {
   }
 }
 
+function cleanProperties(properties: Record<string, unknown>): Record<string, unknown> {
+  const next: Record<string, unknown> = {};
+  Object.keys(properties).forEach((key) => {
+    const value = properties[key];
+    if (value !== undefined && value !== null) {
+      next[key] = value;
+    }
+  });
+  return next;
+}
+
 export function request<T>(path: string, options: WechatMiniprogram.RequestOption = {}): Promise<T> {
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
@@ -121,15 +132,16 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
 }
 
 export function track(eventName: string, properties: Record<string, unknown>): void {
+  const cleanedProperties = cleanProperties(properties);
   request('/api/v1/usage-events', {
     method: 'POST',
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,
-      page_path: String(properties.page_path || ''),
+      page_path: String(cleanedProperties.page_path || ''),
       client_request_id: createClientRequestId(),
       properties: {
-        ...properties,
+        ...cleanedProperties,
         client_type: CLIENT_TYPE,
       },
     },

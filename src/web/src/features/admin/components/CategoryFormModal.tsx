@@ -9,6 +9,8 @@ import {
   updateCategory,
 } from '../api/tile-categories-api';
 
+const MAX_CATEGORY_NAME_LENGTH = 15;
+
 interface CategoryFormModalProps {
   open: boolean;
   mode: 'create' | 'edit';
@@ -72,8 +74,8 @@ export function CategoryFormModal({
     const trimmedSortOrder = sortOrder.trim();
     if (!trimmedName) {
       nextFieldErrors.name = '类目名称不能为空';
-    } else if (trimmedName.length > 10) {
-      nextFieldErrors.name = '类目名称不能超过 10 个字符';
+    } else if (trimmedName.length > MAX_CATEGORY_NAME_LENGTH) {
+      nextFieldErrors.name = '类目名称最多 15 个字符';
     } else if (!/^[A-Za-z0-9\u4e00-\u9fff]+$/.test(trimmedName)) {
       nextFieldErrors.name = '类目名称只能包含中文、英文和数字';
     }
@@ -169,7 +171,7 @@ export function CategoryFormModal({
               aria-describedby={fieldErrors.name ? 'cat-name-error' : undefined}
               onChange={(e) => setName(e.target.value)}
             />
-            <p className="cat-modal-help">最多 10 个字符，只能包含中文、英文和数字。</p>
+            <p className="cat-modal-help">最多 15 个字符，只能包含中文、英文和数字。</p>
             {fieldErrors.name ? (
               <p id="cat-name-error" className="field-error">
                 {fieldErrors.name}

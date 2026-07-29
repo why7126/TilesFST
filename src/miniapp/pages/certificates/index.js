@@ -26,9 +26,14 @@ Page({
   },
 
   onLoad() {
+    this.setCurrentTab();
     this.setData({ requestId: requestId() });
     this.trackListEvent('certificate_list_page_view', {});
     this.loadCertificates({ reset: true, eventName: 'certificate_list_load' });
+  },
+
+  onShow() {
+    this.setCurrentTab();
   },
 
   onPullDownRefresh() {
@@ -45,6 +50,13 @@ Page({
       title: '菲尚特证书',
       path: '/pages/certificates/index',
     };
+  },
+
+  setCurrentTab() {
+    const tabBar = this.getTabBar && this.getTabBar();
+    if (tabBar) {
+      tabBar.setData({ selected: 3 });
+    }
   },
 
   loadCertificates(options) {
@@ -126,45 +138,9 @@ Page({
     if (now - this.lastPreviewAt < CLICK_LOCK_MS) return;
     this.lastPreviewAt = now;
     this.trackListEvent('certificate_click', this.certificateTrackPayload(item, index));
-    this.trackListEvent('certificate_preview_click', this.certificateTrackPayload(item, index));
-    if (!item.file_url || item.file_kind === 'unknown') {
-      wx.showToast({ title: '证书文件暂不可预览', icon: 'none' });
-      return;
-    }
-    if (item.file_kind === 'image') {
-      wx.previewImage({
-        current: item.file_url,
-        urls: [item.file_url],
-        fail: () => wx.showToast({ title: '图片预览失败，请稍后重试', icon: 'none' }),
-      });
-      return;
-    }
-    wx.downloadFile({
-      url: item.file_url,
-      success: (result) => {
-        if (result.statusCode >= 200 && result.statusCode < 300) {
-          wx.openDocument({
-            filePath: result.tempFilePath,
-            fileType: 'pdf',
-            fail: () => this.copyCertificateUrl(item.file_url || ''),
-          });
-          return;
-        }
-        this.copyCertificateUrl(item.file_url || '');
-      },
-      fail: () => this.copyCertificateUrl(item.file_url || ''),
-    });
-  },
-
-  copyCertificateUrl(url) {
-    if (!url) {
-      wx.showToast({ title: 'PDF 暂不可打开', icon: 'none' });
-      return;
-    }
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: 'PDF 链接已复制', icon: 'none' }),
-      fail: () => wx.showToast({ title: 'PDF 暂不可打开', icon: 'none' }),
+    wx.navigateTo({
+      url: `/pages/certificate-detail/index?certificateId=${encodeURIComponent(String(item.certificate_id))}&sourcePage=certificate-list&sourceModule=certificate-card&index=${index}&requestId=${encodeURIComponent(this.data.requestId)}`,
+      fail: () => wx.showToast({ title: '证书详情暂不可打开', icon: 'none' }),
     });
   },
 

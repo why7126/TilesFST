@@ -1,0 +1,62 @@
+---
+title: TILESFST v0.2.0 发布公告
+description: Sprint 013 产品版本发布公告
+---
+
+# TILESFST v0.2.0
+
+发布时间：2026-07-29 10:35:40
+
+关联 Sprint：sprint-013
+
+## 新增功能
+
+- 管理端类目名称输入上限调整为 15 个字符。
+- 管理端品牌证书支持多图上传与主图设置。
+- 管理端 SKU 列表新增发布时间列。
+- 微信小程序新增证书详情页。
+
+## 修复 BUG
+
+- 小程序商品详情页展示已维护的备注说明。
+- 小程序品牌详情页商品 Tab 按发布时间升序、ID 升序稳定展示。
+- 管理端 SKU 创建和编辑保存成功后直接关闭弹窗。
+- 管理端证书编辑弹窗不再展示无意义图片文件名文本。
+
+## 发布注意事项
+
+- 发布准备已完成 OpenSpec 范围复核、后端 pytest、Web Vitest、API 标准、OpenAPI / Orval、Docker Compose 配置和 Mintlify broken-links 校验。
+- 当前环境缺少目标 MySQL `DATABASE_URL`，尚未完成目标 MySQL schema drift 或 smoke 校验；正式发布前必须补齐该数据库门禁。
+- 部署前执行数据库与发布配置备份，并按回滚说明准备上一版本部署包。
+
+## 已知问题
+
+- 目标 MySQL schema drift 或 smoke 校验待补齐；补齐前不建议执行正式发布。
+- 小程序证书详情页 DevTools 多尺寸和真机 evidence 仍按 Sprint 验收报告记录为 blocked/follow_up，需要人工确认是否接受该验证边界。
+- 部分已归档 OpenSpec Change trace 的 frontmatter 状态仍停留在 proposed/applied/in_progress，发布范围事实源已由 release.json、sprint-013 和 Issue trace 兜底确认。
+
+## 升级步骤
+
+1. 完成升级前备份。
+2. 确认产品版本号为 v0.2.0。
+3. 使用目标 MySQL 连接执行 schema drift 或 smoke 校验。
+4. 部署新版本并完成管理端、小程序、上传和核心 API smoke。
+
+## 回滚说明
+
+1. 回退到上一 Git tag 或上一部署包。
+2. 恢复上一版本环境变量和配置。
+3. 按数据库回滚说明处理本版本数据结构变更。
+4. 复核对象存储业务引用和公开访问边界。
+
+## 影响范围
+
+| 范围 | 影响 |
+|---|---|
+| Web 管理端 | 类目、品牌证书、SKU 列表与 SKU 表单 |
+| 店主 Web | 不涉及 |
+| 小程序 | SKU 详情、品牌详情商品 Tab、证书列表与证书详情 |
+| 后端 | 类目、品牌证书、公开证书详情、SKU 列表和品牌商品排序接口 |
+| 数据库 | SKU 发布时间与品牌证书媒体字段相关变更 |
+| 对象存储 | 品牌证书图片引用与安全访问 |
+| Docker | 不涉及编排变更，需复核上传边界 |

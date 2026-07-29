@@ -121,7 +121,7 @@ Page({
   setCurrentTab() {
     const tabBar = this.getTabBar && this.getTabBar();
     if (tabBar) {
-      tabBar.setData({ selected: 3 });
+      tabBar.setData({ selected: 4 });
     }
   },
 

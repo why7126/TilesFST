@@ -395,6 +395,97 @@ def test_admin_list_tile_skus(client: TestClient) -> None:
     assert "summary" in body["data"]
 
 
+def test_admin_list_tile_skus_includes_published_at(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+
+    draft_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+    )
+    assert draft_response.status_code == 200
+    draft = draft_response.json()["data"]
+
+    draft_list = client.get(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        params={"keyword": draft["sku_code"], "status": "DRAFT"},
+    )
+    assert draft_list.status_code == 200
+    draft_body = draft_list.json()["data"]
+    assert draft_body["pagination"]["total"] == 1
+    assert draft_body["items"][0]["published_at"] is None
+    assert "summary" in draft_body
+
+    publish_response = client.post(
+        f"/api/v1/admin/tile-skus/{draft['id']}/publish",
+        headers=headers,
+    )
+    assert publish_response.status_code == 200
+
+    published_list = client.get(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        params={"keyword": draft["sku_code"], "status": "PUBLISHED"},
+    )
+    assert published_list.status_code == 200
+    published_body = published_list.json()["data"]
+    item = published_body["items"][0]
+    assert published_body["pagination"]["total"] == 1
+    assert isinstance(item["published_at"], str)
+    assert published_body["summary"]["total"] >= 1
+
+
+def test_publish_sku_refreshes_published_at_when_restored(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    create_response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+    )
+    assert create_response.status_code == 200
+    sku_id = create_response.json()["data"]["id"]
+
+    first_publish = client.post(f"/api/v1/admin/tile-skus/{sku_id}/publish", headers=headers)
+    assert first_publish.status_code == 200
+    assert first_publish.json()["data"]["published_at"]
+
+    unpublish = client.post(f"/api/v1/admin/tile-skus/{sku_id}/unpublish", headers=headers)
+    assert unpublish.status_code == 200
+    assert unpublish.json()["data"]["published_at"] is None
+
+    stale_published_at = "2000-01-01T00:00:00+00:00"
+    session = get_session_factory()()
+    try:
+        session.execute(
+            text("UPDATE tiles SET published_at = :published_at WHERE id = :id"),
+            {"published_at": stale_published_at, "id": sku_id},
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    restored = client.post(f"/api/v1/admin/tile-skus/{sku_id}/publish", headers=headers)
+    assert restored.status_code == 200
+    restored_published_at = restored.json()["data"]["published_at"]
+    assert isinstance(restored_published_at, str)
+    assert restored_published_at != stale_published_at
+
+    listed = client.get(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        params={"keyword": create_response.json()["data"]["sku_code"], "status": "PUBLISHED"},
+    )
+    assert listed.status_code == 200
+    assert listed.json()["data"]["items"][0]["published_at"] == restored_published_at
+
+
 def test_employee_can_access_tile_skus_api(client: TestClient) -> None:
     _create_employee()
     headers = _auth_headers(client, "operator01", "Operator123!")

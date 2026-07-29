@@ -3,8 +3,8 @@
 services:
   # 生产后端服务，结构化数据写入外部 MySQL，媒体对象写入外部对象存储。
   backend:
-    # 生产镜像名由 .env 控制；保留 build 时会将源码构建结果打为该 tag。
-    image: ${TILESFST_BACKEND_IMAGE:-tilesfst-backend:v0.0.4}
+    # 生产镜像仓库名与统一 tag 由 .env 控制；backend/web 默认共用 TILESFST_IMAGE_TAG。
+    image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.4}
     # 后端镜像构建上下文限定在 src/backend。
     build:
       context: ./src/backend
@@ -98,8 +98,8 @@ services:
 
   # 生产 Web 容器，托管已构建静态资源并反代后端 API。
   web:
-    # Web 生产镜像名由 .env 控制；保留 build 时会将源码构建结果打为该 tag。
-    image: ${TILESFST_WEB_IMAGE:-tilesfst-web:v0.0.4}
+    # Web 生产镜像仓库名与统一 tag 由 .env 控制；backend/web 默认共用 TILESFST_IMAGE_TAG。
+    image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:-v0.0.4}
     # Web 构建需要项目根上下文，以便复制共享设计系统与业务类型。
     build:
       context: .

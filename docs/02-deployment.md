@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 15:19:59
+updated_at: 2026-07-26 17:45:00
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -37,7 +37,7 @@ Web 镜像构建会将 `src/web/public/` 下的静态资源复制到前端站点
 
 ```bash
 cp scripts/build-images.env.example scripts/build-images.env
-# 编辑 scripts/build-images.env，设置 IMAGE_BUILD_TAG、IMAGE_BUILD_PLATFORM、基础镜像源、IMAGE_BUILD_RELEASE_DIR 等
+# 编辑 scripts/build-images.env，设置 IMAGE_BUILD_TAG、IMAGE_BUILD_PLATFORM、基础镜像源等
 ./scripts/build-images.sh
 ```
 
@@ -145,7 +145,8 @@ ADMIN_RESET_PASSWORD_ON_STARTUP=false
 ### 注意事项
 
 - 本地自建 MinIO 的默认账号密码仅用于开发环境；云上对象存储场景不会启动本地 MinIO。
-- `TILESFST_BACKEND_IMAGE` / `TILESFST_WEB_IMAGE` 用于生产 Compose 与离线交付 Compose 的镜像名；本地开发 `docker-compose.yml` 直接从源码 build，不依赖这两个变量。
+- `TILESFST_IMAGE_TAG` 用于生产 Compose 与离线交付 Compose 的统一镜像版本；默认 backend/web 共用同一个 tag。本地开发 `docker-compose.yml` 直接从源码 build，不依赖该变量。
+- `TILESFST_BACKEND_IMAGE_REPOSITORY` / `TILESFST_WEB_IMAGE_REPOSITORY` 仅用于覆盖镜像仓库名；发版只改版本时无需修改。
 - 生产环境必须更换密钥，并使用安全的配置管理方式。
 - 本地开发与演示默认 SQLite；生产环境必须使用外部 MySQL `DATABASE_URL`。
 - **大文件上传（图片/视频/文档）**：后端通过 `MAX_IMAGE_SIZE_MB`、`MAX_VIDEO_SIZE_MB`、`MAX_FILE_SIZE_MB` 与 `ALLOWED_*_TYPES` 限制（见根目录 `.env.example`）。Web 容器 Nginx 使用 `src/web/nginx.conf.template` 渲染运行时配置，并在 `/api/v1/admin/uploads/` 上单独设置 `UPLOAD_CLIENT_MAX_BODY_SIZE`（默认 `512m`）、`UPLOAD_PROXY_SEND_TIMEOUT_SECONDS` / `UPLOAD_PROXY_READ_TIMEOUT_SECONDS` / `UPLOAD_SEND_TIMEOUT_SECONDS`（默认 `600` 秒）和 `UPLOAD_PROXY_REQUEST_BUFFERING`（默认 `off`）。修改模板、默认配置或上传反代变量后 MUST **重建并重启 Web 镜像**（`docker compose build web && docker compose up -d web`），仅重启 backend 不会更新 Nginx 配置。详见 `docs/standards/file-upload.md`。
@@ -176,8 +177,9 @@ python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
 ### 生产环境变量
 
 ```env
-TILESFST_BACKEND_IMAGE=tilesfst-backend:v0.0.4
-TILESFST_WEB_IMAGE=tilesfst-web:v0.0.4
+TILESFST_IMAGE_TAG=v0.0.4
+TILESFST_BACKEND_IMAGE_REPOSITORY=tilesfst-backend
+TILESFST_WEB_IMAGE_REPOSITORY=tilesfst-web
 APP_ENV=production
 APP_DEBUG=false
 APP_SECRET_KEY=replace-with-secret
@@ -275,8 +277,9 @@ stage=storage_put_done
 ### 外部服务型生产环境变量
 
 ```env
-TILESFST_BACKEND_IMAGE=tilesfst-backend:v0.0.4
-TILESFST_WEB_IMAGE=tilesfst-web:v0.0.4
+TILESFST_IMAGE_TAG=v0.0.4
+TILESFST_BACKEND_IMAGE_REPOSITORY=tilesfst-backend
+TILESFST_WEB_IMAGE_REPOSITORY=tilesfst-web
 APP_ENV=production
 APP_DEBUG=false
 APP_SECRET_KEY=replace-with-secret

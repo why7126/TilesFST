@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-07-24 16:06:17
+updated_at: 2026-07-26 17:45:00
 owner: 项目团队
 status: draft
 ---
@@ -135,10 +135,10 @@ WEB_NODE_BASE_IMAGE=node:22-alpine
 WEB_NGINX_BASE_IMAGE=nginx:1.27-alpine
 IMAGE_BUILD_BACKEND_IMAGE=tilesfst-backend
 IMAGE_BUILD_WEB_IMAGE=tilesfst-web
-IMAGE_BUILD_RELEASE_DIR=../releases/v0.0.1
-IMAGE_BUILD_TAR_NAME=tilesfst-v0.0.1-linux-amd64.tar.gz
 IMAGE_BUILD_EXPORT_TAR=true
 ```
+
+`IMAGE_BUILD_RELEASE_DIR` 默认推导为 `../releases/${IMAGE_BUILD_TAG}`，`IMAGE_BUILD_TAR_NAME` 默认推导为 `tilesfst-${IMAGE_BUILD_TAG}-${IMAGE_BUILD_PLATFORM//\//-}.tar.gz`；常规发版只需修改 `IMAGE_BUILD_TAG`。
 
 执行构建：
 
@@ -340,7 +340,7 @@ services:
   # FastAPI 后端服务
   # 生产环境只连接外部 MySQL 和外部 MinIO，不在本 compose 内启动数据库/对象存储
   backend:
-    image: ${TILESFST_BACKEND_IMAGE:?Set TILESFST_BACKEND_IMAGE}
+    image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:?Set TILESFST_IMAGE_TAG}
     container_name: tilesfst-backend
 
     # 后端生产环境变量
@@ -407,7 +407,7 @@ services:
   # Web 前端服务
   # Nginx 托管 React 静态资源，并反向代理 /api/ 和 /media/ 到 backend
   web:
-    image: ${TILESFST_WEB_IMAGE:?Set TILESFST_WEB_IMAGE}
+    image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:?Set TILESFST_IMAGE_TAG}
     container_name: tilesfst-web
 
     # 宿主机端口映射
@@ -432,8 +432,9 @@ networks:
 在云服务器交付目录中创建 `.env`，不要提交真实 `.env`：
 
 ```env
-TILESFST_BACKEND_IMAGE=tilesfst-backend:v0.0.4
-TILESFST_WEB_IMAGE=tilesfst-web:v0.0.4
+TILESFST_IMAGE_TAG=v0.0.4
+TILESFST_BACKEND_IMAGE_REPOSITORY=tilesfst-backend
+TILESFST_WEB_IMAGE_REPOSITORY=tilesfst-web
 
 APP_ENV=production
 APP_DEBUG=false

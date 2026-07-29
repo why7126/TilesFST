@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REQ-0080 证书详情页原型</title>
+  <style>
+    :root {
+      --brand: #C8A055;
+      --bg: #18160F;
+      --surface: #211E16;
+      --surface-2: #2A261C;
+      --text: #EDE8DF;
+      --muted: rgba(237, 232, 223, 0.55);
+      --line: rgba(255, 255, 255, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0f0e0a;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Source Han Sans SC", sans-serif;
+    }
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+    .nav {
+      height: 88px;
+      padding: 48px 86px 12px 16px;
+      background: rgba(24, 22, 15, 0.94);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 4;
+    }
+    .back {
+      position: absolute;
+      left: 14px;
+      top: 48px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      font-size: 20px;
+    }
+    .nav-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hero {
+      height: 410px;
+      position: relative;
+      background:
+        linear-gradient(145deg, rgba(200, 160, 85, 0.22), transparent 42%),
+        repeating-linear-gradient(110deg, #3a3527 0 12px, #272318 12px 22px, #443d2b 22px 28px);
+    }
+    .hero::after {
+      content: "质量管理体系认证";
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      top: 150px;
+      padding: 34px 20px;
+      text-align: center;
+      border: 1px solid rgba(200, 160, 85, 0.5);
+      background: rgba(16, 15, 10, 0.52);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .badge-row {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      padding: 7px 10px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      background: rgba(16, 15, 10, 0.74);
+      color: var(--brand);
+      font-size: 12px;
+    }
+    .content {
+      padding: 16px 16px 112px;
+    }
+    .summary {
+      margin-bottom: 14px;
+    }
+    .eyebrow {
+      color: var(--brand);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.32;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .brand-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      display: grid;
+      place-items: center;
+      color: var(--brand);
+      background: var(--surface-2);
+      font-weight: 700;
+    }
+    .brand-main { flex: 1; }
+    .brand-name { font-size: 16px; font-weight: 700; }
+    .brand-hint, .muted {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .arrow { color: var(--brand); }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .field span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .field strong {
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .desc {
+      color: rgba(237, 232, 223, 0.78);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .actions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 92px;
+      padding: 12px 16px 24px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      background: rgba(16, 15, 10, 0.94);
+      border-top: 1px solid var(--line);
+    }
+    button {
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #18160F;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <nav class="nav">
+      <div class="back">‹</div>
+      <div class="nav-title">证书详情</div>
+    </nav>
+    <section class="hero">
+      <div class="badge-row">
+        <div class="badge">3 张图片</div>
+        <div class="badge">有效</div>
+      </div>
+    </section>
+    <section class="content">
+      <div class="summary">
+        <div class="eyebrow">质量体系认证</div>
+        <h1>菲尚特瓷砖质量管理体系认证证书</h1>
+        <div class="muted">证书编号：FST-QMS-2026-001</div>
+      </div>
+      <div class="card brand-card">
+        <div class="logo">FST</div>
+        <div class="brand-main">
+          <div class="brand-name">菲尚特瓷砖</div>
+          <div class="brand-hint">查看品牌主页与更多资质</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="card">
+        <div class="section-title">证书信息</div>
+        <div class="grid">
+          <div class="field"><span>发证机构</span><strong>中国质量认证中心</strong></div>
+          <div class="field"><span>有效状态</span><strong>有效</strong></div>
+          <div class="field"><span>生效日期</span><strong>2026-01-01</strong></div>
+          <div class="field"><span>到期日期</span><strong>2028-12-31</strong></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">说明</div>
+        <div class="desc">本证书用于展示品牌生产与质量管理能力，公开信息仅作为品牌资质参考，完整文件可在详情页内预览。</div>
+      </div>
+    </section>
+    <div class="actions">
+      <button>预览文件</button>
+      <button class="primary">分享证书</button>
+    </div>
+  </main>
+</body>
+</html>

@@ -17,6 +17,10 @@ def _read(path: str) -> str:
 
 def test_miniapp_routes_cover_home_search_detail_store_and_tabbar() -> None:
     config = json.loads(_read("app.json"))
+    home_js = _read("pages/index/index.js")
+    certificate_js = _read("pages/certificates/index.js")
+    favorites_js = _read("pages/favorites/index.js")
+    tabbar_js = _read("custom-tab-bar/index.js")
 
     assert "pages/index/index" in config["pages"]
     assert "pages/search/index" in config["pages"]
@@ -27,6 +31,7 @@ def test_miniapp_routes_cover_home_search_detail_store_and_tabbar() -> None:
     assert "pages/product-list/index" in config["pages"]
     assert "pages/brand-list/index" in config["pages"]
     assert "pages/brand-detail/index" in config["pages"]
+    assert "pages/certificate-detail/index" in config["pages"]
     assert [item["text"] for item in config["tabBar"]["list"]] == [
         "首页",
         "分类",
@@ -53,6 +58,11 @@ def test_miniapp_routes_cover_home_search_detail_store_and_tabbar() -> None:
     assert certificate_tab["selectedIconPath"] != favorite_tab["selectedIconPath"]
     assert (MINIAPP / "custom-tab-bar/index.wxml").exists()
     assert (MINIAPP / "custom-tab-bar/index.wxss").exists()
+    assert "pageLifetimes" in tabbar_js
+    assert "syncSelectedWithCurrentPage" in tabbar_js
+    assert "tabBar.setData({ selected: 0 })" in home_js
+    assert "tabBar.setData({ selected: 3 })" in certificate_js
+    assert "tabBar.setData({ selected: 4 })" in favorites_js
 
 
 def test_miniapp_home_detail_search_smoke_contracts() -> None:
@@ -64,6 +74,10 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     brand_detail_ts = _read("pages/brand-detail/index.ts")
     brand_detail_wxml = _read("pages/brand-detail/index.wxml")
     brand_detail_wxss = _read("pages/brand-detail/index.wxss")
+    certificate_detail_ts = _read("pages/certificate-detail/index.ts")
+    certificate_detail_js = _read("pages/certificate-detail/index.js")
+    certificate_detail_wxml = _read("pages/certificate-detail/index.wxml")
+    certificate_detail_wxss = _read("pages/certificate-detail/index.wxss")
 
     assert "/api/v1/miniapp/home" in home_ts
     assert "/api/v1/miniapp/search/suggestions" in search_ts
@@ -78,6 +92,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "/api/v1/miniapp/brands/${this.data.brandId}" in brand_detail_ts
     assert "/api/v1/miniapp/brands/${this.data.brandId}/certificates" in brand_detail_ts
     assert "/api/v1/miniapp/products?brandId=${this.data.brandId}" in brand_detail_ts
+    assert "/api/v1/miniapp/certificates/${this.data.certificateId}" in certificate_detail_ts
+    assert "/api/v1/miniapp/certificates/${this.data.certificateId}" in certificate_detail_js
     assert "legacyToSkuDetail" in detail_ts
     assert "home_share" in home_ts
     assert "miniapp_home_search_click" in home_ts
@@ -98,6 +114,7 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "brand_detail_view" in brand_detail_ts
     assert "brand_detail_tab_click" in brand_detail_ts
     assert "brand_certificate_click" in brand_detail_ts
+    assert "openCertificateDetail" in brand_detail_ts
     assert "normalizeCertificate" in brand_detail_ts
     assert "return brand?.brand_name || '品牌主页';" in brand_detail_ts
     assert "brand?.brand_short_name || brand?.brand_name" not in brand_detail_ts
@@ -111,7 +128,46 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert ".tab-scroll" in brand_detail_wxss
     assert 'class="certificate-grid"' in brand_detail_wxml
     assert 'class="file-frame {{item.file_kind}}"' in brand_detail_wxml
+    assert 'bindtap="openCertificateDetail"' in brand_detail_wxml
     assert ".type-badge" in brand_detail_wxss
+    assert '<custom-navigation title="{{title}}" />' in certificate_detail_wxml
+    assert "certificate_detail_view" in certificate_detail_ts
+    assert "certificate_detail_media_switch" in certificate_detail_ts
+    assert "certificate_detail_image_preview" in certificate_detail_ts
+    assert "certificate_detail_file_open" in certificate_detail_ts
+    assert "certificate_detail_brand_click" in certificate_detail_ts
+    assert "certificate_detail_share_click" in certificate_detail_ts
+    assert "certificate_detail_load_failed" in certificate_detail_ts
+    assert "title: '证书详情'" in certificate_detail_ts
+    assert "safeText(detail.certificate_name, '证书详情')" not in certificate_detail_ts
+    assert "备注说明" in certificate_detail_ts
+    assert "有效期" not in certificate_detail_ts
+    assert "wx.previewImage" in certificate_detail_js
+    assert "wx.downloadFile" in certificate_detail_js
+    assert "wx.openDocument" in certificate_detail_js
+    assert "wx.setClipboardData" in certificate_detail_js
+    assert "wx.switchTab" in certificate_detail_js
+    assert "/pages/certificates/index" in certificate_detail_js
+    assert "open-type=\"share\"" not in certificate_detail_wxml
+    assert 'class="ghost-btn action"' not in certificate_detail_wxml
+    assert "<button" not in certificate_detail_wxml.split('<view wx:else class="content">', 1)[-1]
+    assert "分享证书" not in certificate_detail_wxml
+    assert ".actions" not in certificate_detail_wxss
+    assert "brand-line" not in certificate_detail_wxml
+    assert ".brand-line" not in certificate_detail_wxss
+    assert "{{detail.brand_name}}" not in certificate_detail_wxml
+    assert "{{detail.brand.brand_name}}" in certificate_detail_wxml
+    assert "bindtap=\"openBrand\"" in certificate_detail_wxml
+    assert "价格" not in certificate_detail_wxml
+    assert "收藏" not in certificate_detail_wxml
+    assert "推荐" not in certificate_detail_wxml
+    assert "购物" not in certificate_detail_wxml
+    assert "购买" not in certificate_detail_wxml
+    assert "询价" not in certificate_detail_wxml
+    assert "库存" not in certificate_detail_wxml
+    assert "促销" not in certificate_detail_wxml
+    assert ".media-wrap" in certificate_detail_wxss
+    assert "height: 680rpx" in certificate_detail_wxss
     assert "home_contact_click" in store_ts
 
 
@@ -200,6 +256,7 @@ def test_miniapp_runtime_entry_scripts_are_not_empty_templates() -> None:
         "pages/product-list/index",
         "pages/brand-list/index",
         "pages/brand-detail/index",
+        "pages/certificate-detail/index",
         "pages/favorites/index",
         "pages/certificates/index",
     ]
@@ -856,6 +913,7 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "功能建设中" not in certificate_wxml
     assert "/api/v1/miniapp/certificates?" in certificate_ts
     assert "/api/v1/miniapp/certificates?" in certificate_js
+    assert "/pages/certificate-detail/index?certificateId=" in certificate_js
     assert "PAGE_SIZE = 12" in certificate_js
     assert "onPullDownRefresh" in certificate_js
     assert "onReachBottom" in certificate_js
@@ -876,17 +934,17 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "brandId=" not in certificate_js
     assert "validityStatus=" not in certificate_js
     assert "facets" not in certificate_js
-    assert "wx.previewImage" in certificate_js
-    assert "wx.downloadFile" in certificate_js
-    assert "wx.openDocument" in certificate_js
-    assert "wx.setClipboardData" in certificate_js
+    assert "wx.previewImage" not in certificate_js
+    assert "wx.downloadFile" not in certificate_js
+    assert "wx.openDocument" not in certificate_js
+    assert "wx.setClipboardData" not in certificate_js
     assert 'binderror="onImageError"' in certificate_wxml
     assert "image_failed" in certificate_js
     assert "certificate_list_page_view" in certificate_js
     assert "certificate_search" not in certificate_js
     assert "certificate_filter_apply" not in certificate_js
     assert "certificate_click" in certificate_js
-    assert "certificate_preview_click" in certificate_js
+    assert "certificate_preview_click" not in certificate_js
     assert "certificate_load_failed" in certificate_js
     assert "Authorization" not in certificate_js
     assert "Cookie" not in certificate_js
@@ -897,7 +955,7 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "env(safe-area-inset-bottom)" in certificate_wxss
     assert "certificate-grid" in certificate_wxml
     assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in certificate_wxss
-    assert "aspect-ratio: 1 / 0.7" in certificate_wxss
+    assert "aspect-ratio: 1 / 1.3" in certificate_wxss
     assert "-webkit-line-clamp: 2" in certificate_wxss
     assert "{{item.certificate_name}}" in certificate_wxml
     assert "{{item.brand_name}}" in certificate_wxml
@@ -1013,6 +1071,18 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "wx.createVideoContext(`sku-video-${item.media_id}`, this).pause()" in detail_js
     assert "视频暂时无法播放" in detail_js
     assert "media-count" in detail_wxml
+    assert "normalizeRemark" in detail_ts
+    assert "normalizeRemark" in detail_js
+    assert "normalizeSkuDetail" in detail_ts
+    assert "normalizeSkuDetail" in detail_js
+    assert 'wx:if="{{product.remark}}"' not in detail_wxml
+    assert '<view class="panel-title">备注说明</view>' not in detail_wxml
+    assert "{ label: '备注说明', value: remark }" in detail_ts
+    assert "{{product.remark}}" not in detail_wxml
+    assert 'wx:for="{{product.parameters}}"' in detail_wxml
+    assert "{{item.value || '—'}}" in detail_wxml
+    assert "null" not in detail_wxml
+    assert "undefined" not in detail_wxml
     assert "<brand-card" in detail_wxml
     assert 'hint="查看品牌主页"' in detail_wxml
     assert 'source-module="sku-detail-brand"' in detail_wxml

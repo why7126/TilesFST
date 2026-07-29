@@ -37,6 +37,7 @@ vi.mock('@/features/admin/components/TileSkuFormModal', () => ({
 }));
 
 import { TileSkuManagementPage } from './TileSkuManagementPage';
+import { formatSkuDateTime } from '@/features/admin/lib/tile-sku-display';
 
 const listPayload = {
   items: [
@@ -53,6 +54,7 @@ const listPayload = {
       image_count: 2,
       video_count: 1,
       status: 'DRAFT',
+      published_at: null,
       updated_at: '2026-06-20T00:00:00Z',
       main_image_url: null,
     },
@@ -110,8 +112,12 @@ describe('TileSkuManagementPage', () => {
     expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
       'admin-sticky-action-cell',
     );
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent);
+    expect(headers.indexOf('发布时间')).toBeGreaterThan(-1);
+    expect(headers.indexOf('发布时间')).toBeLessThan(headers.indexOf('更新时间'));
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
     expect(row.cells[0]).not.toHaveClass('admin-sticky-action-cell');
+    expect(row.cells[6]).toHaveTextContent('—');
     expect(row.cells[row.cells.length - 1]).toHaveClass('admin-sticky-action-cell');
 
     const pagination = screen.getByText('共 1 条').closest('.pagination');
@@ -121,6 +127,59 @@ describe('TileSkuManagementPage', () => {
     expect(pagination?.querySelector('.page-size-wrap')).toBeInTheDocument();
     expect(pagination?.querySelector('.page-left')).not.toBeInTheDocument();
     expect(pagination?.querySelector('.brand-pagination-right')).not.toBeInTheDocument();
+  });
+
+  it('formats published time and updated time with the same date formatter', async () => {
+    fetchTileSkusMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          status: 'PUBLISHED',
+          published_at: '2026-06-19T16:30:00Z',
+          updated_at: '2026-06-20T00:45:00Z',
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('测试 SKU')).toBeInTheDocument();
+    });
+
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[6]).toHaveTextContent(formatSkuDateTime('2026-06-19T16:30:00Z'));
+    expect(row.cells[7]).toHaveTextContent(formatSkuDateTime('2026-06-20T00:45:00Z'));
+  });
+
+  it('shows placeholder for invalid published time', async () => {
+    fetchTileSkusMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          published_at: 'not-a-date',
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('测试 SKU')).toBeInTheDocument();
+    });
+
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[6]).toHaveTextContent('—');
   });
 
   it('shows restore action for disabled SKU rows', async () => {

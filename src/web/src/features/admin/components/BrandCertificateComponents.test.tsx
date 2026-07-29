@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   CertificateFileCard,
+  CertificateImageGrid,
   CertificateListIdentity,
   CertificatePreviewAction,
   CertificateValidityBadge,
@@ -10,7 +11,11 @@ import {
   CertificateVisibilityBadge,
   getCertificatePreviewTarget,
 } from './BrandCertificateComponents';
-import type { BrandCertificateFile, BrandCertificateItem } from '@/shared/api/generated';
+import type {
+  BrandCertificateFile,
+  BrandCertificateImage,
+  BrandCertificateItem,
+} from '@/shared/api/generated';
 
 const certificate = {
   id: 7,
@@ -165,5 +170,76 @@ describe('BrandCertificateComponents', () => {
     );
     expect(screen.getByRole('alert')).toHaveTextContent('证书文件上传失败');
     expect(within(screen.getByText('iso.pdf').closest('.certificate-file-card')!).getByText('PDF')).toBeInTheDocument();
+  });
+
+  it('renders image grid main image actions and upload states', () => {
+    const onSelectFile = vi.fn();
+    const onSetMain = vi.fn();
+    const onRemove = vi.fn();
+    const images: BrandCertificateImage[] = [
+      {
+        file_url: '/media/files/default/brand-certificates/cover.webp',
+        file_key: 'files/default/brand-certificates/cover.webp',
+        file_name: 'cover.webp',
+        file_mime_type: 'image/webp',
+        file_size_bytes: 256,
+        is_main: true,
+        sort_order: 0,
+      },
+      {
+        file_url: '/media/files/default/brand-certificates/page-2.webp',
+        file_key: 'files/default/brand-certificates/page-2.webp',
+        file_name: 'page-2.webp',
+        file_mime_type: 'image/webp',
+        file_size_bytes: 256,
+        is_main: false,
+        sort_order: 1,
+      },
+    ];
+
+    const { rerender } = render(
+      <CertificateImageGrid
+        images={images}
+        state="idle"
+        onSelectFile={onSelectFile}
+        onSetMain={onSetMain}
+        onRemove={onRemove}
+      />,
+    );
+
+    expect(screen.getByLabelText('证书图片列表')).toBeInTheDocument();
+    expect(screen.getByText('主图')).toBeInTheDocument();
+    expect(screen.queryByText('cover.webp')).not.toBeInTheDocument();
+    expect(screen.queryByText('page-2.webp')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '设为主图' }));
+    expect(onSetMain).toHaveBeenCalledWith(1);
+    fireEvent.click(screen.getByRole('button', { name: '移除图片 1' }));
+    expect(onRemove).toHaveBeenCalledWith(0);
+
+    rerender(
+      <CertificateImageGrid
+        images={[]}
+        state="uploading"
+        progress={73}
+        onSelectFile={onSelectFile}
+        onSetMain={onSetMain}
+        onRemove={onRemove}
+      />,
+    );
+    expect(screen.getByText('支持 JPG / PNG / WebP，最多 9 张')).toHaveClass('sku-help');
+    expect(screen.queryByText('未上传证书图片')).not.toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '73');
+
+    rerender(
+      <CertificateImageGrid
+        images={[]}
+        state="failed"
+        error="证书图片上传失败"
+        onSelectFile={onSelectFile}
+        onSetMain={onSetMain}
+        onRemove={onRemove}
+      />,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('证书图片上传失败');
   });
 });

@@ -134,6 +134,39 @@ def _ensure_brand_certificates_support(connection: Connection) -> None:
     for name, sql in indexes.items():
         if not _index_exists(connection, name):
             connection.execute(text(sql))
+    connection.execute(
+        text(
+            """
+            CREATE TABLE IF NOT EXISTS brand_certificate_images (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              certificate_id INTEGER NOT NULL,
+              file_url TEXT NOT NULL,
+              file_key TEXT NOT NULL,
+              file_name TEXT NOT NULL,
+              file_mime_type TEXT NOT NULL,
+              file_size_bytes INTEGER NOT NULL CHECK (file_size_bytes > 0),
+              is_main INTEGER NOT NULL DEFAULT 0 CHECK (is_main IN (0, 1)),
+              sort_order INTEGER NOT NULL DEFAULT 0,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              FOREIGN KEY(certificate_id) REFERENCES brand_certificates(id)
+            )
+            """
+        )
+    )
+    image_indexes = {
+        "idx_brand_certificate_images_certificate_sort": (
+            "CREATE INDEX idx_brand_certificate_images_certificate_sort "
+            "ON brand_certificate_images(certificate_id, sort_order)"
+        ),
+        "uq_brand_certificate_images_main": (
+            "CREATE UNIQUE INDEX uq_brand_certificate_images_main "
+            "ON brand_certificate_images(certificate_id) WHERE is_main = 1"
+        ),
+    }
+    for name, sql in image_indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
 
 
 def _ensure_product_usage_logging_support(connection: Connection) -> None:
@@ -736,6 +769,18 @@ def _ensure_tiles_sku_extended(connection: Connection) -> None:
     if not sql:
         return
     if "sku_code" in sql and "brand_id" in sql:
+        columns = _column_names(connection, "tiles")
+        if "published_at" not in columns:
+            connection.execute(text("ALTER TABLE tiles ADD COLUMN published_at TEXT"))
+            connection.execute(
+                text(
+                    """
+                    UPDATE tiles
+                    SET published_at = updated_at
+                    WHERE status = 'PUBLISHED' AND published_at IS NULL
+                    """
+                )
+            )
         _ensure_tile_videos_table(connection)
         return
     _rebuild_tiles_sku_table(connection)
@@ -820,6 +865,7 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
               remark TEXT,
               status TEXT NOT NULL DEFAULT 'DRAFT'
                 CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
+              published_at TEXT,
               created_at TEXT NOT NULL,
               updated_at TEXT NOT NULL,
               FOREIGN KEY(brand_id) REFERENCES brands(id),
@@ -847,10 +893,10 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
                     """
                     INSERT INTO tiles_new (
                       id, name, sku_code, brand_id, category_id, size, surface_finish,
-                      color_family, reference_price, remark, status, created_at, updated_at
+                      color_family, reference_price, remark, status, published_at, created_at, updated_at
                     ) VALUES (
                       :id, :name, :sku_code, :brand_id, :category_id, :size, :surface_finish,
-                      :color_family, :reference_price, :remark, :status, :created_at, :updated_at
+                      :color_family, :reference_price, :remark, :status, :published_at, :created_at, :updated_at
                     )
                     """
                 ),
@@ -866,6 +912,8 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
                     "reference_price": None,
                     "remark": row_dict.get("description"),
                     "status": status,
+                    "published_at": row_dict.get("published_at")
+                    or (row_dict.get("updated_at") if status == "PUBLISHED" else None),
                     "created_at": row_dict.get("created_at") or now,
                     "updated_at": row_dict.get("updated_at") or now,
                 },

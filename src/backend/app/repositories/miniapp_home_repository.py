@@ -101,6 +101,17 @@ class MiniappCertificateResult:
     is_permanent: bool = False
     effective_date: str | None = None
     expiry_date: str | None = None
+    remark: str | None = None
+
+
+@dataclass
+class MiniappCertificateImageResult:
+    id: int
+    file_url: str
+    file_name: str | None
+    file_mime_type: str | None
+    sort_order: int
+    is_main: bool = False
 
 
 class MiniappHomeRepository:
@@ -241,10 +252,16 @@ class MiniappHomeRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT bc.id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-                           bc.file_url, b.name AS brand_name
+                    SELECT bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
+                           COALESCE(bci.file_url, bc.file_url) AS file_url,
+                           COALESCE(bci.file_name, bc.file_name) AS file_name,
+                           COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
+                           bc.is_permanent, bc.effective_date, bc.expiry_date,
+                           b.name AS brand_name
                     FROM brand_certificates bc
                     JOIN brands b ON b.id = bc.brand_id
+                    LEFT JOIN brand_certificate_images bci
+                      ON bci.certificate_id = bc.id AND bci.is_main = 1
                     WHERE bc.deleted_at IS NULL
                       AND bc.is_visible = 1
                       AND bc.brand_id = :brand_id
@@ -261,7 +278,7 @@ class MiniappHomeRepository:
         return [
             MiniappCertificateResult(
                 id=int(row["id"]),
-                brand_id=brand_id,
+                brand_id=int(row["brand_id"]),
                 name=str(row["name"]),
                 certificate_no=row.get("certificate_no"),
                 issuer=row.get("issuer"),
@@ -316,6 +333,60 @@ class MiniappHomeRepository:
             or 0
         )
         return [self._to_certificate(dict(row)) for row in rows], total
+
+    def get_public_certificate_detail(
+        self,
+        certificate_id: int,
+    ) -> MiniappCertificateResult | None:
+        where, params = self._certificate_filters()
+        params["certificate_id"] = certificate_id
+        row = (
+            self._db.execute(
+                text(
+                    f"""
+                    {self._certificate_select_sql()}
+                    {where}
+                      AND bc.id = :certificate_id
+                    LIMIT 1
+                    """
+                ),
+                params,
+            )
+            .mappings()
+            .first()
+        )
+        return self._to_certificate(dict(row)) if row else None
+
+    def list_public_certificate_images(
+        self,
+        certificate_id: int,
+    ) -> list[MiniappCertificateImageResult]:
+        rows = (
+            self._db.execute(
+                text(
+                    """
+                    SELECT id, file_url, file_name, file_mime_type, sort_order, is_main
+                    FROM brand_certificate_images
+                    WHERE certificate_id = :certificate_id
+                    ORDER BY is_main DESC, sort_order ASC, id ASC
+                    """
+                ),
+                {"certificate_id": certificate_id},
+            )
+            .mappings()
+            .all()
+        )
+        return [
+            MiniappCertificateImageResult(
+                id=int(row["id"]),
+                file_url=str(row["file_url"]),
+                file_name=row.get("file_name"),
+                file_mime_type=row.get("file_mime_type"),
+                sort_order=int(row["sort_order"] or 0),
+                is_main=bool(row.get("is_main")),
+            )
+            for row in rows
+        ]
 
     def list_enabled_categories_for_tree(self, *, depth: int = 2) -> list[MiniappCategoryRecord]:
         rows = (
@@ -381,7 +452,11 @@ class MiniappHomeRepository:
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
         hot_sql = self._hot_score_sql()
-        order_sql = self._product_order_sql(sort=sort, hot_first=hot_first)
+        order_sql = self._product_order_sql(
+            sort=sort,
+            hot_first=hot_first,
+            brand_default=brand_id is not None and not only_new,
+        )
         rows = (
             self._db.execute(
                 text(
@@ -588,9 +663,13 @@ class MiniappHomeRepository:
         rows = self._db.execute(
             text(
                 """
-                SELECT bc.id, bc.name, bc.certificate_no, bc.issuer, bc.file_url, b.name AS brand_name
+                SELECT bc.id, bc.name, bc.certificate_no, bc.issuer,
+                       COALESCE(bci.file_url, bc.file_url) AS file_url,
+                       b.name AS brand_name
                 FROM brand_certificates bc
                 JOIN brands b ON b.id = bc.brand_id
+                LEFT JOIN brand_certificate_images bci
+                  ON bci.certificate_id = bc.id AND bci.is_main = 1
                 WHERE bc.deleted_at IS NULL
                   AND bc.is_visible = 1
                   AND b.status = 'ENABLED'
@@ -1012,13 +1091,15 @@ class MiniappHomeRepository:
         return "WHERE " + " AND ".join(clauses), params
 
     @staticmethod
-    def _product_order_sql(*, sort: str, hot_first: bool) -> str:
+    def _product_order_sql(*, sort: str, hot_first: bool, brand_default: bool = False) -> str:
         if hot_first:
             return "hot_score DESC, t.updated_at DESC, t.id DESC"
         if sort == "price_asc":
             return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price ASC, t.updated_at DESC, t.id DESC"
         if sort == "price_desc":
             return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price DESC, t.updated_at DESC, t.id DESC"
+        if brand_default and sort == "default":
+            return "COALESCE(t.published_at, t.created_at) ASC, t.id ASC"
         return "t.updated_at DESC, t.id DESC"
 
     @staticmethod
@@ -1081,10 +1162,15 @@ class MiniappHomeRepository:
         return """
             SELECT
               bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-              bc.file_url, bc.file_name, bc.file_mime_type, bc.is_permanent,
-              bc.effective_date, bc.expiry_date, b.name AS brand_name
+              COALESCE(bci.file_url, bc.file_url) AS file_url,
+              COALESCE(bci.file_name, bc.file_name) AS file_name,
+              COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
+              bc.is_permanent,
+              bc.effective_date, bc.expiry_date, bc.remark, b.name AS brand_name
             FROM brand_certificates bc
             JOIN brands b ON b.id = bc.brand_id
+            LEFT JOIN brand_certificate_images bci
+              ON bci.certificate_id = bc.id AND bci.is_main = 1
         """
 
     @staticmethod
@@ -1111,6 +1197,7 @@ class MiniappHomeRepository:
             is_permanent=bool(row.get("is_permanent")),
             effective_date=row.get("effective_date"),
             expiry_date=row.get("expiry_date"),
+            remark=row.get("remark"),
         )
 
     @staticmethod

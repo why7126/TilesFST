@@ -14,6 +14,7 @@ from app.db.mysql_migrations import (
     MYSQL_COMPAT_BANNER_BRAND_VERSION,
     MYSQL_COMPAT_BANNER_CHECKS_VERSION,
     MYSQL_COMPAT_BANNER_WRITE_FIELDS_VERSION,
+    MYSQL_COMPAT_USERS_THEME_MODE_VERSION,
     apply_mysql_compat_migrations,
 )
 
@@ -108,6 +109,8 @@ class _FakeMySQLConnection:
             for column_name in BANNER_WRITE_FIELD_COLUMNS:
                 if f"ADD COLUMN {column_name} " in statement:
                     self.columns.add(column_name)
+            if "ADD COLUMN theme_mode " in statement:
+                self.columns.add("theme_mode")
         if f"CREATE INDEX {BANNER_STATUS_POSITION_INDEX_NAME}" in statement:
             self.has_status_position_index = True
         if f"CREATE INDEX {BANNER_SORT_INDEX_NAME}" in statement:
@@ -249,3 +252,26 @@ def test_apply_mysql_compat_migrations_rebuilds_legacy_banner_check_constraints(
         in connection.check_constraints["chk_banners_position"]
     )
     assert any("DROP CHECK chk_banners_image_source" in sql for sql in connection.statements)
+
+
+def test_apply_mysql_compat_migrations_adds_missing_user_theme_mode_idempotently() -> None:
+    connection = _FakeMySQLConnection(existing_columns=set(BANNER_WRITE_FIELD_COLUMNS))
+
+    apply_mysql_compat_migrations(connection)
+    first_count = sum(
+        "ALTER TABLE users ADD COLUMN theme_mode VARCHAR(32) NOT NULL DEFAULT 'system'" in sql
+        for sql in connection.statements
+    )
+    apply_mysql_compat_migrations(connection)
+    second_count = sum(
+        "ALTER TABLE users ADD COLUMN theme_mode VARCHAR(32) NOT NULL DEFAULT 'system'" in sql
+        for sql in connection.statements
+    )
+
+    assert first_count == 1
+    assert second_count == 1
+    assert "theme_mode" in connection.columns
+    assert any(
+        MYSQL_COMPAT_USERS_THEME_MODE_VERSION in str(sql)
+        for sql in connection.statements
+    )

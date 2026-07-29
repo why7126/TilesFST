@@ -155,6 +155,40 @@ class MiniappCertificateListData(BaseModel):
     has_more: bool = False
 
 
+class MiniappCertificateMediaItem(BaseModel):
+    media_id: int
+    media_type: Literal["image", "pdf", "unknown"]
+    url: str
+    preview_url: str | None = None
+    file_name: str | None = None
+    file_mime_type: str | None = None
+    sort_order: int = 0
+    is_main: bool = False
+
+
+class MiniappCertificateBrandInfo(BaseModel):
+    brand_id: int
+    brand_name: str
+    brand_entry_path: str
+    available: bool = True
+
+
+class MiniappCertificateShareInfo(BaseModel):
+    title: str
+    path: str
+    image_url: str | None = None
+    summary: str
+
+
+class MiniappCertificateDetailData(MiniappCertificateItem):
+    brand: MiniappCertificateBrandInfo
+    media: list[MiniappCertificateMediaItem] = Field(default_factory=list)
+    main_media: MiniappCertificateMediaItem | None = None
+    description: str | None = None
+    remark: str | None = None
+    share: MiniappCertificateShareInfo
+
+
 class MiniappSearchSuggestion(BaseModel):
     id: str
     text: str

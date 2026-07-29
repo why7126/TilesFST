@@ -8,6 +8,7 @@
     "pages/product-list/index",
     "pages/brand-list/index",
     "pages/brand-detail/index",
+    "pages/certificate-detail/index",
     "pages/find/index",
     "pages/favorites/index",
     "pages/certificates/index"

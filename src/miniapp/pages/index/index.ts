@@ -76,10 +76,15 @@ Page({
   },
 
   onLoad() {
+    this.setCurrentTab();
     this.setData({ pageAlive: true });
     this.prepareShareAddGuide();
     this.loadHome();
     this.loadAllProducts(true);
+  },
+
+  onShow() {
+    this.setCurrentTab();
   },
 
   onUnload() {
@@ -112,6 +117,13 @@ Page({
       share_channel: shareChannel,
       source: 'share',
     });
+  },
+
+  setCurrentTab() {
+    const tabBar = this.getTabBar && this.getTabBar();
+    if (tabBar) {
+      tabBar.setData({ selected: 0 });
+    }
   },
 
   prepareShareAddGuide() {

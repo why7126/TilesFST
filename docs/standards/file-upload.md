@@ -4,7 +4,7 @@ content: 图片/视频/附件上传流程与返回结构
 source: rules/media.md / build-api-standard
 update_method: 上传能力变更时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-25 14:27:17
+updated_at: 2026-07-28 23:14:32
 ---
 
 # 文件上传规范
@@ -51,7 +51,7 @@ file: <binary>
 
 - 图片 MIME 白名单：见 `ALLOWED_IMAGE_TYPES`；大小上限：`MAX_IMAGE_SIZE_MB`
 - 视频 MIME 白名单：见 `ALLOWED_VIDEO_TYPES`；大小上限：`MAX_VIDEO_SIZE_MB`
-- 品牌证书 MIME 白名单：JPG、PNG、WebP、PDF；大小上限：`MAX_FILE_SIZE_MB` / `media.max_file_size_mb` effective 值；对象前缀：`files/default/brand-certificates/`
+- 品牌证书 MIME 白名单：JPG、PNG、WebP、PDF；证书多图图片保存仅接受 JPG、PNG、WebP；大小上限：`MAX_FILE_SIZE_MB` / `media.max_file_size_mb` effective 值；对象前缀：`files/default/brand-certificates/`
 - Docker Web（Nginx）`client_max_body_size` 须 >= `max(MAX_IMAGE_SIZE_MB, MAX_VIDEO_SIZE_MB, MAX_FILE_SIZE_MB)`（见 `src/web/nginx.conf.template` 与 `src/web/nginx.conf`）
 - Docker Web 上传路径 `/api/v1/admin/uploads/` 使用专用反代超时：`UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS`、`UPLOAD_PROXY_SEND_TIMEOUT_SECONDS`、`UPLOAD_PROXY_READ_TIMEOUT_SECONDS`、`UPLOAD_SEND_TIMEOUT_SECONDS` 默认均为 `600` 秒，`UPLOAD_CLIENT_MAX_BODY_SIZE` 默认 `512m`
 - 大文件上传路径默认 `UPLOAD_PROXY_REQUEST_BUFFERING=off`，减少请求先落 Web Nginx `client_temp` 后再转发导致的总耗时；如生产网关策略必须开启，应同步提高外层与容器内反代超时

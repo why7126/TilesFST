@@ -181,6 +181,34 @@ export const BrandCertificateItemType = {
   OTHER: 'OTHER',
 } as const;
 
+export interface BrandCertificateImage {
+  /**
+     * @minLength 1
+     * @maxLength 768
+     */
+  file_url: string;
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  file_key: string;
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  file_name: string;
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  file_mime_type: string;
+  /** @minimum 1 */
+  file_size_bytes: number;
+  is_main?: boolean;
+  /** @minimum 0 */
+  sort_order: number;
+}
+
 export type BrandCertificateItemValidityStatus = typeof BrandCertificateItemValidityStatus[keyof typeof BrandCertificateItemValidityStatus];
 
 
@@ -214,6 +242,8 @@ export interface BrandCertificateItem {
   file_name: string;
   file_mime_type: string;
   file_size_bytes: number;
+  images?: BrandCertificateImage[];
+  main_image?: BrandCertificateImage | null;
   is_permanent: boolean;
   effective_date?: string | null;
   expiry_date?: string | null;
@@ -663,6 +693,91 @@ export interface ApiResponseMiniappCategoryTreeData {
   code?: number;
   message?: string;
   data?: MiniappCategoryTreeData | null;
+}
+
+export type MiniappCertificateDetailDataFileKind = typeof MiniappCertificateDetailDataFileKind[keyof typeof MiniappCertificateDetailDataFileKind];
+
+
+export const MiniappCertificateDetailDataFileKind = {
+  image: 'image',
+  pdf: 'pdf',
+  unknown: 'unknown',
+} as const;
+
+export type MiniappCertificateDetailDataValidityStatus = typeof MiniappCertificateDetailDataValidityStatus[keyof typeof MiniappCertificateDetailDataValidityStatus];
+
+
+export const MiniappCertificateDetailDataValidityStatus = {
+  PERMANENT: 'PERMANENT',
+  VALID: 'VALID',
+  EXPIRING_SOON: 'EXPIRING_SOON',
+  EXPIRED: 'EXPIRED',
+  UNSET: 'UNSET',
+} as const;
+
+export interface MiniappCertificateBrandInfo {
+  brand_id: number;
+  brand_name: string;
+  brand_entry_path: string;
+  available?: boolean;
+}
+
+export type MiniappCertificateMediaItemMediaType = typeof MiniappCertificateMediaItemMediaType[keyof typeof MiniappCertificateMediaItemMediaType];
+
+
+export const MiniappCertificateMediaItemMediaType = {
+  image: 'image',
+  pdf: 'pdf',
+  unknown: 'unknown',
+} as const;
+
+export interface MiniappCertificateMediaItem {
+  media_id: number;
+  media_type: MiniappCertificateMediaItemMediaType;
+  url: string;
+  preview_url?: string | null;
+  file_name?: string | null;
+  file_mime_type?: string | null;
+  sort_order?: number;
+  is_main?: boolean;
+}
+
+export interface MiniappCertificateShareInfo {
+  title: string;
+  path: string;
+  image_url?: string | null;
+  summary: string;
+}
+
+export interface MiniappCertificateDetailData {
+  certificate_id: number;
+  certificate_name: string;
+  certificate_type?: string | null;
+  certificate_type_label: string;
+  certificate_no?: string | null;
+  issuer?: string | null;
+  brand_id: number;
+  brand_name: string;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_mime_type?: string | null;
+  file_kind: MiniappCertificateDetailDataFileKind;
+  effective_date?: string | null;
+  expiry_date?: string | null;
+  validity_status: MiniappCertificateDetailDataValidityStatus;
+  validity_status_label: string;
+  brand: MiniappCertificateBrandInfo;
+  media?: MiniappCertificateMediaItem[];
+  main_media?: MiniappCertificateMediaItem | null;
+  description?: string | null;
+  remark?: string | null;
+  share: MiniappCertificateShareInfo;
+}
+
+export interface ApiResponseMiniappCertificateDetailData {
+  code?: number;
+  message?: string;
+  data?: MiniappCertificateDetailData | null;
 }
 
 export type MiniappCertificateItemFileKind = typeof MiniappCertificateItemFileKind[keyof typeof MiniappCertificateItemFileKind];
@@ -1198,6 +1313,7 @@ export interface TileSkuAdminItem {
   material_completeness: TileSkuAdminItemMaterialCompleteness;
   images?: TileSkuImageItem[];
   videos?: TileSkuVideoItem[];
+  published_at?: string | null;
   created_at: string;
   updated_at: string;
   task_trace_id?: string | null;
@@ -1599,7 +1715,9 @@ export interface BrandCertificateCreateRequest {
   type: BrandCertificateCreateRequestType;
   certificate_no?: string | null;
   issuer?: string | null;
-  file: BrandCertificateFile;
+  file?: BrandCertificateFile | null;
+  /** @maxItems 9 */
+  images?: BrandCertificateImage[];
   is_permanent?: boolean;
   effective_date?: string | null;
   expiry_date?: string | null;
@@ -1631,7 +1749,9 @@ export interface BrandCertificateUpdateRequest {
   type: BrandCertificateUpdateRequestType;
   certificate_no?: string | null;
   issuer?: string | null;
-  file: BrandCertificateFile;
+  file?: BrandCertificateFile | null;
+  /** @maxItems 9 */
+  images?: BrandCertificateImage[];
   is_permanent?: boolean;
   effective_date?: string | null;
   expiry_date?: string | null;
@@ -1718,7 +1838,10 @@ export interface ThemePreferenceUpdateRequest {
 
 export interface TileCategoryCreateRequest {
   parent_id?: number | null;
-  /** 最多 10 个字符，仅允许中文、英文和数字 */
+  /**
+     * 最多 15 个字符，仅允许中文、英文和数字
+     * @maxLength 15
+     */
   name: string;
   sort_order: number;
   description?: string | null;
@@ -1726,7 +1849,10 @@ export interface TileCategoryCreateRequest {
 }
 
 export interface TileCategoryUpdateRequest {
-  /** 最多 10 个字符，仅允许中文、英文和数字 */
+  /**
+     * 最多 15 个字符，仅允许中文、英文和数字
+     * @maxLength 15
+     */
   name: string;
   sort_order: number;
   description?: string | null;
@@ -2398,6 +2524,18 @@ const listCertificatesApiV1MiniappCertificatesGet = (
       `/api/v1/miniapp/certificates`,{
     ...options,
         params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 返回单张可公开证书详情；过滤隐藏、删除、禁用品牌证书和内部字段。
+ * @summary 小程序公开证书详情
+ */
+const getCertificateDetailApiV1MiniappCertificatesCertificateIdGet = (
+    certificateId: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMiniappCertificateDetailData>> => {
+    return axiosInstance.get(
+      `/api/v1/miniapp/certificates/${certificateId}`,options
     );
   }
 
@@ -3368,7 +3506,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getCertificateDetailApiV1MiniappCertificatesCertificateIdGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -3382,6 +3520,7 @@ export type ListBrandsApiV1MiniappBrandsGetResult = AxiosResponse<ApiResponseMin
 export type GetBrandDetailApiV1MiniappBrandsBrandIdGetResult = AxiosResponse<ApiResponseMiniappBrandDetailData>
 export type ListBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGetResult = AxiosResponse<ApiResponseMiniappBrandCertificateListData>
 export type ListCertificatesApiV1MiniappCertificatesGetResult = AxiosResponse<ApiResponseMiniappCertificateListData>
+export type GetCertificateDetailApiV1MiniappCertificatesCertificateIdGetResult = AxiosResponse<ApiResponseMiniappCertificateDetailData>
 export type GetSearchHomeApiV1MiniappSearchHomeGetResult = AxiosResponse<ApiResponseMiniappSearchHomeData>
 export type SuggestSearchApiV1MiniappSearchSuggestionsGetResult = AxiosResponse<ApiResponseMiniappSearchSuggestionsData>
 export type SearchAllApiV1MiniappSearchGetResult = AxiosResponse<ApiResponseMiniappSearchData>

@@ -1,7 +1,42 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 77
+next_id: 82
 entries:
+  - id: REQ-0081-release-image-build-governance
+    title: 发布镜像准备与构建治理
+    status: pending_review
+    iteration: null
+    created: "2026-07-29 10:00:08"
+    parent_requirement:
+    related_change: null
+  - id: REQ-0080-miniapp-certificate-detail-page
+    title: 微信小程序新增证书详情页
+    status: done
+    iteration: sprint-013
+    created: "2026-07-29 07:57:17"
+    parent_requirement: REQ-0038-brand-certificate-management
+    related_change: add-miniapp-certificate-detail-page
+  - id: REQ-0079-admin-sku-list-published-at
+    title: 管理端瓷砖 SKU 列表新增发布时间列
+    status: done
+    iteration: null
+    created: "2026-07-28 22:37:35"
+    parent_requirement: REQ-0006-tile-sku-management
+    related_change: null
+  - id: REQ-0078-certificate-multiple-images-main-image
+    title: 证书支持多图上传与主图设置
+    status: done
+    iteration: sprint-013
+    created: "2026-07-28 22:23:23"
+    parent_requirement: REQ-0038-brand-certificate-management
+    related_change: update-certificate-multiple-images-main-image
+  - id: REQ-0077-category-name-max-length-15
+    title: 类目名称输入最多 15 个字符
+    status: done
+    iteration: sprint-013
+    created: "2026-07-27 23:56:26"
+    parent_requirement: REQ-0005-tile-category-management
+    related_change: update-category-name-max-length-15
   - id: REQ-0076-observability-dashboard
     title: 日志审计升级为链路观测仪表
     status: done

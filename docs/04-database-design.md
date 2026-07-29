@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 15:54:58
+updated_at: 2026-07-29 00:10:34
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -44,7 +44,7 @@ mysql+pymysql://tiles_user:replace-with-secret@mysql.example.com:3306/tilesfst?c
 ```text
 tile_categories 1 ── * tiles 1 ── * tile_images
 brands 1 ── * tiles
-brands 1 ── * brand_certificates
+brands 1 ── * brand_certificates 1 ── * brand_certificate_images
 tile_specs 1 ── * tiles
 tiles 1 ── * tile_videos
 
@@ -81,7 +81,8 @@ task_traces.task_trace_id ── * request_logs / usage_events / audit_logs.task
 | tiles | SKU 主表 | 瓷砖 SKU（扩展） |
 | tile_videos | 已实现 | SKU 关联视频元数据 |
 | tile_images | 桩 | 瓷砖图片元数据 |
-| brand_certificates | ✓ Sprint 007 | 品牌证书主数据与文件元数据 |
+| brand_certificates | ✓ Sprint 007 | 品牌证书主数据与 legacy 文件元数据 |
+| brand_certificate_images | ✓ Sprint 013 | 品牌证书图片列表、主图与排序 |
 | banners | ✓ Sprint 003 | Banner 管理 |
 | topics | ✓ Sprint 003 | 专题管理 |
 
@@ -363,7 +364,7 @@ OpenSpec：`openspec/changes/add-tile-category-management/`
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
-业务约束：自 `limit-admin-tile-categories-to-two-levels` 起，管理端新增类目最多只能创建到二级；SQLite/MySQL schema 暂保留 `level BETWEEN 1 AND 3` 以兼容历史三级数据，后续历史治理需另走 OpenSpec Change。
+业务约束：自 `limit-admin-tile-categories-to-two-levels` 起，管理端新增类目最多只能创建到二级；自 `update-category-name-max-length-15` 起，管理端类目名称创建 / 更新业务输入上限为 15 个字符。SQLite `TEXT`、MySQL `VARCHAR(128)` 与本文档字段容量均已支持至少 15 字符，本变更无需 schema 或 migration。SQLite/MySQL schema 暂保留 `level BETWEEN 1 AND 3` 以兼容历史三级数据，后续历史治理需另走 OpenSpec Change。
 
 ORM：`src/backend/app/models/tile_category.py`  
 迁移：`migrations.py` → `_rebuild_tile_categories_table`（兼容旧 id+name 桩表）
@@ -393,7 +394,7 @@ ORM：`src/backend/app/models/brand.py`
 
 ---
 
-## 6b.1 brand_certificates（Sprint 007）
+## 6b.1 brand_certificates（Sprint 007 / Sprint 013）
 
 OpenSpec：`openspec/changes/add-brand-certificate-management/`
 
@@ -420,10 +421,35 @@ OpenSpec：`openspec/changes/add-brand-certificate-management/`
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
+说明：Sprint 013 起，`file_*` 字段保留为 PDF/文档和旧单文件兼容字段；多图证书的图片列表写入 `brand_certificate_images`。当创建请求只提供图片数组、不提供 legacy `file` 时，后端使用主图回填 `file_*` 字段，保持旧列表与公开端兼容。
+
 索引：`idx_brand_certificates_brand_visible`、`idx_brand_certificates_type_deleted`、SQLite `uq_brand_certificates_brand_name_active`。MySQL baseline 使用 `(brand_id, name, deleted_at)` 唯一键并由 service 层补充未删除证书名称唯一性校验。
 
 Repository：`src/backend/app/repositories/brand_certificate_repository.py`  
 迁移：`src/backend/app/db/migrations.py` → `_ensure_brand_certificates_support`
+
+## 6b.2 brand_certificate_images（Sprint 013）
+
+OpenSpec：`openspec/changes/update-certificate-multiple-images-main-image/`
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | INTEGER | PK AUTOINCREMENT | |
+| certificate_id | INTEGER | NOT NULL, FK → brand_certificates.id | 所属证书 |
+| file_url | TEXT | NOT NULL | 受控读取 URL，如 `/media/{file_key}` |
+| file_key | TEXT | NOT NULL | MinIO object_key |
+| file_name | TEXT | NOT NULL | 上传显示文件名 |
+| file_mime_type | TEXT | NOT NULL | `image/jpeg` / `image/png` / `image/webp` |
+| file_size_bytes | INTEGER | NOT NULL, CHECK > 0 | 图片大小 |
+| is_main | INTEGER | NOT NULL, DEFAULT 0 | 1 主图 / 0 非主图 |
+| sort_order | INTEGER | NOT NULL, DEFAULT 0 | 图片展示顺序，保存时连续回填 |
+| created_at | TEXT | NOT NULL | ISO8601 UTC |
+| updated_at | TEXT | NOT NULL | ISO8601 UTC |
+
+索引：`idx_brand_certificate_images_certificate_sort`；SQLite 额外使用 `uq_brand_certificate_images_main` 约束单证书唯一主图。MySQL 由 service 层校验主图唯一性，避免 `(certificate_id, is_main)` 阻止多张非主图。
+
+Repository：`src/backend/app/repositories/brand_certificate_repository.py`  
+迁移：`src/backend/app/db/migrations.py` → `_ensure_brand_certificates_support`；MySQL 兼容迁移：`src/backend/app/db/mysql_migrations.py`
 
 ---
 
@@ -512,11 +538,13 @@ ORM：`src/backend/app/models/tile_spec.py`
 | reference_price | REAL | NULL | 参考价格（元） |
 | remark | TEXT | NULL | 备注 |
 | status | TEXT | NOT NULL | `PUBLISHED` \| `DRAFT` \| `NEEDS_COMPLETION` \| `DISABLED` |
+| published_at | TEXT | NULL | 最近一次上架/恢复上架时间；下架时可保留历史值，列表响应仅已上架状态展示 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 ORM：`src/backend/app/models/tile.py`  
-迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`、`_ensure_tile_specs_support`
+迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`、`_ensure_tile_specs_support`；MySQL 兼容迁移见 `src/backend/app/db/mysql_migrations.py` → `_ensure_tiles_published_at_support`
+索引：`idx_tiles_published_at (published_at)` 用于发布时间查询 / 排序扩展；现有管理端 SKU 列表默认排序仍为 `updated_at DESC`。
 
 ---
 

@@ -16,6 +16,7 @@ from app.schemas.miniapp_home import (
     MiniappBrandDetailData,
     MiniappBrandListData,
     MiniappCategoryTreeData,
+    MiniappCertificateDetailData,
     MiniappCertificateListData,
     MiniappHomeData,
     MiniappProductDetail,
@@ -155,6 +156,20 @@ def list_certificates(
             page_size=page_size_camel or page_size,
         )
     )
+
+
+@router.get(
+    "/certificates/{certificate_id}",
+    response_model=ApiResponse[MiniappCertificateDetailData],
+    responses=VALIDATION_ERROR_RESPONSE,
+    summary="小程序公开证书详情",
+    description="返回单张可公开证书详情；过滤隐藏、删除、禁用品牌证书和内部字段。",
+)
+def get_certificate_detail(
+    certificate_id: int,
+    service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
+) -> ApiResponse[MiniappCertificateDetailData]:
+    return ApiResponse(data=service.get_certificate_detail(certificate_id))
 
 
 @router.get(

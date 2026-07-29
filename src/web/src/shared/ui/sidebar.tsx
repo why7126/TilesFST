@@ -90,8 +90,9 @@ function SidebarFilterRow({ item }: { item: SidebarFilterItem }) {
       />
       <Label
         htmlFor={item.id}
+        title={item.label}
         className={cn(
-          'cursor-pointer text-[12px] font-normal leading-none',
+          'min-w-0 flex-1 cursor-pointer truncate text-[12px] font-normal leading-none',
           checked ? 'text-primary' : 'text-muted',
         )}
       >

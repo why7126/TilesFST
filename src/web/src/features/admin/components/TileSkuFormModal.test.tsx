@@ -401,14 +401,9 @@ describe('TileSkuFormModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('shows task trace feedback and copy action after traced SKU create', async () => {
+  it('closes directly after traced SKU create without showing task trace feedback', async () => {
     const onSuccess = vi.fn();
     const onClose = vi.fn();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: { writeText },
-    });
     createTileSkuMock.mockResolvedValue({
       ...editableSku([]),
       id: 1,
@@ -432,19 +427,46 @@ describe('TileSkuFormModal', () => {
     fireEvent.click(screen.getByRole('button', { name: '创建 SKU' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent('SKU 创建成功，已保存为草稿');
+      expect(createTileSkuMock).toHaveBeenCalled();
     });
-    expect(screen.getByText('task_sku_create_abcdef1234567890')).toBeInTheDocument();
-    expect(screen.getByText('sku_create')).toBeInTheDocument();
-    expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿，任务追踪已生成');
-    expect(onClose).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿');
+    expect(onClose).toHaveBeenCalled();
+    expect(screen.queryByText('task_sku_create_abcdef1234567890')).not.toBeInTheDocument();
+    expect(screen.queryByText('sku_create')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '复制追踪ID' })).not.toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole('button', { name: '复制追踪ID' }));
+  it('closes directly after traced SKU edit without showing task trace feedback', async () => {
+    const onSuccess = vi.fn();
+    const onClose = vi.fn();
+    updateTileSkuMock.mockResolvedValue({
+      ...editableSku([]),
+      task_trace_id: 'task_sku_update_abcdef1234567890',
+      task_type: 'sku_update',
+    });
+
+    renderModal({
+      mode: 'edit',
+      sku: editableSku([]),
+      onSuccess,
+      onClose,
+    });
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith('task_sku_create_abcdef1234567890');
-      expect(screen.getByText('追踪 ID 已复制')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '编辑 SKU' })).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByRole('button', { name: '保存' }));
+
+    await waitFor(() => {
+      expect(updateTileSkuMock).toHaveBeenCalledWith(99, expect.any(Object));
+    });
+
+    expect(onSuccess).toHaveBeenCalledWith('SKU 已更新');
+    expect(onClose).toHaveBeenCalled();
+    expect(screen.queryByText('task_sku_update_abcdef1234567890')).not.toBeInTheDocument();
+    expect(screen.queryByText('sku_update')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '复制追踪ID' })).not.toBeInTheDocument();
   });
 
   it('removes a non-main image while keeping the current main image first in payload', async () => {

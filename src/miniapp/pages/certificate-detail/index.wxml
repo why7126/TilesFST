@@ -1,0 +1,86 @@
+<view class="page">
+  <custom-navigation title="{{title}}" />
+
+  <view wx:if="{{loading}}" class="skeleton">
+    <view class="skeleton-media"></view>
+    <view class="skeleton-line strong"></view>
+    <view class="skeleton-line"></view>
+    <view class="skeleton-card"></view>
+  </view>
+
+  <view wx:elif="{{error}}" class="state">
+    <view class="state-title">{{error}}</view>
+    <view class="state-subtitle">证书可能已隐藏、删除或所属品牌暂不可公开。</view>
+    <view class="state-actions">
+      <button class="ghost-btn" bindtap="retryLoad">重新加载</button>
+      <button class="primary-btn small" bindtap="goCertificateList">证书列表</button>
+    </view>
+  </view>
+
+  <view wx:else class="content">
+    <view class="media-wrap">
+      <swiper
+        class="gallery"
+        circular="{{detail.media.length > 1}}"
+        current="{{mediaIndex}}"
+        bindchange="onMediaChange"
+        indicator-dots="{{detail.media.length > 1}}"
+        indicator-active-color="#C8A055"
+      >
+        <swiper-item wx:for="{{detail.media}}" wx:key="media_id">
+          <image
+            wx:if="{{item.media_type == 'image' && !item.image_failed}}"
+            class="gallery-image"
+            src="{{item.url}}"
+            mode="aspectFit"
+            data-index="{{index}}"
+            bindtap="previewCurrentMedia"
+            binderror="onMediaError"
+          ></image>
+          <view wx:elif="{{item.media_type == 'pdf'}}" class="gallery-file pdf" bindtap="previewCurrentMedia">
+            <view class="file-mark">PDF</view>
+            <view class="file-name">{{item.file_name || '证书文件'}}</view>
+          </view>
+          <view wx:else class="gallery-file" bindtap="previewCurrentMedia">
+            <view class="file-mark">证书</view>
+            <view class="file-name">{{item.file_name || '文件暂不可预览'}}</view>
+          </view>
+        </swiper-item>
+        <swiper-item wx:if="{{!detail.media.length}}">
+          <view class="gallery-file">
+            <view class="file-mark">证书</view>
+            <view class="file-name">暂无可预览文件</view>
+          </view>
+        </swiper-item>
+      </swiper>
+      <view class="media-count">{{detail.media.length ? mediaIndex + 1 : 0}} / {{detail.media.length}}</view>
+      <view wx:if="{{mediaError}}" class="media-error">{{mediaError}}</view>
+    </view>
+
+    <view class="summary">
+      <view class="type-badge">{{detail.certificate_type_label}}</view>
+      <view class="certificate-name">{{detail.certificate_name}}</view>
+    </view>
+
+    <view class="brand-entry" bindtap="openBrand" hover-class="card-press">
+      <view>
+        <view class="entry-label">所属品牌</view>
+        <view class="entry-name">{{detail.brand.brand_name}}</view>
+      </view>
+      <view class="entry-arrow">›</view>
+    </view>
+
+    <view class="panel">
+      <view class="panel-title">证书信息</view>
+      <view class="field" wx:for="{{fields}}" wx:key="label">
+        <text>{{item.label}}</text>
+        <text>{{item.value}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{detail.description}}" class="panel">
+      <view class="panel-title">说明</view>
+      <view class="description">{{detail.description}}</view>
+    </view>
+  </view>
+</view>

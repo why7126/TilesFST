@@ -268,52 +268,18 @@ Page({
     this.setData({ imageFailed: true });
   },
 
-  previewCertificate(event: WechatMiniprogram.TouchEvent) {
+  openCertificateDetail(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
     const item = this.data.certificates[index];
-    if (!item || !item.file_url) return;
+    if (!item) return;
     this.trackDetailEvent('brand_certificate_click', {
       tab: 'certificates',
       certificateId: item.certificate_id,
       index,
     });
-    if (item.file_kind === 'pdf') {
-      wx.downloadFile({
-        url: item.file_url,
-        success: (result) => {
-          if (result.statusCode >= 200 && result.statusCode < 300) {
-            wx.openDocument({
-              filePath: result.tempFilePath,
-              fileType: 'pdf',
-              fail: () => this.copyCertificateUrl(item.file_url),
-            });
-            return;
-          }
-          this.copyCertificateUrl(item.file_url);
-        },
-        fail: () => this.copyCertificateUrl(item.file_url),
-      });
-      return;
-    }
-    if (item.file_kind === 'unknown') {
-      wx.showToast({ title: '证书文件暂不可预览', icon: 'none' });
-      return;
-    }
-    wx.previewImage({
-      current: item.file_url,
-      urls: this.data.certificates
-        .filter((cert) => cert.file_kind === 'image')
-        .map((cert) => cert.file_url)
-        .filter(Boolean),
-      fail: () => wx.showToast({ title: '证书预览失败，请重试', icon: 'none' }),
-    });
-  },
-
-  copyCertificateUrl(url: string) {
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: 'PDF 链接已复制', icon: 'none' }),
-      fail: () => wx.showToast({ title: 'PDF 暂不可打开', icon: 'none' }),
+    wx.navigateTo({
+      url: `/pages/certificate-detail/index?certificateId=${encodeURIComponent(String(item.certificate_id))}&sourcePage=brand-detail&sourceModule=brand-certificates&brandId=${encodeURIComponent(String(this.data.brandId))}&index=${index}&requestId=${encodeURIComponent(this.data.requestId)}`,
+      fail: () => wx.showToast({ title: '证书详情暂不可打开', icon: 'none' }),
     });
   },
 

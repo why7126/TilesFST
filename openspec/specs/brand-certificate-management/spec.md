@@ -5,7 +5,7 @@
 ## Requirements
 ### Requirement: 管理端品牌证书数据模型
 
-系统 MUST 维护品牌证书主数据，建立 `brand 1:N brand_certificate` 关系。每条证书 MUST 关联且仅关联一个品牌，MUST 支持证书名称、排序、类型、编号、发证机构、文件元数据、长期有效标记、生效日期、到期日期、前台展示状态、备注、软删除、创建时间和更新时间。系统 MUST 支持同品牌内证书名称唯一性校验，并 MUST 在品牌存在未删除证书时阻止删除品牌或要求先迁移/删除证书。
+系统 MUST 维护品牌证书主数据，建立 `brand 1:N brand_certificate` 关系。每条证书 MUST 关联且仅关联一个品牌，MUST 支持证书名称、排序、类型、编号、发证机构、文件元数据、证书图片列表、唯一主图、长期有效标记、生效日期、到期日期、前台展示状态、备注、软删除、创建时间和更新时间。系统 MUST 支持同品牌内证书名称唯一性校验，并 MUST 在品牌存在未删除证书时阻止删除品牌或要求先迁移/删除证书。系统 MUST 兼容既有单文件证书数据，并 MUST 在有图片列表时保证同一证书仅有一张主图。
 
 #### Scenario: 创建证书数据
 
@@ -28,9 +28,24 @@
 - **THEN** 系统 MUST 阻止删除或要求先迁移/删除证书
 - **AND** MUST NOT 静默级联删除证书文件和证书记录
 
+#### Scenario: 保存证书多张图片
+
+- **WHEN** 管理端提交包含多张证书图片的创建或更新请求
+- **THEN** 系统 MUST 保存图片文件引用、展示 URL 或受控读取引用、文件名、MIME、大小、`is_main` 和 `sort_order`
+- **AND** 有图片时 MUST 保证 `is_main=true` 必须且只能出现一次
+- **AND** 图片排序 MUST 与保存 payload 的 `sort_order` 一致
+
+#### Scenario: 兼容旧单文件证书
+
+- **GIVEN** 既有品牌证书仅保存单文件字段且没有图片列表
+- **WHEN** 管理端查询列表或详情
+- **THEN** 系统 MUST 返回可兼容展示的证书文件信息
+- **AND** 图片文件 MAY 作为默认主图展示模型返回
+- **AND** PDF 或文档文件 MUST 继续使用文件占位或等价兼容展示
+
 ### Requirement: 管理端品牌证书列表与筛选 API
 
-系统 MUST 提供管理端品牌证书列表 API，允许已授权管理端用户按关键词、所属品牌、证书类型、有效状态、展示状态、页码和每页条数查询证书。响应 MUST 包含分页列表、分页信息和指标汇总，并 MUST 返回服务端计算的有效状态。
+系统 MUST 提供管理端品牌证书列表 API，允许已授权管理端用户按关键词、所属品牌、证书类型、有效状态、展示状态、页码和每页条数查询证书。响应 MUST 包含分页列表、分页信息和指标汇总，并 MUST 返回服务端计算的有效状态。列表项 MUST 返回证书主图信息或等价主图缩略图读取引用；当证书无主图图片时，MUST 返回既有证书文件可预览 URL 或等价受控读取引用作为兼容 fallback。
 
 #### Scenario: 查询证书列表
 
@@ -38,6 +53,7 @@
 - **THEN** 系统 MUST 返回 HTTP 200
 - **AND** 响应 MUST 包含 `items`、`pagination` 和 `summary`
 - **AND** 列表项 MUST 包含证书文件可预览 URL 或等价受控读取引用
+- **AND** 列表项 MUST 优先包含主图缩略图信息或主图受控读取引用
 
 #### Scenario: 筛选条件生效
 
@@ -52,7 +68,7 @@
 
 ### Requirement: 管理端品牌证书创建与更新 API
 
-系统 MUST 提供创建、详情和更新品牌证书 API。创建和更新 MUST 校验证书名称、排序、类型、文件、日期、品牌存在性和同品牌名称唯一性。非长期有效证书 MUST 填写到期日期；长期有效开启时系统 MUST 清空或忽略生效日期和到期日期。
+系统 MUST 提供创建、详情和更新品牌证书 API。创建和更新 MUST 校验证书名称、排序、类型、文件或图片列表、日期、品牌存在性和同品牌名称唯一性。非长期有效证书 MUST 填写到期日期；长期有效开启时系统 MUST 清空或忽略生效日期和到期日期。创建和更新 MUST 支持证书图片数组，MUST 校验主图唯一性、图片排序、文件引用合法性和图片数量上限。
 
 #### Scenario: 创建证书成功
 
@@ -79,9 +95,28 @@
 - **THEN** 系统 MUST 返回 HTTP 400
 - **AND** 错误码 MUST 为 `CERTIFICATE_FILE_REQUIRED`
 
+#### Scenario: 创建多图证书成功
+
+- **WHEN** 已授权管理端用户提交合法证书图片数组，且数组中包含唯一主图
+- **THEN** 系统 MUST 保存证书和图片列表
+- **AND** 响应 MUST 返回图片数量、图片顺序和主图标记
+- **AND** 再次查询证书详情 MUST 与保存结果一致
+
+#### Scenario: 主图状态非法
+
+- **WHEN** 创建或更新请求中的图片数组存在多个主图，或有图片但没有主图
+- **THEN** 系统 MUST 返回 HTTP 400
+- **AND** 错误码 MUST 为 `CERTIFICATE_MAIN_IMAGE_INVALID` 或等价统一校验错误码
+
+#### Scenario: 图片文件引用非法
+
+- **WHEN** 创建或更新请求中的图片文件引用不属于后端上传链路可识别对象
+- **THEN** 系统 MUST 返回 HTTP 400
+- **AND** MUST NOT 保存前端伪造的对象存储路径或未授权 URL
+
 ### Requirement: 品牌证书文件上传与预览
 
-系统 MUST 支持品牌证书文件经后端鉴权上传至 MinIO/S3 兼容对象存储单桶。证书文件 MUST 支持 JPG、PNG、WebP 和 PDF。证书文件大小上限 MUST 使用文档 / 文件类 effective 上传限制（例如 `media.max_file_size_mb` merge `MAX_FILE_SIZE_MB`），并 MUST 与管理端系统设置、前端提示、后端校验和部署代理配置一致；MUST NOT 仅使用不可配置的 20MB 硬编码作为大小限制事实源。上传链路 MUST 校验 MIME、大小和对象 Key，MUST 返回可受控读取的 `file_url`、`file_key`、文件名、MIME 和大小。前端 MUST NOT 直连未授权对象存储。
+系统 MUST 支持品牌证书文件经后端鉴权上传至 MinIO/S3 兼容对象存储单桶。证书文件 MUST 支持 JPG、PNG、WebP 和 PDF；证书多图图片 MUST 支持 JPG、PNG 和 WebP。证书文件大小上限 MUST 使用文档 / 文件类 effective 上传限制（例如 `media.max_file_size_mb` merge `MAX_FILE_SIZE_MB`），并 MUST 与管理端系统设置、前端提示、后端校验和部署代理配置一致；MUST NOT 仅使用不可配置的 20MB 硬编码作为大小限制事实源。上传链路 MUST 校验 MIME、大小和对象 Key，MUST 返回可受控读取的 `file_url`、`file_key`、文件名、MIME 和大小。前端 MUST NOT 直连未授权对象存储。
 
 #### Scenario: 上传合法证书文件
 
@@ -117,6 +152,20 @@
 - **THEN** 图片证书 MUST 支持大图预览
 - **AND** PDF 证书 MUST 支持新窗口或等价受控 URL 预览
 - **AND** 预览失败时 MUST 展示稳定错误提示
+
+#### Scenario: 上传证书多图图片
+
+- **WHEN** 已授权管理端用户上传合法 JPG、PNG 或 WebP 证书图片
+- **THEN** 系统 MUST 返回可用于证书图片数组保存的文件引用、受控读取 URL、文件名、MIME 和大小
+- **AND** 上传控件 MUST 在同一会话中即时回显图片卡片
+- **AND** 上传失败原因 MUST 展示在上传控件或对应图片卡片内
+
+#### Scenario: 预览证书主图和图片列表
+
+- **WHEN** 管理员点击证书主图或默认预览入口
+- **THEN** 系统 MUST 从主图开始预览图片证书
+- **AND** 主图加载失败时 MUST 展示稳定占位和可恢复提示
+- **AND** 预览和展示 MUST 使用后端控制的可读 URL 或签名 URL
 
 ### Requirement: 品牌证书展示控制、删除与审计
 
@@ -175,7 +224,7 @@
 
 ### Requirement: 品牌证书新增编辑弹窗
 
-系统 MUST 提供新增和编辑品牌证书弹窗。弹窗 MUST 宽 760px，最大高度 `calc(100vh - 80px)`，头部和底部固定，主体区域可滚动。弹窗 MUST 支持所属品牌、证书名称、排序、类型、编号、发证机构、证书文件、长期有效、生效日期、到期日期、前台展示和备注字段。
+系统 MUST 提供新增和编辑品牌证书弹窗。弹窗 MUST 宽 760px，最大高度 `calc(100vh - 80px)`，头部和底部固定，主体区域可滚动。弹窗 MUST 支持所属品牌、证书名称、排序、类型、编号、发证机构、证书文件或图片列表、长期有效、生效日期、到期日期、前台展示和备注字段。弹窗 MUST 支持证书多张图片上传、主图设置、删除图片和主图兜底规则。
 
 #### Scenario: 打开新增证书弹窗
 
@@ -202,6 +251,35 @@
 - **THEN** 系统 MUST 将错误提示展示在对应字段、字段组或上传对象下方
 - **AND** MUST NOT 仅将字段级错误集中展示在弹窗底部或全局 toast
 
+#### Scenario: 第一张图片默认主图
+
+- **WHEN** 证书还没有任何图片且第一张图片上传成功
+- **THEN** 弹窗 MUST 自动将该图片标记为主图
+- **AND** 主图标记 MUST 在弹窗内即时可见
+
+#### Scenario: 设置主图并前置
+
+- **WHEN** 用户将非主图图片设置为主图
+- **THEN** 该图片 MUST 成为唯一主图
+- **AND** 原主图 MUST 取消主图标记
+- **AND** 新主图 MUST 移动到图片列表第一位
+
+#### Scenario: 删除图片与主图兜底
+
+- **WHEN** 用户删除非主图图片
+- **THEN** 当前主图 MUST 保持不变
+- **AND** 剩余图片顺序 MUST 保持稳定
+- **WHEN** 用户删除当前主图且仍有其他图片
+- **THEN** 当前主图后一张图片 MUST 优先成为新主图；否则删除后列表第一张图片 MUST 成为新主图
+- **AND** 新主图 MUST 在弹窗内即时可见
+
+#### Scenario: 删除全部图片
+
+- **WHEN** 用户删除最后一张图片
+- **THEN** 图片区域 MUST 进入空状态
+- **AND** MUST 不再显示主图标记
+- **AND** MUST 保留继续添加图片入口
+
 ### Requirement: 品牌证书权限与前端操作可见性
 
 系统 MUST 定义品牌证书权限点，并在后端 API 与前端操作入口中执行权限约束。无权限用户 MUST 不能越权创建、更新、显示、隐藏或删除证书。
@@ -226,7 +304,7 @@
 
 ### Requirement: 品牌证书横切 UI 验收
 
-品牌证书管理页 MUST 遵守管理端列表页、弹窗宽度 CSS 层叠和媒体上传全链路最佳实践。实现 MUST 使用 semantic token 和现有 DS / shared 组件，MUST 不复制原型裸 Hex，MUST 不使用 `window.confirm`。
+品牌证书管理页 MUST 遵守管理端列表页、弹窗宽度 CSS 层叠和媒体上传全链路最佳实践。实现 MUST 使用 semantic token 和现有 DS / shared 组件，MUST 不复制原型裸 Hex，MUST 不使用 `window.confirm`。多图上传能力上线后，列表分页、指标卡、fixed toast、DS confirm、弹窗宽度、矮视口滚动和 Docker Web 上传边界验收 MUST 不回归。
 
 #### Scenario: 列表页一致性验收
 
@@ -249,9 +327,17 @@
 - **AND** 超限文件 MUST 返回业务错误而非 Nginx 413
 - **AND** 上传控件 MUST 覆盖 `idle → uploading → done / failed` 状态
 
+#### Scenario: 多图上传横切验收
+
+- **WHEN** 在新增或编辑证书弹窗验收多图上传控件
+- **THEN** 图片卡片 MUST 覆盖 `idle → uploading → done / failed` 状态
+- **AND** 同一会话内上传成功后列表或弹窗刷新 MUST 即时回显主图缩略图和图片卡片
+- **AND** 多图区域在矮视口下 MUST 不遮挡头部、底部保存按钮或字段级错误
+- **AND** 新上传 MUST NOT 写入 `data/uploads/`
+
 ### Requirement: 管理端品牌证书通用组件
 
-系统 MUST 在管理端沉淀品牌证书通用业务组件或等价展示方法，覆盖证书缩略图、证书摘要、有效期文本、有效状态 Badge、前台展示状态 Badge、预览入口和文件卡片。组件 MUST 面向展示模型和回调设计，MUST NOT 内置筛选、分页、权限判断、保存、删除、显示/隐藏接口调用、上传 API 调用或全局 toast。
+系统 MUST 在管理端沉淀品牌证书通用业务组件或等价展示方法，覆盖证书缩略图、证书摘要、有效期文本、有效状态 Badge、前台展示状态 Badge、预览入口、文件卡片、图片卡片和主图标记。组件 MUST 面向展示模型和回调设计，MUST NOT 内置筛选、分页、权限判断、保存、删除、显示/隐藏接口调用、上传 API 调用或全局 toast。
 
 #### Scenario: 展示证书缩略图与摘要
 
@@ -298,44 +384,23 @@
 - **AND** `failed` 状态 MUST 展示失败原因和重新上传入口
 - **AND** 文件卡片 MUST 只负责展示和触发回调，不得直接调用上传 API
 
+#### Scenario: 展示证书主图与图片卡片
+
+- **WHEN** 管理端页面或弹窗传入证书图片列表
+- **THEN** 组件或等价展示方法 MUST 优先展示 `is_main=true` 的主图缩略图
+- **AND** 非主图图片 MUST 可展示稳定图片卡片和“设为主图”回调入口
+- **AND** 主图标记、删除入口和预览入口 MUST 不遮挡图片主体识别
+- **AND** 图片加载失败时 MUST 展示稳定占位且不显示浏览器破图
+
 ### Requirement: 管理端品牌证书页面组件化应用
 
-系统 MUST 将品牌证书通用组件或等价展示方法应用到现有 `/admin/brand-certificates` 页面。组件化 MUST 保持页面筛选、分页、权限判断、保存、删除、显示/隐藏确认、固定 toast、指标卡 DOM 和弹窗宽度行为不回归。
+系统 MUST 将品牌证书通用组件或等价展示方法应用到现有 `/admin/brand-certificates` 页面。组件化 MUST 保持页面筛选、分页、权限判断、保存、删除、显示/隐藏确认、固定 toast、指标卡 DOM 和弹窗宽度行为不回归。多图能力上线后，页面 MUST 使用主图作为列表缩略图，并在弹窗文件展示区呈现图片列表、主图标记、上传状态和删除/设主图操作。
 
-#### Scenario: 列表列使用通用展示
-
-- **WHEN** 管理端用户访问 `/admin/brand-certificates` 并查看证书列表
-- **THEN** “证书”列 MUST 使用通用证书缩略图与证书摘要
-- **AND** “有效期”列 MUST 使用通用有效期展示方法
-- **AND** “有效状态”列 MUST 使用通用有效状态 Badge
-- **AND** “前台展示”列 MUST 使用通用展示状态 Badge
-- **AND** 操作列中的编辑、显示/隐藏、删除仍 MUST 由页面容器控制
-
-#### Scenario: 弹窗文件展示区使用通用文件卡片
+#### Scenario: 弹窗多图区域应用
 
 - **WHEN** 管理端用户打开新增或编辑品牌证书弹窗
-- **THEN** 证书文件展示区 MUST 使用或对齐通用文件卡片
-- **AND** 上传 API、进度计算、错误映射、保存阻塞和成功/失败 toast MUST 继续由页面容器负责
-- **AND** 文件卡片在窄视口下 MUST 可换行，不遮挡上传、重新上传或删除入口
-
-#### Scenario: 组件化不回归横切 UI 验收
-
-- **WHEN** 在 1440x1024 视口验收组件化后的品牌证书页
-- **THEN** 分页 DOM MUST 保持左侧 `page-summary`、右侧 `page-right` 页码和每页条数结构
-- **AND** 指标卡 MUST 继续使用 `.metric-label`、`.metric-value`、`.metric-desc` 或等价 DS 结构
-- **AND** 成功/失败反馈 MUST 使用 fixed toast 且不得通过文档流 notice 推挤页面布局
-- **AND** 显示/隐藏、删除等状态或危险操作 MUST 使用 DS confirm modal，代码中不得出现 `window.confirm`
-- **AND** 新增/编辑证书弹窗 TSX MUST NOT 同时挂载通用 `modal-card` 与证书专属 modal class
-- **AND** 1440 视口下新增/编辑证书弹窗 Computed width MUST 与既有 REQ-0038 设计一致
-- **AND** 矮视口下证书弹窗 body MUST 可滚动，头部和底部固定，无内容被遮挡或按钮不可达
-
-#### Scenario: 组件化遵守 Design System 和契约边界
-
-- **WHEN** 实现或验收品牌证书通用组件
-- **THEN** 组件视觉 MUST 延续管理端“工业石材 · 暗色旗舰风”
-- **AND** 新增样式 MUST 使用 Design System semantic token 或既有管理端 Badge、文本、边框语义
-- **AND** 新增样式 MUST NOT 包含裸 Hex 或硬编码 token 对应 `rgba(...)`
-- **AND** 缩略图、文件卡片、Badge 和操作入口在 1440px 管理端列表视口下 MUST 保持稳定尺寸
-- **AND** 组件内部 MUST NOT 呈现解释组件如何使用的说明性文案，只呈现证书业务状态
-- **AND** 组件导出路径 MUST 清晰，后续管理端页面不得从 `BrandCertificateManagementPage.tsx` 复制内部实现
+- **THEN** 证书文件展示区 MUST 支持多张图片卡片、唯一主图标记、上传进度、失败原因、删除入口和设为主图入口
+- **AND** 保存证书后再次打开弹窗 MUST 回显图片数量、图片顺序和主图标记
+- **AND** “支持 JPG / PNG / WebP，最多 9 张”或等价上传说明下方 MUST NOT 额外展示图片文件名文本列表
+- **AND** 移除文件名文本列表 MUST NOT 影响图片卡片、主图标记、删除入口、设为主图入口、继续添加图片、上传进度或失败提示
 

@@ -68,6 +68,7 @@ class TileSkuAdminItem(BaseModel):
     material_completeness: MaterialCompleteness
     images: list[TileSkuImageItem] = Field(default_factory=list)
     videos: list[TileSkuVideoItem] = Field(default_factory=list)
+    published_at: str | None = None
     created_at: str
     updated_at: str
     task_trace_id: str | None = None

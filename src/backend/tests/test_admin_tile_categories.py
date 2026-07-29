@@ -97,11 +97,47 @@ def test_create_category_generates_code_and_ignores_client_code(client: TestClie
     assert data["code"] != "CLIENT-CODE"
 
 
+def test_create_category_accepts_fifteen_character_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/tile-categories",
+        headers=headers,
+        json={"name": "一二三四五六七八九十12345", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["name"] == "一二三四五六七八九十12345"
+
+
+def test_update_category_accepts_fifteen_character_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    category_id = _create_category(client, headers, name="边界更新")
+    response = client.put(
+        f"/api/v1/admin/tile-categories/{category_id}",
+        headers=headers,
+        json={"name": "更新一二三四五六七八九十123", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["name"] == "更新一二三四五六七八九十123"
+
+
+def test_update_category_rejects_sixteen_character_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    category_id = _create_category(client, headers, name="边界拒绝")
+    response = client.put(
+        f"/api/v1/admin/tile-categories/{category_id}",
+        headers=headers,
+        json={"name": "一二三四五六七八九十123456", "sort_order": 10},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == 40001
+    assert "类目名称最多 15 个字符" in response.json()["message"]
+
+
 def test_category_name_validation(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     cases = [
         ("", "类目名称不能为空"),
-        ("一二三四五六七八九十A", "类目名称不能超过 10 个字符"),
+        ("一二三四五六七八九十123456", "类目名称最多 15 个字符"),
         ("含 空格", "类目名称只能包含中文、英文和数字"),
         ("bad-name", "类目名称只能包含中文、英文和数字"),
     ]

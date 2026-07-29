@@ -1,6 +1,42 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 86
+next_id: 90
 entries:
+  - id: BUG-0089-admin-certificate-edit-image-filename-noise
+    title: 管理端证书编辑弹窗图片下方显示无意义文件名
+    status: done
+    severity: low
+    created: "2026-07-29 08:08:23"
+    related_requirement: REQ-0078-certificate-multiple-images-main-image
+    related_bug: null
+    related_change: fix-admin-certificate-image-filename-noise
+    iteration: sprint-013
+  - id: BUG-0088-admin-sku-edit-save-extra-step
+    title: 管理端 SKU 编辑保存成功后未直接关闭弹窗
+    status: done
+    severity: medium
+    created: "2026-07-28 23:23:36"
+    related_requirement: REQ-0006-tile-sku-management
+    related_bug: null
+    related_change: fix-admin-sku-edit-save-extra-step
+    iteration: sprint-013
+  - id: BUG-0087-miniapp-brand-detail-product-tab-sort-order
+    title: 品牌详情页商品 Tab 排序未按发布时间升序和 ID 升序
+    status: done
+    severity: medium
+    created: "2026-07-28 22:29:01"
+    related_requirement: REQ-0058-brand-detail-home-page
+    related_bug: null
+    related_change: fix-miniapp-brand-detail-product-sort-order
+    iteration: sprint-013
+  - id: BUG-0086-miniapp-sku-detail-remark-not-shown
+    title: 小程序商品详情页备注说明信息没有显示
+    status: done
+    severity: medium
+    created: "2026-07-28 22:24:26"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: null
+    related_change: fix-miniapp-sku-detail-remark-display
+    iteration: sprint-013
   - id: BUG-0085-admin-video-upload-stuck-at-99
     title: 管理后台视频上传长时间卡在 99%
     status: done

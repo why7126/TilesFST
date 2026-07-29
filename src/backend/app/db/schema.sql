@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS tiles (
   remark TEXT,
   status TEXT NOT NULL DEFAULT 'DRAFT'
     CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
+  published_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY(brand_id) REFERENCES brands(id),
@@ -60,6 +61,9 @@ CREATE TABLE IF NOT EXISTS tile_images (
   sort_order INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY(tile_id) REFERENCES tiles(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_tiles_published_at
+  ON tiles(published_at);
 
 CREATE TABLE IF NOT EXISTS tile_videos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,6 +155,27 @@ CREATE INDEX IF NOT EXISTS idx_brand_certificates_type_deleted
 CREATE UNIQUE INDEX IF NOT EXISTS uq_brand_certificates_brand_name_active
   ON brand_certificates(brand_id, name)
   WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS brand_certificate_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  certificate_id INTEGER NOT NULL,
+  file_url TEXT NOT NULL,
+  file_key TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_mime_type TEXT NOT NULL,
+  file_size_bytes INTEGER NOT NULL CHECK (file_size_bytes > 0),
+  is_main INTEGER NOT NULL DEFAULT 0 CHECK (is_main IN (0, 1)),
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(certificate_id) REFERENCES brand_certificates(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_brand_certificate_images_certificate_sort
+  ON brand_certificate_images(certificate_id, sort_order);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_brand_certificate_images_main
+  ON brand_certificate_images(certificate_id)
+  WHERE is_main = 1;
 
 CREATE TABLE IF NOT EXISTS login_logs (
   id TEXT PRIMARY KEY,

@@ -3,7 +3,7 @@ requirement_id: REQ-0058-brand-detail-home-page
 status: done
 priority: P1
 created_at: 2026-07-19 22:30:11
-updated_at: 2026-07-20 22:43:31
+updated_at: 2026-07-29 07:53:54
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-19 22:30:11
@@ -86,3 +86,9 @@ readiness: Ready
 
 补充说明：本 REQ 是微信小程序前台 UI，未触发 req-complete 定义的管理端横切 AC；小程序导航、设备视口和运行入口风险已写入 `acceptance.md` 的 AC-036 至 AC-039。
 - 2026-07-20 22:38:58 workflow-sync：状态同步为 done（Change archived）
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0087-miniapp-brand-detail-product-tab-sort-order | medium | done | fix-miniapp-brand-detail-product-sort-order | 品牌详情页商品 Tab 排序未按发布时间升序和 ID 升序 |

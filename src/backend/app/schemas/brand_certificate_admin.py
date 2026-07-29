@@ -31,6 +31,11 @@ class BrandCertificateFile(BaseModel):
     file_size_bytes: int = Field(..., ge=1)
 
 
+class BrandCertificateImage(BrandCertificateFile):
+    is_main: bool = False
+    sort_order: int = Field(..., ge=0)
+
+
 class BrandCertificateSummary(BaseModel):
     total: int
     valid_count: int
@@ -52,6 +57,8 @@ class BrandCertificateItem(BaseModel):
     file_name: str
     file_mime_type: str
     file_size_bytes: int
+    images: list[BrandCertificateImage] = Field(default_factory=list)
+    main_image: BrandCertificateImage | None = None
     is_permanent: bool
     effective_date: str | None = None
     expiry_date: str | None = None
@@ -78,7 +85,8 @@ class BrandCertificateMutationRequest(BaseModel):
     type: CertificateType
     certificate_no: str | None = Field(None, max_length=120)
     issuer: str | None = Field(None, max_length=120)
-    file: BrandCertificateFile
+    file: BrandCertificateFile | None = None
+    images: list[BrandCertificateImage] = Field(default_factory=list, max_length=9)
     is_permanent: bool = False
     effective_date: str | None = Field(None, max_length=32)
     expiry_date: str | None = Field(None, max_length=32)

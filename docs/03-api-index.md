@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 17:18:10
+updated_at: 2026-07-29 09:18:52
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -407,6 +407,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 | GET | `/api/v1/miniapp/brands/{brand_id}` | 否 | 公开品牌主页/详情信息：品牌图片、名称、简介、公开商品数、公开证书数 |
 | GET | `/api/v1/miniapp/brands/{brand_id}/certificates` | 否 | 当前品牌可公开证书列表，返回受控证书预览 URL |
 | GET | `/api/v1/miniapp/certificates` | 否 | 公开证书聚合列表，仅支持 `page`、`pageSize` |
+| GET | `/api/v1/miniapp/certificates/{certificate_id}` | 否 | 公开证书详情，返回媒体组、品牌入口、分享信息和受控文件 URL |
 | GET | `/api/v1/miniapp/products` | 否 | 公开商品列表，支持 `categoryId`、`categoryLevel`、`keyword`、`brandId`、`spec`、`priceRange`、`sort`、`page`、`pageSize`，兼容 `filter_type`、`filter_value`、`section` |
 | GET | `/api/v1/miniapp/search/home` | 否 | 搜索首页数据：热门搜索词；最近搜索由小程序本机保存 |
 | GET | `/api/v1/miniapp/search/suggestions` | 否 | 搜索实时联想，支持 `keyword`、`scope`、`limit`、`request_id`；仅返回品牌与 SKU 联想 |
@@ -438,7 +439,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 公开商品卡片只返回允许展示字段：`product_id`、`product_name`、`sku_code`、`cover_image`、`specification`、`category_name`、`brand_name`、`style_tags`、`applicable_spaces`、`color_family`、`price_display`、`is_new`、`is_hot`。接口不得返回后台内部字段、库存管理字段、内部备注、对象存储 raw object key 或敏感配置。
 
-`GET /api/v1/miniapp/products` 请求支持分类、搜索、品牌、规格、价格区间和排序上下文：`categoryId`、`categoryLevel=primary|secondary`、`keyword`、`brandId`、`spec`、`priceRange`（如 `100-200`、`200-`）、`sort=default|latest|price_asc|price_desc`、`page`、`pageSize`。`categoryLevel=primary` 表示聚合该一级分类下所有启用二级分类的公开 SKU，不返回仅直接挂载在一级分类下的 SKU；`categoryLevel=secondary` 或未传时保持既有二级分类精确查询语义。接口兼容旧参数 `filter_type`、`filter_value` 和 `section=new|hot`，供首页瀑布流和历史入口继续调用。响应 `data` 包含 `items`、`total`、`page`、`page_size`、`has_more` 和 `facets`；`facets` 提供可用 `brands`、`categories`、`specs`、`price_ranges` 选项。服务端只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格或无规格的 SKU，并过滤后台内部字段、库存管理、内部备注、未授权素材、raw object key、Authorization header、Cookie 或敏感配置。`has_more` 用于小程序商品列表页和首页全部产品瀑布流判断是否继续触底加载；若无更多数据，小程序端必须停止追加请求并展示无更多状态。
+`GET /api/v1/miniapp/products` 请求支持分类、搜索、品牌、规格、价格区间和排序上下文：`categoryId`、`categoryLevel=primary|secondary`、`keyword`、`brandId`、`spec`、`priceRange`（如 `100-200`、`200-`）、`sort=default|latest|price_asc|price_desc`、`page`、`pageSize`。`categoryLevel=primary` 表示聚合该一级分类下所有启用二级分类的公开 SKU，不返回仅直接挂载在一级分类下的 SKU；`categoryLevel=secondary` 或未传时保持既有二级分类精确查询语义。品牌过滤场景 `brandId` + `sort=default` 且非 `section=new|hot` 时，默认按 `COALESCE(tiles.published_at, tiles.created_at) ASC, tiles.id ASC` 返回，优先使用 SKU 发布时间 `published_at`，历史空值使用 `created_at` 兜底；该规则不改变普通列表、搜索页相关性排序、新品榜召回或热销榜热度排序。接口兼容旧参数 `filter_type`、`filter_value` 和 `section=new|hot`，供首页瀑布流和历史入口继续调用。响应 `data` 包含 `items`、`total`、`page`、`page_size`、`has_more` 和 `facets`；`facets` 提供可用 `brands`、`categories`、`specs`、`price_ranges` 选项。服务端只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格或无规格的 SKU，并过滤后台内部字段、库存管理、内部备注、未授权素材、raw object key、Authorization header、Cookie 或敏感配置。`has_more` 用于小程序商品列表页和首页全部产品瀑布流判断是否继续触底加载；若无更多数据，小程序端必须停止追加请求并展示无更多状态。
 
 `GET /api/v1/miniapp/search/suggestions` 响应 `data` 包含 `keyword`、`normalized_keyword`、`request_id` 与 `suggestions[]`。`suggestions[]` 仅包含 `brand` 和 `sku` 类型，字段为 `id`、`text`、`entity_type`、`target_id`、`target_path`、`scope`；最近搜索、普通关键词、类目、规格和证书不得进入联想结果。
 
@@ -450,15 +451,17 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 `GET /api/v1/miniapp/brands/{brand_id}` 响应 `data` 包含单品牌主页公开信息，并返回 `product_path` 与 `certificate_count` 供小程序品牌主页展示。品牌不存在、停用、无公开 SKU 或不可公开时返回 `404 / code=30030`。
 
-`GET /api/v1/miniapp/brands/{brand_id}/certificates` 响应 `data.items[]` 只包含当前品牌可公开证书，字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_no`、`issuer`、`brand_name`、`file_url`。隐藏、删除、停用品牌证书不会返回；响应不得暴露 `file_key`、后台备注、审计字段、raw object key、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/brands/{brand_id}/certificates` 响应 `data.items[]` 只包含当前品牌可公开证书，字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_no`、`issuer`、`brand_name`、`file_url`。当证书存在 `main_image` 时，`file_url` 优先返回主图 URL；无主图时回退 legacy 证书文件 URL。隐藏、删除、停用品牌证书不会返回；响应不得暴露 `file_key`、后台备注、审计字段、raw object key、Authorization header、Cookie 或敏感配置。
 
-`GET /api/v1/miniapp/certificates` 响应 `data` 包含 `items[]`、`total`、`page`、`page_size` 和 `has_more`，请求仅支持分页参数 `page`、`pageSize`。`items[]` 字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_type_label`、`brand_id`、`brand_name`、`file_url`、`file_name`、`file_mime_type`、`file_kind`、`effective_date`、`expiry_date`、`validity_status`、`validity_status_label`；小程序证书卡片仅展示证书名称、品牌名称和证书类型。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书，排序为 `sort_order ASC, updated_at DESC, id DESC`；响应不得暴露 `file_key`、后台备注、审计字段、内部用户字段、raw object key、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/certificates` 响应 `data` 包含 `items[]`、`total`、`page`、`page_size` 和 `has_more`，请求仅支持分页参数 `page`、`pageSize`。`items[]` 字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_type_label`、`brand_id`、`brand_name`、`file_url`、`file_name`、`file_mime_type`、`file_kind`、`effective_date`、`expiry_date`、`validity_status`、`validity_status_label`；当证书存在 `main_image` 时，`file_url`、`file_name`、`file_mime_type` 优先返回主图信息，无主图时回退 legacy 证书文件字段。小程序证书卡片仅展示证书名称、品牌名称和证书类型，并在 `file_kind=image` 时使用 `file_url` 渲染主图。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书，排序为 `sort_order ASC, updated_at DESC, id DESC`；响应不得暴露 `file_key`、后台备注、审计字段、内部用户字段、raw object key、Authorization header、Cookie 或敏感配置。
+
+`GET /api/v1/miniapp/certificates/{certificate_id}` 响应 `data` 包含单张公开证书详情：列表安全字段、`brand`、`media[]`、`main_media`、`description`、`remark` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`。`media[]` 字段为 `media_id`、`media_type=image|pdf|unknown`、`url`、`preview_url`、`file_name`、`file_mime_type`、`sort_order`、`is_main`；多图证书按主图优先、其余图片按 `sort_order ASC, id ASC` 排序，旧单文件证书回退到 legacy `file_url`。`brand` 返回 `brand_id`、`brand_name`、`brand_entry_path` 和 `available`；`share` 返回分享标题、分享路径、分享图和摘要。小程序证书详情页标题固定为“证书详情”，证书名称面板不重复展示品牌名称，品牌名称只在所属品牌入口面板展示；证书信息展示备注说明但不展示有效期，底部不提供固定“预览文件”或“分享证书”按钮。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书；不存在、隐藏、软删除或所属品牌停用时返回 `404 / code=30030`。响应不得暴露审计字段、内部用户字段、`file_key`、raw object key、本机路径、bucket 内部信息、Authorization header、Cookie 或敏感配置。
 
 `GET /api/v1/miniapp/categories/tree?depth=2` 响应 `data` 包含 `version` 与 `items[]`。`items[]` 只返回 `status=ENABLED` 且 `level<=2` 的类目，一级和二级分别按 `sort_order ASC, created_at ASC, id ASC` 排序；一级节点字段为 `id`、`name`、`sort`、`children`，二级节点字段为 `id`、`name`、`coverUrl`、`sort`。`coverUrl` 为兼容字段，当前小程序分类列表页不渲染二级类目图片；后端返回统一安全占位 URL `/media/miniapp/category-placeholder.webp`，不自动取 SKU 商品主图，不暴露 `description`、`sku_count`、`path`、raw object key、Authorization header、Cookie 或后台内部备注。
 
 公开商品卡片的 `cover_image` 来自 SKU 主图（`tile_images.is_main=1` 优先），不得暴露对象存储 raw object key。`price_display` 来自 SKU `reference_price` 格式化结果：正数显示为 `¥xx.xx`，缺失、空值或非正数显示为 `暂无参考价`。
 
-`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；视频 `media[]` 的 `cover_url` 优先使用商品主图或首张图片作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
+`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`remark`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`；小程序商品详情页将备注说明作为商品参数模块内的参数行展示，不单独渲染独立备注模块。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；视频 `media[]` 的 `cover_url` 优先使用商品主图或首张图片作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
 
 `PUT /api/v1/miniapp/skus/{sku_id}/favorite` 使用 `client_id` 与 `sku_id` 唯一约束实现幂等收藏/取消收藏；重复提交返回目标状态，不产生重复收藏记录。SKU 不存在、下架或不可公开时返回 `404 / code=30030`；请求体校验失败返回 `422 / code=40001`。
 
@@ -501,11 +504,11 @@ OpenSpec：`openspec/changes/add-brand-certificate-management/`
 | POST | `/api/v1/admin/brand-certificates/{certificate_id}/hide` | Bearer（admin） |
 | DELETE | `/api/v1/admin/brand-certificates/{certificate_id}` | Bearer（admin） |
 
-列表参数：`page`、`page_size`（20/50/100）、`keyword`、`brand_id`、`type`、`validity_status`、`display_status`。响应 `data.items[]` 包含 `file_url`、`file_key`、`brand_name`、`validity_status`、`display_status`；`data.summary` 包含 `total`、`valid_count`、`expiring_soon_count`、`expired_count`。
+列表参数：`page`、`page_size`（20/50/100）、`keyword`、`brand_id`、`type`、`validity_status`、`display_status`。响应 `data.items[]` 包含 `file_url`、`file_key`、`brand_name`、`validity_status`、`display_status`、`images[]`、`main_image`；列表缩略图优先使用 `main_image`，无图片时回退 legacy `file_*` 字段。管理端品牌证书列表不提供单独“预览”行操作，预览/查看能力以后续详情入口或文件打开策略为准。`data.summary` 包含 `total`、`valid_count`、`expiring_soon_count`、`expired_count`。
 
-创建/更新请求体包含 `brand_id`、`name`、`sort_order`、`type`、`file`、`is_permanent`、`effective_date`、`expiry_date`、`is_visible` 等字段；非长期有效证书必须提供 `expiry_date`。错误码：`30013` 不存在、`30014` 同品牌名称重复、`40024` 日期非法、`40025` 文件缺失、`30010` 品牌不存在。
+创建/更新请求体包含 `brand_id`、`name`、`sort_order`、`type`、`file`、`images[]`、`is_permanent`、`effective_date`、`expiry_date`、`is_visible` 等字段；`file` 用于 PDF/文档或旧单文件兼容，`images[]` 用于 JPG/PNG/WebP 多图，最多 9 张。有图片时必须且只能有一张 `is_main=true`，保存后按 `sort_order` 连续回填；若只传图片不传 `file`，后端以主图回填 legacy `file_*` 字段。非长期有效证书必须提供 `expiry_date`。错误码：`30013` 不存在、`30014` 同品牌名称重复、`40024` 日期非法、`40025` 文件/图片缺失、`40026` 主图非法、`40027` 图片/文件引用非法、`30010` 品牌不存在。
 
-证书文件上传：`POST /api/v1/admin/uploads/brand-certificates`（admin；JPG/PNG/WebP/PDF，20MB）。
+证书文件上传：`POST /api/v1/admin/uploads/brand-certificates`（admin；JPG/PNG/WebP/PDF；大小使用 `MAX_FILE_SIZE_MB` / `media.max_file_size_mb` effective 值）。
 
 ### 3.5b 管理端 Banner（Sprint 003）
 
@@ -544,7 +547,7 @@ OpenSpec：`openspec/changes/add-tile-category-management/`
 | DELETE | `/api/v1/admin/tile-categories/{id}` | Bearer（admin/employee） |
 
 列表参数：`page`、`page_size`（10/20/50）、`keyword`、`status`、`level`（仅 1/2）、`parent_id`（含子孙扁平分页）。
-树节点 `sku_count` 为含子级汇总；列表行 `sku_count` 为当前节点直接绑定数。管理端类目最多允许创建二级类目；`POST /api/v1/admin/tile-categories` 请求不再要求或信任客户端提交 `code`，后端创建时自动生成 `CAT-` 前缀唯一编码并在响应对象中返回。类目名称创建 / 更新时最多 10 个字符，仅允许中文、英文、数字；同一 `parent_id` 下名称重复返回 `409 / code=30024`。若 `parent_id` 指向二级类目，返回 `422 / code=30023`。
+树节点 `sku_count` 为含子级汇总；列表行 `sku_count` 为当前节点直接绑定数。管理端类目最多允许创建二级类目；`POST /api/v1/admin/tile-categories` 请求不再要求或信任客户端提交 `code`，后端创建时自动生成 `CAT-` 前缀唯一编码并在响应对象中返回。类目名称创建 / 更新时最多 15 个字符，仅允许中文、英文、数字；同一 `parent_id` 下名称重复返回 `409 / code=30024`。若 `parent_id` 指向二级类目，返回 `422 / code=30023`。
 
 ### 3.7 管理端瓷砖 SKU（Sprint 002）
 
@@ -563,6 +566,7 @@ OpenSpec：`openspec/changes/add-tile-sku-management/`
 
 列表参数：`page`、`page_size`（10/20/50/100）、`keyword`、`brand_id`、`category_id`、`status`、`material_completeness`。  
 响应 `data.summary`：`total`、`published_count`、`needs_completion_count`、`draft_count`。
+列表项返回 `published_at`，表示最近一次上架/恢复上架时间；草稿、待完善、已下架等非 `PUBLISHED` 状态返回 `null`。
 
 创建请求 `save_mode`：`draft`（仅名称必填）| `create`（全必填）。  
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
@@ -572,7 +576,8 @@ SKU 素材上传：`POST /api/v1/admin/uploads/tile-images`、`POST /api/v1/admi
 创建/更新请求体含 `spec_id`（`save_mode=create` 必填；须为 ENABLED 规格）。  
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
 
-REQ-0074 起，`POST /api/v1/admin/tile-skus`、`PUT /api/v1/admin/tile-skus/{id}`、`POST /api/v1/admin/tile-skus/{id}/publish`、`POST /api/v1/admin/tile-skus/{id}/unpublish` 的成功响应 `data` 额外返回可选 `task_trace_id` 与 `task_type`，任务类型分别为 `sku_create`、`sku_update`、`sku_publish`、`sku_unpublish`。这些接口复用统一 `ApiResponse`，不新增任务状态查询接口、不新增错误码；业务失败仍按既有错误码返回，并在 Task Trace 中记录失败 span。管理端可复制 `task_trace_id`，并通过日志审计 `task_trace_id` 精确筛选或在日志详情中查看任务时间线。
+REQ-0074 起，`POST /api/v1/admin/tile-skus`、`PUT /api/v1/admin/tile-skus/{id}`、`POST /api/v1/admin/tile-skus/{id}/publish`、`POST /api/v1/admin/tile-skus/{id}/unpublish` 的成功响应 `data` 额外返回可选 `task_trace_id` 与 `task_type`，任务类型分别为 `sku_create`、`sku_update`、`sku_publish`、`sku_unpublish`。这些接口复用统一 `ApiResponse`，不新增任务状态查询接口、不新增错误码；业务失败仍按既有错误码返回，并在 Task Trace 中记录失败 span。管理端 SKU 表单成功态不在弹窗内展示或复制 `task_trace_id`；需要排障时，可通过日志审计 `task_trace_id` 精确筛选或在日志详情中查看任务时间线。
+REQ-0079 起，`POST /api/v1/admin/tile-skus/{id}/publish` 每次成功都会刷新 `published_at`，恢复上架视为重新发布；`unpublish` 不清空数据库历史值，但响应与列表在非 `PUBLISHED` 状态下返回 `published_at: null`。
 
 ### 3.8 管理端瓷砖规格（Sprint 003）
 
@@ -791,7 +796,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 | 400 | 50002 | 文件类型不允许 |
 | 400 | 50003 | 文件大小超限 |
 | 400 | 50004 | 品牌证书文件类型不允许 |
-| 400 | 50005 | 品牌证书文件超过 20MB |
+| 400 | 50005 | 品牌证书文件超过 effective 文件大小上限 |
 | 502 | 50001 | MinIO 不可用、Bucket 初始化失败或对象写入失败 |
 
 ---

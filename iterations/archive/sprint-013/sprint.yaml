@@ -1,0 +1,95 @@
+sprint_id: sprint-013
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-28 00:24:49
+end_date: 2026-07-29 09:24:09
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0077-category-name-max-length-15
+  - REQ-0078-certificate-multiple-images-main-image
+  - REQ-0079-admin-sku-list-published-at
+  - REQ-0080-miniapp-certificate-detail-page
+bugs:
+  - BUG-0086-miniapp-sku-detail-remark-not-shown
+  - BUG-0087-miniapp-brand-detail-product-tab-sort-order
+  - BUG-0088-admin-sku-edit-save-extra-step
+  - BUG-0089-admin-certificate-edit-image-filename-noise
+changes:
+  - update-category-name-max-length-15
+  - fix-miniapp-sku-detail-remark-display
+  - update-certificate-multiple-images-main-image
+  - fix-miniapp-brand-detail-product-sort-order
+  - update-admin-sku-list-published-at
+  - fix-admin-sku-edit-save-extra-step
+  - add-miniapp-certificate-detail-page
+  - fix-admin-certificate-image-filename-noise
+
+estimated_story_points: 20.5
+estimated_person_days: 20.5
+capacity_usage: 0.6833
+fix_buffer_person_days: 9.5
+fix_buffer_ratio: 0.3167
+
+scope_estimates:
+  - id: REQ-0077-category-name-max-length-15
+    change: update-category-name-max-length-15
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "P1 update 型类目管理输入规则变更，影响后端类目创建/更新校验、OpenAPI/Orval、Web 管理端 CategoryFormModal、类目树/列表展示回归、小程序与 Web 展示端 15 字符布局回归、测试夹具与 docs；不改变字符集、同层级唯一、编码自动生成、层级、排序权重、启停删除或历史数据迁移。"
+  - id: BUG-0086-miniapp-sku-detail-remark-not-shown
+    change: fix-miniapp-sku-detail-remark-display
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "medium fix 型小程序 SKU 详情页字段展示修复，聚焦备注说明端到端展示链路；需确认详情接口字段、端侧映射、页面模板、空态与小程序预览证据。若接口缺字段，需同步 API/OpenAPI/Orval/docs/后端契约测试。"
+  - id: REQ-0078-certificate-multiple-images-main-image
+    change: update-certificate-multiple-images-main-image
+    size: XL
+    story_points: 8
+    estimated_person_days: 8.0
+    rationale: "P1 update 型品牌证书媒体能力增强，影响后端品牌证书 API/Schema/Service/Repository、SQLite/MySQL 数据结构或兼容层、MinIO 上传引用校验、管理端品牌证书列表与新增编辑弹窗、OpenAPI/Orval、API/DB/上传文档、后端 pytest、前端 Vitest 与 Docker Web 上传边界验收；不直接实现小程序/店主端证书多图浏览。"
+  - id: BUG-0087-miniapp-brand-detail-product-tab-sort-order
+    change: fix-miniapp-brand-detail-product-sort-order
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "medium fix 型小程序品牌详情页商品 Tab 排序修正，范围集中在后端 `/api/v1/miniapp/products?brandId=...` 品牌过滤排序、小程序展示顺序确认与后端排序/分页回归测试；不改变 API 响应结构、数据库结构、普通商品列表、搜索、新品榜或热销榜排序。"
+  - id: REQ-0079-admin-sku-list-published-at
+    change: update-admin-sku-list-published-at
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "P1 update 型管理端 SKU 列表字段展示增强，聚焦在“更新时间”前新增“发布时间”列、复用时间格式、空值占位、列表布局和 admin-list 横切回归；若列表接口缺少发布时间字段，则同步后端响应、Pydantic Schema、OpenAPI/Orval、API 文档和测试。不新增发布时间筛选、排序、导出、发布流程、小程序或店主端展示。"
+  - id: BUG-0088-admin-sku-edit-save-extra-step
+    change: fix-admin-sku-edit-save-extra-step
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "medium fix 型管理端 SKU 编辑弹窗成功态修复，范围集中在前端 TileSkuFormModal 编辑保存成功分支与 Vitest 回归；不改变后端 API、数据库、创建流程任务追踪反馈、列表、上下架或删除行为。"
+  - id: REQ-0080-miniapp-certificate-detail-page
+    change: add-miniapp-certificate-detail-page
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "P1 add 型小程序公开端证书详情页，影响后端公开证书详情 API/Schema/过滤与安全 URL、小程序新页面/路由/证书列表跳转/品牌入口/分享/埋点、旧单文件与多图主图兼容、OpenAPI/Orval 或小程序服务层、API 文档、后端 pytest、小程序静态测试和 DevTools/真机 evidence；不改变管理端证书维护、上传、主图设置或交易/收藏/推荐能力。"
+  - id: BUG-0089-admin-certificate-edit-image-filename-noise
+    change: fix-admin-certificate-image-filename-noise
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: "low fix 型管理端品牌证书编辑弹窗 UI 噪音修复，聚焦 CertificateImageGrid 移除图片上传说明下方的文件名文本列表，并补充前端组件回归测试；不改变后端 API、数据库、小程序、证书图片上传保存、主图设置、删除或预览行为。已通过 /bug-opsx 创建并回填修复 Change。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 20.5
+  capacity_usage: 0.6833
+  note: "project.yaml 未提供显式 Sprint 容量，沿用 sprint-012 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 追加 BUG-0089 后纳入 4 个 REQ 与 4 个 BUG，对应 8 个已创建 Change，估算 20.5 人天，占用 68.33%，fix buffer 9.5 人天 / 31.67%，满足容量门禁。"
+
+deferred_items: []

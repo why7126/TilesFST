@@ -67,6 +67,26 @@ const certificatePayload = {
       file_name: 'iso.pdf',
       file_mime_type: 'application/pdf',
       file_size_bytes: 128,
+      images: [
+        {
+          file_url: '/media/files/default/brand-certificates/cover.webp',
+          file_key: 'files/default/brand-certificates/cover.webp',
+          file_name: 'cover.webp',
+          file_mime_type: 'image/webp',
+          file_size_bytes: 256,
+          is_main: true,
+          sort_order: 0,
+        },
+      ],
+      main_image: {
+        file_url: '/media/files/default/brand-certificates/cover.webp',
+        file_key: 'files/default/brand-certificates/cover.webp',
+        file_name: 'cover.webp',
+        file_mime_type: 'image/webp',
+        file_size_bytes: 256,
+        is_main: true,
+        sort_order: 0,
+      },
       is_permanent: false,
       effective_date: '2026-01-01',
       expiry_date: '2026-12-31',
@@ -130,7 +150,8 @@ describe('BrandCertificateManagementPage', () => {
     );
     expect(screen.getByLabelText('所属品牌')).toHaveValue('1');
     expect(screen.getByText('ISO 9001 质量管理体系认证')).toBeInTheDocument();
-    expect(screen.getByText('PDF')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/media/files/default/brand-certificates/cover.webp"]')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '预览' })).not.toBeInTheDocument();
     expect(screen.getByText('共 1 条证书')).toBeInTheDocument();
     const pagination = screen.getByText('共 1 条证书').closest('.pagination');
     expect(pagination?.querySelector('.page-summary')).toBeInTheDocument();
@@ -162,7 +183,7 @@ describe('BrandCertificateManagementPage', () => {
     expect(within(dialog).getByLabelText('生效日期')).toBeDisabled();
     expect(within(dialog).getByLabelText('到期日期')).toBeDisabled();
 
-    const input = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = dialog.querySelectorAll('input[type="file"]')[1] as HTMLInputElement;
     const file = new File(['pdf'], 'new.pdf', { type: 'application/pdf' });
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -179,6 +200,7 @@ describe('BrandCertificateManagementPage', () => {
         expect.objectContaining({
           brand_id: 1,
           name: '绿色建材证书',
+          file: expect.objectContaining({ file_name: 'new.pdf' }),
           is_permanent: true,
           effective_date: null,
           expiry_date: null,
@@ -210,7 +232,7 @@ describe('BrandCertificateManagementPage', () => {
     fireEvent.change(within(dialog).getByLabelText('到期日期 *'), {
       target: { value: '2026-01-01' },
     });
-    const input = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = dialog.querySelectorAll('input[type="file"]')[1] as HTMLInputElement;
     fireEvent.change(input, {
       target: { files: [new File(['pdf'], 'new.pdf', { type: 'application/pdf' })] },
     });
@@ -224,6 +246,83 @@ describe('BrandCertificateManagementPage', () => {
     const expiryField = within(dialog).getByLabelText('到期日期 *').closest('.brand-form-item');
     expect(within(expiryField as HTMLElement).getByText('到期日期不能早于生效日期')).toBeInTheDocument();
     expect(dialog.querySelector('.certificate-modal-body > .form-error')).not.toBeInTheDocument();
+  });
+
+  it('uploads images and moves selected main image first', async () => {
+    uploadBrandCertificateFileMock
+      .mockResolvedValueOnce({
+        object_key: 'files/default/brand-certificates/page-1.webp',
+        url: '/media/files/default/brand-certificates/page-1.webp',
+        file_key: 'files/default/brand-certificates/page-1.webp',
+        file_url: '/media/files/default/brand-certificates/page-1.webp',
+        file_name: 'page-1.webp',
+        mime_type: 'image/webp',
+        size: 256,
+      })
+      .mockResolvedValueOnce({
+        object_key: 'files/default/brand-certificates/page-2.webp',
+        url: '/media/files/default/brand-certificates/page-2.webp',
+        file_key: 'files/default/brand-certificates/page-2.webp',
+        file_url: '/media/files/default/brand-certificates/page-2.webp',
+        file_name: 'page-2.webp',
+        mime_type: 'image/webp',
+        size: 256,
+      });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/brand-certificates']}>
+        <BrandCertificateManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '＋ 新增证书' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '＋ 新增证书' }));
+    const dialog = screen.getByRole('dialog', { name: '新增证书' });
+    fireEvent.change(within(dialog).getByLabelText('所属品牌 *'), { target: { value: '1' } });
+    fireEvent.change(within(dialog).getByLabelText('证书名称 *'), {
+      target: { value: '多图证书' },
+    });
+    fireEvent.click(within(dialog).getByLabelText('长期有效'));
+
+    const imageInput = dialog.querySelectorAll('input[type="file"]')[0] as HTMLInputElement;
+    fireEvent.change(imageInput, {
+      target: { files: [new File(['img1'], 'page-1.webp', { type: 'image/webp' })] },
+    });
+    await waitFor(() => {
+      expect(
+        dialog.querySelector('img[src="/media/files/default/brand-certificates/page-1.webp"]'),
+      ).toBeInTheDocument();
+    });
+    expect(within(dialog).queryByText('page-1.webp')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('主图')).toBeInTheDocument();
+
+    fireEvent.change(imageInput, {
+      target: { files: [new File(['img2'], 'page-2.webp', { type: 'image/webp' })] },
+    });
+    await waitFor(() => {
+      expect(
+        dialog.querySelector('img[src="/media/files/default/brand-certificates/page-2.webp"]'),
+      ).toBeInTheDocument();
+    });
+    expect(within(dialog).queryByText('page-2.webp')).not.toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '设为主图' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: '保存证书' }));
+
+    await waitFor(() => {
+      expect(createBrandCertificateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          file: null,
+          images: [
+            expect.objectContaining({ file_name: 'page-2.webp', is_main: true, sort_order: 0 }),
+            expect.objectContaining({ file_name: 'page-1.webp', is_main: false, sort_order: 1 }),
+          ],
+        }),
+      );
+    });
   });
 
   it('uses confirm dialog for hide action without window.confirm', async () => {

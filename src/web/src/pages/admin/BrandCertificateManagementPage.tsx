@@ -17,8 +17,8 @@ import { fetchSettingsGroup } from '@/features/admin/api/system-settings-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
 import {
   CertificateFileCard,
+  CertificateImageGrid,
   CertificateListIdentity,
-  CertificatePreviewAction,
   CertificateValidityBadge,
   CertificateValidityText,
   CertificateVisibilityBadge,
@@ -39,6 +39,7 @@ import type {
   BrandAdminItem,
   BrandCertificateCreateRequest,
   BrandCertificateFile,
+  BrandCertificateImage,
   BrandCertificateItem,
   BrandCertificateListData,
 } from '@/shared/api/generated';
@@ -58,6 +59,7 @@ interface CertificateFormState {
   certificateNo: string;
   issuer: string;
   file: BrandCertificateFile | null;
+  images: BrandCertificateImage[];
   isPermanent: boolean;
   effectiveDate: string;
   expiryDate: string;
@@ -82,6 +84,7 @@ const emptyForm: CertificateFormState = {
   certificateNo: '',
   issuer: '',
   file: null,
+  images: [],
   isPermanent: false,
   effectiveDate: '',
   expiryDate: '',
@@ -105,6 +108,7 @@ function toForm(item: BrandCertificateItem | null): CertificateFormState {
       file_mime_type: item.file_mime_type,
       file_size_bytes: item.file_size_bytes,
     },
+    images: normalizeImages(item.images ?? (item.main_image ? [item.main_image] : [])),
     isPermanent: item.is_permanent,
     effectiveDate: item.effective_date ?? '',
     expiryDate: item.expiry_date ?? '',
@@ -123,6 +127,33 @@ function fileToRequest(file: BrandCertificateFile): BrandCertificateFile {
   };
 }
 
+function imageToRequest(image: BrandCertificateImage, index: number): BrandCertificateImage {
+  return {
+    file_url: image.file_url,
+    file_key: image.file_key,
+    file_name: image.file_name,
+    file_mime_type: image.file_mime_type,
+    file_size_bytes: image.file_size_bytes,
+    is_main: image.is_main,
+    sort_order: index,
+  };
+}
+
+function normalizeImages(images: BrandCertificateImage[]): BrandCertificateImage[] {
+  if (images.length === 0) return [];
+  const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
+  const mainIndex = sorted.findIndex((image) => image.is_main);
+  const ordered =
+    mainIndex > 0
+      ? [sorted[mainIndex], ...sorted.filter((_, index) => index !== mainIndex)]
+      : sorted;
+  return ordered.map((image, index) => ({
+    ...image,
+    is_main: index === 0,
+    sort_order: index,
+  }));
+}
+
 function validateForm(form: CertificateFormState): {
   payload: BrandCertificateCreateRequest | null;
   errors: CertificateFormErrors;
@@ -137,7 +168,7 @@ function validateForm(form: CertificateFormState): {
     errors.sortOrder = '证书排序必须为正整数';
   }
   if (!form.type) errors.type = '请选择证书类型';
-  if (!form.file) errors.file = '请先上传证书文件';
+  if (!form.file && form.images.length === 0) errors.file = '请先上传证书文件或证书图片';
   if (!form.isPermanent && !form.expiryDate) {
     errors.expiryDate = '非长期有效证书必须填写到期日期';
   }
@@ -157,7 +188,8 @@ function validateForm(form: CertificateFormState): {
       type: form.type as BrandCertificateCreateRequest['type'],
       certificate_no: form.certificateNo.trim() || null,
       issuer: form.issuer.trim() || null,
-      file: fileToRequest(form.file!),
+      file: form.file ? fileToRequest(form.file) : null,
+      images: normalizeImages(form.images).map(imageToRequest),
       is_permanent: form.isPermanent,
       effective_date: form.isPermanent ? null : form.effectiveDate || null,
       expiry_date: form.isPermanent ? null : form.expiryDate || null,
@@ -191,6 +223,9 @@ function CertificateFormModal({
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imageUploadState, setImageUploadState] = useState<UploadState>('idle');
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<CertificateFormErrors>({});
@@ -205,6 +240,9 @@ function CertificateFormModal({
     setUploadState(certificate?.file_url ? 'done' : 'idle');
     setUploadProgress(0);
     setUploadError(null);
+    setImageUploadState('idle');
+    setImageUploadProgress(0);
+    setImageUploadError(null);
     setError(null);
     setFieldErrors({});
     setSubmitting(false);
@@ -259,10 +297,74 @@ function CertificateFormModal({
     }
   };
 
+  const handleImageChange = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    setFieldErrors((current) => ({ ...current, file: undefined }));
+    setImageUploadError(null);
+    setImageUploadState('uploading');
+    setImageUploadProgress(8);
+    try {
+      const result = await uploadBrandCertificateFile(file, setImageUploadProgress);
+      const nextImage: BrandCertificateImage = {
+        file_url: result.file_url ?? result.url,
+        file_key: result.file_key ?? result.object_key,
+        file_name: result.file_name ?? file.name,
+        file_mime_type: result.mime_type ?? file.type,
+        file_size_bytes: result.size ?? file.size,
+        is_main: form.images.length === 0,
+        sort_order: form.images.length,
+      };
+      updateForm({
+        images: normalizeImages([...form.images, nextImage]),
+      });
+      setImageUploadProgress(100);
+      setImageUploadState('done');
+    } catch (err) {
+      const message = getErrorMessage(err, '证书图片上传失败');
+      setImageUploadState('failed');
+      setImageUploadProgress(0);
+      setImageUploadError(message);
+      setFieldErrors((current) => ({ ...current, file: message }));
+    }
+  };
+
+  const setMainImage = (targetIndex: number) => {
+    const target = form.images[targetIndex];
+    if (!target) return;
+    updateForm({
+      images: normalizeImages([
+        { ...target, is_main: true, sort_order: -1 },
+        ...form.images
+          .filter((_, index) => index !== targetIndex)
+          .map((image, index) => ({ ...image, is_main: false, sort_order: index + 1 })),
+      ]),
+    });
+  };
+
+  const removeImage = (targetIndex: number) => {
+    const removed = form.images[targetIndex];
+    const remaining = form.images.filter((_, index) => index !== targetIndex);
+    if (remaining.length === 0) {
+      updateForm({ images: [] });
+      return;
+    }
+    if (!removed?.is_main) {
+      updateForm({ images: normalizeImages(remaining) });
+      return;
+    }
+    const fallbackIndex = targetIndex < remaining.length ? targetIndex : 0;
+    updateForm({
+      images: normalizeImages(
+        remaining.map((image, index) => ({ ...image, is_main: index === fallbackIndex })),
+      ),
+    });
+  };
+
   const handleSubmit = async () => {
-    if (uploadState === 'uploading') {
+    if (uploadState === 'uploading' || imageUploadState === 'uploading') {
       setError(null);
-      setFieldErrors((current) => ({ ...current, file: '证书文件上传中，请稍后保存' }));
+      setFieldErrors((current) => ({ ...current, file: '证书文件或图片上传中，请稍后保存' }));
       return;
     }
     const { payload, errors } = validateForm(form);
@@ -289,7 +391,7 @@ function CertificateFormModal({
     }
   };
 
-  const isUploading = uploadState === 'uploading';
+  const isUploading = uploadState === 'uploading' || imageUploadState === 'uploading';
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
@@ -416,7 +518,27 @@ function CertificateFormModal({
 
             <div className="brand-form-item brand-form-full">
               <span className="field-label">
-                证书文件 <span className="req">*</span>
+                证书图片 <span className="req">*</span>
+              </span>
+              <CertificateImageGrid
+                images={form.images}
+                state={imageUploadState}
+                progress={imageUploadProgress}
+                error={imageUploadError}
+                onSelectFile={(selectedFile) => void handleImageChange(selectedFile)}
+                onSetMain={setMainImage}
+                onRemove={removeImage}
+              />
+              {fieldErrors.file ? (
+                <p className="field-error" role="alert">
+                  {fieldErrors.file}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="brand-form-item brand-form-full">
+              <span className="field-label">
+                PDF / 兼容文件
               </span>
               <CertificateFileCard
                 file={form.file}
@@ -427,11 +549,6 @@ function CertificateFormModal({
                 onRemove={() => updateForm({ file: null })}
                 onSelectFile={(selectedFile) => void handleFileChange(selectedFile)}
               />
-              {fieldErrors.file ? (
-                <p className="field-error" role="alert">
-                  {fieldErrors.file}
-                </p>
-              ) : null}
             </div>
 
             <label className="certificate-check">
@@ -914,11 +1031,6 @@ export function BrandCertificateManagementPage() {
             stickyAction: true,
             render: (item) => (
               <div className="brand-actions">
-                <CertificatePreviewAction
-                  fileUrl={item.file_url}
-                  onPreview={(url) => window.open(url, '_blank', 'noopener,noreferrer')}
-                  onUnavailable={(reason) => setNotice(reason)}
-                />
                 {canMutate ? (
                   <>
                     <button type="button" className="link-btn" onClick={() => openEdit(item)}>

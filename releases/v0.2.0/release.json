@@ -1,0 +1,211 @@
+{
+  "version": "v0.2.0",
+  "release_time": "2026-07-29 10:35:40",
+  "owner": "product",
+  "summary": "TILESFST v0.2.0 发布确认已完成，范围为 sprint-013 已归档交付：4 个 REQ、4 个 BUG、8 个 OpenSpec Change。后端 pytest、Web Vitest、API 标准、OpenAPI / Orval、Docker Compose 配置、产品版本号、Mintlify broken-links 与本地 MySQL schema drift 均已通过。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release.prepare 已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v0.2.0，与发布对象版本一致。",
+  "sprints": [
+    "sprint-013"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0077-category-name-max-length-15",
+      "title": "类目名称输入最多 15 个字符",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0078-certificate-multiple-images-main-image",
+      "title": "证书支持多图上传与主图设置",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0079-admin-sku-list-published-at",
+      "title": "管理端瓷砖 SKU 列表新增发布时间列",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0080-miniapp-certificate-detail-page",
+      "title": "微信小程序新增证书详情页",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0086-miniapp-sku-detail-remark-not-shown",
+      "title": "小程序商品详情页备注说明信息没有显示",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0087-miniapp-brand-detail-product-tab-sort-order",
+      "title": "品牌详情页商品 Tab 排序未按发布时间升序和 ID 升序",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0088-admin-sku-edit-save-extra-step",
+      "title": "管理端 SKU 编辑保存成功后未直接关闭弹窗",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0089-admin-certificate-edit-image-filename-noise",
+      "title": "管理端证书编辑弹窗图片下方显示无意义文件名",
+      "sprint": "sprint-013",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "update-category-name-max-length-15",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-28-update-category-name-max-length-15"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-remark-display",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-28-fix-miniapp-sku-detail-remark-display"
+    },
+    {
+      "id": "update-certificate-multiple-images-main-image",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-28-update-certificate-multiple-images-main-image"
+    },
+    {
+      "id": "fix-miniapp-brand-detail-product-sort-order",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-28-fix-miniapp-brand-detail-product-sort-order",
+      "note": "该归档目录未发现 trace.md；正式范围由 sprint-013、BUG-0087 trace 与归档目录兜底追溯。"
+    },
+    {
+      "id": "update-admin-sku-list-published-at",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-28-update-admin-sku-list-published-at"
+    },
+    {
+      "id": "fix-admin-sku-edit-save-extra-step",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-29-fix-admin-sku-edit-save-extra-step"
+    },
+    {
+      "id": "add-miniapp-certificate-detail-page",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-29-add-miniapp-certificate-detail-page"
+    },
+    {
+      "id": "fix-admin-certificate-image-filename-noise",
+      "sprint": "sprint-013",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-29-fix-admin-certificate-image-filename-noise"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `python scripts/validate-release.py --release-dir releases/v0.2.0` 在更新前通过结构与公开安全校验；`iterations/archive/sprint-013/sprint.yaml` 为 completed/archive，8 个正式 Change 均位于 openspec/archive/，8 个 Issue trace 均为 archive/done。复核发现 `fix-miniapp-brand-detail-product-sort-order` 缺少 trace.md，且部分归档 trace frontmatter 仍为 proposed/applied/in_progress；发布范围由 release.json、sprint.yaml、Issue trace 与归档目录兜底确认，作为治理一致性已知边界记录。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `uv run pytest` 通过，435 passed / 1 skipped / 836 warnings in 125.10s；初次沙箱运行因 uv 缓存权限失败，非沙箱复跑通过。`pnpm --dir src/web test -- --run` 通过，56 files / 298 tests passed in 12.02s。跳过项为未配置目标 MySQL 的真实连接 smoke，数据库 drift 单独记录在 database_migration 门禁。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `python scripts/validate-api-standard.py` 输出“API 标准校验通过。”；`./scripts/generate-openapi-client.sh` 非沙箱执行通过，Orval v8.17.0 生成 tileApi 客户端，覆盖本版本 API / Schema 影响。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `docker compose config --quiet` 通过；本版本 impact_scope.docker 为不涉及编排变更，发布准备仍完成 Compose 配置语法校验。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:35:40: 使用 .env.mysql 指向的本地 MySQL Docker 环境执行 `uv run python ../../scripts/check-mysql-schema-drift.py --database-url \"$DATABASE_URL\" --schema-file app/db/schema.mysql.sql --json`，结果 missing_tables=[]、extra_tables=[]、missing_columns={}、extra_columns={}、expected_table_count=22、actual_table_count=22。发布前已执行 `init_database()` 幂等初始化/兼容迁移，补齐 schema.mysql.sql 要求；升级前仍需按 rollback.steps 执行数据库备份，回滚路径覆盖 tiles.published_at 与品牌证书媒体字段。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: sprint-013 范围未新增环境变量；`.env.example` 已在当前工作树中随上传/对象存储配置保持同步，`docker compose config --quiet` 通过，公告和 release.json 未包含真实密钥、DATABASE_URL 明文或 MinIO 凭据。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `src/shared/product-version.ts` 中 `PRODUCT_VERSION` 已更新为 `v0.2.0`，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-29 10:01:22: `releases/mint.json` 已加入 `v0.2.0/announcement`；在 `releases/` 下执行 `mintlify broken-links` 通过，输出 `success no broken links found`。"
+    }
+  },
+  "known_issues": [
+    "小程序证书详情页 DevTools 320/375/430 pt evidence 与真机 evidence 在 sprint-013 验收报告中仍以 blocked/follow_up 记录，发布前需人工确认是否接受该验证边界。",
+    "部分 OpenSpec Change trace frontmatter 未同步为 archived，且 fix-miniapp-brand-detail-product-sort-order 缺少 trace.md；发布范围由 sprint-013、Issue trace 与归档目录兜底追溯。"
+  ],
+  "upgrade_steps": [
+    "确认 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v0.2.0。",
+    "执行升级前备份，覆盖数据库和发布配置。",
+    "确认目标数据库已完成 schema drift / MySQL smoke 校验且无缺表缺列。",
+    "部署新版本后执行管理端类目、品牌证书、SKU 列表、小程序 SKU 详情、品牌详情商品 Tab 和证书详情页 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "发现阻断性 API / 数据库兼容问题",
+      "管理端证书图片或 SKU 发布时间数据出现不可接受异常",
+      "小程序公开端证书详情或商品详情核心展示不可用"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量和部署配置。",
+      "按数据库回滚说明处理 tiles.published_at 与品牌证书媒体字段相关变更。",
+      "复核对象存储业务引用，确认回退后不暴露未授权资源。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：类目表单长度校验、品牌证书多图与主图、SKU 发布时间列、SKU 保存成功态、证书图片文件名噪音修复。",
+    "owner_web": "不涉及：本 Sprint release-note 明确不包含店主 Web 证书详情页。",
+    "miniapp": "涉及：SKU 备注展示、品牌详情商品 Tab 排序、证书详情页、证书列表与品牌入口跳转。",
+    "backend": "涉及：类目校验、品牌证书 API / Schema / Service / Repository、公开证书详情、SKU 列表发布时间字段与品牌商品排序。",
+    "database": "涉及：tiles.published_at 与品牌证书多图 / 主图 / 排序兼容；release.prepare 需复核 MySQL schema drift 与回滚证据。",
+    "object_storage": "涉及：品牌证书图片引用校验、安全 URL 与 MinIO 单桶策略；不做对象存储物理文件删除。",
+    "docker": "不涉及编排变更；证书图片上传 Docker Web 边界需作为发布准备复核项。"
+  },
+  "announcement": "announcement.mdx",
+  "prepare_status": "ready",
+  "prepare_blockers": [],
+  "publish_status": "published",
+  "publish_attempted_at": "2026-07-29 10:35:40",
+  "publish_blockers": [],
+  "publish_notes": "v0.2.0 发布确认已记录；最终公告位置为仓库内公告源文件 releases/v0.2.0/announcement.mdx，未提供外部公告 URL。",
+  "published_at": "2026-07-29 10:35:40",
+  "publish_confirmation": {
+    "published_at": "2026-07-29 10:35:40",
+    "announcement_url": "releases/v0.2.0/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "数据库 MySQL drift 门禁已补齐并通过；记录 v0.2.0 发布确认。"
+  }
+}

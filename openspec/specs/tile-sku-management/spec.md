@@ -71,7 +71,7 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 
 ### Requirement: 管理端 SKU 列表与筛选 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页（默认 `page_size=20`，可选 10/20/50/100）、关键词模糊搜索（商品名称 `name`、系统内部编码 `sku_code`）、`brand_id`、`category_id`、`status`、`material_completeness`（`complete` | `missing_main_image` | `missing_images` | `missing_videos`）筛选。响应 MUST 包含 `items`、`pagination` 与 `summary`（SKU 总数、已上架、待完善、草稿）。列表 MUST 默认按 `updated_at` 降序。管理端列表 MUST 以商品名称作为主标题，SKU 编码仅作为内部辅助信息或检索依据，视觉层级 MUST 弱于商品名称。
+系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页（默认 `page_size=20`，可选 10/20/50/100）、关键词模糊搜索（商品名称 `name`、系统内部编码 `sku_code`）、`brand_id`、`category_id`、`status`、`material_completeness`（`complete` | `missing_main_image` | `missing_images` | `missing_videos`）筛选。响应 MUST 包含 `items`、`pagination` 与 `summary`（SKU 总数、已上架、待完善、草稿）。列表 MUST 默认按 `updated_at` 降序。管理端列表 MUST 以商品名称作为主标题，SKU 编码仅作为内部辅助信息或检索依据，视觉层级 MUST 弱于商品名称。管理端 SKU 列表 MUST 展示“发布时间”列，位置 MUST 位于“更新时间”列之前；“发布时间” MUST 使用与“更新时间”完全一致的日期时间格式、空值占位和视觉层级。系统 MUST 使用 `published_at` 表示最近一次发布成功时间，不得直接以 `updated_at` 或 `created_at` 冒充发布时间；后端 MUST 补充管理端列表响应契约并同步 OpenAPI、Orval、接口文档和测试。新增发布时间列 MUST NOT 改变现有分页、筛选、默认排序、鉴权、错误响应、加载态、空态和失败态。
 
 #### Scenario: 运营人员查询 SKU 列表
 
@@ -90,6 +90,57 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 - **THEN** 商品名称 MUST 是主标题
 - **AND** SKU 编码如展示 MUST 使用弱化内部辅助样式
 - **AND** 上架、下架、删除确认文案 MUST 使用商品名称作为确认对象主标题
+
+#### Scenario: 管理端列表展示发布时间列
+
+- **WHEN** 管理端 SKU 列表渲染表格列
+- **THEN** 页面 MUST 展示“发布时间”列
+- **AND** “发布时间”列 MUST 位于“更新时间”列之前
+- **AND** “发布时间”列的标题、单元格文字样式、对齐方式和行高 MUST 与“更新时间”列保持一致
+
+#### Scenario: 发布时间格式与更新时间一致
+
+- **WHEN** SKU 列表项包含合法发布时间
+- **THEN** 管理端 MUST 使用与“更新时间”列相同的格式化函数和时区策略展示“发布时间”
+- **AND** 若“更新时间”展示秒级时间，“发布时间”也 MUST 展示秒级时间
+
+#### Scenario: 发布时间空值占位
+
+- **WHEN** SKU 未发布、发布时间为空、字段缺失或时间不可解析
+- **THEN** 管理端 MUST 在“发布时间”列展示统一占位，例如 `-`
+- **AND** 页面 MUST NOT 展示 `null`、`undefined`、`Invalid Date` 或空白塌陷
+- **AND** 该行其他字段和操作 MUST 正常渲染
+
+#### Scenario: 发布时间字段来源明确
+
+- **WHEN** 实现管理端 SKU 列表发布时间展示
+- **THEN** 系统 MUST 使用 `published_at` 作为发布时间字段
+- **AND** `published_at` MUST 表示最近一次发布成功时间
+- **AND** 系统 MUST NOT 直接以 `updated_at` 或 `created_at` 冒充发布时间
+
+#### Scenario: 恢复上架刷新发布时间
+
+- **WHEN** 已下架 SKU 通过 `POST /api/v1/admin/tile-skus/{id}/publish` 恢复上架成功
+- **THEN** 系统 MUST 将 `published_at` 刷新为本次发布成功时间
+- **AND** 管理端列表与发布响应 MUST 返回刷新后的 `published_at`
+
+#### Scenario: 下架后发布时间响应为空
+
+- **WHEN** 已发布 SKU 通过 `POST /api/v1/admin/tile-skus/{id}/unpublish` 下架成功
+- **THEN** 系统 MAY 保留数据库中的历史 `published_at`
+- **AND** 管理端列表与下架响应 MUST 返回 `published_at: null`
+
+#### Scenario: 列表响应补充发布时间契约
+
+- **WHEN** 当前管理端 SKU 列表响应不包含发布时间字段
+- **THEN** 后端 MUST 补充响应字段并保持分页、summary、鉴权和错误响应结构不变
+- **AND** Pydantic Schema、OpenAPI、Orval、接口文档和后端/前端测试 MUST 同步更新
+
+#### Scenario: 列表行为保持
+
+- **WHEN** 新增发布时间列后，用户执行分页、关键词搜索、品牌筛选、类目筛选、状态筛选或素材完整度筛选
+- **THEN** 列表 MUST 继续按原有请求参数和默认 `updated_at` 降序行为返回结果
+- **AND** 新增列 MUST NOT 改变加载态、空态、失败态和行操作行为
 
 #### Scenario: 素材完整度筛选缺主图
 
@@ -138,7 +189,7 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 
 ### Requirement: 管理端 SKU 更新 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-skus/{id}` 与 `PUT /api/v1/admin/tile-skus/{id}`，`admin` 与 `employee` 可调用。PUT MUST 允许更新基础字段与图片/视频关联；MUST NOT 通过 PUT 直接修改 `status`（使用 publish/unpublish）。PUT MUST 要求 `reference_price` 非 null（含 `0.0`）；**MUST NOT** 因 surface_finish 留空而拒绝更新。若 PUT 变更 `spec_id` 至新规格，新规格 MUST 为 `ENABLED`；若保留原 `spec_id` 且该规格已 DISABLED，MAY 允许更新非规格字段。PUT 接收图片列表时 MUST 将提交的 images 视为该 SKU 的完整图片关联事实源；被移除图片不应继续关联到该 SKU。系统 MUST 保证同一 SKU 至多一张图片为主图，并按提交后的 `sort_order` 回填图片顺序。
+系统 MUST 提供 `GET /api/v1/admin/tile-skus/{id}` 与 `PUT /api/v1/admin/tile-skus/{id}`，`admin` 与 `employee` 可调用。PUT MUST 允许更新基础字段与图片/视频关联；MUST NOT 通过 PUT 直接修改 `status`（使用 publish/unpublish）。PUT MUST 要求 `reference_price` 非 null（含 `0.0`）；**MUST NOT** 因 surface_finish 留空而拒绝更新。若 PUT 变更 `spec_id` 至新规格，新规格 MUST 为 `ENABLED`；若保留原 `spec_id` 且该规格已 DISABLED，MAY 允许更新非规格字段。PUT 接收图片列表时 MUST 将提交的 images 视为该 SKU 的完整图片关联事实源；被移除图片不应继续关联到该 SKU。系统 MUST 保证同一 SKU 至多一张图片为主图，并按提交后的 `sort_order` 回填图片顺序。管理端 SKU 表单在创建、保存草稿或编辑成功后 MUST 直接关闭并刷新列表，MUST NOT 在弹窗内额外展示任务追踪反馈。
 
 #### Scenario: 更新 SKU 资料
 
@@ -146,6 +197,20 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 - **THEN** 系统返回 HTTP 200 与更新后 SKU 对象
 - **AND** `updated_at` MUST 已更新
 - **AND** 若含 `spec_id`，`size` MUST 同步
+
+#### Scenario: 编辑弹窗保存成功直接关闭
+
+- **WHEN** 管理端 SKU 编辑弹窗提交合法修改且更新接口返回成功
+- **THEN** 弹窗 MUST 直接关闭
+- **AND** 管理端 MUST 刷新 SKU 列表
+- **AND** 弹窗内 MUST NOT 显示“SKU 已更新”任务追踪 feedback 或复制追踪 ID 入口
+
+#### Scenario: 新增弹窗创建成功直接关闭
+
+- **WHEN** 管理端 SKU 新增弹窗提交合法创建或保存草稿且接口返回成功
+- **THEN** 弹窗 MUST 直接关闭
+- **AND** 管理端 MUST 刷新 SKU 列表
+- **AND** 弹窗内 MUST NOT 显示任务追踪 feedback 或复制追踪 ID 入口
 
 #### Scenario: 更新缺少参考价格被拒绝
 

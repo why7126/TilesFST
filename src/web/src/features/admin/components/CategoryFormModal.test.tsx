@@ -9,7 +9,7 @@ import '../styles/user-management.css';
 
 import type { TileCategoryAdminItem, TileCategoryTreeNode } from '@/shared/api/generated';
 
-import { createCategory } from '../api/tile-categories-api';
+import { createCategory, updateCategory } from '../api/tile-categories-api';
 import { CategoryFormModal } from './CategoryFormModal';
 
 const cssPath = path.join(
@@ -64,6 +64,7 @@ describe('CategoryFormModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(createCategory).mockResolvedValue({} as TileCategoryAdminItem);
+    vi.mocked(updateCategory).mockResolvedValue({} as TileCategoryAdminItem);
   });
 
   it('only offers root and level-1 parents when creating categories', () => {
@@ -169,6 +170,37 @@ describe('CategoryFormModal', () => {
 
     expect(screen.getByText('类目名称只能包含中文、英文和数字')).toBeInTheDocument();
     expect(screen.getByText('排序权重必须为正整数')).toBeInTheDocument();
+    expect(createCategory).not.toHaveBeenCalled();
+  });
+
+  it('allows 15 characters and rejects 16 characters before submit', async () => {
+    render(
+      <CategoryFormModal
+        open
+        mode="create"
+        category={null}
+        tree={tree}
+        defaultParentId={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), {
+      target: { value: '一二三四五六七八九十12345' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    await waitFor(() => expect(createCategory).toHaveBeenCalled());
+    expect(screen.queryByText('类目名称最多 15 个字符')).not.toBeInTheDocument();
+
+    vi.mocked(createCategory).mockClear();
+    fireEvent.change(screen.getByLabelText(/类目名称/), {
+      target: { value: '一二三四五六七八九十123456' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    expect(screen.getByText('类目名称最多 15 个字符')).toBeInTheDocument();
     expect(createCategory).not.toHaveBeenCalled();
   });
 

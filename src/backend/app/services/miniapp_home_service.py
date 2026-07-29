@@ -20,8 +20,12 @@ from app.schemas.miniapp_home import (
     MiniappBrandDetailData,
     MiniappBrandListData,
     MiniappCategoryChildItem,
+    MiniappCertificateBrandInfo,
+    MiniappCertificateDetailData,
     MiniappCertificateItem,
     MiniappCertificateListData,
+    MiniappCertificateMediaItem,
+    MiniappCertificateShareInfo,
     MiniappCategoryTreeData,
     MiniappCategoryTreeItem,
     MiniappHomeData,
@@ -136,6 +140,33 @@ class MiniappHomeService:
             page=page,
             page_size=page_size,
             has_more=page * page_size < total,
+        )
+
+    def get_certificate_detail(self, certificate_id: int) -> MiniappCertificateDetailData:
+        record = self._repo.get_public_certificate_detail(certificate_id)
+        if record is None:
+            raise TileSkuNotFoundError("证书暂不可查看")
+        item = self._to_certificate_item(record)
+        media = self._certificate_media_items(record)
+        share_image = next((entry.url for entry in media if entry.media_type == "image"), None)
+        return MiniappCertificateDetailData(
+            **item.model_dump(),
+            brand=MiniappCertificateBrandInfo(
+                brand_id=record.brand_id or 0,
+                brand_name=record.brand_name,
+                brand_entry_path=f"/pages/brand-detail/index?brandId={record.brand_id}",
+                available=True,
+            ),
+            media=media,
+            main_media=media[0] if media else None,
+            description=None,
+            remark=_public_remark(record.remark),
+            share=MiniappCertificateShareInfo(
+                title=f"{record.brand_name} {record.name}",
+                path=f"/pages/certificate-detail/index?certificateId={record.id}&source=share",
+                image_url=share_image,
+                summary=f"{record.brand_name} · {_certificate_type_label(record.type)}",
+            ),
         )
 
     def get_category_tree(self, *, depth: int = 2) -> MiniappCategoryTreeData:
@@ -554,7 +585,7 @@ class MiniappHomeService:
             video_count=video_count,
             category_path=_category_path(record.category_path, record.category_name),
             parameters=self._parameters(record),
-            remark=None,
+            remark=_public_remark(record.remark),
             surface_finish=record.surface_finish,
             favorite=favorite,
             same_series_recommendations=[
@@ -690,6 +721,38 @@ class MiniappHomeService:
             validity_status=status,
             validity_status_label=_VALIDITY_STATUS_LABELS[status],
         )
+
+    def _certificate_media_items(self, record) -> list[MiniappCertificateMediaItem]:
+        images = self._repo.list_public_certificate_images(record.id)
+        media = [
+            MiniappCertificateMediaItem(
+                media_id=image.id,
+                media_type="image",
+                url=image.file_url,
+                preview_url=image.file_url,
+                file_name=image.file_name,
+                file_mime_type=image.file_mime_type,
+                sort_order=image.sort_order,
+                is_main=image.is_main,
+            )
+            for image in images
+            if image.file_url
+        ]
+        if not media and record.file_url:
+            kind = _certificate_file_kind(record.file_mime_type, record.file_url, record.file_name)
+            media.append(
+                MiniappCertificateMediaItem(
+                    media_id=0,
+                    media_type=kind,  # type: ignore[arg-type]
+                    url=record.file_url,
+                    preview_url=record.file_url if kind == "image" else None,
+                    file_name=record.file_name,
+                    file_mime_type=record.file_mime_type,
+                    sort_order=0,
+                    is_main=True,
+                )
+            )
+        return media
 
     def _to_brand_card(self, record) -> MiniappBrandCard:
         return MiniappBrandCard(
@@ -972,6 +1035,13 @@ def _public_summary(value: str | None) -> str | None:
     if not cleaned:
         return None
     return cleaned[:36]
+
+
+def _public_remark(value: str | None) -> str | None:
+    cleaned = "\n".join(line.strip() for line in (value or "").splitlines()).strip()
+    if not cleaned or cleaned.lower() in {"null", "undefined"}:
+        return None
+    return cleaned
 
 
 def _target_path(entity_type: str, entity_id: int, name: str) -> str:

@@ -31,7 +31,7 @@ export function CategoryTree({
         onClick={() => onSelect(null)}
       >
         <span className="dot" aria-hidden />
-        全部类目
+        <span className="tree-name">全部类目</span>
         <span className="tree-count">{totalSku.toLocaleString('zh-CN')}</span>
       </button>
       {flat.map(({ node, level }) => (
@@ -40,9 +40,10 @@ export function CategoryTree({
           type="button"
           className={`tree-node level-${level}${selectedId === node.id ? ' active' : ''}`}
           onClick={() => onSelect(node.id)}
+          title={node.name}
         >
           <span className="dot" aria-hidden />
-          {node.name}
+          <span className="tree-name">{node.name}</span>
           <span className="tree-count">{node.sku_count.toLocaleString('zh-CN')}</span>
         </button>
       ))}
