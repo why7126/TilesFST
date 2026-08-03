@@ -20,6 +20,11 @@ vi.mock('@/features/tracking/api/usage-tracking', () => ({
   trackUsageEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
+function chooseFilterOption(label: string, optionName: string) {
+  fireEvent.click(screen.getByLabelText(label));
+  fireEvent.click(screen.getByRole('option', { name: optionName }));
+}
+
 const logListData: LogListData = {
   items: [
     {
@@ -317,7 +322,9 @@ describe('LogAuditPage', () => {
     );
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' }).closest('.log-audit-filter-actions')).toBeInTheDocument();
-    expect(screen.getByLabelText('时间范围')).toHaveValue('1d');
+    expect(screen.getByLabelText('时间范围')).toHaveClass('select');
+    expect(screen.getByLabelText('时间范围')).toHaveTextContent('最近1天');
+    fireEvent.click(screen.getByLabelText('时间范围'));
     [
       '最近5分钟',
       '最近10分钟',
@@ -334,7 +341,8 @@ describe('LogAuditPage', () => {
       expect(screen.getByRole('option', { name: label })).toBeInTheDocument();
     });
     expect(screen.queryByRole('option', { name: '全部时间' })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('状态 / 结果').tagName).toBe('SELECT');
+    fireEvent.click(screen.getByLabelText('状态 / 结果'));
+    expect(screen.getByLabelText('状态 / 结果')).toHaveClass('select');
     expect(screen.getByLabelText('路径 / Request ID')).toHaveAttribute('placeholder', '接口路径或 request_id');
     expect(screen.getByLabelText('Task Trace ID')).toHaveAttribute('placeholder', 'task_upload_video_xxx');
     expect(screen.getByRole('option', { name: '422 参数校验错误' })).toBeInTheDocument();
@@ -392,9 +400,7 @@ describe('LogAuditPage', () => {
     render(<LogAuditPage />);
     await screen.findByText('GET /api/v1/admin/logs · 200');
 
-    fireEvent.change(screen.getByLabelText('时间范围'), {
-      target: { value: '5m' },
-    });
+    chooseFilterOption('时间范围', '最近5分钟');
     await waitFor(() => {
       expect(fetchLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -438,9 +444,7 @@ describe('LogAuditPage', () => {
       );
     });
 
-    fireEvent.change(screen.getByLabelText('状态 / 结果'), {
-      target: { value: 'result:failed' },
-    });
+    chooseFilterOption('状态 / 结果', '失败');
     await waitFor(() => {
       expect(fetchLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -451,9 +455,7 @@ describe('LogAuditPage', () => {
       );
     });
 
-    fireEvent.change(screen.getByLabelText('状态 / 结果'), {
-      target: { value: 'status:500' },
-    });
+    chooseFilterOption('状态 / 结果', '500 服务异常');
     await waitFor(() => {
       expect(fetchLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -464,9 +466,7 @@ describe('LogAuditPage', () => {
       );
     });
 
-    fireEvent.change(screen.getByLabelText('状态 / 结果'), {
-      target: { value: 'status:422' },
-    });
+    chooseFilterOption('状态 / 结果', '422 参数校验错误');
     await waitFor(() => {
       expect(fetchLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({

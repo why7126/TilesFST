@@ -13,6 +13,7 @@ note: V5 采用“容器内固定、宿主机可变”的端口策略
 ```text
 Backend: 8000
 Web: 3000
+Mintlify docs-site: 3001（宿主机默认）/ 3000（容器内）
 MinIO API: 9000
 MinIO Console: 9001
 ```
@@ -30,9 +31,12 @@ MinIO Console: 9001
 ```env
 HOST_PORT_BACKEND=18080
 HOST_PORT_WEB=13000
+HOST_PORT_MINTLIFY_DOCS=13001
 ```
 
 Docker Compose 中左侧是宿主机端口，可变；右侧是容器端口，原则上不变。
+
+Mintlify 文档站服务只在启用 `docs-site` profile 时启动。容器内预览端口固定 3000，宿主机默认 `HOST_PORT_MINTLIFY_DOCS=3001`，避免与 Web 默认端口冲突。
 
 ## 3. AI禁止行为
 

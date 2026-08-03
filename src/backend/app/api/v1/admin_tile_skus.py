@@ -172,7 +172,10 @@ def list_tile_skus(
     page_size: int = Query(20, ge=1, le=100),
     keyword: str | None = Query(None),
     brand_id: int | None = Query(None),
-    category_id: int | None = Query(None),
+    category_id: int | None = Query(
+        None,
+        description="类目 ID；父类目筛选包含自身及所有子孙类目的 SKU",
+    ),
     status: str | None = Query(None),
     material_completeness: MaterialCompleteness | None = Query(None),
 ) -> ApiResponse[TileSkuAdminListData]:

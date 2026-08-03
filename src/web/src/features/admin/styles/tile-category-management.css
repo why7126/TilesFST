@@ -45,10 +45,55 @@
   font-size: 13px;
 }
 
-.admin-shell .tree-node {
+.admin-shell .tree-node-wrap {
   width: 100%;
-  min-height: 34px;
+}
+
+.admin-shell .tree-node-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
   margin: 2px 0;
+}
+
+.admin-shell .tree-node-row.level-2 {
+  padding-left: 20px;
+}
+
+.admin-shell .tree-node-row.level-3 {
+  padding-left: 40px;
+}
+
+.admin-shell .tree-toggle,
+.admin-shell .tree-toggle-spacer {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.admin-shell .tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--admin-weak);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.admin-shell .tree-toggle:hover {
+  color: var(--admin-gold);
+  background: var(--admin-gold-bg);
+}
+
+.admin-shell .tree-node {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
   padding: 0 8px;
   border-radius: 2px;
   display: flex;
@@ -73,15 +118,6 @@
   border-color: color-mix(in srgb, var(--admin-gold) 24%, transparent);
 }
 
-.admin-shell .tree-node .dot {
-  width: 13px;
-  height: 13px;
-  border: 0.5px solid currentColor;
-  border-radius: 2px;
-  opacity: 0.76;
-  flex-shrink: 0;
-}
-
 .admin-shell .tree-name {
   min-width: 0;
   flex: 1;
@@ -90,12 +126,8 @@
   white-space: nowrap;
 }
 
-.admin-shell .tree-node.level-2 {
-  padding-left: 28px;
-}
-
-.admin-shell .tree-node.level-3 {
-  padding-left: 48px;
+.admin-shell .all-categories-node {
+  padding-left: 6px;
 }
 
 .admin-shell .tree-count {

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     )
 
     object_storage_provider: str = Field(default="minio", alias="OBJECT_STORAGE_PROVIDER")
-    object_storage_endpoint: str = Field(default="minio:9000", alias="OBJECT_STORAGE_ENDPOINT")
+    object_storage_endpoint: str = Field(default="tilesfst-minio:9000", alias="OBJECT_STORAGE_ENDPOINT")
     object_storage_access_key: str = Field(default="minioadmin", alias="OBJECT_STORAGE_ACCESS_KEY")
     object_storage_secret_key: str = Field(default="minioadmin", alias="OBJECT_STORAGE_SECRET_KEY")
     object_storage_secure: bool = Field(default=False, alias="OBJECT_STORAGE_SECURE")

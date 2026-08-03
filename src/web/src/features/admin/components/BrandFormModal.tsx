@@ -67,7 +67,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
         setLogoUploadProgress(progress);
       });
       setLogoKey(result.object_key);
-      setLogoUrl(result.url);
+      setLogoUrl(result.thumbnail_url ?? result.url);
       setLogoUploadProgress(100);
       setLogoUploadState('uploaded');
     } catch (err) {
@@ -126,7 +126,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
   const isLogoUploading = logoUploadState === 'uploading';
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="brand-modal-card"
         role="dialog"
@@ -189,7 +189,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
               />
             </div>
             <div className="brand-form-item brand-form-full">
-              <span className="field-label">品牌Logo</span>
+              <span className="field-label">Logo</span>
               <div className="avatar-upload brand-logo-upload">
                 <div className="brand-logo-meta">
                   <span className="brand-logo-preview">
@@ -212,9 +212,6 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
                     <span className="brand-logo-fallback">LOGO</span>
                   </span>
                   <span>
-                    <span className="user-main">
-                      {logoUrl ? '已上传 Logo' : '品牌 Logo'}
-                    </span>
                     <span className="user-sub">支持 JPG / PNG / WebP，建议 1:1 方形图</span>
                     {isLogoUploading ? (
                       <span className="brand-logo-status">

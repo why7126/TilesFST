@@ -19,6 +19,8 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import sprint_change_batches
+import sprint_close_stale_scan
+from archive_evidence import validate_archive_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,10 +62,15 @@ class SprintReadiness:
     sprint_path: str
     changes: list[ChangeReadiness]
     change_batches: dict[str, object]
+    stale_scan: sprint_close_stale_scan.SprintCloseStaleReport
 
     @property
     def blockers(self) -> list[ChangeReadiness]:
         return [change for change in self.changes if change.blocker]
+
+    @property
+    def has_blockers(self) -> bool:
+        return bool(self.blockers) or not self.stale_scan.ok
 
 
 def read_text(path: Path) -> str:
@@ -144,50 +151,6 @@ def count_tasks(tasks_path: Path | None) -> TaskCounts:
     return TaskCounts(done=done, total=total, missing=False)
 
 
-FALLBACK_SUMMARY_FILES = ("proposal.md", "design.md", "tasks.md")
-FALLBACK_SUMMARY_REQUIREMENTS = {
-    "validation": ("验证命令", "验证结果", "测试命令", "test", "pytest", "validate"),
-    "acceptance": ("验收结论", "验收结果", "acceptance", "verdict"),
-    "issue_or_sprint_status": ("Issue", "Sprint", "REQ-", "BUG-", "状态"),
-    "archive_evidence": ("归档路径", "归档时间", "openspec/archive", "archive"),
-}
-
-
-def extract_archive_summary(text: str) -> str | None:
-    match = re.search(r"^## 归档验证摘要\s*\n(.*?)(?=^##\s+|\Z)", text, re.MULTILINE | re.DOTALL)
-    if not match:
-        return None
-    return match.group(1).strip()
-
-
-def missing_fallback_summary_items(summary: str) -> list[str]:
-    missing: list[str] = []
-    lowered = summary.lower()
-    for key, terms in FALLBACK_SUMMARY_REQUIREMENTS.items():
-        if not any(term.lower() in lowered for term in terms):
-            missing.append(key)
-    return missing
-
-
-def evaluate_fallback_summary(change_dir: Path, root: Path) -> tuple[str, str | None, list[str]]:
-    checked: list[str] = []
-    best_missing = list(FALLBACK_SUMMARY_REQUIREMENTS)
-    for name in FALLBACK_SUMMARY_FILES:
-        path = change_dir / name
-        checked.append(str(path.relative_to(root)))
-        if not path.exists():
-            continue
-        summary = extract_archive_summary(read_text(path))
-        if summary is None:
-            continue
-        missing = missing_fallback_summary_items(summary)
-        if not missing:
-            return "pass", str(path.relative_to(root)), []
-        if len(missing) < len(best_missing):
-            best_missing = missing
-    return "missing", None, best_missing or checked
-
-
 def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = None) -> SprintReadiness:
     sprint_dir = resolve_sprint_dir(root, sprint_id)
     if sprint_dir is None:
@@ -215,23 +178,18 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
         elif tasks.incomplete > 0:
             blocker = f"{tasks.incomplete} incomplete task(s)"
         elif location == "archived" and change_dir is not None:
-            trace_exists = (change_dir / "trace.md").exists()
-            if trace_exists:
+            evidence = validate_archive_evidence(change_dir, root, change_id=change_id)
+            trace_exists = evidence.trace_exists
+            if evidence.status == "trace-present":
                 fallback_summary_status = "trace-present"
+            elif evidence.status == "fallback-summary-pass":
+                fallback_summary_status = "pass"
+                fallback_summary_file = evidence.fallback_summary_file
+                fallback_summary_missing = evidence.missing_items
             else:
-                fallback_summary_status, fallback_summary_file, fallback_summary_missing = evaluate_fallback_summary(
-                    change_dir,
-                    root,
-                )
-                if fallback_summary_status != "pass":
-                    checked = ", ".join(
-                        str((change_dir / name).relative_to(root)) for name in FALLBACK_SUMMARY_FILES
-                    )
-                    missing = ", ".join(fallback_summary_missing or list(FALLBACK_SUMMARY_REQUIREMENTS))
-                    blocker = (
-                        "archived change missing trace.md and complete fallback summary "
-                        f"(checked: {checked}; missing: {missing})"
-                    )
+                fallback_summary_status = evidence.status
+                fallback_summary_missing = evidence.missing_items
+                blocker = evidence.blocker
 
         records.append(
             ChangeReadiness(
@@ -260,6 +218,8 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
         for record in records
     ]
 
+    stale_report = sprint_close_stale_scan.build_report(sprint_id, root=root)
+
     return SprintReadiness(
         sprint_id=sprint_id,
         sprint_path=str(sprint_dir.relative_to(root)),
@@ -268,6 +228,7 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
             change_batch_rows,
             ordering="archive-readiness queue",
         ),
+        stale_scan=stale_report,
     )
 
 
@@ -327,13 +288,50 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
                 f"| `{batch['batch_id']}` | {counts['changes']} | {counts['tasks_done']}/{counts['tasks_total']} | {counts['blockers']} | {batch['recommended_next_read']} |"
             )
 
+    stale = readiness.stale_scan
+    lines.extend(
+        [
+            "",
+            "## Sprint Close Stale Scan",
+            "",
+            f"- Checked Files: {stale.checked_files}",
+            f"- Blockers: {stale.blocker_count}",
+            f"- Warnings: {stale.warning_count}",
+            f"- Allowed Legacy: {stale.allowed_legacy_count}",
+            f"- Verdict: {'PASS' if stale.ok else 'BLOCKED'}",
+        ]
+    )
+    if stale.hits:
+        lines.extend(
+            [
+                "",
+                "| Severity | Kind | Target | File | Line | Reason |",
+                "|---|---|---|---|---:|---|",
+            ]
+        )
+        for hit in stale.hits:
+            lines.append(
+                f"| {hit.severity} | {hit.kind} | `{hit.target}` | `{hit.file}` | {hit.line} | {hit.reason} |"
+            )
+        lines.extend(
+            [
+                "",
+                "Fix stale Sprint close facts, then rerun:",
+                f"`python scripts/check-sprint-close-stale-scan.py --sprint {readiness.sprint_id}`",
+                "Do not hand-edit `sprint.md` workflow-sync marker blocks.",
+            ]
+        )
+
     blockers = readiness.blockers
     lines.append("")
-    if blockers and not force:
+    if readiness.has_blockers and not force:
         lines.append("**Verdict:** BLOCKED")
         lines.append("")
-        lines.append("Complete remaining `tasks.md` items via `/sprint-apply` before `/sprint-archive`.")
-    elif blockers:
+        if blockers:
+            lines.append("Complete remaining `tasks.md` items via `/sprint-apply` before `/sprint-archive`.")
+        if not stale.ok:
+            lines.append("Fix stale Sprint close facts before `/sprint-archive`.")
+    elif readiness.has_blockers:
         lines.append("**Verdict:** FORCE-PROCEED")
         lines.append("")
         lines.append("Blocked items remain and require explicit reviewer confirmation.")
@@ -346,7 +344,7 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
 def readiness_to_json(readiness: SprintReadiness, *, force: bool) -> str:
     payload = asdict(readiness)
     payload["mode"] = "force" if force else "strict"
-    payload["verdict"] = "blocked" if readiness.blockers and not force else "pass"
+    payload["verdict"] = "blocked" if readiness.has_blockers and not force else "pass"
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
@@ -373,7 +371,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(render_markdown(readiness, force=args.force))
 
-    if readiness.blockers and not args.force:
+    if readiness.has_blockers and not args.force:
         return 1
     return 0
 

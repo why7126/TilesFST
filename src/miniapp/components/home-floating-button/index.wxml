@@ -1,0 +1,12 @@
+<view
+  wx:if="{{show}}"
+  class="home-floating-area offset-{{offset}} {{navigating ? 'is-busy' : ''}}"
+  catchtap="handleReturnHome"
+  hover-class="home-floating-press"
+  aria-label="返回首页"
+>
+  <view class="home-floating-button">
+    <text class="home-floating-icon">⌂</text>
+    <text class="home-floating-label">首页</text>
+  </view>
+</view>

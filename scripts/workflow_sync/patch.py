@@ -771,6 +771,9 @@ def append_workflow_event_record(
             if change_status == "applied"
             else f"Change `{change_id}` apply 进行中，待补齐剩余验收。"
         )
+    elif event == "opsx.modify" and change_status in {"applied", "in_progress"}:
+        command = "/opsx-modify"
+        description = f"Change `{change_id}` 验收返修已同步，待复验或 archive。"
     elif event == "opsx.archive" and change_status == "archived":
         command = "/opsx-archive"
         description = f"Change `{change_id}` 已归档，状态同步完成。"

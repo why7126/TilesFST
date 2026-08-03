@@ -56,6 +56,8 @@ class MiniappBrandRecord:
     logo_object_key: str | None
     description: str | None
     product_count: int
+    leaf_category_names: list[str]
+    leaf_categories: list[dict[str, int | str]]
 
 
 @dataclass
@@ -204,11 +206,22 @@ class MiniappHomeRepository:
             .mappings()
             .all()
         )
+        categories_by_brand = self._list_public_brand_leaf_categories(
+            [int(row["id"]) for row in rows]
+        )
         total = int(
             self._db.execute(text("SELECT COUNT(*) FROM brands WHERE status = 'ENABLED'")).scalar_one()
             or 0
         )
-        return [self._to_brand(dict(row)) for row in rows], total
+        return [
+            self._to_brand(
+                {
+                    **dict(row),
+                    "leaf_categories": categories_by_brand.get(int(row["id"]), []),
+                }
+            )
+            for row in rows
+        ], total
 
     def get_public_brand(self, brand_id: int) -> MiniappBrandRecord | None:
         row = (
@@ -240,7 +253,57 @@ class MiniappHomeRepository:
             .mappings()
             .first()
         )
-        return self._to_brand(dict(row)) if row else None
+        if not row:
+            return None
+        categories_by_brand = self._list_public_brand_leaf_categories([brand_id])
+        return self._to_brand(
+            {
+                **dict(row),
+                "leaf_categories": categories_by_brand.get(brand_id, []),
+            }
+        )
+
+    def _list_public_brand_leaf_categories(
+        self, brand_ids: list[int]
+    ) -> dict[int, list[dict[str, int | str]]]:
+        if not brand_ids:
+            return {}
+        params = {f"brand_id_{index}": brand_id for index, brand_id in enumerate(brand_ids)}
+        placeholders = ", ".join(f":brand_id_{index}" for index in range(len(brand_ids)))
+        rows = (
+            self._db.execute(
+                text(
+                    f"""
+                    SELECT DISTINCT t.brand_id, c.id AS category_id, c.name AS category_name,
+                           c.sort_order
+                    FROM tiles t
+                    JOIN brands b ON b.id = t.brand_id AND b.status = 'ENABLED'
+                    JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
+                    LEFT JOIN tile_specs s ON s.id = t.spec_id
+                    WHERE t.status = 'PUBLISHED'
+                      AND (t.spec_id IS NULL OR s.status = 'ENABLED')
+                      AND t.brand_id IN ({placeholders})
+                    ORDER BY t.brand_id ASC, c.sort_order ASC, c.id ASC
+                    """
+                ),
+                params,
+            )
+            .mappings()
+            .all()
+        )
+        result: dict[int, list[dict[str, int | str]]] = {brand_id: [] for brand_id in brand_ids}
+        seen: dict[int, set[str]] = {brand_id: set() for brand_id in brand_ids}
+        for row in rows:
+            brand_id = int(row["brand_id"])
+            category_id = int(row["category_id"])
+            category_name = str(row["category_name"])
+            if category_name in seen[brand_id]:
+                continue
+            seen[brand_id].add(category_name)
+            result[brand_id].append(
+                {"category_id": category_id, "category_name": category_name}
+            )
+        return result
 
     def list_public_brand_certificates(
         self,
@@ -455,7 +518,8 @@ class MiniappHomeRepository:
         order_sql = self._product_order_sql(
             sort=sort,
             hot_first=hot_first,
-            brand_default=brand_id is not None and not only_new,
+            list_default=not only_new
+            and (brand_id is not None or category_id is not None or bool((keyword or "").strip())),
         )
         rows = (
             self._db.execute(
@@ -570,8 +634,8 @@ class MiniappHomeRepository:
                       END,
                       CASE WHEN main_image_url IS NULL THEN 1 ELSE 0 END,
                       hot_score DESC,
-                      t.updated_at DESC,
-                      t.id DESC
+                      COALESCE(t.published_at, t.created_at) ASC,
+                      t.id ASC
                     LIMIT :limit OFFSET :offset
                     """
                 ),
@@ -1091,14 +1155,14 @@ class MiniappHomeRepository:
         return "WHERE " + " AND ".join(clauses), params
 
     @staticmethod
-    def _product_order_sql(*, sort: str, hot_first: bool, brand_default: bool = False) -> str:
+    def _product_order_sql(*, sort: str, hot_first: bool, list_default: bool = False) -> str:
         if hot_first:
             return "hot_score DESC, t.updated_at DESC, t.id DESC"
         if sort == "price_asc":
             return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price ASC, t.updated_at DESC, t.id DESC"
         if sort == "price_desc":
             return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price DESC, t.updated_at DESC, t.id DESC"
-        if brand_default and sort == "default":
+        if list_default and sort == "default":
             return "COALESCE(t.published_at, t.created_at) ASC, t.id ASC"
         return "t.updated_at DESC, t.id DESC"
 
@@ -1211,6 +1275,10 @@ class MiniappHomeRepository:
             logo_object_key=row.get("logo_object_key"),
             description=row.get("description"),
             product_count=int(row["product_count"] or 0),
+            leaf_category_names=[
+                str(item["category_name"]) for item in list(row.get("leaf_categories") or [])
+            ],
+            leaf_categories=list(row.get("leaf_categories") or []),
         )
 
     @staticmethod

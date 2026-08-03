@@ -3,14 +3,20 @@
 from __future__ import annotations
 
 import logging
+from io import BytesIO
 
 from fastapi.testclient import TestClient
+from PIL import Image
 from sqlalchemy import text
 
 from app.core.config import settings
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
-from app.modules.media.storage import get_media_storage_client, resolve_media_path
+from app.modules.media.storage import (
+    get_media_storage_client,
+    resolve_media_path,
+    same_directory_thumbnail_object_key,
+)
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 
@@ -18,6 +24,13 @@ from tests.test_auth import _login, client  # noqa: F401 — re-export fixture
 def _auth_headers(client: TestClient, username: str, password: str) -> dict[str, str]:
     data = _login(client, username, password)
     return {"Authorization": f"Bearer {data['access_token']}"}
+
+
+def _image_bytes(fmt: str = "WEBP", size: tuple[int, int] = (900, 600)) -> bytes:
+    image = Image.new("RGB", size, (90, 120, 180))
+    output = BytesIO()
+    image.save(output, format=fmt)
+    return output.getvalue()
 
 
 def _create_employee() -> None:
@@ -173,7 +186,7 @@ def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> N
     upload = client.post(
         "/api/v1/admin/uploads/brand-logos",
         headers=headers,
-        files={"file": ("logo.webp", b"webp-logo", "image/webp")},
+        files={"file": ("logo.webp", _image_bytes(), "image/webp")},
     )
     assert upload.status_code == 200
     data = upload.json()["data"]
@@ -182,10 +195,17 @@ def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> N
     assert data["task_trace_id"].startswith("task_upload_image_")
     assert data["task_type"] == "upload_image"
     assert data["object_key"] in get_media_storage_client().objects
+    thumbnail_key = same_directory_thumbnail_object_key(data["object_key"])
+    assert data["thumbnail_key"] == thumbnail_key
+    assert data["thumbnail_url"] == f"/media/{thumbnail_key}"
+    assert thumbnail_key in get_media_storage_client().objects
+    assert get_media_storage_client().objects[thumbnail_key].content != get_media_storage_client().objects[
+        data["object_key"]
+    ].content
 
     media = client.get(data["url"])
     assert media.status_code == 200
-    assert media.content == b"webp-logo"
+    assert media.content == get_media_storage_client().objects[data["object_key"]].content
 
 
 def test_upload_brand_logo_records_task_trace_spans(client: TestClient) -> None:
@@ -412,12 +432,12 @@ def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> N
         ),
         (
             "/api/v1/admin/uploads/brand-logos",
-            ("logo.webp", b"logo", "image/webp"),
+            ("logo.webp", _image_bytes(), "image/webp"),
             "images/default/brands/logos/",
         ),
         (
             "/api/v1/admin/uploads/tile-images",
-            ("tile.jpg", b"tile-image", "image/jpeg"),
+            ("tile.jpg", _image_bytes("JPEG"), "image/jpeg"),
             "images/default/tiles/pending/",
         ),
         (
@@ -433,6 +453,8 @@ def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> N
         assert response.status_code == 200
         object_key = response.json()["data"]["object_key"]
         assert object_key.startswith(prefix)
+        if url.endswith(("/brand-logos", "/tile-images")):
+            assert same_directory_thumbnail_object_key(object_key) in storage.objects
         assert object_key in storage.objects
 
 

@@ -1,0 +1,101 @@
+{
+  "release_version": "v0.3.3",
+  "workflow_event": "release.prepare",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/08/02/rollout-2026-08-02T19-43-35-019fc249-5a55-7a63-a320-7c0d57ad0fec.jsonl"
+  ],
+  "generated_at": "2026-08-02T11:58:53.233687Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0088-versioned-product-usage-docs",
+      "REQ-0089-workflow-subdocument-status-sync",
+      "REQ-0090-media-five-point-acceptance-template",
+      "REQ-0091-media-bug-four-point-acceptance-template",
+      "REQ-0092-brand-certificate-image-thumbnails"
+    ],
+    "bugs": [
+      "BUG-0102-miniapp-brand-list-carousel-brand-gallery-text"
+    ],
+    "changes": [
+      "add-brand-certificate-image-thumbnails",
+      "add-media-bug-four-point-acceptance-template",
+      "add-media-five-point-acceptance-template",
+      "add-versioned-product-usage-docs",
+      "fix-miniapp-brand-list-carousel-text",
+      "improve-workflow-subdocument-status-sync"
+    ],
+    "sprints": [
+      "sprint-017"
+    ]
+  },
+  "totals": {
+    "input_tokens": 1658488,
+    "cached_input_tokens": 1582080,
+    "output_tokens": 9043,
+    "reasoning_output_tokens": 2514,
+    "total_tokens": 1667531,
+    "command_run_count": 1,
+    "model_call_count": 16,
+    "tool_call_count": 33,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "5e756ea6eb1cedc3e0cc19fbf87b667ebc627d6eb0050ef61abbd82cae072539",
+      "source_data_file": "~/.codex/sessions/2026/08/02/rollout-2026-08-02T19-43-35-019fc249-5a55-7a63-a320-7c0d57ad0fec.jsonl",
+      "source_line_start": 156,
+      "source_line_end": 298,
+      "turn_hash": "796e53df78808790",
+      "started_at": "2026-08-02T11:49:54.594Z",
+      "ended_at": "2026-08-02T11:58:49.289Z",
+      "command": "release.prepare",
+      "workflow_event": "release.prepare",
+      "requirements": [
+        "REQ-0088-versioned-product-usage-docs",
+        "REQ-0089-workflow-subdocument-status-sync",
+        "REQ-0090-media-five-point-acceptance-template",
+        "REQ-0091-media-bug-four-point-acceptance-template",
+        "REQ-0092-brand-certificate-image-thumbnails"
+      ],
+      "bugs": [
+        "BUG-0102-miniapp-brand-list-carousel-brand-gallery-text"
+      ],
+      "changes": [
+        "add-brand-certificate-image-thumbnails",
+        "add-media-bug-four-point-acceptance-template",
+        "add-media-five-point-acceptance-template",
+        "add-versioned-product-usage-docs",
+        "fix-miniapp-brand-list-carousel-text",
+        "improve-workflow-subdocument-status-sync"
+      ],
+      "sprint_id": "sprint-017",
+      "release_sprints": [
+        "sprint-017"
+      ],
+      "release_version": "v0.3.3",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 16,
+      "input_tokens": 1658488,
+      "cached_input_tokens": 1582080,
+      "output_tokens": 9043,
+      "reasoning_output_tokens": 2514,
+      "total_tokens": 1667531,
+      "tool_call_count": 33,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

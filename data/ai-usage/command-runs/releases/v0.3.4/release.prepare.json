@@ -1,0 +1,179 @@
+{
+  "release_version": "v0.3.4",
+  "workflow_event": "release.prepare",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/08/03/rollout-2026-08-03T20-51-52-019fc7ae-3d7e-7852-917e-343aad7a4966.jsonl"
+  ],
+  "generated_at": "2026-08-03T14:18:14.195782Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0093-standardize-deployment-environment-matrix",
+      "REQ-0094-mintlify-versioned-docs-directory"
+    ],
+    "bugs": [
+      "BUG-0103-admin-category-name-chinese-parentheses",
+      "BUG-0104-admin-sku-list-headers-wrap",
+      "BUG-0105-admin-brand-list-logo-renders-text",
+      "BUG-0106-admin-brand-edit-logo-uploaded-text",
+      "BUG-0107-admin-certificate-list-main-image-name-only",
+      "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+      "BUG-0109-miniapp-home-button-one-time-failure",
+      "BUG-0110-miniapp-card-banner-thumbnail-usage"
+    ],
+    "changes": [
+      "add-mintlify-versioned-docs-site",
+      "fix-admin-brand-edit-logo-uploaded-text",
+      "fix-admin-brand-list-logo-rendering",
+      "fix-admin-category-name-chinese-parentheses",
+      "fix-admin-certificate-edit-file-image-display",
+      "fix-admin-certificate-list-main-image-name-only",
+      "fix-admin-sku-list-header-wrapping",
+      "fix-miniapp-card-banner-thumbnail-usage",
+      "fix-miniapp-home-navigation-repeat-click",
+      "standardize-deployment-environment-matrix"
+    ],
+    "sprints": [
+      "sprint-018"
+    ]
+  },
+  "totals": {
+    "input_tokens": 1976774,
+    "cached_input_tokens": 1848576,
+    "output_tokens": 8756,
+    "reasoning_output_tokens": 1624,
+    "total_tokens": 1985530,
+    "command_run_count": 2,
+    "model_call_count": 22,
+    "tool_call_count": 50,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "1bdabd0e3d1bbe9bdc38387ce4da8feebb9baf10b50ad559a7335e53e73f4c84",
+      "source_data_file": "~/.codex/sessions/2026/08/03/rollout-2026-08-03T20-51-52-019fc7ae-3d7e-7852-917e-343aad7a4966.jsonl",
+      "source_line_start": 130,
+      "source_line_end": 285,
+      "turn_hash": "0e3c66d508e252ff",
+      "started_at": "2026-08-03T13:28:03.413Z",
+      "ended_at": "2026-08-03T13:37:01.143Z",
+      "command": "release.prepare",
+      "workflow_event": "release.prepare",
+      "requirements": [
+        "REQ-0093-standardize-deployment-environment-matrix",
+        "REQ-0094-mintlify-versioned-docs-directory"
+      ],
+      "bugs": [
+        "BUG-0103-admin-category-name-chinese-parentheses",
+        "BUG-0104-admin-sku-list-headers-wrap",
+        "BUG-0105-admin-brand-list-logo-renders-text",
+        "BUG-0106-admin-brand-edit-logo-uploaded-text",
+        "BUG-0107-admin-certificate-list-main-image-name-only",
+        "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+        "BUG-0109-miniapp-home-button-one-time-failure",
+        "BUG-0110-miniapp-card-banner-thumbnail-usage"
+      ],
+      "changes": [
+        "add-mintlify-versioned-docs-site",
+        "fix-admin-brand-edit-logo-uploaded-text",
+        "fix-admin-brand-list-logo-rendering",
+        "fix-admin-category-name-chinese-parentheses",
+        "fix-admin-certificate-edit-file-image-display",
+        "fix-admin-certificate-list-main-image-name-only",
+        "fix-admin-sku-list-header-wrapping",
+        "fix-miniapp-card-banner-thumbnail-usage",
+        "fix-miniapp-home-navigation-repeat-click",
+        "standardize-deployment-environment-matrix"
+      ],
+      "sprint_id": "sprint-018",
+      "release_sprints": [
+        "sprint-018"
+      ],
+      "release_version": "v0.3.4",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "low",
+      "reasoning_summary": "detailed",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 17,
+      "input_tokens": 1469111,
+      "cached_input_tokens": 1372544,
+      "output_tokens": 6931,
+      "reasoning_output_tokens": 1468,
+      "total_tokens": 1476042,
+      "tool_call_count": 39,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "1bdabd0e3d1bbe9bdc38387ce4da8feebb9baf10b50ad559a7335e53e73f4c84",
+      "source_data_file": "~/.codex/sessions/2026/08/03/rollout-2026-08-03T20-51-52-019fc7ae-3d7e-7852-917e-343aad7a4966.jsonl",
+      "source_line_start": 306,
+      "source_line_end": 349,
+      "turn_hash": "31582a72a8a294e7",
+      "started_at": "2026-08-03T14:08:26.765Z",
+      "ended_at": "2026-08-03T14:09:59.052Z",
+      "command": "release.prepare",
+      "workflow_event": "release.prepare",
+      "requirements": [
+        "REQ-0093-standardize-deployment-environment-matrix",
+        "REQ-0094-mintlify-versioned-docs-directory"
+      ],
+      "bugs": [
+        "BUG-0103-admin-category-name-chinese-parentheses",
+        "BUG-0104-admin-sku-list-headers-wrap",
+        "BUG-0105-admin-brand-list-logo-renders-text",
+        "BUG-0106-admin-brand-edit-logo-uploaded-text",
+        "BUG-0107-admin-certificate-list-main-image-name-only",
+        "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+        "BUG-0109-miniapp-home-button-one-time-failure",
+        "BUG-0110-miniapp-card-banner-thumbnail-usage"
+      ],
+      "changes": [
+        "add-mintlify-versioned-docs-site",
+        "fix-admin-brand-edit-logo-uploaded-text",
+        "fix-admin-brand-list-logo-rendering",
+        "fix-admin-category-name-chinese-parentheses",
+        "fix-admin-certificate-edit-file-image-display",
+        "fix-admin-certificate-list-main-image-name-only",
+        "fix-admin-sku-list-header-wrapping",
+        "fix-miniapp-card-banner-thumbnail-usage",
+        "fix-miniapp-home-navigation-repeat-click",
+        "standardize-deployment-environment-matrix"
+      ],
+      "sprint_id": "sprint-018",
+      "release_sprints": [
+        "sprint-018"
+      ],
+      "release_version": "v0.3.4",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 5,
+      "input_tokens": 507663,
+      "cached_input_tokens": 476032,
+      "output_tokens": 1825,
+      "reasoning_output_tokens": 156,
+      "total_tokens": 509488,
+      "tool_call_count": 11,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ class BrandAdminItem(BaseModel):
     english_name: str | None = None
     logo_object_key: str | None = None
     logo_url: str | None = None
+    logo_thumbnail_url: str | None = None
     description: str | None = None
     status: str
     sku_count: int

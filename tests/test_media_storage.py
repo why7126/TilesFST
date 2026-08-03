@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from io import BytesIO
+
+import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from app.core.config import settings
 from app.core.exceptions import AppError
@@ -11,11 +15,92 @@ from app.modules.media.storage import (
     S3CompatibleMediaStorageClient,
     StoredMediaObject,
     TencentCOSMediaStorageClient,
+    generate_image_thumbnail,
     get_media_file_response,
     get_media_head_response,
     get_media_storage_client,
+    same_directory_thumbnail_object_key,
     set_media_storage_client,
 )
+
+
+def _image_bytes(
+    fmt: str,
+    size: tuple[int, int],
+    *,
+    mode: str = "RGB",
+    color: tuple[int, ...] = (90, 120, 180),
+) -> bytes:
+    image = Image.new(mode, size, color)
+    output = BytesIO()
+    save_kwargs: dict[str, object] = {"format": fmt}
+    if fmt == "JPEG":
+        save_kwargs["quality"] = 95
+    if fmt == "WEBP":
+        save_kwargs["quality"] = 95
+    image.save(output, **save_kwargs)
+    return output.getvalue()
+
+
+def test_generate_image_thumbnail_resizes_large_image_and_changes_bytes() -> None:
+    original = _image_bytes("JPEG", (1200, 800), color=(120, 30, 200))
+
+    thumbnail = generate_image_thumbnail(original, "image/jpeg", max_width=480, max_height=480)
+
+    assert thumbnail.width <= 480
+    assert thumbnail.height <= 480
+    assert thumbnail.width < thumbnail.original_width
+    assert thumbnail.height < thumbnail.original_height
+    assert thumbnail.content != original
+    assert thumbnail.size < len(original)
+    assert thumbnail.content_type == "image/jpeg"
+
+
+@pytest.mark.parametrize(
+    ("fmt", "content_type", "size"),
+    [
+        ("JPEG", "image/jpeg", (900, 300)),
+        ("PNG", "image/png", (300, 900)),
+        ("WEBP", "image/webp", (900, 900)),
+    ],
+)
+def test_generate_image_thumbnail_supports_common_formats(
+    fmt: str,
+    content_type: str,
+    size: tuple[int, int],
+) -> None:
+    original = _image_bytes(fmt, size)
+
+    thumbnail = generate_image_thumbnail(original, content_type, max_width=360, max_height=360)
+
+    assert thumbnail.width <= 360
+    assert thumbnail.height <= 360
+    assert thumbnail.content != original
+    assert thumbnail.content_type == content_type
+
+
+def test_generate_image_thumbnail_does_not_upscale_small_images() -> None:
+    original = _image_bytes("PNG", (120, 80))
+
+    thumbnail = generate_image_thumbnail(original, "image/png", max_width=480, max_height=480)
+
+    assert (thumbnail.width, thumbnail.height) == (120, 80)
+    assert thumbnail.resized is False
+
+
+def test_generate_image_thumbnail_preserves_transparent_png_alpha() -> None:
+    original = _image_bytes("PNG", (640, 320), mode="RGBA", color=(90, 120, 180, 0))
+
+    thumbnail = generate_image_thumbnail(original, "image/png", max_width=320, max_height=320)
+
+    with Image.open(BytesIO(thumbnail.content)) as image:
+        assert image.mode in {"LA", "RGBA", "P"}
+        assert image.getpixel((0, 0))[-1] == 0
+
+
+def test_generate_image_thumbnail_rejects_invalid_image_bytes() -> None:
+    with pytest.raises(ValueError):
+        generate_image_thumbnail(b"not-an-image", "image/jpeg")
 
 
 class _MemoryMediaStorageClient:
@@ -117,6 +202,83 @@ def test_media_file_response_falls_back_to_migrated_legacy_tile_image_key() -> N
         "original/default/tiles/2/images/2026/06/816a4aea-97dc-4464-beeb-2354fd42cf9b.png",
         "images/default/tiles/2/816a4aea-97dc-4464-beeb-2354fd42cf9b.png",
     ]
+
+
+def test_media_file_response_falls_back_from_thumbnail_to_original_key() -> None:
+    png_bytes = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+    storage = _MemoryMediaStorageClient.from_objects(
+        {
+            "original/default/tiles/1/images/2026/06/1.png": StoredMediaObject(
+                png_bytes,
+                "image/png",
+            )
+        }
+    )
+    set_media_storage_client(storage)
+    try:
+        response = get_media_file_response(
+            "thumbnails/default/tiles/1/images/2026/06/1.png"
+        )
+    finally:
+        set_media_storage_client(None)
+
+    assert response.media_type == "image/png"
+    assert response.headers["cache-control"].startswith("public, max-age=604800")
+    assert response.headers["etag"].startswith('W/"')
+    assert storage.requested_keys == [
+        "thumbnails/default/tiles/1/images/2026/06/1.png",
+        "default/tiles/1/images/2026/06/1.png",
+        "original/default/tiles/1/images/2026/06/1.png",
+    ]
+
+
+def test_same_directory_thumbnail_key_uses_filename_suffix() -> None:
+    assert (
+        same_directory_thumbnail_object_key("images/default/tiles/pending/abc.jpg")
+        == "images/default/tiles/pending/abc.thumb.jpg"
+    )
+    assert (
+        same_directory_thumbnail_object_key("images/default/tiles/42/abc.webp")
+        == "images/default/tiles/42/abc.thumb.webp"
+    )
+
+
+def test_media_file_response_falls_back_from_same_directory_thumbnail_to_original() -> None:
+    jpg_bytes = b"\xff\xd8\xff" + b"\x00" * 16
+    storage = _MemoryMediaStorageClient.from_objects(
+        {
+            "images/default/tiles/pending/abc.jpg": StoredMediaObject(
+                jpg_bytes,
+                "image/jpeg",
+            )
+        }
+    )
+    set_media_storage_client(storage)
+    try:
+        response = get_media_file_response("images/default/tiles/pending/abc.thumb.jpg")
+    finally:
+        set_media_storage_client(None)
+
+    assert response.media_type == "image/jpeg"
+    assert storage.requested_keys == [
+        "images/default/tiles/pending/abc.thumb.jpg",
+        "images/default/tiles/pending/abc.jpg",
+    ]
+
+
+def test_media_head_response_returns_image_cache_headers() -> None:
+    png_bytes = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+    storage = _MemoryMediaStorageClient.from_objects(
+        {"images/default/tiles/1/1.png": StoredMediaObject(png_bytes, "image/png")}
+    )
+    set_media_storage_client(storage)
+    try:
+        response = get_media_head_response("images/default/tiles/1/1.png")
+    finally:
+        set_media_storage_client(None)
+
+    assert response.headers["cache-control"].startswith("public, max-age=604800")
+    assert response.headers["etag"].startswith('W/"')
 
 
 def test_media_file_response_returns_partial_content_for_video_range() -> None:
@@ -367,8 +529,8 @@ def test_s3_compatible_storage_enables_virtual_host_flag_for_custom_provider() -
         client = S3CompatibleMediaStorageClient()
         sdk_client = client._get_client()
         url = sdk_client._base_url.build(
-            "PUT",
-            "ap-guangzhou",
+            method="PUT",
+            region="ap-guangzhou",
             bucket_name="tiles-cos-123",
             object_name="images/default/a.webp",
         )

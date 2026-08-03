@@ -16,6 +16,12 @@ from app.core.error_codes import BANNER_SCHEMA_DRIFT
 from app.db.migrations import BANNER_SCOPE_DELETE_CONDITION, _cleanup_legacy_banner_scope
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory
+from app.modules.media import storage as media_storage
+from app.modules.media.storage import (
+    ImageThumbnailResult,
+    get_media_storage_client,
+    same_directory_thumbnail_object_key,
+)
 from app.repositories.banner_repository import BannerRepository
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login
@@ -595,7 +601,7 @@ def test_topics_list(client: TestClient) -> None:
     assert all(item["status"] == "ENABLED" for item in items)
 
 
-def test_banner_image_upload(client: TestClient) -> None:
+def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     png_bytes = (
         b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
@@ -603,6 +609,21 @@ def test_banner_image_upload(client: TestClient) -> None:
         b"\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01"
         b"\x0d\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
     )
+
+    def fake_thumbnail(content: bytes, content_type: str | None) -> ImageThumbnailResult:
+        return ImageThumbnailResult(
+            content=b"banner-thumbnail",
+            content_type=content_type or "image/png",
+            width=1,
+            height=1,
+            original_width=1,
+            original_height=1,
+            original_size=len(content),
+            size=len(b"banner-thumbnail"),
+            resized=False,
+        )
+
+    monkeypatch.setattr(media_storage, "generate_image_thumbnail", fake_thumbnail)
     response = client.post(
         "/api/v1/admin/uploads/banner-images",
         headers=headers,
@@ -613,6 +634,10 @@ def test_banner_image_upload(client: TestClient) -> None:
     assert data["object_key"].startswith(f"{settings.object_storage_prefix_images.rstrip('/')}/")
     assert "banners" in data["object_key"]
     assert data["url"].startswith("/media/")
+    thumbnail_key = same_directory_thumbnail_object_key(data["object_key"])
+    assert data["thumbnail_key"] == thumbnail_key
+    assert data["thumbnail_url"] == f"/media/{thumbnail_key}"
+    assert thumbnail_key in get_media_storage_client().objects
 
 
 def test_banner_image_upload_rejects_invalid_type(client: TestClient) -> None:

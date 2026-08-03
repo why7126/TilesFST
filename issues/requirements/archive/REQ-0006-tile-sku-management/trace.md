@@ -10,7 +10,7 @@ status: done
 lifecycle_stage: archive
 note: /req-review approved
 readiness: ready
-updated_at: 2026-07-29 08:04:51
+updated_at: 2026-08-03 09:14:33
 ---
 
 # 需求追踪
@@ -198,4 +198,8 @@ lifecycle:
 | BUG-0018-tile-sku-modal-video-upload-display | high | done | fix-tile-sku-modal-video-upload-display | SKU弹窗商品视频上传后未即时回显文件卡片 |
 | BUG-0020-tile-sku-modal-video-upload-413 | high | done | fix-tile-sku-modal-video-upload-413 | SKU弹窗视频上传返回413 Request Entity Too Large |
 | BUG-0038-tile-sku-modal-spec-hint-styling | low | done | fix-tile-sku-modal-spec-hint-styling | SKU弹窗规格字段下方提示字号过大且颜色不当 |
-| BUG-0088-admin-sku-edit-save-extra-step | medium | done | fix-admin-sku-edit-save-extra-step | 管理端 SKU 编辑保存成功后未直接关闭弹窗 |
+| BUG-0088-admin-sku-edit-save-extra-step | medium | done | — | 管理端 SKU 编辑保存成功后未直接关闭弹窗 |
+| BUG-0090-admin-sku-list-publish-sort-order | medium | done | — | 管理端 SKU 列表默认排序未按发布状态使用业务时间 |
+| BUG-0096-admin-sku-category-filter-only-top-level | medium | done | — | 管理后台瓷砖 SKU 页类目筛选只能选择一级类目 |
+| BUG-0097-admin-sku-material-main-image-tag-redundant | low | done | — | 管理后台瓷砖 SKU 素材列不应显示冗余的主图已设标签 |
+| BUG-0104-admin-sku-list-headers-wrap | low | done | fix-admin-sku-list-header-wrapping | 管理后台 SKU 列表表头字段换行 |

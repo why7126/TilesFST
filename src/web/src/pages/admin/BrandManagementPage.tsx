@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import { AdminListPage } from '@/shared/templates';
 import type { BrandAdminItem, BrandAdminListData } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 
 import {
   canDeleteBrand,
@@ -20,6 +21,7 @@ import {
   brandStatusLabel,
   formatBrandDateTime,
   getBrandInitials,
+  getBrandLogoSrc,
 } from '@/features/admin/lib/brand-display';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/brand-management.css';
@@ -173,22 +175,18 @@ export function BrandManagementPage() {
           {
             id: 'brand-filter-status',
             label: '状态',
+            className: 'admin-filter-dropdown',
             control: (
-              <select
+              <AdminFilterSelect
                 id="brand-filter-status"
-                className="select"
                 value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
+                options={BRAND_STATUS_OPTIONS}
+                listLabel="品牌状态选项"
+                onChange={(nextStatus) => {
+                  setStatus(nextStatus);
                   setPage(1);
                 }}
-              >
-                {BRAND_STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              />
             ),
           },
         ],
@@ -196,28 +194,34 @@ export function BrandManagementPage() {
           {
             key: 'brand',
             header: '品牌',
-            render: (brand) => (
-              <div className="brand-cell">
-                <div className="brand-logo">
-                  {brand.logo_url ? (
-                    <img
-                      src={brand.logo_url}
-                      alt=""
-                      onError={(event) => {
-                        event.currentTarget.closest('.brand-logo')?.classList.add('is-fallback');
-                      }}
-                    />
-                  ) : null}
-                  <span className="brand-logo-fallback">{getBrandInitials(brand.name)}</span>
+            render: (brand) => {
+              const logoSrc = getBrandLogoSrc(brand);
+              return (
+                <div className="brand-cell">
+                  <div className="brand-logo" aria-label={`${brand.name} Logo`}>
+                    {logoSrc ? (
+                      <img
+                        src={logoSrc}
+                        alt=""
+                        aria-hidden="true"
+                        onError={(event) => {
+                          event.currentTarget
+                            .closest('.brand-logo')
+                            ?.classList.add('is-fallback');
+                        }}
+                      />
+                    ) : null}
+                    <span className="brand-logo-fallback">{getBrandInitials(brand.name)}</span>
+                  </div>
+                  <div>
+                    <div className="brand-name">{brand.name}</div>
+                    {brand.description ? (
+                      <div className="brand-sub">{brand.description.slice(0, 24)}</div>
+                    ) : null}
+                  </div>
                 </div>
-                <div>
-                  <div className="brand-name">{brand.name}</div>
-                  {brand.description ? (
-                    <div className="brand-sub">{brand.description.slice(0, 24)}</div>
-                  ) : null}
-                </div>
-              </div>
-            ),
+              );
+            },
           },
           { key: 'short_name', header: '品牌简称', render: (brand) => brand.short_name || '—' },
           { key: 'english_name', header: '英文名称', render: (brand) => brand.english_name || '—' },
@@ -315,7 +319,6 @@ export function BrandManagementPage() {
         <div
           className="modal-backdrop"
           role="presentation"
-          onClick={() => setStatusConfirmTarget(null)}
         >
           <div
             className="modal-card"
@@ -357,7 +360,7 @@ export function BrandManagementPage() {
           ) : null}
 
           {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"

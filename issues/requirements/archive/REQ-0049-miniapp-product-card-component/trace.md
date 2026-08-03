@@ -3,7 +3,7 @@ requirement_id: REQ-0049-miniapp-product-card-component
 status: done
 priority: P1
 created_at: 2026-07-19 12:04:38
-updated_at: 2026-07-19 22:34:01
+updated_at: 2026-07-31 21:31:51
 lifecycle:
   captured: 2026-07-19 12:04:38
   generated: 2026-07-19 12:30:20
@@ -79,3 +79,10 @@ lifecycle_stage: archive
 | 2026-07-19 12:04:38 | /req-capture | 捕获需求：微信小程序商品卡片组件 |
 
 - 2026-07-19 22:27:49 workflow-sync：状态同步为 done（Change archived）
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0092-miniapp-card-images-slow-load | high | done | — | 小程序体验版商品卡片图片加载很慢 |
+| BUG-0094-miniapp-list-images-not-loading-after-speed-fix | high | done | fix-miniapp-product-card-thumbnails | 小程序商品列表图片加载优化后全部显示暂无图片 |

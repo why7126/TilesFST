@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0085 小程序返回首页悬浮按钮原型</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.56);
+      --weak: rgba(237, 232, 223, 0.28);
+      --gold: #c8a055;
+      --line: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--deep);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .stage {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .phones {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(240px, 320px));
+      gap: 20px;
+      width: min(1080px, 100%);
+      align-items: start;
+    }
+
+    .phone {
+      position: relative;
+      overflow: hidden;
+      min-height: 640px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 28px;
+      background: var(--page);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    .status {
+      height: 34px;
+      padding: 11px 18px 0;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .nav {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+    }
+
+    .back {
+      position: absolute;
+      left: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+    }
+
+    .capsule {
+      position: absolute;
+      right: 14px;
+      width: 72px;
+      height: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .title {
+      max-width: 132px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 16px;
+      padding-bottom: 108px;
+    }
+
+    .hero {
+      aspect-ratio: 1.2;
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.16), rgba(255, 255, 255, 0.04)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 12px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .section {
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .kicker {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .heading {
+      margin-top: 8px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .muted {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, rgba(200, 160, 85, 0.25), rgba(255, 255, 255, 0.05));
+      flex: 0 0 auto;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(237, 232, 223, 0.16);
+      margin-top: 7px;
+    }
+
+    .tabbar,
+    .actionbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 72px;
+      padding: 10px 16px 22px;
+      background: rgba(16, 15, 10, 0.94);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .tabbar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .tabbar span:first-child {
+      color: var(--gold);
+    }
+
+    .actionbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .button {
+      height: 42px;
+      border-radius: 3px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .button.primary {
+      background: var(--gold);
+      color: var(--deep);
+      border-color: var(--gold);
+    }
+
+    .home-fab {
+      position: absolute;
+      right: 16px;
+      bottom: 96px;
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(200, 160, 85, 0.45);
+      border-radius: 999px;
+      background: rgba(33, 30, 22, 0.92);
+      color: var(--gold);
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.36);
+    }
+
+    .home-fab::before {
+      content: "";
+      width: 16px;
+      height: 13px;
+      border: 2px solid currentColor;
+      border-top: 0;
+      position: absolute;
+      top: 14px;
+    }
+
+    .home-fab::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      width: 17px;
+      height: 17px;
+      border-left: 2px solid currentColor;
+      border-top: 2px solid currentColor;
+      transform: rotate(45deg);
+    }
+
+    .home-fab span {
+      transform: translateY(12px);
+    }
+
+    .fab-list {
+      bottom: 28px;
+    }
+
+    .empty {
+      min-height: 190px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      padding: 20px;
+    }
+
+    .label {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.34);
+      color: var(--muted);
+      font-size: 10px;
+      z-index: 2;
+    }
+
+    @media (max-width: 880px) {
+      .phones {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .phone {
+        width: min(320px, 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="phones" aria-label="小程序返回首页悬浮按钮原型">
+      <article class="phone">
+        <div class="label">首页：隐藏</div>
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <div class="title">TilesFST</div>
+          <div class="capsule">·· ·</div>
+        </div>
+        <div class="content">
+          <div class="hero"></div>
+          <div class="section">
+            <div class="kicker">HOME</div>
+            <div class="heading">瓷砖选材首页</div>
+            <div class="muted">首页不展示返回首页悬浮按钮，避免重复入口。</div>
+          </div>
+          <div class="section list">
+            <div class="row"><div class="thumb"></div><div style="flex:1"><div class="bar"></div><div class="bar" style="width:72%"></div></div></div>
+            <div class="row"><div class="thumb"></div><div style="flex:1"><div class="bar"></div><div class="bar" style="width:58%"></div></div></div>
+          </div>
+        </div>
+        <div class="tabbar"><span>首页</span><span>分类</span><span>品牌</span><span>我的</span></div>
+      </article>
+
+      <article class="phone">
+        <div class="label">详情页：上移避让操作区</div>
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <div class="back">‹</div>
+          <div class="title">商品详情</div>
+          <div class="capsule">·· ·</div>
+        </div>
+        <div class="content">
+          <div class="hero"></div>
+          <div class="section">
+            <div class="kicker">PRODUCT</div>
+            <div class="heading">罗马洞石柔光砖</div>
+            <div class="muted">悬浮按钮位于右下侧，但避让底部固定咨询与分享操作。</div>
+          </div>
+          <div class="section">
+            <div class="bar"></div>
+            <div class="bar" style="width:88%"></div>
+            <div class="bar" style="width:62%"></div>
+          </div>
+        </div>
+        <button class="home-fab" aria-label="返回首页"><span>首页</span></button>
+        <div class="actionbar">
+          <div class="button">分享</div>
+          <div class="button primary">咨询</div>
+        </div>
+      </article>
+
+      <article class="phone">
+        <div class="label">列表/错误态：可恢复入口</div>
+        <div class="status"><span>9:41</span><span>100%</span></div>
+        <div class="nav">
+          <div class="back">‹</div>
+          <div class="title">搜索结果</div>
+          <div class="capsule">·· ·</div>
+        </div>
+        <div class="content">
+          <div class="section">
+            <div class="kicker">FILTER</div>
+            <div class="heading">灰色通体砖</div>
+            <div class="muted">筛选、列表和加载更多不被悬浮按钮遮挡。</div>
+          </div>
+          <div class="section empty">
+            <div>
+              <div class="heading">网络暂时不可用</div>
+              <div class="muted">错误态仍可返回首页，避免用户困在深层页面。</div>
+            </div>
+          </div>
+        </div>
+        <button class="home-fab fab-list" aria-label="返回首页"><span>首页</span></button>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-07-26 17:45:00
+updated_at: 2026-08-04 00:27:20
 owner: 项目团队
 status: draft
 ---
@@ -37,17 +37,17 @@ linux/amd64
 
 ## 2. 交付包目录
 
-发布产物建议放在项目目录外，避免大镜像包进入 Git 工作区。例如：
+发布产物 MUST 放在项目目录外，避免大镜像包进入 Git 工作区。默认约定为项目根目录的同级 `../releases/<version>/images/`：
 
 ```bash
-export RELEASE_DIR="$HOME/CodeSpaces/Projects/ProjectTilesFST/releases/v0.0.1"
+export RELEASE_DIR="../releases/v0.0.1"
 mkdir -p "$RELEASE_DIR/images"
 ```
 
 当前已验证的本地发布产物目录为：
 
 ```text
-~/CodeSpaces/Projects/ProjectTilesFST/releases/v0.0.1/
+../releases/v0.0.1/
 ```
 
 对外交付时可将该目录整体打包或重命名为：
@@ -115,11 +115,43 @@ docker buildx inspect --bootstrap
 
 本次实际构建中，先创建 `tilesfst-builder`，遇到 BuildKit 状态查询超时后，通过 `docker buildx rm tilesfst-builder` 清理并重新创建 builder 后继续构建。
 
-## 4. 脚本化构建镜像包
+## 4. 发布镜像治理命令
+
+正式产品发布涉及后端运行代码、Web 构建产物、Dockerfile、Compose、构建脚本、构建 env、数据库 schema / migration、API / Orval 构建输入或离线镜像交付时，发布流程必须把镜像证据纳入 `releases/<version>/`。
+
+推荐命令顺序：
+
+```text
+/release-propose <version>
+  → /release-prepare <version>
+  → /image-prepare <version>
+  → /image-build <version>
+  → /release-publish <version>
+```
+
+`/image-prepare <version>` 生成或更新：
+
+```text
+releases/<version>/image-build-plan.json
+```
+
+该计划记录 release、Dockerfile、Compose、`deploy/**/*.yml`、`deploy/**/*.env.example`、`deploy/scripts/*`、构建脚本、构建 env 示例、Nginx、schema、migration、数据库文档等输入文件及 hash。`/image-prepare` 可以从示例创建本地 `scripts/build-images.env`，并自动把安全白名单变量 `IMAGE_BUILD_TAG` 对齐到发布版本；Compose 中 `TILESFST_IMAGE_TAG` 的 fallback 默认值与当前版本不同但实际发布 env 明确设置版本时，只记录 warning。Docker 不可用、构建 env 示例异常或自动修正后仍版本不一致时，prepare 可以记录 blocker，但不能把镜像准备门禁写成 pass。
+
+`/image-build <version>` 必须读取有效且未过期的 plan，再复用 `scripts/build-images.sh` 执行真实镜像构建、基础验证、离线包导出和 sha256 生成。成功后生成：
+
+```text
+releases/<version>/image-manifest.json
+```
+
+`image-manifest.json` 留在仓库内作为可 Review 的发布证据；真实离线镜像包和 `.sha256` 默认放在仓库外 `../releases/<version>/images/`。manifest 校验必须确认 manifest 中的 tarball sha256、同目录 `.sha256` sidecar 和实际 tarball sha256 三者一致。
+
+发布确认阶段会重新比对 manifest 中的版本、image tag、source plan、input hash、tarball 路径和 checksum；如果 Dockerfile、Compose、deploy Compose、deploy env 示例、deploy 脚本、构建脚本、schema、migration、公告或 release input 在 manifest 生成后发生变化，必须重新 prepare/build，或记录经批准的外部构建证据。
+
+## 5. 脚本化构建镜像包
 
 推荐使用 `scripts/build-images.sh` + env 文件完成后端镜像、Web 镜像、基础验证、离线包导出和 sha256 校验文件生成。
 
-准备构建配置：
+准备构建配置。常规发布可直接运行 `/image-prepare <version>` 自动创建本地 env 并对齐 `IMAGE_BUILD_TAG`；手动准备时使用：
 
 ```bash
 cp scripts/build-images.env.example scripts/build-images.env
@@ -138,7 +170,7 @@ IMAGE_BUILD_WEB_IMAGE=tilesfst-web
 IMAGE_BUILD_EXPORT_TAR=true
 ```
 
-`IMAGE_BUILD_RELEASE_DIR` 默认推导为 `../releases/${IMAGE_BUILD_TAG}`，`IMAGE_BUILD_TAR_NAME` 默认推导为 `tilesfst-${IMAGE_BUILD_TAG}-${IMAGE_BUILD_PLATFORM//\//-}.tar.gz`；常规发版只需修改 `IMAGE_BUILD_TAG`。
+`IMAGE_BUILD_RELEASE_DIR` 默认推导为仓库外 `../releases/${IMAGE_BUILD_TAG}`，`IMAGE_BUILD_TAR_NAME` 默认推导为 `tilesfst-${IMAGE_BUILD_TAG}-${IMAGE_BUILD_PLATFORM//\//-}.tar.gz`；常规发版只需由 `/image-prepare <version>` 或人工修改 `IMAGE_BUILD_TAG`。
 
 执行构建：
 
@@ -169,7 +201,7 @@ IMAGE_BUILD_EXPORT_TAR=true
 
 `scripts/build-images.env` 为本地构建配置，禁止提交；可提交的示例文件是 `scripts/build-images.env.example`。若构建环境访问 Docker Hub 不稳定，可将 `BACKEND_PYTHON_BASE_IMAGE`、`WEB_NODE_BASE_IMAGE`、`WEB_NGINX_BASE_IMAGE` 改为可访问的镜像源地址，脚本会通过 `--build-arg` 传给 Dockerfile。
 
-## 5. 手工参考：构建后端镜像
+## 6. 手工参考：构建后端镜像
 
 在项目根目录执行：
 
@@ -204,7 +236,14 @@ docker run --rm tilesfst-backend:v0.0.1 \
   uv run --no-sync python -c "import fastapi, sqlalchemy, pymysql, minio; print('backend deps ok')"
 ```
 
-## 6. 手工参考：构建 Web 镜像
+包含 SKU 图片真实缩略图生成的版本还应验证 Pillow 运行依赖：
+
+```bash
+docker run --rm tilesfst-backend:v0.0.1 \
+  uv run --no-sync python -c "import PIL; print('pillow ok')"
+```
+
+## 7. 手工参考：构建 Web 镜像
 
 在项目根目录执行：
 
@@ -244,7 +283,7 @@ linux/amd64
 docker run --rm tilesfst-web:v0.0.1 nginx -t
 ```
 
-## 7. 手工参考：导出离线镜像包
+## 8. 手工参考：导出离线镜像包
 
 创建交付目录：
 
@@ -281,7 +320,7 @@ shasum -a 256 tilesfst-v0.0.1-linux-amd64.tar.gz > tilesfst-v0.0.1-linux-amd64.t
 
 说明：`docker load` 支持直接加载 gzip 压缩的镜像包，服务器无需手动解压。
 
-### 7.1 本次已验证的端到端构建命令
+### 8.1 本次已验证的端到端构建命令
 
 以下命令为本次 `tilesfst-release-v0.0.1` 构建验证使用的完整流水，已将 shell 历史中的换行转义整理为可直接复制执行的格式：
 
@@ -331,7 +370,7 @@ ls
 shasum -a 256 tilesfst-v0.0.1-linux-amd64.tar.gz > tilesfst-v0.0.1-linux-amd64.tar.gz.sha256
 ```
 
-## 8. 交付版 docker-compose.yml
+## 9. 交付版 docker-compose.yml
 
 交付版 `docker-compose.yml` 使用 `image:`，不使用 `build:`：
 
@@ -339,7 +378,7 @@ shasum -a 256 tilesfst-v0.0.1-linux-amd64.tar.gz > tilesfst-v0.0.1-linux-amd64.t
 services:
   # FastAPI 后端服务
   # 生产环境只连接外部 MySQL 和外部 MinIO，不在本 compose 内启动数据库/对象存储
-  backend:
+  tilesfst-backend:
     image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:?Set TILESFST_IMAGE_TAG}
     container_name: tilesfst-backend
 
@@ -405,8 +444,8 @@ services:
       - tilesfst
 
   # Web 前端服务
-  # Nginx 托管 React 静态资源，并反向代理 /api/ 和 /media/ 到 backend
-  web:
+  # Nginx 托管 React 静态资源，并反向代理 /api/ 和 /media/ 到 tilesfst-backend
+  tilesfst-web:
     image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:?Set TILESFST_IMAGE_TAG}
     container_name: tilesfst-web
 
@@ -417,7 +456,7 @@ services:
       - "${HOST_PORT_WEB:-127.0.0.1:3000}:80"
 
     depends_on:
-      - backend
+      - tilesfst-backend
 
     networks:
       - tilesfst
@@ -427,7 +466,7 @@ networks:
     driver: bridge
 ```
 
-## 9. 服务器 .env 示例
+## 10. 服务器 .env 示例
 
 在云服务器交付目录中创建 `.env`，不要提交真实 `.env`：
 
@@ -479,7 +518,7 @@ HOST_PORT_WEB=127.0.0.1:3000
 - `MINIO_SECURE=true` 表示 HTTPS；HTTP 内网对象存储使用 `false`。
 - 外部 MinIO 必须提前创建 `MINIO_BUCKET`，并授予当前 AccessKey 读写权限。
 
-## 10. 云服务器部署步骤
+## 11. 云服务器部署步骤
 
 上传交付包到服务器，例如：
 
@@ -500,6 +539,8 @@ cd images
 shasum -a 256 -c tilesfst-v0.0.1-linux-amd64.tar.gz.sha256
 cd ..
 ```
+
+校验通过时输出 MUST 为 `tilesfst-v0.0.1-linux-amd64.tar.gz: OK`。如果失败，先确认 tar 包和 `.sha256` 是否来自同一次 `/image-build`；不得混用旧 tar 包、新 sidecar 或旧 manifest。以 `releases/<version>/image-manifest.json` 中当前 `tarball.sha256` 为唯一发布 sha。
 
 加载镜像：
 
@@ -535,11 +576,11 @@ docker compose up -d
 
 ```bash
 docker compose ps
-docker compose logs web --tail=100
-docker compose logs backend --tail=100
+docker compose logs tilesfst-web --tail=100
+docker compose logs tilesfst-backend --tail=100
 ```
 
-## 11. 冒烟验证
+## 12. 冒烟验证
 
 验证 Web 容器：
 
@@ -556,27 +597,27 @@ HTTP/1.1 200 OK
 验证后端健康：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/health').read().decode())"
+docker compose exec tilesfst-backend uv run --no-sync python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/health').read().decode())"
 ```
 
 验证后端读取到的 MinIO 配置：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "from app.core.config import settings; print('endpoint=', settings.minio_endpoint); print('secure=', settings.minio_secure); print('bucket=', settings.minio_bucket); print('access_key=', settings.minio_access_key)"
+docker compose exec tilesfst-backend uv run --no-sync python -c "from app.core.config import settings; print('endpoint=', settings.minio_endpoint); print('secure=', settings.minio_secure); print('bucket=', settings.minio_bucket); print('access_key=', settings.minio_access_key)"
 ```
 
-注意：若输出仍为 `endpoint= minio:9000`、`access_key= minioadmin`，说明 `.env` 未正确配置为外部 MinIO，上传会返回 `502 对象存储不可用`。
+注意：若输出仍为 `endpoint= tilesfst-minio:9000`、`access_key= minioadmin`，说明 `.env` 未正确配置为外部 MinIO，上传会返回 `502 对象存储不可用`。
 
 验证外部 MinIO bucket：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); print('bucket_exists=', c.bucket_exists(settings.minio_bucket))"
+docker compose exec tilesfst-backend uv run --no-sync python -c "from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); print('bucket_exists=', c.bucket_exists(settings.minio_bucket))"
 ```
 
 验证对象写入权限：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "from io import BytesIO; from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); c.put_object(settings.minio_bucket, 'tmp/healthcheck.txt', BytesIO(b'ok'), length=2, content_type='text/plain'); print('put ok')"
+docker compose exec tilesfst-backend uv run --no-sync python -c "from io import BytesIO; from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); c.put_object(settings.minio_bucket, 'tmp/healthcheck.txt', BytesIO(b'ok'), length=2, content_type='text/plain'); print('put ok')"
 ```
 
 通过浏览器验证：
@@ -588,7 +629,7 @@ docker compose exec backend uv run --no-sync python -c "from io import BytesIO; 
 5. 确认头像 URL `/media/images/...` 可显示。
 6. 创建或编辑用户，确认用户列表刷新正常。
 
-## 12. 宿主机 Nginx 接入
+## 13. 宿主机 Nginx 接入
 
 当前容器部署流程已验证，宿主机 Nginx 反代尚未完成验证。若云服务器已有其他项目占用 80/443，推荐使用独立子域名，例如：
 
@@ -628,7 +669,7 @@ systemctl reload nginx
 
 生产建议只在安全组开放 80/443，不长期开放 3000。
 
-## 13. 常见问题
+## 14. 常见问题
 
 ### 12.1 公网 IP:3000 访问不了
 
@@ -666,15 +707,15 @@ docker compose up -d
 先查看后端实际配置：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "from app.core.config import settings; print(settings.minio_endpoint, settings.minio_secure, settings.minio_bucket, settings.minio_access_key)"
+docker compose exec tilesfst-backend uv run --no-sync python -c "from app.core.config import settings; print(settings.minio_endpoint, settings.minio_secure, settings.minio_bucket, settings.minio_access_key)"
 ```
 
-若仍是 `minio:9000` 或 `minioadmin`，说明 `.env` 未替换为外部 MinIO 配置。
+若仍是 `tilesfst-minio:9000` 或 `minioadmin`，说明 `.env` 未替换为外部 MinIO 配置。
 
 再检查 bucket：
 
 ```bash
-docker compose exec backend uv run --no-sync python -c "from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); print(c.bucket_exists(settings.minio_bucket))"
+docker compose exec tilesfst-backend uv run --no-sync python -c "from app.core.config import settings; from minio import Minio; c=Minio(settings.minio_endpoint, access_key=settings.minio_access_key, secret_key=settings.minio_secret_key, secure=settings.minio_secure); print(c.bucket_exists(settings.minio_bucket))"
 ```
 
 常见原因：
@@ -708,7 +749,7 @@ docker compose exec backend uv run --no-sync python -c "from app.core.config imp
 
 浏览器开发者工具中查看 `POST /api/v1/admin/users` 的 Response，可看到具体字段错误。
 
-## 14. 已验证与待验证
+## 15. 已验证与待验证
 
 已验证：
 
@@ -716,7 +757,7 @@ docker compose exec backend uv run --no-sync python -c "from app.core.config imp
 - `linux/amd64` Web 镜像构建。
 - 镜像导出为 `tilesfst-v0.0.1-linux-amd64.tar.gz` 并生成 `.sha256`。
 - 镜像包在云服务器加载。
-- `docker compose up -d` 启动 backend 与 web。
+- `docker compose up -d` 启动 tilesfst-backend 与 tilesfst-web。
 - 服务器本机 `curl -I http://127.0.0.1:3000` 返回 200。
 - 管理端登录、用户列表、头像上传、媒体读取、用户资料更新。
 - 外部 MinIO 配置修正后，上传与读取 `/media/...` 正常。

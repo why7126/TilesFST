@@ -1,0 +1,264 @@
+{
+  "version": "v0.3.0",
+  "release_time": "2026-07-31 08:33:28",
+  "owner": "product",
+  "summary": "TILESFST v0.3.0 发布准备已执行，范围为 sprint-014 已归档交付：5 个 REQ、4 个 BUG、9 个 OpenSpec Change。OpenSpec specs、API 标准、OpenAPI / Orval、Web Vitest、Docker Compose、目录结构和 Mintlify broken-links 已校验；image-build-plan.json 已生成但存在 tag mismatch blockers，当前仍因全量 pytest 中 4 个小程序相关失败、image plan blockers 与缺少 image-manifest.json 而阻断 publish。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release.prepare 已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v0.3.0，与发布对象版本一致。",
+  "image_required": true,
+  "image_required_rationale": "sprint-014 范围涉及后端运行代码、Web 构建输入、小程序前端、对象存储图片链路、Docker/镜像发布治理与发布校验脚本；按 rules/release.md 必须执行 image prepare / image build 门禁。",
+  "image_tag": "v0.3.0",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "当前未提供受控外部构建证据；如后续采用外部构建，必须记录来源、版本、image tag、平台、digest 或 tarball sha256、校验方式、负责人确认和风险说明。"
+  },
+  "sprints": [
+    "sprint-014"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0081-release-image-build-governance",
+      "title": "发布镜像准备与构建治理",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0082-admin-category-name-special-characters",
+      "title": "管理后台瓷砖类目名称允许特殊字符",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0083-miniapp-brand-list-category-summary",
+      "title": "小程序品牌列表页按品牌单行展示类目汇总",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0084-web-modal-disable-outside-close",
+      "title": "Web 端所有弹窗禁用点击空白区域自动关闭",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0085-miniapp-global-home-floating-button",
+      "title": "小程序非首页页面新增返回首页全局悬浮按钮",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0090-admin-sku-list-publish-sort-order",
+      "title": "管理端 SKU 列表默认排序未按发布状态使用业务时间",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0091-miniapp-product-list-sort-consistency",
+      "title": "小程序搜索商品结果页与分类商品列表页排序需与品牌详情页一致",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0092-miniapp-card-images-slow-load",
+      "title": "小程序体验版商品卡片图片加载很慢",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0093-miniapp-category-secondary-grid-name-full-display",
+      "title": "小程序分类页二级类目卡片 3 列布局导致名称未完整显示",
+      "sprint": "sprint-014",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "update-release-image-build-governance",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-29-update-release-image-build-governance"
+    },
+    {
+      "id": "update-admin-category-name-special-characters",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-update-admin-category-name-special-characters"
+    },
+    {
+      "id": "update-miniapp-brand-list-category-summary",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-update-miniapp-brand-list-category-summary"
+    },
+    {
+      "id": "update-web-modal-disable-outside-close",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-update-web-modal-disable-outside-close"
+    },
+    {
+      "id": "fix-miniapp-card-image-loading",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-miniapp-card-image-loading"
+    },
+    {
+      "id": "fix-miniapp-category-secondary-grid-name-display",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-30-fix-miniapp-category-secondary-grid-name-display"
+    },
+    {
+      "id": "add-miniapp-global-home-floating-button",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-add-miniapp-global-home-floating-button"
+    },
+    {
+      "id": "fix-miniapp-product-list-sort-consistency",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-30-fix-miniapp-product-list-sort-consistency"
+    },
+    {
+      "id": "fix-admin-sku-list-publish-sort-order",
+      "sprint": "sprint-014",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-admin-sku-list-publish-sort-order"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-31 08:33:28: `iterations/archive/sprint-014/sprint.yaml` 为 completed/archive；`release-note.md` 标记范围内 9 个 Change 均 archived；`acceptance-report.md` 记录 5 个 REQ、4 个 BUG 均 done 且 Sprint 已关闭；`openspec validate --specs --strict` 41 passed；`python scripts/validate-directory-structure.py` 通过。"
+    },
+    "tests": {
+      "status": "na",
+      "rationale": "2026-07-31 08:35:10: `uv run pytest` 已执行，结果 4 failed / 446 passed / 1 skipped / 868 warnings，未达到 prepare 通过标准；失败分类：fixture_schema_drift：`test_miniapp_category_tree_returns_public_two_level_data`、`test_miniapp_category_tree_allows_empty_children`，分类树测试 fixture / seed ID 与当前数据契约冲突；product_regression：`test_miniapp_track_literal_events_are_registered_in_backend_dictionary` 缺少 `brand_list_category_click` 后端事件字典注册，`test_miniapp_runtime_js_avoids_preview_incompatible_syntax` 发现 `src/miniapp/pages/brand-list/index.js` 使用 optional chaining，不兼容小程序预览静态门禁。`pnpm --dir src/web test -- --run` 通过，57 files / 305 tests passed。发布前必须修复或明确风险接受，当前不得发布。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-31 08:34:16: `python scripts/validate-api-standard.py` 输出“API 标准校验通过。”；`./scripts/generate-openapi-client.sh` 非沙箱重跑通过，Orval v8.17.0 生成 `tileApi`。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-31 08:35:10: `docker compose -f docker-compose.prod.yml config --quiet` 与 `docker compose -f docker-compose.prod.external.yml config --quiet` 均通过；本版本仍需在 /image-prepare 与 /image-build 中补齐镜像发布证据。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "sprint-014 release-note 未声明数据库 schema 或 migration 变更；BUG-0092 提到对象引用一致性审计与媒体链路优化，但未进入数据库结构变更。/release-prepare 阶段如发现 schema/migration/input hash 影响，必须改为 pass 并补充 MySQL 或 schema.mysql.sql、schema drift 或目标 MySQL smoke、回滚/备份证据。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "sprint-014 release-note 未声明新增环境变量；发布镜像治理涉及构建 env 示例和镜像命令，/release-prepare 与 /image-prepare 阶段需复核 .env.example 与 build-images.env.example 未泄露真实配置。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-31 08:33:28: `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 已更新为 `v0.3.0`，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-31 08:35:10: `releases/mint.json` 已加入 `v0.3.0/announcement`；在 `releases/` 下执行 `mintlify broken-links` 通过，输出 `success no broken links found`。"
+    },
+    "image_prepare": {
+      "status": "na",
+      "rationale": "image_required=true；`/image-prepare v0.3.0` 已生成并校验 `releases/v0.3.0/image-build-plan.json`，但计划包含 5 个 blocker：`scripts/build-images.env` 中 IMAGE_BUILD_TAG 为 v0.2.0，两个生产 Compose 文件中的 TILESFST_IMAGE_TAG 默认值仍为 v0.0.4。修复后需重新执行 `/image-prepare v0.3.0`。"
+    },
+    "image_build": {
+      "status": "na",
+      "rationale": "image_required=true；尚未执行 `/image-build v0.3.0`，因此 `releases/v0.3.0/image-manifest.json` 尚未生成。"
+    }
+  },
+  "known_issues": [
+    "小程序品牌列表、返回首页悬浮按钮、分类页二级类目展示、商品卡片图片加载的 DevTools 多尺寸、真机或体验版 Network evidence 在 sprint-014 验收报告中仍以 follow_up 记录，发布前需补录或继续标明不可用原因。",
+    "全量 `uv run pytest` 仍有 4 个失败：2 个分类树 fixture/schema drift、1 个事件字典缺失、1 个小程序 JS optional chaining 兼容问题；发布前需修复或形成明确风险接受结论。",
+    "image_required=true；image-build-plan.json 已生成但存在 tag mismatch blockers，image-manifest.json 尚未生成；需修复 tag 后重新执行 image prepare，再执行 image build。"
+  ],
+  "upgrade_steps": [
+    "执行 `/image-prepare v0.3.0`，生成并校验 image-build-plan.json。",
+    "执行 `/image-build v0.3.0`，基于有效构建计划生成 image-manifest.json。",
+    "部署前完成数据库和发布配置备份。",
+    "部署后执行管理端类目、SKU 列表、Web 弹窗、小程序品牌列表、商品排序、商品卡片图片、分类页和返回首页悬浮按钮 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "发现阻断性 API、数据、媒体或权限问题",
+      "小程序公开端商品图片、品牌列表、分类页或导航核心路径不可用",
+      "管理端类目或 SKU 列表核心维护路径不可用",
+      "镜像构建或发布证据与当前输入不一致"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "按数据库回滚说明处理数据变更；本计划阶段未声明 schema/migration 变更。",
+      "复核对象存储公开访问边界和媒体 URL 降级行为，确认回退后不暴露未授权资源。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：类目名称特殊字符创建/编辑/展示、标准弹窗外部点击不关闭、SKU 列表默认排序。",
+    "owner_web": "涉及：Web 展示端标准 Dialog / Modal 外部点击不关闭；不改变店主端业务数据模型。",
+    "miniapp": "涉及：品牌列表单行类目汇总、全局返回首页悬浮按钮、商品列表排序一致性、商品卡片图片加载优化、分类页二级类目两列完整展示。",
+    "backend": "涉及：类目校验、公开品牌列表聚合字段、公开 SKU 图片 URL 与列表排序、管理端 SKU 列表排序、媒体读取缓存或观测相关路径。",
+    "database": "不涉及",
+    "object_storage": "涉及：商品卡片图片缩略图优先、缺图降级、对象引用一致性审计和媒体访问缓存；不引入小程序直连未授权对象存储。",
+    "docker": "涉及：发布镜像准备与构建治理、Compose 配置校验、镜像 plan/manifest 输入 hash 与门禁；需执行 image prepare/build。"
+  },
+  "announcement": "announcement.mdx",
+  "prepare_status": "blocked",
+  "prepare_attempted_at": "2026-07-31 08:54:01",
+  "prepare_blockers": [
+    {
+      "gate": "tests",
+      "classification": "fixture_schema_drift",
+      "summary": "`uv run pytest` 中 `test_miniapp_category_tree_returns_public_two_level_data` 与 `test_miniapp_category_tree_allows_empty_children` 失败，分类树 fixture / seed ID 与当前数据契约冲突。",
+      "recommended_action": "同步 `tests/test_miniapp_home.py` 分类树 fixture、共享 seed 或测试隔离策略，避免固定 ID 与基础 seed 冲突。"
+    },
+    {
+      "gate": "tests",
+      "classification": "product_regression",
+      "summary": "`test_miniapp_track_literal_events_are_registered_in_backend_dictionary` 失败，缺少 `brand_list_category_click` 后端事件字典注册。",
+      "recommended_action": "补齐小程序品牌列表类目点击事件在后端事件字典 / 契约测试中的注册。"
+    },
+    {
+      "gate": "tests",
+      "classification": "product_regression",
+      "summary": "`test_miniapp_runtime_js_avoids_preview_incompatible_syntax` 失败，`src/miniapp/pages/brand-list/index.js` 使用 optional chaining。",
+      "recommended_action": "替换小程序运行时代码中的 optional chaining，保持体验版预览兼容。"
+    },
+    {
+      "gate": "image_prepare",
+      "classification": "release_config_mismatch",
+      "summary": "`python scripts/validate-image-build.py prepare --release v0.3.0` 已生成 `releases/v0.3.0/image-build-plan.json` 且 `validate-plan` 通过，但 plan.blockers 记录 IMAGE_BUILD_TAG=v0.2.0 与 release v0.3.0 不一致，且生产 Compose 默认 TILESFST_IMAGE_TAG=v0.0.4。",
+      "recommended_action": "将本地 `scripts/build-images.env` 的 IMAGE_BUILD_TAG 调整为 v0.3.0，并按发布策略同步或显式豁免 `docker-compose.prod*.yml` 的默认 tag 后重新执行 `/image-prepare v0.3.0`。"
+    },
+    {
+      "gate": "image_build",
+      "classification": "missing_release_evidence",
+      "summary": "`python scripts/validate-release.py --release-dir releases/v0.3.0` 失败，缺少 `releases/v0.3.0/image-manifest.json`。",
+      "recommended_action": "在 image plan 有效且无阻断项后执行 `/image-build v0.3.0`。"
+    }
+  ]
+}

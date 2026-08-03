@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from io import BytesIO
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
-from app.modules.media.storage import StoredMediaObject, set_media_storage_client
+from app.modules.media.storage import (
+    StoredMediaObject,
+    same_directory_thumbnail_object_key,
+    set_media_storage_client,
+)
 
 
 @dataclass
@@ -27,6 +33,13 @@ def _admin_headers(client: TestClient) -> dict[str, str]:
     )
     assert response.status_code == 200
     return {"Authorization": f"Bearer {response.json()['data']['access_token']}"}
+
+
+def _image_bytes(fmt: str = "WEBP", size: tuple[int, int] = (900, 600)) -> bytes:
+    image = Image.new("RGB", size, (90, 120, 180))
+    output = BytesIO()
+    image.save(output, format=fmt)
+    return output.getvalue()
 
 
 def _create_brand(client: TestClient, headers: dict[str, str], name: str = "蒙娜丽莎") -> int:
@@ -201,8 +214,14 @@ def test_brand_certificate_saves_images_main_order_and_image_only_fallback(
     assert create.status_code == 200
     data = create.json()["data"]
     assert data["file_key"] == "files/default/brand-certificates/cover.webp"
+    assert data["thumbnail_url"] == "/media/files/default/brand-certificates/cover.thumb.webp"
     assert data["main_image"]["file_name"] == "cover.webp"
+    assert data["main_image"]["thumbnail_url"] == "/media/files/default/brand-certificates/cover.thumb.webp"
     assert [image["file_name"] for image in data["images"]] == ["cover.webp", "page-2.webp"]
+    assert [image["thumbnail_url"] for image in data["images"]] == [
+        "/media/files/default/brand-certificates/cover.thumb.webp",
+        "/media/files/default/brand-certificates/page-2.thumb.webp",
+    ]
     assert [image["sort_order"] for image in data["images"]] == [0, 1]
     assert [image["is_main"] for image in data["images"]] == [True, False]
 
@@ -297,9 +316,25 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         data = pdf.json()["data"]
         assert data["file_key"].endswith(".pdf")
         assert data["file_url"] == data["url"]
+        assert data["thumbnail_key"] is None
+        assert data["thumbnail_url"] is None
         assert data["mime_type"] == "application/pdf"
         assert data["size"] == 8
         assert data["file_key"] in storage.objects
+
+        image = api_client.post(
+            "/api/v1/admin/uploads/brand-certificates",
+            headers=headers,
+            files={"file": ("certificate.webp", _image_bytes(), "image/webp")},
+        )
+        assert image.status_code == 200
+        image_data = image.json()["data"]
+        thumbnail_key = same_directory_thumbnail_object_key(image_data["file_key"])
+        assert image_data["thumbnail_key"] == thumbnail_key
+        assert image_data["thumbnail_url"] == f"/media/{thumbnail_key}"
+        assert image_data["file_key"] in storage.objects
+        assert thumbnail_key in storage.objects
+        assert storage.objects[thumbnail_key].content != storage.objects[image_data["file_key"]].content
 
         invalid = api_client.post(
             "/api/v1/admin/uploads/brand-certificates",

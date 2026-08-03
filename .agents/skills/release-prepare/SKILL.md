@@ -39,6 +39,7 @@ rules/testing.md
 rules/agent-context-budget.md
 releases/<version>/release.json
 releases/templates/announcement.mdx
+releases/templates/usage-docs/
 src/shared/product-version.ts
 ```
 
@@ -67,15 +68,27 @@ Prepare MUST verify and record evidence for each applicable gate in `release.jso
 | `env_example` | Env changes have `.env.example` evidence, or `na` rationale. |
 | `product_version` | `PRODUCT_VERSION` equals release version, or rationale is explicit. |
 | `mintlify_preview` | Mintlify build/preview or equivalent static MDX safety check evidence. |
+| `usage_docs_preview` | First confirm whether usage docs are required. If generated, validate manifest/navigation/safety/coverage. If skipped, record rationale and do not create an empty `usage-docs/` directory. Pending confirmation blocks readiness. |
+| `image_prepare` | When `image_required=true`, `releases/<version>/image-build-plan.json` exists, validates, and is referenced by release metadata. |
+| `image_build` | In prepare, record `na` with a blocker / next step when `releases/<version>/image-manifest.json` is not yet generated; publish is the stage that requires manifest or approved external build evidence. |
 
 Do not write `status: pass` without concrete command/path/time evidence.
+
+When release scope includes backend runtime, Web build output, Dockerfile, Compose, build env, image build scripts, database schema / migration, API / Orval generated client, or offline image delivery:
+
+- Set or keep `image_required=true` in `release.json`.
+- Require `/image-prepare <version>` evidence before marking prepare complete.
+- Point to `/image-build <version>` when a built image or offline tarball must be delivered.
+- Do not execute the heavy image build from `/release-prepare` by default.
 
 ## Commands
 
 Required structural and safety validation:
 
 ```bash
-python scripts/validate-release.py --release-dir releases/<version>
+python scripts/validate-release.py --release-dir releases/<version> --stage prepare
+python scripts/validate-usage-docs.py --release-dir releases/<version>  # only after usage_docs.status is generated or skipped
+python scripts/validate-image-build.py validate-plan --release <version>
 ```
 
 Run additional checks according to release scope. Common commands:
@@ -93,6 +106,27 @@ Only run expensive or environment-dependent checks when they match release scope
 
 If `impact_scope.database` is not `none` / `na` / `不涉及`, `database_migration` MUST be `pass` and its evidence MUST explicitly mention MySQL or `schema.mysql.sql`, a schema drift / target MySQL smoke check, and database rollback or backup evidence. Do not paste raw `DATABASE_URL` or credentials into release artifacts.
 
+## Usage Docs Decision（MUST）
+
+Before generating or validating current-version product usage docs, ask the user whether this release needs usage docs generation or update. Do not infer confirmation from the presence of user-visible changes alone.
+
+- If user confirms **needed**:
+  - Ensure `release.json usage_docs.generation_decision.required=true`, `confirmed_at`, `confirmed_by`, and `rationale` are recorded.
+  - Run `/usage-docs-generate <version>` or `python scripts/generate-usage-docs.py <version>`.
+  - Update `releases/mint.json` navigation for the generated pages.
+  - Run `/usage-docs-validate <version>` or `python scripts/validate-usage-docs.py --release-dir releases/<version>`.
+  - Set `gates.usage_docs_preview.status=pass` only with concrete command/path/time evidence.
+- If user confirms **not needed**:
+  - Run `python scripts/generate-usage-docs.py <version> --skip --rationale "<reason>" --confirmed-by "<source>"` or equivalent.
+  - Keep `releases/<version>/usage-docs/` absent.
+  - Set `gates.usage_docs_preview.status=na` with rationale.
+- If user has **not confirmed**:
+  - Set or keep `usage_docs.status=pending_confirmation`.
+  - Do not create `usage-docs/`.
+  - Record a blocker or pending item; do not mark publish ready.
+
+Usage docs and release metadata MUST be public-safe: no real `.env` content, database connection strings, secrets, Authorization headers, Cookies, object storage credentials, production private domains, local absolute paths, or real customer data.
+
 ## Artifacts（非 `--dry-run` MUST）
 
 Create or update:
@@ -100,13 +134,21 @@ Create or update:
 ```text
 releases/<version>/release.json
 releases/<version>/announcement.mdx
+releases/<version>/usage-docs/**  # only when user confirmed generation is needed
 ```
 
 Announcement MUST include version, release time, related Sprint, new features, bug fixes, release notes, known issues, upgrade steps, rollback instructions, and impact scope. It MUST be public-safe.
 
 ## Output
 
-Report version, gate status summary, commands run, updated files, blockers, and whether publish is ready. If ready, next command:
+Report version, gate status summary, commands run, updated files, blockers, and whether publish is ready. If `usage_docs.status=pending_confirmation`, the output MUST explicitly list both unblock paths:
+
+```text
+python scripts/generate-usage-docs.py <version>
+python scripts/generate-usage-docs.py <version> --skip --confirmed-by operator --rationale "<why usage docs are not needed for this release>"
+```
+
+If ready, next command:
 
 ```text
 /release-publish <version>

@@ -34,10 +34,12 @@ Flags：`--severity blocker|critical|high|medium|low`（单条时；拆分时按
 
 ## Steps
 
-1. 读 `rules/bug-management.md`、`issues/bugs/_registry.yaml`
+1. 读 `rules/bug-management.md`、`rules/issues-lifecycle.md`、`issues/bugs/_registry.yaml`
 2. **评估并拆分**（见下节）
-3. 为每条 BUG 分配 ID、创建 capture + trace、更新 registry
-4. 输出 Capture 摘要（多条用表格）
+3. 分配 ID 前扫描 `issues/bugs/{plan,review,archive}/BUG-*`，确认 `BUG-NNNN` 短编号未被任一阶段占用；不得只信 `_registry.yaml`
+4. 为每条 BUG 分配 ID、创建非空 capture + trace、更新 registry
+5. 运行 `python scripts/validate-directory-structure.py`，确认无空 BUG 包和跨阶段重复短编号
+6. 输出 Capture 摘要（多条用表格）
 
 ---
 

@@ -140,7 +140,7 @@ note: 由 AI 初稿生成，须人工 Review 后改为 published
 
 - **后端**：REQ-0018 覆盖 MySQL schema/admin seed/API；REQ-0024 多轮 `test_product_usage_logging.py` 与 `test_auth.py`。
 - **前端**：接口文档页回归最高频，REQ-0023 多轮 19 tests；BUG-0055 覆盖 9 files / 49 tests，并追加全量相关测试 43 files / 193 tests。
-- **构建/部署**：BUG-0051 记录 Web build 与 `docker compose build web`，REQ-0018 记录外部 MySQL + MinIO smoke。
+- **构建/部署**：BUG-0051 记录 Web build 与 `docker compose build tilesfst-web`，REQ-0018 记录外部 MySQL + MinIO smoke。
 - **缺口**：BUG-0054 的浏览器视觉验收因当前环境缺少可启动浏览器保持 pending；REQ-0024 / BUG-0054 tasks 未全部勾选但已归档。
 
 ### 归档质量

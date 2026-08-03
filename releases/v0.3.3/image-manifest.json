@@ -1,0 +1,49 @@
+{
+  "version": "v0.3.3",
+  "image_tag": "v0.3.3",
+  "built_at": "2026-08-02 21:08:21",
+  "platform": "linux/amd64",
+  "backend_image": {
+    "name": "tilesfst-backend",
+    "tag": "v0.3.3",
+    "ref": "tilesfst-backend:v0.3.3"
+  },
+  "web_image": {
+    "name": "tilesfst-web",
+    "tag": "v0.3.3",
+    "ref": "tilesfst-web:v0.3.3"
+  },
+  "tarball": {
+    "path": "../releases/v0.3.3/images/tilesfst-v0.3.3-linux-amd64.tar.gz",
+    "sha256": "b18bc20e054bfb0aa3482ec315e936f8bff7105791700f7eddb09321acb9f486",
+    "exists": true
+  },
+  "input_hashes": {
+    "releases/v0.3.3/announcement.mdx": "9e50e654b97cff87bb266d178c014ea069e8ca031e28ce8b565f4b770c5b6549",
+    "src/shared/product-version.ts": "4099d88930430be52297cf1901e51af56f0af3367c8985147a6c4ca042d05d55",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "95478d7a6ecffb86742d2cc43e5b507a1b9f27c90b783b74f42e2e48957e7f92",
+    "docker-compose.prod.yml": "fd3a5f6dff4f2b145c10e50f9f4db9b84fc78cff692039645f9817a8fc7f9a65",
+    "docker-compose.prod.external.yml": "94f996a7151c4effc41a68c73bf169941984a16e55f03422987b9eedc980cb60",
+    ".env.example": "9a4233a2f568402f2f4808649699e40e3591cf967a5cbc04324c20200684a560",
+    "scripts/build-images.sh": "7ee91932a86d034b6944c4c8ae69bbe262e4eb0cf58cbb0a88d4541886a4c32e",
+    "scripts/build-images.env.example": "c3381e647484deef1cd85153582e13d2638990c3484b229e3a80ce54c44f245f",
+    "src/backend/app/db/schema.sql": "1ad762e44786d48bd726e7443d475adae0618711dfef0dcf4d6296dbab48c89a",
+    "src/backend/app/db/schema.mysql.sql": "8d621e100e25d904e0ea38d6a93a3d3349231b1877788cd69f735f89b5da2e69",
+    "src/backend/app/db/migrations.py": "592643fab71bf666a8dc9093539ac7fb2dc22d199cb0d7289318cedfed0e27ff",
+    "src/backend/app/db/mysql_migrations.py": "f2e5fe2775b4eff13906990bf8790aa40d5dcafd4d91751b3cdf679b89d3050f",
+    "docs/04-database-design.md": "8b2a496cae44155f6c6f2c56334158966646a40a755fd54e19daf5f4b43dcb7d",
+    "docs/08-production-image-release.md": "0f776501739252a8669afad4f2173468c7e623058b078a3c6154f828db9b2600"
+  },
+  "validation": {
+    "platform": "pass",
+    "backend_dependencies": "pass",
+    "web_nginx": "pass",
+    "tar_export": "pass"
+  },
+  "source_plan": {
+    "path": "releases/v0.3.3/image-build-plan.json",
+    "sha256": "6d142c4127d8d59affbb1782e60a338ce81ad2cee9672e4d12f08b2ea62551a8"
+  }
+}

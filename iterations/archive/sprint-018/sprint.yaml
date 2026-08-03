@@ -1,0 +1,124 @@
+sprint_id: sprint-018
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-03 08:40:00
+end_date: 2026-08-17 18:00:00
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+requirements:
+  - REQ-0094-mintlify-versioned-docs-directory
+  - REQ-0093-standardize-deployment-environment-matrix
+bugs:
+  - BUG-0105-admin-brand-list-logo-renders-text
+  - BUG-0109-miniapp-home-button-one-time-failure
+  - BUG-0108-admin-certificate-edit-file-ready-text-and-image-info
+  - BUG-0110-miniapp-card-banner-thumbnail-usage
+  - BUG-0107-admin-certificate-list-main-image-name-only
+  - BUG-0104-admin-sku-list-headers-wrap
+  - BUG-0106-admin-brand-edit-logo-uploaded-text
+  - BUG-0103-admin-category-name-chinese-parentheses
+changes:
+  - add-mintlify-versioned-docs-site
+  - standardize-deployment-environment-matrix
+  - fix-admin-brand-list-logo-rendering
+  - fix-miniapp-home-navigation-repeat-click
+  - fix-admin-certificate-edit-file-image-display
+  - fix-miniapp-card-banner-thumbnail-usage
+  - fix-admin-certificate-list-main-image-name-only
+  - fix-admin-sku-list-header-wrapping
+  - fix-admin-brand-edit-logo-uploaded-text
+  - fix-admin-category-name-chinese-parentheses
+estimated_story_points: 25
+estimated_person_days: 25
+capacity_usage: 0.8333
+fix_buffer_person_days: 5
+fix_buffer_ratio: 0.1667
+scope_estimates:
+  - id: REQ-0093-standardize-deployment-environment-matrix
+    change: standardize-deployment-environment-matrix
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 部署治理需求；主要工作为新增 deploy 目录治理、local/prod 环境矩阵、env 示例、Compose 拓扑入口、deploy/scripts
+      up/down/validate、目录结构/环境变量/部署文档/发布镜像输入追踪与相关校验测试。影响 Docker/部署/docs/release image inputs；默认不影响
+      API、数据库 schema、Web 管理端、小程序或业务后端。
+  - id: REQ-0094-mintlify-versioned-docs-directory
+    change: add-mintlify-versioned-docs-site
+    size: XL
+    story_points: 8
+    estimated_person_days: 8
+    rationale: P1 文档站与发布部署治理能力；覆盖 mintlify 顶层目录、release usage docs 事实源、站点投影、latest 指针、共享截图资产、usage docs / release 校验、Docker Compose docs-site profile、端口环境变量、目录规则、部署文档和测试。主要影响 docs、rules、scripts、releases、Docker Compose 与 .env.example；不涉及 API、DB、Web 管理端业务 UI、小程序或 Orval。
+  - id: BUG-0105-admin-brand-list-logo-renders-text
+    change: fix-admin-brand-list-logo-rendering
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: medium 管理后台品牌列表 Logo 列展示修复；主要工作为 Web 管理端列表单元格图片渲染、缩略图/原图字段映射、未上传和加载失败占位以及品牌列表回归测试。默认不影响
+      DB、Docker Compose、小程序；API/Orval 仅在实现确认品牌列表响应字段缺失或 Schema 变化时触发。
+  - id: BUG-0109-miniapp-home-button-one-time-failure
+    change: fix-miniapp-home-navigation-repeat-click
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: high 小程序导航缺陷修复；主要工作为返回首页悬浮按钮状态锁释放、跨页面重复进入可用性、快速重复点击保护和小程序导航回归验收；不影响
+      API、DB、Orval、Web 管理端、后端、对象存储或 Docker Compose。
+  - id: BUG-0108-admin-certificate-edit-file-ready-text-and-image-info
+    change: fix-admin-certificate-edit-file-image-display
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: medium 管理端品牌证书编辑弹窗修复，主要覆盖文件状态提示、已有图片列表回显、主图状态、保存后再次打开一致性和 BUG-0089
+      文件名噪音不回归；预计主要影响 Web 管理端组件与前端测试，API/DB/Orval 为条件性影响。
+  - id: BUG-0110-miniapp-card-banner-thumbnail-usage
+    change: fix-miniapp-card-banner-thumbnail-usage
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: high 小程序媒体展示缺陷修复；覆盖商品卡片、品牌卡片、证书卡片、首页/品牌 Banner 的缩略图或轻量展示图字段选择、降级策略、静态/接口/手工验收；可能触发
+      API/Orval/docs/tests 条件同步。
+  - id: BUG-0107-admin-certificate-list-main-image-name-only
+    change: fix-admin-certificate-list-main-image-name-only
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: low 管理后台证书列表展示噪音修复；主要工作为 Web 管理端品牌证书列表证书字段渲染收敛为主图/占位和证书名称，隐藏图片/文件名、对象
+      key、原始 URL 和上传控件内部文案，并补充回归测试。默认不影响 API、DB、Orval、小程序、Docker Compose 或对象存储策略。
+  - id: BUG-0104-admin-sku-list-headers-wrap
+    change: fix-admin-sku-list-header-wrapping
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: low 管理后台 SKU 列表表头换行展示修复；主要影响 Web 管理端 SKU 列表表头样式、列宽和横向滚动验收，不涉及 API、DB、Orval、小程序或
+      Docker Compose。
+  - id: BUG-0106-admin-brand-edit-logo-uploaded-text
+    change: fix-admin-brand-edit-logo-uploaded-text
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: low 管理后台品牌编辑弹窗 Logo 区域冗余成功态文案修复；主要工作为收敛前端上传/预览状态展示、保留预览/替换/删除/错误反馈，并补充
+      focused 前端回归测试；不影响 API、数据库、Orval、MinIO、Docker Compose 或小程序。
+  - id: BUG-0103-admin-category-name-chinese-parentheses
+    change: fix-admin-category-name-chinese-parentheses
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: medium 管理后台类目名称校验修复；涉及后端类目名称校验、Web 管理端 CategoryFormModal 校验、回归测试与展示确认。输入兼容性扩展，不新增
+      API，不涉及 DB、MinIO、Docker 或小程序功能变更。
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 25
+  capacity_usage: 0.8333
+  note: project.yaml 未提供显式 Sprint 容量，沿用 sprint-017 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 2 个 REQ、8 个 BUG、2 个治理 Change 与 8 个 fix Change，估算 25 人天，占用 83.33%，低于 30 人天容量，满足容量硬门禁；fix buffer 5 人天 / 16.67%，低于 30% 建议缓冲，需在 sprint.md 风险中记录部署治理、文档站治理与既有 BUG 收尾的缓冲压力。
+deferred_items:
+  - id: T-017-001
+    source: docs/knowledge-base/retrospectives/sprint-017-retrospective.md
+    reason: archived Change trace/fallback 完整性检查属于 workflow 治理，不纳入本次单 BUG 修复 Sprint。
+  - id: T-017-002
+    source: docs/knowledge-base/retrospectives/sprint-017-retrospective.md
+    reason: 媒体五联 evidence 采集清单属于治理需求，不纳入本次单 BUG 修复 Sprint。
+  - id: T-017-003
+    source: docs/knowledge-base/retrospectives/sprint-017-retrospective.md
+    reason: 高 token 命令 summary-first 属于 workflow 治理，不纳入本次单 BUG 修复 Sprint。

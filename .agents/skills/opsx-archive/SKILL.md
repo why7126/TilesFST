@@ -52,9 +52,12 @@ openspec status --change "<change-id>" --json
 | Task status | `- [ ]` exists => warn + require explicit user confirmation |
 | Delta spec | if `specs/` exists, assess ADDED/MODIFIED/REMOVED before moving |
 | MODIFIED title | matching `openspec/specs/<capability>/spec.md` requirement title MUST exist |
+| Documentation sync | before archive, affected long-lived docs / README / `.env.example` / API index / DB design / Orval notes / release or deployment docs MUST be checked and updated or explicitly marked not applicable |
+| Document language | active Change docs MUST pass `python scripts/validate-openspec-language.py` before archive |
 | Archive target | `openspec/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
 | Legacy archive root | `openspec/changes/archive/` MUST NOT exist before or after archive; if present, stop and migrate its children to `openspec/archive/` first |
 | Archive evidence | if a historical archived Change lacks `trace.md`, it MUST contain a complete `## 归档验证摘要` fallback in proposal/design/tasks before Sprint close readiness can pass |
+| Single Change archive evidence | after `/opsx-archive` resolves the canonical archive path, the archived Change MUST contain `trace.md` or a complete `## 归档验证摘要`; failures MUST be reported before claiming archive closure |
 
 ## Steps
 
@@ -64,26 +67,36 @@ openspec status --change "<change-id>" --json
 3. Assess delta specs:
    - no delta specs => archive as metadata-only change;
    - delta exists => summarize capability, operation type, and affected Requirement titles;
-   - prefer `openspec archive "<change-id>" -y` for sync + move.
-4. If CLI is unavailable, manual fallback is allowed only after delta self-check:
+   - prefer `scripts/archive-change.sh "<change-id>"` so OpenSpec CLI output is normalized to canonical `openspec/archive/`, legacy `openspec/changes/archive/` is migrated/blocked, and known English scaffold heading compatibility warnings from the CLI are classified against the project Chinese-first gate.
+4. Before moving or merging the Change, complete documentation sync:
+   - inspect `tasks.md`, `trace.md`, delta spec headings, and implementation notes to identify affected docs;
+   - update required long-lived docs according to `rules/document-governance.md` and task-specific rules, including `docs/03-api-index.md` / Orval notes for API changes, `docs/04-database-design.md` for DB changes, deployment / release docs and `.env.example` for environment or Docker changes, and README or compatibility docs when affected;
+   - if no documentation update is required, record the reason in the archive output; do not silently skip this gate.
+5. If the wrapper fails because OpenSpec CLI is unavailable, manual fallback is allowed only after delta self-check:
    - merge delta into `openspec/specs/` according to OpenSpec semantics;
    - move to `openspec/archive/YYYY-MM-DD-<change-id>/`.
-5. Update related issue/change trace only through workflow sync/promote scripts where possible.
+6. Update related issue/change trace only through workflow sync/promote scripts where possible.
 
 ## Final Steps（MUST）
 
 Run these commands strictly sequentially. Do not use parallel execution or `multi_tool_use.parallel` for directory validation, Workflow Sync and issue promotion: each step depends on the files written by the previous step, and issue promotion depends on the files written by Workflow Sync.
 
 ```bash
+python scripts/validate-openspec-language.py
 python scripts/validate-directory-structure.py
+python scripts/validate-archive-evidence.py --change <change-id> --archive-path openspec/archive/YYYY-MM-DD-<change-id>
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto
 python scripts/promote-issues-for-archive.py --change <change-id> --reason "/opsx-archive <change-id>"
 ```
 
 - All exit codes MUST be `0`.
+- OpenSpec language validation MUST pass before moving the Change; fix active `proposal.md`、`design.md`、`tasks.md` 中的英文脚手架标题或全英文任务项 before archive.
+- If `scripts/archive-change.sh` reports an OpenSpec CLI English scaffold heading compatibility warning for `## Why` / `## What Changes` while `python scripts/validate-openspec-language.py` passed, treat it as non-blocking noise from the upstream CLI schema. Do not add English scaffold headings to silence it.
 - Directory validation MUST fail if `openspec/changes/archive/` exists. Do not continue by treating it as a historical archive location; migrate to `openspec/archive/` first.
+- Archive evidence validation MUST report `trace-present` or `fallback-summary-pass`; if it reports missing `trace.md` and incomplete fallback summary, stop and add a complete `## 归档验证摘要` to `proposal.md`、`design.md` or `tasks.md` in the archived Change before claiming closure.
 - Print summary Workflow Sync Report and Promote Issue Stage report; use `--output detail` only for debugging.
 - `promote-issues-for-archive.py` includes the issue subdocument status gate. If it reports `Issue Subdocument Status Gate` blockers, stop and reconcile the listed child Markdown `status` values before retrying; do not move REQ/BUG packages to `archive/` with residual `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` or equivalent non-closed states.
+- Before retrying promote, run the suggested dry-run first. `acceptance.md` must contain a closed `acceptance_status` or equivalent result block with source Change/Sprint, evidence entry, failed items or waiver notes; do not claim Issue closure if acceptance result is still missing.
 - Single REQ/BUG promote after `/opsx-archive <change-id>` MUST NOT be blocked solely because the containing Sprint is still planning/in_progress. Sprint completion remains a `/sprint-archive` gate, not a single Issue archive gate.
 - Do not hand-edit `sprint.md` workflow-sync marker blocks.
 
@@ -102,4 +115,4 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.arc
 
 ## Output
 
-Report change id, archive path, spec sync status, warnings/confirmations, scripts run, promoted issues, and next step.
+Report change id, archive path, documentation sync status, spec sync status, warnings/confirmations, scripts run, promoted issues, and next step.

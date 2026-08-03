@@ -45,6 +45,25 @@ def test_list_categories_and_tree(client: TestClient) -> None:
     assert isinstance(tree_resp.json()["data"], list)
 
 
+def test_category_tree_returns_direct_children_count(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    root_id = _create_category(client, headers, name="子类目计数")
+    first_child = _create_category(client, headers, name="子类目一", parent_id=root_id)
+    second_child = _create_category(client, headers, name="子类目二", parent_id=root_id)
+
+    response = client.get("/api/v1/admin/tile-categories/tree", headers=headers)
+    assert response.status_code == 200, response.text
+
+    tree = response.json()["data"]
+    root = next(node for node in tree if node["id"] == root_id)
+    assert root["children_count"] == 2
+    assert root["sku_count"] == 0
+
+    children = {node["id"]: node for node in root["children"]}
+    assert children[first_child]["children_count"] == 0
+    assert children[second_child]["children_count"] == 0
+
+
 def test_create_category_hierarchy(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     root_id = _create_category(client, headers, name="按材质")
@@ -120,6 +139,59 @@ def test_update_category_accepts_fifteen_character_name(client: TestClient) -> N
     assert response.json()["data"]["name"] == "更新一二三四五六七八九十123"
 
 
+def test_create_category_accepts_special_character_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/tile-categories",
+        headers=headers,
+        json={"name": "岩板-大规格/客厅", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["name"] == "岩板-大规格/客厅"
+    assert response.json()["data"]["path"] == "岩板-大规格/客厅"
+
+
+def test_update_category_accepts_special_character_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    category_id = _create_category(client, headers, name="特殊更新")
+    response = client.put(
+        f"/api/v1/admin/tile-categories/{category_id}",
+        headers=headers,
+        json={"name": "600x1200(亮面)", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["name"] == "600x1200(亮面)"
+
+
+def test_create_category_accepts_chinese_parentheses_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/tile-categories",
+        headers=headers,
+        json={"name": "墙砖（哑光）", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()["data"]
+    assert data["name"] == "墙砖（哑光）"
+    assert data["path"] == "墙砖（哑光）"
+
+
+def test_update_category_accepts_chinese_parentheses_name(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    category_id = _create_category(client, headers, name="中文括号更新")
+    response = client.put(
+        f"/api/v1/admin/tile-categories/{category_id}",
+        headers=headers,
+        json={"name": "地砖（防滑）", "sort_order": 10},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["data"]["name"] == "地砖（防滑）"
+
+    detail = client.get(f"/api/v1/admin/tile-categories/{category_id}", headers=headers)
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["data"]["name"] == "地砖（防滑）"
+
+
 def test_update_category_rejects_sixteen_character_name(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     category_id = _create_category(client, headers, name="边界拒绝")
@@ -138,8 +210,10 @@ def test_category_name_validation(client: TestClient) -> None:
     cases = [
         ("", "类目名称不能为空"),
         ("一二三四五六七八九十123456", "类目名称最多 15 个字符"),
-        ("含 空格", "类目名称只能包含中文、英文和数字"),
-        ("bad-name", "类目名称只能包含中文、英文和数字"),
+        ("含 空格", "类目名称仅支持中文、英文、数字和特殊字符"),
+        ("含\n换行", "类目名称仅支持中文、英文、数字和特殊字符"),
+        ("含\t制表", "类目名称仅支持中文、英文、数字和特殊字符"),
+        ("bad<name", "类目名称仅支持中文、英文、数字和特殊字符"),
     ]
 
     for name, message in cases:

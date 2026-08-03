@@ -8,6 +8,7 @@ type CertificateItem = {
   brand_id: number;
   brand_name: string;
   file_url?: string | null;
+  thumbnail_url?: string | null;
   file_kind: 'image' | 'pdf' | 'unknown';
   image_failed?: boolean;
 };

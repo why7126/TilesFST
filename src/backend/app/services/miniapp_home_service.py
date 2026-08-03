@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from app.core.exceptions import TileSkuNotFoundError
+from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.repositories.miniapp_home_repository import (
     MiniappBannerRecord,
     MiniappCategoryRecord,
@@ -85,7 +86,7 @@ class MiniappHomeService:
                     position="MINIAPP_BRAND_LIST_CAROUSEL"
                 )
             ],
-            items=[self._to_brand_card(item) for item in items],
+            items=[self._to_brand_card(item, include_original_logo=False) for item in items],
             total=total,
             page=page,
             page_size=page_size,
@@ -118,6 +119,7 @@ class MiniappHomeService:
                     issuer=item.issuer,
                     brand_name=item.brand_name,
                     file_url=item.file_url,
+                    thumbnail_url=self._certificate_thumbnail_url(item.file_url, item.file_mime_type),
                 )
                 for item in items
             ],
@@ -135,7 +137,7 @@ class MiniappHomeService:
             page_size=page_size,
         )
         return MiniappCertificateListData(
-            items=[self._to_certificate_item(item) for item in items],
+            items=[self._to_certificate_item(item, include_file_url=False) for item in items],
             total=total,
             page=page,
             page_size=page_size,
@@ -535,7 +537,7 @@ class MiniappHomeService:
         record = self._repo.get_product(product_id)
         if record is None:
             raise TileSkuNotFoundError("商品不存在或未公开")
-        card = self._to_product_card(record, force_hot=record.hot_score > 0)
+        card = self._to_product_card(record, force_hot=record.hot_score > 0, prefer_thumbnail=False)
         images = self._repo.list_product_images(product_id)
         return MiniappProductDetail(
             **card.model_dump(),
@@ -550,7 +552,7 @@ class MiniappHomeService:
         record = self._repo.get_product(sku_id)
         if record is None:
             raise TileSkuNotFoundError("商品暂不可查看")
-        card = self._to_product_card(record, force_hot=record.hot_score > 0)
+        card = self._to_product_card(record, force_hot=record.hot_score > 0, prefer_thumbnail=False)
         media = self._media_items(record)
         image_count = sum(1 for item in media if item.media_type == "image")
         video_count = sum(1 for item in media if item.media_type == "video")
@@ -694,14 +696,18 @@ class MiniappHomeService:
             id=record.id,
             title=record.title,
             subtitle=None,
-            image_url=self._media_url(record.image_object_key),
+            image_url=self._card_media_url(record.image_object_key, prefer_thumbnail=True),
             jump_type=jump_type,
             target_id=target_id,
             search_keyword=search_keyword,
         )
 
     @staticmethod
-    def _to_certificate_item(record) -> MiniappCertificateItem:
+    def _to_certificate_item(
+        record,
+        *,
+        include_file_url: bool = True,
+    ) -> MiniappCertificateItem:
         status = _certificate_validity_status(record)
         return MiniappCertificateItem(
             certificate_id=record.id,
@@ -712,7 +718,11 @@ class MiniappHomeService:
             issuer=record.issuer,
             brand_id=record.brand_id or 0,
             brand_name=record.brand_name,
-            file_url=record.file_url,
+            file_url=record.file_url if include_file_url else None,
+            thumbnail_url=MiniappHomeService._certificate_thumbnail_url(
+                record.file_url,
+                record.file_mime_type,
+            ),
             file_name=record.file_name,
             file_mime_type=record.file_mime_type,
             file_kind=_certificate_file_kind(record.file_mime_type, record.file_url, record.file_name),
@@ -730,6 +740,7 @@ class MiniappHomeService:
                 media_type="image",
                 url=image.file_url,
                 preview_url=image.file_url,
+                thumbnail_url=self._certificate_thumbnail_url(image.file_url, image.file_mime_type),
                 file_name=image.file_name,
                 file_mime_type=image.file_mime_type,
                 sort_order=image.sort_order,
@@ -746,6 +757,7 @@ class MiniappHomeService:
                     media_type=kind,  # type: ignore[arg-type]
                     url=record.file_url,
                     preview_url=record.file_url if kind == "image" else None,
+                    thumbnail_url=self._certificate_thumbnail_url(record.file_url, record.file_mime_type),
                     file_name=record.file_name,
                     file_mime_type=record.file_mime_type,
                     sort_order=0,
@@ -754,18 +766,39 @@ class MiniappHomeService:
             )
         return media
 
-    def _to_brand_card(self, record) -> MiniappBrandCard:
+    def _to_brand_card(self, record, *, include_original_logo: bool = True) -> MiniappBrandCard:
         return MiniappBrandCard(
             brand_id=record.id,
             brand_name=record.name,
             brand_short_name=record.short_name,
             english_name=record.english_name,
-            brand_logo_url=self._media_url(record.logo_object_key) if record.logo_object_key else None,
+            brand_logo_url=(
+                self._media_url(record.logo_object_key)
+                if include_original_logo and record.logo_object_key
+                else None
+            ),
+            brand_logo_thumbnail_url=(
+                self._media_url(str(same_directory_thumbnail_object_key(record.logo_object_key)))
+                if record.logo_object_key
+                else None
+            ),
             brand_entry_path=f"/pages/brand-detail/index?brandId={record.id}",
             product_count=record.product_count,
+            leaf_category_names=record.leaf_category_names,
+            leaf_categories=record.leaf_categories,
             description=_public_summary(record.description),
             available=True,
         )
+
+    @staticmethod
+    def _certificate_thumbnail_url(file_url: str | None, file_mime_type: str | None) -> str | None:
+        if not file_url or file_mime_type not in {"image/jpeg", "image/jpg", "image/png", "image/webp"}:
+            return None
+        prefix = "/media/"
+        if not file_url.startswith(prefix):
+            return None
+        object_key = file_url.removeprefix(prefix)
+        return f"{prefix}{same_directory_thumbnail_object_key(object_key)}"
 
     def _media_items(self, record: MiniappProductRecord) -> list[MiniappSkuMediaItem]:
         media = self._repo.list_product_media(record.id)
@@ -821,13 +854,16 @@ class MiniappHomeService:
         *,
         force_new: bool = False,
         force_hot: bool = False,
+        prefer_thumbnail: bool = True,
     ) -> MiniappProductCard:
         is_new = force_new or _is_recent(record.created_at)
         return MiniappProductCard(
             product_id=record.id,
             product_name=record.name,
             sku_code=record.sku_code,
-            cover_image=self._media_url(record.main_image_url) if record.main_image_url else None,
+            cover_image=self._card_media_url(record.main_image_url, prefer_thumbnail=prefer_thumbnail)
+            if record.main_image_url
+            else None,
             specification=record.spec_name or record.size,
             category_name=record.category_name,
             brand_name=record.brand_name,
@@ -899,6 +935,18 @@ class MiniappHomeService:
     @staticmethod
     def _media_url(object_key: str) -> str:
         return object_key if object_key.startswith(("/", "http://", "https://")) else f"/media/{object_key}"
+
+    @classmethod
+    def _card_media_url(cls, object_key: str, *, prefer_thumbnail: bool) -> str:
+        if object_key.startswith(("http://", "https://")):
+            return object_key
+        if not prefer_thumbnail:
+            return cls._media_url(object_key)
+        media_prefix = "/media/"
+        raw_key = object_key.removeprefix(media_prefix) if object_key.startswith(media_prefix) else object_key
+        if raw_key.startswith("/"):
+            return object_key
+        return f"{media_prefix}{same_directory_thumbnail_object_key(raw_key)}"
 
 
 def _price_display(value: float | None) -> str:

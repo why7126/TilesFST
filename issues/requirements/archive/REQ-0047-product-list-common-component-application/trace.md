@@ -3,7 +3,7 @@ requirement_id: REQ-0047-product-list-common-component-application
 status: done
 priority: P1
 created_at: 2026-07-19 01:02:16
-updated_at: 2026-07-19 19:30:39
+updated_at: 2026-07-31 00:22:58
 lifecycle:
   captured: 2026-07-19 01:02:16
   generated: 2026-07-19 01:21:11
@@ -86,4 +86,5 @@ lifecycle_stage: review
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0067-home-recommendation-list-entry-routing | medium | done | fix-miniapp-home-recommendation-routing | 首页推荐模块查看更多和榜单入口误跳搜索页 |
+| BUG-0067-home-recommendation-list-entry-routing | medium | done | — | 首页推荐模块查看更多和榜单入口误跳搜索页 |
+| BUG-0091-miniapp-product-list-sort-consistency | medium | done | fix-miniapp-product-list-sort-consistency | 小程序搜索商品结果页与分类商品列表页排序需与品牌详情页一致 |

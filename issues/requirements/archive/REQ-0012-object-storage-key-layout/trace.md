@@ -5,7 +5,7 @@ lifecycle_stage: archive
 priority: P1
 iteration: sprint-003
 created_at: 2026-06-27 22:15:10
-updated_at: 2026-06-28 19:40:42
+updated_at: 2026-08-04 00:23:14
 ---
 
 # 需求追踪
@@ -87,3 +87,9 @@ documents:
 | 2026-06-27 22:15:10 | `/req-generate` | 生成 requirement.md；status → draft |
 | 2026-06-27 22:17:37 | `/req-complete` | 补齐 user-stories、business-flow、acceptance；Readiness → Ready |
 | 2026-06-27 22:20:13 | `/req-review --approve` | REV-REQ-0012-001 评审通过 |
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0112-certificate-image-object-key-prefix | high | captured | — | 证书图片对象 key 未归入 images 前缀 |

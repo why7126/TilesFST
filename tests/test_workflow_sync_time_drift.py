@@ -124,6 +124,43 @@ def test_workflow_sync_records_opsx_apply_for_in_progress_change() -> None:
     assert updated.index("/opsx-apply") < updated.index("/sprint-propose")
 
 
+def test_workflow_sync_records_opsx_modify_idempotently() -> None:
+    text = """# 需求追踪
+
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+"""
+    derived = DerivedIssue(
+        issue_id="REQ-0001-demo",
+        kind="requirement",
+        display_status="in_sprint",
+        linked_change="add-demo",
+        note="applied",
+    )
+
+    first = append_workflow_event_record(
+        text,
+        event="opsx.modify",
+        change_id="add-demo",
+        derived=derived,
+        change_status_map={"add-demo": "applied"},
+    )
+    second = append_workflow_event_record(
+        first,
+        event="opsx.modify",
+        change_id="add-demo",
+        derived=derived,
+        change_status_map={"add-demo": "applied"},
+    )
+
+    expected = "| /opsx-modify | Change `add-demo` 验收返修已同步，待复验或 archive。 |"
+    assert expected in first
+    assert first == second
+    assert second.count("/opsx-modify") == 1
+
+
 def test_archive_timestamp_ignores_mutable_issue_updated_at(tmp_path: Path) -> None:
     archived_change = tmp_path / "2026-07-03-fix-example"
     archived_change.mkdir()

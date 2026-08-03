@@ -70,9 +70,9 @@ export function SearchableSelect({
   const showStatus = loading || error || options.length === 0;
 
   return (
-    <div ref={containerRef} className={cn('searchable-select', className)}>
+    <div ref={containerRef} className={cn('admin-filter-dropdown searchable-select', className)}>
       <input
-        className="input searchable-select-input"
+        className="input admin-filter-dropdown-trigger searchable-select-input"
         value={displayValue}
         disabled={disabled}
         placeholder={placeholder}
@@ -101,9 +101,13 @@ export function SearchableSelect({
         </button>
       ) : null}
       {open && !disabled ? (
-        <ul id={listId} className="searchable-select-dropdown" role="listbox">
+        <ul
+          id={listId}
+          className="admin-filter-dropdown-menu searchable-select-dropdown"
+          role="listbox"
+        >
           {showStatus ? (
-            <li className="searchable-select-empty">
+            <li className="admin-filter-dropdown-empty searchable-select-empty">
               {loading ? loadingText : error || emptyText}
             </li>
           ) : (
@@ -112,7 +116,7 @@ export function SearchableSelect({
                 <button
                   type="button"
                   className={cn(
-                    'searchable-select-option',
+                    'admin-filter-dropdown-option searchable-select-option',
                     option.value === value && 'is-selected',
                   )}
                   role="option"

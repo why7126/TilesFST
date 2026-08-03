@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-19 22:26:11
-updated_at: 2026-07-20 22:48:26
+updated_at: 2026-08-02 16:50:43
 ---
 
 # 需求追踪
@@ -100,4 +100,4 @@ expected_openspec_change: add-brand-list-page
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-- 2026-07-20 22:46:24 workflow-sync：状态同步为 done（Change archived）
+| BUG-0102-miniapp-brand-list-carousel-brand-gallery-text | low | done | fix-miniapp-brand-list-carousel-text | 小程序品牌列表页轮播图不应显示多余说明文案 |

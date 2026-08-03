@@ -6,6 +6,7 @@ type BrandDetail = {
   brand_short_name?: string | null;
   english_name?: string | null;
   brand_logo_url?: string | null;
+  brand_logo_thumbnail_url?: string | null;
   description?: string | null;
   product_count: number;
   certificate_count: number;
@@ -38,6 +39,7 @@ type CertificateItem = {
   issuer?: string | null;
   brand_name: string;
   file_url: string;
+  thumbnail_url?: string | null;
   file_kind?: 'image' | 'pdf' | 'unknown';
 };
 
@@ -129,7 +131,7 @@ Page({
     return {
       title: this.data.brand?.brand_name || '品牌主页',
       path: brandSharePath(this.data.brandId),
-      imageUrl: this.data.brand?.brand_logo_url || this.data.imageFallback,
+      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.brand?.brand_logo_url || this.data.imageFallback,
     };
   },
 
@@ -138,7 +140,7 @@ Page({
     return {
       title: this.data.brand?.brand_name || '品牌主页',
       query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
-      imageUrl: this.data.brand?.brand_logo_url || this.data.imageFallback,
+      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.brand?.brand_logo_url || this.data.imageFallback,
     };
   },
 

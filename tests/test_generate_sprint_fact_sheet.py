@@ -298,9 +298,11 @@ def test_fact_sheet_reads_ai_usage_snapshot(tmp_path: Path) -> None:
     assert fact_sheet["ai_usage_snapshot"]["estimated"] is False
     assert fact_sheet["ai_usage_snapshot"]["ai_usage_mode"] == "actual"
     assert fact_sheet["ai_usage_snapshot"]["snapshot_status"] == "present"
+    assert fact_sheet["ai_usage_snapshot"]["fresh_gate"]["status"] == "pass"
     assert fact_sheet["ai_usage_snapshot"]["totals"]["total_tokens"] == 123
     assert "## AI Usage Snapshot" in markdown
     assert "| Mode | actual |" in markdown
+    assert "| Fresh Gate | pass |" in markdown
     assert "| total_tokens | 123 |" in markdown
 
 
@@ -314,6 +316,7 @@ def test_fact_sheet_marks_missing_ai_usage_as_estimated_fallback(tmp_path: Path)
     assert ai_usage["exists"] is False
     assert ai_usage["ai_usage_mode"] == "estimated_fallback"
     assert ai_usage["snapshot_status"] == "missing"
+    assert ai_usage["fresh_gate"]["status"] == "blocker"
     assert "snapshot-missing" in ai_usage["warnings"]
     assert "estimated_fallback" in markdown
 
@@ -347,6 +350,7 @@ def test_fact_sheet_does_not_treat_stale_snapshot_as_actual(tmp_path: Path) -> N
     assert ai_usage["exists"] is True
     assert ai_usage["ai_usage_mode"] == "estimated_fallback"
     assert ai_usage["snapshot_status"] == "stale"
+    assert ai_usage["fresh_gate"]["status"] == "blocker"
     assert "snapshot-stale" in ai_usage["warnings"]
 
 
@@ -378,6 +382,42 @@ def test_fact_sheet_interprets_sprint_dates_as_project_timezone(tmp_path: Path) 
     ai_usage = fact_sheet["ai_usage_snapshot"]
     assert ai_usage["ai_usage_mode"] == "actual"
     assert ai_usage["snapshot_status"] == "present"
+    assert ai_usage["fresh_gate"]["status"] == "pass"
+
+
+def test_fact_sheet_summary_exposes_ai_usage_fresh_gate_without_evidence_hints(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-07-03T00:00:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": [],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 100},
+                "usage_matrices": {},
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+    fresh_gate = summary["ai_usage_snapshot"]["fresh_gate"]
+
+    assert fresh_gate["status"] == "blocker"
+    assert fresh_gate["usage_matrices_present"] is False
+    assert fresh_gate["coverage_status"]["bugs"] == "missing"
+    assert "bugs-coverage-missing" in fresh_gate["blockers"]
+    assert "usage-matrices-missing" in fresh_gate["blockers"]
+    assert "evidence_hints" not in summary
 
 
 def test_cli_json_output_is_parseable() -> None:

@@ -46,6 +46,7 @@ const tree: TileCategoryTreeNode[] = [
     level: 1,
     status: 'ENABLED',
     sku_count: 0,
+    children_count: 1,
     children: [
       {
         id: 2,
@@ -54,6 +55,7 @@ const tree: TileCategoryTreeNode[] = [
         level: 2,
         status: 'ENABLED',
         sku_count: 0,
+        children_count: 0,
         children: [],
       },
     ],
@@ -111,6 +113,28 @@ describe('CategoryFormModal', () => {
     expect(container.querySelector('.modal-card')).toBeNull();
   });
 
+  it('keeps form open and preserves input state when backdrop is clicked', () => {
+    const onClose = vi.fn();
+    const { container } = render(
+      <CategoryFormModal
+        open
+        mode="create"
+        category={null}
+        tree={tree}
+        defaultParentId={null}
+        onClose={onClose}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), { target: { value: '岩板A1' } });
+    fireEvent.click(container.querySelector('.modal-backdrop')!);
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(/类目名称/)).toHaveValue('岩板A1');
+  });
+
   it('keeps the dedicated category modal CSS contract', () => {
     expect(tileCategoryCss).toContain('.admin-shell .category-modal');
     expect(tileCategoryCss).toContain('width: 560px');
@@ -164,12 +188,119 @@ describe('CategoryFormModal', () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText(/类目名称/), { target: { value: 'bad-name' } });
+    fireEvent.change(screen.getByLabelText(/类目名称/), { target: { value: '含 空格' } });
     fireEvent.change(screen.getByLabelText(/排序权重/), { target: { value: '1.5' } });
     fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
 
-    expect(screen.getByText('类目名称只能包含中文、英文和数字')).toBeInTheDocument();
+    expect(screen.getByText('类目名称仅支持中文、英文、数字和特殊字符')).toBeInTheDocument();
     expect(screen.getByText('排序权重必须为正整数')).toBeInTheDocument();
+    expect(createCategory).not.toHaveBeenCalled();
+  });
+
+  it('allows common special characters before submit', async () => {
+    render(
+      <CategoryFormModal
+        open
+        mode="create"
+        category={null}
+        tree={tree}
+        defaultParentId={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), {
+      target: { value: '岩板-大规格/客厅' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    await waitFor(() => expect(createCategory).toHaveBeenCalled());
+    expect(createCategory).toHaveBeenCalledWith(
+      expect.objectContaining({ name: '岩板-大规格/客厅' }),
+    );
+  });
+
+  it('allows Chinese parentheses before submit', async () => {
+    render(
+      <CategoryFormModal
+        open
+        mode="create"
+        category={null}
+        tree={tree}
+        defaultParentId={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), {
+      target: { value: '墙砖（哑光）' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    await waitFor(() => expect(createCategory).toHaveBeenCalled());
+    expect(createCategory).toHaveBeenCalledWith(
+      expect.objectContaining({ name: '墙砖（哑光）' }),
+    );
+    expect(screen.queryByText('类目名称仅支持中文、英文、数字和特殊字符')).not.toBeInTheDocument();
+  });
+
+  it('allows Chinese parentheses when editing', async () => {
+    render(
+      <CategoryFormModal
+        open
+        mode="edit"
+        category={{
+          id: 1,
+          parent_id: null,
+          name: '地面砖',
+          code: 'CAT-FLOOR',
+          sort_order: 10,
+          level: 1,
+          description: null,
+          status: 'ENABLED',
+          sku_count: 0,
+          path: '地面砖',
+          created_at: '2026-07-22T00:00:00Z',
+          updated_at: '2026-07-22T00:00:00Z',
+        }}
+        tree={tree}
+        defaultParentId={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), {
+      target: { value: '地砖（防滑）' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    await waitFor(() => expect(updateCategory).toHaveBeenCalled());
+    expect(updateCategory).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ name: '地砖（防滑）' }),
+    );
+  });
+
+  it('rejects control characters before submit', () => {
+    render(
+      <CategoryFormModal
+        open
+        mode="create"
+        category={null}
+        tree={tree}
+        defaultParentId={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/类目名称/), { target: { value: '含\u0001控制' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存类目' }));
+
+    expect(screen.getByText('类目名称仅支持中文、英文、数字和特殊字符')).toBeInTheDocument();
     expect(createCategory).not.toHaveBeenCalled();
   });
 

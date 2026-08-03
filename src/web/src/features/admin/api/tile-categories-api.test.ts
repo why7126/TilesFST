@@ -14,6 +14,7 @@ const sampleTree: TileCategoryTreeNode[] = [
     level: 1,
     status: 'ENABLED',
     sku_count: 10,
+    children_count: 1,
     children: [
       {
         id: 2,
@@ -22,6 +23,7 @@ const sampleTree: TileCategoryTreeNode[] = [
         level: 2,
         status: 'ENABLED',
         sku_count: 5,
+        children_count: 1,
         children: [
           {
             id: 3,
@@ -30,6 +32,7 @@ const sampleTree: TileCategoryTreeNode[] = [
             level: 3,
             status: 'ENABLED',
             sku_count: 2,
+            children_count: 0,
             children: [],
           },
         ],

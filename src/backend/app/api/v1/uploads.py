@@ -24,6 +24,7 @@ from app.modules.media.storage import (
     build_file_upload_object_key,
     build_video_upload_object_key,
     save_upload_file,
+    same_directory_thumbnail_object_key,
 )
 from app.schemas.common import ApiResponse, VALIDATION_ERROR_RESPONSE
 from app.schemas.media import UploadResult
@@ -118,6 +119,12 @@ def _upload_result(
         mime_type=file.content_type,
         size=size,
     )
+
+
+def _thumbnail_result_fields(thumbnail_key: str | None) -> dict[str, str | None]:
+    if not thumbnail_key:
+        return {"thumbnail_key": None, "thumbnail_url": None}
+    return {"thumbnail_key": thumbnail_key, "thumbnail_url": f"/media/{thumbnail_key}"}
 
 
 def _begin_upload_trace(
@@ -286,6 +293,7 @@ async def _save_traced_upload(
     max_size_mb: int,
     validate_file: Callable[[], None],
     object_key: str,
+    thumbnail_key: str | None = None,
 ) -> UploadResult:
     trace_service, task_trace_id, trace_started = _begin_upload_trace(
         request=request,
@@ -313,7 +321,12 @@ async def _save_traced_upload(
             summary="文件类型与大小限制校验通过",
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
-        size = await save_upload_file(file, object_key, max_size_mb)
+        size = await save_upload_file(
+            file,
+            object_key,
+            max_size_mb,
+            thumbnail_key=thumbnail_key,
+        )
     except AppError as exc:
         _finish_upload_trace(
             db=db,
@@ -384,6 +397,7 @@ async def _save_traced_upload(
     return UploadResult(
         object_key=object_key,
         url=f"/media/{object_key}",
+        **_thumbnail_result_fields(thumbnail_key),
         task_trace_id=task_trace_id,
         task_type=task_type,
         file_key=object_key,
@@ -541,6 +555,7 @@ async def upload_brand_logo(
             max_size_mb=effective.max_image_size_mb(),
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
+            thumbnail_key=same_directory_thumbnail_object_key(object_key),
         ),
     )
 
@@ -572,6 +587,7 @@ async def upload_banner_image(
             max_size_mb=effective.max_image_size_mb(),
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
+            thumbnail_key=same_directory_thumbnail_object_key(object_key),
         ),
     )
 
@@ -605,6 +621,7 @@ async def upload_tile_image(
             max_size_mb=effective.max_image_size_mb(),
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
+            thumbnail_key=same_directory_thumbnail_object_key(object_key),
         ),
     )
 
@@ -843,7 +860,12 @@ async def upload_brand_certificate(
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
         object_key = build_file_upload_object_key("brand-certificates", file.content_type)
-        size = await save_upload_file(file, object_key, max_size_mb)
+        thumbnail_key = (
+            same_directory_thumbnail_object_key(object_key)
+            if file.content_type and file.content_type.startswith("image/")
+            else None
+        )
+        size = await save_upload_file(file, object_key, max_size_mb, thumbnail_key=thumbnail_key)
     except AppError as exc:
         error_code = CERTIFICATE_FILE_TOO_LARGE if exc.code == FILE_SIZE_EXCEEDED else exc.code
         _finish_upload_trace(
@@ -922,6 +944,7 @@ async def upload_brand_certificate(
         data=UploadResult(
             object_key=object_key,
             url=f"/media/{object_key}",
+            **_thumbnail_result_fields(thumbnail_key),
             task_trace_id=task_trace_id,
             task_type="upload_file",
             file_key=object_key,

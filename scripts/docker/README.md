@@ -3,20 +3,23 @@ purpose: Docker 基线说明
 content: Compose 服务、脚本与目录约定
 source: initialize-project / project.yaml
 update_method: 部署架构变更时同步更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-08-04 00:27:20
 ---
 
 # Docker 基线
 
-本项目采用根目录 `docker-compose.yml` + 各服务 Dockerfile 的 Compose 部署模式。
+本项目采用根目录 `docker-compose.yml` + 各服务 Dockerfile 的 Compose 本地/demo 部署模式。根目录 Compose 是本地基线；环境矩阵入口见 `deploy/README.md`，生产入口优先见 `deploy/prod/compose.tencent-cos.yml`。
 
 ## 服务
 
 | 服务 | 镜像/构建 | 端口（宿主机默认） |
 |------|-----------|-------------------|
-| backend | `src/backend/Dockerfile` | 8000 |
-| web | `src/web/Dockerfile` + nginx | 3000 |
-| minio | `minio/minio` | 9000 / 9001 |
-| minio-init | `minio/mc` | — |
+| tilesfst-backend | `src/backend/Dockerfile` | 8000 |
+| tilesfst-web | `src/web/Dockerfile` + nginx | 3000 |
+| tilesfst-minio | `minio/minio`，仅 `self-hosted-storage` profile | 9000 / 9001 |
+| tilesfst-minio-init | `minio/mc`，仅 `self-hosted-storage` profile | — |
+| tilesfst-docs-site | `node:22-alpine` 或 `MINTLIFY_NODE_IMAGE`，仅 `docs-site` profile | 3001 |
 
 ## 脚本
 
@@ -33,8 +36,7 @@ update_method: 部署架构变更时同步更新
 
 ```text
 data/sqlite
-data/minio
-data/uploads
+data/minio          # 仅项目自建 MinIO profile
 data/processed
 data/tmp
 ```
@@ -42,6 +44,7 @@ data/tmp
 ## 文档
 
 - `docs/02-deployment.md`
+- `deploy/README.md`
 - `docker-compose.yml`
 
 ## 说明

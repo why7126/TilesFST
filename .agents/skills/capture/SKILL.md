@@ -53,6 +53,20 @@ Use this skill when the user asks to run the workflow command `capture`.
 
 ---
 
+## Directory Gate（MUST）
+
+在创建任一 REQ / BUG 后、输出最终摘要前，MUST 运行：
+
+```bash
+python scripts/validate-directory-structure.py
+```
+
+- Exit code **MUST** be `0`
+- 若报告空 Issue 包、缺少 `trace.md` 或 `REQ-NNNN` / `BUG-NNNN` 短编号重复，MUST 先修正对应目录或重新分配 ID，再继续 Workflow Sync
+- 不得只依赖 `_registry.yaml` 判断新编号可用；分配前必须考虑 `plan` / `review` / `archive` 三阶段既有目录
+
+---
+
 ## Final Step — Workflow Sync (MUST)
 
 Read `.agents/skills/workflow-sync/SKILL.md`.对每条创建的 REQ / BUG：

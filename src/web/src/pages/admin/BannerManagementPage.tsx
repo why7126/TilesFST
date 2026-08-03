@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { BannerAdminItem, BannerAdminListData } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 
 import {
   deleteBanner,
@@ -209,57 +210,45 @@ export function BannerManagementPage() {
               onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
             />
           </label>
-          <label>
+          <div className="admin-filter-dropdown">
             <span className="field-label">展示端</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="展示端"
               value={displayClient}
-              onChange={(e) => {
-                setDisplayClient(e.target.value || MINIAPP_DISPLAY_CLIENT);
+              options={DISPLAY_CLIENT_OPTIONS}
+              listLabel="Banner 展示端选项"
+              onChange={(nextDisplayClient) => {
+                setDisplayClient(nextDisplayClient || MINIAPP_DISPLAY_CLIENT);
                 setPage(1);
               }}
-            >
-              {DISPLAY_CLIENT_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+            />
+          </div>
+          <div className="admin-filter-dropdown">
             <span className="field-label">状态</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="状态"
               value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
+              options={BANNER_STATUS_OPTIONS}
+              listLabel="Banner 状态选项"
+              onChange={(nextStatus) => {
+                setStatus(nextStatus);
                 setPage(1);
               }}
-            >
-              {BANNER_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+            />
+          </div>
+          <div className="admin-filter-dropdown">
             <span className="field-label">时间状态</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="时间状态"
               value={timeStatus}
-              onChange={(e) => {
-                setTimeStatus(e.target.value);
+              options={TIME_STATUS_OPTIONS}
+              listLabel="Banner 时间状态选项"
+              onChange={(nextTimeStatus) => {
+                setTimeStatus(nextTimeStatus);
                 setPage(1);
               }}
-            >
-              {TIME_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            />
+          </div>
           <button type="button" className="btn" onClick={handleReset}>
             重置
           </button>
@@ -437,7 +426,7 @@ export function BannerManagementPage() {
       />
 
       {statusConfirmTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setStatusConfirmTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"
@@ -478,7 +467,7 @@ export function BannerManagementPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"

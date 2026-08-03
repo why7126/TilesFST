@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from app.core.exceptions import (
+    AppError,
     AuthInvalidRequestError,
     TileSkuCodeDuplicatedError,
     TileSkuDeleteForbiddenError,
     TileSkuNotFoundError,
     TileSkuPublishForbiddenError,
 )
+from app.modules.media.tile_images import formalize_tile_image_object, is_pending_tile_image_key
 from app.repositories.tile_sku_repository import TileSkuRecord, TileSkuRepository
 from app.repositories.tile_spec_repository import TileSpecRepository
 from app.schemas.tile_sku_admin import (
@@ -87,6 +89,21 @@ class TileSkuAdminService:
             }
             for idx, vid in enumerate(videos)
         ]
+
+    @staticmethod
+    def _formalize_images(tile_id: int, images: list[dict]) -> list[dict]:
+        if not images:
+            return []
+        formalized: list[dict] = []
+        for image in images:
+            item = dict(image)
+            object_key = item["object_key"]
+            if is_pending_tile_image_key(object_key):
+                result = formalize_tile_image_object(tile_id=tile_id, object_key=object_key)
+                item["object_key"] = result.object_key
+                item["url"] = f"/media/{result.object_key}"
+            formalized.append(item)
+        return formalized
 
     def _resolve_spec(
         self,
@@ -308,7 +325,7 @@ class TileSkuAdminService:
             status=status,
         )
         if images:
-            self._repo.replace_images(record.id, images)
+            self._repo.replace_images(record.id, self._formalize_images(record.id, images))
         if videos:
             self._repo.replace_videos(record.id, videos)
         return self.get_sku(record.id)
@@ -390,7 +407,10 @@ class TileSkuAdminService:
         )
 
         if payload.images is not None:
-            self._repo.replace_images(tile_id, self._normalize_images(payload.images))
+            self._repo.replace_images(
+                tile_id,
+                self._formalize_images(tile_id, self._normalize_images(payload.images)),
+            )
         if payload.videos is not None:
             self._repo.replace_videos(tile_id, self._normalize_videos(payload.videos))
 
@@ -409,6 +429,20 @@ class TileSkuAdminService:
             raise TileSkuPublishForbiddenError("规格尺寸不完整，无法上架")
         if record.spec_id is None:
             raise TileSkuPublishForbiddenError("请先选择瓷砖规格后再上架")
+        current_images = [
+            {
+                "object_key": img.object_key,
+                "url": img.url,
+                "is_main": bool(img.is_main),
+                "sort_order": img.sort_order,
+            }
+            for img in self._repo.list_images(tile_id)
+        ]
+        if any(is_pending_tile_image_key(img["object_key"]) for img in current_images):
+            try:
+                self._repo.replace_images(tile_id, self._formalize_images(tile_id, current_images))
+            except AppError as exc:
+                raise TileSkuPublishForbiddenError("主图迁移失败，无法上架") from exc
         updated = self._repo.update_status(tile_id, "PUBLISHED")
         return self.to_item(updated)
 

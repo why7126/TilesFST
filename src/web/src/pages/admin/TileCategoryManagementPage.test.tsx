@@ -54,9 +54,9 @@ const baseSummary = {
 
 const enabledCategory: TileCategoryAdminItem = {
   id: 1,
-  name: '启用类目',
+  name: '岩板-启用',
   code: 'EN',
-  path: '启用类目',
+  path: '岩板-启用',
   level: 1,
   sort_order: 1,
   sku_count: 3,
@@ -68,9 +68,9 @@ const enabledCategory: TileCategoryAdminItem = {
 
 const disabledDeletableCategory: TileCategoryAdminItem = {
   id: 2,
-  name: '停用类目',
+  name: '仿古砖/停用',
   code: 'DIS',
-  path: '停用类目',
+  path: '仿古砖/停用',
   level: 1,
   sort_order: 2,
   sku_count: 0,
@@ -175,7 +175,7 @@ describe('TileCategoryManagementPage', () => {
 
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByText('启用类目')).toBeInTheDocument();
-    expect(within(dialog).getByText('确认启用类目「停用类目」？')).toBeInTheDocument();
+    expect(within(dialog).getByText('确认启用类目「仿古砖/停用」？')).toBeInTheDocument();
     expect(enableCategoryMock).not.toHaveBeenCalled();
 
     fireEvent.click(within(dialog).getByRole('button', { name: '确认启用' }));
@@ -219,7 +219,7 @@ describe('TileCategoryManagementPage', () => {
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByText('停用类目')).toBeInTheDocument();
     expect(
-      within(dialog).getByText('确认停用类目「启用类目」？停用后前台将不再展示该类目。'),
+      within(dialog).getByText('确认停用类目「岩板-启用」？停用后前台将不再展示该类目。'),
     ).toBeInTheDocument();
     expect(disableCategoryMock).not.toHaveBeenCalled();
 
@@ -255,6 +255,63 @@ describe('TileCategoryManagementPage', () => {
     expect(screen.getByText('每页显示')).toBeInTheDocument();
   });
 
+  it('applies the unified admin filter dropdown to status and level filters', async () => {
+    mockListResponse([enabledCategory, childCategory], 2);
+
+    render(<TileCategoryManagementPage />);
+
+    await waitFor(() => {
+      expect(fetchCategoriesMock).toHaveBeenCalledWith(
+        expect.objectContaining({ status: undefined, level: undefined }),
+      );
+    });
+
+    const statusTrigger = screen.getByLabelText('状态');
+    const levelTrigger = screen.getByLabelText('层级');
+
+    [statusTrigger, levelTrigger].forEach((trigger) => {
+      expect(trigger).toHaveClass('select');
+      expect(trigger).toHaveClass('admin-filter-dropdown-trigger');
+      expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+    });
+
+    fireEvent.click(statusTrigger);
+    expect(screen.getByRole('listbox', { name: '类目状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    expect(screen.getByRole('option', { name: '全部状态' })).toHaveClass(
+      'admin-filter-dropdown-option',
+      'is-selected',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '启用' }));
+
+    await waitFor(() => {
+      expect(fetchCategoriesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'ENABLED' }),
+      );
+    });
+
+    fireEvent.click(levelTrigger);
+    expect(screen.getByRole('listbox', { name: '类目层级选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '二级类目' }));
+
+    await waitFor(() => {
+      expect(fetchCategoriesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'ENABLED', level: 2 }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+
+    await waitFor(() => {
+      expect(fetchCategoriesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: undefined, level: undefined }),
+      );
+    });
+  });
+
   it('shows only category code on the second line of the name column', async () => {
     mockListResponse([enabledCategory, childCategory, fifteenCharacterCategory], 3);
 
@@ -265,7 +322,7 @@ describe('TileCategoryManagementPage', () => {
     });
 
     const table = screen.getByRole('table');
-    expect(within(table).getByText('启用类目')).toBeInTheDocument();
+    expect(within(table).getByText('岩板-启用')).toBeInTheDocument();
     expect(within(table).getByText('EN')).toBeInTheDocument();
     expect(within(table).getByText('CAT-CHILD')).toBeInTheDocument();
     expect(within(table).getByText('一二三四五六七八九十12345')).toHaveClass('cat-name');

@@ -12,6 +12,11 @@ export {
 export { Pagination, type PaginationProps } from './pagination';
 export { ProductVersionBadge, type ProductVersionBadgeProps } from './product-version-badge';
 export { SearchBar, type SearchBarProps } from './search-bar';
+export {
+  AdminFilterSelect,
+  type AdminFilterSelectOption,
+  type AdminFilterSelectProps,
+} from './admin-filter-select';
 export { SearchableSelect, type SearchableSelectOption, type SearchableSelectProps } from './searchable-select';
 export { Sidebar, type SidebarFilterItem, type SidebarProps, type SidebarSection } from './sidebar';
 export { DividerText } from './divider-text';

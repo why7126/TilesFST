@@ -4,7 +4,7 @@ content: 项目背景、技术栈、AI约束
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-06-29 10:35:38
+updated_at: 2026-07-29 16:07:14
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -20,6 +20,7 @@ note: 适用于瓷砖信息管理平台项目模板
 - 后端：Python3.12、FastAPI、Pydantic、uv、SQLite（本地开发 / demo）、MySQL 8.0+（生产）、MinIO
 - 前端：React19、TypeScript、Tailwind、shadcn/ui、Axios、Orval、pnpm
 - 小程序：微信小程序
+- 发布与部署：Docker Compose、`releases/vX.Y.Z/release.json`、镜像构建计划 `image-build-plan.json`、镜像产物 `image-manifest.json`
 
 ## 研发规则
 
@@ -27,6 +28,8 @@ note: 适用于瓷砖信息管理平台项目模板
 - BUG来源：`issues/bugs`
 - 研发变更：`openspec/changes`
 - 正式能力：`openspec/specs`
+- 发布事实源：`releases`
+- 镜像构建命令：`/image-prepare <version>`、`/image-build <version>`
 
 
 ## AI执行约束

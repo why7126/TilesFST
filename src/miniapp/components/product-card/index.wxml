@@ -9,6 +9,7 @@
       class="product-image"
       src="{{normalized.imageSrc}}"
       mode="aspectFill"
+      lazy-load="{{imageLazyLoad}}"
       binderror="onImageError"
     ></image>
     <view wx:else class="product-image-empty">暂无图片</view>

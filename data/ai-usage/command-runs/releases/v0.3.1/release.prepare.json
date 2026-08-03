@@ -1,0 +1,101 @@
+{
+  "release_version": "v0.3.1",
+  "workflow_event": "release.prepare",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/31/rollout-2026-07-31T23-07-18-019fb8b7-2512-7912-a4d2-17e9ef0e52ca.jsonl"
+  ],
+  "generated_at": "2026-07-31T15:23:14.965524Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0086-miniapp-brand-list-ui-interaction-optimization"
+    ],
+    "bugs": [
+      "BUG-0094-miniapp-list-images-not-loading-after-speed-fix",
+      "BUG-0095-admin-category-tree-count-shows-product-count",
+      "BUG-0096-admin-sku-category-filter-only-top-level",
+      "BUG-0097-admin-sku-material-main-image-tag-redundant",
+      "BUG-0098-admin-filter-dropdown-ui-consistency"
+    ],
+    "changes": [
+      "fix-admin-category-tree-count",
+      "fix-admin-filter-dropdown-ui-consistency",
+      "fix-admin-sku-category-cascade-filter",
+      "fix-admin-sku-material-main-image-tag",
+      "fix-miniapp-product-card-thumbnails",
+      "update-miniapp-brand-list-ui-interaction-optimization"
+    ],
+    "sprints": [
+      "sprint-015"
+    ]
+  },
+  "totals": {
+    "input_tokens": 1197936,
+    "cached_input_tokens": 1108864,
+    "output_tokens": 8097,
+    "reasoning_output_tokens": 1070,
+    "total_tokens": 1206033,
+    "command_run_count": 1,
+    "model_call_count": 13,
+    "tool_call_count": 27,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "a0abf0501e789a361670965ec1913c5b02e9ef8de6e03dcc502988175eaced3e",
+      "source_data_file": "~/.codex/sessions/2026/07/31/rollout-2026-07-31T23-07-18-019fb8b7-2512-7912-a4d2-17e9ef0e52ca.jsonl",
+      "source_line_start": 165,
+      "source_line_end": 280,
+      "turn_hash": "09cd7d4c33a0bf95",
+      "started_at": "2026-07-31T15:16:38.680Z",
+      "ended_at": "2026-07-31T15:23:10.996Z",
+      "command": "release.prepare",
+      "workflow_event": "release.prepare",
+      "requirements": [
+        "REQ-0086-miniapp-brand-list-ui-interaction-optimization"
+      ],
+      "bugs": [
+        "BUG-0094-miniapp-list-images-not-loading-after-speed-fix",
+        "BUG-0095-admin-category-tree-count-shows-product-count",
+        "BUG-0096-admin-sku-category-filter-only-top-level",
+        "BUG-0097-admin-sku-material-main-image-tag-redundant",
+        "BUG-0098-admin-filter-dropdown-ui-consistency"
+      ],
+      "changes": [
+        "fix-admin-category-tree-count",
+        "fix-admin-filter-dropdown-ui-consistency",
+        "fix-admin-sku-category-cascade-filter",
+        "fix-admin-sku-material-main-image-tag",
+        "fix-miniapp-product-card-thumbnails",
+        "update-miniapp-brand-list-ui-interaction-optimization"
+      ],
+      "sprint_id": "sprint-015",
+      "release_sprints": [
+        "sprint-015"
+      ],
+      "release_version": "v0.3.1",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 13,
+      "input_tokens": 1197936,
+      "cached_input_tokens": 1108864,
+      "output_tokens": 8097,
+      "reasoning_output_tokens": 1070,
+      "total_tokens": 1206033,
+      "tool_call_count": 27,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

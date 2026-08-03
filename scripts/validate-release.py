@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import sys
@@ -13,6 +14,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 RELEASES_DIR = ROOT / "releases"
 PRODUCT_VERSION_FILE = ROOT / "src" / "shared" / "product-version.ts"
+MINTLIFY_DIR = ROOT / "mintlify"
 
 REQUIRED_GATES = (
     "openspec_archive",
@@ -23,6 +25,11 @@ REQUIRED_GATES = (
     "env_example",
     "product_version",
     "mintlify_preview",
+)
+
+IMAGE_GATES = (
+    "image_prepare",
+    "image_build",
 )
 
 IMPACT_KEYS = (
@@ -39,10 +46,13 @@ SENSITIVE_PATTERNS = (
     re.compile(r"\bAPP_SECRET_KEY\s*=", re.I),
     re.compile(r"\bDATABASE_URL\s*=", re.I),
     re.compile(r"mysql(\+\w+)?://", re.I),
-    re.compile(r"\bMINIO_SECRET_KEY\s*=", re.I),
+    re.compile(r"\bMINIO_(?:ACCESS|SECRET)_KEY\s*=", re.I),
+    re.compile(r"\bAuthorization\s*:", re.I),
     re.compile(r"\bBearer\s+[A-Za-z0-9._-]+", re.I),
+    re.compile(r"\bCookie\s*:", re.I),
     re.compile(r"\bpassword\s*=", re.I),
 )
+HEX_SHA256_PATTERN = re.compile(r"\b[a-f0-9]{64}\b", re.I)
 
 NO_IMPACT_VALUES = {"", "none", "na", "n/a", "not_applicable", "not applicable", "无", "不涉及"}
 MYSQL_EVIDENCE_PATTERNS = (
@@ -64,6 +74,29 @@ DATABASE_ROLLBACK_PATTERNS = (
     re.compile(r"备份"),
 )
 DATABASE_GATE_EFFECTIVE_AT = "2026-07-21 00:00:00"
+IMAGE_GATE_EFFECTIVE_AT = "2026-07-29 15:51:41"
+USAGE_DOCS_GATE_EFFECTIVE_AT = "2026-08-01 10:35:08"
+MINTLIFY_SITE_GATE_EFFECTIVE_AT = "2026-08-03 18:45:00"
+
+
+def load_image_validator() -> Any:
+    script = ROOT / "scripts" / "validate-image-build.py"
+    spec = importlib.util.spec_from_file_location("validate_image_build_script", script)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"cannot load image validator: {script}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_usage_docs_validator() -> Any:
+    script = ROOT / "scripts" / "validate-usage-docs.py"
+    spec = importlib.util.spec_from_file_location("validate_usage_docs_script", script)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"cannot load usage docs validator: {script}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -107,6 +140,16 @@ def gate_is_passing(name: str, gate: Any, errors: list[str]) -> None:
 
 def impact_value_requires_gate(value: Any) -> bool:
     return str(value or "").strip().lower() not in NO_IMPACT_VALUES
+
+
+def release_requires_image(data: dict[str, Any]) -> bool:
+    explicit = data.get("image_required")
+    if isinstance(explicit, bool):
+        return explicit
+    impact = data.get("impact_scope")
+    if not isinstance(impact, dict):
+        return False
+    return any(impact_value_requires_gate(impact.get(key)) for key in ("backend", "database", "docker", "object_storage"))
 
 
 def validate_database_impact_gate(data: dict[str, Any], errors: list[str]) -> None:
@@ -157,8 +200,111 @@ def scan_public_safety(release_dir: Path, release_data: dict[str, Any], errors: 
             errors.append(f"public announcement or metadata contains sensitive pattern: {pattern.pattern}")
 
 
-def validate_release(release_dir: Path, product_version_file: Path = PRODUCT_VERSION_FILE) -> list[str]:
+def validate_publish_announcement_stability(release_dir: Path, release_data: dict[str, Any], errors: list[str], *, stage: str) -> None:
+    if stage != "publish":
+        return
+    announcement_name = release_data.get("announcement", "announcement.mdx")
+    announcement_path = release_dir / str(announcement_name)
+    if not announcement_path.exists():
+        return
+    text = announcement_path.read_text(encoding="utf-8")
+    if HEX_SHA256_PATTERN.search(text):
+        errors.append(
+            "announcement.mdx must not embed final sha256 values at publish stage; "
+            "reference image-manifest.json and the tarball .sha256 sidecar instead"
+        )
+
+
+def validate_mintlify_site_gate(release_dir: Path, data: dict[str, Any], errors: list[str], *, stage: str) -> None:
+    if str(data.get("release_time", "")) < MINTLIFY_SITE_GATE_EFFECTIVE_AT:
+        return
+    usage_docs = data.get("usage_docs")
+    if not isinstance(usage_docs, dict):
+        return
+    status = str(usage_docs.get("status", "")).lower()
+    if status == "generated":
+        mint_config = MINTLIFY_DIR / "mint.json"
+        require(mint_config.exists(), f"Mintlify site config missing: {mint_config}", errors)
+        manifest_path = release_dir / str(usage_docs.get("manifest") or "usage-docs/manifest.json")
+        if manifest_path.exists():
+            try:
+                manifest = load_json(manifest_path)
+            except ValueError as exc:
+                errors.append(str(exc))
+                return
+            projection = manifest.get("site_projection")
+            if not isinstance(projection, dict) or projection.get("status") != "synced":
+                errors.append("usage_docs.status generated requires manifest.site_projection.status synced")
+        gate = data.get("gates", {}).get("mintlify_preview") if isinstance(data.get("gates"), dict) else None
+        if isinstance(gate, dict) and str(gate.get("status", "")).lower() == "pass":
+            evidence = str(gate.get("evidence", ""))
+            if "mintlify" not in evidence.lower() and "validate-usage-docs.py" not in evidence:
+                errors.append("gate mintlify_preview evidence must mention Mintlify site validation or validate-usage-docs.py")
+    if stage == "publish" and impact_value_requires_gate(data.get("impact_scope", {}).get("docker") if isinstance(data.get("impact_scope"), dict) else None):
+        gate = data.get("gates", {}).get("docker_compose") if isinstance(data.get("gates"), dict) else None
+        if isinstance(gate, dict) and str(gate.get("status", "")).lower() == "pass":
+            evidence = str(gate.get("evidence", ""))
+            if "docs-site" in evidence and "docker compose" not in evidence.lower():
+                errors.append("docs-site release scope requires Docker Compose validation evidence")
+
+
+def validate_image_gates(release_dir: Path, data: dict[str, Any], errors: list[str], *, stage: str) -> None:
+    if str(data.get("release_time", "")) < IMAGE_GATE_EFFECTIVE_AT and "image_required" not in data:
+        return
+    image_required = release_requires_image(data)
+    if "image_required" not in data:
+        errors.append("image_required is required for image-governed releases")
+        return
+    if not image_required:
+        require(bool(data.get("image_required_rationale")), "image_required false requires image_required_rationale", errors)
+        return
+
+    gates = data.get("gates")
+    if not isinstance(gates, dict):
+        return
+    for name in IMAGE_GATES:
+        require(name in gates, f"gate {name} is required when image_required is true", errors)
+        if name in gates:
+            gate_is_passing(name, gates[name], errors)
+
+    plan_path = release_dir / str(data.get("image_plan", "image-build-plan.json"))
+    manifest_path = release_dir / str(data.get("image_manifest", "image-manifest.json"))
+    require(plan_path.exists(), f"image_required true requires image build plan: {plan_path}", errors)
+    if stage == "publish":
+        require(manifest_path.exists(), f"image_required true requires image manifest: {manifest_path}", errors)
+
+    if plan_path.exists():
+        image_validator = load_image_validator()
+        errors.extend(image_validator.validate_plan(str(data.get("version")), release_dir, require_unblocked=False))
+    if manifest_path.exists():
+        image_validator = load_image_validator()
+        errors.extend(image_validator.validate_manifest(str(data.get("version")), release_dir))
+
+
+def validate_usage_docs_gates(release_dir: Path, data: dict[str, Any], errors: list[str]) -> None:
+    if str(data.get("release_time", "")) < USAGE_DOCS_GATE_EFFECTIVE_AT and "usage_docs" not in data:
+        return
+    usage_docs = data.get("usage_docs")
+    gates = data.get("gates")
+    if not isinstance(usage_docs, dict):
+        errors.append("usage_docs is required for usage-docs governed releases")
+        return
+    if not isinstance(gates, dict) or "usage_docs_preview" not in gates:
+        errors.append("gate usage_docs_preview is required")
+        return
+    validator = load_usage_docs_validator()
+    errors.extend(validator.validate_release_usage_docs(release_dir / "release.json"))
+
+
+def validate_release(
+    release_dir: Path,
+    product_version_file: Path = PRODUCT_VERSION_FILE,
+    *,
+    stage: str = "prepare",
+) -> list[str]:
     errors: list[str] = []
+    if stage not in {"prepare", "publish"}:
+        return [f"stage must be prepare or publish, got {stage}"]
     data = load_json(release_dir / "release.json")
 
     version = str(data.get("version", ""))
@@ -186,15 +332,19 @@ def validate_release(release_dir: Path, product_version_file: Path = PRODUCT_VER
             require(name in gates, f"gate {name} is required", errors)
             if name in gates:
                 gate_is_passing(name, gates[name], errors)
+    validate_image_gates(release_dir, data, errors, stage=stage)
+    validate_usage_docs_gates(release_dir, data, errors)
+    validate_mintlify_site_gate(release_dir, data, errors, stage=stage)
     validate_database_impact_gate(data, errors)
 
     product_version = extract_product_version(product_version_file)
     if version != product_version:
         require(bool(data.get("version_change_rationale")), "version differs from PRODUCT_VERSION and version_change_rationale is empty", errors)
 
-    mint_config = release_dir.parent / "mint.json"
+    mint_config = MINTLIFY_DIR / "mint.json" if MINTLIFY_DIR.exists() else release_dir.parent / "mint.json"
     require(mint_config.exists(), f"Mintlify config missing: {mint_config}", errors)
     scan_public_safety(release_dir, data, errors)
+    validate_publish_announcement_stability(release_dir, data, errors, stage=stage)
     return errors
 
 
@@ -210,6 +360,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate product release metadata and announcement source.")
     parser.add_argument("--release-dir", help="Release directory such as releases/v0.1.0")
     parser.add_argument("--product-version-file", default=str(PRODUCT_VERSION_FILE))
+    parser.add_argument(
+        "--stage",
+        choices=("prepare", "publish"),
+        default="prepare",
+        help="Validation stage. prepare requires a valid image plan; publish also requires a manifest.",
+    )
     args = parser.parse_args()
 
     release_dirs = release_dirs_from_args(args.release_dir)
@@ -220,7 +376,7 @@ def main() -> int:
     all_errors: list[str] = []
     product_version_file = Path(args.product_version_file).resolve()
     for release_dir in release_dirs:
-        errors = validate_release(release_dir, product_version_file)
+        errors = validate_release(release_dir, product_version_file, stage=args.stage)
         if errors:
             all_errors.append(f"{release_dir}:")
             all_errors.extend(f"  - {error}" for error in errors)

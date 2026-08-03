@@ -104,6 +104,10 @@ describe('SystemSettingsPage', () => {
       expect(screen.getByDisplayValue('TILESFST')).toBeInTheDocument();
     });
     expect(screen.getAllByRole('button', { name: '保存设置' })).toHaveLength(1);
+    for (const label of ['管理端默认语言', '默认时区', '数据刷新周期']) {
+      expect(screen.getByLabelText(label)).toHaveClass('select');
+      expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
+    }
   });
 
   it('saves basic settings via patch API and shows AdminToast', async () => {
@@ -176,6 +180,10 @@ describe('SystemSettingsPage', () => {
     });
     expect(fetchSettingsGroupMock).toHaveBeenCalledWith('media');
     expect(screen.getByText('文档最大尺寸 (MB)')).toBeInTheDocument();
+    for (const label of ['图片最大尺寸 (MB)', '视频最大尺寸 (MB)', '文档最大尺寸 (MB)']) {
+      expect(screen.getByLabelText(label)).toHaveClass('select');
+      expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
+    }
     for (const label of ['JPG', 'PNG', 'WebP', 'GIF', 'SVG', 'BMP', 'TIFF', 'HEIC']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 from io import BytesIO
 import logging
 import mimetypes
@@ -21,6 +22,7 @@ from app.modules.media.object_keys import build_object_key
 
 MEDIA_NOT_FOUND = 40404
 MEDIA_INVALID_OBJECT_KEY = 40040
+IMAGE_CACHE_CONTROL = "public, max-age=604800, stale-while-revalidate=86400"
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -71,6 +73,92 @@ class StoredMediaObject:
 class MediaObjectInfo:
     content_type: str | None
     total_size: int
+
+
+@dataclass(frozen=True)
+class ImageThumbnailResult:
+    content: bytes
+    content_type: str
+    width: int
+    height: int
+    original_width: int
+    original_height: int
+    original_size: int
+    size: int
+    resized: bool
+
+
+def _image_format_for_content_type(content_type: str | None) -> tuple[str, str] | None:
+    normalized = (content_type or "").lower().split(";", 1)[0].strip()
+    if normalized in {"image/jpeg", "image/jpg"}:
+        return "JPEG", "image/jpeg"
+    if normalized == "image/png":
+        return "PNG", "image/png"
+    if normalized == "image/webp":
+        return "WEBP", "image/webp"
+    return None
+
+
+def generate_image_thumbnail(
+    content: bytes,
+    content_type: str | None,
+    *,
+    max_width: int = 480,
+    max_height: int = 480,
+    jpeg_quality: int = 82,
+    webp_quality: int = 82,
+) -> ImageThumbnailResult:
+    """Generate a same-format thumbnail without upscaling small images."""
+
+    image_format = _image_format_for_content_type(content_type) or _image_format_for_content_type(
+        _detect_content_type(content)
+    )
+    if image_format is None:
+        raise ValueError("unsupported image content type")
+
+    try:
+        from PIL import Image, ImageOps, UnidentifiedImageError
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("Pillow is required to generate image thumbnails") from exc
+
+    try:
+        with Image.open(BytesIO(content)) as image:
+            image = ImageOps.exif_transpose(image)
+            original_width, original_height = image.size
+            thumbnail = image.copy()
+            thumbnail.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+            resized = thumbnail.size != (original_width, original_height)
+            output_format, output_content_type = image_format
+            if output_format == "JPEG":
+                if thumbnail.mode not in {"RGB", "L"}:
+                    thumbnail = thumbnail.convert("RGB")
+                save_kwargs: dict[str, object] = {
+                    "format": "JPEG",
+                    "quality": jpeg_quality,
+                    "optimize": True,
+                    "progressive": True,
+                }
+            elif output_format == "WEBP":
+                save_kwargs = {"format": "WEBP", "quality": webp_quality, "method": 6}
+            else:
+                save_kwargs = {"format": "PNG", "optimize": True}
+            output = BytesIO()
+            thumbnail.save(output, **save_kwargs)
+    except UnidentifiedImageError as exc:
+        raise ValueError("invalid image content") from exc
+
+    thumbnail_content = output.getvalue()
+    return ImageThumbnailResult(
+        content=thumbnail_content,
+        content_type=output_content_type,
+        width=thumbnail.size[0],
+        height=thumbnail.size[1],
+        original_width=original_width,
+        original_height=original_height,
+        original_size=len(content),
+        size=len(thumbnail_content),
+        resized=resized,
+    )
 
 
 class MediaStorageClient(Protocol):
@@ -402,6 +490,109 @@ def _is_video_media_type(media_type: str | None) -> bool:
     return bool(media_type and media_type.startswith("video/"))
 
 
+def _is_image_media_type(media_type: str | None) -> bool:
+    return bool(media_type and media_type.startswith("image/"))
+
+
+def _cache_headers(resolved_key: str, media_type: str | None, total_size: int | None) -> dict[str, str]:
+    if not _is_image_media_type(media_type):
+        return {}
+    fingerprint = hashlib.sha256(f"{resolved_key}:{total_size or 0}".encode("utf-8")).hexdigest()[:16]
+    return {
+        "Cache-Control": IMAGE_CACHE_CONTROL,
+        "ETag": f'W/"{fingerprint}"',
+    }
+
+
+def _media_key_fingerprint(object_key: str) -> str:
+    return hashlib.sha256(object_key.encode("utf-8")).hexdigest()[:12]
+
+
+def thumbnail_object_key(object_key: str) -> str:
+    key = str(resolve_media_path(object_key))
+    if key.startswith("thumbnails/"):
+        return key
+    if key.startswith(("original/", "images/")):
+        _, _, rest = key.partition("/")
+        return f"thumbnails/{rest}"
+    return f"thumbnails/{key}"
+
+
+def same_directory_thumbnail_object_key(object_key: str, suffix: str = ".thumb") -> str:
+    key = str(resolve_media_path(object_key))
+    path = PurePosixPath(key)
+    if path.name.endswith(f"{suffix}{path.suffix}"):
+        return key
+    if path.suffix:
+        thumbnail_name = f"{path.stem}{suffix}{path.suffix}"
+    else:
+        thumbnail_name = f"{path.name}{suffix}"
+    return str(path.with_name(thumbnail_name))
+
+
+def _thumbnail_origin_candidates(object_key: str) -> list[str]:
+    if not object_key.startswith("thumbnails/"):
+        return []
+    rest = object_key.removeprefix("thumbnails/")
+    candidates = [rest]
+    if not rest.startswith(("original/", "images/")):
+        candidates.extend([f"original/{rest}", f"images/{rest}"])
+    return candidates
+
+
+def _same_directory_thumbnail_origin_candidates(object_key: str) -> list[str]:
+    try:
+        key = str(resolve_media_path(object_key))
+    except AppError:
+        return []
+    path = PurePosixPath(key)
+    suffix = path.suffix
+    if not suffix or not path.stem.endswith(".thumb"):
+        return []
+    return [str(path.with_name(f"{path.stem.removesuffix('.thumb')}{suffix}"))]
+
+
+def _resolve_candidate_keys(object_key: str) -> list[str]:
+    candidate_keys = [object_key]
+    for thumbnail_fallback in _same_directory_thumbnail_origin_candidates(object_key):
+        if thumbnail_fallback not in candidate_keys:
+            candidate_keys.append(thumbnail_fallback)
+    for thumbnail_fallback in _thumbnail_origin_candidates(object_key):
+        if thumbnail_fallback not in candidate_keys:
+            candidate_keys.append(thumbnail_fallback)
+    legacy_key = map_legacy_object_key(object_key)
+    if legacy_key and legacy_key not in candidate_keys:
+        candidate_keys.append(legacy_key)
+    return candidate_keys
+
+
+def _log_media_read(
+    *,
+    object_key: str,
+    resolved_key: str | None,
+    status_code: int,
+    started_at: float,
+    media_type: str | None = None,
+    total_size: int | None = None,
+    range_requested: bool = False,
+    cacheable: bool = False,
+) -> None:
+    logger.info(
+        (
+            "media_read status=%s elapsed_ms=%s object_key_hash=%s resolved_key_hash=%s "
+            "media_type=%s size_bytes=%s range=%s cacheable=%s"
+        ),
+        status_code,
+        _elapsed_ms(started_at),
+        _media_key_fingerprint(object_key),
+        _media_key_fingerprint(resolved_key) if resolved_key else None,
+        media_type,
+        total_size,
+        range_requested,
+        cacheable,
+    )
+
+
 def _range_not_satisfiable_response(total_size: int) -> Response:
     return Response(
         status_code=416,
@@ -487,8 +678,11 @@ async def save_upload_file(
     object_key: str,
     max_size_mb: int,
     timing: UploadTimingContext | None = None,
+    thumbnail_key: str | None = None,
 ) -> int:
     resolve_media_path(object_key)
+    if thumbnail_key is not None:
+        resolve_media_path(thumbnail_key)
     stage_started_at = perf_counter()
     _log_upload_stage(timing, "file_read_start", stage_started_at)
     content = await file.read()
@@ -501,18 +695,42 @@ async def save_upload_file(
     _log_upload_stage(timing, "validation_done", stage_started_at, size_bytes=len(content))
     stage_started_at = perf_counter()
     _log_upload_stage(timing, "storage_put_start", stage_started_at, size_bytes=len(content))
-    get_media_storage_client().put_object(object_key, content, file.content_type)
+    client = get_media_storage_client()
+    client.put_object(object_key, content, file.content_type)
     _log_upload_stage(timing, "storage_put_done", stage_started_at, size_bytes=len(content))
+    if thumbnail_key:
+        stage_started_at = perf_counter()
+        _log_upload_stage(timing, "thumbnail_put_start", stage_started_at, size_bytes=len(content))
+        try:
+            thumbnail = generate_image_thumbnail(content, file.content_type)
+        except (RuntimeError, ValueError, OSError) as exc:
+            logger.warning(
+                "media_thumbnail_generation_failed object_key=%s thumbnail_key=%s reason=%s",
+                object_key,
+                thumbnail_key,
+                exc.__class__.__name__,
+            )
+            _log_upload_stage(timing, "thumbnail_generation_skipped", stage_started_at, size_bytes=0)
+        else:
+            client.put_object(thumbnail_key, thumbnail.content, thumbnail.content_type)
+            _log_upload_stage(
+                timing,
+                "thumbnail_put_done",
+                stage_started_at,
+                size_bytes=thumbnail.size,
+                width=thumbnail.width,
+                height=thumbnail.height,
+                original_width=thumbnail.original_width,
+                original_height=thumbnail.original_height,
+                resized=thumbnail.resized,
+            )
     return len(content)
 
 
 def _resolve_media_object(object_key: str) -> tuple[str, StoredMediaObject]:
     resolve_media_path(object_key)
     client = get_media_storage_client()
-    candidate_keys = [object_key]
-    legacy_key = map_legacy_object_key(object_key)
-    if legacy_key and legacy_key not in candidate_keys:
-        candidate_keys.append(legacy_key)
+    candidate_keys = _resolve_candidate_keys(object_key)
 
     stored_object: StoredMediaObject | None = None
     resolved_key = object_key
@@ -537,10 +755,7 @@ def _resolve_media_object(object_key: str) -> tuple[str, StoredMediaObject]:
 def _resolve_media_info(object_key: str) -> tuple[str, MediaObjectInfo]:
     resolve_media_path(object_key)
     client = get_media_storage_client()
-    candidate_keys = [object_key]
-    legacy_key = map_legacy_object_key(object_key)
-    if legacy_key and legacy_key not in candidate_keys:
-        candidate_keys.append(legacy_key)
+    candidate_keys = _resolve_candidate_keys(object_key)
 
     last_not_found: AppError | None = None
     for candidate_key in candidate_keys:
@@ -557,43 +772,85 @@ def _resolve_media_info(object_key: str) -> tuple[str, MediaObjectInfo]:
 
 
 def get_media_file_response(object_key: str, range_header: str | None = None) -> Response:
-    if range_header:
-        resolved_key, info = _resolve_media_info(object_key)
-        media_type = info.content_type or mimetypes.guess_type(resolved_key)[0]
-        if _is_video_media_type(media_type):
-            total_size = info.total_size
-            byte_range = _parse_byte_range(range_header, total_size)
-            if byte_range is None:
-                return _range_not_satisfiable_response(total_size)
+    started_at = perf_counter()
+    try:
+        if range_header:
+            resolved_key, info = _resolve_media_info(object_key)
+            media_type = info.content_type or mimetypes.guess_type(resolved_key)[0]
+            if _is_video_media_type(media_type):
+                total_size = info.total_size
+                byte_range = _parse_byte_range(range_header, total_size)
+                if byte_range is None:
+                    _log_media_read(
+                        object_key=object_key,
+                        resolved_key=resolved_key,
+                        status_code=416,
+                        started_at=started_at,
+                        media_type=media_type,
+                        total_size=total_size,
+                        range_requested=True,
+                    )
+                    return _range_not_satisfiable_response(total_size)
 
-            start, end = byte_range
-            length = end - start + 1
-            ranged_object = get_media_storage_client().get_object_range(resolved_key, start, length)
-            range_media_type = ranged_object.content_type or media_type
-            return Response(
-                content=ranged_object.content,
-                status_code=206,
-                media_type=range_media_type,
-                headers={
-                    "Accept-Ranges": "bytes",
-                    "Content-Range": f"bytes {start}-{end}/{total_size}",
-                    "Content-Length": str(length),
-                },
-            )
+                start, end = byte_range
+                length = end - start + 1
+                ranged_object = get_media_storage_client().get_object_range(resolved_key, start, length)
+                range_media_type = ranged_object.content_type or media_type
+                _log_media_read(
+                    object_key=object_key,
+                    resolved_key=resolved_key,
+                    status_code=206,
+                    started_at=started_at,
+                    media_type=range_media_type,
+                    total_size=total_size,
+                    range_requested=True,
+                )
+                return Response(
+                    content=ranged_object.content,
+                    status_code=206,
+                    media_type=range_media_type,
+                    headers={
+                        "Accept-Ranges": "bytes",
+                        "Content-Range": f"bytes {start}-{end}/{total_size}",
+                        "Content-Length": str(length),
+                    },
+                )
 
-    resolved_key, stored_object = _resolve_media_object(object_key)
-    media_type = (
-        _detect_content_type(stored_object.content)
-        or stored_object.content_type
-        or mimetypes.guess_type(resolved_key)[0]
-    )
-    return Response(content=stored_object.content, media_type=media_type)
+        resolved_key, stored_object = _resolve_media_object(object_key)
+        media_type = (
+            _detect_content_type(stored_object.content)
+            or stored_object.content_type
+            or mimetypes.guess_type(resolved_key)[0]
+        )
+        total_size = stored_object.total_size or len(stored_object.content)
+        headers = _cache_headers(resolved_key, media_type, total_size)
+        _log_media_read(
+            object_key=object_key,
+            resolved_key=resolved_key,
+            status_code=200,
+            started_at=started_at,
+            media_type=media_type,
+            total_size=total_size,
+            cacheable=bool(headers),
+        )
+        return Response(content=stored_object.content, media_type=media_type, headers=headers)
+    except AppError as exc:
+        _log_media_read(
+            object_key=object_key,
+            resolved_key=None,
+            status_code=exc.status_code,
+            started_at=started_at,
+            media_type=None,
+            total_size=None,
+            range_requested=bool(range_header),
+        )
+        raise
 
 
 def get_media_head_response(object_key: str, range_header: str | None = None) -> Response:
     resolved_key, info = _resolve_media_info(object_key)
     media_type = info.content_type or mimetypes.guess_type(resolved_key)[0] or "application/octet-stream"
-    headers = {"Content-Length": str(info.total_size)}
+    headers = {"Content-Length": str(info.total_size), **_cache_headers(resolved_key, media_type, info.total_size)}
 
     if _is_video_media_type(media_type):
         headers["Accept-Ranges"] = "bytes"

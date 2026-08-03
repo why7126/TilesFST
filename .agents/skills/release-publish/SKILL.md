@@ -1,6 +1,8 @@
 ---
 name: "release-publish"
 description: "记录产品版本发布确认结果和最终公告位置"
+created_at: "2026-07-02 14:56:58"
+updated_at: "2026-08-03 23:10:00"
 ---
 
 # release-publish
@@ -43,34 +45,55 @@ src/shared/product-version.ts
 
 Publish MUST be blocked unless:
 
-- `python scripts/validate-release.py --release-dir releases/<version>` exits `0`.
+- `python scripts/validate-release.py --release-dir releases/<version> --stage publish` exits `0`.
 - Every required gate is `pass` or correctly justified as `na`.
 - Formal-scope Changes are archived.
 - Public announcement is safe for external publication.
 - Product version mismatch has explicit rationale, or `PRODUCT_VERSION` equals `<version>`.
+- Usage docs are either generated with validated `usage_docs_preview=pass`, or explicitly skipped with `usage_docs_preview=na`; `pending_confirmation` blocks publish.
+- If `image_required=true` or offline image delivery is in scope, `releases/<version>/image-manifest.json` validates, or approved external build evidence is present.
+- Manifest version, image tag, source plan, input hashes, tarball path, sidecar sha256, and actual tarball sha256 still match current release inputs.
+- If announcement or release stable inputs changed after `/image-build`, publish MUST block and rerun `/image-prepare <version>` plus `/image-build <version>` before confirmation.
 - User has supplied or confirmed the final announcement location if there is an external URL.
 
-`--force` MUST NOT bypass public-safety failures or missing `release.json` / `announcement.mdx`.
+### Anti-loop Rule（MUST）
+
+`/release-publish` MUST be a confirmation-only command after image evidence exists:
+
+- MUST NOT edit `releases/<version>/announcement.mdx` after a valid `image-manifest.json` exists.
+- MUST NOT write the final tarball sha256, manifest sha256, published timestamp, or publish confirmation into `announcement.mdx`.
+- Announcement text MUST refer to `releases/<version>/image-manifest.json` and the tarball `.sha256` sidecar as the source of truth for final image checksums.
+- Publish confirmation MUST be written only to `releases/<version>/release.json` under `publish_confirmation` or other non-stable publish metadata fields.
+- If announcement content is stale, missing, unsafe, or needs copy edits, BLOCK publish and instruct the operator to update the announcement first, then rerun `/image-prepare <version>` and `/image-build <version>`. Do not repair announcement copy inside `/release-publish`.
+- `release.json` gate evidence, `known_issues`, `publish_confirmation`, and other publish bookkeeping MUST NOT be treated as image stable input; scripts must continue to hash only stable release scope and input files.
+
+`--force` MUST NOT bypass public-safety failures, missing `release.json` / `announcement.mdx`, usage docs pending confirmation, generated usage docs manifest/navigation/safety failures, skipped usage docs without rationale, missing image manifest for image-required releases, or stale image input hashes.
 
 ## Steps
 
 1. Validate release metadata and announcement safety.
-2. Confirm publish-time fields:
+   - Include `python scripts/validate-usage-docs.py --release-dir releases/<version>` when `usage_docs.status` is `generated` or `skipped`.
+2. Validate image manifest when `image_required=true`:
+   - `python scripts/validate-image-build.py validate-manifest --release <version>`
+   - Confirm manifest `version`, `image_tag`, `source_plan`, `input_hashes`, tarball path, `.sha256` sidecar and actual tarball sha256 match current inputs.
+   - Run `shasum -a 256 -c <tarball>.sha256` from the tarball directory and record the final sha from `image-manifest.json`.
+   - If external build evidence is used, confirm evidence source, platform, digest or tarball sha256, validation method, owner confirmation and risk statement.
+3. Confirm publish-time fields:
    - `release_time` / published time in `YYYY-MM-DD HH:mm:ss`
    - final announcement path or URL
    - rollback and known issues are present
-3. Update `releases/<version>/release.json` with publish confirmation fields if the existing schema already contains them, or append a conservative `publish_confirmation` object:
+4. Update only `releases/<version>/release.json` with publish confirmation fields if the existing schema already contains them, or append a conservative `publish_confirmation` object. Do not update `announcement.mdx` in this step:
 
 ```json
 {
   "published_at": "YYYY-MM-DD HH:mm:ss",
-  "announcement_url": "https://example.com/releases/vX.Y.Z",
+  "announcement_url": "releases/vX.Y.Z/announcement.mdx",
   "confirmed_by": "operator",
-  "notes": "发布确认说明"
+  "notes": "发布确认说明。最终镜像 sha256 以 image-manifest.json 和 .sha256 sidecar 为准。"
 }
 ```
 
-4. Re-run validation.
+5. Re-run validation. If validation reports image input drift caused by announcement changes, STOP and report that `/image-prepare <version>` and `/image-build <version>` must be rerun before publish.
 
 ## Output
 

@@ -33,6 +33,11 @@ function renderAdminLayout(initialEntry = '/admin/dashboard') {
   );
 }
 
+function selectTheme(valueLabel: string) {
+  fireEvent.click(screen.getByLabelText('界面主题'));
+  fireEvent.click(screen.getByRole('option', { name: valueLabel }));
+}
+
 vi.mock('../../../features/auth/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
@@ -137,9 +142,7 @@ describe('AdminLayout', () => {
     expect(screen.getAllByLabelText('界面主题')).toHaveLength(1);
     expect(container.querySelector('.admin-theme-row')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'comfort_dark' },
-    });
+    selectTheme('舒适暗色');
 
     await waitFor(() => {
       expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
@@ -181,9 +184,7 @@ describe('AdminLayout', () => {
 
     renderAdminLayout();
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'light' },
-    });
+    selectTheme('浅色');
 
     const toastMessage = '主题已在本机生效，但账号偏好同步失败，请稍后重试。';
     await act(async () => {
@@ -237,16 +238,12 @@ describe('AdminLayout', () => {
 
     const { container } = renderAdminLayout();
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'light' },
-    });
+    selectTheme('浅色');
     await waitFor(() => {
       expect(updateThemePreference).toHaveBeenCalledWith('light');
     });
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'comfort_dark' },
-    });
+    selectTheme('舒适暗色');
 
     await waitFor(() => {
       expect(updateThemePreference).toHaveBeenCalledWith('comfort_dark');
@@ -277,9 +274,7 @@ describe('AdminLayout', () => {
 
     renderAdminLayout();
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'comfort_dark' },
-    });
+    selectTheme('舒适暗色');
 
     await waitFor(() => {
       expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');

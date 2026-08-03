@@ -22,6 +22,9 @@ def write_sprint(root: Path, sprint_id: str, changes: list[str], stage: str = "c
         f"status: in_progress\nchanges:\n{body}\n",
         encoding="utf-8",
     )
+    (sprint_dir / "sprint.md").write_text("# Sprint\n", encoding="utf-8")
+    (sprint_dir / "release-note.md").write_text("# Release\n", encoding="utf-8")
+    (sprint_dir / "acceptance-report.md").write_text("# Acceptance\n", encoding="utf-8")
 
 
 def write_tasks(root: Path, change_id: str, tasks: list[str], archived: bool = False) -> None:
@@ -172,3 +175,22 @@ def test_large_sprint_readiness_exposes_change_batches(tmp_path: Path) -> None:
     assert readiness.change_batches["batches"][0]["change_ids"] == change_ids[:5]
     assert readiness.change_batches["batches"][2]["counts"]["blockers"] == 1
     assert "batch-003" in payload
+
+
+def test_stale_scan_blocker_blocks_sprint_archive_readiness(tmp_path: Path) -> None:
+    write_sprint(tmp_path, "sprint-999", ["fix-with-stale-text"], stage="archive")
+    write_tasks(tmp_path, "fix-with-stale-text", ["- [x] implement", "- [x] test"], archived=True)
+    (archived_change_dir(tmp_path, "fix-with-stale-text") / "trace.md").write_text(
+        "---\nstatus: done\n---\n# Trace\n",
+        encoding="utf-8",
+    )
+    sprint_md = tmp_path / "iterations" / "archive" / "sprint-999" / "sprint.md"
+    sprint_md.write_text("fix-with-stale-text proposed；待 `/opsx-apply`。\n", encoding="utf-8")
+
+    readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
+
+    assert readiness.blockers == []
+    assert readiness.has_blockers is True
+    assert readiness.stale_scan.blocker_count == 2
+    payload = validate_sprint_archive_readiness.readiness_to_json(readiness, force=False)
+    assert '"verdict": "blocked"' in payload

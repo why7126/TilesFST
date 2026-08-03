@@ -48,7 +48,7 @@ def test_object_storage_settings_defaults_to_local_minio() -> None:
     settings = Settings(_env_file=None)
 
     assert settings.effective_object_storage_provider() == "minio"
-    assert settings.effective_object_storage_endpoint() == "minio:9000"
+    assert settings.effective_object_storage_endpoint() == "tilesfst-minio:9000"
     assert settings.effective_object_storage_access_key() == "minioadmin"
     assert settings.effective_object_storage_secret_key() == "minioadmin"
     assert settings.effective_object_storage_bucket() == "tilesfst"

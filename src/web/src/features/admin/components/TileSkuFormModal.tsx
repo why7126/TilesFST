@@ -427,7 +427,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   };
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="sku-modal-card"
         role="dialog"

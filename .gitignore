@@ -5,6 +5,10 @@
 .env
 .env.local
 .env.mysql
+.env.prod-backfill
+deploy/**/*.env
+deploy/**/*.env.local
+deploy/**/*.env.prod
 scripts/build-images.env
 .venv/
 
@@ -43,6 +47,20 @@ build/
 /releases/.mintlify/**
 /releases/dist/**
 /releases/build/**
+/releases/*/images/**
+/mintlify/.mintlify/**
+/mintlify/dist/**
+/mintlify/build/**
+/mintlify/.next/**
+/mintlify/node_modules/**
+
+# Deploy runtime and large artifacts
+/deploy/**/data/**
+/deploy/**/*.db
+/deploy/**/*.sqlite
+/deploy/**/*.sqlite3
+/deploy/**/*.tar
+/deploy/**/*.tar.gz
 
 # Keep placeholders and documentation
 !/data/**/.gitkeep

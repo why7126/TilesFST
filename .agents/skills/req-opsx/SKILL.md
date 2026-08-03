@@ -140,6 +140,12 @@ openspec instructions <artifact-id> --change "<change-id>" --json
 
 按 schema 顺序写 proposal、design、specs、tasks。MODIFIED 标题 **MUST** 与 `openspec/specs/` 一致。
 
+文档语言 MUST 遵守 `rules/language.md`：
+
+- `proposal.md`、`design.md`、`tasks.md`、`trace.md` 标题、章节名和任务项 MUST 中文优先；不得保留 `Why`、`What Changes`、`Implementation`、`Validation`、`Root Cause` 等英文脚手架标题。
+- OpenSpec 关键字、命令、路径、代码标识符和 API 字段 MAY 保留英文。
+- 生成后运行 `python scripts/validate-openspec-language.py`；失败时先修正文档再进入 Workflow Sync。
+
 ---
 
 ## Step 7 — 追溯
@@ -198,6 +204,7 @@ python scripts/sync-workflow-status.py --event req.opsx --req <REQ-id> --change 
 - Exit code **MUST** be `0` before ending this command.
 - 当目标 REQ 已在 Sprint 正式范围内时，Workflow Sync **MUST** 把 `<change-id>` 写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项；结束前用 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 确认后续 `/opsx-apply` 不再报告 `change <id> not in sprint scope`。
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
+- Confirm the summary includes Issue subdocument checked/updated counts when applicable; `requirement.md` must reference the linked Change without conflicting with `trace.md`.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
 
 ## Final Step — AI Usage Post-command Hook (MUST)

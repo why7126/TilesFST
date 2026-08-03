@@ -295,6 +295,10 @@ describe('ApiDocsPage', () => {
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '搜索' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
+    for (const label of ['METHOD', 'TAG', 'AUTH']) {
+      expect(screen.getByLabelText(label)).toHaveClass('select');
+      expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
+    }
 
     const hero = container.querySelector('.page-hero');
     const summary = container.querySelector('.summary-grid');

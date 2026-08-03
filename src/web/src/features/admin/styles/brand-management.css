@@ -216,6 +216,7 @@
 .admin-shell .brand-logo-preview {
   width: 34px;
   height: 34px;
+  margin-top: 8px;
   border-radius: 3px;
   border: 0.5px solid color-mix(in srgb, var(--admin-gold) 26%, transparent);
   background: var(--admin-gold-bg);

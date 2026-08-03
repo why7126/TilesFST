@@ -9,7 +9,51 @@
         "v0.0.2/announcement",
         "v0.0.3/announcement",
         "v0.2.0/announcement",
+        "v0.3.0/announcement",
+        "v0.3.1/announcement",
+        "v0.3.2/announcement",
+        "v0.3.3/announcement",
+        "v0.3.4/announcement",
         "templates/announcement"
+      ]
+    },
+    {
+      "group": "v0.3.3 产品使用文档",
+      "pages": [
+        "v0.3.3/usage-docs/admin/catalog",
+        "v0.3.3/usage-docs/admin/governance",
+        "v0.3.3/usage-docs/admin/index",
+        "v0.3.3/usage-docs/admin/media",
+        "v0.3.3/usage-docs/faq",
+        "v0.3.3/usage-docs/miniapp/brand-certificate",
+        "v0.3.3/usage-docs/miniapp/browse",
+        "v0.3.3/usage-docs/miniapp/index",
+        "v0.3.3/usage-docs/overview",
+        "v0.3.3/usage-docs/public/index"
+      ]
+    },
+    {
+      "group": "v0.3.4 产品使用文档",
+      "pages": [
+        "v0.3.4/usage-docs/admin/catalog",
+        "v0.3.4/usage-docs/admin/governance",
+        "v0.3.4/usage-docs/admin/index",
+        "v0.3.4/usage-docs/admin/media",
+        "v0.3.4/usage-docs/faq",
+        "v0.3.4/usage-docs/miniapp/brand-certificate",
+        "v0.3.4/usage-docs/miniapp/browse",
+        "v0.3.4/usage-docs/miniapp/index",
+        "v0.3.4/usage-docs/overview",
+        "v0.3.4/usage-docs/public/index"
+      ]
+    },
+    {
+      "group": "产品使用文档模板",
+      "pages": [
+        "templates/usage-docs/overview",
+        "templates/usage-docs/admin/index",
+        "templates/usage-docs/miniapp/index",
+        "templates/usage-docs/faq"
       ]
     }
   ]

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { TileSpecAdminItem, TileSpecAdminListData } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 
 import {
   canDeleteTileSpec,
@@ -173,21 +174,16 @@ export function TileSpecManagementPage() {
           </div>
           <div className="brand-form-item">
             <label htmlFor="tile-spec-filter-status">状态</label>
-            <select
+            <AdminFilterSelect
               id="tile-spec-filter-status"
-              className="select"
               value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
+              options={STATUS_OPTIONS}
+              listLabel="规格状态选项"
+              onChange={(nextStatus) => {
+                setStatus(nextStatus);
                 setPage(1);
               }}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="tile-spec-filter-actions">
             <button
@@ -350,7 +346,6 @@ export function TileSpecManagementPage() {
         <div
           className="modal-backdrop"
           role="presentation"
-          onClick={() => setStatusConfirmTarget(null)}
         >
           <div
             className="modal-card"
@@ -392,7 +387,7 @@ export function TileSpecManagementPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"

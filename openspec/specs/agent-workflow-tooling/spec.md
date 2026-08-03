@@ -135,17 +135,42 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 MUST 将 attribution_confidence 标记为 medium 或 low
 
 ### Requirement: Sprint 复盘命令环节 Token 分析
-`/sprint-exps` MUST 优先读取 `data/ai-usage/` 的 Sprint 聚合快照，并按命令环节维度展示 AI 使用量分析。
+`/sprint-exps` MUST 优先读取 `data/ai-usage/` 的 Sprint 聚合快照，并在 Sprint AI usage snapshot fresh gate 通过后按命令环节维度展示 AI 使用量分析。fresh gate MUST 确认 snapshot 为 `present`、AI usage mode 为 `actual`、`usage_matrices` 存在、关键 totals 非空、当前 Sprint scope 的 requirements、bugs 和 changes coverage 均通过；未通过时默认不得输出真实成本矩阵或宣称完成真实 token 成本量化。
 
-#### Scenario: 存在 Sprint 使用量快照
-- **WHEN** 用户执行 `/sprint-exps sprint-xxx` 且 `data/ai-usage/` 存在对应 Sprint 聚合快照
+#### Scenario: 存在新鲜且覆盖完整的 Sprint 使用量快照
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **AND** `data/ai-usage/` 存在对应 Sprint 聚合快照
+- **AND** snapshot fresh gate 判定为通过
 - **THEN** `/sprint-exps` MUST 展示 command run 数、模型调用次数、工具调用次数、失败重跑次数和 input/cached/output/reasoning/total tokens
 - **AND** `/sprint-exps` SHOULD 展示高消耗原因和优化建议
 
-#### Scenario: 缺少真实计量
-- **WHEN** `/sprint-exps` 找不到对应 Sprint 的真实使用量快照
-- **THEN** `/sprint-exps` MAY 使用估算模式
-- **AND** 输出 MUST 明确标注“无精确 token 计量”或等价说明
+#### Scenario: Snapshot 缺失或不可用
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **AND** Sprint AI usage snapshot 状态为 `missing`、`failed` 或 `unavailable`
+- **THEN** `/sprint-exps` MUST 输出 fresh gate blocker、reason、impact 和 recommended_action
+- **AND** `/sprint-exps` MUST NOT 默认生成真实 token 成本矩阵
+- **AND** `/sprint-exps` MUST NOT 将 `estimated_fallback` 表述为真实成本量化结果
+
+#### Scenario: Snapshot 过期或覆盖不足
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **AND** Sprint AI usage snapshot 状态为 `stale`
+- **OR** snapshot coverage 缺少当前 Sprint scope 中的 requirement、bug 或 change
+- **OR** snapshot 缺少 `usage_matrices`
+- **THEN** `/sprint-exps` MUST 输出 fresh gate blocker，列出 compact warning_count、coverage status 和 recommended_action
+- **AND** `/sprint-exps` MUST 要求刷新 snapshot 后再输出真实成本分析
+
+#### Scenario: 用户显式接受估算复盘
+- **WHEN** snapshot fresh gate 未通过
+- **AND** 用户明确要求继续生成 fallback 复盘
+- **THEN** `/sprint-exps` MAY 使用估算模式输出非量化成本风险分析
+- **AND** 输出 MUST 明确标注 `ai_usage_mode: estimated_fallback`
+- **AND** 输出 MUST 说明该结果不能用于真实 token 成本量化
+- **AND** 输出 MUST 保留刷新真实 snapshot 的 recommended_action
+
+#### Scenario: Fresh gate 输出保持紧凑且脱敏
+- **WHEN** `/sprint-exps` 报告 Sprint AI usage snapshot fresh gate 结果
+- **THEN** 输出 MUST 仅包含 status、usage mode、snapshot status、warning_count、coverage status、usage_matrices presence 和 recommended_action 等 compact 字段
+- **AND** 输出 MUST NOT 包含原始 session JSONL、prompt、系统指令、developer 指令、技能全文、本机绝对路径、密钥、Cookie、Authorization header、`.env` 内容或工具输出全文
 
 ### Requirement: AI 使用量事实脱敏
 系统 MUST 对 AI 使用量事实源和 Sprint 复盘输出执行脱敏，避免泄露原始 prompt、系统指令、developer 指令、技能全文、本机绝对路径、密钥、Cookie、Authorization、真实客户数据、`.env` 内容和工具输出全文。
@@ -173,7 +198,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 SHOULD 输出无法归因、缺少 token_count、发现本地绝对路径或疑似敏感内容被跳过的 warnings
 
 ### Requirement: Issue 归档子文档状态一致性门禁
-系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。单个 Issue 的归档与子文档 reconcile MUST 以该 Issue 自身闭环为准，不得仅因所属 Sprint 尚未 completed 而阻断；Sprint completed 仅作为 `/sprint-archive` 整体归档门禁。
+系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。单个 Issue 的归档与子文档 reconcile MUST 以该 Issue 自身闭环为准，不得仅因所属 Sprint 尚未 completed 而阻断；Sprint completed 仅作为 `/sprint-archive` 整体归档门禁。该门禁 MUST 复用或兼容常规子文档 drift check 的扫描分类结果，并 MUST 区分“日常状态传播缺失”与“闭环 residual reconcile”两类问题。
 
 #### Scenario: BUG 子文档残留状态阻断归档
 - **GIVEN** 一个 BUG 已满足关联 Change archived 与 `trace.md` done 条件
@@ -182,6 +207,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 系统 MUST 阻断该 BUG 迁入 `issues/bugs/archive/`
 - **AND** 报告 MUST 列出 issue id、文件路径、状态来源、当前状态
 - **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
+- **AND** 报告 MUST 标明该残留属于闭环 residual、常规状态传播缺失还是需要人工判断
 
 #### Scenario: REQ 子文档残留状态阻断归档
 - **GIVEN** 一个 REQ 已满足关联 Change archived 与 `trace.md` done 条件
@@ -190,10 +216,12 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 系统 MUST 阻断该 REQ 迁入 `issues/requirements/archive/`
 - **AND** 报告 MUST 列出所有残留状态字段
 - **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
+- **AND** 报告 MUST 标明该残留属于闭环 residual、常规状态传播缺失还是需要人工判断
 
 #### Scenario: 子文档状态全部闭环后允许归档
 - **GIVEN** 一个 REQ 或 BUG 已满足 archive promote 的主状态条件
 - **AND** issue 包内所有维护状态字段均为 `done`、`archived`、`resolved`、`closed` 或等价闭环状态
+- **AND** `acceptance.md` 或等价验收入口已记录通过、失败、部分通过或豁免结论
 - **WHEN** 系统执行 issue archive promote
 - **THEN** 系统 MAY 将该 issue 从 `review/` 迁入 `archive/`
 
@@ -201,6 +229,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **WHEN** issue archive promote 因子文档状态残留被阻断
 - **THEN** 报告 MUST 提示先 dry-run 再 apply reconcile
 - **AND** 建议 MUST 区分“可自动 reconcile”的闭环 Issue 与“必须先推进上游流程”的未闭环 Issue
+- **AND** 建议 MUST 标明是否还缺少验收结果回填
 
 #### Scenario: Dry-run 预览子文档状态 reconcile
 - **GIVEN** 一个 REQ 或 BUG 的主状态与关联 Change 已闭环
@@ -217,6 +246,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 系统 MUST 将子文档残留状态更新为该 issue 的闭环目标状态
 - **AND** 系统 MUST 刷新被修改 Markdown 的 `updated_at`
 - **AND** 系统 MUST NOT 仅因所属 Sprint 尚未 completed 阻断写入
+- **AND** 系统 MUST NOT 写入未在 dry-run 中分类为可安全同步的历史字段
 
 #### Scenario: 未闭环 Issue 禁止 reconcile 写入
 - **GIVEN** 一个 REQ 或 BUG 的主状态或关联 Change 尚未闭环
@@ -225,7 +255,28 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 报告 MUST 指出需要先完成的上游命令或状态
 
 ### Requirement: Archived Change trace 兜底摘要门禁
-系统 MUST 在 Sprint 或 OpenSpec 归档 readiness gate 中检查 archived Change 的归档验证证据；当 archived Change 缺失 `trace.md` 时，系统 MUST 要求 `proposal.md`、`design.md` 或 `tasks.md` 中至少一个文件包含标准化归档验证摘要。
+系统 MUST 在 `/opsx-archive` 单个 Change 归档流程中检查 archived Change 的归档验证证据；系统 MUST 在 Sprint 或 OpenSpec 归档 readiness gate 中继续复核 archived Change 的归档验证证据。归档后的 Change 缺失 `trace.md` 时，系统 MUST 要求 `proposal.md`、`design.md` 或 `tasks.md` 中至少一个文件包含标准化归档验证摘要。
+
+#### Scenario: opsx-archive 归档后存在 trace
+- **WHEN** `/opsx-archive <change-id>` 已将 Change 归档到 `openspec/archive/<date>-<change-id>/`
+- **AND** archived Change 目录包含 `trace.md`
+- **THEN** 系统 MUST 将该 Change 的归档证据状态记录为 trace-present
+- **AND** `/opsx-archive` MUST 不因 fallback summary 缺失而阻断该 Change
+
+#### Scenario: opsx-archive 归档后缺失 trace 但存在兜底摘要
+- **WHEN** `/opsx-archive <change-id>` 已将 Change 归档到 `openspec/archive/<date>-<change-id>/`
+- **AND** archived Change 目录缺失 `trace.md`
+- **AND** `proposal.md`、`design.md` 或 `tasks.md` 中存在标准化归档验证摘要
+- **THEN** 系统 MUST 将该 Change 的归档证据状态记录为 fallback summary pass
+- **AND** `/opsx-archive` 输出 MUST 展示承载摘要的文件路径
+
+#### Scenario: opsx-archive 归档后缺失 trace 且无兜底摘要
+- **WHEN** `/opsx-archive <change-id>` 已将 Change 归档到 `openspec/archive/<date>-<change-id>/`
+- **AND** archived Change 目录缺失 `trace.md`
+- **AND** `proposal.md`、`design.md`、`tasks.md` 均不存在标准化归档验证摘要
+- **THEN** 系统 MUST 输出 blocker 或等价非闭环归档证据失败状态
+- **AND** `/opsx-archive` MUST 不得输出归档完全闭环成功结论
+- **AND** blocker MUST 包含 Change id、归档路径、检查过的候选文件和缺失的摘要项
 
 #### Scenario: archived Change 存在 trace
 - **WHEN** readiness gate 检查一个 archived Change
@@ -259,12 +310,13 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 摘要 MUST 至少覆盖验证命令与结果、验收结论、关联 Issue 或 Sprint 状态、归档路径或归档时间
 
 ### Requirement: Workflow Sync 支持摘要输出模式
-系统 MUST 为 Workflow Sync 报告提供摘要输出模式，用聚合计数和关键上下文替代成功路径中的长文件明细。
+系统 MUST 为 Workflow Sync 报告提供摘要输出模式，用聚合计数和关键上下文替代成功路径中的长文件明细。摘要输出 MUST 覆盖 Issue 子文档同步结果，包括检查数量、更新数量、验收结果状态或不适用原因、drift warning 数量。
 
 #### Scenario: 成功同步输出摘要
 - **WHEN** 用户或 source-command 执行 `scripts/sync-workflow-status.py` 且同步成功
 - **THEN** 系统 MUST 输出 Workflow Sync Report 摘要
 - **AND** 摘要 MUST 包含 event、focus issue 或 change、sprint 解析结果、updated 数量、skipped 数量和 errors 数量
+- **AND** 当事件关联 REQ 或 BUG 时，摘要 MUST 包含子文档检查数量、子文档更新数量、验收结果状态或不适用原因、drift warning 数量
 - **AND** 系统 MUST NOT 默认逐条输出完整 `Skipped (no delta)` 文件列表
 
 #### Scenario: 无变化文件较多
@@ -368,24 +420,19 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 系统 MUST 优先保存数字指标、工作流 ID、仓库相对路径、hash、时间范围、短安全标签或 warning
 
 ### Requirement: 工作流命令自动构建 AI usage 事实源
-系统 MUST 为 `/req-*`、`/bug-*`、`/opsx-*`、`/sprint-*` 工作流命令提供后置 AI usage fact source 构建流程，并在主命令和 Workflow Sync 成功后尝试生成或刷新脱敏使用量事实。
+系统 MUST 为 `/req-*`、`/bug-*`、`/opsx-*`、`/sprint-*` 工作流命令提供后置 AI usage fact source 构建流程，并在主命令和 Workflow Sync 成功后尝试生成或刷新脱敏使用量事实。对于 release 与 image 工作流命令，系统 MUST 提供等价的 post-command hook 归因规则，使发布版本与镜像构建命令可追踪。
 
 #### Scenario: 主命令与 Workflow Sync 成功后触发
-- **WHEN** 用户执行 `/req-*`、`/bug-*`、`/opsx-*` 或 `/sprint-*` 工作流命令
+- **WHEN** `/req-*`、`/bug-*`、`/opsx-*` 或 `/sprint-*` 工作流命令完成
 - **AND** 主命令完成且 Workflow Sync 返回成功
 - **THEN** 系统 MUST 触发统一 AI usage fact source hook 或等价共享流程
 - **AND** 系统 MUST 输出短摘要，包含 hook status、usage mode、warning 数量和 recommended action
 
-#### Scenario: 主命令失败时跳过
-- **WHEN** 工作流命令主流程失败或 Workflow Sync 失败
-- **THEN** 系统 MAY 跳过 AI usage fact source hook
-- **AND** 系统 MUST 在输出中说明本次未构建 AI usage 事实源的原因
-
-#### Scenario: 无 Sprint 归属时不伪造 snapshot
-- **WHEN** 命令可归因到 REQ 或 BUG 但无法解析到 Sprint
-- **THEN** 系统 MUST NOT 创建伪造的 Sprint 聚合快照
-- **AND** 系统 SHOULD 生成 command run 明细或输出无法生成的原因
-- **AND** 输出 MUST 标明 Sprint snapshot skipped 或等价状态
+#### Scenario: release 与 image 命令写入版本归因
+- **WHEN** `/release-*` or `/image-*` workflow commands run with `--release vX.Y.Z` or `<version>`
+- **THEN** their AI usage hook SHALL support release version attribution
+- **AND** image command usage records SHALL be attributable to the release version and, when provided, the related image plan or manifest
+- **AND** successful output SHALL stay compact and SHALL NOT print raw session content, prompts, local absolute paths, secrets, or full command-run JSON.
 
 ### Requirement: 统一 AI usage post-command hook
 系统 MUST 通过统一脚本、函数或等价封装处理工作流命令后的 AI usage 构建，避免 命令技能复制复杂 session 解析、归因和脱敏逻辑。
@@ -447,7 +494,7 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 系统 MUST 输出 warning、降级原因和刷新建议
 
 ### Requirement: Release 命令 AI usage 版本级存储
-系统 MUST 为 `/release-propose`、`/release-prepare`、`/release-publish` 提供版本级 AI usage artifact，避免 release 命令只散落在通用 command-runs 或被误归到单一 Sprint snapshot。
+系统 MUST 为 `/release-propose`、`/release-prepare`、`/release-publish` 提供版本级 AI usage artifact，避免 release 命令只散落在通用 command-runs 或被误归到单一 Sprint snapshot。系统 SHOULD 为 `/image-prepare` 与 `/image-build` 提供同一 release version 目录下的 AI usage artifact，避免镜像构建命令脱离发布版本事实源。
 
 #### Scenario: release 命令写入版本目录
 - **WHEN** release post-command hook 提供 `--release vX.Y.Z`
@@ -457,30 +504,12 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** `<workflow-event>` SHALL 为 `release.propose`、`release.prepare` 或 `release.publish`
 - **AND** 版本级 artifact MUST 包含 `release_version`、`workflow_event`、`generated_at`、`coverage`、`totals` 和脱敏 command run 明细或等价安全摘要
 
-#### Scenario: release 范围 Sprint 与 Sprint snapshot 分离
-- **WHEN** release 对象包含一个或多个 Sprint
-- **THEN** hook MUST 支持重复 `--release-sprint <sprint-id>` 或等价输入记录版本覆盖范围
-- **AND** `--release-sprint` MUST 写入 release artifact 的 `coverage.sprints`
-- **AND** `--sprint` MUST 仅表示单个 Sprint snapshot 刷新目标，不得作为多 Sprint release 范围的唯一表达
-
-#### Scenario: release 命令输出版本 artifact 摘要
-- **WHEN** release post-command hook 完成生成、dry-run 或降级
-- **THEN** 输出 MUST 包含 `release_artifact` 摘要
-- **AND** 摘要 MUST 标明 status、path 和 reason
-- **AND** 若缺少 `--release`，`release_artifact` MUST 为 `skipped` 且 reason 为 `no-release` 或等价说明
-
-#### Scenario: 多 Sprint release 不伪造单 Sprint 快照
-- **WHEN** 一个 release 对象关联多个 Sprint
-- **THEN** release 命令的版本级 artifact MUST 作为该命令的主事实源
-- **AND** 系统 MUST NOT 仅因 release 覆盖多个 Sprint 就把同一 command run 复制成多个 Sprint snapshot
-- **AND** 如调用方需要刷新 Sprint snapshot，MUST 按 Sprint 单独执行或明确说明刷新范围
-
-#### Scenario: 全部候选记录不安全
-- **WHEN** hook 找到目标 session 和目标 command run
-- **AND** 所有候选 command run 都未通过持久化安全扫描
-- **THEN** 系统 MUST NOT 写入 command run 或 Sprint snapshot
-- **AND** 系统 MUST 输出 `usage_mode: unavailable`、`no-safe-command-runs` 和 recommended action
-- **AND** 调用方 MUST 报告该 blocker，不得改用不存在的 session 输入伪造成功摘要
+#### Scenario: image 命令写入版本目录
+- **WHEN** image post-command hook provides `--release vX.Y.Z` or equivalent release version context
+- **AND** hook can safely parse local session input
+- **THEN** the system SHOULD write image command run details under `data/ai-usage/command-runs/releases/vX.Y.Z/`
+- **AND** `<workflow-event>` SHOULD be `image.prepare` or `image.build`
+- **AND** the version-level artifact SHOULD include release_version, workflow_event, generated_at, coverage, totals, image_plan or image_manifest summary, and safe command run details.
 
 ### Requirement: 自动构建继承 AI usage 安全边界
 工作流命令自动构建 AI usage 事实源时 MUST 继承 AI 使用量事实源的脱敏、安全和上下文预算边界。
@@ -501,42 +530,22 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 系统 SHOULD 为重复、无法归因或疑似敏感内容跳过输出 warning
 
 ### Requirement: 工作流成功路径紧凑输出契约
-系统 MUST 为 Workflow Sync 与 AI usage post-command hook 建立统一 compact summary 输出契约，使工作流命令成功路径默认只输出聚合状态、关键上下文和推荐动作。
+系统 MUST 为 Workflow Sync 与 AI usage post-command hook 建立统一 compact summary 输出契约，使工作流命令成功路径默认只输出聚合状态、关键上下文和推荐动作。Image 命令成功路径 SHALL follow the same compact-output contract and summarize plan/manifest paths, gate status, blocker count, and next command instead of printing full Docker logs or full manifest JSON.
 
 #### Scenario: Workflow Sync 默认成功摘要
-- **WHEN** 用户或命令技能执行 `scripts/sync-workflow-status.py` 且命令成功完成
+- **WHEN** Workflow Sync succeeds
 - **THEN** 系统 MUST 默认输出 Workflow Sync Report 摘要
-- **AND** 摘要 MUST 至少包含 event、focus 对象、Sprint 解析结果、updated 数量、skipped 数量和 errors 数量
-- **AND** 系统 MUST NOT 默认输出完整 `Skipped (no delta)` 文件列表、完整派生 Scope 块或长篇逐文件成功日志
-
-#### Scenario: Workflow Sync 详细模式保留逐文件明细
-- **WHEN** 用户或维护者显式请求 Workflow Sync 详细输出模式
-- **THEN** 系统 MUST 输出逐文件 updated、skipped 和必要诊断明细
-- **AND** 详细模式的同步结果、写入行为和退出码 MUST 与默认摘要模式一致
-
-#### Scenario: Workflow Sync 失败路径保留诊断
-- **WHEN** Workflow Sync 发生错误、drift 检查失败或 marker 解析失败
-- **THEN** 系统 MUST 输出错误数量和每条错误原因
-- **AND** 系统 MUST 返回非零退出码
-- **AND** 系统 MUST 提供可定位问题文件或启用详细模式的提示
 
 #### Scenario: AI usage hook 输出固定摘要字段
 - **WHEN** 工作流命令在 Workflow Sync 成功后执行 AI usage post-command hook
-- **THEN** 用户可见输出 MUST 只展示 compact summary
+- **THEN** hook output SHALL use a compact summary
 - **AND** compact summary MUST 包含 `status`、`usage_mode`、`command_run_count`、`sprint_snapshot`、`warning_count` 和 `recommended_action`
 - **AND** 系统 MUST NOT 默认打印完整 session、原始 prompt、系统指令、developer 指令、技能全文、工具输出正文、完整 snapshot JSON 或完整 command run 明细
 
-#### Scenario: AI usage hook 降级或不可用摘要
-- **WHEN** AI usage hook 因本地 session 输入不可用、无安全记录、Sprint 无法解析或 snapshot 被跳过而降级
-- **THEN** 系统 MUST 仍输出 compact summary
-- **AND** `usage_mode` MUST 标明 `unavailable`、`estimated_fallback` 或等价降级状态
-- **AND** `recommended_action` MUST 说明下一步可执行动作或无法自动恢复的原因
-- **AND** 父工作流命令 MUST NOT 因 session 输入不可用而被判定失败
-
-#### Scenario: 成功路径日志长度受上下文预算约束
-- **WHEN** Workflow Sync 和 AI usage hook 均成功或以允许的降级状态完成
-- **THEN** 命令技能 MUST 只向用户转述 compact summary 和必要的 Change/Sprint/Issue 结果
-- **AND** 命令技能 MUST NOT 默认转述完整测试日志、完整 OpenAPI/Orval diff、完整 Workflow Sync 派生块、完整 AI usage JSON 或完整 snapshot 内容
+#### Scenario: image 命令成功输出摘要
+- **WHEN** `/image-prepare` or `/image-build` succeeds or records blockers
+- **THEN** command output SHALL summarize version, image_required, plan path, manifest path when present, gate status, blocker count, validation summary, and next command
+- **AND** it SHALL NOT print full Docker build logs, full tarball contents, full image manifest JSON, raw env files, or secrets on the success path.
 
 ### Requirement: Sprint 归档后旧路径残留检查
 系统 MUST 在 `/sprint-archive` 完成 Sprint 目录迁移、Workflow Sync 与关联 Issue promote 后，检查本 Sprint 关联文档中是否残留已迁移前的旧路径引用，防止归档后文档继续指向 `iterations/change/`、active Change 目录或 legacy Change archive 目录。
@@ -642,21 +651,18 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **THEN** Agent MUST 回到相关原文或必要片段定位
 
 ### Requirement: 命令 Skill 摘要复用 Guardrails
-
-命令 Skill MUST 在 `Context Budget Guardrails` 或等价章节中表达规则与 Skill 已读摘要复用约束，并保留命令特定门禁。
+命令 Skill MUST 在 `Context Budget Guardrails` 或等价章节中表达规则与 Skill 已读摘要复用约束，并保留命令特定门禁。新增或更新 image 命令 Skill SHALL follow the same guardrails and SHALL read release and image artifacts by targeted path rather than scanning all releases or archives.
 
 #### Scenario: 命令 Skill 使用统一预算表述
-
 - **WHEN** 新增或更新 `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` 或 release 命令 Skill
 - **THEN** Skill MUST 引用 `rules/agent-context-budget.md`
 - **AND** Skill SHOULD 明确同一会话已读且无变更的规则和 Skill 用摘要承接
 - **AND** Skill MUST 保留命令特定 Must Read、Workflow Sync、AI usage hook 和业务门禁
 
-#### Scenario: 高风险命令保留补读要求
-
-- **WHEN** Skill 对应 apply、archive、release、req-opsx、bug-opsx、sprint-propose 或等价高风险命令
-- **THEN** Skill MUST 要求先读取当前 Change、Issue、Sprint、trace/status 或 OpenSpec CLI 输出的必要片段
-- **AND** Skill MUST NOT 要求默认全量读取历史归档、所有 specs、generated 文件或大目录
+#### Scenario: image 命令 Skill 控制读取范围
+- **WHEN** `/image-prepare` or `/image-build` Skill is added or updated
+- **THEN** the Skill SHALL read `releases/<version>/release.json`, image plan or manifest, targeted Dockerfile, Compose, build script, env example, schema, and migration inputs
+- **AND** it SHALL NOT default to reading all `releases/**`, all `openspec/archive/**`, generated OpenAPI clients, full Docker logs, or raw env files.
 
 ### Requirement: 上下文预算校验覆盖摘要复用
 
@@ -895,4 +901,169 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **WHEN** 归档流程完成后执行残留检查
 - **THEN** `openspec/changes/archive/` MUST NOT 包含新的 Change 包目录
 - **AND** 如发现新增或未迁移 Change 包，系统 MUST 报告 blocker 并给出迁移目标 `openspec/archive/<date>-<change-id>/`
+
+### Requirement: `/opsx-apply` 管理端筛选下拉 Checklist
+`/opsx-apply` SHALL include a dedicated checklist gate for Changes that add or modify admin filter dropdown controls, in addition to the existing cross-cutting admin list gate.
+
+#### Scenario: Apply 前识别筛选下拉标签
+- **WHEN** `/opsx-apply` reads a Change whose proposal, design, tasks, specs, trace, or affected file paths mention admin filter dropdowns, filter-area Select, Dropdown, Popover, Combobox, date picker, searchable select, `AdminFilterSelect`, `SearchableSelect`, `admin-filter-dropdown`, or equivalent terms
+- **THEN** the Cross-cutting Apply Gate MUST add an `admin-filter-dropdown` tag
+- **AND** the gate MUST read `docs/knowledge-base/best-practices/admin-list-page-consistency.md` or the successor best-practice document before editing `src/`
+
+#### Scenario: Apply checklist 输出
+- **WHEN** the `admin-filter-dropdown` tag is active
+- **THEN** `/opsx-apply` MUST report checklist results for best-practice read, shared component reuse or justified equivalent wrapper, page-local overlay CSS absence, state coverage, overlay clipping check, query parameter semantics, and regression test plan
+- **AND** the verdict MUST be `BLOCKED` if a new or modified admin filter dropdown lacks both shared-component reuse and an explicit equivalent-wrapper rationale
+
+#### Scenario: Apply 中完成任务
+- **WHEN** implementation tasks touch admin filter dropdown UI
+- **THEN** tasks MUST include focused verification for component classes or DOM contract, open/select/clear/reset behavior, empty or loading state when applicable, disabled or selected state, and at least one representative affected page
+- **AND** tasks MUST record whether visual smoke or Playwright verification is required for desktop and narrow admin viewports
+
+#### Scenario: 非相关 Change 不误阻断
+- **WHEN** a Change does not affect admin filter dropdown controls
+- **THEN** `/opsx-apply` MAY mark the `admin-filter-dropdown` checklist as `n/a`
+- **AND** the checklist MUST NOT block backend-only, database-only, release-only, or non-filter UI Changes solely because the admin list best-practice document exists
+
+### Requirement: Sprint close stale scan 工具输出
+系统 SHALL 提供命令式 stale scan 能力，基于目标 Sprint 四件套、`sprint.yaml` 范围和关联 Change 状态输出稳定、可执行的检查报告。
+
+#### Scenario: 扫描指定 Sprint
+- **WHEN** 用户或 `/sprint-archive` 调用 stale scan 并指定 `sprint-xxx`
+- **THEN** 系统 MUST 只读取该 Sprint 的四件套和由 `sprint.yaml` 指向的关联 Issue、Change 状态证据
+- **AND** 系统 MUST NOT 默认扫描全部 `iterations/**`、`openspec/archive/**` 或历史归档目录
+
+#### Scenario: 报告包含可执行修复建议
+- **WHEN** stale scan 发现 blocker
+- **THEN** 报告 MUST 包含建议命令或修复路径，例如重新运行 Workflow Sync、运行目录结构校验、执行归档路径 residual 修复或手工更新非派生人工说明
+- **AND** 报告 MUST 明确禁止手工编辑 `sprint.md` workflow-sync marker 派生块
+
+#### Scenario: 自动刷新后保持幂等
+- **WHEN** Workflow Sync 或 Sprint close 流程刷新四件套派生块
+- **THEN** 系统 MUST 清除由机器事实可确定的过期规划文案
+- **AND** 再次运行 stale scan MUST 不因同一派生命中重复失败
+
+#### Scenario: 无法解析 Sprint 时失败
+- **WHEN** stale scan 通过 `--sprint auto` 或等价方式无法解析唯一目标 Sprint
+- **THEN** 系统 MUST 返回非零退出码
+- **AND** 报告 MUST 要求显式传入目标 `sprint-xxx`
+
+### Requirement: Sprint close stale scan 例外边界
+系统 SHALL 明确定义 legacy 字符串和中间态文案的允许例外，避免自动化误伤迁移、兼容读取和回归测试。
+
+#### Scenario: 测试与迁移文件中的 legacy 字符串不阻断
+- **WHEN** stale scan 命中测试 fixture、迁移脚本、兼容读取逻辑或 residual scanner 自身的 `openspec/changes/archive/` 字符串
+- **THEN** 系统 MUST 将命中标记为允许例外
+- **AND** 系统 MUST NOT 因该例外阻断目标 Sprint close
+
+#### Scenario: 新生成 Sprint 事实不得使用 legacy 路径
+- **WHEN** Workflow Sync、Sprint close、Fact Sheet、release note 或 acceptance report 生成新的归档路径事实
+- **THEN** 系统 MUST 使用 `openspec/archive/`
+- **AND** 系统 MUST NOT 将 `openspec/changes/archive/` 作为 canonical archive path 写入新事实
+
+### Requirement: Issue 子文档常规状态同步
+系统 MUST 在 REQ / BUG 状态变化工作流中同步 Issue 包内的人类入口子文档状态，避免只更新 `trace.md`、registry 或 Sprint 派生块后留下子文档状态漂移。`trace.md` MUST 继续作为机器状态事实源；子文档状态若存在，MUST 要么与当前主状态一致，要么使用不与主状态混淆的语义字段。
+
+#### Scenario: REQ 状态变化同步主文档
+- **WHEN** 系统执行 `req.generate`、`req.review`、`req.opsx`、`opsx.apply`、`opsx.archive` 或 `sprint.archive` 并改变目标 REQ 的主状态或关联 Change 状态
+- **THEN** 系统 MUST 同步检查 `requirement.md`、`acceptance.md`、`review.md` 与其他维护状态字段的顶层 Markdown 子文档
+- **AND** 系统 MUST 更新可安全派生的状态字段或报告需要人工判断的字段
+- **AND** `trace.md` MUST 保持 canonical 状态事实源
+
+#### Scenario: BUG 状态变化同步主文档
+- **WHEN** 系统执行 `bug.generate`、`bug.review`、`bug.opsx`、`opsx.apply`、`opsx.archive` 或 `sprint.archive` 并改变目标 BUG 的主状态或关联 Change 状态
+- **THEN** 系统 MUST 同步检查 `bug.md`、`acceptance.md`、`review.md`、`root-cause.md`、`workaround.md` 与其他维护状态字段的顶层 Markdown 子文档
+- **AND** 系统 MUST 更新可安全派生的状态字段或报告需要人工判断的字段
+- **AND** `trace.md` MUST 保持 canonical 状态事实源
+
+#### Scenario: 子文档状态字段语义不代表主状态
+- **WHEN** 一个 Issue 子文档中的状态字段表达文档草稿、评审结论、验收结论或历史 capture 状态，而不是当前 Issue 主状态
+- **THEN** 系统 MUST 将该字段改名、解释或从常规主状态同步目标中排除
+- **AND** drift 报告 MUST 不得把已明确豁免或重命名的字段误报为主状态冲突
+
+### Requirement: Issue 验收结果回填
+系统 MUST 为 REQ / BUG 的 `acceptance.md` 或等价验收结果文档提供标准化验收结果回填能力，使已实现、已修复或已归档的 Issue 能追踪验收结论、证据、失败项和来源命令。
+
+#### Scenario: opsx apply 后标记待验收
+- **WHEN** 来源于 REQ 或 BUG 的 Change 完成 `opsx.apply`
+- **THEN** 系统 MUST 能在对应 Issue 的验收入口记录待验收或待确认状态
+- **AND** 记录 MUST 包含来源 Change 和可继续补充证据的位置
+
+#### Scenario: opsx archive 后记录验收闭环
+- **WHEN** 来源于 REQ 或 BUG 的 Change 完成 `opsx.archive` 并使 Issue 可闭环
+- **THEN** 系统 MUST 能在对应 Issue 的验收入口记录 `acceptance_status`、`accepted_at`、`accepted_by`、`source_change`、`source_sprint`、`evidence`、`failed_items` 或等价结构
+- **AND** 已归档 Issue MUST 不得只残留旧的 `pending_review`、`draft` 或等价中间态来表达验收状态
+
+#### Scenario: 验收失败或豁免
+- **WHEN** 验收结论不是完全通过
+- **THEN** 系统 MUST 记录失败、部分通过或豁免状态
+- **AND** 系统 MUST 记录失败项、豁免原因或 follow-up 建议
+- **AND** 系统 MUST NOT 自动创建 follow-up Issue，除非用户明确授权
+
+### Requirement: Issue 子文档 drift check
+系统 MUST 提供 Issue 子文档 drift check 能力，发现 `trace.md`、registry、目录阶段、子文档状态和验收结果之间的不一致，并在失败路径输出可定位的诊断信息。
+
+#### Scenario: check 发现主状态漂移
+- **WHEN** 用户执行 Workflow Sync check、Issue drift check、archive readiness 或 Sprint close 检查
+- **AND** `trace.md`、registry、`lifecycle_stage`、物理目录阶段或子文档主状态存在冲突
+- **THEN** 系统 MUST 报告文件路径、字段来源、当前值、期望值和建议命令
+- **AND** 系统 MUST 返回非零退出码或将该项报告为 blocker
+
+#### Scenario: check 发现验收结果缺失
+- **WHEN** 一个 Issue 已处于 closed、done、archived、resolved 或等价闭环状态
+- **AND** `acceptance.md` 或等价验收入口缺少验收结论、证据或明确豁免
+- **THEN** 系统 MUST 报告该验收结果缺失
+- **AND** 报告 MUST 包含 Issue ID、文件路径和建议补齐方式
+
+#### Scenario: 成功路径摘要输出
+- **WHEN** Issue 子文档 drift check 通过
+- **THEN** 系统 MUST 输出检查 Issue 数、检查文件数、更新数、warning 数和 blocker 数摘要
+- **AND** 系统 MUST NOT 默认展开全部子文档正文
+
+### Requirement: 历史 Issue 子文档漂移受控治理
+系统 MUST 为历史 `issues/**/archive/` 中的子文档状态漂移提供受控治理流程。历史治理 MUST 先 dry-run，再由人工确认 apply；apply MUST 只处理可安全同步项。
+
+#### Scenario: 历史扫描分类输出
+- **WHEN** 用户执行历史 Issue 子文档漂移扫描
+- **THEN** 系统 MUST 按可安全同步、需人工判断、缺少 trace 或交付证据、缺少验收结果、不建议自动修复等类别输出报告
+- **AND** 报告 MUST 包含计数、样例路径和建议下一步
+- **AND** 成功路径 MUST NOT 默认展开全部历史文档正文
+
+#### Scenario: 历史 dry-run 不写入
+- **WHEN** 用户执行历史漂移修复 dry-run
+- **THEN** 系统 MUST 报告将被更新的文件、字段来源、旧值、目标值和原因
+- **AND** 系统 MUST NOT 写入文件
+
+#### Scenario: 历史 apply 只处理安全项
+- **WHEN** 用户确认执行历史漂移修复 apply
+- **THEN** 系统 MUST 只写入 dry-run 中标记为可安全同步的项
+- **AND** 系统 MUST 刷新被修改 Markdown 的 `updated_at`
+- **AND** 系统 MUST NOT 使用批量修复绕过 review、acceptance、OpenSpec archive 或 Sprint archive
+
+### Requirement: Workflow Sync 子文档摘要输出
+系统 MUST 在 Workflow Sync 相关事件的成功摘要中提供 Issue 子文档同步结果，使用户能知道是否检查、更新或留下 drift warning，而无需阅读详细逐文件输出。
+
+#### Scenario: Workflow Sync 成功摘要包含子文档结果
+- **WHEN** Workflow Sync 处理会影响 REQ 或 BUG 状态的事件
+- **THEN** 摘要 MUST 包含子文档检查数量、子文档更新数量、验收结果状态或不适用原因、drift warning 数量
+- **AND** 摘要 MUST 保留现有 event、focus issue 或 change、sprint 解析结果、updated、skipped 和 errors 聚合信息
+
+#### Scenario: 详细模式保留逐文件诊断
+- **WHEN** 用户显式请求 Workflow Sync 详细输出
+- **THEN** 系统 MUST 输出子文档 updated、skipped、warning 或 blocker 的逐文件明细
+- **AND** 摘要模式和详细模式的退出码 MUST 一致
+
+### Requirement: Sprint close 中间态文案扫描
+系统 MUST 在 Sprint close、`/sprint-archive` 或等价收尾流程中扫描相关 Issue 包与 Sprint 四件套的中间态残留，防止 completed/archive 状态下仍保留 `planned`、`pending`、`待验收`、`待实现`、active Change 路径或等价旧文案。
+
+#### Scenario: Sprint close 发现中间态文案
+- **WHEN** Sprint close 或 `/sprint-archive` 检查关联 Issue 包、`sprint.md`、`acceptance-report.md`、`release-note.md` 或其他 Sprint 四件套
+- **AND** 文档仍包含未解释的中间态词、active Change 路径或 legacy archive 路径
+- **THEN** 系统 MUST 报告文件路径、行号、命中内容类别和建议修复方式
+- **AND** `/sprint-archive` MUST 不得静默输出完成闭环结论
+
+#### Scenario: Sprint close stale scan 范围受控
+- **WHEN** 系统执行 Sprint close 中间态文案扫描
+- **THEN** 系统 MUST 以目标 Sprint 的 `sprint.yaml`、关联 REQ、BUG 与 Change 定位检查范围
+- **AND** 系统 MUST NOT 默认扫描整个 `issues/**`、`openspec/archive/**`、generated 文件或无关历史目录
 

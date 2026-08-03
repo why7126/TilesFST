@@ -17,7 +17,7 @@ server {
     index index.html;
 
     location /api/v1/admin/uploads/ {
-        proxy_pass http://backend:8000/api/v1/admin/uploads/;
+        proxy_pass http://tilesfst-backend:8000/api/v1/admin/uploads/;
         proxy_request_buffering ${UPLOAD_PROXY_REQUEST_BUFFERING};
         proxy_connect_timeout ${UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS}s;
         proxy_send_timeout ${UPLOAD_PROXY_SEND_TIMEOUT_SECONDS}s;
@@ -32,7 +32,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://backend:8000/api/;
+        proxy_pass http://tilesfst-backend:8000/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -40,7 +40,7 @@ server {
     }
 
     location /openapi.json {
-        proxy_pass http://backend:8000/openapi.json;
+        proxy_pass http://tilesfst-backend:8000/openapi.json;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -48,7 +48,7 @@ server {
     }
 
     location = /docs {
-        proxy_pass http://backend:8000/docs;
+        proxy_pass http://tilesfst-backend:8000/docs;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -56,7 +56,7 @@ server {
     }
 
     location /docs/ {
-        proxy_pass http://backend:8000/docs/;
+        proxy_pass http://tilesfst-backend:8000/docs/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -64,7 +64,7 @@ server {
     }
 
     location = /redoc {
-        proxy_pass http://backend:8000/redoc;
+        proxy_pass http://tilesfst-backend:8000/redoc;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -72,7 +72,7 @@ server {
     }
 
     location /redoc/ {
-        proxy_pass http://backend:8000/redoc/;
+        proxy_pass http://tilesfst-backend:8000/redoc/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -80,7 +80,7 @@ server {
     }
 
     location /media/ {
-        proxy_pass http://backend:8000/media/;
+        proxy_pass http://tilesfst-backend:8000/media/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

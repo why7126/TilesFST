@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 28rpx calc(132rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 28rpx calc(132rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: #18160F;
   color: #EDE8DF;
@@ -15,9 +15,10 @@
 .brand-hero,
 .skeleton-hero {
   position: relative;
-  height: 300rpx;
+  height: 348rpx;
   overflow: hidden;
-  border-radius: 8rpx;
+  border: 2rpx solid rgba(200,160,85,0.22);
+  border-radius: 32rpx;
   background: #211E16;
 }
 
@@ -29,28 +30,28 @@
 
 .brand-hero.fallback {
   background:
-    linear-gradient(135deg, rgba(200,160,85,0.2), transparent 48%),
-    linear-gradient(160deg, #3B3528, #18160F);
+    radial-gradient(circle at 12% 16%, rgba(200,160,85,0.3), transparent 36%),
+    linear-gradient(135deg, #8A7D5C 0%, #726747 54%, #8F7A3E 100%);
 }
 
 .brand-hero-shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(24,22,15,0.76), rgba(24,22,15,0.18));
+  background: linear-gradient(180deg, rgba(24,22,15,0.08), rgba(24,22,15,0.38));
 }
 
 .brand-hero-copy {
   position: absolute;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: 34rpx;
+  left: 40rpx;
+  right: 40rpx;
+  bottom: 38rpx;
   z-index: 1;
 }
 
 .brand-hero-title {
   color: #EDE8DF;
-  font-size: 42rpx;
-  font-weight: 900;
+  font-size: 46rpx;
+  font-weight: 800;
   line-height: 1.2;
 }
 
@@ -73,47 +74,197 @@
   font-weight: 900;
 }
 
-.section-meta {
-  color: rgba(237,232,223,0.5);
-  font-size: 24rpx;
-}
-
-.brand-grid,
-.skeleton-grid {
+.brand-list,
+.skeleton-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20rpx;
+  gap: 18rpx;
   align-items: start;
 }
 
-.skeleton-card {
-  min-height: 244rpx;
-  display: grid;
-  justify-items: center;
-  gap: 16rpx;
-  padding: 24rpx 18rpx;
-  border: 2rpx solid rgba(255,255,255,0.07);
-  border-radius: 8rpx;
+.brand-row,
+.skeleton-row {
+  min-height: 224rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2rpx solid rgba(200,160,85,0.34);
+  border-radius: 28rpx;
   background: #211E16;
   box-sizing: border-box;
 }
 
-.skeleton-logo {
-  width: 92rpx;
-  height: 92rpx;
+.brand-row:active {
+  border-color: rgba(200,160,85,0.58);
+  background: #282319;
+}
+
+.skeleton-row {
+  min-height: 132rpx;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  padding: 22rpx 24rpx;
+  border-color: rgba(255,255,255,0.07);
+  border-radius: 8rpx;
+}
+
+.brand-entry {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  padding: 28rpx 28rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.brand-entry-press {
+  background: rgba(200,160,85,0.08);
+}
+
+.brand-logo {
+  width: 96rpx;
+  height: 96rpx;
+  flex: 0 0 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2rpx solid rgba(200,160,85,0.56);
   border-radius: 50%;
+  background: rgba(24,22,15,0.38);
+  color: #C8A055;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.brand-logo-image {
+  width: 100%;
+  height: 100%;
+}
+
+.brand-logo-fallback {
+  max-width: 72rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-name {
+  overflow: hidden;
+  color: #EDE8DF;
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.32;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.brand-count {
+  margin-top: 8rpx;
+  color: rgba(237,232,223,0.56);
+  font-size: 23rpx;
+  line-height: 1.35;
+}
+
+.brand-arrow {
+  flex: 0 0 32rpx;
+  color: rgba(237,232,223,0.48);
+  font-size: 42rpx;
+  line-height: 1;
+  text-align: right;
+}
+
+.brand-categories {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12rpx;
+  padding: 24rpx 28rpx 28rpx;
+  border-top: 1rpx solid rgba(237,232,223,0.08);
+  box-sizing: border-box;
+}
+
+.category-pill {
+  max-width: 100%;
+  min-height: 52rpx;
+  padding: 6rpx 20rpx;
+  border: 1rpx solid rgba(237,232,223,0.18);
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  background: rgba(237,232,223,0.06);
+  color: rgba(237,232,223,0.78);
+  font-size: 30rpx;
+  line-height: 40rpx;
+  text-align: center;
+  white-space: nowrap;
+  word-break: break-all;
+}
+
+.category-pill:active {
+  border-color: rgba(200,160,85,0.72);
+  background: rgba(200,160,85,0.14);
+  color: #C8A055;
+}
+
+.category-empty {
+  min-height: 52rpx;
+  color: rgba(237,232,223,0.36);
+  font-size: 30rpx;
+  line-height: 52rpx;
+}
+
+.skeleton-logo {
+  width: 76rpx;
+  height: 76rpx;
+  flex: 0 0 76rpx;
+  border-radius: 8rpx;
   background: rgba(237,232,223,0.08);
 }
 
+.skeleton-copy {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 14rpx;
+}
+
 .skeleton-line {
-  width: 76%;
+  width: 130rpx;
   height: 24rpx;
   border-radius: 12rpx;
   background: rgba(237,232,223,0.08);
 }
 
 .skeleton-line.strong {
-  width: 88%;
+  width: 190rpx;
+}
+
+.skeleton-tags {
+  width: 230rpx;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10rpx;
+}
+
+.skeleton-pill {
+  width: 98rpx;
+  height: 42rpx;
+  border-radius: 4rpx;
+  background: rgba(237,232,223,0.08);
+}
+
+.skeleton-pill.short {
+  width: 72rpx;
 }
 
 .state {

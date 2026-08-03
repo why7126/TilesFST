@@ -22,6 +22,7 @@ import {
   STATUS_OPTIONS,
   statusLabel,
 } from '@/features/admin/lib/user-labels';
+import { AdminFilterSelect } from '@/shared/ui';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/brand-management.css';
 
@@ -237,57 +238,45 @@ export function UserManagementPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleKeywordEnter()}
             />
           </label>
-          <label>
+          <div>
             <span className="field-label">角色</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="角色"
+              listLabel="角色筛选选项"
               value={role}
-              onChange={(e) => {
-                setRole(e.target.value);
+              options={ROLE_OPTIONS}
+              onChange={(nextRole) => {
+                setRole(nextRole);
                 setPage(1);
               }}
-            >
-              {ROLE_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+            />
+          </div>
+          <div>
             <span className="field-label">状态</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="状态"
+              listLabel="状态筛选选项"
               value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
+              options={STATUS_OPTIONS}
+              onChange={(nextStatus) => {
+                setStatus(nextStatus);
                 setPage(1);
               }}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+            />
+          </div>
+          <div>
             <span className="field-label">登录情况</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="登录情况"
+              listLabel="登录情况筛选选项"
               value={loginFilter}
-              onChange={(e) => {
-                setLoginFilter(e.target.value);
+              options={LOGIN_FILTER_OPTIONS}
+              onChange={(nextLoginFilter) => {
+                setLoginFilter(nextLoginFilter);
                 setPage(1);
               }}
-            >
-              {LOGIN_FILTER_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            />
+          </div>
           <button type="button" className="btn" onClick={handleReset}>
             重置
           </button>
@@ -469,7 +458,6 @@ export function UserManagementPage() {
         <div
           className="modal-backdrop"
           role="presentation"
-          onClick={() => setStatusConfirmTarget(null)}
         >
           <div
             className="modal-card"
@@ -511,7 +499,7 @@ export function UserManagementPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"
@@ -553,7 +541,6 @@ export function UserManagementPage() {
         <div
           className="modal-backdrop"
           role="presentation"
-          onClick={() => setResetPasswordConfirmTarget(null)}
         >
           <div
             className="modal-card"

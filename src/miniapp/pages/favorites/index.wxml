@@ -67,4 +67,5 @@
     <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
     <view wx:elif="{{!hasMore}}" class="load-more">已经到底了</view>
   </view>
+  <home-floating-button offset="tabbar" />
 </view>

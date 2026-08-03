@@ -67,43 +67,24 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 
 ### Requirement: 商品卡片
 
-商品列表页 SHALL 使用统一商品卡片展示用户选砖所需的公开 SKU 信息，并支持进入 SKU 详情页。商品列表页双列卡片 SHALL 参照首页热销推荐展示主图、商品名称、品牌或规格信息、参考价格和状态徽标；SKU 编码 SHALL NOT 在小程序/店主端商品卡片中展示。
+商品列表页 SHALL 使用统一商品卡片展示公开 SKU，并 SHALL 为商品主图、名称、品牌/规格、价格、状态标识、图片加载性能和失败降级提供稳定体验。公开 SKU 有真实主图时，列表接口返回给商品卡片的 `cover_image` SHALL 是可通过后端 `/media/{object_key}` 或等价受控链路读取的图片 URL。列表缩略图或等价轻量优化图片 SHALL 是真实轻量资源；系统 SHALL NOT 仅以 `.thumb` 对象存在但内容等同原图的资源作为图片加载性能优化完成标准。
 
-#### Scenario: 商品卡片字段
+#### Scenario: 卡片图片缩略图优先
+- **WHEN** 小程序商品卡片展示列表、搜索结果、首页推荐或品牌详情商品 Tab 中的公开 SKU
+- **THEN** 商品卡片 SHALL 优先使用列表缩略图或等价轻量优化图片 URL
+- **AND** 缩略图缺失时 SHALL 安全回退到原主图或统一占位图
+- **AND** 详情页、图片预览或需要高清展示的场景 SHALL NOT 被强制降级为列表缩略图
+- **AND** 小程序商品卡片 SHALL NOT 在缩略图可用时直接使用原图 URL 作为卡片首选展示图。
 
-- **WHEN** 商品列表接口返回 SKU 数据
-- **THEN** 商品卡片 SHALL 展示主图、商品名称、品牌或规格信息、参考价格和状态徽标
-- **AND** 商品卡片 SHALL NOT 展示 SKU 编码、`sku_code` 字段名、内部编号或等价内部识别字段
-- **AND** 辅助信息 SHALL NOT 挤压商品名称、主图、品牌或规格信息、参考价格和状态徽标。
-
-#### Scenario: 图片稳定展示
-
-- **WHEN** 商品主图加载中或加载完成
-- **THEN** 商品图片区域 SHALL 使用稳定比例
-- **AND** 加载前后 SHALL NOT 导致列表明显跳动。
-
-#### Scenario: 图片加载失败
-
-- **WHEN** 商品主图加载失败
-- **THEN** 商品卡片 SHALL 展示统一占位图或占位背景
-- **AND** 页面 SHALL NOT 展示破图图标
-- **AND** 其他商品信息 SHALL 保持可浏览。
-
-#### Scenario: 商品卡片进入详情
-
-- **WHEN** 用户点击商品卡片任意主要区域
-- **THEN** 小程序 SHALL 携带 `skuId` 进入 SKU 详情页
-- **AND** 目标不可达时 SHALL 展示可恢复提示
-- **AND** 页面 SHALL 保留返回能力。
-
-#### Scenario: 卡片不提供交易操作
-
-- **WHEN** 团队验收商品列表卡片
-- **THEN** 商品卡片 SHALL NOT 展示收藏、加入询价、购物车、立即购买、在线下单或联系商家快捷按钮。
+#### Scenario: 卡片图片来源跨入口一致
+- **WHEN** 同一公开 SKU 出现在商品列表、搜索结果、首页推荐、首页瀑布流或品牌详情商品 Tab
+- **THEN** 各入口商品卡片 SHALL 使用同一缩略图优先解析策略
+- **AND** 不同入口 SHALL NOT 因字段名差异分别读取原图、缩略图或不可访问 URL
+- **AND** 缩略图缺失、为空或加载失败时 SHALL 按同一降级顺序展示原图或占位。
 
 ### Requirement: 商品列表公开数据接口
 
-系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。品牌查询 SHALL 支持按 `brandId` 召回当前品牌公开 SKU，并在品牌过滤场景下默认按 SKU 发布时间 `published_at` 升序、ID 升序返回；历史数据 `published_at` 为空时 SHALL 使用 `created_at` 作为排序兜底。响应 MAY 保留 SKU 编码作为内部兼容字段，但公开商品列表 UI SHALL NOT 渲染该编码。
+系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。品牌查询、分类查询和普通搜索查询在未显式请求新品、热销、价格排序或搜索相关性排序时，SHALL 使用与品牌详情页商品 Tab 一致的默认排序：按 SKU 发布时间 `published_at` 升序、SKU ID 升序返回；历史数据 `published_at` 为空时 SHALL 使用 SKU 创建时间 `created_at` 作为排序兜底。响应 MAY 保留 SKU 编码作为内部兼容字段，但公开商品列表 UI SHALL NOT 渲染该编码。
 
 #### Scenario: 商品列表查询参数
 
@@ -129,6 +110,7 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **THEN** 服务端 SHALL 查询该一级分类下所有启用二级分类关联的可公开 SKU
 - **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
 - **AND** 服务端 SHALL NOT 只返回直接挂载在一级分类下的 SKU
+- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
 - **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
 
 #### Scenario: 二级分类精确查询
@@ -136,7 +118,29 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **WHEN** 商品列表请求携带 `categoryId={secondaryCategoryId}` 且 `categoryLevel=secondary`
 - **THEN** 服务端 SHALL 仅查询该二级分类关联的可公开 SKU
 - **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
+- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
 - **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
+
+#### Scenario: 普通搜索结果默认排序
+
+- **WHEN** 商品列表请求携带 `keyword={keyword}` 且未请求搜索相关性、价格、新品或热销排序
+- **THEN** 服务端 SHALL 返回匹配关键词的可公开 SKU
+- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
+- **AND** 分页请求 SHALL 继续携带该关键词并保持同一排序规则
+- **AND** 响应 SHALL NOT 因分页加载更多出现重复、漏项或已加载商品顺序跳动。
+
+#### Scenario: 搜索相关性排序优先级明确
+
+- **WHEN** 搜索商品结果页明确请求搜索相关性排序
+- **THEN** 服务端 MAY 使用相关性排序优先于默认发布时间排序
+- **AND** 相关性相同或未命中相关性差异时 SHALL 使用发布时间升序、SKU ID 升序作为稳定兜底
+- **AND** 实现和验收材料 SHALL 记录相关性排序覆盖默认排序的原因与验收口径。
+
+#### Scenario: 首页全部产品排序不受影响
+
+- **WHEN** 首页请求或展示“全部产品”列表
+- **THEN** 系统 SHALL 保持首页“全部产品”既有排序策略
+- **AND** 不得因搜索商品结果页或分类商品列表页排序统一而改变首页“全部产品”列表顺序。
 
 #### Scenario: 商品列表响应字段
 

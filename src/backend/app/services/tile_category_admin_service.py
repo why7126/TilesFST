@@ -30,7 +30,7 @@ MAX_CATEGORY_LEVEL = 2
 MAX_CATEGORY_NAME_LENGTH = 15
 CATEGORY_CODE_PREFIX = "CAT-"
 MAX_CATEGORY_CODE_GENERATION_ATTEMPTS = 5
-VALID_CATEGORY_NAME_RE = re.compile(r"^[A-Za-z0-9\u4e00-\u9fff]+$")
+VALID_CATEGORY_NAME_RE = re.compile(r"^[A-Za-z0-9\u4e00-\u9fff\-_/&()（）·.+#:，、]+$")
 
 
 class TileCategoryAdminService:
@@ -67,7 +67,7 @@ class TileCategoryAdminService:
         if len(trimmed) > MAX_CATEGORY_NAME_LENGTH:
             raise AuthInvalidRequestError("类目名称最多 15 个字符")
         if not VALID_CATEGORY_NAME_RE.fullmatch(trimmed):
-            raise AuthInvalidRequestError("类目名称只能包含中文、英文和数字")
+            raise AuthInvalidRequestError("类目名称仅支持中文、英文、数字和特殊字符")
         return trimmed
 
     def _generate_category_code(self) -> str:
@@ -178,6 +178,7 @@ class TileCategoryAdminService:
                 level=record.level,
                 status=record.status,
                 sku_count=aggregate_sku(record),
+                children_count=len(children),
                 children=[build_node(child) for child in children],
             )
 

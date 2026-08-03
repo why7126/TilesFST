@@ -567,6 +567,21 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "required": {"page_path", "brandId", "positionIndex", "sourcePage", "sourceEntry", "requestId", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
     },
+    "brand_list_category_click": {
+        "category": "miniapp_brand_list",
+        "required": {
+            "page_path",
+            "brandId",
+            "categoryId",
+            "positionIndex",
+            "categoryIndex",
+            "sourcePage",
+            "sourceEntry",
+            "requestId",
+            "client_type",
+        },
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
     "brand_detail_share_click": {
         "category": "miniapp_brand_detail",
         "required": {"page_path", "brandId", "share_channel", "share_path", "requestId", "client_type"},

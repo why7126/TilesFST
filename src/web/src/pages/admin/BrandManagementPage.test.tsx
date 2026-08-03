@@ -34,6 +34,7 @@ const listPayload = {
       english_name: 'STONE',
       description: '高端岩板',
       logo_url: '/media/original/default/brands/logos/demo.webp',
+      logo_thumbnail_url: '/media/original/default/brands/logos/demo.thumb.webp',
       logo_object_key: 'original/default/brands/logos/demo.webp',
       sort_order: 10,
       sku_count: 0,
@@ -110,7 +111,52 @@ describe('BrandManagementPage', () => {
     expect(pagination?.querySelector('.jump-input')).not.toBeInTheDocument();
   });
 
-  it('renders logo_url images and stable placeholders for brands without logo', async () => {
+  it('applies the unified admin filter dropdown to the brand status filter', async () => {
+    fetchBrandsMock.mockResolvedValue(listPayload);
+
+    render(
+      <MemoryRouter>
+        <BrandManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBrandsMock).toHaveBeenCalledWith(
+        expect.objectContaining({ status: undefined }),
+      );
+    });
+
+    const statusTrigger = screen.getByLabelText('状态');
+    expect(statusTrigger).toHaveClass('select');
+    expect(statusTrigger).toHaveClass('admin-filter-dropdown-trigger');
+    expect(statusTrigger).toHaveAttribute('aria-haspopup', 'listbox');
+
+    fireEvent.click(statusTrigger);
+    const menu = screen.getByRole('listbox', { name: '品牌状态选项' });
+    expect(menu).toHaveClass('admin-filter-dropdown-menu');
+    expect(screen.getByRole('option', { name: '全部状态' })).toHaveClass(
+      'admin-filter-dropdown-option',
+      'is-selected',
+    );
+
+    fireEvent.click(screen.getByRole('option', { name: '启用' }));
+
+    await waitFor(() => {
+      expect(fetchBrandsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'ENABLED' }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+
+    await waitFor(() => {
+      expect(fetchBrandsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: undefined }),
+      );
+    });
+  });
+
+  it('renders logo images from thumbnail fields and stable placeholders without leaking media text', async () => {
     fetchBrandsMock.mockResolvedValue(listPayload);
 
     const { container } = render(
@@ -124,8 +170,53 @@ describe('BrandManagementPage', () => {
     });
 
     const logo = container.querySelector('.brand-logo img') as HTMLImageElement | null;
-    expect(logo?.getAttribute('src')).toBe('/media/original/default/brands/logos/demo.webp');
+    expect(logo?.getAttribute('src')).toBe('/media/original/default/brands/logos/demo.thumb.webp');
+    expect(screen.getByLabelText('岩板品牌 Logo')).toBeInTheDocument();
+    expect(screen.queryByText('/media/original/default/brands/logos/demo.webp')).not.toBeInTheDocument();
+    expect(screen.queryByText('original/default/brands/logos/demo.webp')).not.toBeInTheDocument();
+    expect(screen.queryByText('/media/original/default/brands/logos/demo.thumb.webp')).not.toBeInTheDocument();
     expect(screen.getByText('无标')).toBeInTheDocument();
+  });
+
+  it('falls back to the original logo_url when thumbnail is not available', async () => {
+    fetchBrandsMock.mockResolvedValue({
+      ...listPayload,
+      items: [{ ...listPayload.items[0], logo_thumbnail_url: null }],
+    });
+
+    const { container } = render(
+      <MemoryRouter>
+        <BrandManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBrandsMock).toHaveBeenCalled();
+    });
+
+    const logo = container.querySelector('.brand-logo img') as HTMLImageElement | null;
+    expect(logo?.getAttribute('src')).toBe('/media/original/default/brands/logos/demo.webp');
+  });
+
+  it('shows initials fallback when a logo image fails to load', async () => {
+    fetchBrandsMock.mockResolvedValue(listPayload);
+
+    const { container } = render(
+      <MemoryRouter>
+        <BrandManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBrandsMock).toHaveBeenCalled();
+    });
+
+    const logo = container.querySelector('.brand-logo img') as HTMLImageElement;
+    fireEvent.error(logo);
+
+    const logoBox = container.querySelector('.brand-logo')!;
+    expect(logoBox).toHaveClass('is-fallback');
+    expect(within(logoBox as HTMLElement).getByText('岩板')).toBeInTheDocument();
   });
 
   it('opens enable confirm dialog before calling enableBrand', async () => {
@@ -210,6 +301,27 @@ describe('BrandManagementPage', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+    expect(enableBrandMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps status confirm open and does not call API when backdrop is clicked', async () => {
+    fetchBrandsMock.mockResolvedValue(listPayload);
+
+    const { container } = render(
+      <MemoryRouter>
+        <BrandManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '启用' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '启用' }));
+    fireEvent.click(container.querySelector('.modal-backdrop')!);
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('启用品牌')).toBeInTheDocument();
     expect(enableBrandMock).not.toHaveBeenCalled();
   });
 });

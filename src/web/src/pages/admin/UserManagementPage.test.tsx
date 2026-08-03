@@ -68,6 +68,10 @@ describe('UserManagementPage', () => {
     expect(screen.queryByRole('button', { name: '搜索' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('搜索用户名/昵称')).toBeInTheDocument();
+    for (const label of ['角色', '状态', '登录情况']) {
+      expect(screen.getByLabelText(label)).toHaveClass('select');
+      expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
+    }
     expect(screen.queryByText('用户列表')).not.toBeInTheDocument();
     expect(screen.queryByText(/当前显示/)).not.toBeInTheDocument();
     expect(screen.queryByText(/仅后台管理员可编辑用户/)).not.toBeInTheDocument();

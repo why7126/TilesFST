@@ -4,7 +4,7 @@ content: 说明 MinIO/S3兼容对象存储/腾讯 COS 单桶策略、目录前�
 source: AI自动生成，人工确认
 update_method: 对象存储策略或媒体资源类型变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 15:19:59
+updated_at: 2026-08-01 08:05:25
 note: V5 从多桶策略调整为单桶 + 前缀策略；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -54,6 +54,24 @@ OBJECT_STORAGE_BUCKET=tilesfst
 | SKU 视频 | `videos/default/tiles/{tile_id\|pending}/` |
 
 上传响应保持 `{ object_key, url }`，其中 `url` 为后端受控读取地址 `/media/{object_key}`。
+
+SKU 图片在新建前允许进入 `images/default/tiles/pending/` 暂存目录；一旦图片被绑定到 SKU、保存为 SKU 图片或发布为公开商品，后端必须将 pending 原图复制到 `images/default/tiles/{tile_id}/` 正式商品目录，并同步更新 `tile_images.object_key` / `url`。目标 key 由后端生成或由受控迁移脚本按源文件名确定，前端不得提交目标路径。发布流程必须作为兜底门禁，公开商品主图不得长期引用 pending 目录。
+
+SKU 商品列表缩略图采用与原图同目录、文件名后缀差异化的 Key 规则：原图
+`images/default/tiles/pending/<uuid>.jpg` 对应列表缩略图
+`images/default/tiles/pending/<uuid>.thumb.jpg`；已绑定 SKU 的
+`images/default/tiles/{tile_id}/<uuid>.webp` 对应
+`images/default/tiles/{tile_id}/<uuid>.thumb.webp`。`thumbnails/` 前缀仅作为历史兼容读取或迁移来源，不作为新生成 SKU 列表缩略图的最终写入位置。
+
+SKU 图片上传链路必须生成真实轻量缩略图，而不是把原图 bytes 复制到 `.thumb` key。后端媒体模块使用 Pillow 解码 JPG、PNG、WebP，按约定最大宽高等比缩小且不放大小图，并尽量保留透明 PNG/WebP 的透明度。对于尺寸大于目标尺寸的原图，`.thumb` 对象应与原图 bytes 不同，像素宽高不超过目标最大宽高，文件体积通常小于原图。若缩略图生成失败，上传链路保持原图对象可读取并记录可观测告警，列表读取继续依赖 `.thumb` 缺失回退原图。
+
+`/media/{object_key}` 受控读取在同路径 `.thumb` 缩略图缺失时可回退同目录原图，避免小程序商品卡片收到不可访问的缩略图 URL。历史数据可通过
+`python scripts/audit-miniapp-card-images.py --backfill` 预览缺失缩略图，通过
+`python scripts/audit-miniapp-card-images.py --backfill --execute` 重生成缺失、同 size 或同 bytes 的疑似无效缩略图；脚本输出原图存在、缩略图存在、疑似同 size、疑似同 bytes、需要重生成、跳过和失败原因摘要，不输出密钥、Authorization header、Cookie、`.env` 内容或本机路径。dry-run 不写数据库或对象存储，execute 可重复执行且不会破坏已合格缩略图。
+
+历史公开 SKU 主图若仍位于 pending 目录，通过
+`python scripts/migrate-pending-tile-images.py` 进行 dry-run 预览，通过
+`python scripts/migrate-pending-tile-images.py --apply` 执行迁移。脚本只处理公开 SKU 主图，输出待迁移数量、目标 key、对象缺失、缩略图处理、目标已存在和失败原因摘要；dry-run 不写数据库或对象存储，apply 可重复执行且不会破坏已迁移记录。执行前应先完成数据库与对象存储备份，迁移后再运行小程序卡片图片审计确认 `pending_main_image` 归零。
 
 视频读取由后端 `/media/{object_key}` 受控代理，支持 `GET`、`HEAD` 与视频 `Range` 请求。小程序原生视频预览、保存和转发可能先发送 `HEAD` 探测资源元信息；后端必须返回正确 `Content-Type`、`Content-Length`，并对视频返回 `Accept-Ranges: bytes`。
 

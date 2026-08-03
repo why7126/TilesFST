@@ -1,0 +1,173 @@
+{
+  "version": "v0.3.2",
+  "release_time": "2026-08-01 09:51:07",
+  "owner": "product",
+  "summary": "TILESFST v0.3.2 发布确认已记录，范围覆盖 sprint-016 已归档交付：1 个 REQ、2 个 BUG、3 个 OpenSpec Change。OpenSpec specs、目录结构、API 标准、OpenAPI / Orval、Docker Compose、Web Vitest 全量测试、后端发布相关 pytest、Mintlify broken-links、image-build-plan.json 和 image-manifest.json 均已通过；离线镜像包 sha256 已校验。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release.prepare 已将 `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 更新为 `v0.3.2`，与发布对象版本一致。",
+  "image_required": true,
+  "image_required_rationale": "sprint-016 范围涉及后端运行代码、Web 管理端展示逻辑、对象存储图片 key 生命周期、缩略图生成/审计脚本和 Docker build 依赖验证；按 rules/release.md 需执行 image prepare / image build 门禁。",
+  "image_tag": "v0.3.2",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "当前未提供受控外部构建证据；如后续采用外部构建，必须记录来源、版本、image tag、平台、digest 或 tarball sha256、校验方式、负责人确认和风险说明。"
+  },
+  "sprints": [
+    "sprint-016"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0087-admin-sku-list-sort-optimization",
+      "title": "管理端 SKU 列表默认排序优化",
+      "sprint": "sprint-016",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0099-public-sku-main-image-key-pending-path",
+      "title": "公开商品主图对象 key 仍停留在 pending 暂存路径",
+      "sprint": "sprint-016",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0100-thumbnail-size-equals-original",
+      "title": "缩略图尺寸与原图一致导致加载优化失效",
+      "sprint": "sprint-016",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "update-admin-sku-list-sort-optimization",
+      "sprint": "sprint-016",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-update-admin-sku-list-sort-optimization"
+    },
+    {
+      "id": "fix-public-sku-main-image-pending-path",
+      "sprint": "sprint-016",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-fix-public-sku-main-image-pending-path"
+    },
+    {
+      "id": "fix-media-thumbnail-generation",
+      "sprint": "sprint-016",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-fix-media-thumbnail-generation"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-08-01 08:30:46: `iterations/archive/sprint-016/acceptance-report.md` 记录最终结论通过，正式范围内 1 个 REQ、2 个 BUG 与 3 个 OpenSpec Change 均已完成实现、验证和归档；`iterations/archive/sprint-016/release-note.md` 记录发布状态已发布，3 个 Change 均 archived；3 个归档目录均存在于 `openspec/archive/2026-08-01-*`。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-08-01 09:56:09: `pnpm --dir src/web test -- --run` 通过，59 files / 324 tests passed。2026-08-01 10:56:18: 使用 `uv run --project src/backend python -m pytest src/backend/tests/test_admin_tile_skus.py tests/test_media_storage.py tests/test_migrate_pending_tile_images.py tests/test_audit_miniapp_card_images.py tests/test_release_validation.py` 绑定后端 `.venv` 重跑发布相关 pytest，72 passed / 4 warnings；Pillow / `PIL` 环境 blocker 已解除，并修复 MinIO SDK keyword-only `BaseURL.build` 测试兼容性。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-08-01 09:56:09: `python scripts/validate-api-standard.py` 输出“API 标准校验通过。”；2026-08-01 09:58:49: `./scripts/generate-openapi-client.sh` 非沙箱重跑通过，Orval v8.17.0 生成 `tileApi`。Sprint trace 声明本范围未新增 API 字段、接口参数、错误码或数据库字段。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-08-01 09:56:09: `docker compose -f docker-compose.yml config --quiet`、`docker compose -f docker-compose.prod.yml config --quiet`、`docker compose -f docker-compose.prod.external.yml config --quiet` 均通过。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "Sprint release-note 与 Change trace 均声明不影响数据库表结构；如 `/release-prepare v0.3.2` 发现数据库影响，必须改为 pass 并补充 MySQL 或 schema.mysql.sql、schema drift 或目标 MySQL smoke、回滚/备份证据。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "Change trace 声明未新增环境变量；发布准备阶段仍需复核 `.env.example` 与媒体/MinIO 配置边界。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-08-01 09:58:49: `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 已更新为 `v0.3.2`，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-08-01 09:58:49: `releases/mint.json` 已加入 `v0.3.2/announcement`；在 `releases/` 下执行 `mintlify broken-links` 通过，输出 `success no broken links found`。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-01 11:35:53: 本次 v0.3.2 发布未要求生成或更新公开产品使用文档；发布公告 `announcement.mdx` 已作为本版本公开说明入口，未创建 `usage-docs/` 目录。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "evidence": "2026-08-01 10:29:03: `python scripts/validate-image-build.py prepare --release v0.3.2` 通过并生成 `releases/v0.3.2/image-build-plan.json`；auto_action_count=1，将安全白名单变量 `IMAGE_BUILD_TAG` 写为 `v0.3.2`；warning_count=4，均为生产 Compose fallback tag 仍是 `v0.0.4`，发布 env 必须显式设置 `TILESFST_IMAGE_TAG=v0.3.2`；blocker_count=0。随后 `python scripts/validate-image-build.py validate-plan --release v0.3.2` 通过。"
+    },
+    "image_build": {
+      "status": "pass",
+      "evidence": "2026-08-01 11:18:14: `python scripts/validate-image-build.py build --release v0.3.2` 成功执行 backend/web Docker build、linux/amd64 平台验证、后端依赖验证、Web Nginx 配置验证、离线 tar 导出和 sha256 生成，并写入 `releases/v0.3.2/image-manifest.json`；`python scripts/validate-image-build.py validate-manifest --release v0.3.2` 通过。backend image `tilesfst-backend:v0.3.2`，web image `tilesfst-web:v0.3.2`，tarball `../releases/v0.3.2/images/tilesfst-v0.3.2-linux-amd64.tar.gz`，sha256 `5cb6f2f5a2187e18cb9182208147e35aa446f4d6e3a9ae5d9e20792e2ad4c25e`；`shasum -a 256 -c tilesfst-v0.3.2-linux-amd64.tar.gz.sha256` 返回 OK。"
+    }
+  },
+  "known_issues": [
+    "小程序真机图片渲染、对象存储历史 pending 迁移 apply、历史同尺寸 `.thumb` 再生成 apply 如未在目标环境执行，发布前需补录证据或明确风险接受。"
+  ],
+  "upgrade_steps": [
+    "部署前完成数据库、环境变量和对象存储配置备份。",
+    "部署前复核发布相关测试、镜像 manifest 与离线镜像包 sha256。",
+    "部署镜像包前校验 `../releases/v0.3.2/images/tilesfst-v0.3.2-linux-amd64.tar.gz.sha256`。",
+    "部署后执行管理端 SKU 列表排序、公开 SKU 主图 URL、缩略图 URL、小程序商品卡片图片和对象存储对象存在性 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "管理端 SKU 列表排序、筛选、分页或上下架流程不可用",
+      "公开 SKU 主图 URL、缩略图 URL 或小程序商品卡片图片出现阻断性问题",
+      "历史 pending 主图迁移或 `.thumb` 再生成出现不可接受的数据风险",
+      "镜像构建或发布证据与当前输入不一致"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "按发布前备份恢复对象存储图片对象；如已执行迁移或再生成脚本，使用脚本 dry-run 记录和备份清单核对回退范围。",
+      "数据库结构本计划阶段声明不涉及；如发布准备发现数据库影响，按补充的数据库回滚说明执行。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：管理端 SKU 列表默认排序、下架后发布时间展示、筛选区布局铺满与既有筛选/分页/上下架路径回归。",
+    "owner_web": "不涉及",
+    "miniapp": "涉及：商品卡片图片继续优先使用可用缩略图 URL，图片渲染与降级行为需 smoke。",
+    "backend": "涉及：SKU 列表排序 SQL、SKU 图片绑定正式化、缩略图真实生成、历史 pending 主图迁移脚本、历史 `.thumb` 审计/再生成脚本。",
+    "database": "不涉及",
+    "object_storage": "涉及：主图从 pending 暂存路径归入商品目录、原图与缩略图同目录存储、历史对象审计/迁移/再生成。",
+    "docker": "涉及：后端图片处理依赖与 Web/后端运行代码发布，需生成镜像计划和 manifest。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "source_version": "v0.3.2",
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-01 11:35:53",
+      "confirmed_by": "operator",
+      "rationale": "本次发布未要求生成或更新公开产品使用文档；以版本公告作为公开发布说明。"
+    }
+  },
+  "announcement": "announcement.mdx",
+  "prepare_status": "ready",
+  "prepare_attempted_at": "2026-08-01 10:56:18",
+  "prepare_blockers": [],
+  "publish_status": "published",
+  "publish_attempted_at": "2026-08-01 11:00:30",
+  "publish_blockers": [],
+  "publish_confirmation": {
+    "published_at": "2026-08-01 11:00:30",
+    "announcement_url": "releases/v0.3.2/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已记录；未提供外部公告 URL，最终公告位置采用仓库内公开公告源文件。发布部署时需显式设置 TILESFST_IMAGE_TAG=v0.3.2，并使用 sha256 `5cb6f2f5a2187e18cb9182208147e35aa446f4d6e3a9ae5d9e20792e2ad4c25e` 校验离线镜像包。"
+  }
+}

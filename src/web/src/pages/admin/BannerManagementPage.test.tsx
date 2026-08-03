@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -79,13 +79,70 @@ describe('BannerManagementPage', () => {
       );
     });
 
-    const displayClientSelect = screen.getByLabelText('展示端') as HTMLSelectElement;
-    expect(Array.from(displayClientSelect.options).map((option) => option.textContent)).toEqual([
-      '小程序',
-    ]);
-    expect(displayClientSelect.value).toBe('MINIAPP_HOME');
+    const displayClientTrigger = screen.getByLabelText('展示端');
+    expect(displayClientTrigger).toHaveClass('admin-filter-dropdown-trigger');
+    expect(displayClientTrigger).toHaveTextContent('小程序');
+    fireEvent.click(displayClientTrigger);
+    expect(screen.getByRole('listbox', { name: 'Banner 展示端选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    expect(screen.getByRole('option', { name: '小程序' })).toHaveClass('is-selected');
     expect(screen.queryByText('Web 首页')).toBeNull();
     expect(screen.queryByText('专题页')).toBeNull();
+  });
+
+  it('applies the unified admin filter dropdown to status and time filters', async () => {
+    render(
+      <MemoryRouter>
+        <BannerManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBannersMock).toHaveBeenCalledWith(
+        expect.objectContaining({ status: undefined, time_status: undefined }),
+      );
+    });
+
+    const statusTrigger = screen.getByLabelText('状态');
+    const timeTrigger = screen.getByLabelText('时间状态');
+
+    [statusTrigger, timeTrigger].forEach((trigger) => {
+      expect(trigger).toHaveClass('select');
+      expect(trigger).toHaveClass('admin-filter-dropdown-trigger');
+    });
+
+    fireEvent.click(statusTrigger);
+    expect(screen.getByRole('listbox', { name: 'Banner 状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '已上线' }));
+
+    await waitFor(() => {
+      expect(fetchBannersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'ONLINE' }),
+      );
+    });
+
+    fireEvent.click(timeTrigger);
+    expect(screen.getByRole('listbox', { name: 'Banner 时间状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '待生效' }));
+
+    await waitFor(() => {
+      expect(fetchBannersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'ONLINE', time_status: 'PENDING' }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+
+    await waitFor(() => {
+      expect(fetchBannersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: undefined, time_status: undefined }),
+      );
+    });
   });
 
   it('renders standard pagination without section-head or banner-pagination', async () => {

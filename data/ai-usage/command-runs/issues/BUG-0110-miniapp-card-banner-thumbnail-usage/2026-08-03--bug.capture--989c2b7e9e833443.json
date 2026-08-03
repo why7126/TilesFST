@@ -1,0 +1,43 @@
+{
+  "command_runs": [
+    {
+      "source_session_hash": "989c2b7e9e833443059a3fb66127ba5afdeb3b78a881366aaf034c80cb35e181",
+      "source_data_file": "~/.codex/sessions/2026/08/03/rollout-2026-08-03T08-13-03-019fc4f7-84c7-7773-a807-e0197bbbf18d.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 92,
+      "turn_hash": "7b50437a8c5153cb",
+      "started_at": "2026-08-03T00:13:08.266Z",
+      "ended_at": "2026-08-03T00:16:57.513Z",
+      "command": "bug.capture",
+      "workflow_event": "bug.capture",
+      "requirements": [],
+      "bugs": [
+        "BUG-0110-miniapp-card-banner-thumbnail-usage"
+      ],
+      "changes": [],
+      "sprint_id": null,
+      "release_sprints": [],
+      "release_version": null,
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "low",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 9,
+      "input_tokens": 440694,
+      "cached_input_tokens": 378240,
+      "output_tokens": 11104,
+      "reasoning_output_tokens": 130,
+      "total_tokens": 451798,
+      "tool_call_count": 25,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

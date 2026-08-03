@@ -11,6 +11,7 @@ import {
   type SettingsGroup,
   type SystemSettingsAuditItem,
 } from '@/features/admin/api/system-settings-api';
+import { AdminFilterSelect } from '@/shared/ui';
 import '@/features/admin/styles/system-settings.css';
 
 const SETTINGS_TABS: Array<{
@@ -56,6 +57,36 @@ const VIDEO_MIME_OPTIONS = [
   { label: 'MPEG', value: 'video/mpeg' },
   { label: '3GP', value: 'video/3gpp' },
 ];
+
+const LANGUAGE_OPTIONS = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'en', label: 'English' },
+];
+
+const TIMEZONE_OPTIONS = [
+  { value: 'Asia/Shanghai', label: 'Asia/Shanghai' },
+  { value: 'UTC', label: 'UTC' },
+];
+
+const REFRESH_MINUTE_OPTIONS = [5, 15, 30, 60].map((minute) => ({
+  value: String(minute),
+  label: `${minute} 分钟`,
+}));
+
+const IMAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100].map((mb) => ({
+  value: String(mb),
+  label: `${mb} MB`,
+}));
+
+const VIDEO_SIZE_OPTIONS = [50, 100, 200, 500, 1000].map((mb) => ({
+  value: String(mb),
+  label: `${mb} MB`,
+}));
+
+const FILE_SIZE_OPTIONS = [10, 20, 25, 50, 100, 200].map((mb) => ({
+  value: String(mb),
+  label: `${mb} MB`,
+}));
 
 type ConfirmDialog =
   | { kind: 'reset' }
@@ -287,46 +318,40 @@ export function SystemSettingsPage() {
               onChange={(e) => updateField('platform_name', e.target.value)}
             />
           </label>
-          <label>
+          <div>
             <span className="settings-field-label">
               管理端默认语言<span className="required">*</span>
             </span>
-            <select
-              className="settings-select"
+            <AdminFilterSelect
+              ariaLabel="管理端默认语言"
+              listLabel="管理端默认语言选项"
               value={String(form.default_language ?? 'zh-CN')}
-              onChange={(e) => updateField('default_language', e.target.value)}
-            >
-              <option value="zh-CN">简体中文</option>
-              <option value="en">English</option>
-            </select>
-          </label>
-          <label>
+              options={LANGUAGE_OPTIONS}
+              onChange={(value) => updateField('default_language', value)}
+            />
+          </div>
+          <div>
             <span className="settings-field-label">
               默认时区<span className="required">*</span>
             </span>
-            <select
-              className="settings-select"
+            <AdminFilterSelect
+              ariaLabel="默认时区"
+              listLabel="默认时区选项"
               value={String(form.default_timezone ?? 'Asia/Shanghai')}
-              onChange={(e) => updateField('default_timezone', e.target.value)}
-            >
-              <option value="Asia/Shanghai">Asia/Shanghai</option>
-              <option value="UTC">UTC</option>
-            </select>
-          </label>
-          <label>
+              options={TIMEZONE_OPTIONS}
+              onChange={(value) => updateField('default_timezone', value)}
+            />
+          </div>
+          <div>
             <span className="settings-field-label">数据刷新周期</span>
-            <select
-              className="settings-select"
+            <AdminFilterSelect
+              ariaLabel="数据刷新周期"
+              listLabel="数据刷新周期选项"
               value={String(form.data_refresh_minutes ?? 15)}
-              onChange={(e) => updateField('data_refresh_minutes', Number(e.target.value))}
-            >
-              {[5, 15, 30, 60].map((m) => (
-                <option key={m} value={m}>
-                  {m} 分钟
-                </option>
-              ))}
-            </select>
-          </label>
+              options={REFRESH_MINUTE_OPTIONS}
+              onChange={(value) => updateField('data_refresh_minutes', Number(value))}
+            />
+          </div>
           <label>
             <span className="settings-field-label">客服邮箱</span>
             <input
@@ -410,54 +435,42 @@ export function SystemSettingsPage() {
             <span className="settings-status">已启用</span>
           </div>
           <div className="settings-form-grid">
-            <label>
+            <div>
               <span className="settings-field-label">
                 图片最大尺寸 (MB)<span className="required">*</span>
               </span>
-              <select
-                className="settings-select"
+              <AdminFilterSelect
+                ariaLabel="图片最大尺寸 (MB)"
+                listLabel="图片最大尺寸选项"
                 value={String(form.max_image_size_mb ?? 20)}
-                onChange={(e) => updateField('max_image_size_mb', Number(e.target.value))}
-              >
-                {[5, 10, 20, 50, 100].map((mb) => (
-                  <option key={mb} value={mb}>
-                    {mb} MB
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
+                options={IMAGE_SIZE_OPTIONS}
+                onChange={(value) => updateField('max_image_size_mb', Number(value))}
+              />
+            </div>
+            <div>
               <span className="settings-field-label">
                 视频最大尺寸 (MB)<span className="required">*</span>
               </span>
-              <select
-                className="settings-select"
+              <AdminFilterSelect
+                ariaLabel="视频最大尺寸 (MB)"
+                listLabel="视频最大尺寸选项"
                 value={String(form.max_video_size_mb ?? 500)}
-                onChange={(e) => updateField('max_video_size_mb', Number(e.target.value))}
-              >
-                {[50, 100, 200, 500, 1000].map((mb) => (
-                  <option key={mb} value={mb}>
-                    {mb} MB
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
+                options={VIDEO_SIZE_OPTIONS}
+                onChange={(value) => updateField('max_video_size_mb', Number(value))}
+              />
+            </div>
+            <div>
               <span className="settings-field-label">
                 文档最大尺寸 (MB)<span className="required">*</span>
               </span>
-              <select
-                className="settings-select"
+              <AdminFilterSelect
+                ariaLabel="文档最大尺寸 (MB)"
+                listLabel="文档最大尺寸选项"
                 value={String(form.max_file_size_mb ?? 25)}
-                onChange={(e) => updateField('max_file_size_mb', Number(e.target.value))}
-              >
-                {[10, 20, 25, 50, 100, 200].map((mb) => (
-                  <option key={mb} value={mb}>
-                    {mb} MB
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={FILE_SIZE_OPTIONS}
+                onChange={(value) => updateField('max_file_size_mb', Number(value))}
+              />
+            </div>
             <div>
               <span className="settings-field-label">支持图片格式</span>
               <div className="settings-chips">
@@ -916,7 +929,6 @@ export function SystemSettingsPage() {
           role="dialog"
           aria-modal="true"
           className="modal-backdrop"
-          onClick={() => setConfirmDialog(null)}
         >
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3 className="settings-section-title">
@@ -948,7 +960,6 @@ export function SystemSettingsPage() {
           role="dialog"
           aria-modal="true"
           className="modal-backdrop"
-          onClick={() => setTemplateModal(null)}
         >
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3 className="settings-section-title">{templateModal.title}</h3>

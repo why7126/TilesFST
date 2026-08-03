@@ -4,7 +4,7 @@ content: plan / review / archive 三阶段目录职责、准入条件、迁移�
 source: 项目团队确认
 update_method: 需求/BUG 流程或目录边界变化时同步更新
 created_at: 2026-06-27 22:24:39
-updated_at: 2026-07-26 17:23:40
+updated_at: 2026-08-02 17:58:10
 note: REQ 与 BUG 共用；registry 与 _registry.yaml 仍位于 issues/* 根下
 ---
 
@@ -33,6 +33,7 @@ issues/requirements/          issues/bugs/
 
 - `_registry.yaml` **MUST** 留在 `issues/requirements/`、`issues/bugs/` **根目录**，不得移入阶段子目录。
 - 每个 `REQ-*` / `BUG-*` 目录 **MUST** 仅存在于三个阶段目录之一（不得多份拷贝）。
+- 阶段目录内的 `REQ-*` / `BUG-*` 包 **MUST** 非空且至少包含 `trace.md`；新建或仍处于 `plan` / `review` 的 `REQ-NNNN` / `BUG-NNNN` 短编号 **MUST NOT** 与任一阶段既有条目重复。历史 `archive` 内已存在的短编号重复作为遗留债务另行治理，不得作为新建或迁移依据。
 - 阶段子目录内 **禁止** 再嵌套 `plan/review/archive`。
 
 ### 2.1 遗留扁平路径（兼容）
@@ -74,6 +75,13 @@ AI 在执行下列命令并成功后 **MUST** 移动目录（`git mv` 或等价�
 以上两个命令 **MUST 严格顺序执行**，不得并行运行；`promote-issues-for-archive.py` 依赖前一步写入的 `trace.md`、registry、Sprint 同步结果和子文档状态。若 promote 报告 `Issue Subdocument Status Gate`，MUST 先按报告运行 `sync-workflow-status.py --reconcile-issue-status-residuals --dry-run`，确认后再 `--apply-reconcile`，然后重试 promote。
 
 promote 门禁：issue 全部关联 Change 已 archive，且 `status ∈ { done, … }`，并且子文档不得残留 `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` 等非闭环状态。多 Change REQ 须**全部** Change archive 后才 promote。单个 REQ/BUG 的 `/opsx-archive` 闭环与物理归档不要求所属 Sprint 已 completed；Sprint 是否 completed 只作为 `/sprint-archive` 整体归档门禁。
+
+子文档 drift 治理（MUST）：
+
+- 日常状态传播由 Workflow Sync 自动处理，不得等到 promote 阶段才手工补救。
+- 历史 archive 漂移修复必须先 dry-run，再人工确认 apply；apply 只处理报告中标记为可安全同步的字段，并刷新 `updated_at`。
+- 可用命令：`python scripts/sync-workflow-status.py --event <event> --req|--bug <id> --scan-issue-subdocuments --dry-run`，确认后使用 `--apply-issue-subdocuments` 或 residual reconcile 模式。
+- 扫描报告必须区分可安全同步、需人工判断、缺验收结果、缺 trace/交付证据和不建议自动修复项。
 
 **不迁移**：
 
@@ -122,5 +130,6 @@ lifecycle_stage: plan | review | archive
 □ opsx-archive / sprint-archive 后是否运行 promote-issues-for-archive.py ？
 □ issues 是否已迁入 archive/ 且 lifecycle_stage 一致？
 □ _registry.yaml 是否仍在 issues 根目录？
+□ 是否通过目录结构校验，确认无空 Issue 包和跨阶段重复短编号？
 □ 是否运行 sync-workflow-status.py？
 ```

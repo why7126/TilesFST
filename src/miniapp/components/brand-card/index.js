@@ -28,7 +28,7 @@ function normalizeBrand(brand, hint) {
   const rawBrandName = safeText(brand.brand_name || brand.brand_short_name, '');
   const brandName = rawBrandName || '品牌信息待完善';
   const entryPath = safeText(brand.brand_entry_path, '');
-  const logoSrc = safeText(brand.brand_logo_url, '');
+  const logoSrc = safeText(brand.brand_logo_thumbnail_url || brand.brand_logo_url, '');
   const available = Boolean(rawBrandName) && (Boolean(entryPath) || brand.available !== false);
   return {
     brandId: brand.brand_id || '',

@@ -48,7 +48,8 @@ describe('LoginPage', () => {
   it('keeps theme switching available on the login page', async () => {
     renderLoginPage();
 
-    fireEvent.change(screen.getByLabelText('主题'), { target: { value: 'light' } });
+    fireEvent.click(screen.getByLabelText('主题'));
+    fireEvent.click(screen.getByRole('option', { name: '浅色' }));
 
     await waitFor(() => {
       expect(document.documentElement).toHaveAttribute('data-theme-mode', 'light');

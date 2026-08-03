@@ -1,0 +1,218 @@
+{
+  "version": "v0.3.3",
+  "release_time": "2026-08-02 21:05:35",
+  "owner": "product",
+  "summary": "TILESFST v0.3.3 发布准备、完整 usage docs 与镜像构建已完成，范围覆盖 sprint-017 已归档交付：5 个 REQ、1 个 BUG、6 个 OpenSpec Change。OpenSpec 归档、产品版本、后端/治理 pytest、Web Vitest、API 标准、OpenAPI / Orval、Docker Compose、Mintlify broken-links、usage docs validation、image-build-plan 和 image-manifest 均已通过；当前已可进入发布确认。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release.prepare 已将 `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 更新为 `v0.3.3`，与发布对象版本一致。",
+  "image_required": true,
+  "image_required_rationale": "sprint-017 范围包含品牌/证书图片缩略图生成与读取、后端受控媒体读取、管理端上传/回显、小程序与店主 Web 展示、对象存储与存量补齐治理；按 rules/release.md，涉及后端运行代码、Web/小程序运行代码、对象存储和发布镜像输入时需要执行 image prepare / image build 门禁。",
+  "image_tag": "v0.3.3",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "当前未提供受控外部构建证据；如后续采用外部构建，必须记录来源、版本、image tag、平台、digest 或 tarball sha256、校验方式、负责人确认和风险说明。"
+  },
+  "usage_docs": {
+    "status": "generated",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": "v0.3.3",
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": true,
+      "confirmed_at": "2026-08-02 20:11:22",
+      "confirmed_by": "operator",
+      "rationale": "用户明确要求运行 `python scripts/generate-usage-docs.py v0.3.3`，确认本版本需要生成当前版本公开产品使用文档。"
+    }
+  },
+  "sprints": [
+    "sprint-017"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0088-versioned-product-usage-docs",
+      "title": "版本化产品使用文档治理",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0090-media-five-point-acceptance-template",
+      "title": "媒体五联验收模板",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0091-media-bug-four-point-acceptance-template",
+      "title": "媒体类 BUG 四联验收模板",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0089-workflow-subdocument-status-sync",
+      "title": "REQ/BUG 子文档状态同步治理",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0092-brand-certificate-image-thumbnails",
+      "title": "品牌与证书图片真实缩略图",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0102-miniapp-brand-list-carousel-brand-gallery-text",
+      "title": "小程序品牌列表轮播图多余文案展示",
+      "sprint": "sprint-017",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-versioned-product-usage-docs",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-02-add-versioned-product-usage-docs"
+    },
+    {
+      "id": "add-media-five-point-acceptance-template",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-add-media-five-point-acceptance-template"
+    },
+    {
+      "id": "add-media-bug-four-point-acceptance-template",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-add-media-bug-four-point-acceptance-template"
+    },
+    {
+      "id": "improve-workflow-subdocument-status-sync",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-01-improve-workflow-subdocument-status-sync"
+    },
+    {
+      "id": "fix-miniapp-brand-list-carousel-text",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-02-fix-miniapp-brand-list-carousel-text"
+    },
+    {
+      "id": "add-brand-certificate-image-thumbnails",
+      "sprint": "sprint-017",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-08-02-add-brand-certificate-image-thumbnails"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:32:35: `iterations/archive/sprint-017/acceptance-report.md` 记录 Sprint 017 正式范围内 5 个 REQ、1 个 BUG 与 6 个 OpenSpec Change 已全部归档，验收通过；6 个归档目录均存在于 `openspec/archive/2026-08-01-*` 或 `openspec/archive/2026-08-02-*`。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:51:28: `pnpm --dir src/web test -- --run` 通过，59 files / 324 tests passed。2026-08-02 19:52:00: `uv run --project src/backend python -m pytest src/backend/tests/test_admin_brands.py tests/test_media_storage.py tests/test_backfill_brand_certificate_thumbnails.py tests/test_miniapp_static.py tests/test_release_validation.py tests/test_ai_usage.py tests/test_sprint_close_stale_scan.py tests/test_workflow_sync_time_drift.py` 通过，158 passed / 4 warnings；warnings 为 FastAPI/Pydantic deprecation，不影响本次发布准备。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:51:28: `python scripts/validate-api-standard.py` 输出 API 标准校验通过。2026-08-02 19:53:00: `./scripts/generate-openapi-client.sh` 通过，Orval v8.17.0 成功生成 `tileApi`。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:53:00: `docker compose -f docker-compose.yml config --quiet`、`docker compose -f docker-compose.prod.yml config --quiet`、`docker compose -f docker-compose.prod.external.yml config --quiet` 均通过。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "Sprint 017 release note 与 release impact_scope 均按不涉及数据库表结构记录；本次未新增 migration、schema 字段或 MySQL 变更。若后续 image prepare 或 publish 前发现数据库影响，必须改为 pass 并补充 schema.mysql.sql、MySQL schema drift 或目标 MySQL smoke、回滚/备份证据。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "本次 release prepare 未发现新增或变更环境变量；媒体/MinIO 与镜像构建变量仍沿用既有配置说明。若 `/image-prepare v0.3.3` 发现构建 env 缺口，需在 image plan 中记录 auto action、warning 或 blocker。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:50:00: `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 已更新为 `v0.3.3`，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-08-02 19:55:00: `releases/mint.json` 已加入 `v0.3.3/announcement`；在 `releases/` 下执行 `mintlify broken-links` 通过，输出 `success no broken links found`。"
+    },
+    "usage_docs_preview": {
+      "status": "pass",
+      "evidence": "2026-08-02 20:11:22: 用户明确要求运行 `python scripts/generate-usage-docs.py v0.3.3`，确认本版本需要生成当前版本公开产品使用文档。2026-08-02 20:17:37: 根据用户补充要求“历史版本没有生成 usage docs，直接在 v0.3.3 一次性生成该版本下所有用户使用手册”，已将 `releases/v0.3.3/usage-docs/` 从模板扩展为 10 个页面，覆盖 overview、管理端总览/商品资料/品牌证书媒体/账号设置日志、小程序总览/浏览商品收藏/品牌证书、公开/店主浏览和 FAQ。2026-08-02 20:53:23: 根据用户要求“截图不要使用产品原型图，而要使用真实的系统截图”，已将 12 张截图替换为已归档 BUG/QA 真实系统截图或小程序开发者工具截图；每个 MDX 页面至少引用 1 张本地截图，`usage-docs/manifest.json screenshots[]` 已记录 path、pages、caption、source 和 source_type。`python scripts/validate-usage-docs.py --release-dir releases/v0.3.3`、`python scripts/validate-release.py --release-dir releases/v0.3.3 --stage publish` 与 `mintlify broken-links` 均通过。 2026-08-03 19:09:59: scripts/generate-usage-docs.py --project-existing v0.3.3 projected release usage docs to mintlify/docs/v0.3.3, mintlify/docs/latest, mintlify/releases and shared screenshot assets."
+    },
+    "image_prepare": {
+      "status": "pass",
+      "evidence": "2026-08-02 21:04:00: 公告修正后重新执行 `python scripts/validate-image-build.py prepare --release v0.3.3` 并生成 `releases/v0.3.3/image-build-plan.json`；随后 `python scripts/validate-image-build.py validate-plan --release v0.3.3` 通过。auto_action_count=0；warning_count=4，均为生产 Compose fallback tag 仍是 `v0.0.4`，发布 env 必须显式设置 `TILESFST_IMAGE_TAG=v0.3.3`；blocker_count=0。"
+    },
+    "image_build": {
+      "status": "pass",
+      "evidence": "2026-08-02 21:08:21: 公告输入 hash 更新后重新执行 `python scripts/validate-image-build.py build --release v0.3.3`，backend/web Docker build、linux/amd64 平台验证、后端依赖验证、Web Nginx 配置验证、离线 tar 导出和 sha256 生成均成功，并写入 `releases/v0.3.3/image-manifest.json`；`python scripts/validate-image-build.py validate-manifest --release v0.3.3` 通过。backend image `tilesfst-backend:v0.3.3`，web image `tilesfst-web:v0.3.3`，tarball `../releases/v0.3.3/images/tilesfst-v0.3.3-linux-amd64.tar.gz`，sha256 `b18bc20e054bfb0aa3482ec315e936f8bff7105791700f7eddb09321acb9f486`；2026-08-02 21:08:21 在镜像目录执行 `shasum -a 256 -c tilesfst-v0.3.3-linux-amd64.tar.gz.sha256` 返回 OK。"
+    }
+  },
+  "known_issues": [
+    "生产部署 env 必须显式设置 TILESFST_IMAGE_TAG=v0.3.3；Compose fallback tag 仍为 v0.0.4。"
+  ],
+  "upgrade_steps": [
+    "发布准备前更新并复核 `src/shared/product-version.ts` 为 `v0.3.3`。",
+    "执行 `/release-prepare v0.3.3`，补齐测试、公告、usage docs 决策、Orval、Compose、环境变量与公开安全校验证据。",
+    "执行 `/image-prepare v0.3.3` 与 `/image-build v0.3.3`，生成并校验镜像构建计划、manifest 和离线包 sha256。",
+    "部署前完成数据库、对象存储、环境变量和当前镜像包备份。",
+    "部署后执行管理端品牌/证书上传回显、缩略图 URL、小程序品牌列表轮播、店主 Web 图片展示和后端媒体读取 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "品牌或证书图片上传、缩略图生成、端上读取出现阻断性问题",
+      "管理端、小程序或店主 Web 出现媒体展示阻断性回归",
+      "发布镜像 plan、manifest、sha256 或输入 hash 与当前发布输入不一致"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "按发布前备份恢复对象存储图片对象；如执行过存量缩略图补齐 apply，使用 dry-run 记录和备份清单核对回退范围。",
+      "数据库结构本计划阶段声明不涉及；如发布准备发现数据库影响，按补充的数据库回滚说明执行。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：品牌图片与图片类品牌证书真实缩略图生成、列表/卡片/上传回显、状态与降级展示。",
+    "owner_web": "涉及：品牌与证书图片展示优先读取可用缩略图并安全回退。",
+    "miniapp": "涉及：品牌列表页轮播文案修复、品牌与证书图片端上展示、缩略图读取和降级行为。",
+    "backend": "涉及：媒体读取、缩略图生成、品牌与证书图片服务、存量补齐治理脚本或等价链路。",
+    "database": "不涉及",
+    "object_storage": "涉及：品牌图片与图片类证书缩略图对象生成、读取、回退和存量补齐。",
+    "docker": "涉及：后端媒体处理与 Web/小程序运行代码发布，需要镜像构建计划和 manifest 证据。"
+  },
+  "announcement": "announcement.mdx",
+  "prepare_status": "ready",
+  "prepare_attempted_at": "2026-08-02 20:12:23",
+  "prepare_blockers": [],
+  "publish_status": "published",
+  "publish_blockers": [],
+  "publish_attempted_at": "2026-08-02 21:05:35",
+  "publish_confirmation": {
+    "published_at": "2026-08-02 21:05:35",
+    "announcement_path": "releases/v0.3.3/announcement.mdx",
+    "announcement_route": "v0.3.3/announcement",
+    "announcement_url": null,
+    "confirmed_by": "operator",
+    "notes": "本次发布使用仓库内 Mintlify 公告源作为最终公告位置；未提供外部域名 URL。publish 阶段 release、usage docs、image manifest、离线包 sha256 与 Mintlify broken-links 均已校验通过。"
+  }
+}

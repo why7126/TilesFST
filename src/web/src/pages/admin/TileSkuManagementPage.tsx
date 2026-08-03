@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { BrandAdminItem, TileSkuAdminItem } from '@/shared/api/generated';
 
 import { fetchBrands } from '@/features/admin/api/brands-api';
-import { buildParentOptions, fetchCategoryTree } from '@/features/admin/api/tile-categories-api';
+import {
+  fetchCategoryTree,
+  type TileCategoryTreeNode,
+} from '@/features/admin/api/tile-categories-api';
 import {
   canDeleteTileSku,
   deleteTileSku,
@@ -20,7 +23,6 @@ import { AdminToast } from '@/features/admin/components/AdminToast';
 import { TileSkuFormModal } from '@/features/admin/components/TileSkuFormModal';
 import {
   formatSkuDateTime,
-  MATERIAL_COMPLETENESS_OPTIONS,
   TILE_SKU_STATUS_OPTIONS,
   tileSkuStatusBadgeClass,
   tileSkuStatusLabel,
@@ -30,24 +32,38 @@ import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/tile-sku-management.css';
 
+function findCategoryPath(
+  nodes: TileCategoryTreeNode[],
+  targetId: number,
+): TileCategoryTreeNode[] {
+  for (const node of nodes) {
+    if (node.id === targetId) return [node];
+    const childPath = findCategoryPath(node.children ?? [], targetId);
+    if (childPath.length) return [node, ...childPath];
+  }
+  return [];
+}
+
+type SkuFilterDropdown = 'brand' | 'category' | 'status';
+
 export function TileSkuManagementPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [keyword, setKeyword] = useState('');
   const [brandId, setBrandId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('');
-  const [materialCompleteness, setMaterialCompleteness] = useState<
-    (typeof MATERIAL_COMPLETENESS_OPTIONS)[number]['value']
-  >('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [data, setData] = useState<TileSkuListData | null>(null);
   const [brands, setBrands] = useState<BrandAdminItem[]>([]);
-  const [categoryOptions, setCategoryOptions] = useState<
-    Array<{ id: number | null; label: string; level: number }>
-  >([]);
+  const [categoryTree, setCategoryTree] = useState<TileCategoryTreeNode[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<SkuFilterDropdown | null>(null);
+  const [categoryBrowsePath, setCategoryBrowsePath] = useState<TileCategoryTreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
+  const brandFilterRef = useRef<HTMLDivElement | null>(null);
+  const categoryFilterRef = useRef<HTMLDivElement | null>(null);
+  const statusFilterRef = useRef<HTMLDivElement | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
@@ -64,7 +80,7 @@ export function TileSkuManagementPage() {
       fetchCategoryTree(),
     ]).then(([brandData, tree]) => {
       setBrands(brandData.items);
-      setCategoryOptions(buildParentOptions(tree).filter((o) => o.id != null));
+      setCategoryTree(tree);
     });
   }, []);
 
@@ -80,7 +96,6 @@ export function TileSkuManagementPage() {
           brand_id: brandId ? Number.parseInt(brandId, 10) : undefined,
           category_id: categoryId ? Number.parseInt(categoryId, 10) : undefined,
           status: status || undefined,
-          material_completeness: materialCompleteness || undefined,
         });
         setData(result);
       } catch (err) {
@@ -89,7 +104,7 @@ export function TileSkuManagementPage() {
         setLoading(false);
       }
     },
-    [keyword, brandId, categoryId, status, materialCompleteness, page, pageSize],
+    [keyword, brandId, categoryId, status, page, pageSize],
   );
 
   useEffect(() => {
@@ -111,16 +126,96 @@ export function TileSkuManagementPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  useEffect(() => {
+    if (!openDropdown) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      const activeRef =
+        openDropdown === 'brand'
+          ? brandFilterRef
+          : openDropdown === 'category'
+            ? categoryFilterRef
+            : statusFilterRef;
+      if (activeRef.current?.contains(target)) return;
+      setOpenDropdown(null);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [openDropdown]);
+
   const handleReset = () => {
     setKeyword('');
     setBrandId('');
     setCategoryId('');
     setStatus('');
-    setMaterialCompleteness('');
     setPage(1);
     void fetchTileSkus({ page: 1, page_size: pageSize })
       .then(setData)
       .catch((err) => setNotice(getErrorMessage(err, '加载 SKU 列表失败')));
+  };
+
+  const selectedCategoryPath = useMemo(() => {
+    if (!categoryId) return [];
+    const id = Number.parseInt(categoryId, 10);
+    if (Number.isNaN(id)) return [];
+    return findCategoryPath(categoryTree, id);
+  }, [categoryTree, categoryId]);
+
+  const categoryCascadePanels = useMemo(() => {
+    const levels: TileCategoryTreeNode[][] = [];
+    if (categoryTree.length) levels.push(categoryTree);
+    categoryBrowsePath.forEach((node) => {
+      if (node.children?.length) levels.push(node.children);
+    });
+    return levels;
+  }, [categoryTree, categoryBrowsePath]);
+
+  const selectedCategoryLabel = selectedCategoryPath.map((node) => node.name).join(' / ');
+  const selectedBrandLabel =
+    brands.find((brand) => String(brand.id) === brandId)?.name ?? '全部品牌';
+  const selectedStatusLabel =
+    TILE_SKU_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? '全部状态';
+
+  const openCategoryDropdown = () => {
+    setCategoryBrowsePath(selectedCategoryPath);
+    setOpenDropdown((current) => (current === 'category' ? null : 'category'));
+  };
+
+  const toggleFilterDropdown = (dropdown: SkuFilterDropdown) => {
+    if (dropdown === 'category') {
+      openCategoryDropdown();
+      return;
+    }
+    setOpenDropdown((current) => (current === dropdown ? null : dropdown));
+  };
+
+  const selectBrandFilter = (value: string) => {
+    setBrandId(value);
+    setPage(1);
+    setOpenDropdown(null);
+  };
+
+  const selectStatusFilter = (value: string) => {
+    setStatus(value);
+    setPage(1);
+    setOpenDropdown(null);
+  };
+
+  const clearCategoryFilter = () => {
+    setCategoryId('');
+    setCategoryBrowsePath([]);
+    setOpenDropdown(null);
+    setPage(1);
+  };
+
+  const handleCategoryOptionClick = (node: TileCategoryTreeNode, levelIndex: number) => {
+    const nextPath = [...categoryBrowsePath.slice(0, levelIndex), node];
+    setCategoryId(String(node.id));
+    setCategoryBrowsePath(nextPath);
+    setPage(1);
+    if (!node.children?.length) {
+      setOpenDropdown(null);
+    }
   };
 
   const openCreate = () => {
@@ -211,7 +306,7 @@ export function TileSkuManagementPage() {
         <MetricCard label="草稿" value={data?.summary.draft_count} description="新建默认状态" />
       </MetricCardGrid>
 
-      <section className="filter-card">
+      <section className="filter-card sku-filter-card">
         <div className="sku-filter-grid">
           <div className="brand-form-item">
             <label>关键词</label>
@@ -226,77 +321,133 @@ export function TileSkuManagementPage() {
               onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
             />
           </div>
-          <div className="brand-form-item">
+          <div className="brand-form-item sku-dropdown-filter" ref={brandFilterRef}>
             <label>品牌</label>
-            <select
-              className="select"
-              value={brandId}
-              onChange={(e) => {
-                setBrandId(e.target.value);
-                setPage(1);
-              }}
+            <button
+              type="button"
+              className="select sku-dropdown-trigger"
+              aria-haspopup="listbox"
+              aria-expanded={openDropdown === 'brand'}
+              onClick={() => toggleFilterDropdown('brand')}
             >
-              <option value="">全部品牌</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              <span>{selectedBrandLabel}</span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+            {openDropdown === 'brand' ? (
+              <div className="sku-dropdown-menu" role="listbox" aria-label="品牌选项">
+                <button
+                  type="button"
+                  className={`sku-dropdown-option${brandId ? '' : ' active'}`}
+                  aria-label="全部品牌"
+                  onClick={() => selectBrandFilter('')}
+                >
+                  <span>全部品牌</span>
+                </button>
+                {brands.map((brand) => (
+                  <button
+                    key={brand.id}
+                    type="button"
+                    className={`sku-dropdown-option${String(brand.id) === brandId ? ' active' : ''}`}
+                    aria-label={brand.name}
+                    onClick={() => selectBrandFilter(String(brand.id))}
+                  >
+                    <span>{brand.name}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
-          <div className="brand-form-item">
+          <div className="brand-form-item sku-category-filter">
             <label>类目</label>
-            <select
-              className="select"
-              value={categoryId}
-              onChange={(e) => {
-                setCategoryId(e.target.value);
-                setPage(1);
-              }}
+            <div
+              ref={categoryFilterRef}
+              className="category-cascade-filter"
+              aria-label="类目级联筛选"
             >
-              <option value="">全部类目</option>
-              {categoryOptions.map((c) => (
-                <option key={c.id} value={c.id!}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              <button
+                type="button"
+                className="select category-cascade-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={openDropdown === 'category'}
+                onClick={openCategoryDropdown}
+              >
+                <span>{selectedCategoryLabel || '全部类目'}</span>
+                <span aria-hidden="true">⌄</span>
+              </button>
+              {openDropdown === 'category' ? (
+                <div
+                  className="sku-dropdown-menu category-cascade-menu"
+                  role="listbox"
+                  aria-label="类目选项"
+                >
+                  <div className="sku-dropdown-panel category-cascade-panel">
+                    <button
+                      type="button"
+                      className={`sku-dropdown-option category-cascade-option${
+                        categoryId ? '' : ' active'
+                      }`}
+                      aria-label="全部类目"
+                      onClick={clearCategoryFilter}
+                    >
+                      <span>全部类目</span>
+                    </button>
+                  </div>
+                  {categoryCascadePanels.map((nodes, levelIndex) => (
+                    <div
+                      key={`category-panel-${levelIndex}`}
+                      className="sku-dropdown-panel category-cascade-panel"
+                      aria-label={`${levelIndex + 1}级类目`}
+                    >
+                      {nodes.map((node) => {
+                        const active = categoryBrowsePath[levelIndex]?.id === node.id;
+                        return (
+                          <button
+                            key={node.id}
+                            type="button"
+                            className={`sku-dropdown-option category-cascade-option${
+                              active ? ' active' : ''
+                            }`}
+                            aria-label={node.name}
+                            onClick={() => handleCategoryOptionClick(node, levelIndex)}
+                          >
+                            <span>{node.name}</span>
+                            {node.children?.length ? <span aria-hidden="true">›</span> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
-          <div className="brand-form-item">
+          <div className="brand-form-item sku-dropdown-filter" ref={statusFilterRef}>
             <label>状态</label>
-            <select
-              className="select"
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(1);
-              }}
+            <button
+              type="button"
+              className="select sku-dropdown-trigger"
+              aria-haspopup="listbox"
+              aria-expanded={openDropdown === 'status'}
+              onClick={() => toggleFilterDropdown('status')}
             >
-              {TILE_SKU_STATUS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="brand-form-item">
-            <label>素材完整度</label>
-            <select
-              className="select"
-              value={materialCompleteness}
-              onChange={(e) => {
-                setMaterialCompleteness(
-                  e.target.value as (typeof MATERIAL_COMPLETENESS_OPTIONS)[number]['value'],
-                );
-                setPage(1);
-              }}
-            >
-              {MATERIAL_COMPLETENESS_OPTIONS.map((opt) => (
-                <option key={opt.label} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <span>{selectedStatusLabel}</span>
+              <span aria-hidden="true">⌄</span>
+            </button>
+            {openDropdown === 'status' ? (
+              <div className="sku-dropdown-menu" role="listbox" aria-label="状态选项">
+                {TILE_SKU_STATUS_OPTIONS.map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    className={`sku-dropdown-option${option.value === status ? ' active' : ''}`}
+                    aria-label={option.label}
+                    onClick={() => selectStatusFilter(option.value)}
+                  >
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="sku-filter-actions">
             <button type="button" className="btn" onClick={handleReset}>
@@ -348,9 +499,6 @@ export function TileSkuManagementPage() {
                   <td className="sku-price">{formatReferencePrice(item.reference_price)}</td>
                   <td>
                     <div className="material-stack">
-                      <span className={`mini-badge${item.has_main_image ? ' gold' : ''}`}>
-                        {item.has_main_image ? '主图已设' : '缺主图'}
-                      </span>
                       <span className="mini-badge">
                         {item.image_count} 图 / {item.video_count} 视频
                       </span>
@@ -471,7 +619,7 @@ export function TileSkuManagementPage() {
       />
 
       {statusConfirmTarget && statusConfirmAction ? (
-        <div className="modal-backdrop" role="presentation" onClick={closeStatusConfirm}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"
@@ -512,7 +660,7 @@ export function TileSkuManagementPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"

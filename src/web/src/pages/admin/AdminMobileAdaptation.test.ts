@@ -104,6 +104,8 @@ describe('REQ-0027 admin mobile adaptation smoke contract', () => {
   });
 
   it('keeps the log audit layers ordered as table, filter dropdown, then detail drawer', () => {
+    expect(userManagementCss).toContain('.admin-shell .admin-filter-dropdown-menu');
+    expect(userManagementCss).toContain('z-index: 100;');
     expect(logAuditCss).toContain('.admin-shell .log-audit-filter');
     expect(logAuditCss).toContain('z-index: 40;');
     expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-dropdown');
@@ -121,9 +123,11 @@ describe('REQ-0027 admin mobile adaptation smoke contract', () => {
   });
 
   it('keeps operator dropdown candidate rows limited to account and display name lines', () => {
+    expect(userManagementCss).toContain('.admin-shell .searchable-select-option-label');
+    expect(userManagementCss).toContain('.admin-shell .searchable-select-option-desc');
+    expect(userManagementCss).toContain('text-overflow: ellipsis;');
+    expect(userManagementCss).toContain('white-space: nowrap;');
     expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-option-label');
     expect(logAuditCss).toContain('.admin-shell .log-audit-filter .searchable-select-option-desc');
-    expect(logAuditCss).toContain('text-overflow: ellipsis;');
-    expect(logAuditCss).toContain('white-space: nowrap;');
   });
 });

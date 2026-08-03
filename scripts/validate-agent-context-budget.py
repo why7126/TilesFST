@@ -17,6 +17,7 @@ COMMAND_SKILL_NAMES = {
 COMMAND_SKILL_PREFIXES = (
     "bug-",
     "build-",
+    "image-",
     "opsx-",
     "release-",
     "req-",

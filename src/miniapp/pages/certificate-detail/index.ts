@@ -5,6 +5,7 @@ type CertificateMediaItem = {
   media_type: 'image' | 'pdf' | 'unknown';
   url: string;
   preview_url?: string | null;
+  thumbnail_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   sort_order: number;
@@ -22,6 +23,7 @@ type CertificateDetail = {
   brand_id: number;
   brand_name: string;
   file_url?: string | null;
+  thumbnail_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   file_kind: 'image' | 'pdf' | 'unknown';

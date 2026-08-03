@@ -3,6 +3,7 @@
   "usingComponents": {
     "custom-navigation": "../../components/custom-navigation/index",
     "search-entry": "../../components/search-entry/index",
-    "product-card": "../../components/product-card/index"
+    "product-card": "../../components/product-card/index",
+    "home-floating-button": "../../components/home-floating-button/index"
   }
 }

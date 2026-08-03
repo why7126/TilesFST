@@ -16,6 +16,12 @@ from scripts.workflow_sync.issue_status_residuals import (  # noqa: E402
     reconcile_issue_status_residuals,
     scan_issue_status_residuals,
 )
+from scripts.workflow_sync.derive import DerivedIssue  # noqa: E402
+from scripts.workflow_sync.issue_subdocuments import (  # noqa: E402
+    scan_issue_subdocuments,
+    sync_issue_subdocuments,
+)
+from scripts.workflow_sync.engine import SyncReport  # noqa: E402
 
 SCRIPT = ROOT / "scripts" / "promote-issues-for-archive.py"
 SPEC = importlib.util.spec_from_file_location("promote_issues_for_archive", SCRIPT)
@@ -188,6 +194,91 @@ def test_reconcile_write_rejects_unclosed_issue(tmp_path: Path) -> None:
     assert result.blockers == ["issue trace status `in_sprint` is not closed"]
     assert result.changed_files == 0
     assert "status: open" in doc.read_text(encoding="utf-8")
+
+
+def test_regular_sync_updates_primary_doc_and_acceptance_result(tmp_path: Path) -> None:
+    issue_dir = tmp_path / "issues" / "requirements" / "review" / "REQ-9999-demo"
+    issue_dir.mkdir(parents=True)
+    (issue_dir / "requirement.md").write_text(
+        "---\nstatus: approved\nupdated_at: 2026-07-01 10:00:00\n---\n# Requirement\n",
+        encoding="utf-8",
+    )
+    (issue_dir / "acceptance.md").write_text(
+        "---\nstatus: pending_review\nupdated_at: 2026-07-01 10:00:00\n---\n# AC\n",
+        encoding="utf-8",
+    )
+    (issue_dir / "trace.md").write_text(
+        "---\niteration: sprint-999\n---\n# Trace\n",
+        encoding="utf-8",
+    )
+    issue = IssueRecord(issue_id="REQ-9999-demo", kind="req", path=issue_dir, trace_status="in_sprint")
+    derived = DerivedIssue(
+        issue_id=issue.issue_id,
+        kind="req",
+        display_status="in_sprint",
+        linked_change="add-demo",
+        note="apply done",
+    )
+
+    result = sync_issue_subdocuments(
+        issue,
+        derived,
+        event="opsx.apply",
+        source_change="add-demo",
+        write=True,
+    )
+
+    requirement = (issue_dir / "requirement.md").read_text(encoding="utf-8")
+    acceptance = (issue_dir / "acceptance.md").read_text(encoding="utf-8")
+    assert result.checked_files == 3
+    assert result.updated_files == 2
+    assert "status: in_sprint" in requirement
+    assert "acceptance_status: pending" in acceptance
+    assert "source_change: add-demo" in acceptance
+    assert "source_sprint: sprint-999" in acceptance
+    assert "## 验收结果回填" in acceptance
+
+
+def test_scan_classifies_primary_status_drift_and_acceptance_semantics(tmp_path: Path) -> None:
+    issue_dir = tmp_path / "issues" / "requirements" / "review" / "REQ-9999-demo"
+    issue_dir.mkdir(parents=True)
+    (issue_dir / "requirement.md").write_text("---\nstatus: approved\n---\n# Requirement\n", encoding="utf-8")
+    (issue_dir / "acceptance.md").write_text("---\nstatus: pending_review\n---\n# AC\n", encoding="utf-8")
+    issue = IssueRecord(issue_id="REQ-9999-demo", kind="req", path=issue_dir, trace_status="in_sprint")
+    derived = DerivedIssue(
+        issue_id=issue.issue_id,
+        kind="req",
+        display_status="in_sprint",
+        linked_change="add-demo",
+        note="proposed",
+    )
+
+    findings, checked = scan_issue_subdocuments(issue, derived)
+
+    assert checked == 2
+    classifications = {finding.classification for finding in findings}
+    assert "safe_sync" in classifications
+    assert "safe_rename" in classifications
+    assert any(finding.source == "frontmatter.status" for finding in findings)
+
+
+def test_summary_includes_subdocument_counts() -> None:
+    report = SyncReport(event="opsx.apply", focus_change="add-demo")
+    issue_dir = ROOT / "issues" / "requirements" / "review" / "REQ-9999-demo"
+    report.subdocument_results.append(
+        sync_issue_subdocuments(
+            IssueRecord(issue_id="REQ-9999-demo", kind="req", path=issue_dir, trace_status="in_sprint"),
+            DerivedIssue("REQ-9999-demo", "req", "in_sprint", "add-demo", "proposed"),
+            event="opsx.apply",
+            source_change="add-demo",
+            write=False,
+        )
+    )
+
+    text = report.format_summary()
+
+    assert "Subdocuments:" in text
+    assert "Acceptance results:" in text
 
 
 def test_opsx_archive_skill_requires_sequential_sync_before_promotion() -> None:

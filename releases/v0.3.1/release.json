@@ -1,0 +1,194 @@
+{
+  "version": "v0.3.1",
+  "release_time": "2026-07-31 23:43:40",
+  "owner": "product",
+  "summary": "TILESFST v0.3.1 发布准备与镜像构建已完成，范围为 sprint-015 已归档交付：1 个 REQ、5 个 BUG、6 个 OpenSpec Change。OpenSpec specs、目录结构、Web Vitest、全量 pytest、API 标准、OpenAPI / Orval、Docker Compose、Mintlify broken-links、image-build-plan.json 和 image-manifest.json 均已校验；当前可进入 release publish 确认。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release.prepare 已将 `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 更新为 `v0.3.1`，与发布对象版本一致。",
+  "image_required": true,
+  "image_required_rationale": "sprint-015 范围涉及后端公开列表 cover_image 与缩略图生成/回填链路、Web 管理端构建输入、小程序前端运行代码和对象存储媒体访问语义；按 rules/release.md 需执行 image prepare / image build 门禁。",
+  "image_tag": "v0.3.1",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "当前未提供受控外部构建证据；如后续采用外部构建，必须记录来源、版本、image tag、平台、digest 或 tarball sha256、校验方式、负责人确认和风险说明。"
+  },
+  "sprints": [
+    "sprint-015"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0086-miniapp-brand-list-ui-interaction-optimization",
+      "title": "微信小程序品牌列表页 UI 与交互体验优化",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0096-admin-sku-category-filter-only-top-level",
+      "title": "管理后台 SKU 页类目筛选只能选择一级类目",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0097-admin-sku-material-main-image-tag-redundant",
+      "title": "管理后台 SKU 页素材列不需要展示主图冗余标签",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0095-admin-category-tree-count-shows-product-count",
+      "title": "管理端类目树节点右侧计数口径错误",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0094-miniapp-list-images-not-loading-after-speed-fix",
+      "title": "小程序商品列表图片加载优化后真实主图不展示",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0098-admin-filter-dropdown-ui-consistency",
+      "title": "管理端筛选条件下拉框位置和 UI 样式不统一",
+      "sprint": "sprint-015",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "fix-admin-sku-category-cascade-filter",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-admin-sku-category-cascade-filter"
+    },
+    {
+      "id": "fix-admin-sku-material-main-image-tag",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-admin-sku-material-main-image-tag"
+    },
+    {
+      "id": "fix-admin-category-tree-count",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-admin-category-tree-count"
+    },
+    {
+      "id": "update-miniapp-brand-list-ui-interaction-optimization",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-update-miniapp-brand-list-ui-interaction-optimization"
+    },
+    {
+      "id": "fix-miniapp-product-card-thumbnails",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-miniapp-product-card-thumbnails"
+    },
+    {
+      "id": "fix-admin-filter-dropdown-ui-consistency",
+      "sprint": "sprint-015",
+      "status": "archived",
+      "scope": "formal",
+      "archive_dir": "openspec/archive/2026-07-31-fix-admin-filter-dropdown-ui-consistency"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:21:15: `iterations/archive/sprint-015/sprint.yaml` 为 completed/archive；`release-note.md` 记录范围内 1 个 REQ、5 个 BUG 和 6 个 Change 均 done/已归档；`acceptance-report.md` 记录 Readiness PASS、6/6 Change archived、109/109 tasks done。`openspec validate --specs --strict` 41 passed；`python scripts/validate-directory-structure.py` 通过。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:29:39: `pnpm --dir src/web test -- --run` 通过，59 files / 321 tests passed。修复 pytest 三个阻断项后，`uv run pytest` 非沙箱全量通过，460 passed / 1 skipped / 914 warnings；原 fixture_schema_drift 与 `brand_list_category_click` 事件字典缺失均已闭合。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:21:15: `python scripts/validate-api-standard.py` 输出“API 标准校验通过。”；`./scripts/generate-openapi-client.sh` 非沙箱重跑通过，Orval v8.17.0 生成 `tileApi`。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:21:15: `docker compose -f docker-compose.yml config --quiet`、`docker compose -f docker-compose.prod.yml config --quiet`、`docker compose -f docker-compose.prod.external.yml config --quiet` 均通过。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "Sprint release-note 声明不影响数据库表结构；本发布 proposal 未发现 schema/migration 范围。/release-prepare 如发现数据库影响，必须改为 pass 并补充 MySQL 或 schema.mysql.sql、schema drift 或目标 MySQL smoke、回滚/备份证据。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "sprint-015 release-note 未声明新增环境变量；本次 release.prepare 未发现必须同步的 `.env.example` 变更。对象存储和镜像发布仍需在 `/image-prepare v0.3.1` 复核构建 env 示例和媒体/MinIO 配置边界。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:21:15: `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 已更新为 `v0.3.1`，与 release.json version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:21:15: `releases/mint.json` 已加入 `v0.3.1/announcement`；在 `releases/` 下执行 `mintlify broken-links` 通过，输出 `success no broken links found`。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:34:31: `python scripts/validate-image-build.py prepare --release v0.3.1` 通过并生成 `releases/v0.3.1/image-build-plan.json`；auto_action_count=1，将安全白名单变量 `IMAGE_BUILD_TAG` 写为 `v0.3.1`；warning_count=4，均为生产 Compose fallback tag 仍是 `v0.0.4`，发布 env 必须显式设置 `TILESFST_IMAGE_TAG=v0.3.1`；blocker_count=0。随后 `python scripts/validate-image-build.py validate-plan --release v0.3.1` 通过。"
+    },
+    "image_build": {
+      "status": "pass",
+      "evidence": "2026-07-31 23:44:36: `python scripts/validate-image-build.py build --release v0.3.1` 成功执行 backend/web Docker build、linux/amd64 平台验证、后端依赖验证、Web Nginx 配置验证、离线 tar 导出和 sha256 生成，并写入 `releases/v0.3.1/image-manifest.json`；manifest `built_at` 为 `2026-07-31 23:44:20`。`python scripts/validate-image-build.py validate-manifest --release v0.3.1` 通过；backend image `tilesfst-backend:v0.3.1`，web image `tilesfst-web:v0.3.1`，tarball `../releases/v0.3.1/images/tilesfst-v0.3.1-linux-amd64.tar.gz`，sha256 `9c055f6df676c041551049b9988ec996b9b6bd3e93da03dfdcce7453a72c1f1c`。"
+    }
+  },
+  "known_issues": [
+    "小程序 DevTools 多尺寸、真机验收和对象存储历史缩略图回填执行在 sprint-015 验收报告中保留为 follow_up；发布前需补录证据或明确不可用原因。",
+    "部分已归档 Change 的 trace frontmatter 曾出现历史状态残留；当前发布门禁以 Sprint 验收报告、归档目录和 OpenSpec strict 校验为准，后续可通过 Workflow Sync 复核修正。"
+  ],
+  "upgrade_steps": [
+    "部署前完成数据库、环境变量和媒体对象存储配置备份。",
+    "部署后执行管理端 SKU 列表、类目树、筛选下拉，小程序品牌列表、商品列表图片和公开媒体 URL smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "管理端 SKU 筛选、素材列、类目树或筛选下拉核心维护路径不可用",
+      "小程序品牌列表或商品卡片图片核心路径不可用",
+      "公开媒体 URL、缩略图或对象存储访问出现阻断性问题",
+      "镜像构建或发布证据与当前输入不一致"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "按数据库回滚说明处理数据变更；本计划阶段未声明 schema/migration 变更。",
+      "复核对象存储公开访问边界、缩略图回退和公开 SKU cover_image 返回策略，确认回退后不暴露未授权资源。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及：SKU 列表类目级联筛选、素材列展示、素材完整度筛选移除、类目树计数口径、品牌/类目/规格/品牌证书/Banner/用户/系统设置/日志审计/接口文档/界面主题筛选下拉一致性。",
+    "owner_web": "不涉及",
+    "miniapp": "涉及：品牌列表页 Hero、品牌矩阵、品牌卡片与类目胶囊点击边界、商品卡片图片展示与懒加载回归。",
+    "backend": "涉及：SKU 父类目过滤语义、公开列表 cover_image 可访问性、缩略图生成/审计/历史回填链路。",
+    "database": "不涉及",
+    "object_storage": "涉及：商品主图同路径缩略图生成、历史缩略图回填、公开媒体 URL 可访问性；不引入小程序直连未授权对象存储。",
+    "docker": "涉及：发布镜像输入与交付验证；本版本需执行 image prepare/build。"
+  },
+  "announcement": "announcement.mdx",
+  "prepare_status": "ready",
+  "prepare_attempted_at": "2026-07-31 23:21:15",
+  "prepare_blockers": [],
+  "publish_confirmation": {
+    "published_at": "2026-07-31 23:43:40",
+    "announcement_url": "releases/v0.3.1/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已记录；未提供外部公告 URL，最终公告位置采用仓库内公开公告源文件。发布部署时需显式设置 TILESFST_IMAGE_TAG=v0.3.1，并保留离线镜像包与 sha256 校验。"
+  }
+}

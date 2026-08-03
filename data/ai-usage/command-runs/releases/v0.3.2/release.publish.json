@@ -1,0 +1,128 @@
+{
+  "release_version": "v0.3.2",
+  "workflow_event": "release.publish",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/08/01/rollout-2026-08-01T09-47-07-019fbb00-ebab-7f31-a8a4-f06f334cae95.jsonl"
+  ],
+  "generated_at": "2026-08-01T03:37:52.696728Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0087-admin-sku-list-sort-optimization"
+    ],
+    "bugs": [
+      "BUG-0099-public-sku-main-image-key-pending-path",
+      "BUG-0100-thumbnail-size-equals-original"
+    ],
+    "changes": [
+      "fix-media-thumbnail-generation",
+      "fix-public-sku-main-image-pending-path",
+      "update-admin-sku-list-sort-optimization"
+    ],
+    "sprints": [
+      "sprint-016"
+    ]
+  },
+  "totals": {
+    "input_tokens": 2400408,
+    "cached_input_tokens": 2319232,
+    "output_tokens": 10028,
+    "reasoning_output_tokens": 2360,
+    "total_tokens": 2410436,
+    "command_run_count": 2,
+    "model_call_count": 21,
+    "tool_call_count": 53,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "9c0f56be3ce0cdabbe39822d8afc50a219940b2c0867faa0543df708fbc39a6a",
+      "source_data_file": "~/.codex/sessions/2026/08/01/rollout-2026-08-01T09-47-07-019fbb00-ebab-7f31-a8a4-f06f334cae95.jsonl",
+      "source_line_start": 581,
+      "source_line_end": 681,
+      "turn_hash": "41d42fa07137f8cd",
+      "started_at": "2026-08-01T02:34:51.589Z",
+      "ended_at": "2026-08-01T02:40:37.497Z",
+      "command": "release.publish",
+      "workflow_event": "release.publish",
+      "requirements": [
+        "REQ-0087-admin-sku-list-sort-optimization"
+      ],
+      "bugs": [
+        "BUG-0099-public-sku-main-image-key-pending-path",
+        "BUG-0100-thumbnail-size-equals-original"
+      ],
+      "changes": [
+        "fix-media-thumbnail-generation",
+        "fix-public-sku-main-image-pending-path",
+        "update-admin-sku-list-sort-optimization"
+      ],
+      "sprint_id": "sprint-016",
+      "release_sprints": [
+        "sprint-016"
+      ],
+      "release_version": "v0.3.2",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 12,
+      "input_tokens": 1938503,
+      "cached_input_tokens": 1896960,
+      "output_tokens": 5043,
+      "reasoning_output_tokens": 1054,
+      "total_tokens": 1943546,
+      "tool_call_count": 22,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    },
+    {
+      "source_session_hash": "9c0f56be3ce0cdabbe39822d8afc50a219940b2c0867faa0543df708fbc39a6a",
+      "source_data_file": "~/.codex/sessions/2026/08/01/rollout-2026-08-01T09-47-07-019fbb00-ebab-7f31-a8a4-f06f334cae95.jsonl",
+      "source_line_start": 1138,
+      "source_line_end": 1244,
+      "turn_hash": "b0b043c65e3e0b97",
+      "started_at": "2026-08-01T03:30:48.933Z",
+      "ended_at": "2026-08-01T03:37:51.145Z",
+      "command": "release.publish",
+      "workflow_event": "release.publish",
+      "requirements": [],
+      "bugs": [],
+      "changes": [],
+      "sprint_id": "sprint-016",
+      "release_sprints": [
+        "sprint-016"
+      ],
+      "release_version": "v0.3.2",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 9,
+      "input_tokens": 461905,
+      "cached_input_tokens": 422272,
+      "output_tokens": 4985,
+      "reasoning_output_tokens": 1306,
+      "total_tokens": 466890,
+      "tool_call_count": 31,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-07-29 08:36:28
+updated_at: 2026-08-01 09:58:33
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -134,6 +134,8 @@ lifecycle_stage: change | archive
 Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/archive/`，关联 REQ/BUG → `issues/*/archive/`（若尚未迁入）。
 `/sprint-archive` 完成前 MUST 通过 `python scripts/validate-directory-structure.py`，确保没有真实 `openspec/changes/archive/` 目录残留。
 
+Sprint close / `/sprint-archive` 前 MUST 通过 `python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>`。该 readiness gate 会同时执行 Sprint close stale scan，阻断四件套中与真实 Issue/Change 生命周期冲突的中间态文案和旧归档路径 `openspec/changes/archive/` canonical 引用。单独排查 stale 文案时 MAY 运行 `python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>`。
+
 ## 8. AI 检查清单
 
 ```text
@@ -142,5 +144,6 @@ Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/ar
 □ sprint.yaml 是否更新 lifecycle_stage ？
 □ 路径引用是否使用 change/ 或 archive/ 前缀？
 □ 是否确认没有 openspec/changes/archive/ 真实目录？
+□ 是否运行 Sprint close stale scan / archive readiness，确认四件套无过期中间态文案？
 □ 是否运行 sync-workflow-status.py --check ？
 ```

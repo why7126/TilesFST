@@ -3,6 +3,8 @@ from pydantic import BaseModel
 class UploadResult(BaseModel):
     object_key: str
     url: str
+    thumbnail_key: str | None = None
+    thumbnail_url: str | None = None
     task_trace_id: str | None = None
     task_type: str | None = None
     file_key: str | None = None

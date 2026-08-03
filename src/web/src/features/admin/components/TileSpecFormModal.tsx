@@ -111,9 +111,9 @@ export function TileSpecFormModal({
   };
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <section
-        className="modal-card tile-spec-modal-card"
+        className="tile-spec-modal-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="tile-spec-modal-title"

@@ -1,0 +1,89 @@
+{
+  "release_version": "v0.3.2",
+  "workflow_event": "release.propose",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/08/01/rollout-2026-08-01T09-47-07-019fbb00-ebab-7f31-a8a4-f06f334cae95.jsonl"
+  ],
+  "generated_at": "2026-08-01T01:52:43.862278Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0087-admin-sku-list-sort-optimization"
+    ],
+    "bugs": [
+      "BUG-0099-public-sku-main-image-key-pending-path",
+      "BUG-0100-thumbnail-size-equals-original"
+    ],
+    "changes": [
+      "fix-media-thumbnail-generation",
+      "fix-public-sku-main-image-pending-path",
+      "update-admin-sku-list-sort-optimization"
+    ],
+    "sprints": [
+      "sprint-016"
+    ]
+  },
+  "totals": {
+    "input_tokens": 665058,
+    "cached_input_tokens": 598528,
+    "output_tokens": 8415,
+    "reasoning_output_tokens": 840,
+    "total_tokens": 673473,
+    "command_run_count": 1,
+    "model_call_count": 12,
+    "tool_call_count": 46,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "9c0f56be3ce0cdabbe39822d8afc50a219940b2c0867faa0543df708fbc39a6a",
+      "source_data_file": "~/.codex/sessions/2026/08/01/rollout-2026-08-01T09-47-07-019fbb00-ebab-7f31-a8a4-f06f334cae95.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 149,
+      "turn_hash": "441658bb1e3503c0",
+      "started_at": "2026-08-01T01:47:41.591Z",
+      "ended_at": "2026-08-01T01:52:41.501Z",
+      "command": "release.propose",
+      "workflow_event": "release.propose",
+      "requirements": [
+        "REQ-0087-admin-sku-list-sort-optimization"
+      ],
+      "bugs": [
+        "BUG-0099-public-sku-main-image-key-pending-path",
+        "BUG-0100-thumbnail-size-equals-original"
+      ],
+      "changes": [
+        "fix-media-thumbnail-generation",
+        "fix-public-sku-main-image-pending-path",
+        "update-admin-sku-list-sort-optimization"
+      ],
+      "sprint_id": "sprint-016",
+      "release_sprints": [
+        "sprint-016"
+      ],
+      "release_version": "v0.3.2",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": "GPT-5.3-Codex-Spark",
+      "model_rate_limit_id": "codex_bengalfox",
+      "model_context_window": 258400,
+      "model_call_count": 12,
+      "input_tokens": 665058,
+      "cached_input_tokens": 598528,
+      "output_tokens": 8415,
+      "reasoning_output_tokens": 840,
+      "total_tokens": 673473,
+      "tool_call_count": 46,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import type { BrandCertificateImage } from '@/shared/api/generated';
 
 type CertificateFileLike = Pick<
   BrandCertificateFile,
-  'file_url' | 'file_name' | 'file_mime_type' | 'file_size_bytes'
+  'file_url' | 'thumbnail_url' | 'file_name' | 'file_mime_type' | 'file_size_bytes'
 >;
 
 type CertificateSummaryLike = Pick<
@@ -93,9 +93,6 @@ export function CertificateSummary({
       <span className="brand-name" title={certificate.name}>
         {certificate.name}
       </span>
-      <span className="brand-sub" title={certificate.certificate_no || certificate.file_name}>
-        {certificate.certificate_no || certificate.file_name}
-      </span>
       {showBrand && certificate.brand_name ? (
         <span className="brand-sub" title={certificate.brand_name}>
           {certificate.brand_name}
@@ -109,18 +106,18 @@ export function CertificateListIdentity({
   certificate,
 }: {
   certificate: CertificateSummaryLike &
-    Pick<BrandCertificateItem, 'file_url' | 'file_mime_type' | 'main_image'>;
+    Pick<BrandCertificateItem, 'file_url' | 'thumbnail_url' | 'file_mime_type' | 'main_image'>;
 }) {
   const preview = certificate.main_image ?? {
     file_url: certificate.file_url,
+    thumbnail_url: certificate.thumbnail_url,
     file_name: certificate.file_name,
     file_mime_type: certificate.file_mime_type,
   };
   return (
     <div className="certificate-cell">
       <CertificateThumb
-        fileUrl={preview.file_url}
-        fileName={preview.file_name}
+        fileUrl={preview.thumbnail_url || preview.file_url}
         fileMimeType={preview.file_mime_type}
       />
       <CertificateSummary certificate={certificate} />
@@ -180,6 +177,7 @@ export function CertificateFileCard({
   state,
   progress = 0,
   error,
+  showReadyText = true,
   onSelectFile,
   onRemove,
   maxFileSizeMb = 25,
@@ -188,6 +186,7 @@ export function CertificateFileCard({
   state: CertificateFileCardState;
   progress?: number;
   error?: string | null;
+  showReadyText?: boolean;
   onSelectFile: (file: File) => void;
   onRemove: () => void;
   maxFileSizeMb?: number;
@@ -209,7 +208,7 @@ export function CertificateFileCard({
       <div className="certificate-file-card">
         <CertificateThumb
           className="certificate-file-thumb"
-          fileUrl={file?.file_url}
+          fileUrl={file?.thumbnail_url || file?.file_url}
           fileName={file?.file_name}
           fileMimeType={file?.file_mime_type}
         />
@@ -235,7 +234,7 @@ export function CertificateFileCard({
               <span className="brand-logo-progress-text">上传中 {normalizedProgress}%</span>
             </span>
           ) : null}
-          {state === 'done' && file ? (
+          {state === 'done' && file && showReadyText ? (
             <span className="brand-logo-upload-success">证书文件已就绪</span>
           ) : null}
           {state === 'failed' && error ? (
@@ -303,10 +302,13 @@ export function CertificateImageGrid({
     <div className={cn('certificate-image-upload', state === 'failed' && 'is-failed')}>
       <div className="sku-upload-grid certificate-image-grid" aria-label="证书图片列表">
         {images.map((image, index) => (
-          <div className="sku-image-tile certificate-image-tile" key={image.file_key}>
+          <div
+            className="sku-image-tile certificate-image-tile"
+            key={`${image.file_key}-${index}`}
+          >
             <CertificateThumb
               className="certificate-image-thumb"
-              fileUrl={image.file_url}
+              fileUrl={image.thumbnail_url || image.file_url}
               fileName={image.file_name}
               fileMimeType={image.file_mime_type}
             />

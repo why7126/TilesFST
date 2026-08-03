@@ -168,11 +168,12 @@ def ai_usage_snapshot(
         "usage_matrices": status.get("usage_matrices") or {},
         "warnings": status["warnings"],
         "warning_count": status["warning_count"],
+        "fresh_gate": status.get("fresh_gate") or {},
         "recommended_action": status["recommended_action"],
         "note": None,
     }
-    if safe["ai_usage_mode"] == "estimated_fallback":
-        safe["note"] = "ai_usage_mode: estimated_fallback; /sprint-exps must state reason and recommended_action."
+    if (safe.get("fresh_gate") or {}).get("status") == "blocker":
+        safe["note"] = "ai_usage_snapshot fresh gate blocked; /sprint-exps must refresh snapshot before real cost analysis or explicitly choose estimated_fallback."
     return safe
 
 
@@ -500,6 +501,7 @@ def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
             "estimated": ai_usage.get("estimated", True),
             "generated_at": ai_usage.get("generated_at"),
             "warning_count": ai_usage.get("warning_count", 0),
+            "fresh_gate": ai_usage.get("fresh_gate") or {},
             "recommended_action": ai_usage.get("recommended_action"),
             "note": ai_usage.get("note"),
             "totals": ai_usage.get("totals") or {},
@@ -642,10 +644,12 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
 
     ai_usage = fact_sheet.get("ai_usage_snapshot") or {}
     totals = ai_usage.get("totals") or {}
+    fresh_gate = ai_usage.get("fresh_gate") or {}
     lines.extend(["", "## AI Usage Snapshot", "", "| Metric | Value |", "|---|---:|"])
     lines.append(f"| Exists | {ai_usage.get('exists', False)} |")
     lines.append(f"| Status | {ai_usage.get('snapshot_status', 'missing')} |")
     lines.append(f"| Mode | {ai_usage.get('ai_usage_mode', 'estimated_fallback')} |")
+    lines.append(f"| Fresh Gate | {fresh_gate.get('status', 'blocker')} |")
     lines.append(f"| Estimated | {ai_usage.get('estimated', True)} |")
     lines.append(f"| Generated At | {ai_usage.get('generated_at') or ''} |")
     lines.append(f"| Warning Count | {ai_usage.get('warning_count', len(ai_usage.get('warnings') or []))} |")

@@ -1,13 +1,19 @@
 <view class="page">
-  <custom-navigation title="品牌列表" />
+  <custom-navigation title="品牌" />
 
   <view wx:if="{{status == 'loading'}}" class="skeleton-shell">
     <view class="skeleton-hero"></view>
-    <view class="skeleton-grid">
-      <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
+    <view class="skeleton-list">
+      <view class="skeleton-row" wx:for="{{skeletons}}" wx:key="*this">
         <view class="skeleton-logo"></view>
-        <view class="skeleton-line strong"></view>
-        <view class="skeleton-line"></view>
+        <view class="skeleton-copy">
+          <view class="skeleton-line strong"></view>
+          <view class="skeleton-line"></view>
+        </view>
+        <view class="skeleton-tags">
+          <view class="skeleton-pill"></view>
+          <view class="skeleton-pill short"></view>
+        </view>
       </view>
     </view>
   </view>
@@ -47,8 +53,8 @@
           ></image>
           <view class="brand-hero-shade"></view>
           <view class="brand-hero-copy">
-            <view class="brand-hero-title">{{item.title || '精选品牌'}}</view>
-            <view class="brand-hero-subtitle">{{item.subtitle || '看品牌矩阵，找同品牌好砖'}}</view>
+            <view class="brand-hero-title">{{item.title || '全球严选瓷砖品牌'}}</view>
+            <view wx:if="{{item.subtitle}}" class="brand-hero-subtitle">{{item.subtitle}}</view>
           </view>
         </view>
       </swiper-item>
@@ -56,33 +62,55 @@
 
     <view wx:else class="brand-hero fallback">
       <view class="brand-hero-copy">
-        <view class="brand-hero-title">精选品牌</view>
-        <view class="brand-hero-subtitle">看品牌矩阵，找同品牌好砖</view>
+        <view class="brand-hero-title">全球严选瓷砖品牌</view>
       </view>
     </view>
 
     <view class="section-head">
-      <view class="section-title">品牌</view>
-      <view class="section-meta">共 {{total}} 个</view>
+      <view class="section-title">品牌矩阵</view>
     </view>
 
-    <view class="brand-grid">
+    <view class="brand-list">
       <view
+        class="brand-row"
         wx:for="{{items}}"
+        wx:for-index="brandIndex"
         wx:key="brand_id"
-        data-index="{{index}}"
-        bindtap="onBrandTap"
+        data-index="{{brandIndex}}"
       >
-        <brand-card
-          brand="{{item}}"
-          density="grid"
-          hint="{{item.product_count ? item.product_count + ' 个商品' : '暂无内容'}}"
-          source-page="brand-list"
-          source-module="brand-list-grid"
-          list-context="brand-list"
-          index="{{index}}"
-          request-id="{{requestId}}"
-        />
+        <view class="brand-entry" data-index="{{brandIndex}}" catchtap="onBrandInfoTap" hover-class="brand-entry-press">
+          <view class="brand-logo">
+            <image
+              wx:if="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"
+              class="brand-logo-image"
+              src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"
+              mode="aspectFit"
+              binderror="onLogoError"
+              data-index="{{brandIndex}}"
+            ></image>
+            <text wx:else class="brand-logo-fallback">{{item.fallback_text}}</text>
+          </view>
+          <view class="brand-copy">
+            <view class="brand-name">{{item.brand_name}}</view>
+            <view class="brand-count">{{item.product_count_text}}</view>
+          </view>
+          <view class="brand-arrow">›</view>
+        </view>
+        <view class="brand-categories">
+          <block wx:if="{{item.category_items.length}}">
+            <text
+              class="category-pill"
+              wx:for="{{item.category_items}}"
+              wx:for-item="category"
+              wx:for-index="categoryIndex"
+              wx:key="category_id"
+              data-brand-index="{{brandIndex}}"
+              data-category-index="{{categoryIndex}}"
+              catchtap="onCategoryTap"
+            >{{category.category_name}}</text>
+          </block>
+          <view wx:else class="category-empty">暂无类目</view>
+        </view>
       </view>
     </view>
 
@@ -90,4 +118,5 @@
     <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
     <view wx:elif="{{!hasMore}}" class="load-more">已经到底了</view>
   </view>
+  <home-floating-button offset="tabbar" />
 </view>

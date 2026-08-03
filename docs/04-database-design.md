@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-29 00:10:34
+updated_at: 2026-07-30 23:09:15
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -364,7 +364,7 @@ OpenSpec：`openspec/changes/add-tile-category-management/`
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
-业务约束：自 `limit-admin-tile-categories-to-two-levels` 起，管理端新增类目最多只能创建到二级；自 `update-category-name-max-length-15` 起，管理端类目名称创建 / 更新业务输入上限为 15 个字符。SQLite `TEXT`、MySQL `VARCHAR(128)` 与本文档字段容量均已支持至少 15 字符，本变更无需 schema 或 migration。SQLite/MySQL schema 暂保留 `level BETWEEN 1 AND 3` 以兼容历史三级数据，后续历史治理需另走 OpenSpec Change。
+业务约束：自 `limit-admin-tile-categories-to-two-levels` 起，管理端新增类目最多只能创建到二级；自 `update-category-name-max-length-15` 起，管理端类目名称创建 / 更新业务输入上限为 15 个字符；自 `update-admin-category-name-special-characters` 起，管理端类目名称允许中文、英文、数字和常见特殊字符，空格、换行、制表符或不可见控制字符仍由应用层拒绝。SQLite `TEXT`、MySQL `VARCHAR(128)` 与本文档字段容量均已支持至少 15 字符和特殊字符，本变更无需 schema 或 migration。SQLite/MySQL schema 暂保留 `level BETWEEN 1 AND 3` 以兼容历史三级数据，后续历史治理需另走 OpenSpec Change。
 
 ORM：`src/backend/app/models/tile_category.py`  
 迁移：`migrations.py` → `_rebuild_tile_categories_table`（兼容旧 id+name 桩表）

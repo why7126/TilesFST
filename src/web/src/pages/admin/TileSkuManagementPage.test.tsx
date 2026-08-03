@@ -1,6 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const tileSkuCss = readFileSync(
+  join(process.cwd(), 'src/features/admin/styles/tile-sku-management.css'),
+  'utf8',
+);
 
 const fetchTileSkusMock = vi.fn();
 const fetchBrandsMock = vi.fn();
@@ -17,7 +24,6 @@ vi.mock('@/features/admin/api/brands-api', () => ({
 }));
 
 vi.mock('@/features/admin/api/tile-categories-api', () => ({
-  buildParentOptions: () => [],
   fetchCategoryTree: (...args: unknown[]) => fetchCategoryTreeMock(...args),
 }));
 
@@ -70,6 +76,35 @@ const listPayload = {
   },
 };
 
+const categoryTreePayload = [
+  {
+    id: 10,
+    name: '亮光产品',
+    level: 1,
+    children: [
+      {
+        id: 11,
+        name: '大理石瓷砖',
+        level: 2,
+        children: [
+          {
+            id: 12,
+            name: '柔光灰砖',
+            level: 3,
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 20,
+    name: '木纹砖产品',
+    level: 1,
+    children: [],
+  },
+];
+
 describe('TileSkuManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -109,6 +144,7 @@ describe('TileSkuManagementPage', () => {
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('商品名称 / SKU 编码')).toBeInTheDocument();
+    expect(screen.queryByText('素材完整度')).not.toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
       'admin-sticky-action-cell',
     );
@@ -127,6 +163,41 @@ describe('TileSkuManagementPage', () => {
     expect(pagination?.querySelector('.page-size-wrap')).toBeInTheDocument();
     expect(pagination?.querySelector('.page-left')).not.toBeInTheDocument();
     expect(pagination?.querySelector('.brand-pagination-right')).not.toBeInTheDocument();
+  });
+
+  it('keeps SKU table headers on one line with a stable wide table contract', async () => {
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchTileSkusMock).toHaveBeenCalled();
+    });
+
+    const table = screen.getByRole('table');
+    expect(table).toHaveClass('sku-mgmt-table');
+    expect(tileSkuCss).toContain('width: max(100%, 1180px)');
+    expect(tileSkuCss).toContain('min-width: 1180px');
+    expect(tileSkuCss).toContain('overflow-x: auto');
+    expect(tileSkuCss).toContain('white-space: nowrap');
+    expect(tileSkuCss).toContain('.sku-mgmt-table th:nth-child(7)');
+    expect(tileSkuCss).toContain('.sku-mgmt-table th:nth-child(8)');
+
+    const headers = screen.getAllByRole('columnheader');
+    expect(headers).toHaveLength(9);
+    expect(headers.map((header) => header.textContent)).toEqual([
+      'SKU 信息',
+      '品牌 / 类目',
+      '规格 / 工艺',
+      '参考价格',
+      '素材',
+      '状态',
+      '发布时间',
+      '更新时间',
+      '操作',
+    ]);
   });
 
   it('formats published time and updated time with the same date formatter', async () => {
@@ -155,6 +226,215 @@ describe('TileSkuManagementPage', () => {
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
     expect(row.cells[6]).toHaveTextContent(formatSkuDateTime('2026-06-19T16:30:00Z'));
     expect(row.cells[7]).toHaveTextContent(formatSkuDateTime('2026-06-20T00:45:00Z'));
+  });
+
+  it('renders category cascade in one dropdown with child panel opening to the right', async () => {
+    fetchCategoryTreeMock.mockResolvedValue(categoryTreePayload);
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    const trigger = await screen.findByRole('button', { name: /全部类目/ });
+    expect(screen.queryByLabelText('2级类目')).not.toBeInTheDocument();
+
+    fireEvent.click(trigger);
+
+    const menu = screen.getByRole('listbox', { name: '类目选项' });
+    expect(within(menu).getAllByLabelText('1级类目')).toHaveLength(1);
+    expect(within(menu).queryByLabelText('2级类目')).not.toBeInTheDocument();
+
+    fireEvent.click(within(menu).getByRole('button', { name: '亮光产品' }));
+
+    expect(within(menu).getByLabelText('2级类目')).toBeInTheDocument();
+    expect(within(menu).getByRole('button', { name: '大理石瓷砖' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '亮光产品' }).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/当前：/)).not.toBeInTheDocument();
+
+    fireEvent.click(within(menu).getByRole('button', { name: '大理石瓷砖' }));
+
+    expect(within(menu).getByLabelText('3级类目')).toBeInTheDocument();
+    expect(within(menu).getByRole('button', { name: '柔光灰砖' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /亮光产品 \/ 大理石瓷砖/ })).toBeInTheDocument();
+    expect(screen.queryByText(/当前：/)).not.toBeInTheDocument();
+  });
+
+  it('sends category id for parent and child cascade selection and clears it', async () => {
+    fetchCategoryTreeMock.mockResolvedValue(categoryTreePayload);
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: /全部类目/ }));
+    const menu = screen.getByRole('listbox', { name: '类目选项' });
+    fireEvent.click(within(menu).getByRole('button', { name: '亮光产品' }));
+
+    await waitFor(() => {
+      expect(fetchTileSkusMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ category_id: 10 }),
+      );
+    });
+
+    fireEvent.click(within(menu).getByRole('button', { name: '大理石瓷砖' }));
+
+    await waitFor(() => {
+      expect(fetchTileSkusMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ category_id: 11 }),
+      );
+    });
+
+    fireEvent.click(within(menu).getByRole('button', { name: '全部类目' }));
+
+    await waitFor(() => {
+      expect(fetchTileSkusMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ category_id: undefined }),
+      );
+    });
+  });
+
+  it('keeps brand category and status dropdowns visually aligned', async () => {
+    fetchBrandsMock.mockResolvedValue({ items: [{ id: 1, name: '尼卡瓷砖' }] });
+    fetchCategoryTreeMock.mockResolvedValue(categoryTreePayload);
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    const brandTrigger = await screen.findByRole('button', { name: '全部品牌' });
+    const categoryTrigger = screen.getByRole('button', { name: '全部类目' });
+    const statusTrigger = screen.getByRole('button', { name: '全部状态' });
+
+    [brandTrigger, categoryTrigger, statusTrigger].forEach((trigger) => {
+      expect(trigger).toHaveClass('select');
+      expect(
+        trigger.classList.contains('sku-dropdown-trigger') ||
+          trigger.classList.contains('category-cascade-trigger'),
+      ).toBe(true);
+    });
+
+    fireEvent.click(brandTrigger);
+    expect(screen.getByRole('listbox', { name: '品牌选项' })).toHaveClass('sku-dropdown-menu');
+
+    fireEvent.click(categoryTrigger);
+    expect(screen.getByRole('listbox', { name: '类目选项' })).toHaveClass('sku-dropdown-menu');
+
+    fireEvent.click(statusTrigger);
+    expect(screen.getByRole('listbox', { name: '状态选项' })).toHaveClass('sku-dropdown-menu');
+  });
+
+  it('keeps material count visible without showing redundant main image success tag', async () => {
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('测试 SKU')).toBeInTheDocument();
+    });
+
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[4]).toHaveTextContent('2 图 / 1 视频');
+    expect(row.cells[4]).not.toHaveTextContent('主图已设');
+    expect(row.cells[4]).not.toHaveTextContent('缺主图');
+  });
+
+  it('keeps only material count visible for missing main image rows without material filter', async () => {
+    fetchTileSkusMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          has_main_image: false,
+          image_count: 0,
+          video_count: 0,
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('测试 SKU')).toBeInTheDocument();
+    });
+
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[4]).toHaveTextContent('0 图 / 0 视频');
+    expect(row.cells[4]).not.toHaveTextContent('主图已设');
+    expect(row.cells[4]).not.toHaveTextContent('缺主图');
+    expect(screen.queryByText('素材完整度')).not.toBeInTheDocument();
+
+    const [initialRequest] = fetchTileSkusMock.mock.calls[0];
+    expect(initialRequest).not.toHaveProperty('material_completeness');
+  });
+
+  it('renders SKU rows in backend pagination order without local sorting params', async () => {
+    fetchTileSkusMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          id: 12,
+          name: '未发布新建 SKU',
+          status: 'DRAFT',
+          published_at: null,
+          updated_at: '2026-07-12T09:00:00Z',
+        },
+        {
+          ...listPayload.items[0],
+          id: 10,
+          name: '发布时间更新的 SKU',
+          status: 'PUBLISHED',
+          published_at: '2026-07-03T09:00:00Z',
+          updated_at: '2026-07-01T09:00:00Z',
+        },
+        {
+          ...listPayload.items[0],
+          id: 11,
+          name: '更新时间更新的 SKU',
+          status: 'PUBLISHED',
+          published_at: '2026-07-01T09:00:00Z',
+          updated_at: '2026-07-10T09:00:00Z',
+        },
+      ],
+      total: 3,
+      summary: {
+        total: 3,
+        published_count: 2,
+        needs_completion_count: 0,
+        draft_count: 1,
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('发布时间更新的 SKU')).toBeInTheDocument();
+    });
+
+    const firstFetchParams = fetchTileSkusMock.mock.calls[0]?.[0] as Record<string, unknown>;
+    const rows = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.querySelector('td')?.textContent ?? '');
+    expect(rows).toEqual(['未发布新建 SKUSKU-001', '发布时间更新的 SKUSKU-001', '更新时间更新的 SKUSKU-001']);
+    expect(firstFetchParams.sort).toBeUndefined();
+    expect(firstFetchParams.order_by).toBeUndefined();
   });
 
   it('shows placeholder for invalid published time', async () => {
@@ -191,6 +471,7 @@ describe('TileSkuManagementPage', () => {
           id: 2,
           sku_code: 'SKU-DISABLED-001',
           status: 'DISABLED',
+          published_at: '2026-07-29T16:20:00Z',
         },
       ],
     });
@@ -208,6 +489,13 @@ describe('TileSkuManagementPage', () => {
     expect(screen.getByRole('button', { name: '编辑' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '删除' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '上架' })).not.toBeInTheDocument();
+    const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
+    expect(row.cells[6]).toHaveTextContent('2026-07-30 00:20');
+  });
+
+  it('uses the full filter-card width without an unused grid column', () => {
+    expect(tileSkuCss).toContain('grid-template-columns: 1.35fr 1fr 1fr 1fr auto;');
+    expect(tileSkuCss).not.toContain('grid-template-columns: 1.35fr repeat(4, 1fr) auto;');
   });
 
   it('shows unpublish action for published SKU rows', async () => {

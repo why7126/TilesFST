@@ -196,4 +196,5 @@
     </view>
   </view>
 
+  <home-floating-button show="{{searchMode == 'result'}}" offset="list" />
 </view>

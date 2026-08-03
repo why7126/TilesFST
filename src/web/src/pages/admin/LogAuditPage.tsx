@@ -20,6 +20,7 @@ import type {
   TaskTraceData,
   UserAdminItem,
 } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 import { SearchableSelect, type SearchableSelectOption } from '@/shared/ui/searchable-select';
 
@@ -51,6 +52,13 @@ const logTypeLabels: Record<string, string> = {
   usage_event: '行为事件',
   audit: '审计操作',
 };
+
+const logTypeFilterOptions = [
+  { value: ALL_VALUE, label: '全部日志' },
+  { value: 'request', label: '请求日志' },
+  { value: 'usage_event', label: '行为事件' },
+  { value: 'audit', label: '审计操作' },
+];
 
 const baseStatusFilterOptions = [
   { value: ALL_VALUE, label: '全部状态' },
@@ -885,31 +893,36 @@ export function LogAuditPage() {
 
       <section className="filter-card log-audit-filter" aria-label="日志筛选">
         <div className="log-audit-filter-grid">
-          <label>
+          <div>
             <span className="field-label">日志类型</span>
-            <select className="select" value={filters.logType} onChange={(event) => updateFilter('logType', event.target.value)}>
-              <option value={ALL_VALUE}>全部日志</option>
-              <option value="request">请求日志</option>
-              <option value="usage_event">行为事件</option>
-              <option value="audit">审计操作</option>
-            </select>
-          </label>
-          <label>
+            <AdminFilterSelect
+              ariaLabel="日志类型"
+              listLabel="日志类型筛选选项"
+              value={filters.logType}
+              options={logTypeFilterOptions}
+              onChange={(nextLogType) => updateFilter('logType', nextLogType)}
+            />
+          </div>
+          <div>
             <span className="field-label">时间范围</span>
-            <select className="select" value={filters.timeRange} onChange={(event) => updateFilter('timeRange', event.target.value)}>
-              {timeRangeOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
-          <label>
+            <AdminFilterSelect
+              ariaLabel="时间范围"
+              listLabel="时间范围筛选选项"
+              value={filters.timeRange}
+              options={timeRangeOptions}
+              onChange={(nextTimeRange) => updateFilter('timeRange', nextTimeRange)}
+            />
+          </div>
+          <div>
             <span className="field-label">状态 / 结果</span>
-            <select className="select" value={filters.status} onChange={(event) => updateFilter('status', event.target.value)}>
-              {statusFilterOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
+            <AdminFilterSelect
+              ariaLabel="状态 / 结果"
+              listLabel="状态结果筛选选项"
+              value={filters.status}
+              options={statusFilterOptions}
+              onChange={(nextStatus) => updateFilter('status', nextStatus)}
+            />
+          </div>
           <label>
             <span className="field-label">操作者</span>
             <SearchableSelect

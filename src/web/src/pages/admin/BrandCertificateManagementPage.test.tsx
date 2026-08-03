@@ -148,15 +148,123 @@ describe('BrandCertificateManagementPage', () => {
       'placeholder',
       '搜索证书名称 / 编号 / 发证机构',
     );
-    expect(screen.getByLabelText('所属品牌')).toHaveValue('1');
+    await waitFor(() => {
+      expect(screen.getByLabelText('所属品牌')).toHaveTextContent('岩板品牌');
+    });
     expect(screen.getByText('ISO 9001 质量管理体系认证')).toBeInTheDocument();
     expect(document.querySelector('img[src="/media/files/default/brand-certificates/cover.webp"]')).toBeInTheDocument();
+    expect(screen.queryByText('iso.pdf')).not.toBeInTheDocument();
+    expect(screen.queryByText('cover.webp')).not.toBeInTheDocument();
+    expect(screen.queryByText('files/default/brand-certificates/iso.pdf')).not.toBeInTheDocument();
+    expect(screen.queryByText('/media/files/default/brand-certificates/iso.pdf')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '预览' })).not.toBeInTheDocument();
     expect(screen.getByText('共 1 条证书')).toBeInTheDocument();
     const pagination = screen.getByText('共 1 条证书').closest('.pagination');
     expect(pagination?.querySelector('.page-summary')).toBeInTheDocument();
     expect(pagination?.querySelector('.page-right')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
+  });
+
+  it('applies the unified admin filter dropdown to certificate filters', async () => {
+    render(
+      <MemoryRouter initialEntries={['/admin/brand-certificates']}>
+        <BrandCertificateManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          brand_id: undefined,
+          type: undefined,
+          validity_status: undefined,
+          display_status: undefined,
+        }),
+      );
+    });
+
+    const brandTrigger = await screen.findByLabelText('所属品牌');
+    const typeTrigger = screen.getByLabelText('证书类型');
+    const validityTrigger = screen.getByLabelText('有效状态');
+    const displayTrigger = screen.getByLabelText('展示状态');
+
+    [brandTrigger, typeTrigger, validityTrigger, displayTrigger].forEach((trigger) => {
+      expect(trigger).toHaveClass('select');
+      expect(trigger).toHaveClass('admin-filter-dropdown-trigger');
+    });
+
+    fireEvent.click(brandTrigger);
+    expect(screen.getByRole('listbox', { name: '证书品牌选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '岩板品牌' }));
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, brand_id: 1 }),
+      );
+    });
+
+    fireEvent.click(typeTrigger);
+    expect(screen.getByRole('listbox', { name: '证书类型选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '质量体系' }));
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, brand_id: 1, type: 'QUALITY' }),
+      );
+    });
+
+    fireEvent.click(validityTrigger);
+    expect(screen.getByRole('listbox', { name: '证书有效状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '有效' }));
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          brand_id: 1,
+          type: 'QUALITY',
+          validity_status: 'VALID',
+        }),
+      );
+    });
+
+    fireEvent.click(displayTrigger);
+    expect(screen.getByRole('listbox', { name: '证书展示状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '前台隐藏' }));
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          brand_id: 1,
+          type: 'QUALITY',
+          validity_status: 'VALID',
+          display_status: 'HIDDEN',
+        }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+
+    await waitFor(() => {
+      expect(fetchBrandCertificatesMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          brand_id: undefined,
+          type: undefined,
+          validity_status: undefined,
+          display_status: undefined,
+        }),
+      );
+    });
   });
 
   it('keeps modal input, disables dates for permanent certificates, and uploads pdf files', async () => {
@@ -207,6 +315,33 @@ describe('BrandCertificateManagementPage', () => {
         }),
       );
     });
+  });
+
+  it('opens existing certificate with file fallback hidden and image information visible', async () => {
+    render(
+      <MemoryRouter initialEntries={['/admin/brand-certificates']}>
+        <BrandCertificateManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('ISO 9001 质量管理体系认证')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '编辑' }));
+    const dialog = screen.getByRole('dialog', { name: '编辑证书' });
+
+    expect(within(dialog).getByText('iso.pdf')).toBeInTheDocument();
+    expect(within(dialog).queryByText('证书文件已就绪')).not.toBeInTheDocument();
+    expect(
+      dialog.querySelector('img[src="/media/files/default/brand-certificates/cover.webp"]'),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText('主图')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: '移除图片 1' })).toBeInTheDocument();
+    expect(within(dialog).queryByText('cover.webp')).not.toBeInTheDocument();
+    expect(
+      within(dialog).queryByText('files/default/brand-certificates/cover.webp'),
+    ).not.toBeInTheDocument();
   });
 
   it('renders date validation message below the expiry date field', async () => {

@@ -156,7 +156,7 @@ docker run --rm --platform "${IMAGE_BUILD_PLATFORM}" "${BACKEND_REF}" \
   uv run --no-sync python -c "import fastapi, sqlalchemy, pymysql, minio; print('backend deps ok')"
 
 echo "验证 Web Nginx 配置"
-docker run --rm --platform "${IMAGE_BUILD_PLATFORM}" --add-host backend:127.0.0.1 "${WEB_REF}" nginx -t
+docker run --rm --platform "${IMAGE_BUILD_PLATFORM}" --add-host tilesfst-backend:127.0.0.1 "${WEB_REF}" nginx -t
 
 if [[ "${IMAGE_BUILD_EXPORT_TAR}" == "true" ]]; then
   mkdir -p "$(dirname "${TAR_PATH}")"

@@ -37,7 +37,7 @@ export function ResetPasswordDialog({ open, password, onClose }: ResetPasswordDi
   };
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="modal-card"
         role="dialog"

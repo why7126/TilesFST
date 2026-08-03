@@ -77,7 +77,7 @@ function editableSku(
     brand_id: 1,
     brand_name: '测试品牌',
     category_id: 10,
-    category_name: '墙砖',
+    category_name: '墙砖-600×600',
     spec_id: 5,
     size: '600×600mm',
     surface_finish: '哑光',
@@ -151,7 +151,18 @@ function getVideoInput(container: HTMLElement): HTMLInputElement {
 describe('TileSkuFormModal', () => {
   beforeEach(() => {
     fetchBrandsMock.mockResolvedValue({ items: [{ id: 1, name: '测试品牌' }] });
-    fetchCategoryTreeMock.mockResolvedValue([{ id: 10, name: '墙砖', children: [] }]);
+    fetchCategoryTreeMock.mockResolvedValue([
+      {
+        id: 10,
+        name: '墙砖-600×600',
+        code: 'CAT-WALL-600',
+        level: 1,
+        status: 'ENABLED',
+        sku_count: 0,
+        children_count: 0,
+        children: [],
+      },
+    ]);
     fetchTileSpecsMock.mockResolvedValue({
       items: [{ id: 5, display_name: '600×600mm', width_mm: 600, length_mm: 600, status: 'ENABLED' }],
     });

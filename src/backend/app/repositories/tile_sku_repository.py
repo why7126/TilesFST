@@ -80,7 +80,7 @@ class TileSkuRepository:
               t.id, t.name, t.sku_code, t.brand_id, t.category_id, t.spec_id,
               t.size, t.surface_finish, t.color_family, t.reference_price,
               t.remark, t.status,
-              CASE WHEN t.status = 'PUBLISHED' THEN t.published_at ELSE NULL END AS published_at,
+              t.published_at,
               t.created_at, t.updated_at,
               b.name AS brand_name,
               c.name AS category_name,
@@ -127,6 +127,31 @@ class TileSkuRepository:
             video_count=video_count,
             has_main_image=has_main,
         )
+
+    def _collect_category_subtree_ids(self, category_id: int) -> list[int]:
+        rows = (
+            self._db.execute(text("SELECT id, parent_id FROM tile_categories"))
+            .mappings()
+            .all()
+        )
+        children_by_parent: dict[int | None, list[int]] = {}
+        category_ids: set[int] = set()
+        for row in rows:
+            current_id = int(row["id"])
+            parent_id = int(row["parent_id"]) if row["parent_id"] is not None else None
+            category_ids.add(current_id)
+            children_by_parent.setdefault(parent_id, []).append(current_id)
+
+        if category_id not in category_ids:
+            return [category_id]
+
+        result: list[int] = []
+        stack = [category_id]
+        while stack:
+            current_id = stack.pop()
+            result.append(current_id)
+            stack.extend(children_by_parent.get(current_id, []))
+        return result
 
     def get_summary(self) -> dict[str, int]:
         row = (
@@ -180,8 +205,13 @@ class TileSkuRepository:
             where_parts.append("t.brand_id = :brand_id")
             params["brand_id"] = brand_id
         if category_id is not None:
-            where_parts.append("t.category_id = :category_id")
-            params["category_id"] = category_id
+            subtree_ids = self._collect_category_subtree_ids(category_id)
+            placeholders: list[str] = []
+            for index, subtree_id in enumerate(subtree_ids):
+                key = f"category_id_{index}"
+                placeholders.append(f":{key}")
+                params[key] = subtree_id
+            where_parts.append(f"t.category_id IN ({', '.join(placeholders)})")
         if status:
             where_parts.append("t.status = :status")
             params["status"] = status
@@ -210,10 +240,19 @@ class TileSkuRepository:
         where_sql = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
         base = self._list_base_sql()
 
+        default_order_sql = """
+            CASE WHEN t.status = 'PUBLISHED' THEN 1 ELSE 0 END ASC,
+            CASE WHEN t.status != 'PUBLISHED' AND t.created_at IS NULL THEN 1 ELSE 0 END ASC,
+            CASE WHEN t.status != 'PUBLISHED' THEN t.created_at ELSE NULL END DESC,
+            CASE WHEN t.status = 'PUBLISHED' AND t.published_at IS NULL THEN 1 ELSE 0 END ASC,
+            CASE WHEN t.status = 'PUBLISHED' THEN t.published_at ELSE NULL END DESC,
+            t.id DESC
+        """
+
         rows = (
             self._db.execute(
                 text(
-                    f"{base} {where_sql} ORDER BY t.updated_at DESC LIMIT :limit OFFSET :offset"
+                    f"{base} {where_sql} ORDER BY {default_order_sql} LIMIT :limit OFFSET :offset"
                 ),
                 params,
             )

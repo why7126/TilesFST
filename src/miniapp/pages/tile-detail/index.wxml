@@ -144,4 +144,5 @@
     </button>
     <button class="share-btn" open-type="share">分享给客户</button>
   </view>
+  <home-floating-button offset="{{product ? 'actionbar' : 'list'}}" />
 </view>

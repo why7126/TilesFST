@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -16,6 +18,11 @@ vi.mock('../api/brands-api', () => ({
 }));
 
 import { BrandFormModal } from './BrandFormModal';
+
+const brandManagementCss = readFileSync(
+  path.join(process.cwd(), 'src/features/admin/styles/brand-management.css'),
+  'utf8',
+);
 
 describe('BrandFormModal', () => {
   beforeEach(() => {
@@ -42,8 +49,9 @@ describe('BrandFormModal', () => {
       />,
     );
 
-    expect(screen.getByText('品牌Logo', { selector: '.field-label' })).toBeInTheDocument();
-    expect(screen.getByText('品牌 Logo')).toBeInTheDocument();
+    expect(screen.getByText('Logo', { selector: '.field-label' })).toBeInTheDocument();
+    expect(screen.queryByText('品牌Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌 Logo')).not.toBeInTheDocument();
     expect(screen.getByText('支持 JPG / PNG / WebP，建议 1:1 方形图')).toBeInTheDocument();
     expect(container.querySelector('.brand-logo-upload')).toBeInTheDocument();
     expect(container.querySelector('.brand-upload')).not.toBeInTheDocument();
@@ -57,7 +65,9 @@ describe('BrandFormModal', () => {
     await waitFor(() => {
       expect(uploadBrandLogoMock).toHaveBeenCalledWith(file, expect.any(Function));
     });
-    expect(await screen.findByText('已上传 Logo')).toBeInTheDocument();
+    expect(screen.queryByText('已上传 Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌 Logo')).not.toBeInTheDocument();
     expect(screen.getByText('更换 Logo')).toBeInTheDocument();
     expect(screen.getByText('Logo 已更新')).toBeInTheDocument();
 
@@ -73,6 +83,15 @@ describe('BrandFormModal', () => {
       );
     });
     expect(onSuccess).toHaveBeenCalledWith('品牌已创建');
+  });
+
+  it('keeps the logo preview top aligned with the upload format hint', () => {
+    expect(brandManagementCss).toMatch(
+      /\.admin-shell \.brand-logo-meta \{[\s\S]*?align-items:\s*flex-start;/,
+    );
+    expect(brandManagementCss).toMatch(
+      /\.admin-shell \.brand-logo-preview \{[\s\S]*?margin-top:\s*8px;/,
+    );
   });
 
   it('previews an existing logo in edit mode and updates preview after replacement', async () => {
@@ -107,6 +126,9 @@ describe('BrandFormModal', () => {
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/brands/logos/old.webp',
     );
+    expect(screen.queryByText('已上传 Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌 Logo')).not.toBeInTheDocument();
 
     const file = new File(['logo'], 'logo.webp', { type: 'image/webp' });
     fireEvent.change(screen.getByLabelText('更换 Logo'), { target: { files: [file] } });
@@ -117,6 +139,9 @@ describe('BrandFormModal', () => {
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/brands/logos/new.webp',
     );
+    expect(screen.queryByText('已上传 Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌Logo')).not.toBeInTheDocument();
+    expect(screen.queryByText('品牌 Logo')).not.toBeInTheDocument();
   });
 
   it('shows upload progress while a brand logo is uploading', async () => {

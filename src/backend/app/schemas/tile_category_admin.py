@@ -42,6 +42,7 @@ class TileCategoryTreeNode(BaseModel):
     level: int
     status: str
     sku_count: int
+    children_count: int
     children: list["TileCategoryTreeNode"] = Field(default_factory=list)
 
 
@@ -49,7 +50,7 @@ class TileCategoryCreateRequest(BaseModel):
     parent_id: int | None = None
     name: str = Field(
         ...,
-        description="最多 15 个字符，仅允许中文、英文和数字",
+        description="最多 15 个字符，支持中文、英文、数字和常见特殊字符",
         json_schema_extra={"maxLength": 15},
     )
     sort_order: int
@@ -60,7 +61,7 @@ class TileCategoryCreateRequest(BaseModel):
 class TileCategoryUpdateRequest(BaseModel):
     name: str = Field(
         ...,
-        description="最多 15 个字符，仅允许中文、英文和数字",
+        description="最多 15 个字符，支持中文、英文、数字和常见特殊字符",
         json_schema_extra={"maxLength": 15},
     )
     sort_order: int

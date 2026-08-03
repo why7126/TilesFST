@@ -87,14 +87,22 @@ class MiniappProductListData(BaseModel):
     facets: MiniappSearchFacets = Field(default_factory=MiniappSearchFacets)
 
 
+class MiniappBrandLeafCategory(BaseModel):
+    category_id: int
+    category_name: str
+
+
 class MiniappBrandCard(BaseModel):
     brand_id: int
     brand_name: str
     brand_short_name: str | None = None
     english_name: str | None = None
     brand_logo_url: str | None = None
+    brand_logo_thumbnail_url: str | None = None
     brand_entry_path: str
     product_count: int = 0
+    leaf_category_names: list[str] = Field(default_factory=list)
+    leaf_categories: list[MiniappBrandLeafCategory] = Field(default_factory=list)
     description: str | None = None
     available: bool = True
 
@@ -121,6 +129,7 @@ class MiniappBrandCertificateItem(BaseModel):
     issuer: str | None = None
     brand_name: str
     file_url: str
+    thumbnail_url: str | None = None
 
 
 class MiniappBrandCertificateListData(BaseModel):
@@ -138,6 +147,7 @@ class MiniappCertificateItem(BaseModel):
     brand_id: int
     brand_name: str
     file_url: str | None = None
+    thumbnail_url: str | None = None
     file_name: str | None = None
     file_mime_type: str | None = None
     file_kind: Literal["image", "pdf", "unknown"]
@@ -160,6 +170,7 @@ class MiniappCertificateMediaItem(BaseModel):
     media_type: Literal["image", "pdf", "unknown"]
     url: str
     preview_url: str | None = None
+    thumbnail_url: str | None = None
     file_name: str | None = None
     file_mime_type: str | None = None
     sort_order: int = 0

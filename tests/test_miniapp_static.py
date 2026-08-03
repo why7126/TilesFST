@@ -74,6 +74,9 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     brand_detail_ts = _read("pages/brand-detail/index.ts")
     brand_detail_wxml = _read("pages/brand-detail/index.wxml")
     brand_detail_wxss = _read("pages/brand-detail/index.wxss")
+    brand_list_ts = _read("pages/brand-list/index.ts")
+    brand_list_js = _read("pages/brand-list/index.js")
+    brand_list_wxml = _read("pages/brand-list/index.wxml")
     certificate_detail_ts = _read("pages/certificate-detail/index.ts")
     certificate_detail_js = _read("pages/certificate-detail/index.js")
     certificate_detail_wxml = _read("pages/certificate-detail/index.wxml")
@@ -111,6 +114,12 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "brand_list_page_view" in brand_list_ts
     assert "brand_list_carousel_click" in brand_list_ts
     assert "brand_list_card_click" in brand_list_ts
+    assert "logo_display_url" not in brand_list_ts
+    assert "logo_display_url" not in brand_list_js
+    assert "logo_display_url" not in brand_list_wxml
+    assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_ts
+    assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_js
+    assert 'src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"' in brand_list_wxml
     assert "brand_detail_view" in brand_detail_ts
     assert "brand_detail_tab_click" in brand_detail_ts
     assert "brand_certificate_click" in brand_detail_ts
@@ -120,6 +129,7 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "brand?.brand_short_name || brand?.brand_name" not in brand_detail_ts
     assert 'class="brand-overlay"' in brand_detail_wxml
     assert brand_detail_wxml.index('class="brand-logo-frame') < brand_detail_wxml.index('class="brand-overlay"')
+    assert "brand.brand_logo_thumbnail_url || brand.brand_logo_url" in brand_detail_wxml
     assert "height: 380rpx" in brand_detail_wxss
     assert ".brand-hero {\n  margin-top: 12rpx;\n  padding: 0;" in brand_detail_wxss
     assert "brand-meta" not in brand_detail_wxml
@@ -274,6 +284,7 @@ def test_miniapp_runtime_entry_scripts_are_not_empty_templates() -> None:
         "components/product-card/index",
         "components/brand-card/index",
         "components/custom-navigation/index",
+        "components/home-floating-button/index",
     ]
     for component in component_entries:
         js_source = _read(f"{component}.js")
@@ -292,17 +303,25 @@ def test_miniapp_category_secondary_names_support_long_labels() -> None:
     assert 'class="secondary-grid"' in category_wxml
     assert 'class="secondary-card"' in category_wxml
     assert '<view class="secondary-name">{{item.name}}</view>' in category_wxml
-    assert "grid-template-columns: repeat(3, minmax(0, 1fr));" in category_wxss
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in category_wxss
     assert ".secondary-card {\n  min-width: 0;\n  min-height: 132rpx;" in category_wxss
     assert ".secondary-name {\n  width: 100%;" in category_wxss
     assert "line-height: 36rpx;" in category_wxss
     assert "white-space: normal;" in category_wxss
     assert "word-break: break-all;" in category_wxss
-    assert "-webkit-line-clamp: 2;" in category_wxss
+    assert "overflow-wrap: anywhere;" in category_wxss
+    assert ".skeleton-grid {\n  display: grid;\n  grid-template-columns: repeat(2, minmax(0, 1fr));" in category_wxss
     assert ".secondary-name" in category_wxss
     secondary_name_block = category_wxss.split(".secondary-name {", 1)[1].split("}", 1)[0]
     assert "white-space: nowrap" not in secondary_name_block
     assert "text-overflow: ellipsis" not in secondary_name_block
+    assert "overflow: hidden" not in secondary_name_block
+    assert "-webkit-line-clamp" not in secondary_name_block
+    assert "display: -webkit-box" not in secondary_name_block
+    assert "display: flex" in secondary_name_block
+    assert "align-items: center" in secondary_name_block
+    assert "justify-content: center" in secondary_name_block
+    assert "box-sizing: border-box" in secondary_name_block
 
     for source in [category_ts, category_js]:
         assert "categoryLevel=secondary&sourcePage=category" in source
@@ -499,7 +518,7 @@ def test_miniapp_global_custom_navigation_covers_subpages_and_back_fallback() ->
         ("pages/tile-detail/index", "商品详情"),
         ("pages/category/index", "全部分类"),
         ("pages/product-list/index", "{{title}}"),
-        ("pages/brand-list/index", "品牌列表"),
+        ("pages/brand-list/index", "品牌"),
         ("pages/brand-detail/index", "{{title}}"),
         ("pages/favorites/index", "收藏列表"),
         ("pages/certificates/index", "证书列表"),
@@ -549,6 +568,100 @@ def test_miniapp_global_custom_navigation_covers_subpages_and_back_fallback() ->
     assert "nav-btn" not in search_wxml
     assert "open-type=\"share\"" in _read("pages/tile-detail/index.wxml")
     assert "skuId=${product.product_id}&source=share" in _read("pages/tile-detail/index.js")
+
+
+def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallback() -> None:
+    home_config = json.loads(_read("pages/index/index.json"))
+    category_config = json.loads(_read("pages/category/index.json"))
+    brand_list_config = json.loads(_read("pages/brand-list/index.json"))
+    certificates_config = json.loads(_read("pages/certificates/index.json"))
+    favorites_config = json.loads(_read("pages/favorites/index.json"))
+    search_config = json.loads(_read("pages/search/index.json"))
+    product_list_config = json.loads(_read("pages/product-list/index.json"))
+    brand_detail_config = json.loads(_read("pages/brand-detail/index.json"))
+    tile_detail_config = json.loads(_read("pages/tile-detail/index.json"))
+    home_wxml = _read("pages/index/index.wxml")
+    category_wxml = _read("pages/category/index.wxml")
+    brand_list_wxml = _read("pages/brand-list/index.wxml")
+    certificates_wxml = _read("pages/certificates/index.wxml")
+    favorites_wxml = _read("pages/favorites/index.wxml")
+    search_wxml = _read("pages/search/index.wxml")
+    product_list_wxml = _read("pages/product-list/index.wxml")
+    brand_detail_wxml = _read("pages/brand-detail/index.wxml")
+    tile_detail_wxml = _read("pages/tile-detail/index.wxml")
+    floating_wxml = _read("components/home-floating-button/index.wxml")
+    floating_wxss = _read("components/home-floating-button/index.wxss")
+    floating_js = _read("components/home-floating-button/index.js")
+    floating_ts = _read("components/home-floating-button/index.ts")
+
+    assert "home-floating-button" not in home_config.get("usingComponents", {})
+    assert "<home-floating-button" not in home_wxml
+
+    for config in [
+        category_config,
+        brand_list_config,
+        certificates_config,
+        favorites_config,
+        search_config,
+        product_list_config,
+        brand_detail_config,
+        tile_detail_config,
+    ]:
+        assert config["usingComponents"]["home-floating-button"] == "../../components/home-floating-button/index"
+
+    assert '<home-floating-button offset="tabbar" />' in category_wxml
+    assert '<home-floating-button offset="tabbar" />' in brand_list_wxml
+    assert '<home-floating-button offset="tabbar" />' in certificates_wxml
+    assert '<home-floating-button offset="tabbar" />' in favorites_wxml
+    assert '<home-floating-button show="{{searchMode == \'result\'}}" offset="list" />' in search_wxml
+    assert '<home-floating-button offset="list" />' in product_list_wxml
+    assert '<home-floating-button offset="list" />' in brand_detail_wxml
+    assert '<home-floating-button offset="{{product ? \'actionbar\' : \'list\'}}" />' in tile_detail_wxml
+
+    assert 'wx:if="{{show}}"' in floating_wxml
+    assert 'catchtap="handleReturnHome"' in floating_wxml
+    assert 'aria-label="返回首页"' in floating_wxml
+    assert "home-floating-label" in floating_wxml
+    assert "首页" in floating_wxml
+
+    for source in [floating_js, floating_ts]:
+        assert "const HOME_URL = '/pages/index/index'" in source
+        assert "UNLOCK_DELAY_MS = 800" in source
+        assert "navigating: false" in source
+        assert "unlockTimer: 0" in source
+        assert "pageLifetimes" in source
+        assert "show()" in source
+        assert "this.resetNavigationLock()" in source
+        assert "detached()" in source
+        assert "this.clearUnlockTimer()" in source
+        assert "clearTimeout(this.data.unlockTimer)" in source
+        assert "if (this.data.navigating) return;" in source
+        assert "this.setData({ navigating: true })" in source
+        assert "this.setData({ navigating: false })" in source
+        assert "this.setData({ navigating: false, unlockTimer: 0 })" in source
+        assert "wx.switchTab" in source
+        assert "wx.reLaunch" in source
+        assert "wx.showToast({ title: '暂时无法返回首页', icon: 'none' })" in source
+        assert "this.triggerEvent('returnhome', { url: HOME_URL })" in source
+        assert "this.unlockNavigation();" in source
+        assert "complete: () => this.unlockNavigation()" in source
+
+    for token in [
+        "width: 104rpx",
+        "height: 104rpx",
+        "bottom: calc(36rpx + env(safe-area-inset-bottom))",
+        ".home-floating-area.offset-list",
+        "bottom: calc(124rpx + env(safe-area-inset-bottom))",
+        ".home-floating-area.offset-tabbar",
+        "bottom: calc(156rpx + env(safe-area-inset-bottom))",
+        ".home-floating-area.offset-actionbar",
+        "bottom: calc(190rpx + env(safe-area-inset-bottom))",
+        "z-index: 24",
+        "background: rgba(24,22,15,0.92)",
+        "color: #C8A055",
+        "letter-spacing: 0",
+    ]:
+        assert token in floating_wxss
 
 
 def test_miniapp_search_matches_req0046_prototype_structure() -> None:
@@ -706,12 +819,14 @@ def test_miniapp_category_page_covers_tree_cache_navigation_and_states() -> None
     assert "价格" not in category_wxml
     assert "热门分类" not in category_wxml
     assert "width: 196rpx" in category_wxss
-    assert "grid-template-columns: repeat(3, minmax(0, 1fr))" in category_wxss
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in category_wxss
     assert "aspect-ratio: 1 / 1" not in category_wxss
     assert ".secondary-image" not in category_wxss
     assert "min-height: 132rpx" in category_wxss
     assert "white-space: normal" in category_wxss
-    assert "-webkit-line-clamp: 2" in category_wxss
+    secondary_name_block = category_wxss.split(".secondary-name {", 1)[1].split("}", 1)[0]
+    assert "-webkit-line-clamp" not in secondary_name_block
+    assert "overflow: hidden" not in secondary_name_block
     assert "min-height: 112rpx" in category_wxss
     assert "background: #18160F" in category_wxss
     assert "color: #C8A055" in category_wxss
@@ -938,6 +1053,8 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "wx.downloadFile" not in certificate_js
     assert "wx.openDocument" not in certificate_js
     assert "wx.setClipboardData" not in certificate_js
+    assert 'src="{{item.thumbnail_url}}"' in certificate_wxml
+    assert "item.thumbnail_url || item.file_url" not in certificate_wxml
     assert 'binderror="onImageError"' in certificate_wxml
     assert "image_failed" in certificate_js
     assert "certificate_list_page_view" in certificate_js
@@ -993,10 +1110,12 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "resolveTelemetryRequestId" in card_js
     assert "requestId: this.resolveTelemetryRequestId()" in card_js
     assert "NAV_LOCK_MS = 800" in card_js
+    assert "imageLazyLoad: { type: Boolean, value: true }" in card_js
     assert "queryPair('sourcePage'" in card_js
     assert "queryPair('sourceModule'" in card_js
     assert "queryPair('requestId'" in card_js
     assert 'binderror="onImageError"' in card_wxml
+    assert 'lazy-load="{{imageLazyLoad}}"' in card_wxml
     assert "{{normalized.productName}}" in card_wxml
     assert "{{normalized.brandName}}" in card_wxml
     assert "{{normalized.specification}}" in card_wxml
@@ -1012,6 +1131,9 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert 'density="grid"' in product_list_wxml
     assert search_wxml.count("<product-card") >= 3
     assert home_wxml.count("<product-card") == 3
+    assert "INITIAL_WATERFALL_DELAY_MS = 160" in _read("pages/index/index.js")
+    assert "scheduleInitialProductsLoad" in _read("pages/index/index.js")
+    assert "this.scheduleInitialProductsLoad()" in _read("pages/index/index.js")
     assert "visual-heart" not in home_wxml
     assert "sourceModule" in detail_js
     assert "listContext" in detail_js
@@ -1254,13 +1376,21 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
 
     assert brand_json["navigationStyle"] == "custom"
     assert brand_json["usingComponents"]["custom-navigation"] == "../../components/custom-navigation/index"
-    assert brand_json["usingComponents"]["brand-card"] == "../../components/brand-card/index"
-    assert '<custom-navigation title="品牌列表" />' in brand_wxml
+    assert "brand-card" not in brand_json["usingComponents"]
+    assert '<custom-navigation title="品牌" />' in brand_wxml
     assert "/api/v1/miniapp/brands?page=" in brand_ts
     assert "/api/v1/miniapp/brands?page=" in brand_js
+    assert "normalizeBrandItem" in brand_ts
+    assert "normalizeBrandItem" in brand_js
+    assert "leaf_category_names" in brand_ts
+    assert "leaf_category_names" in brand_js
+    assert "leaf_categories" in brand_ts
+    assert "leaf_categories" in brand_js
     assert "brand_list_page_view" in brand_js
     assert "brand_list_carousel_click" in brand_js
     assert "brand_list_card_click" in brand_js
+    assert "brand_list_category_click" in brand_js
+    assert "wx.navigateTo" in brand_js
     assert "authorization" not in brand_js
     assert "cookie" not in brand_js
     assert "object_key" not in brand_js
@@ -1268,24 +1398,71 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "autoplay" in brand_wxml
     assert "circular" in brand_wxml
     assert 'indicator-active-color="#C8A055"' in brand_wxml
-    assert "brand-grid" in brand_wxml
-    assert "<brand-card" in brand_wxml
-    assert 'density="grid"' in brand_wxml
-    assert " 个商品" in brand_wxml
+    assert "BRAND GALLERY" not in brand_wxml
+    assert "轮播图保持现有品牌页能力" not in brand_wxml
+    assert "全球严选瓷砖品牌" in brand_wxml
+    assert 'wx:if="{{item.subtitle}}"' in brand_wxml
+    assert "品牌矩阵" in brand_wxml
+    assert "按类目快速识别" not in brand_wxml
+    assert "brand-list" in brand_wxml
+    assert "brand-row" in brand_wxml
+    assert "brand-entry" in brand_wxml
+    assert "brand-arrow" in brand_wxml
+    assert "brand-categories" in brand_wxml
+    assert "category-label" not in brand_wxml
+    assert "全部类目 · 点击查看该品牌下的类目商品" not in brand_wxml
+    assert "category_items" in brand_wxml
+    assert "category_more_count" not in brand_wxml
+    assert "MAX_VISIBLE_CATEGORIES" not in brand_ts
+    assert "MAX_VISIBLE_CATEGORIES" not in brand_js
+    assert "brand-logo-fallback" in brand_wxml
+    assert "binderror=\"onLogoError\"" in brand_wxml
+    assert 'catchtap="onBrandInfoTap"' in brand_wxml
+    assert 'catchtap="onCategoryTap"' in brand_wxml
+    assert "data-brand-index" in brand_wxml
+    assert "data-category-index" in brand_wxml
+    assert "brandId=${encodeURIComponent(String(brand.brand_id))}" in brand_ts
+    assert "categoryId=${encodeURIComponent(String(category.category_id))}" in brand_ts
+    assert "categoryLevel=secondary" in brand_ts
+    assert "sourcePage=brand-list-category" in brand_ts
+    assert "<brand-card" not in brand_wxml
+    assert 'density="grid"' not in brand_wxml
+    assert " 款商品" in brand_ts
+    assert " 款商品" in brand_js
     assert "item.product_count + ' 个公开商品'" not in brand_wxml
-    assert "暂无内容" in brand_wxml
-    assert 'bindtap="onBrandTap"' in brand_wxml
+    assert "暂无商品" not in brand_ts
+    assert "category_summary_text" not in brand_ts
+    assert "category_summary_text" not in brand_js
+    assert "category-empty" in brand_wxml
+    assert ".category-empty" in brand_wxss
+    assert "暂无类目" not in brand_ts
+    assert "暂无类目" not in brand_js
+    assert "暂无类目" in brand_wxml
+    assert 'bindtap="onBrandTap"' not in brand_wxml
+    assert "onBrandInfoTap" in brand_ts
+    assert "onCategoryTap" in brand_ts
     assert "status == 'loading'" in brand_wxml
     assert "status == 'empty'" in brand_wxml
     assert "status == 'error'" in brand_wxml
-    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in brand_wxss
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" not in brand_wxss
+    assert ".brand-row" in brand_wxss
+    assert ".brand-entry" in brand_wxss
+    assert ".brand-categories" in brand_wxss
+    assert ".category-label" not in brand_wxss
+    assert ".category-pill" in brand_wxss
+    assert "font-size: 32rpx" in brand_wxss
+    assert "font-size: 30rpx" in brand_wxss
+    assert "line-height: 40rpx" in brand_wxss
+    assert "word-break: break-all" in brand_wxss
+    assert ".category-more" not in brand_wxss
     assert "env(safe-area-inset-bottom)" in brand_wxss
-    assert "min-height: 244rpx" in brand_wxss
-    assert "padding: 28rpx 28rpx calc(132rpx + env(safe-area-inset-bottom))" in brand_wxss
+    assert "min-height: 224rpx" in brand_wxss
+    assert "padding: 24rpx 28rpx calc(132rpx + env(safe-area-inset-bottom))" in brand_wxss
     assert "overflow: hidden" in brand_wxss
-    assert "height: 300rpx" in brand_wxss
-    assert "left: 28rpx" in brand_wxss
-    assert "right: 28rpx" in brand_wxss
+    assert "height: 348rpx" in brand_wxss
+    assert "left: 40rpx" in brand_wxss
+    assert "right: 40rpx" in brand_wxss
+    assert "border-radius: 999rpx" in brand_wxss
     assert "min-height: 560rpx" in brand_wxss
 
 

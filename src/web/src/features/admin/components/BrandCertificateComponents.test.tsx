@@ -51,19 +51,57 @@ const file = {
 } as BrandCertificateFile;
 
 describe('BrandCertificateComponents', () => {
-  it('renders certificate identity with pdf placeholder and summary fallback', () => {
+  it('renders certificate identity with image and name only', () => {
     render(
       <CertificateListIdentity
         certificate={{
           ...certificate,
           certificate_no: null,
+          file_url: '/media/files/default/brand-certificates/iso.pdf',
+          thumbnail_url: null,
+          file_key: 'files/default/brand-certificates/iso.pdf',
+          file_name: 'iso.pdf',
+          main_image: {
+            file_url: '/media/files/default/brand-certificates/cover.webp',
+            file_key: 'files/default/brand-certificates/cover.webp',
+            file_name: 'cover.webp',
+            file_mime_type: 'image/webp',
+            file_size_bytes: 256,
+            is_main: true,
+            sort_order: 0,
+          },
         }}
       />,
     );
 
-    expect(screen.getByText('PDF')).toBeInTheDocument();
     expect(screen.getByText('ISO 9001 质量管理体系认证')).toBeInTheDocument();
-    expect(screen.getByText('iso.pdf')).toBeInTheDocument();
+    expect(document.querySelector('img[src="/media/files/default/brand-certificates/cover.webp"]')).toBeInTheDocument();
+    expect(screen.queryByText('iso.pdf')).not.toBeInTheDocument();
+    expect(screen.queryByText('cover.webp')).not.toBeInTheDocument();
+    expect(screen.queryByText('files/default/brand-certificates/iso.pdf')).not.toBeInTheDocument();
+    expect(screen.queryByText('/media/files/default/brand-certificates/iso.pdf')).not.toBeInTheDocument();
+  });
+
+  it('renders certificate identity placeholder without file name fallback', () => {
+    render(
+      <CertificateListIdentity
+        certificate={{
+          ...certificate,
+          name: '绿色建材认证',
+          certificate_no: null,
+          file_url: null,
+          thumbnail_url: null,
+          file_key: 'files/default/brand-certificates/green.pdf',
+          file_name: 'green.pdf',
+          main_image: null,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('绿色建材认证')).toBeInTheDocument();
+    expect(screen.getByText('PDF')).toBeInTheDocument();
+    expect(screen.queryByText('green.pdf')).not.toBeInTheDocument();
+    expect(screen.queryByText('files/default/brand-certificates/green.pdf')).not.toBeInTheDocument();
   });
 
   it('falls back to original validity status and visibility labels', () => {
@@ -158,6 +196,17 @@ describe('BrandCertificateComponents', () => {
     expect(screen.getByText('证书文件已就绪')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '移除' }));
     expect(onRemove).toHaveBeenCalled();
+
+    rerender(
+      <CertificateFileCard
+        file={file}
+        state="done"
+        showReadyText={false}
+        onSelectFile={onSelectFile}
+        onRemove={onRemove}
+      />,
+    );
+    expect(screen.queryByText('证书文件已就绪')).not.toBeInTheDocument();
 
     rerender(
       <CertificateFileCard

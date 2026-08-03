@@ -171,11 +171,14 @@ def test_classify_text_only_treats_command_position_skill_links_as_workflow_even
     invoked = ai_usage.classify_text("[$sprint-propose](/project/.agents/skills/sprint-propose/SKILL.md) REQ-0038 sprint-007")
     mentioned = ai_usage.classify_text("这个命令[$sprint-propose](/project/.agents/skills/sprint-propose/SKILL.md) REQ-0038 没有生成 usage")
     release_invoked = ai_usage.classify_text("/release-prepare v0.1.0 sprint-007 add-brand-certificate-management")
+    image_invoked = ai_usage.classify_text("[$image-prepare](/project/.agents/skills/image-prepare/SKILL.md) v0.1.0")
 
     assert invoked["workflow_event"] == "sprint.propose"
     assert mentioned["workflow_event"] is None
     assert release_invoked["workflow_event"] == "release.prepare"
     assert release_invoked["release_version"] == "v0.1.0"
+    assert image_invoked["workflow_event"] == "image.prepare"
+    assert image_invoked["release_version"] == "v0.1.0"
 
 
 def test_canonicalize_issue_ids_collapses_short_requirement_alias() -> None:
@@ -568,6 +571,9 @@ def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Pat
     missing = ai_usage.check_sprint_snapshot(tmp_path / "missing.json", "sprint-999")
     assert missing["snapshot_status"] == "missing"
     assert missing["usage_mode"] == "estimated_fallback"
+    assert missing["fresh_gate"]["status"] == "blocker"
+    assert "snapshot-status-missing" in missing["fresh_gate"]["blockers"]
+    assert not missing["snapshot_path"].startswith(str(tmp_path))
 
     path = tmp_path / "sprint-999.json"
     write_snapshot(
@@ -598,11 +604,24 @@ def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Pat
     )
     assert present["snapshot_status"] == "present"
     assert present["usage_mode"] == "actual"
+    assert present["fresh_gate"] == {
+        "status": "pass",
+        "snapshot_status": "present",
+        "usage_mode": "actual",
+        "usage_matrices_present": True,
+        "totals_present": True,
+        "coverage_status": {"requirements": "pass", "bugs": "pass", "changes": "pass"},
+        "warning_count": 0,
+        "blockers": [],
+        "recommended_action": None,
+    }
 
     stale = ai_usage.check_sprint_snapshot(path, "sprint-999", min_generated_at="2026-07-04 00:00:00")
     assert stale["snapshot_status"] == "stale"
     assert stale["usage_mode"] == "estimated_fallback"
     assert "snapshot-stale" in stale["warnings"]
+    assert stale["fresh_gate"]["status"] == "blocker"
+    assert "snapshot-status-stale" in stale["fresh_gate"]["blockers"]
 
     write_snapshot(
         path,
@@ -617,6 +636,47 @@ def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Pat
     failed = ai_usage.check_sprint_snapshot(path, "sprint-999")
     assert failed["snapshot_status"] == "failed"
     assert "required-metrics-empty" in failed["warnings"]
+    assert failed["fresh_gate"]["status"] == "blocker"
+    assert "required-metrics-empty" in failed["fresh_gate"]["blockers"]
+
+
+def test_sprint_snapshot_fresh_gate_blocks_coverage_and_matrix_gaps(tmp_path: Path) -> None:
+    path = tmp_path / "sprint-999.json"
+    write_snapshot(
+        path,
+        {
+            "sprint_id": "sprint-999",
+            "generated_at": "2026-07-03T00:00:00Z",
+            "estimated": False,
+            "coverage": {
+                "requirements": ["REQ-9999-demo"],
+                "bugs": [],
+                "changes": ["add-demo"],
+            },
+            "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 12},
+            "usage_matrices": {},
+        },
+    )
+
+    snapshot = ai_usage.check_sprint_snapshot(
+        path,
+        "sprint-999",
+        expected_scope={
+            "requirements": ["REQ-9999-demo"],
+            "bugs": ["BUG-9999-demo"],
+            "changes": ["add-demo"],
+        },
+    )
+
+    assert snapshot["snapshot_status"] == "stale"
+    assert "bugs-coverage-unknown" in snapshot["warnings"]
+    assert "usage-matrices-missing" in snapshot["warnings"]
+    gate = snapshot["fresh_gate"]
+    assert gate["status"] == "blocker"
+    assert gate["coverage_status"] == {"requirements": "pass", "bugs": "missing", "changes": "pass"}
+    assert "bugs-coverage-missing" in gate["blockers"]
+    assert "usage-matrices-missing" in gate["blockers"]
+    assert gate["recommended_action"]
 
 
 def test_post_command_hook_generates_command_run_and_sprint_snapshot(tmp_path: Path) -> None:

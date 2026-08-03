@@ -1,0 +1,103 @@
+sprint_id: sprint-014
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-29 15:51:41
+end_date: 2026-07-31 08:14:33
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0081-release-image-build-governance
+  - REQ-0082-admin-category-name-special-characters
+  - REQ-0083-miniapp-brand-list-category-summary
+  - REQ-0084-web-modal-disable-outside-close
+  - REQ-0085-miniapp-global-home-floating-button
+bugs:
+  - BUG-0090-admin-sku-list-publish-sort-order
+  - BUG-0092-miniapp-card-images-slow-load
+  - BUG-0093-miniapp-category-secondary-grid-name-full-display
+  - BUG-0091-miniapp-product-list-sort-consistency
+changes:
+  - update-release-image-build-governance
+  - update-admin-category-name-special-characters
+  - update-miniapp-brand-list-category-summary
+  - update-web-modal-disable-outside-close
+  - fix-miniapp-card-image-loading
+  - fix-miniapp-category-secondary-grid-name-display
+  - add-miniapp-global-home-floating-button
+  - fix-miniapp-product-list-sort-consistency
+  - fix-admin-sku-list-publish-sort-order
+
+estimated_story_points: 28
+estimated_person_days: 28.0
+capacity_usage: 0.9333
+fix_buffer_person_days: 2.0
+fix_buffer_ratio: 0.0667
+
+scope_estimates:
+  - id: REQ-0081-release-image-build-governance
+    change: update-release-image-build-governance
+    size: XL
+    story_points: 8
+    estimated_person_days: 8.0
+    rationale: "P1 update 型发布/镜像构建治理能力，影响 release/image 技能、发布模板、发布校验脚本、镜像 plan/manifest 校验、部署文档、release gates、AI usage hook 归因和命令级测试；不直接改变业务 API、数据库运行模型、Web UI、小程序或管理端业务页面。"
+  - id: REQ-0082-admin-category-name-special-characters
+    change: update-admin-category-name-special-characters
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "P1 update 型类目名称输入规则调整，影响后端类目创建/更新校验、OpenAPI/Orval、管理端类目新增/编辑弹窗、类目列表/树/选择器展示、小程序与 Web 展示端回归以及相关测试；不改变类目层级、编码、排序、启停、删除或媒体/存储能力。"
+  - id: REQ-0083-miniapp-brand-list-category-summary
+    change: update-miniapp-brand-list-category-summary
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "P1 update 型小程序品牌列表体验增强，影响小程序品牌列表页下半部布局、公开品牌列表聚合数据、可能的 API/类型契约、品牌 Logo 安全 URL、埋点、空态/错误态与 DevTools 320/375/430 pt evidence；不改变顶部轮播、品牌详情页、管理端品牌维护、类目管理规则、数据库表结构或 Web 展示端。"
+  - id: REQ-0084-web-modal-disable-outside-close
+    change: update-web-modal-disable-outside-close
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "P1 update 型 Web 弹窗交互策略统一调整，影响 Web 管理端与展示端标准 Dialog / Modal、共享弹窗默认配置、历史自定义弹窗盘点、确认弹窗、表单弹窗、含上传控件弹窗、前端测试、admin-modal 与 media-upload 横切 AC；不改变后端 API、数据库、OpenAPI、Orval、小程序、MinIO、Nginx 或 Docker Compose。"
+  - id: BUG-0093-miniapp-category-secondary-grid-name-full-display
+    change: fix-miniapp-category-secondary-grid-name-display
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "P1 medium fix 型小程序分类页布局回归修复，影响 pages/category/index 二级类目卡片两列布局、skeleton 一致性、长名称完整展示和 DevTools 320/375/390/430 pt evidence；不改变分类树 API、数据库、商品列表路由、品牌页、搜索页、首页商品卡片或管理端类目维护。"
+  - id: BUG-0092-miniapp-card-images-slow-load
+    change: fix-miniapp-card-image-loading
+    size: L
+    story_points: 5
+    estimated_person_days: 5.0
+    rationale: "P0/P1 fix 型小程序商品卡片图片加载性能与稳定性修复，影响小程序首页/商品列表/搜索/品牌详情商品 Tab、后端公开 SKU 图片 URL、受控媒体读取缓存与观测、MinIO thumbnails 前缀和对象引用一致性校验；可能涉及 API/DB/Orval/docs/tests，因此按 L 估算并占用 fix 缓冲。"
+  - id: REQ-0085-miniapp-global-home-floating-button
+    change: add-miniapp-global-home-floating-button
+    size: M
+    story_points: 3
+    estimated_person_days: 3.0
+    rationale: "P1 add 型小程序全局导航辅助能力，影响小程序主要非首页页面统一返回首页悬浮按钮、首页隐藏、页面覆盖与例外清单、TabBar/reLaunch 导航策略、防重复点击、底部安全区/固定操作区/既有悬浮入口避让和 DevTools 320/375/430 pt evidence；不改变后端 API、数据库、Web、管理端、对象存储、埋点报表或首页/TabBar 结构。"
+  - id: BUG-0091-miniapp-product-list-sort-consistency
+    change: fix-miniapp-product-list-sort-consistency
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "P1 medium fix 型小程序商品列表排序一致性修复，影响搜索商品结果页、分类商品列表页、品牌详情页商品 Tab 对齐、公开 SKU 查询默认排序和分页稳定性；明确首页全部产品列表不纳入排序调整。若实现阶段变更 API 契约或排序字段索引，需同步 OpenAPI、Orval、docs、DB 文档和测试。"
+  - id: BUG-0090-admin-sku-list-publish-sort-order
+    change: fix-admin-sku-list-publish-sort-order
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "P1 medium fix 型管理端 SKU 列表默认排序修复，影响后端管理端 SKU 列表查询排序与 Web 管理端列表展示顺序；不计划新增 API 字段、数据库字段、Orval 生成物、小程序、媒体或对象存储能力。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 28.0
+  capacity_usage: 0.9333
+  note: "project.yaml 未提供显式 Sprint 容量，沿用 sprint-013 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 5 个 REQ、4 个 BUG，对应 9 个已创建 Change，估算 28.0 人天，占用 93.33%，低于 30 人天容量，满足容量硬门禁；fix buffer 2.0 人天 / 6.67%，明显低于建议 30%，需在 sprint.md 风险中记录并冻结后续新增范围。"
+
+deferred_items: []

@@ -1,0 +1,79 @@
+sprint_id: sprint-015
+status: completed
+lifecycle_stage: archive
+start_date: 2026-07-31 15:17:00
+end_date: 2026-08-14 18:00:00
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0086-miniapp-brand-list-ui-interaction-optimization
+bugs:
+  - BUG-0096-admin-sku-category-filter-only-top-level
+  - BUG-0097-admin-sku-material-main-image-tag-redundant
+  - BUG-0095-admin-category-tree-count-shows-product-count
+  - BUG-0094-miniapp-list-images-not-loading-after-speed-fix
+  - BUG-0098-admin-filter-dropdown-ui-consistency
+changes:
+  - fix-admin-sku-category-cascade-filter
+  - fix-admin-sku-material-main-image-tag
+  - fix-admin-category-tree-count
+  - update-miniapp-brand-list-ui-interaction-optimization
+  - fix-miniapp-product-card-thumbnails
+  - fix-admin-filter-dropdown-ui-consistency
+
+estimated_story_points: 13.5
+estimated_person_days: 13.5
+capacity_usage: 0.45
+fix_buffer_person_days: 16.5
+fix_buffer_ratio: 0.55
+
+scope_estimates:
+  - id: BUG-0096-admin-sku-category-filter-only-top-level
+    change: fix-admin-sku-category-cascade-filter
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P1 medium fix 型管理端 SKU 列表类目级联筛选与父类目子树过滤修复，影响 Web 管理端筛选控件与后端 SKU 列表类目过滤语义；可能需要同步 API 文档、OpenAPI、Orval 和前后端回归测试。"
+  - id: BUG-0097-admin-sku-material-main-image-tag-redundant
+    change: fix-admin-sku-material-main-image-tag
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: "P2 low fix 型管理端 SKU 列表素材列展示冗余修复，仅影响 Web 管理端 SKU 列表素材列标签渲染与相关前端回归测试；不改变 API、数据库、Orval、小程序、MinIO 或 Docker Compose。"
+  - id: BUG-0095-admin-category-tree-count-shows-product-count
+    change: fix-admin-category-tree-count
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: "P1 medium fix 型管理端类目树计数口径修复，主要影响 Web 管理端类目树字段绑定与回归测试；若 OpenAPI/Orval 未暴露直接子类目数量字段，则需同步 API 契约、Orval 和后端接口测试。"
+  - id: REQ-0086-miniapp-brand-list-ui-interaction-optimization
+    change: update-miniapp-brand-list-ui-interaction-optimization
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P1 update 型微信小程序品牌列表页 UI 与交互体验优化，主要影响小程序品牌列表页视觉、品牌/类目点击边界、TabBar/安全区与设备 evidence；若品牌列表接口缺少 categoryId 等字段，则需同步 API、OpenAPI、Orval、小程序调用类型和接口测试。"
+  - id: BUG-0094-miniapp-list-images-not-loading-after-speed-fix
+    change: fix-miniapp-product-card-thumbnails
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P0/P1 high fix 型小程序商品卡片媒体链路回归修复，影响小程序首页、商品列表、搜索结果、品牌详情商品区、后端公开列表 cover_image、对象存储缩略图 key 规则、历史缩略图回填和审计；需覆盖后端媒体测试、小程序静态测试与 BUG-0092 性能回归。"
+  - id: BUG-0098-admin-filter-dropdown-ui-consistency
+    change: fix-admin-filter-dropdown-ui-consistency
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P1 medium fix 型管理端筛选下拉一致性修复，横向影响品牌、类目、规格、品牌证书、Banner、用户、系统设置、日志审计、接口文档与界面主题等页面；主要涉及 Web 管理端筛选组件/Design System 收敛、前端回归和视觉 smoke，不改变 API、数据库、Orval、小程序或 Docker Compose。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 13.5
+  capacity_usage: 0.45
+  note: "project.yaml 未提供显式 Sprint 容量，沿用 sprint-014 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 1 个 REQ、5 个 BUG 与 6 个 Change，估算 13.5 人天，占用 45.00%，低于 30 人天容量，满足容量硬门禁；fix buffer 16.5 人天 / 55.00%，满足建议缓冲。"
+
+deferred_items: []

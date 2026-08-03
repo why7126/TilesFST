@@ -1,0 +1,49 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "瓷砖信息管理平台产品文档",
+  "navigation": [
+    {
+      "group": "当前版本",
+      "pages": [
+        "docs/latest/overview"
+      ]
+    },
+    {
+      "group": "v0.3.4",
+      "pages": [
+        "docs/v0.3.4/admin/catalog",
+        "docs/v0.3.4/admin/governance",
+        "docs/v0.3.4/admin/index",
+        "docs/v0.3.4/admin/media",
+        "docs/v0.3.4/faq",
+        "docs/v0.3.4/miniapp/brand-certificate",
+        "docs/v0.3.4/miniapp/browse",
+        "docs/v0.3.4/miniapp/index",
+        "docs/v0.3.4/overview",
+        "docs/v0.3.4/public/index"
+      ]
+    },
+    {
+      "group": "v0.3.3",
+      "pages": [
+        "docs/v0.3.3/admin/catalog",
+        "docs/v0.3.3/admin/governance",
+        "docs/v0.3.3/admin/index",
+        "docs/v0.3.3/admin/media",
+        "docs/v0.3.3/faq",
+        "docs/v0.3.3/miniapp/brand-certificate",
+        "docs/v0.3.3/miniapp/browse",
+        "docs/v0.3.3/miniapp/index",
+        "docs/v0.3.3/overview",
+        "docs/v0.3.3/public/index"
+      ]
+    },
+    {
+      "group": "发布公告",
+      "pages": [
+        "releases/v0.3.4/announcement",
+        "releases/v0.3.3/announcement"
+      ]
+    }
+  ]
+}

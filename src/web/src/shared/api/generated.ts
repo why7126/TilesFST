@@ -136,6 +136,7 @@ export interface BrandAdminItem {
   english_name?: string | null;
   logo_object_key?: string | null;
   logo_url?: string | null;
+  logo_thumbnail_url?: string | null;
   description?: string | null;
   status: string;
   sku_count: number;
@@ -192,6 +193,7 @@ export interface BrandCertificateImage {
      * @maxLength 512
      */
   file_key: string;
+  thumbnail_url?: string | null;
   /**
      * @minLength 1
      * @maxLength 255
@@ -239,6 +241,7 @@ export interface BrandCertificateItem {
   issuer?: string | null;
   file_url: string;
   file_key: string;
+  thumbnail_url?: string | null;
   file_name: string;
   file_mime_type: string;
   file_size_bytes: number;
@@ -589,6 +592,7 @@ export interface MiniappBrandCertificateItem {
   issuer?: string | null;
   brand_name: string;
   file_url: string;
+  thumbnail_url?: string | null;
 }
 
 export interface MiniappBrandCertificateListData {
@@ -602,14 +606,22 @@ export interface ApiResponseMiniappBrandCertificateListData {
   data?: MiniappBrandCertificateListData | null;
 }
 
+export interface MiniappBrandLeafCategory {
+  category_id: number;
+  category_name: string;
+}
+
 export interface MiniappBrandDetailData {
   brand_id: number;
   brand_name: string;
   brand_short_name?: string | null;
   english_name?: string | null;
   brand_logo_url?: string | null;
+  brand_logo_thumbnail_url?: string | null;
   brand_entry_path: string;
   product_count?: number;
+  leaf_category_names?: string[];
+  leaf_categories?: MiniappBrandLeafCategory[];
   description?: string | null;
   available?: boolean;
   product_path: string;
@@ -649,8 +661,11 @@ export interface MiniappBrandCard {
   brand_short_name?: string | null;
   english_name?: string | null;
   brand_logo_url?: string | null;
+  brand_logo_thumbnail_url?: string | null;
   brand_entry_path: string;
   product_count?: number;
+  leaf_category_names?: string[];
+  leaf_categories?: MiniappBrandLeafCategory[];
   description?: string | null;
   available?: boolean;
 }
@@ -736,6 +751,7 @@ export interface MiniappCertificateMediaItem {
   media_type: MiniappCertificateMediaItemMediaType;
   url: string;
   preview_url?: string | null;
+  thumbnail_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   sort_order?: number;
@@ -759,6 +775,7 @@ export interface MiniappCertificateDetailData {
   brand_id: number;
   brand_name: string;
   file_url?: string | null;
+  thumbnail_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   file_kind: MiniappCertificateDetailDataFileKind;
@@ -810,6 +827,7 @@ export interface MiniappCertificateItem {
   brand_id: number;
   brand_name: string;
   file_url?: string | null;
+  thumbnail_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   file_kind: MiniappCertificateItemFileKind;
@@ -1412,6 +1430,8 @@ export interface ApiResponseTopicAdminListData {
 export interface UploadResult {
   object_key: string;
   url: string;
+  thumbnail_key?: string | null;
+  thumbnail_url?: string | null;
   task_trace_id?: string | null;
   task_type?: string | null;
   file_key?: string | null;
@@ -1526,6 +1546,7 @@ export interface TileCategoryTreeNode {
   level: number;
   status: string;
   sku_count: number;
+  children_count: number;
   children?: TileCategoryTreeNode[];
 }
 
@@ -1688,6 +1709,7 @@ export interface BrandCertificateFile {
      * @maxLength 512
      */
   file_key: string;
+  thumbnail_url?: string | null;
   /**
      * @minLength 1
      * @maxLength 255
@@ -1839,7 +1861,7 @@ export interface ThemePreferenceUpdateRequest {
 export interface TileCategoryCreateRequest {
   parent_id?: number | null;
   /**
-     * 最多 15 个字符，仅允许中文、英文和数字
+     * 最多 15 个字符，支持中文、英文、数字和常见特殊字符
      * @maxLength 15
      */
   name: string;
@@ -1850,7 +1872,7 @@ export interface TileCategoryCreateRequest {
 
 export interface TileCategoryUpdateRequest {
   /**
-     * 最多 15 个字符，仅允许中文、英文和数字
+     * 最多 15 个字符，支持中文、英文、数字和常见特殊字符
      * @maxLength 15
      */
   name: string;
@@ -2329,6 +2351,9 @@ page?: number;
 page_size?: number;
 keyword?: string | null;
 brand_id?: number | null;
+/**
+ * 类目 ID；父类目筛选包含自身及所有子孙类目的 SKU
+ */
 category_id?: number | null;
 status?: string | null;
 material_completeness?: ListTileSkusApiV1AdminTileSkusGetMaterialCompleteness;

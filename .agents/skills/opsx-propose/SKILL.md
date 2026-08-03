@@ -111,6 +111,9 @@ After completing all artifacts, summarize:
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use `template` as the structure for your output file - fill in its sections
+- MUST follow `rules/language.md`: `proposal.md`, `design.md`, `tasks.md`, `trace.md`, `acceptance.md`, and `test-plan.md` headings, section names, and task descriptions are Chinese-first. Do not keep scaffold headings like `Why`, `What Changes`, `Implementation`, `Validation`, or `Root Cause`.
+- MAY keep OpenSpec keywords, commands, paths, code identifiers, and API fields in English.
+- After creating artifacts, run `python scripts/validate-openspec-language.py`; fix any report before Workflow Sync.
 - **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
   - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
   - These guide what you write, but should never appear in the output

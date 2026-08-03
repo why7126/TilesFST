@@ -71,86 +71,24 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 
 ### Requirement: 管理端 SKU 列表与筛选 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页（默认 `page_size=20`，可选 10/20/50/100）、关键词模糊搜索（商品名称 `name`、系统内部编码 `sku_code`）、`brand_id`、`category_id`、`status`、`material_completeness`（`complete` | `missing_main_image` | `missing_images` | `missing_videos`）筛选。响应 MUST 包含 `items`、`pagination` 与 `summary`（SKU 总数、已上架、待完善、草稿）。列表 MUST 默认按 `updated_at` 降序。管理端列表 MUST 以商品名称作为主标题，SKU 编码仅作为内部辅助信息或检索依据，视觉层级 MUST 弱于商品名称。管理端 SKU 列表 MUST 展示“发布时间”列，位置 MUST 位于“更新时间”列之前；“发布时间” MUST 使用与“更新时间”完全一致的日期时间格式、空值占位和视觉层级。系统 MUST 使用 `published_at` 表示最近一次发布成功时间，不得直接以 `updated_at` 或 `created_at` 冒充发布时间；后端 MUST 补充管理端列表响应契约并同步 OpenAPI、Orval、接口文档和测试。新增发布时间列 MUST NOT 改变现有分页、筛选、默认排序、鉴权、错误响应、加载态、空态和失败态。
+系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页（默认 `page_size=20`，可选 10/20/50/100）、关键词模糊搜索（商品名称 `name`、系统内部编码 `sku_code`）、`brand_id`、`category_id`、`status`、`material_completeness`（`complete` | `missing_main_image` | `missing_images` | `missing_videos`）筛选。`category_id` 在管理端 SKU 列表中 MUST 表示类目子树筛选：当传入父类目 ID 时，结果 MUST 包含该父类目自身及所有子孙类目的 SKU；当传入叶子类目 ID 时，结果 MUST 返回该叶子类目范围内 SKU。管理端 SKU 页类目筛选 UI MUST 使用单个级联下拉控件展示完整类目树，不得在筛选区并排生成多个类目筛选框；点击有下级的当前类目时，控件 MUST 在同一下拉层右侧展开下级类目面板，并支持选择任意层级类目；当前选择 MUST 展示在下拉触发框内，筛选项下方 MUST NOT 额外展示“当前：xxx”类辅助文案；下拉层 MUST 位于筛选控件下方并浮于 SKU 列表之上，不得被列表遮挡；品牌、类目、状态三个筛选下拉 MUST 使用一致的触发框、下拉层位置、层级、选项样式和选中态。响应 MUST 包含 `items`、`pagination` 与 `summary`（SKU 总数、已上架、待完善、草稿）。
 
-#### Scenario: 运营人员查询 SKU 列表
+列表 MUST 默认按上架状态与业务时间排序：未上架 SKU MUST 优先于已上架 SKU；未上架 SKU（`status != PUBLISHED`）MUST 按 `created_at` 降序；已上架 SKU（`status = PUBLISHED`）MUST 按 `published_at` 降序；主排序时间为空或重复时 MUST 使用稳定兜底排序，避免分页、刷新或重复请求后顺序跳动。该排序 MUST 在分页前对完整结果集生效，不能只对当前页排序。搜索、品牌筛选、类目筛选、状态筛选、素材完整度筛选和分页后，列表 MUST 继续遵循该排序契约。
 
-- **WHEN** `employee` 携带有效 token 请求 `GET /api/v1/admin/tile-skus`
-- **THEN** 系统返回 HTTP 200，`data` 包含分页列表与 summary
+管理端列表 MUST 以商品名称作为主标题，SKU 编码仅作为内部辅助信息或检索依据，视觉层级 MUST 弱于商品名称。管理端 SKU 列表 MUST 展示“发布时间”列，位置 MUST 位于“更新时间”列之前；“发布时间” MUST 使用与“更新时间”完全一致的日期时间格式、空值占位和视觉层级。系统 MUST 使用 `published_at` 表示最近一次发布成功时间，不得直接以 `updated_at` 或 `created_at` 冒充发布时间；后端 MUST 补充管理端列表响应契约并同步 OpenAPI、Orval、接口文档和测试。SKU 列表筛选区 MUST 参照其他管理端列表页铺满 filter-card 可用宽度，不得因预留多余网格列导致右侧出现空白；筛选项与重置按钮 MUST 按实际控件数量分配列宽。管理端 SKU 列表表头字段 MUST 保持单行显示；列数较多或窗口宽度不足时，列表 MUST 通过横向滚动、合理最小列宽或等价布局策略完整查看全部列，且表头与正文列 MUST 保持对齐。排序优化和表头修复 MUST NOT 新增显式排序控件、创建时间筛选或发布时间筛选，MUST NOT 改变现有分页、筛选、鉴权、错误响应、加载态、空态、失败态和行操作行为。
 
-#### Scenario: 商品名称与编码搜索
+#### Scenario: SKU 列表表头单行显示
 
-- **WHEN** 管理员输入商品名称关键词或已知 SKU 编码请求列表
-- **THEN** 系统 MUST 返回匹配的 SKU
-- **AND** 管理端页面 MUST 以商品名称作为匹配结果主展示
+- **WHEN** 管理员在常用桌面宽度打开管理后台 SKU 列表
+- **THEN** 所有表头字段 MUST 保持单行显示
+- **AND** 表头与正文列 MUST 保持对齐
+- **AND** 页面 MUST NOT 因表头单行约束导致正文内容重叠或操作列不可点击
 
-#### Scenario: 管理端列表编码弱展示
+#### Scenario: SKU 列表列数较多时完整查看
 
-- **WHEN** 管理端 SKU 列表展示商品信息列
-- **THEN** 商品名称 MUST 是主标题
-- **AND** SKU 编码如展示 MUST 使用弱化内部辅助样式
-- **AND** 上架、下架、删除确认文案 MUST 使用商品名称作为确认对象主标题
-
-#### Scenario: 管理端列表展示发布时间列
-
-- **WHEN** 管理端 SKU 列表渲染表格列
-- **THEN** 页面 MUST 展示“发布时间”列
-- **AND** “发布时间”列 MUST 位于“更新时间”列之前
-- **AND** “发布时间”列的标题、单元格文字样式、对齐方式和行高 MUST 与“更新时间”列保持一致
-
-#### Scenario: 发布时间格式与更新时间一致
-
-- **WHEN** SKU 列表项包含合法发布时间
-- **THEN** 管理端 MUST 使用与“更新时间”列相同的格式化函数和时区策略展示“发布时间”
-- **AND** 若“更新时间”展示秒级时间，“发布时间”也 MUST 展示秒级时间
-
-#### Scenario: 发布时间空值占位
-
-- **WHEN** SKU 未发布、发布时间为空、字段缺失或时间不可解析
-- **THEN** 管理端 MUST 在“发布时间”列展示统一占位，例如 `-`
-- **AND** 页面 MUST NOT 展示 `null`、`undefined`、`Invalid Date` 或空白塌陷
-- **AND** 该行其他字段和操作 MUST 正常渲染
-
-#### Scenario: 发布时间字段来源明确
-
-- **WHEN** 实现管理端 SKU 列表发布时间展示
-- **THEN** 系统 MUST 使用 `published_at` 作为发布时间字段
-- **AND** `published_at` MUST 表示最近一次发布成功时间
-- **AND** 系统 MUST NOT 直接以 `updated_at` 或 `created_at` 冒充发布时间
-
-#### Scenario: 恢复上架刷新发布时间
-
-- **WHEN** 已下架 SKU 通过 `POST /api/v1/admin/tile-skus/{id}/publish` 恢复上架成功
-- **THEN** 系统 MUST 将 `published_at` 刷新为本次发布成功时间
-- **AND** 管理端列表与发布响应 MUST 返回刷新后的 `published_at`
-
-#### Scenario: 下架后发布时间响应为空
-
-- **WHEN** 已发布 SKU 通过 `POST /api/v1/admin/tile-skus/{id}/unpublish` 下架成功
-- **THEN** 系统 MAY 保留数据库中的历史 `published_at`
-- **AND** 管理端列表与下架响应 MUST 返回 `published_at: null`
-
-#### Scenario: 列表响应补充发布时间契约
-
-- **WHEN** 当前管理端 SKU 列表响应不包含发布时间字段
-- **THEN** 后端 MUST 补充响应字段并保持分页、summary、鉴权和错误响应结构不变
-- **AND** Pydantic Schema、OpenAPI、Orval、接口文档和后端/前端测试 MUST 同步更新
-
-#### Scenario: 列表行为保持
-
-- **WHEN** 新增发布时间列后，用户执行分页、关键词搜索、品牌筛选、类目筛选、状态筛选或素材完整度筛选
-- **THEN** 列表 MUST 继续按原有请求参数和默认 `updated_at` 降序行为返回结果
-- **AND** 新增列 MUST NOT 改变加载态、空态、失败态和行操作行为
-
-#### Scenario: 素材完整度筛选缺主图
-
-- **WHEN** 请求 `material_completeness=missing_main_image`
-- **THEN** 返回项 MUST 均为未设置主图的 SKU
-
-#### Scenario: 非管理端用户被拒绝
-
-- **WHEN** `store_owner` 或未认证用户请求 `GET /api/v1/admin/tile-skus`
-- **THEN** 系统 MUST 返回 HTTP 401 或 403
+- **WHEN** SKU 列表列数较多或窗口宽度不足
+- **THEN** 管理端 MUST 通过横向滚动、合理最小列宽或等价布局完整查看全部列
+- **AND** 排序、筛选、分页和行操作行为 MUST 保持不变
 
 ### Requirement: 管理端 SKU 创建 API
 
@@ -281,58 +219,42 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 
 ### Requirement: SKU 图片与视频上传
 
-系统 MUST 支持 SKU 图片与视频经后端授权上传至 MinIO。图片 MIME MUST 包含 JPG、PNG、WebP；视频 MUST 支持 MP4（见 `rules/media.md`）。前端 MUST NOT 直连未授权对象存储。每个 SKU MUST 支持多张图片并指定一张主图；MUST 支持多个视频。SKU 弹窗商品图片区 MUST 支持移除任意已添加图片。设置某张图片为主图后，该图片 MUST 立即成为唯一主图并移动到图片列表第一位；移除当前主图后，如果仍有其它图片，系统 MUST 自动选择新主图并将其置于第一位。图片移除 MUST 只解除 SKU 关联，不触发对象存储物理删除。
+系统 MUST 支持 SKU 图片与视频经后端授权上传至 MinIO。图片 MIME MUST 包含 JPG、PNG、WebP；视频 MUST 支持 MP4（见 `rules/media.md`）。前端 MUST NOT 直连未授权对象存储。每个 SKU MUST 支持多张图片并指定一张主图；MUST 支持多个视频。SKU 弹窗商品图片区 MUST 支持移除任意已添加图片。设置某张图片为主图后，该图片 MUST 立即成为唯一主图并移动到图片列表第一位；移除当前主图后，如果仍有其它图片，系统 MUST 自动选择新主图并将其置于第一位。图片移除 MUST 只解除 SKU 关联，不触发对象存储物理删除。当主图原图对象存在时，系统 SHOULD 为列表场景生成同目录文件名差异化缩略图，并 SHALL 支持历史公开 SKU 主图缩略图回填。SKU 图片上传链路 SHALL 生成真实同目录缩略图；对于尺寸大于缩略图目标尺寸的支持图片，`.thumb` 对象 SHALL 经过后端 resize / compress 处理，SHALL NOT 只是原图 bytes 的复制品。
 
-#### Scenario: 上传 SKU 图片成功
+#### Scenario: SKU 编码稳定
 
-- **WHEN** `admin` 或 `employee` 上传合法图片
-- **THEN** 系统返回 object_key
-- **AND** 创建/更新 SKU 时可关联图片并设置 `is_main`
+- **WHEN** 运营更新商品名称、品牌、类目、规格、价格、图片或视频
+- **THEN** 系统 MUST 保持既有 `sku_code` 不变
 
-#### Scenario: 非法 MIME 被拒绝
+#### Scenario: 主图标记
 
-- **WHEN** 上传不允许的文件类型
-- **THEN** 系统 MUST 返回 HTTP 400
+- **WHEN** SKU 有多张图片且其中一张 `is_main=1`
+- **THEN** 列表与详情 MUST 将该图作为主图缩略图
 
-#### Scenario: 移除非主图图片
+#### Scenario: SKU 图片上传生成真实缩略图
 
-- **WHEN** 用户在 SKU 编辑弹窗中移除非主图图片
-- **THEN** 当前主图 MUST 保持不变
-- **AND** 剩余图片 MUST 重新生成连续 `sort_order`
-- **AND** 保存后再次打开弹窗，被移除图片 MUST 不再出现
+- **GIVEN** 管理端上传一张尺寸大于缩略图目标尺寸的 SKU 图片
+- **WHEN** 上传接口成功写入原图对象
+- **THEN** 后端 SHALL 在同目录写入 `.thumb` 缩略图对象
+- **AND** 缩略图 SHALL 保持比例并限制在约定最大宽高内
+- **AND** 缩略图 bytes SHALL NOT 与原图 bytes 完全一致
+- **AND** 上传响应中的原图 `/media/{object_key}` SHALL 继续可读取。
 
-#### Scenario: 设置主图自动前置
+#### Scenario: 缩略图生成失败边界
 
-- **WHEN** 用户在 SKU 编辑弹窗中点击某张非主图图片的「设为主图」
-- **THEN** 该图片 MUST 立即成为唯一主图
-- **AND** 该图片 MUST 移动到图片列表第一位
-- **AND** 保存 payload 中该图片 MUST 为 `is_main=true` 且 `sort_order=0`
+- **GIVEN** 原图上传成功但图片解码、resize 或重编码失败
+- **WHEN** 后端处理 SKU 图片上传结果
+- **THEN** 系统 SHALL 按 Change 实现中约定的失败策略返回错误或记录可观测告警
+- **AND** 系统 SHALL NOT 产生原图不可访问、数据库引用半成功或前端直连对象存储的状态
+- **AND** Task Trace 或日志 SHOULD 能定位缩略图处理阶段且不得泄露敏感信息。
 
-#### Scenario: 移除当前主图自动兜底
+#### Scenario: 历史 SKU 主图缩略图重生成
 
-- **WHEN** 用户在 SKU 编辑弹窗中移除当前主图且移除前后一张图片存在
-- **THEN** 移除前后一张图片 MUST 自动成为新主图
-- **AND** 新主图 MUST 在弹窗内即时显示在图片列表第一位
-
-#### Scenario: 移除最后位置主图自动兜底
-
-- **WHEN** 用户移除当前主图且该主图已是移除前最后一张图片，但移除后仍有其它图片
-- **THEN** 移除后列表第一张图片 MUST 自动成为新主图
-- **AND** 新主图 MUST 在弹窗内即时显示在图片列表第一位
-
-#### Scenario: 移除全部商品图片
-
-- **WHEN** 用户移除 SKU 编辑弹窗中的最后一张商品图片
-- **THEN** 图片列表 MUST 为空
-- **AND** 弹窗 MUST 不再显示「主图」标签
-- **AND** 「继续添加图片」入口 MUST 仍可用
-
-#### Scenario: 图片上传状态不因移除能力回归
-
-- **WHEN** 用户在同一 SKU 编辑弹窗会话中上传图片
-- **THEN** 上传过程 MUST 体现 `idle→uploading→done/failed` 或等价状态机
-- **AND** 上传成功的图片 MUST 即时回显并可继续执行「设为主图」与「移除」
-- **AND** 上传失败 MUST 在上传控件或图片区域内展示错误
+- **GIVEN** 存量 SKU 主图原图存在且 `.thumb` 对象缺失或疑似与原图相同
+- **WHEN** 运维执行历史缩略图重生成 apply
+- **THEN** 系统 SHALL 生成真实同目录 `.thumb` 对象
+- **AND** 主图顺序、主图唯一、图片移除关联语义和 SKU 公开状态 SHALL 保持不变
+- **AND** 重生成脚本 SHALL 支持 dry-run 和幂等执行。
 
 ### Requirement: SKU 弹窗视频上传 UX 对齐 AC-035
 

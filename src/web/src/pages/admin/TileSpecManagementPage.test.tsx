@@ -97,6 +97,44 @@ describe('TileSpecManagementPage', () => {
     expect(container.querySelector('.page-indicator')).toBeNull();
   });
 
+  it('applies the unified admin filter dropdown to the spec status filter', async () => {
+    render(
+      <div className="admin-shell">
+        <TileSpecManagementPage />
+      </div>,
+    );
+
+    await waitFor(() => {
+      expect(fetchTileSpecsMock).toHaveBeenCalledWith(
+        expect.objectContaining({ status: undefined }),
+      );
+    });
+
+    const statusTrigger = screen.getByLabelText('状态');
+    expect(statusTrigger).toHaveClass('select');
+    expect(statusTrigger).toHaveClass('admin-filter-dropdown-trigger');
+
+    fireEvent.click(statusTrigger);
+    expect(screen.getByRole('listbox', { name: '规格状态选项' })).toHaveClass(
+      'admin-filter-dropdown-menu',
+    );
+    fireEvent.click(screen.getByRole('option', { name: '停用' }));
+
+    await waitFor(() => {
+      expect(fetchTileSpecsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: 'DISABLED' }),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '重置' }));
+
+    await waitFor(() => {
+      expect(fetchTileSpecsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, status: undefined }),
+      );
+    });
+  });
+
   it('reloads list after form save success', async () => {
     render(
       <div className="admin-shell">

@@ -34,52 +34,65 @@
 - **AND** 系统 MUST NOT 要求通过公开 bucket 或前端直连来绕过失败。
 
 ### Requirement: 媒体对象必须可受控读取
+系统 SHALL 通过后端受控接口读取媒体对象，保护对象存储访问边界，并 SHALL 支持图片缓存、列表缩略图、媒体观测和视频 Range 请求。商品列表缩略图、品牌图片缩略图和图片类品牌证书缩略图 SHALL 与原图位于同一对象目录或等价可追溯对象路径，并 SHALL 通过文件名差异区分缩略图与原图；历史 `thumbnails/` 前缀 MAY 作为兼容读取或迁移来源，但新生成的列表缩略图 SHALL NOT 依赖 `thumbnails/default/tiles/pending/` 作为最终存储位置。系统 SHALL 生成真实轻量缩略图：对于尺寸大于缩略图目标尺寸的支持图片，缩略图 SHALL 经过后端图片处理生成，像素宽高 SHALL 小于或等于约定最大宽高，且 SHALL NOT 只是原图 bytes 的复制品。
 
-系统 MUST 提供受控媒体读取能力，使上传响应中的 URL 能从 MinIO/S3 兼容对象存储读取对象并返回给授权或允许访问的客户端。读取链路 MUST 校验 object_key 或签名有效性，MUST 防止路径穿越、绝对路径读取、反斜杠绕过、重复斜杠绕过和内部路径泄露。对视频媒体对象，受控读取链路 MUST 支持播放器所需的 Range 分段读取能力，避免大视频必须整文件读取后才能起播。
+#### Scenario: 通过后端读取媒体对象
+- **WHEN** Web、小程序或管理端需要展示已授权媒体对象
+- **THEN** 客户端 SHALL 通过后端公开或授权媒体 URL 读取媒体
+- **AND** 客户端 SHALL NOT 直连未授权对象存储 endpoint、泄露 MinIO 凭据或绕过后端访问控制。
 
-#### Scenario: 读取已上传对象
+#### Scenario: 图片响应缓存
+- **WHEN** 客户端通过 `/media/{object_key}` 或等价受控 URL 读取图片对象
+- **THEN** 后端 SHOULD 返回合理的 `Cache-Control`、`ETag`、`Last-Modified` 或对象版本信息
+- **AND** 同一版本图片重复读取 SHOULD 支持客户端或中间层缓存
+- **AND** 图片替换或对象版本变化 SHALL 有明确失效策略，避免长期展示旧图。
 
-- **GIVEN** 对象已写入对象存储 bucket
-- **WHEN** 客户端访问上传响应返回的 `/media/{object_key}` 或等价 URL
-- **THEN** 系统 MUST 从对象存储读取对象
-- **AND** 返回内容的 MIME Type MUST 与对象类型匹配或可被浏览器正确处理
-- **AND** 对视频对象，生产或生产等价 smoke MUST 确认响应不是 Nginx 502 HTML 页面。
+#### Scenario: 列表缩略图读取
+- **WHEN** 小程序商品卡片、搜索结果、首页推荐或品牌详情商品 Tab 读取商品列表图片
+- **THEN** 后端 SHOULD 优先返回与原图同目录且文件名差异化的缩略图或等价轻量优化图片 URL
+- **AND** 缩略图缺失时 SHALL 安全回退到原图、占位图或可观测的失败状态
+- **AND** 缩略图读取 SHALL 遵守单 Bucket + 前缀策略和既有鉴权边界。
 
-#### Scenario: 视频 Range 分段读取
+#### Scenario: 品牌与证书小图缩略图读取
+- **WHEN** 管理端品牌列表、品牌编辑小预览、品牌证书列表、证书卡片、小程序品牌/证书展示或店主 Web 品牌/证书展示读取品牌图片或图片类证书
+- **THEN** 后端 SHOULD 优先返回或提供与原图可追溯的真实缩略图 URL
+- **AND** 原图预览、证书预览、下载或大图查看 SHALL 继续使用原图或原文件
+- **AND** 缩略图缺失、损坏或读取失败时 SHALL 安全回退到原图、占位图或文件类型占位
+- **AND** 客户端 SHALL NOT 直连未授权对象存储地址。
 
-- **GIVEN** 对象存储中存在合法视频对象
-- **WHEN** 客户端请求 `/media/{object_key}` 并携带 `Range: bytes=0-1023`
-- **THEN** 系统 MUST 返回 `206 Partial Content`
-- **AND** 响应 MUST 包含 `Accept-Ranges: bytes`
-- **AND** 响应 MUST 包含合法 `Content-Range`
-- **AND** 响应 `Content-Length` MUST 与返回分段字节数一致
-- **AND** 响应 `Content-Type` MUST 为视频对象可播放 MIME Type
-- **AND** 系统 MUST NOT 为满足 Range 请求暴露对象存储 endpoint、bucket 名称、access key、secret key 或 raw object URL。
+#### Scenario: 真实缩略图生成
+- **GIVEN** 原图为后端支持的 JPG、PNG 或 WebP 图片且像素尺寸大于缩略图目标尺寸
+- **WHEN** 系统生成同目录 `.thumb` 缩略图
+- **THEN** 缩略图 SHALL 保持原图比例并限制在约定最大宽高内
+- **AND** 缩略图 bytes SHALL NOT 与原图 bytes 完全一致
+- **AND** 缩略图文件体积 SHOULD 小于原图文件体积
+- **AND** 系统 SHALL 记录或返回可用于测试验证的缩略图处理结果。
 
-#### Scenario: 非 Range 视频读取兼容
+#### Scenario: 小图和透明图边界
+- **GIVEN** 原图小于或等于缩略图目标尺寸，或原图包含透明通道
+- **WHEN** 系统生成同目录 `.thumb` 缩略图
+- **THEN** 系统 SHALL NOT 放大原图
+- **AND** 透明 PNG/WebP SHALL 按约定保持透明度或使用明确背景策略
+- **AND** 小图重编码后若体积异常增大，系统 SHALL 按约定跳过重写、回退或记录告警。
 
-- **GIVEN** 对象存储中存在合法视频对象
-- **WHEN** 客户端不携带 `Range` 请求 `/media/{object_key}`
-- **THEN** 系统 MAY 返回完整视频对象
-- **AND** 响应 MUST 保持可播放 `Content-Type`
-- **AND** 图片、PDF 或其他非视频媒体读取 SHALL NOT 因视频 Range 支持而回归。
+#### Scenario: 历史品牌与证书缩略图审计与重生成
+- **GIVEN** 存量品牌图片或图片类品牌证书已存在原图对象
+- **WHEN** 运维执行历史缩略图审计 dry-run
+- **THEN** 输出 SHALL 包含原图存在、缩略图存在、疑似同 size、疑似同 bytes、需要生成或重生成、跳过、失败原因等摘要
+- **AND** dry-run SHALL NOT 写数据库或对象存储
+- **WHEN** 运维执行重生成 apply
+- **THEN** 系统 SHALL 只生成或重生成需要处理的缩略图对象
+- **AND** 重复执行 SHALL 保持幂等，不破坏已合格缩略图
+- **AND** 输出 SHALL NOT 泄露密钥、Authorization header、Cookie、`.env` 内容、真实客户数据或本机绝对路径。
 
-#### Scenario: 非法或不可满足 Range
-
-- **WHEN** 客户端对视频对象发起格式非法或超出对象大小范围的 Range 请求
-- **THEN** 系统 SHOULD 返回 `416 Range Not Satisfiable` 或等价可诊断错误
-- **AND** 响应 MUST NOT 暴露内部存储路径、Bucket 权限细节或底层 SDK 堆栈。
-
-#### Scenario: 对象不存在
-
-- **WHEN** 客户端请求不存在的媒体对象
-- **THEN** 系统 MUST 返回 404 或等价媒体不存在错误
-- **AND** MUST NOT 暴露内部存储路径、Bucket 权限细节或 MinIO/S3 原始错误堆栈
-- **AND** 该错误 MUST 可从后端日志或运维证据中与生产 upstream 502 区分。
+#### Scenario: 媒体读取观测
+- **WHEN** 后端处理媒体读取请求
+- **THEN** 系统 SHOULD 记录状态码、耗时、对象是否存在、媒体类型和请求入口中的可用脱敏字段
+- **AND** 缩略图回退到原图或占位时 SHOULD 记录可定位的脱敏失败原因。
 
 ### Requirement: 对象 Key 必须使用标准前缀
 
-系统 MUST 使用 `rules/object-storage.md` 定义的单桶标准前缀生成对象 Key。图片类上传 MUST 使用 `images/`，原始视频 MUST 使用 `videos/`，视频封面 MUST 使用 `videos/covers/`，文件类资源 MUST 使用 `files/`，处理后资源 MUST 使用 `processed/` 或更具体标准前缀。系统 MUST NOT 使用用户原始文件名作为对象 Key。`original/` 仅允许作为存量兼容前缀，新上传 MUST NOT 使用。**Banner 运营图** MUST 使用 `images/default/banners/{uuid}.{ext}`（当 `update-object-storage-key-layout` 已生效时 MUST 使用 `images/` 语义前缀；未生效前实现 MUST 与 `build_upload_object_key()` 当前项目约定一致并在 apply 时对齐）。
+系统 MUST 使用 `rules/object-storage.md` 定义的单桶标准前缀生成对象 Key。图片类上传 MUST 使用 `images/`，原始视频 MUST 使用 `videos/`，视频封面 MUST 使用 `videos/covers/`，文件类资源 MUST 使用 `files/`，处理后资源 MUST 使用 `processed/` 或更具体标准前缀。系统 MUST NOT 使用用户原始文件名作为对象 Key。`original/` 仅允许作为存量兼容前缀，新上传 MUST NOT 使用。**Banner 运营图** MUST 使用 `images/default/banners/{uuid}.{ext}`（当 `update-object-storage-key-layout` 已生效时 MUST 使用 `images/` 语义前缀；未生效前实现 MUST 与 `build_upload_object_key()` 当前项目约定一致并在 apply 时对齐）。SKU 图片在新建前 MAY 使用 `images/default/tiles/pending/{uuid}.{ext}` 作为暂存 key；一旦绑定到 SKU 或进入公开展示，系统 MUST 使用可追溯到 SKU 的正式商品图片 key。
 
 #### Scenario: 图片对象 Key 生成
 
@@ -88,6 +101,15 @@
 - **AND** 对象 Key MUST 包含租户或默认命名空间、资源类型和随机文件名
 - **AND** 文件扩展名 MUST 来自后端 MIME 白名单映射
 - **AND** 新上传 MUST NOT 使用 `original/` 前缀
+
+#### Scenario: SKU 图片从 pending 正式化
+
+- **GIVEN** SKU 图片对象 key 位于 `images/default/tiles/pending/`
+- **WHEN** 后端将该图片绑定到 SKU 或迁移存量公开主图
+- **THEN** 目标对象 key MUST 位于 `images/default/tiles/{tile_id}/` 或等价 SKU 正式商品图片目录
+- **AND** 目标 key MUST 由后端生成，不得由前端提交
+- **AND** 系统 MUST NOT 使用用户原始文件名作为目标 key
+- **AND** 对象复制、缩略图复制或生成、数据库引用更新必须通过后端受控逻辑完成。
 
 #### Scenario: Banner 对象 Key 生成
 
@@ -168,4 +190,62 @@
 - **THEN** 上传 MUST 返回对象存储不可用错误
 - **AND** 系统 MUST NOT 尝试在云上隐式创建业务 bucket
 - **AND** 错误响应 MUST NOT 暴露底层凭据、内部 endpoint 白名单或完整 SDK 堆栈
+
+### Requirement: 媒体类 BUG 必须使用四联验收模板
+
+媒体类 BUG 修复、返修、回归测试、Sprint 验收或发布前检查 SHALL 使用媒体类 BUG 四联验收模板。模板 SHALL 覆盖原 BUG 场景、`key`、`object`、`URL`、`render` 四个维度，并 SHALL 为每个维度记录 `pass`、`fail`、`n/a` 或 `blocked` 状态、证据和失败/阻塞处理。模板 SHALL 遵守对象存储单桶策略、对象 Key 标准前缀、后端受控媒体读取、上传安全和小程序平台限制。模板 SHALL NOT 记录真实客户数据、真实密钥、Authorization header、Cookie、`.env` 内容、本机绝对路径或未脱敏 MinIO 凭证。
+
+#### Scenario: 记录原 BUG 场景
+
+- **WHEN** 团队使用四联模板验收媒体类 BUG
+- **THEN** 验收记录 SHALL 包含 BUG 编号、标题、严重等级、影响范围、复现入口、受影响端和环境
+- **AND** 验收记录 SHALL 包含修复前实际结果和修复后期望结果
+- **AND** 涉及特定媒体资源时 SHALL 记录媒体类型、业务资源或等价脱敏标识。
+
+#### Scenario: key 维度验收
+
+- **WHEN** 团队验收媒体类 BUG 的 key 维度
+- **THEN** 验收记录 SHALL 确认业务记录中的媒体 key 稳定、可追溯，并符合单 Bucket 标准前缀策略
+- **AND** 验收记录 SHALL 禁止用户原始文件名、本机绝对路径、临时路径或未脱敏内部路径作为对象存储 key
+- **AND** 若修复涉及历史 key 兼容或迁移，验收记录 SHALL 包含旧 key、新 key 和兼容结果。
+
+#### Scenario: object 维度验收
+
+- **WHEN** 团队验收媒体类 BUG 的 object 维度
+- **THEN** 验收记录 SHALL 确认对象存储中真实 object 存在，并与业务记录 key 对应
+- **AND** 验收记录 SHALL 覆盖 MIME Type、文件大小、扩展名、权限边界和对象可读性
+- **AND** object 验收失败时 SHALL 记录对象不存在、大小为 0、类型不匹配、权限错误或存储环境不可用等失败原因。
+
+#### Scenario: URL 维度验收
+
+- **WHEN** 团队验收媒体类 BUG 的 URL 维度
+- **THEN** 验收记录 SHALL 区分相对 URL、公开 URL、签名 URL、代理 URL 或静态资源 URL
+- **AND** 验收记录 SHALL 记录页面或接口入口、HTTP 状态、业务错误码和用户可见表现
+- **AND** 客户端 SHALL 继续使用后端鉴权、代理或签名 URL 策略读取媒体，SHALL NOT 直连未授权对象存储。
+
+#### Scenario: render 维度验收
+
+- **WHEN** 团队验收媒体类 BUG 的 render 维度
+- **THEN** 验收记录 SHALL 覆盖受影响端的媒体展示、占位、失败态和用户可见行为
+- **AND** Web 管理端 SHOULD 覆盖上传后预览、列表缩略展示、详情或编辑弹窗展示
+- **AND** 店主 Web SHOULD 覆盖公开页面、商品卡片、详情页或媒体预览入口
+- **AND** 微信小程序 SHALL 覆盖合法域名、图片/视频组件限制、DevTools/真机/体验版 evidence 或明确的不可用原因
+- **AND** 小程序端 SHALL NOT 依赖 Web 浏览器专属 API。
+
+#### Scenario: 不适用、失败和阻塞处理
+
+- **WHEN** 某端、某维度或某 evidence 对当前媒体 BUG 不适用
+- **THEN** 验收记录 SHALL 标记 `n/a` 并说明不适用原因和影响判断
+- **WHEN** 某维度验收失败
+- **THEN** 验收记录 SHALL 标记 `fail`，并包含实际结果、期望结果、复现步骤、影响范围和排查线索
+- **WHEN** 验收被环境、数据、域名、MinIO 或小程序体验版阻塞
+- **THEN** 验收记录 SHALL 标记 `blocked`，并记录阻塞原因、缺失资源、负责人或下一步补证方式。
+
+#### Scenario: 媒体上传链路横切验收
+
+- **WHEN** 媒体类 BUG 涉及上传、编辑、列表回显、历史对象、缩略图、回填或审计脚本
+- **THEN** 四联模板 SHALL 要求记录上传状态机 `idle -> uploading -> done/failed` 或等价状态证据
+- **AND** 涉及 Web 管理端上传/编辑/列表刷新时 SHALL 记录同会话即时回显 evidence
+- **AND** 涉及上传大小、Nginx 或 Docker Web 边界时 SHALL 通过 `http://localhost:3000` 或等价 Web 入口验证边界文件，或记录 `N/A` 原因
+- **AND** 涉及历史对象、缩略图、回填或审计脚本时 SHALL 记录 dry-run/apply/统计摘要，且输出 SHALL NOT 泄露敏感信息。
 

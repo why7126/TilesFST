@@ -1,0 +1,346 @@
+{
+  "version": "v0.3.3",
+  "generated_at": "2026-08-02 21:07:40",
+  "image_required": true,
+  "image_required_rationale": "sprint-017 范围包含品牌/证书图片缩略图生成与读取、后端受控媒体读取、管理端上传/回显、小程序与店主 Web 展示、对象存储与存量补齐治理；按 rules/release.md，涉及后端运行代码、Web/小程序运行代码、对象存储和发布镜像输入时需要执行 image prepare / image build 门禁。",
+  "image_tag": "v0.3.3",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-017"
+    ],
+    "requirements": [
+      {
+        "id": "REQ-0088-versioned-product-usage-docs",
+        "title": "版本化产品使用文档治理",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0090-media-five-point-acceptance-template",
+        "title": "媒体五联验收模板",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0091-media-bug-four-point-acceptance-template",
+        "title": "媒体类 BUG 四联验收模板",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0089-workflow-subdocument-status-sync",
+        "title": "REQ/BUG 子文档状态同步治理",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0092-brand-certificate-image-thumbnails",
+        "title": "品牌与证书图片真实缩略图",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      }
+    ],
+    "bugs": [
+      {
+        "id": "BUG-0102-miniapp-brand-list-carousel-brand-gallery-text",
+        "title": "小程序品牌列表轮播图多余文案展示",
+        "sprint": "sprint-017",
+        "status": "done",
+        "scope": "formal"
+      }
+    ],
+    "changes": [
+      {
+        "id": "add-versioned-product-usage-docs",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-02-add-versioned-product-usage-docs"
+      },
+      {
+        "id": "add-media-five-point-acceptance-template",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-01-add-media-five-point-acceptance-template"
+      },
+      {
+        "id": "add-media-bug-four-point-acceptance-template",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-01-add-media-bug-four-point-acceptance-template"
+      },
+      {
+        "id": "improve-workflow-subdocument-status-sync",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-01-improve-workflow-subdocument-status-sync"
+      },
+      {
+        "id": "fix-miniapp-brand-list-carousel-text",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-02-fix-miniapp-brand-list-carousel-text"
+      },
+      {
+        "id": "add-brand-certificate-image-thumbnails",
+        "sprint": "sprint-017",
+        "status": "archived",
+        "scope": "formal",
+        "archive_dir": "openspec/archive/2026-08-02-add-brand-certificate-image-thumbnails"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "0df28fa9209ae0b73cd645a82d05ebf255f55d9452385dce22dc8bc8df528905",
+    "fields": {
+      "version": "v0.3.3",
+      "image_required": true,
+      "image_required_rationale": "sprint-017 范围包含品牌/证书图片缩略图生成与读取、后端受控媒体读取、管理端上传/回显、小程序与店主 Web 展示、对象存储与存量补齐治理；按 rules/release.md，涉及后端运行代码、Web/小程序运行代码、对象存储和发布镜像输入时需要执行 image prepare / image build 门禁。",
+      "image_tag": "v0.3.3",
+      "sprints": [
+        "sprint-017"
+      ],
+      "requirements": [
+        {
+          "id": "REQ-0088-versioned-product-usage-docs",
+          "title": "版本化产品使用文档治理",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0090-media-five-point-acceptance-template",
+          "title": "媒体五联验收模板",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0091-media-bug-four-point-acceptance-template",
+          "title": "媒体类 BUG 四联验收模板",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0089-workflow-subdocument-status-sync",
+          "title": "REQ/BUG 子文档状态同步治理",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0092-brand-certificate-image-thumbnails",
+          "title": "品牌与证书图片真实缩略图",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "BUG-0102-miniapp-brand-list-carousel-brand-gallery-text",
+          "title": "小程序品牌列表轮播图多余文案展示",
+          "sprint": "sprint-017",
+          "status": "done",
+          "scope": "formal"
+        }
+      ],
+      "changes": [
+        {
+          "id": "add-versioned-product-usage-docs",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-02-add-versioned-product-usage-docs"
+        },
+        {
+          "id": "add-media-five-point-acceptance-template",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-01-add-media-five-point-acceptance-template"
+        },
+        {
+          "id": "add-media-bug-four-point-acceptance-template",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-01-add-media-bug-four-point-acceptance-template"
+        },
+        {
+          "id": "improve-workflow-subdocument-status-sync",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-01-improve-workflow-subdocument-status-sync"
+        },
+        {
+          "id": "fix-miniapp-brand-list-carousel-text",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-02-fix-miniapp-brand-list-carousel-text"
+        },
+        {
+          "id": "add-brand-certificate-image-thumbnails",
+          "sprint": "sprint-017",
+          "status": "archived",
+          "scope": "formal",
+          "archive_dir": "openspec/archive/2026-08-02-add-brand-certificate-image-thumbnails"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "涉及：品牌图片与图片类品牌证书真实缩略图生成、列表/卡片/上传回显、状态与降级展示。",
+        "owner_web": "涉及：品牌与证书图片展示优先读取可用缩略图并安全回退。",
+        "miniapp": "涉及：品牌列表页轮播文案修复、品牌与证书图片端上展示、缩略图读取和降级行为。",
+        "backend": "涉及：媒体读取、缩略图生成、品牌与证书图片服务、存量补齐治理脚本或等价链路。",
+        "database": "不涉及",
+        "object_storage": "涉及：品牌图片与图片类证书缩略图对象生成、读取、回退和存量补齐。",
+        "docker": "涉及：后端媒体处理与 Web/小程序运行代码发布，需要镜像构建计划和 manifest 证据。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.3.3",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    "releases/v0.3.3/announcement.mdx",
+    "src/shared/product-version.ts",
+    "src/backend/Dockerfile",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf",
+    "docker-compose.prod.yml",
+    "docker-compose.prod.external.yml",
+    ".env.example",
+    "scripts/build-images.sh",
+    "scripts/build-images.env.example",
+    "src/backend/app/db/schema.sql",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md"
+  ],
+  "input_hashes": {
+    "releases/v0.3.3/announcement.mdx": "9e50e654b97cff87bb266d178c014ea069e8ca031e28ce8b565f4b770c5b6549",
+    "src/shared/product-version.ts": "4099d88930430be52297cf1901e51af56f0af3367c8985147a6c4ca042d05d55",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "95478d7a6ecffb86742d2cc43e5b507a1b9f27c90b783b74f42e2e48957e7f92",
+    "docker-compose.prod.yml": "fd3a5f6dff4f2b145c10e50f9f4db9b84fc78cff692039645f9817a8fc7f9a65",
+    "docker-compose.prod.external.yml": "94f996a7151c4effc41a68c73bf169941984a16e55f03422987b9eedc980cb60",
+    ".env.example": "9a4233a2f568402f2f4808649699e40e3591cf967a5cbc04324c20200684a560",
+    "scripts/build-images.sh": "7ee91932a86d034b6944c4c8ae69bbe262e4eb0cf58cbb0a88d4541886a4c32e",
+    "scripts/build-images.env.example": "c3381e647484deef1cd85153582e13d2638990c3484b229e3a80ce54c44f245f",
+    "src/backend/app/db/schema.sql": "1ad762e44786d48bd726e7443d475adae0618711dfef0dcf4d6296dbab48c89a",
+    "src/backend/app/db/schema.mysql.sql": "8d621e100e25d904e0ea38d6a93a3d3349231b1877788cd69f735f89b5da2e69",
+    "src/backend/app/db/migrations.py": "592643fab71bf666a8dc9093539ac7fb2dc22d199cb0d7289318cedfed0e27ff",
+    "src/backend/app/db/mysql_migrations.py": "f2e5fe2775b4eff13906990bf8790aa40d5dcafd4d91751b3cdf679b89d3050f",
+    "docs/04-database-design.md": "8b2a496cae44155f6c6f2c56334158966646a40a755fd54e19daf5f4b43dcb7d",
+    "docs/08-production-image-release.md": "0f776501739252a8669afad4f2173468c7e623058b078a3c6154f828db9b2600"
+  },
+  "database_impact": {
+    "required": false,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v0.3.3"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v0.3.3"
+    }
+  ],
+  "auto_actions": [],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.3."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.3."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.3."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.3."
+    }
+  ],
+  "blockers": []
+}

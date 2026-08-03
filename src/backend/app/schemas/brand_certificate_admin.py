@@ -26,6 +26,7 @@ CertificateDisplayStatus = Literal["VISIBLE", "HIDDEN"]
 class BrandCertificateFile(BaseModel):
     file_url: str = Field(..., min_length=1, max_length=768)
     file_key: str = Field(..., min_length=1, max_length=512)
+    thumbnail_url: str | None = Field(None, max_length=768)
     file_name: str = Field(..., min_length=1, max_length=255)
     file_mime_type: str = Field(..., min_length=1, max_length=128)
     file_size_bytes: int = Field(..., ge=1)
@@ -54,6 +55,7 @@ class BrandCertificateItem(BaseModel):
     issuer: str | None = None
     file_url: str
     file_key: str
+    thumbnail_url: str | None = None
     file_name: str
     file_mime_type: str
     file_size_bytes: int

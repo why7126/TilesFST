@@ -1,0 +1,67 @@
+{
+  "release_version": "v0.3.0",
+  "workflow_event": "image.build",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/31/rollout-2026-07-31T08-26-02-019fb590-537a-7ba0-8965-97c280a27072.jsonl"
+  ],
+  "generated_at": "2026-07-31T01:18:51.678465Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [],
+    "bugs": [],
+    "changes": [],
+    "sprints": []
+  },
+  "totals": {
+    "input_tokens": 725390,
+    "cached_input_tokens": 690176,
+    "output_tokens": 2840,
+    "reasoning_output_tokens": 774,
+    "total_tokens": 728230,
+    "command_run_count": 1,
+    "model_call_count": 8,
+    "tool_call_count": 13,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "7e80a5478d57590609d87cc8aa97a49ab37e7c098096479d4c4e9fc82626b7c3",
+      "source_data_file": "~/.codex/sessions/2026/07/31/rollout-2026-07-31T08-26-02-019fb590-537a-7ba0-8965-97c280a27072.jsonl",
+      "source_line_start": 1019,
+      "source_line_end": 1082,
+      "turn_hash": "08ba9dafd26daab3",
+      "started_at": "2026-07-31T01:06:42.929Z",
+      "ended_at": "2026-07-31T01:12:20.374Z",
+      "command": "image.build",
+      "workflow_event": "image.build",
+      "requirements": [],
+      "bugs": [],
+      "changes": [],
+      "sprint_id": null,
+      "release_sprints": [],
+      "release_version": "v0.3.0",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": "default",
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 8,
+      "input_tokens": 725390,
+      "cached_input_tokens": 690176,
+      "output_tokens": 2840,
+      "reasoning_output_tokens": 774,
+      "total_tokens": 728230,
+      "tool_call_count": 13,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

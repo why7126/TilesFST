@@ -6,6 +6,16 @@ export function getBrandInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
+type BrandLogoFields = {
+  logo_url?: string | null;
+  logo_thumbnail_url?: string | null;
+  thumbnail_url?: string | null;
+};
+
+export function getBrandLogoSrc(brand: BrandLogoFields): string | null {
+  return brand.logo_thumbnail_url || brand.thumbnail_url || brand.logo_url || null;
+}
+
 export function formatBrandDateTime(value: string): string {
   return value.replace('T', ' ').slice(0, 16);
 }

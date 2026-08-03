@@ -16,12 +16,12 @@ ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:-v0.0.4}
 - 不修改 `PRODUCT_VERSION` 策略；用户可见产品版本仍按发布规范由 `src/shared/product-version.ts` 人工维护。
 - 不修改 `scripts/build-images.sh` 的默认推导逻辑，仅同步示例与文档，降低发版配置出错概率。
 
-## Risks
+## 风险
 
 - 运维若仍使用旧变量 `TILESFST_BACKEND_IMAGE` / `TILESFST_WEB_IMAGE`，新 Compose 不再读取这两个变量。部署文档和 `.env.example` 已同步新变量名。
 - 私有仓库路径包含端口时可放入 repository 变量，例如 `registry.example.com:5000/tilesfst-backend`，Compose 拼接后仍形成合法镜像引用。
 
-## Validation
+## 验证
 
 - `bash -n scripts/build-images.sh`
 - 使用示例生产密钥占位与 `TILESFST_IMAGE_TAG=v9.8.7` 执行 `docker compose -f docker-compose.prod.yml config`，确认镜像为 `tilesfst-backend:v9.8.7` 与 `tilesfst-web:v9.8.7`。

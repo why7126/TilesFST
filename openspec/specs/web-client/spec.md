@@ -402,7 +402,7 @@ Web 客户端管理端登录页（`/admin/login`）MUST 通过 port CSS 引用 D
 
 ### Requirement: 管理端瓷砖类目管理页
 
-Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `tile-category-management-add.html` 弹窗策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。新增类目表单 MUST 与小程序分类交互保持一致，最多只允许创建两级类目。
+Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categories`，视觉 MUST 高保真对齐 **`REQ-0007-tile-category-management-refine`** 目录下 v2 context（相对 `REQ-0005-tile-category-management/prototype/web/tile-category-management.html` 的 CSS Port diff）与 `tile-category-management-add.html` 弹窗策略。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。新增类目表单 MUST 与小程序分类交互保持一致，最多只允许创建两级类目。左侧类目树节点右侧计数 MUST 显示下一层级类目数量，不得显示商品数量；“全部类目”入口右侧计数 MUST 显示顶层类目数量。
 
 #### Scenario: 类目页布局
 
@@ -417,6 +417,30 @@ Web 客户端 MUST 提供瓷砖类目管理页，路由为 `/admin/tile-categori
 - **WHEN** 用户点击左侧类目树节点
 - **THEN** 右侧列表 MUST 以所选节点为上下文刷新
 - **AND** 当前选中节点 MUST 有清晰 active 状态。
+
+#### Scenario: 类目树节点显示直接子类目数量
+
+- **GIVEN** 管理端类目树节点存在直接子类目数量字段
+- **WHEN** Web 管理端渲染该节点右侧数字
+- **THEN** 节点右侧数字 MUST 使用直接子类目数量
+- **AND** MUST NOT 使用 `sku_count` 或其他商品数量字段
+
+#### Scenario: 全部类目入口显示顶层类目数量
+
+- **GIVEN** 管理端类目树存在“全部类目”入口
+- **WHEN** Web 管理端渲染该入口右侧数字
+- **THEN** 该数字 MUST 等于顶层类目数量
+- **AND** MUST NOT 显示商品总数
+- **AND** 该入口右侧数字 MUST 与一级类目节点右侧数字保持同列视觉对齐
+- **AND** 该入口文字 MUST 与类目树标题文字保持左对齐
+- **AND** 当该入口处于选中态时，选中边框 MUST 完整包住入口文字和右侧数字
+
+#### Scenario: 叶子类目显示 0
+
+- **GIVEN** 某类目没有直接子类目
+- **WHEN** Web 管理端渲染该节点右侧数字
+- **THEN** 节点右侧数字 MUST 显示 `0`
+- **AND** 即使该类目有关联商品，也 MUST NOT 在该位置显示商品数量
 
 #### Scenario: 新增类目最多两级
 
@@ -470,50 +494,41 @@ Web 客户端 MUST 修复 `/admin/brands` 品牌管理页的 UI 一致性缺陷�
 
 ### Requirement: 品牌 Logo 展示与提示布局修复
 
-Web 客户端 MUST 修复 `/admin/brands` 品牌 Logo 展示失败与状态提示导致页面上下波动的问题。品牌列表和品牌编辑弹窗 MUST 使用后端返回的可访问媒体 URL 正常展示/回显 Logo；品牌页自动消失状态提示 MUST NOT 通过插入普通文档流节点推挤页面主体。修复 MUST 保持品牌查询、分页、新增、编辑、启用、停用、删除等既有功能可用，并 MUST 遵守 Design System 语义样式约束。
+Web 客户端 MUST 修复 `/admin/brands` 品牌 Logo 展示失败与状态提示导致页面上下波动的问题。品牌列表和品牌编辑弹窗 MUST 使用后端返回的可访问媒体 URL 正常展示/回显 Logo；品牌列表和小图预览 SHOULD 优先使用后端受控真实缩略图，放大预览 SHOULD 使用原图或原始受控 URL；品牌页自动消失状态提示 MUST NOT 通过插入普通文档流节点推挤页面主体。修复 MUST 保持品牌查询、分页、新增、编辑、启用、停用、删除等既有功能可用，并 MUST 遵守 Design System 语义样式约束。
 
 #### Scenario: 品牌列表展示已上传 Logo
-
-- **GIVEN** 品牌记录存在可访问 `logo_url` 或等价预览 URL
+- **GIVEN** 品牌记录存在可访问 `logo_url`、`thumbnail_url` 或等价预览 URL
 - **WHEN** `admin` 或 `employee` 访问 `/admin/brands`
 - **THEN** 品牌列 MUST 展示已上传 Logo 图片
+- **AND** 品牌列小图 SHOULD 优先使用缩略图
 - **AND** 无 Logo 的品牌 MUST 保持首字/缩写占位
-- **AND** 图片加载失败时 MUST 保持稳定单元格尺寸和空态，不得造成表格布局跳动
+- **AND** 图片加载失败时 MUST 保持稳定单元格尺寸和空态，不得造成表格布局跳动。
 
 #### Scenario: 品牌编辑弹窗回显 Logo
-
 - **GIVEN** 品牌记录存在可访问 Logo URL
 - **WHEN** 用户点击「编辑」打开品牌弹窗
 - **THEN** 「品牌Logo」区域 MUST 展示当前 Logo 预览
+- **AND** 小预览 SHOULD 优先展示缩略图
 - **AND** 更换 Logo 后预览 MUST 即时更新
-- **AND** 保存后再次打开弹窗 MUST 回显最新 Logo
+- **AND** 保存后再次打开弹窗 MUST 回显最新 Logo。
+
+#### Scenario: 品牌缩略图回退
+- **GIVEN** 品牌 Logo 原图存在但缩略图缺失、损坏或不可读
+- **WHEN** Web 客户端展示品牌列表或品牌编辑小预览
+- **THEN** 客户端 MUST 回退原图或首字占位
+- **AND** MUST NOT 显示浏览器破图、空字符串、`null`、`undefined` 或接口字段名
+- **AND** 回退提示 MUST NOT 推挤页面主体布局。
 
 #### Scenario: 品牌状态变更提示不推挤页面
-
 - **WHEN** 用户在 `/admin/brands` 执行启用或停用品牌
 - **THEN** 系统 SHOULD 展示成功或失败提示
 - **AND** 提示出现和消失 MUST NOT 改变 page-header、指标卡、筛选区、表格或分页区域的纵向位置
-- **AND** 提示 MUST 使用固定 toast、稳定提示槽或等价不推挤主体内容的方式
-
-#### Scenario: 品牌创建更新删除提示不推挤页面
-
-- **WHEN** 用户创建、更新或删除品牌并触发提示
-- **THEN** 提示出现和消失 MUST NOT 造成页面主体上下位移
-- **AND** 弹窗内表单错误 MAY 使用 inline 错误文案
-- **AND** inline 错误文案 MUST NOT 影响列表页主体稳定性
-
-#### Scenario: 品牌管理功能不回退
-
-- **WHEN** 用户执行查询、重置、分页、每页显示切换、新增、编辑、启用、停用或删除品牌
-- **THEN** 既有功能 MUST 保持可用
-- **AND** `admin` 与 `employee` MUST 可维护品牌
-- **AND** `store_owner` MUST NOT 访问管理端品牌维护能力
+- **AND** 提示 MUST 使用固定 toast、稳定提示槽或等价不推挤主体内容的方式。
 
 #### Scenario: Design System 约束
-
 - **WHEN** 修复修改 Web UI 样式
 - **THEN** 新增或修改样式 MUST 使用既有管理端样式变量、语义 Token 或共享组件模式
-- **AND** MUST NOT 新增裸 Hex、未登记局部色值或与 `rules/ui-design.md` 冲突的圆角、字号、边框和提示样式
+- **AND** MUST NOT 新增裸 Hex、未登记局部色值或与 `rules/ui-design.md` 冲突的圆角、字号、边框和提示样式。
 
 ### Requirement: 品牌列表启停二次确认
 
@@ -537,8 +552,10 @@ Web 客户端 MUST 在 `/admin/brands` 品牌列表页为行内「启用」与�
 
 - **WHEN** 启停确认弹窗展示
 - **THEN** 底部 MUST 含「取消」与「确认停用」或「确认启用」（主按钮）
-- **WHEN** 用户点击「取消」、遮罩、× 或 ESC
+- **WHEN** 用户点击「取消」、× 或 ESC
 - **THEN** MUST 关闭弹窗且 MUST NOT 改变品牌状态或调用 API
+- **WHEN** 用户点击遮罩或弹窗外空白区域
+- **THEN** 弹窗 MUST 保持打开且 MUST NOT 改变品牌状态或调用 API
 
 #### Scenario: 确认后调用 API 并刷新
 
@@ -567,59 +584,35 @@ Web 客户端 MUST 在 `/admin/brands` 品牌列表页为行内「启用」与�
 
 ### Requirement: 品牌 Logo 上传进度反馈
 
-Web 客户端 MUST 修复 `/admin/brands` 编辑品牌弹窗 Logo 更换流程中的上传反馈缺陷。用户选择新 Logo 后，系统 MUST 立即触发上传，MUST 在弹窗内展示上传进度条、百分比或等价可感知反馈，并 MUST 在上传成功后更新 Logo 预览与待保存的 `logo_object_key`。上传失败时 MUST 提供明确错误和重试入口。该修复 MUST 保持品牌管理既有功能、权限边界和 Design System 约束。
+Web 客户端 MUST 修复 `/admin/brands` 编辑品牌弹窗 Logo 更换流程中的上传反馈缺陷。用户选择新 Logo 后，系统 MUST 立即触发上传，MUST 在弹窗内展示上传进度条、百分比或等价可感知反馈，并 MUST 在上传成功后更新 Logo 预览与待保存的 `logo_object_key`。上传成功后预览 SHOULD 使用后端返回的缩略图或等价小图 URL；上传失败时 MUST 提供明确错误和重试入口。该修复 MUST 保持品牌管理既有功能、权限边界和 Design System 约束。
 
 #### Scenario: 选择 Logo 后触发上传
-
 - **GIVEN** `admin` 或 `employee` 已打开品牌编辑弹窗
 - **WHEN** 用户点击「更换 Logo」并选择 JPG、PNG 或 WebP 图片
 - **THEN** Web 客户端 MUST 立即触发品牌 Logo 上传流程
 - **AND** 上传请求 MUST 使用既有后端授权上传接口
-- **AND** MUST NOT 要求用户先保存品牌后才开始上传文件
+- **AND** MUST NOT 要求用户先保存品牌后才开始上传文件。
 
 #### Scenario: 上传过程中展示进度反馈
-
 - **GIVEN** 用户已选择 Logo 图片
 - **WHEN** 上传正在进行
 - **THEN** 弹窗内 MUST 展示进度条、百分比或等价可感知上传反馈
 - **AND** 进度反馈 MUST 位于 Logo 控件附近
-- **AND** 上传过程中「更换 Logo」入口 SHOULD 展示上传中状态或被禁用，避免重复触发
+- **AND** 上传过程中「更换 Logo」入口 SHOULD 展示上传中状态或被禁用，避免重复触发。
 
 #### Scenario: 上传成功后更新预览和保存对象 Key
-
 - **GIVEN** 品牌 Logo 上传接口返回成功
-- **WHEN** 响应包含新的 `object_key` 和可访问 URL
-- **THEN** 弹窗中的 Logo 预览 MUST 更新为新图片
+- **WHEN** 响应包含新的 `object_key`、可访问 URL 和可用缩略图引用
+- **THEN** 弹窗中的 Logo 预览 MUST 更新为新图片或其缩略图
 - **AND** 后续保存品牌时 MUST 使用新的 `logo_object_key`
-- **AND** 保存后再次打开编辑弹窗 MUST 回显最新 Logo
+- **AND** 保存后再次打开编辑弹窗 MUST 回显最新 Logo。
 
 #### Scenario: 上传失败可见且可重试
-
 - **GIVEN** Logo 上传接口返回失败、网络异常或文件类型不合法
 - **WHEN** 上传流程结束
 - **THEN** 弹窗内 MUST 展示明确错误信息
 - **AND** 用户 MUST 可以重新选择图片重试
-- **AND** 失败时 MUST NOT 将旧 Logo 静默替换为无效预览或错误对象 Key
-
-#### Scenario: 同一文件可重新选择
-
-- **GIVEN** 用户已选择过某个 Logo 文件
-- **WHEN** 用户再次选择同一个文件
-- **THEN** Web 客户端 SHOULD 能再次触发上传或明确提示当前文件已选择
-- **AND** 文件 input MUST NOT 因 value 未重置导致用户无法重试
-
-#### Scenario: 品牌管理功能不回退
-
-- **WHEN** 用户执行查询、重置、分页、每页显示切换、新增、编辑、启用、停用或删除品牌
-- **THEN** 既有功能 MUST 保持可用
-- **AND** `admin` 与 `employee` MUST 可维护品牌
-- **AND** `store_owner` MUST NOT 访问管理端品牌维护能力
-
-#### Scenario: Design System 约束
-
-- **WHEN** 修复修改品牌编辑弹窗 Logo 上传控件
-- **THEN** 进度条、按钮、错误文案和预览态 MUST 使用既有管理端样式变量、语义 Token 或共享组件模式
-- **AND** MUST NOT 新增裸 Hex、未登记局部色值或与 `rules/ui-design.md` 冲突的圆角、字号、边框和提示样式
+- **AND** 失败时 MUST NOT 将旧 Logo 静默替换为无效预览或错误对象 Key。
 
 ### Requirement: 管理端瓷砖品牌管理页
 
@@ -658,8 +651,10 @@ Web 客户端 MUST 修复 `/admin/tile-skus` 新增/编辑 SKU 弹窗（`TileSku
 #### Scenario: 关闭交互不回退
 
 - **WHEN** 用户在弹窗内滚动
-- **THEN** ESC、点击遮罩、点击 × MUST 仍可正常关闭弹窗
+- **THEN** ESC、点击 × 或底部取消按钮 MUST 仍可正常关闭弹窗
 - **AND** MUST NOT 因滚动导致意外关闭
+- **WHEN** 用户点击遮罩或弹窗外空白区域
+- **THEN** 弹窗 MUST 保持打开，且已填写字段、上传状态和滚动上下文 MUST 保持不变
 
 #### Scenario: SKU 表单功能保持可用
 
@@ -2086,28 +2081,29 @@ Web 管理端表单页、业务弹窗、确认弹窗与日志详情抽屉 MUST �
 - **WHEN** 用户在 `375px` 宽度打开新增、编辑、状态确认、删除、重置密码、修改密码或系统设置确认弹窗
 - **THEN** 弹窗 MUST 不超出视口宽度
 - **AND** 头部标题、关闭按钮、内容区和底部操作区域 MUST 可访问
-- **AND** 矮视口下弹窗 body MUST 可滚动，底部主操作按钮不得丢失。
+- **AND** 矮视口下弹窗 body MUST 可滚动，底部主操作按钮不得丢失
+- **AND** 点击遮罩或弹窗外空白区域 MUST NOT 关闭弹窗
 
 #### Scenario: 宽弹窗保留专属宽度策略
 
 - **WHEN** 用户在移动视口打开 SKU、Banner 或等价大表单弹窗
 - **THEN** 弹窗 MUST 保留专属 card class 或等价宽度策略，MUST NOT 同时挂载通用 `modal-card` 与专属类导致 CSS 层叠覆盖
 - **AND** 实现验收 MUST 检查 computed width 与 max-width，而不只检查源 CSS
-- **AND** 关闭按钮、取消按钮和主操作按钮 MUST 可点击。
+- **AND** 关闭按钮、取消按钮和主操作按钮 MUST 可点击
 
 #### Scenario: 表单和设置页移动端可读
 
 - **WHEN** 用户在移动视口访问 `/admin/profile` 或 `/admin/settings/:tab`
 - **THEN** 主信息、账号安全、设置导航、配置字段、保存、重置和确认入口 MUST 单列或等价可读布局展示
 - **AND** 全页主要保存 CTA MUST 仅保留一处
-- **AND** dirty Tab 切换、恢复默认、修改密码取消等风险操作 MUST 使用 DS modal，MUST NOT 使用 `window.confirm` 或 `window.alert`。
+- **AND** dirty Tab 切换、恢复默认、修改密码取消等风险操作 MUST 使用 DS modal，MUST NOT 使用 `window.confirm` 或 `window.alert`
 
 #### Scenario: 日志详情抽屉移动端可关闭可滚动
 
 - **WHEN** 用户在手机宽度打开 `/admin/logs` 的日志详情抽屉
 - **THEN** 抽屉 MUST 可关闭
 - **AND** 详情内容 MUST 可滚动查看
-- **AND** 抽屉宽度 MUST NOT 导致页面整体横向失控滚动。
+- **AND** 抽屉宽度 MUST NOT 导致页面整体横向失控滚动
 
 #### Scenario: 上传控件移动端状态不回归
 
@@ -2115,7 +2111,7 @@ Web 管理端表单页、业务弹窗、确认弹窗与日志详情抽屉 MUST �
 - **THEN** 上传控件 MUST 保持 `idle -> uploading -> done/failed` 或等价状态机可见
 - **AND** 同会话上传成功后 MUST 即时回显缩略图或文件卡片
 - **AND** 上传失败信息 MUST 展示在控件附近、既有错误区域或 fixed toast 中，且不得遮挡底部操作按钮
-- **AND** 本 Change MUST NOT 新增媒体 API、存储桶、上传大小限制、Nginx 或 Docker 配置。
+- **AND** 本 Change MUST NOT 新增媒体 API、存储桶、上传大小限制、Nginx 或 Docker 配置
 
 ### Requirement: Web 管理端移动端 smoke 验收
 
@@ -2200,4 +2196,51 @@ Web 管理端 SHALL 在日志审计列表和详情中展示请求身份字段，
 - **WHEN** 小程序静态测试或 request 封装测试运行
 - **THEN** 测试 SHALL 覆盖普通 API 请求注入 `wechat_miniapp`
 - **AND** 测试 SHALL 覆盖 fallback 重试时客户端请求标识复用策略。
+
+### Requirement: Web 标准弹窗外部点击关闭策略
+
+Web 客户端 MUST 在管理端和店主 Web 展示端标准 Dialog / Modal 中禁用点击遮罩或弹窗外空白区域自动关闭。标准 Dialog / Modal MUST 保留明确关闭入口，且禁用外部点击关闭不得改变业务保存、确认、上传、滚动、焦点和错误展示能力。本能力 MUST NOT 修改后端 API、数据库、OpenAPI、Orval、MinIO、Nginx、Docker Compose 或微信小程序能力。
+
+#### Scenario: 管理端标准弹窗外部点击不关闭
+
+- **WHEN** 已登录 `admin` 或 `employee` 打开管理端新增、编辑、详情、确认、上传或设置确认类标准 Dialog / Modal
+- **THEN** 用户点击遮罩或弹窗外空白区域时弹窗 MUST 保持打开
+- **AND** 弹窗内已输入字段、已选择项、上传状态和滚动位置 MUST 保持不变
+- **AND** 弹窗 MUST 继续提供关闭图标、取消按钮、返回按钮或业务完成关闭等明确关闭入口
+
+#### Scenario: 展示端标准弹窗外部点击不关闭
+
+- **WHEN** 店主 Web 展示端用户打开商品详情、品牌详情、图片预览、联系或咨询类标准 Dialog / Modal
+- **THEN** 用户点击遮罩或弹窗外空白区域时弹窗 MUST 保持打开
+- **AND** 弹窗内滚动、图片切换、链接点击和键盘焦点 MUST 保持可用
+- **AND** 弹窗 MUST 提供可见关闭图标或等价明确关闭入口
+
+#### Scenario: 确认弹窗必须显式选择
+
+- **WHEN** 用户打开删除、启停、上下架、批量操作或系统设置类确认 Dialog / Modal
+- **THEN** 点击遮罩或弹窗外空白区域 MUST NOT 关闭弹窗
+- **AND** 用户 MUST 通过取消按钮、关闭图标、Esc 键或确认按钮结束本次确认流程
+- **AND** 取消或关闭 MUST NOT 调用目标业务 API
+- **AND** 确认 MUST 沿用既有 API 调用、成功反馈和失败处理
+
+#### Scenario: 上传弹窗状态不因外部点击丢失
+
+- **WHEN** 用户在品牌 Logo、Banner 图片、SKU 图片/视频、证书图片、用户头像或等价上传控件所在弹窗中选择文件
+- **THEN** 上传控件 MUST 保持 `idle -> uploading -> done/failed` 或等价状态机
+- **AND** 点击遮罩或弹窗外空白区域 MUST NOT 关闭弹窗或重置上传状态
+- **AND** 上传成功后 MUST 同会话即时回显缩略图、文件卡片或已上传状态
+- **AND** 上传失败信息 MUST 展示在上传控件附近、既有错误区域或 fixed toast 中
+
+#### Scenario: 轻量浮层不默认纳入
+
+- **WHEN** 页面包含 Popover、Dropdown、Tooltip、Select 下拉层、日期选择器或等价轻量浮层
+- **THEN** 本弹窗策略 MUST NOT 默认改变这些轻量浮层的外部点击关闭行为
+- **AND** 若后续需求决定纳入轻量浮层，MUST 通过独立 REQ 或本 Change 的显式例外清单定义组件范围和验收方式
+
+#### Scenario: 前端测试覆盖关闭策略
+
+- **WHEN** 实现或回归本 Change
+- **THEN** 前端测试 MUST 至少覆盖一个表单弹窗和一个确认弹窗的外部点击不关闭行为
+- **AND** 测试 MUST 覆盖明确关闭入口仍可关闭弹窗
+- **AND** 如触及上传弹窗，测试或验收记录 MUST 覆盖外部点击不打断上传状态机
 

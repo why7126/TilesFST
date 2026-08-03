@@ -1,8 +1,10 @@
 # 生产 Docker Compose 编排：外部 MySQL + 外部 MinIO/S3 兼容或云上对象存储。
 # 维护要求：新增或修改 service、environment、ports、networks 时，必须同步补充注释并更新 .env.example / docs/02-deployment.md。
+name: tilesfst
+
 services:
   # 生产后端服务，结构化数据写入外部 MySQL，媒体对象写入外部对象存储。
-  backend:
+  tilesfst-backend:
     # 生产镜像仓库名与统一 tag 由 .env 控制；backend/web 默认共用 TILESFST_IMAGE_TAG。
     image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.4}
     # 后端镜像构建上下文限定在 src/backend。
@@ -97,7 +99,7 @@ services:
       - tilesfst
 
   # 生产 Web 容器，托管已构建静态资源并反代后端 API。
-  web:
+  tilesfst-web:
     # Web 生产镜像仓库名与统一 tag 由 .env 控制；backend/web 默认共用 TILESFST_IMAGE_TAG。
     image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:-v0.0.4}
     # Web 构建需要项目根上下文，以便复制共享设计系统与业务类型。
@@ -117,11 +119,11 @@ services:
       UPLOAD_CLIENT_MAX_BODY_SIZE: ${UPLOAD_CLIENT_MAX_BODY_SIZE:-512m}
       # 浏览器上传请求体读取超时，默认 600 秒用于较大视频。
       UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS: ${UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS:-600}
-      # Web Nginx 到 backend 建连超时；默认 60 秒即可覆盖容器网络建连。
+      # Web Nginx 到 tilesfst-backend 建连超时；默认 60 秒即可覆盖容器网络建连。
       UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS: ${UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS:-60}
-      # Web Nginx 向 backend 发送上传请求超时，默认 600 秒。
+      # Web Nginx 向 tilesfst-backend 发送上传请求超时，默认 600 秒。
       UPLOAD_PROXY_SEND_TIMEOUT_SECONDS: ${UPLOAD_PROXY_SEND_TIMEOUT_SECONDS:-600}
-      # Web Nginx 等待 backend 上传响应超时，默认 600 秒。
+      # Web Nginx 等待 tilesfst-backend 上传响应超时，默认 600 秒。
       UPLOAD_PROXY_READ_TIMEOUT_SECONDS: ${UPLOAD_PROXY_READ_TIMEOUT_SECONDS:-600}
       # Web Nginx 向浏览器发送响应超时，默认 600 秒。
       UPLOAD_SEND_TIMEOUT_SECONDS: ${UPLOAD_SEND_TIMEOUT_SECONDS:-600}
@@ -130,13 +132,13 @@ services:
     # 宿主机端口可通过 HOST_PORT_WEB 覆盖；容器内 Nginx 固定 80。
     ports:
       - "${HOST_PORT_WEB:-3000}:80"
-    # Web 依赖 backend 服务用于 API 反代。
+    # Web 依赖 tilesfst-backend 服务用于 API 反代。
     depends_on:
-      - backend
+      - tilesfst-backend
     networks:
       - tilesfst
 
 networks:
-  # 外部服务型生产 Compose 内部 bridge 网络，仅包含 backend 与 web。
+  # 外部服务型生产 Compose 内部 bridge 网络，仅包含 tilesfst-backend 与 tilesfst-web。
   tilesfst:
     driver: bridge

@@ -4,9 +4,21 @@
 
 .admin-shell .sku-filter-grid {
   display: grid;
-  grid-template-columns: 1.35fr repeat(4, 1fr) auto;
+  grid-template-columns: 1.35fr 1fr 1fr 1fr auto;
   gap: 10px;
   align-items: end;
+}
+
+.admin-shell .sku-filter-card {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
+.admin-shell .sku-filter-card + .table-card {
+  position: relative;
+  z-index: 1;
+  overflow-x: auto;
 }
 
 .admin-shell .sku-filter-actions {
@@ -15,7 +27,8 @@
 }
 
 .admin-shell .sku-mgmt-table {
-  width: 100%;
+  width: max(100%, 1180px);
+  min-width: 1180px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -33,6 +46,28 @@
   color: var(--admin-weak);
   font-weight: 400;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.admin-shell .sku-mgmt-table th:nth-child(1),
+.admin-shell .sku-mgmt-table td:nth-child(1) {
+  min-width: 210px;
+}
+
+.admin-shell .sku-mgmt-table th:nth-child(2),
+.admin-shell .sku-mgmt-table td:nth-child(2),
+.admin-shell .sku-mgmt-table th:nth-child(3),
+.admin-shell .sku-mgmt-table td:nth-child(3) {
+  min-width: 140px;
+}
+
+.admin-shell .sku-mgmt-table th:nth-child(4),
+.admin-shell .sku-mgmt-table td:nth-child(4),
+.admin-shell .sku-mgmt-table th:nth-child(7),
+.admin-shell .sku-mgmt-table td:nth-child(7),
+.admin-shell .sku-mgmt-table th:nth-child(8),
+.admin-shell .sku-mgmt-table td:nth-child(8) {
+  min-width: 110px;
 }
 
 .admin-shell .sku-mgmt-table td {

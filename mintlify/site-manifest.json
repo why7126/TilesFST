@@ -1,0 +1,27 @@
+{
+  "updated_at": "2026-08-03 22:45:00",
+  "latest_version": "v0.3.4",
+  "versions": [
+    "v0.3.3",
+    "v0.3.4"
+  ],
+  "assets": [],
+  "projections": [
+    {
+      "status": "synced",
+      "source_release": "releases/v0.3.4",
+      "source_manifest": "releases/v0.3.4/usage-docs/manifest.json",
+      "target_site_root": "mintlify/docs/v0.3.4",
+      "latest_target": "mintlify/docs/latest",
+      "synced_at": "2026-08-03 22:15:34",
+      "mode": "copy",
+      "content_hashes": {
+        "admin/index.mdx": "0ac02d28abe143c9cf54669a8d3c7041cf806e6ae005e4d89634b38b2b007109",
+        "faq.mdx": "abc5c1d6bd52433a235fc7491b4a236a4dba408f27c4bd89e67fdc0e3d23a2eb",
+        "miniapp/index.mdx": "da5f90744305ae91a1ec5e7364c06502514d4932891ad890f14b4377bb927146",
+        "overview.mdx": "9258297bbbd2b0c7f86357999ddaae17569b65411d3355b08c3e4e42e83a6251"
+      },
+      "manual_overrides": []
+    }
+  ]
+}

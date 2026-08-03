@@ -8,6 +8,7 @@ import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/api-docs.css';
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { ApiDocsData, ApiDocsRouteItem } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 
 const ALL_VALUE = 'all';
@@ -121,6 +122,27 @@ export function ApiDocsPage() {
   const authOptions = useMemo(
     () => Array.from(new Set(routes.map((route) => route.auth_requirement))).sort(),
     [routes],
+  );
+  const methodFilterOptions = useMemo(
+    () => [
+      { value: ALL_VALUE, label: '全部方法' },
+      ...methods.map((item) => ({ value: item, label: item })),
+    ],
+    [methods],
+  );
+  const tagFilterOptions = useMemo(
+    () => [
+      { value: ALL_VALUE, label: '全部模块' },
+      ...tags.map((item) => ({ value: item, label: item })),
+    ],
+    [tags],
+  );
+  const authFilterOptions = useMemo(
+    () => [
+      { value: ALL_VALUE, label: '全部权限' },
+      ...authOptions.map((item) => ({ value: item, label: getAuthLabel(item) })),
+    ],
+    [authOptions],
   );
 
   const filteredRoutes = useMemo(
@@ -238,51 +260,36 @@ export function ApiDocsPage() {
               placeholder="路径、摘要、Tag、Orval 方法名"
             />
           </label>
-          <label>
+          <div>
             <span className="field-label">METHOD</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="METHOD"
+              listLabel="接口方法选项"
               value={method}
-              onChange={(event) => setMethod(event.target.value)}
-            >
-              <option value={ALL_VALUE}>全部方法</option>
-              {methods.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+              options={methodFilterOptions}
+              onChange={setMethod}
+            />
+          </div>
+          <div>
             <span className="field-label">TAG</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="TAG"
+              listLabel="接口模块选项"
               value={tag}
-              onChange={(event) => setTag(event.target.value)}
-            >
-              <option value={ALL_VALUE}>全部模块</option>
-              {tags.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
+              options={tagFilterOptions}
+              onChange={setTag}
+            />
+          </div>
+          <div>
             <span className="field-label">AUTH</span>
-            <select
-              className="select"
+            <AdminFilterSelect
+              ariaLabel="AUTH"
+              listLabel="接口权限选项"
               value={auth}
-              onChange={(event) => setAuth(event.target.value)}
-            >
-              <option value={ALL_VALUE}>全部权限</option>
-              {authOptions.map((item) => (
-                <option key={item} value={item}>
-                  {getAuthLabel(item)}
-                </option>
-              ))}
-            </select>
-          </label>
+              options={authFilterOptions}
+              onChange={setAuth}
+            />
+          </div>
           <button className="btn" type="button" onClick={resetFilters}>
             <RotateCcw size={14} aria-hidden />
             重置

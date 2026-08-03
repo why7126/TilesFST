@@ -85,6 +85,28 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 
 For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for REQ/BUG-sourced changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, unless the Change is explicitly documented as a non-REQ/BUG pure technical governance Change.
 
+### Issue subdocument sync / drift check
+
+Workflow Sync also manages Issue package subdocuments:
+
+- `requirement.md` / `bug.md` mirrors the current Issue main status.
+- `acceptance.md` uses `acceptance_status` and `## 验收结果回填` to record pending/passed/failed/partial/waived results, source Change/Sprint, evidence, failed items and notes.
+- `review.md`、`root-cause.md`、`workaround.md` status fields are semantic fields; unclear values are reported instead of silently overwritten.
+
+Focused scan:
+
+```bash
+python scripts/sync-workflow-status.py \
+  --event <event> \
+  --req <REQ-id> \
+  --scan-issue-subdocuments \
+  --dry-run
+```
+
+Use `--bug <BUG-id>` for BUGs. Apply only safe focused changes with `--apply-issue-subdocuments`; do not bulk-edit historical archive files without a dry-run report and human confirmation.
+
+Successful Workflow Sync summaries MUST include subdocument checked/updated counts, acceptance result status and drift warning/blocker counts when an event touches REQ/BUG state.
+
 ### Issue subdocument residual status reconcile
 
 When issue archive promotion is blocked by residual `status` fields in issue subdocuments, do not hand-edit files in bulk. Use workflow sync reconcile mode:
@@ -133,6 +155,7 @@ Guardrails:
 | bug-opsx | `bug.opsx` |
 | opsx-propose | `opsx.propose` |
 | opsx-apply | `opsx.apply` |
+| opsx-modify | `opsx.modify` |
 | opsx-archive | `opsx.archive` |
 | sprint-propose | `sprint.propose` |
 | sprint-apply | `sprint.apply` |
@@ -140,7 +163,7 @@ Guardrails:
 
 ## Guardrails
 
-1. Print only the summary **Workflow Sync Report** from script stdout on the success path. Successful commands SHOULD use the default summary output; rerun with `--output detail` only when diagnosing drift, skipped files, or failures.
+1. Print only the summary **Workflow Sync Report** from script stdout on the success path. Successful commands SHOULD use the default summary output; rerun with `--output detail` only when diagnosing drift, skipped files, subdocument warnings, or failures.
 2. If exit code != 0, fix drift and re-run before ending the parent command.
 3. Do **not** hand-edit `sprint.md` Scope marker blocks; use the script.
 4. Marker blocks: `<!-- workflow-sync:scope-*:start/end -->`.

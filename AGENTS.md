@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 17:23:40
+updated_at: 2026-07-29 16:07:14
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -47,7 +47,7 @@ rules/agent-context-budget.md
 | API 变更 | `rules/api.md`、`docs/README.md`、`docs/03-api-index.md` 相关段、`docs/standards/api-governance.md`、`docs/standards/error-codes.md`、`src/web/orval.config.ts`、`scripts/generate-openapi-client.sh` |
 | DB / 数据模型 | `rules/database.md`、`docs/04-database-design.md` 相关表段、schema / migration 文件 |
 | UI / Design System | `rules/ui-design.md` 相关章节、`src/web/README.md`、`src/web/src/styles/globals.css`、`src/shared/design-system/tokens/`、`src/web/src/pages/dev/DesignSystemPage.tsx` |
-| Docker / 发布部署 | `rules/environment.md`、`rules/release.md`、`docs/02-deployment.md`、`docker-compose*.yml`、`src/backend/Dockerfile`、`src/web/Dockerfile`、`src/web/nginx.conf` |
+| Docker / 发布部署 | `rules/environment.md`、`rules/release.md`、`docs/02-deployment.md`、`docs/08-production-image-release.md`、`docker-compose*.yml`、`deploy/README.md`、`deploy/local/README.md`、`deploy/prod/README.md`、`deploy/local/compose.yml`、`deploy/prod/compose.tencent-cos.yml`、`deploy/scripts/`、`src/backend/Dockerfile`、`src/web/Dockerfile`、`src/web/nginx.conf`、`scripts/build-images.sh`、`scripts/build-images.env.example`、`scripts/validate-image-build.py` |
 | data / media / object storage | `rules/data-management.md`、`rules/media.md`、`rules/object-storage.md`、`data/README.md`、`docs/06-video-asset-management.md`、`docs/07-object-storage-strategy.md` |
 | 端口 | `rules/port-management.md`、`.env.example` |
 
@@ -59,7 +59,7 @@ rules/agent-context-budget.md
 
 | 路径 | 说明 |
 |---|---|
-| `.agents/skills/{req,bug,opsx,sprint,release,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / build 工作流技能 |
+| `.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / image / build 工作流技能 |
 | `.agents/skills/workflow-sync` | 状态同步技能 |
 | `.agents/skills/openspec-*` | OpenSpec 基础操作技能 |
 
@@ -87,7 +87,7 @@ rules/agent-context-budget.md
 | 缺陷 | `/bug-capture` → `/bug-generate` → `/bug-complete` → `/bug-review --approve` → `/bug-opsx` |
 | Change | `/opsx-propose`、`/opsx-explore`、`/opsx-apply`、`/opsx-archive` |
 | Sprint | `/sprint-propose`、`/sprint-explore`、`/sprint-apply`、`/sprint-archive`、`/sprint-exps` |
-| Release | `/release-propose <version>`、`/release-prepare <version>`、`/release-publish <version>` |
+| Release | `/release-propose <version>`、`/release-prepare <version>`、`/image-prepare <version>`、`/image-build <version>`、`/release-publish <version>` |
 | Bootstrap | `/initialize-project`、`/build-design-system`、`/build-api-standard`、`/build-test-framework` |
 
 旧命令已废弃：`/requirement-to-change`、`/requirement-to-opsx`、`/bug-to-change`、`/create-iteration`。
@@ -132,6 +132,9 @@ rules/agent-context-budget.md
 | 正式规格 | `openspec/specs/<capability>/spec.md` |
 | 复盘 / 事故知识 | `docs/knowledge-base/` |
 | 发布对象 | `releases/vX.Y.Z/` |
+| Mintlify 文档站源目录 | `mintlify/`（公开站点配置、多版本投影、共享截图资产；不得替代 release 快照事实源） |
+| 镜像发布证据 | `releases/vX.Y.Z/image-build-plan.json`、`releases/vX.Y.Z/image-manifest.json` |
+| 部署矩阵 | `deploy/`（部署 README、Compose、env 示例、脚本和校验工具；禁止真实 env、密钥、运行时数据和镜像包） |
 | 本地数据 | `data/`（不得提交真实客户数据和运行时数据库） |
 
 目录迁移和校验详见 `rules/issues-lifecycle.md`、`rules/iterations-lifecycle.md`、`rules/directory-structure.md`。
@@ -152,8 +155,10 @@ Web 端采用“工业石材 · 暗色旗舰风”。UI 任务必须：
 
 - `data/` 仅用于本地开发、演示、测试样例和运行时承载；禁止真实客户数据。
 - `.env.example` 必须保留；新增或修改环境变量时同步说明用途、默认值和安全边界。
+- 发布涉及镜像交付或 Docker/Compose/DB 构建输入时，先 `/image-prepare <version>` 生成 plan，再 `/image-build <version>` 生成 manifest；`/release-publish` 必须校验镜像证据未过期。
+- `releases/vX.Y.Z/usage-docs/` 保留为全量产品使用文档快照和 manifest 事实源；`mintlify/` 仅承载站点源目录、多版本导航、`latest` 指针和共享截图资产。
 - MinIO 使用单 Bucket + 前缀策略：`MINIO_BUCKET`、`MINIO_PREFIX_*`。
-- 默认内部端口保留 Backend `8000`、Web `3000`；宿主机端口通过 `HOST_PORT_BACKEND`、`HOST_PORT_WEB` 覆盖。
+- 默认内部端口保留 Backend `8000`、Web `3000`、Mintlify docs-site `3000`；宿主机端口通过 `HOST_PORT_BACKEND`、`HOST_PORT_WEB`、`HOST_PORT_MINTLIFY_DOCS` 覆盖。
 - 视频转码/压缩/多清晰度属于增强能力，必须经 OpenSpec Change。
 
 ## 11. 输出要求

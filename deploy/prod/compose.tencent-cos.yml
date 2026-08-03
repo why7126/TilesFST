@@ -1,0 +1,123 @@
+# 生产 Compose：外部 MySQL + 腾讯云 COS，不启动本地 MinIO 或 minio-init。
+# 维护要求：新增 service、environment、ports、volumes、networks 时，必须同步 deploy/prod/*.env.example 与 docs/02-deployment.md。
+name: tilesfst
+
+services:
+  # 生产后端服务，结构化数据写入外部 MySQL，媒体对象写入腾讯云 COS。
+  tilesfst-backend:
+    # 生产镜像仓库名与统一 tag 由 env 控制。
+    image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    # 保留 build 入口用于本机生产等价 config/build 验证；上下文与根目录 docker-compose.yml 保持一致。
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile
+      args:
+        # 后端 Docker 构建基础镜像。
+        BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
+    container_name: tilesfst-backend
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:?Set TILESFST_DEPLOY_ENV_FILE to production env}
+    environment:
+      # 生产模式开关；后端会据此启用生产数据库校验。
+      APP_ENV: production
+      # 生产关闭调试，避免泄露错误栈与敏感上下文。
+      APP_DEBUG: "false"
+      # 应用签名密钥，必须由生产 env 或密钥系统提供。
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY in production env}
+      # 生产结构化数据必须写入外部 MySQL。
+      DATABASE_URL: ${DATABASE_URL:?Set production MySQL DATABASE_URL}
+      # 容器内监听全部网卡，供 Compose 网络和端口映射访问。
+      BACKEND_HOST: 0.0.0.0
+      # 容器内 FastAPI 固定端口。
+      BACKEND_PORT: 8000
+      # 默认管理员用户名；仅首次建库或受控重置时使用。
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      # 默认管理员初始密码；生产必须显式提供非示例值。
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:?Set ADMIN_INITIAL_PASSWORD}
+      # 腾讯云 COS provider。
+      OBJECT_STORAGE_PROVIDER: tencent-cos
+      # 腾讯云 COS S3 兼容 endpoint。
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?Set Tencent COS endpoint}
+      # 腾讯云 SecretId。
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?Set Tencent COS SecretId}
+      # 腾讯云 SecretKey。
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?Set Tencent COS SecretKey}
+      # 生产 COS 必须使用 HTTPS。
+      OBJECT_STORAGE_SECURE: "true"
+      # COS bucket 必须提前创建。
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?Set existing COS bucket}
+      # COS region。
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:?Set COS region}
+      # COS 通常使用 virtual-host 风格。
+      OBJECT_STORAGE_PATH_STYLE: ${OBJECT_STORAGE_PATH_STYLE:-false}
+      # 生产云上对象存储不自动建桶。
+      OBJECT_STORAGE_AUTO_CREATE_BUCKET: "false"
+    ports:
+      - "${HOST_PORT_BACKEND:-8000}:8000"
+    volumes:
+      - ../../data/processed:/app/data/processed
+      - ../../data/tmp:/app/data/tmp
+    networks:
+      - tilesfst
+
+  # 生产 Web 容器，托管已构建静态资源并反代后端 API。
+  tilesfst-web:
+    # Web 生产镜像仓库名与统一 tag 由 env 控制。
+    image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    build:
+      context: ../..
+      dockerfile: src/web/Dockerfile
+      args:
+        # Web Docker 构建 Node 基础镜像。
+        WEB_NODE_BASE_IMAGE: ${WEB_NODE_BASE_IMAGE:-node:22-alpine}
+        # Web Docker 运行 Nginx 基础镜像。
+        WEB_NGINX_BASE_IMAGE: ${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}
+    container_name: tilesfst-web
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:?Set TILESFST_DEPLOY_ENV_FILE to production env}
+    environment:
+      # Nginx 模板仅替换 UPLOAD_* 变量。
+      NGINX_ENVSUBST_FILTER: "^UPLOAD_"
+      # 上传专用 body 限制。
+      UPLOAD_CLIENT_MAX_BODY_SIZE: ${UPLOAD_CLIENT_MAX_BODY_SIZE:-512m}
+      # 浏览器上传请求体读取超时。
+      UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS: ${UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS:-600}
+      # Web Nginx 到 tilesfst-backend 建连超时。
+      UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS: ${UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS:-60}
+      # Web Nginx 向 tilesfst-backend 发送上传请求超时。
+      UPLOAD_PROXY_SEND_TIMEOUT_SECONDS: ${UPLOAD_PROXY_SEND_TIMEOUT_SECONDS:-600}
+      # Web Nginx 等待 tilesfst-backend 上传响应超时。
+      UPLOAD_PROXY_READ_TIMEOUT_SECONDS: ${UPLOAD_PROXY_READ_TIMEOUT_SECONDS:-600}
+      # Web Nginx 向浏览器发送响应超时。
+      UPLOAD_SEND_TIMEOUT_SECONDS: ${UPLOAD_SEND_TIMEOUT_SECONDS:-600}
+      # 大文件上传默认关闭请求缓冲。
+      UPLOAD_PROXY_REQUEST_BUFFERING: ${UPLOAD_PROXY_REQUEST_BUFFERING:-off}
+    ports:
+      - "${HOST_PORT_WEB:-3000}:80"
+    depends_on:
+      - tilesfst-backend
+    networks:
+      - tilesfst
+
+  # 生产文档站预览/承载服务；默认随 prod 启动，不参与业务服务依赖链。
+  tilesfst-docs-site:
+    profiles:
+      - docs-site
+    image: ${MINTLIFY_NODE_IMAGE:-node:22-alpine}
+    container_name: tilesfst-docs-site
+    working_dir: /workspace/mintlify
+    # 仅挂载公开 Mintlify 源目录；不得挂载生产 env、密钥或运行时数据。
+    volumes:
+      - ../../mintlify:/workspace/mintlify:ro
+      - ../../deploy/scripts/docs-site-static-server.mjs:/workspace/docs-site-static-server.mjs:ro
+    # 容器内 Mintlify 预览端口固定 3000；宿主机端口由生产 env 显式规划。
+    ports:
+      - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
+    command: node /workspace/docs-site-static-server.mjs
+    networks:
+      - tilesfst
+
+networks:
+  # 生产 bridge 网络包含业务服务与 docs-site；MySQL 与 COS 为外部服务。
+  tilesfst:
+    driver: bridge

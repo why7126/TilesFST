@@ -83,7 +83,10 @@ Page({
     return {
       title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
       path: brandSharePath(this.data.brandId),
-      imageUrl: (this.data.brand && this.data.brand.brand_logo_url) || this.data.imageFallback,
+      imageUrl:
+        (this.data.brand &&
+          (this.data.brand.brand_logo_thumbnail_url || this.data.brand.brand_logo_url)) ||
+        this.data.imageFallback,
     };
   },
 
@@ -92,7 +95,10 @@ Page({
     return {
       title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
       query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
-      imageUrl: (this.data.brand && this.data.brand.brand_logo_url) || this.data.imageFallback,
+      imageUrl:
+        (this.data.brand &&
+          (this.data.brand.brand_logo_thumbnail_url || this.data.brand.brand_logo_url)) ||
+        this.data.imageFallback,
     };
   },
 

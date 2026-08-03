@@ -4,7 +4,7 @@ content: 约束AI读取范围、搜索排除、Harness/模板工程噪音、生�
 source: BUG-0061会话token复盘后由AI生成，项目团队Review
 update_method: Agent工作流、Harness模板、技能命令或上下文预算策略变化时更新
 created_at: 2026-07-08 09:26:36
-updated_at: 2026-07-16 09:28:05
+updated_at: 2026-07-29 16:07:14
 note: 所有命令技能与普通开发任务均应遵守，优先级高于单个技能中的宽泛读取建议
 ---
 
@@ -38,7 +38,7 @@ AI 执行任务时 MUST NOT：
 
 - `AGENTS.md`、`openspec/project.md`。
 - 当前任务相关的 `rules/*.md`。
-- 当前命令 Skill、共用 Skill（如 `.agents/skills/workflow-sync/SKILL.md`）以及 `.agents/skills/{req,bug,opsx,sprint,release,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project`。
+- 当前命令 Skill、共用 Skill（如 `.agents/skills/workflow-sync/SKILL.md`）以及 `.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project`。
 
 可复用摘要 SHOULD 至少表达以下信息，字段名可等价：
 
@@ -112,7 +112,7 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 
 ## 7. 技能文件要求
 
-`.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` 命令技能 MUST：
+`.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` 命令技能 MUST：
 
 - 在 `Context Budget Guardrails` 或等价章节中引用本文件。
 - 保留命令特定的 Must Read 与业务门禁，但不得要求默认宽泛读取整目录。

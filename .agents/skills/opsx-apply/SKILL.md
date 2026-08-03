@@ -91,6 +91,7 @@ Infer tags from trace, proposal/design, change id, and tasks:
 | Tag | Trigger | Best-practice |
 |---|---|---|
 | `admin-list` | 管理端列表、分页、table-card | `admin-list-page-consistency.md` |
+| `admin-filter-dropdown` | 管理端筛选区 Select、Dropdown、Popover、Combobox、date picker、可搜索下拉、`AdminFilterSelect`、`SearchableSelect`、`admin-filter-dropdown` | `admin-list-page-consistency.md` |
 | `admin-form` | 表单页、设置页、保存 CTA | `admin-form-page-consistency.md` |
 | `admin-modal` | 弹窗 CRUD / modal fix | `admin-modal-width-css-cascade.md` |
 | `media-upload` | 图片、视频、Logo、头像上传 | `admin-media-upload-chain.md` |
@@ -102,10 +103,27 @@ Change / Tags / Refs
 AC-XCUT: pass|warn|n/a
 knowledge_base_refs: pass|warn|n/a
 best-practices read: pass|n/a
+admin-filter-dropdown: pass|warn|n/a
+  - best-practice read: pass|warn|n/a
+  - shared component reuse: pass|warn|n/a
+  - page-local overlay CSS absence: pass|warn|n/a
+  - state coverage: pass|warn|n/a
+  - overlay clipping check: pass|warn|n/a
+  - query parameter semantics: pass|warn|n/a
+  - regression test plan: pass|warn|n/a
 Verdict: PROCEED | WARN-PROCEED | BLOCKED
 ```
 
 BLOCKED if add-* UI lacks required cross-cutting AC. Do not edit `src/` until resolved.
+
+When `admin-filter-dropdown` is active:
+
+- MUST read `docs/knowledge-base/best-practices/admin-list-page-consistency.md` before editing `src/`.
+- MUST prefer `AdminFilterSelect`, `SearchableSelect`, or an equivalent shared admin filter wrapper aligned with the tile category page baseline.
+- MUST block if a new or modified admin filter dropdown lacks both shared-component reuse and an explicit equivalent-wrapper rationale.
+- MUST verify no page-local one-off dropdown overlay CSS, raw Hex colors, token-equivalent hardcoded colors, or divergent native controls are introduced.
+- MUST include focused verification for open/select/clear/reset behavior, disabled/selected/empty/loading states as applicable, overlay clipping on desktop and narrow admin viewports when CSS or positioning changes, and existing query parameter semantics.
+- MAY mark the checklist `n/a` for backend-only, database-only, release-only, non-admin UI, or admin UI Changes that do not affect filter dropdown controls.
 
 ## Implementation Loop
 
@@ -118,11 +136,21 @@ For each pending task:
 5. Re-run focused checks/tests.
 6. Stop and ask if task is ambiguous, gate is blocked, or implementation reveals design conflict.
 
+When updating `tasks.md`, preserve Chinese-first wording required by `rules/language.md`; task text MUST NOT be rewritten into English-only descriptions while marking checkboxes.
+
 ## Completion Output
 
 Report change id, schema, completed tasks this session, total progress, tests/checks run, remaining tasks, and whether archive is ready.
 
 ## Final Step — Workflow Sync（MUST）
+
+Before Workflow Sync, run:
+
+```bash
+python scripts/validate-openspec-language.py
+```
+
+- Exit code MUST be `0`；若失败，先修正 active Change 文档中的英文脚手架标题或全英文任务项。
 
 Run:
 
@@ -133,6 +161,7 @@ python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> -
 - Exit code MUST be `0`。
 - Print summary Workflow Sync Report；use `--output detail` only for debugging。
 - Verify linked REQ/BUG trace has `openspec_changes[].status: applied` and `/opsx-apply` in `## 变更记录`; if missing, fix workflow sync and rerun instead of hand-editing marker blocks.
+- Verify linked REQ/BUG `acceptance.md` has `acceptance_status: pending` or equivalent `## 验收结果回填` with `source_change` and resolved Sprint; if missing, rerun Workflow Sync or use `--scan-issue-subdocuments --dry-run` to diagnose.
 - Do not hand-edit workflow-sync marker blocks。
 
 ## Final Step — AI Usage Post-command Hook (MUST)

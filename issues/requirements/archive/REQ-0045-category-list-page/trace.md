@@ -3,7 +3,7 @@ requirement_id: REQ-0045-category-list-page
 status: done
 priority: P1
 created_at: 2026-07-18 20:52:54
-updated_at: 2026-07-22 09:14:53
+updated_at: 2026-07-31 00:07:58
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-07-18 20:52:54
@@ -55,6 +55,7 @@ retrospective_refs:
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0077-miniapp-category-secondary-name-truncated | medium | done | fix-miniapp-category-secondary-name-truncated | 微信小程序分类页二级分类名称超过 4 个字被省略 |
+| BUG-0093-miniapp-category-secondary-grid-name-full-display | medium | done | fix-miniapp-category-secondary-grid-name-display | 小程序分类页二级类目卡片 3 列布局导致名称未完整显示 |
 
 ## 变更记录
 

@@ -74,21 +74,15 @@ Archive a completed change in the experimental workflow.
 
    If `openspec/changes/archive` exists, stop. Migrate any children to `openspec/archive/`, delete the empty legacy directory, and run `python scripts/validate-directory-structure.py` before continuing.
 
-   Create the archive directory if it doesn't exist:
-   ```bash
-   mkdir -p openspec/archive
-   ```
-
-   Generate target name using current date: `YYYY-MM-DD-<change-name>`
-
-   **Check if target already exists:**
-   - If yes: Fail with error, suggest renaming existing archive or using different date
-   - If no: Move the change directory to archive
+   Use the project archive wrapper so any OpenSpec CLI legacy output is normalized to `openspec/archive/` and the directory structure gate runs immediately:
 
    ```bash
-   mv openspec/changes/<name> openspec/archive/YYYY-MM-DD-<name>
-   python scripts/validate-directory-structure.py
+   scripts/archive-change.sh <name>
    ```
+
+   The wrapper generates the target name using current date: `YYYY-MM-DD-<change-name>`, fails if the canonical target already exists, runs `python scripts/validate-openspec-language.py` before moving the Change, migrates legacy `openspec/changes/archive/*` children when safe, deletes the empty legacy directory, and runs `python scripts/validate-directory-structure.py`.
+
+   If the upstream OpenSpec CLI emits a `proposal.md` warning about missing `## Why` / `## What Changes` headings after the project language gate has passed, treat it as a non-blocking schema compatibility warning. Do not reintroduce English scaffold headings; the project requires Chinese-first headings.
 
 6. **Display summary**
 

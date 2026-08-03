@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 新增数据类型、上传目录、视频处理流程、数据库持久化方式时由AI辅助更新，人工Review
 note: data目录用于本地开发、演示、测试样例和运行时数据；生产环境应使用正式对象存储和持久化卷
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-21 13:44:26
+updated_at: 2026-07-31 15:58:29
 ---
 
 # data 目录规范
@@ -95,6 +95,18 @@ python scripts/clean_legacy_uploads.py --check-only
 1. 查 DB 中的 `object_key` / `logo_object_key` / `avatar_object_key`。
 2. 在 MinIO Console 或 `data/minio/tilesfst/{object_key}` 确认对象存在。
 3. **不要**以 `data/uploads` 是否有同名文件判断上传是否成功。
+4. 小程序商品卡片列表图优先使用同目录 `.thumb` 缩略图，例如
+   `images/default/tiles/pending/<uuid>.thumb.jpg`；若缩略图缺失，后端
+   `/media/{object_key}` 可回退同目录原图。
+5. 审计公开 SKU 主图、pending 主图和缩略图缺失时，使用：
+
+```bash
+python scripts/audit-miniapp-card-images.py
+python scripts/audit-miniapp-card-images.py --backfill
+python scripts/audit-miniapp-card-images.py --backfill --execute
+```
+
+默认和 `--backfill` 均不写对象存储；只有 `--backfill --execute` 会补齐缺失缩略图。
 
 ## 日志审计排查原则
 
@@ -108,6 +120,8 @@ python scripts/clean_legacy_uploads.py --check-only
 ```text
 images/default/brands/logos/<uuid>.webp
 images/default/user/avatars/<uuid>.png
+images/default/tiles/pending/<uuid>.jpg
+images/default/tiles/pending/<uuid>.thumb.jpg
 videos/default/tiles/pending/<uuid>.mp4
 ```
 

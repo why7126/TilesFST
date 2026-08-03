@@ -15,10 +15,24 @@ type BrandItem = {
   brand_name: string;
   brand_short_name?: string | null;
   brand_logo_url?: string | null;
+  brand_logo_thumbnail_url?: string | null;
   brand_entry_path: string;
   product_count: number;
+  leaf_category_names?: string[];
+  leaf_categories?: BrandCategory[];
   description?: string | null;
   available: boolean;
+};
+
+type BrandCategory = {
+  category_id: number;
+  category_name: string;
+};
+
+type BrandListItem = BrandItem & {
+  product_count_text: string;
+  category_items: BrandCategory[];
+  fallback_text: string;
 };
 
 type BrandListResponse = {
@@ -31,17 +45,58 @@ type BrandListResponse = {
 };
 
 const PAGE_SIZE = 20;
-
 function requestId(): string {
   return `brand-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
 
+function safeText(value: unknown, fallback = ''): string {
+  if (typeof value !== 'string') return fallback;
+  const text = value.trim();
+  return text && text !== 'null' && text !== 'undefined' ? text : fallback;
+}
+
+function fallbackText(name: string): string {
+  const compact = safeText(name, '品牌').replace(/\s/g, '');
+  return compact ? compact.slice(0, 2).toUpperCase() : '品牌';
+}
+
+function normalizeCategoryItems(categories?: BrandCategory[], names?: string[]): BrandCategory[] {
+  const seen = new Set<string>();
+  const result: BrandCategory[] = [];
+  (categories || []).forEach((item) => {
+    const text = safeText(item.category_name);
+    const id = Number(item.category_id || 0);
+    if (!id || !text || seen.has(text)) return;
+    seen.add(text);
+    result.push({ category_id: id, category_name: text });
+  });
+  (names || []).forEach((name, index) => {
+    const text = safeText(name);
+    if (!text || seen.has(text)) return;
+    seen.add(text);
+    result.push({ category_id: 0 - index, category_name: text });
+  });
+  return result;
+}
+
+function normalizeBrandItem(item: BrandItem): BrandListItem {
+  const categories = normalizeCategoryItems(item.leaf_categories, item.leaf_category_names);
+  const productCount = Number(item.product_count || 0);
+  return {
+    ...item,
+    product_count: productCount,
+    product_count_text: `${productCount} 款商品`,
+    category_items: categories,
+    fallback_text: fallbackText(item.brand_name || item.brand_short_name || ''),
+  };
+}
+
 Page({
   data: {
-    title: '品牌列表',
+    title: '品牌',
     status: 'loading',
     banners: [] as BrandBanner[],
-    items: [] as BrandItem[],
+    items: [] as BrandListItem[],
     page: 1,
     pageSize: PAGE_SIZE,
     total: 0,
@@ -103,7 +158,7 @@ Page({
 
     request<BrandListResponse>(`/api/v1/miniapp/brands?page=${nextPage}&pageSize=${this.data.pageSize}`)
       .then((data) => {
-        const incoming = data.items || [];
+        const incoming = (data.items || []).map(normalizeBrandItem);
         const merged = reset ? incoming : this.mergeBrands(this.data.items, incoming);
         const status = merged.length ? 'ready' : 'empty';
         this.setData({
@@ -132,9 +187,9 @@ Page({
       });
   },
 
-  mergeBrands(current: BrandItem[], incoming: BrandItem[]): BrandItem[] {
+  mergeBrands(current: BrandListItem[], incoming: BrandListItem[]): BrandListItem[] {
     const seen = new Set<number>();
-    const result: BrandItem[] = [];
+    const result: BrandListItem[] = [];
     current.concat(incoming).forEach((item) => {
       if (!item || seen.has(item.brand_id)) return;
       seen.add(item.brand_id);
@@ -182,21 +237,68 @@ Page({
     wx.showToast({ title: '内容建设中', icon: 'none' });
   },
 
-  onBrandTap(event: WechatMiniprogram.TouchEvent) {
+  onBrandInfoTap(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
     const brand = this.data.items[index];
     if (!brand) return;
     this.trackBrandListEvent('brand_list_card_click', {
       brandId: brand.brand_id,
+      brandName: brand.brand_name,
       positionIndex: index,
       sourcePage: 'brand-list',
       sourceEntry: this.data.sourcePage,
+    });
+    if (!brand.available || !brand.brand_entry_path) {
+      wx.showToast({ title: '暂无内容', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: brand.brand_entry_path,
+      fail: () => wx.showToast({ title: '暂无内容', icon: 'none' }),
+    });
+  },
+
+  onCategoryTap(event: WechatMiniprogram.TouchEvent) {
+    const brandIndex = Number(event.currentTarget.dataset.brandIndex || 0);
+    const categoryIndex = Number(event.currentTarget.dataset.categoryIndex || 0);
+    const brand = this.data.items[brandIndex];
+    const category = brand?.category_items?.[categoryIndex];
+    if (!brand || !category || category.category_id <= 0) {
+      wx.showToast({ title: '暂无内容', icon: 'none' });
+      return;
+    }
+    this.trackBrandListEvent('brand_list_category_click', {
+      brandId: brand.brand_id,
+      brandName: brand.brand_name,
+      categoryId: category.category_id,
+      categoryName: category.category_name,
+      positionIndex: brandIndex,
+      categoryIndex,
+      sourcePage: 'brand-list',
+      sourceEntry: this.data.sourcePage,
+    });
+    wx.navigateTo({
+      url:
+        `/pages/product-list/index?brandId=${encodeURIComponent(String(brand.brand_id))}` +
+        `&categoryId=${encodeURIComponent(String(category.category_id))}` +
+        '&categoryLevel=secondary' +
+        `&categoryName=${encodeURIComponent(category.category_name)}` +
+        '&sourcePage=brand-list-category',
+      fail: () => wx.showToast({ title: '暂无内容', icon: 'none' }),
     });
   },
 
   onImageError(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
     this.setData({ [`banners[${index}].image_url`]: this.data.imageFallback });
+  },
+
+  onLogoError(event: WechatMiniprogram.TouchEvent) {
+    const index = Number(event.currentTarget.dataset.index || 0);
+    this.setData({
+      [`items[${index}].brand_logo_thumbnail_url`]: '',
+      [`items[${index}].brand_logo_url`]: '',
+    });
   },
 
   openCategory() {

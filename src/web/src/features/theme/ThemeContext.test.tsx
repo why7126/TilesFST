@@ -32,6 +32,11 @@ function renderThemeSwitcher() {
   );
 }
 
+function selectTheme(label: string, valueLabel: string) {
+  fireEvent.click(screen.getByLabelText(label));
+  fireEvent.click(screen.getByRole('option', { name: valueLabel }));
+}
+
 describe('ThemeProvider', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -52,9 +57,7 @@ describe('ThemeProvider', () => {
   it('applies local theme mode and writes the first-paint storage key', async () => {
     renderThemeSwitcher();
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'comfort_dark' },
-    });
+    selectTheme('界面主题', '舒适暗色');
 
     await waitFor(() => {
       expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
@@ -87,9 +90,7 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText('界面主题'), {
-      target: { value: 'light' },
-    });
+    selectTheme('界面主题', '浅色');
 
     await waitFor(() => {
       expect(updateThemePreference).toHaveBeenCalledWith('light');

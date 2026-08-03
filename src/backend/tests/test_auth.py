@@ -15,6 +15,7 @@ from app.db.seed import DEFAULT_ADMIN_USERNAME, seed_admin_user
 from app.db.session import get_db, get_session_factory, init_database, reset_engine
 from app.main import app
 from app.modules.media.storage import StoredMediaObject, set_media_storage_client
+from app.modules.media.storage import MediaObjectInfo
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 
@@ -42,6 +43,10 @@ class InMemoryMediaStorageClient:
             from app.modules.media.storage import MEDIA_NOT_FOUND
 
             raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
+
+    def get_object_info(self, object_key: str) -> MediaObjectInfo:
+        stored = self.get_object(object_key)
+        return MediaObjectInfo(content_type=stored.content_type, total_size=len(stored.content))
 
 
 @pytest.fixture()

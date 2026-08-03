@@ -1,14 +1,105 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 82
+next_id: 95
 entries:
-  - id: REQ-0081-release-image-build-governance
-    title: 发布镜像准备与构建治理
-    status: pending_review
+  - id: REQ-0094-mintlify-versioned-docs-directory
+    title: Mintlify 多版本产品文档目录与站点浏览
+    status: done
     iteration: null
-    created: "2026-07-29 10:00:08"
+    created: "2026-08-03 13:15:49"
+    parent_requirement: REQ-0088-versioned-product-usage-docs
+    related_change: null
+  - id: REQ-0093-standardize-deployment-environment-matrix
+    title: 标准化部署环境矩阵与 deploy 目录治理
+    status: done
+    iteration: null
+    created: "2026-08-03 10:44:00"
+    parent_requirement:
+    related_change: standardize-deployment-environment-matrix
+  - id: REQ-0092-brand-certificate-image-thumbnails
+    title: 品牌与证书图片支持真实缩略图生成
+    status: done
+    iteration: null
+    created: "2026-08-02 16:56:28"
+    parent_requirement:
+    related_change: add-brand-certificate-image-thumbnails
+  - id: REQ-0091-media-bug-four-point-acceptance-template
+    title: 媒体类 BUG 四联验收模板
+    status: done
+    iteration: null
+    created: "2026-08-01 09:48:06"
+    parent_requirement:
+    related_change: add-media-bug-four-point-acceptance-template
+  - id: REQ-0090-media-five-point-acceptance-template
+    title: 媒体五联验收模板
+    status: done
+    iteration: sprint-017
+    created: "2026-08-01 09:46:23"
+    parent_requirement:
+    related_change: add-media-five-point-acceptance-template
+  - id: REQ-0089-workflow-subdocument-status-sync
+    title: REQ/BUG 子文档状态同步与验收结果回填机制
+    status: done
+    iteration: sprint-017
+    created: "2026-08-01 09:40:07"
+    parent_requirement:
+    related_change: improve-workflow-subdocument-status-sync
+  - id: REQ-0088-versioned-product-usage-docs
+    title: 版本化产品使用文档生成与发布治理
+    status: done
+    iteration: sprint-017
+    created: "2026-08-01 08:10:11"
+    parent_requirement:
+    related_change: add-versioned-product-usage-docs
+  - id: REQ-0087-admin-sku-list-sort-optimization
+    title: 管理端 SKU 列表排序优化
+    status: done
+    iteration: sprint-016
+    created: "2026-07-31 23:53:02"
+    parent_requirement: REQ-0006-tile-sku-management
+    related_change: update-admin-sku-list-sort-optimization
+  - id: REQ-0086-miniapp-brand-list-ui-interaction-optimization
+    title: 微信小程序品牌列表页 UI 与交互体验优化
+    status: done
+    iteration: null
+    created: "2026-07-31 15:05:27"
+    parent_requirement: REQ-0060-brand-list-page
+    related_change: null
+  - id: REQ-0085-miniapp-global-home-floating-button
+    title: 小程序非首页新增全局返回首页悬浮按钮
+    status: done
+    iteration: sprint-014
+    created: "2026-07-30 22:53:04"
     parent_requirement:
     related_change: null
+  - id: REQ-0084-web-modal-disable-outside-close
+    title: Web 端所有弹窗取消点击空白区域自动关闭
+    status: done
+    iteration: sprint-014
+    created: "2026-07-30 22:53:04"
+    parent_requirement:
+    related_change: update-web-modal-disable-outside-close
+  - id: REQ-0083-miniapp-brand-list-category-summary
+    title: 小程序品牌列表页按品牌单行展示类目汇总
+    status: done
+    iteration: null
+    created: "2026-07-30 22:13:20"
+    parent_requirement: REQ-0060-brand-list-page
+    related_change: update-miniapp-brand-list-category-summary
+  - id: REQ-0082-admin-category-name-special-characters
+    title: 管理后台瓷砖类目名称允许特殊字符
+    status: done
+    iteration: sprint-014
+    created: "2026-07-30 22:08:31"
+    parent_requirement: REQ-0005-tile-category-management
+    related_change: update-admin-category-name-special-characters
+  - id: REQ-0081-release-image-build-governance
+    title: 发布镜像准备与构建治理
+    status: done
+    iteration: sprint-014
+    created: "2026-07-29 10:00:08"
+    parent_requirement:
+    related_change: update-release-image-build-governance
   - id: REQ-0080-miniapp-certificate-detail-page
     title: 微信小程序新增证书详情页
     status: done

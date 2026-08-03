@@ -100,7 +100,15 @@ pnpm dev
 
 ## 生产部署
 
-生产部署使用 `docker-compose.prod.yml`，连接客户已有 MySQL 8.0+，并继续使用自建 MinIO 单桶对象存储。
+生产部署优先使用 `deploy/` 环境矩阵；当前推荐生产目标是外部 MySQL 8.0+ + 腾讯云 COS：
+
+```bash
+cp deploy/prod/mysql-tencent-cos.env.example deploy/prod/mysql-tencent-cos.env
+# 编辑 deploy/prod/mysql-tencent-cos.env，设置 APP_ENV=production、DATABASE_URL、APP_SECRET_KEY、OBJECT_STORAGE_* 密钥
+./deploy/scripts/up.sh prod mysql-tencent-cos
+```
+
+根目录 `docker-compose.prod.yml` 保留为 VPS 生产兼容编排，连接客户已有 MySQL 8.0+，并继续使用自建 MinIO 单桶对象存储。
 
 ```bash
 cp .env.example .env
@@ -113,7 +121,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - 生产 Compose 不包含 mysql 服务，也不挂载 `./data/sqlite` 作为数据库。
 - 部署前置检查与冒烟流程见 `docs/02-deployment.md`。
 
-若客户同时提供外部 MySQL 与外部 MinIO/S3 兼容对象存储，使用 `docker-compose.prod.external.yml`。该变体只启动 `backend` 与 `web`，需额外配置 `MINIO_ENDPOINT`、`MINIO_BUCKET`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY` 与 `MINIO_SECURE`。
+若客户同时提供外部 MySQL 与外部 MinIO/S3 兼容对象存储，使用 `docker-compose.prod.external.yml`。该变体只启动 `tilesfst-backend` 与 `tilesfst-web`，需额外配置 `OBJECT_STORAGE_ENDPOINT`、`OBJECT_STORAGE_BUCKET`、`OBJECT_STORAGE_ACCESS_KEY`、`OBJECT_STORAGE_SECRET_KEY`、`OBJECT_STORAGE_SECURE`、`OBJECT_STORAGE_REGION` 与 `OBJECT_STORAGE_PATH_STYLE`。
 
 ## AI目录结构约束
 
@@ -175,7 +183,7 @@ releases/vX.Y.Z/announcement.mdx
 默认：
 
 ```env
-MINIO_BUCKET=tilesfst
+OBJECT_STORAGE_BUCKET=tilesfst
 ```
 
 ### 端口策略

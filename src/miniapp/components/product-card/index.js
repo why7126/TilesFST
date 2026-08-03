@@ -69,6 +69,7 @@ Component({
     index: { type: Number, value: 0 },
     requestId: { type: String, value: '' },
     imageFallback: { type: String, value: FALLBACK_IMAGE },
+    imageLazyLoad: { type: Boolean, value: true },
   },
 
   data: {

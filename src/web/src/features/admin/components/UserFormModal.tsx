@@ -110,7 +110,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
   };
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="modal-card"
         role="dialog"

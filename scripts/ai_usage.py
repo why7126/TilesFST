@@ -51,6 +51,7 @@ SPRINT_MATRIX_COMMAND_COLUMNS = (
     ("opsx.explore", "Opsx-Explore"),
     ("opsx.propose", "Opsx-Propose"),
     ("opsx.apply", "Opsx-Apply"),
+    ("opsx.modify", "Opsx-Modify"),
     ("opsx.archive", "Opsx-Archive"),
     ("sprint.propose", "Sprint-Propose"),
     ("sprint.explore", "Sprint-Explore"),
@@ -75,8 +76,8 @@ SPRINT_RE = re.compile(r"\bsprint-\d{3,}\b")
 RELEASE_RE = re.compile(r"\bv\d+\.\d+\.\d+(?:[-.][A-Za-z0-9.]+)?\b")
 EVENT_RE = re.compile(
     r"(?:^|\s)--event\s+(?P<event>[a-z][a-z0-9_.-]*)"
-    r"|(?:^|\s)/(?P<slash_family>req|bug|opsx|sprint|release)-(?P<slash_action>[a-z0-9-]+)"
-    r"|(?:^|\s)\[\$(?P<link_family>req|bug|opsx|sprint|release)-(?P<link_action>[a-z0-9-]+)\]"
+    r"|(?:^|\s)/(?P<slash_family>req|bug|opsx|sprint|release|image)-(?P<slash_action>[a-z0-9-]+)"
+    r"|(?:^|\s)\[\$(?P<link_family>req|bug|opsx|sprint|release|image)-(?P<link_action>[a-z0-9-]+)\]"
 )
 SECRET_RE = re.compile(
     r"(\bauthorization\b|\bbearer\s+[A-Za-z0-9._-]+|\bcookie\b|\.env\b"
@@ -1096,9 +1097,9 @@ def _status_payload(
     totals: dict[str, Any] | None = None,
     usage_matrices: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    payload = {
         "snapshot_status": status,
-        "snapshot_path": str(path),
+        "snapshot_path": relative_path(path),
         "present": status not in {"missing"},
         "usage_mode": "actual" if status == "present" else "estimated_fallback",
         "generated_at": generated_at,
@@ -1110,6 +1111,51 @@ def _status_payload(
         "recommended_action": None
         if status == "present"
         else f"Run `python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id>` and re-check {path.name}.",
+    }
+    payload["fresh_gate"] = sprint_snapshot_fresh_gate(payload)
+    return payload
+
+
+def sprint_snapshot_fresh_gate(status: dict[str, Any]) -> dict[str, Any]:
+    """Return the compact gate result required before real Sprint cost analysis."""
+
+    warnings = sorted(set(str(item) for item in status.get("warnings") or []))
+    coverage = status.get("coverage") if isinstance(status.get("coverage"), dict) else {}
+    coverage_status: dict[str, str] = {}
+    for key in ("requirements", "bugs", "changes"):
+        item = coverage.get(key)
+        if isinstance(item, dict):
+            coverage_status[key] = str(item.get("status") or "unknown")
+        else:
+            coverage_status[key] = "unknown"
+
+    usage_matrices = status.get("usage_matrices") if isinstance(status.get("usage_matrices"), dict) else {}
+    totals = status.get("totals") if isinstance(status.get("totals"), dict) else {}
+    metric_values = [int(totals.get(field) or 0) for field in (*COUNT_FIELDS, *TOKEN_FIELDS)]
+
+    blockers: list[str] = []
+    if status.get("snapshot_status") != "present":
+        blockers.append(f"snapshot-status-{status.get('snapshot_status') or 'unknown'}")
+    if status.get("usage_mode") != USAGE_MODE_ACTUAL:
+        blockers.append(f"usage-mode-{status.get('usage_mode') or 'unknown'}")
+    if not usage_matrices:
+        blockers.append("usage-matrices-missing")
+    if not totals or not any(metric_values):
+        blockers.append("required-metrics-empty")
+    for key, value in coverage_status.items():
+        if value != "pass":
+            blockers.append(f"{key}-coverage-{value}")
+
+    return {
+        "status": "pass" if not blockers else "blocker",
+        "snapshot_status": status.get("snapshot_status"),
+        "usage_mode": status.get("usage_mode"),
+        "usage_matrices_present": bool(usage_matrices),
+        "totals_present": bool(totals and any(metric_values)),
+        "coverage_status": coverage_status,
+        "warning_count": len(warnings),
+        "blockers": sorted(set(blockers)),
+        "recommended_action": None if not blockers else status.get("recommended_action"),
     }
 
 
@@ -1273,7 +1319,7 @@ def command_run_scope_dir(records: list[dict[str, Any]]) -> Path:
             str(record.get("release_version"))
             for record in records
             if record.get("release_version")
-            and str(record.get("workflow_event") or "").startswith("release.")
+            and str(record.get("workflow_event") or "").startswith(("release.", "image."))
         }
     )
     requirements = sorted({str(item) for record in records for item in record.get("requirements", [])})

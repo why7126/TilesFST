@@ -251,7 +251,7 @@ export function ChangePasswordModal({
   }
 
   return (
-    <div className="password-modal-backdrop" role="presentation" onClick={requestClose}>
+    <div className="password-modal-backdrop" role="presentation">
       <section
         className="password-modal"
         role="dialog"

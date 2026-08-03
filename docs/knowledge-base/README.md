@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-29 09:31:30
+updated_at: 2026-08-03 20:54:07
 ---
 
 # 知识库
@@ -41,6 +41,11 @@ updated_at: 2026-07-29 09:31:30
 | sprint-011 | [`retrospectives/sprint-011-retrospective.md`](retrospectives/sprint-011-retrospective.md) | draft |
 | sprint-012 | [`retrospectives/sprint-012-retrospective.md`](retrospectives/sprint-012-retrospective.md) | draft |
 | sprint-013 | [`retrospectives/sprint-013-retrospective.md`](retrospectives/sprint-013-retrospective.md) | draft |
+| sprint-014 | [`retrospectives/sprint-014-retrospective.md`](retrospectives/sprint-014-retrospective.md) | draft |
+| sprint-015 | [`retrospectives/sprint-015-retrospective.md`](retrospectives/sprint-015-retrospective.md) | draft |
+| sprint-016 | [`retrospectives/sprint-016-retrospective.md`](retrospectives/sprint-016-retrospective.md) | draft |
+| sprint-017 | [`retrospectives/sprint-017-retrospective.md`](retrospectives/sprint-017-retrospective.md) | draft |
+| sprint-018 | [`retrospectives/sprint-018-retrospective.md`](retrospectives/sprint-018-retrospective.md) | draft |
 
 ## 最佳实践索引
 
@@ -52,6 +57,7 @@ updated_at: 2026-07-29 09:31:30
 | 管理端媒体上传全链路 | [`best-practices/admin-media-upload-chain.md`](best-practices/admin-media-upload-chain.md) | sprint-002 复盘 |
 | Clipboard helper fallback | [`best-practices/clipboard-fallback.md`](best-practices/clipboard-fallback.md) | sprint-006 复盘 / REQ-0036 |
 | 小程序自定义导航 | [`best-practices/miniapp-custom-navigation.md`](best-practices/miniapp-custom-navigation.md) | sprint-008 复盘 / REQ-0053 |
+| 小程序商品列表排序 | [`best-practices/miniapp-product-list-sorting.md`](best-practices/miniapp-product-list-sorting.md) | BUG-0091 |
 
 ## 与 issues 的边界
 

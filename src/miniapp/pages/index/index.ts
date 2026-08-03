@@ -43,6 +43,7 @@ type ProductListData = {
 };
 
 const PAGE_SIZE = 12;
+const INITIAL_WATERFALL_DELAY_MS = 160;
 const SHARE_ADD_GUIDE_SESSION_KEY = 'miniapp_share_add_guide_session_closed_v1';
 const HOME_SHARE_PATH = '/pages/index/index?source=share';
 let shareAddGuideDismissedInSession = false;
@@ -80,7 +81,7 @@ Page({
     this.setData({ pageAlive: true });
     this.prepareShareAddGuide();
     this.loadHome();
-    this.loadAllProducts(true);
+    this.scheduleInitialProductsLoad();
   },
 
   onShow() {
@@ -195,6 +196,13 @@ Page({
           loading: false,
         });
       });
+  },
+
+  scheduleInitialProductsLoad() {
+    setTimeout(() => {
+      if (!this.data.pageAlive || this.data.allProducts.length) return;
+      this.loadAllProducts(true);
+    }, INITIAL_WATERFALL_DELAY_MS);
   },
 
   loadAllProducts(reset: boolean) {

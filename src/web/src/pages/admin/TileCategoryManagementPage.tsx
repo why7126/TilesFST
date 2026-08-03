@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { TileCategoryAdminItem, TileCategoryAdminListData } from '@/shared/api/generated';
+import { AdminFilterSelect } from '@/shared/ui';
 
 import {
   canDeleteCategory,
@@ -227,40 +228,32 @@ export function TileCategoryManagementPage() {
                 onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
               />
             </label>
-            <label>
+            <div className="admin-filter-dropdown">
               <span className="field-label">状态</span>
-              <select
-                className="select"
+              <AdminFilterSelect
+                ariaLabel="状态"
                 value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
+                options={CATEGORY_STATUS_OPTIONS}
+                listLabel="类目状态选项"
+                onChange={(nextStatus) => {
+                  setStatus(nextStatus);
                   setPage(1);
                 }}
-              >
-                {CATEGORY_STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
+              />
+            </div>
+            <div className="admin-filter-dropdown">
               <span className="field-label">层级</span>
-              <select
-                className="select"
+              <AdminFilterSelect
+                ariaLabel="层级"
                 value={level}
-                onChange={(e) => {
-                  setLevel(e.target.value);
+                options={CATEGORY_LEVEL_OPTIONS}
+                listLabel="类目层级选项"
+                onChange={(nextLevel) => {
+                  setLevel(nextLevel);
                   setPage(1);
                 }}
-              >
-                {CATEGORY_LEVEL_OPTIONS.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </div>
             <div className="cat-filter-actions">
               <button type="button" className="btn" onClick={handleReset}>
                 重置
@@ -276,7 +269,6 @@ export function TileCategoryManagementPage() {
             tree={tree}
             selectedId={selectedTreeId}
             totalCount={data?.summary.total ?? 0}
-            totalSku={data?.summary.bound_sku_total ?? 0}
             onSelect={(id) => {
               setSelectedTreeId(id);
               setPage(1);
@@ -427,7 +419,6 @@ export function TileCategoryManagementPage() {
         <div
           className="modal-backdrop"
           role="presentation"
-          onClick={() => setStatusConfirmTarget(null)}
         >
           <div
             className="modal-card"
@@ -469,7 +460,7 @@ export function TileCategoryManagementPage() {
       ) : null}
 
       {deleteTarget ? (
-        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteTarget(null)}>
+        <div className="modal-backdrop" role="presentation">
           <div
             className="modal-card"
             role="dialog"

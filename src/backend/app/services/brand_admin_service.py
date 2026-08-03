@@ -11,6 +11,7 @@ from app.core.exceptions import (
 )
 from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRecord, BrandRepository
+from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.schemas.brand_admin import (
     BrandAdminItem,
     BrandAdminListData,
@@ -26,6 +27,12 @@ def _logo_url(object_key: str | None) -> str | None:
     if not object_key:
         return None
     return f"/media/{object_key}"
+
+
+def _logo_thumbnail_url(object_key: str | None) -> str | None:
+    if not object_key:
+        return None
+    return f"/media/{same_directory_thumbnail_object_key(object_key)}"
 
 
 def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
@@ -56,6 +63,7 @@ class BrandAdminService:
             english_name=brand.english_name,
             logo_object_key=brand.logo_object_key,
             logo_url=_logo_url(brand.logo_object_key),
+            logo_thumbnail_url=_logo_thumbnail_url(brand.logo_object_key),
             description=brand.description,
             status=brand.status,
             sku_count=brand.sku_count,

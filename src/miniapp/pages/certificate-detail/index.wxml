@@ -31,7 +31,7 @@
           <image
             wx:if="{{item.media_type == 'image' && !item.image_failed}}"
             class="gallery-image"
-            src="{{item.url}}"
+            src="{{item.thumbnail_url || item.url}}"
             mode="aspectFit"
             data-index="{{index}}"
             bindtap="previewCurrentMedia"

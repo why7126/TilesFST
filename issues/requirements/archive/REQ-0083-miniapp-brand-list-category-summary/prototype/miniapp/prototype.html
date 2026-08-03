@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0083 品牌列表单行类目汇总原型</title>
+  <style>
+    :root {
+      --page: #18160F;
+      --surface: #211E16;
+      --surface-2: #2A261D;
+      --text: #EDE8DF;
+      --muted: rgba(237,232,223,.58);
+      --weak: rgba(237,232,223,.36);
+      --gold: #C8A055;
+      --line: rgba(255,255,255,.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #100F0A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+    }
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: var(--page);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0,0,0,.42);
+      position: relative;
+    }
+    .status {
+      height: 44px;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      padding: 0 24px 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .nav {
+      height: 54px;
+      display: grid;
+      grid-template-columns: 48px 1fr 86px;
+      align-items: center;
+      padding: 0 18px;
+    }
+    .back {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-size: 24px;
+    }
+    .title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .capsule {
+      justify-self: end;
+      width: 78px;
+      height: 30px;
+      border: 1px solid rgba(237,232,223,.22);
+      border-radius: 15px;
+      opacity: .72;
+    }
+    .content {
+      padding: 12px 18px 96px;
+    }
+    .hero {
+      position: relative;
+      height: 174px;
+      overflow: hidden;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(24,22,15,.1), rgba(24,22,15,.92)),
+        linear-gradient(120deg, #4A4335, #BCA979 48%, #29251C);
+      border: 1px solid rgba(200,160,85,.22);
+    }
+    .hero-copy {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: .18em;
+    }
+    .hero h1 {
+      margin: 0;
+      max-width: 240px;
+      font-size: 26px;
+      line-height: 1.18;
+    }
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 250px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .dots {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(237,232,223,.32);
+    }
+    .dot.active {
+      width: 16px;
+      border-radius: 8px;
+      background: var(--gold);
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin: 18px 0 12px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .section-note {
+      color: var(--weak);
+      font-size: 12px;
+    }
+    .brand-list {
+      display: grid;
+      gap: 12px;
+    }
+    .brand-row {
+      min-height: 106px;
+      display: grid;
+      grid-template-columns: minmax(132px, 42%) 1fr;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid rgba(200,160,85,.16);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 14px 34px rgba(0,0,0,.18);
+    }
+    .brand-left {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+      border: 1px solid rgba(200,160,85,.28);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--surface-2);
+      color: var(--gold);
+      font-family: Georgia, serif;
+      font-size: 18px;
+      letter-spacing: .08em;
+    }
+    .brand-name {
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 700;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .brand-count {
+      margin-top: 6px;
+      color: var(--gold);
+      font-size: 12px;
+    }
+    .category-box {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: flex-end;
+      gap: 7px;
+      max-height: 78px;
+      overflow: hidden;
+    }
+    .tag {
+      max-width: 92px;
+      padding: 5px 8px;
+      border: 1px solid rgba(237,232,223,.12);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tag.more {
+      color: var(--gold);
+      border-color: rgba(200,160,85,.3);
+      background: rgba(200,160,85,.08);
+    }
+    .empty {
+      color: var(--weak);
+      font-size: 12px;
+      align-self: center;
+      justify-self: end;
+    }
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 74px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      border-top: 1px solid var(--line);
+      background: rgba(16,15,10,.94);
+      backdrop-filter: blur(12px);
+      color: var(--weak);
+      font-size: 11px;
+      text-align: center;
+    }
+    .tab.active { color: var(--gold); }
+    @media (max-width: 420px) {
+      .phone {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+      }
+      .brand-row {
+        grid-template-columns: minmax(126px, 44%) 1fr;
+        padding: 12px;
+      }
+      .tag {
+        max-width: 82px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <span>5G 100%</span>
+    </div>
+    <div class="nav">
+      <div class="back">‹</div>
+      <div class="title">品牌</div>
+      <div class="capsule"></div>
+    </div>
+    <section class="content">
+      <div class="hero" aria-label="顶部品牌轮播保持不变">
+        <div class="hero-copy">
+          <p class="eyebrow">BRAND GALLERY</p>
+          <h1>全球严选瓷砖品牌</h1>
+          <p>轮播图保持现有品牌页能力，本需求只调整下方品牌列表。</p>
+        </div>
+        <div class="dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div class="section-title">品牌矩阵</div>
+        <div class="section-note">按类目快速识别</div>
+      </div>
+
+      <div class="brand-list">
+        <article class="brand-row">
+          <div class="brand-left">
+            <div class="logo">FS</div>
+            <div>
+              <div class="brand-name">菲尚特精选</div>
+              <div class="brand-count">128 款商品</div>
+            </div>
+          </div>
+          <div class="category-box">
+            <span class="tag">通体砖</span>
+            <span class="tag">岩板</span>
+            <span class="tag">木纹砖</span>
+            <span class="tag more">等 6 类</span>
+          </div>
+        </article>
+
+        <article class="brand-row">
+          <div class="brand-left">
+            <div class="logo">IM</div>
+            <div>
+              <div class="brand-name">意式现代瓷砖</div>
+              <div class="brand-count">46 款商品</div>
+            </div>
+          </div>
+          <div class="category-box">
+            <span class="tag">大理石砖</span>
+            <span class="tag">柔光砖</span>
+            <span class="tag">墙砖</span>
+          </div>
+        </article>
+
+        <article class="brand-row">
+          <div class="brand-left">
+            <div class="logo">N</div>
+            <div>
+              <div class="brand-name">无商品示例品牌</div>
+              <div class="brand-count">0 款商品</div>
+            </div>
+          </div>
+          <div class="empty">暂无类目</div>
+        </article>
+      </div>
+    </section>
+    <nav class="tabbar">
+      <div class="tab">首页</div>
+      <div class="tab active">品牌</div>
+      <div class="tab">分类</div>
+      <div class="tab">我的</div>
+    </nav>
+  </main>
+</body>
+</html>

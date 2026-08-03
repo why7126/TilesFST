@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0092 品牌与证书缩略图策略</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.55);
+      --line: rgba(255, 255, 255, 0.1);
+      --gold: #c8a055;
+      --danger: #d96d4a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--deep);
+      border-right: 1px solid var(--line);
+      padding: 28px 18px;
+    }
+
+    .brand {
+      color: var(--gold);
+      letter-spacing: 0.16em;
+      font-size: 12px;
+      margin-bottom: 32px;
+    }
+
+    .nav-item {
+      padding: 10px 12px;
+      border-radius: 3px;
+      color: var(--muted);
+    }
+
+    .nav-item.active {
+      color: var(--gold);
+      background: rgba(200, 160, 85, 0.08);
+    }
+
+    .main {
+      padding: 28px;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1, h2 {
+      margin: 0;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 22px;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-bottom: 14px;
+    }
+
+    .desc {
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .button {
+      border: 1px solid var(--gold);
+      background: var(--gold);
+      color: var(--deep);
+      border-radius: 2px;
+      height: 36px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      padding: 12px 10px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 12px;
+    }
+
+    .thumb {
+      width: 46px;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: linear-gradient(135deg, rgba(200, 160, 85, 0.2), rgba(255, 255, 255, 0.04));
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-size: 11px;
+    }
+
+    .thumb.failed {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tag {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      padding: 2px 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tag.gold {
+      color: var(--gold);
+      border-color: rgba(200, 160, 85, 0.45);
+    }
+
+    .upload {
+      border: 1px dashed rgba(200, 160, 85, 0.45);
+      border-radius: 3px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .upload-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .bar span {
+      display: block;
+      width: 62%;
+      height: 100%;
+      background: var(--gold);
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .summary-row strong {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">TILESFST</div>
+      <div class="nav-item active">品牌证书</div>
+      <div class="nav-item">瓷砖品牌</div>
+      <div class="nav-item">瓷砖 SKU</div>
+    </aside>
+    <main class="main">
+      <header class="page-head">
+        <div>
+          <h1>品牌与证书缩略图策略</h1>
+          <div class="desc">小图展示优先缩略图，预览查看使用原图，失败时安全回退。</div>
+        </div>
+        <button class="button">存量补齐 dry-run</button>
+      </header>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>列表小图使用策略</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>缩略图</th>
+                <th>对象</th>
+                <th>读取策略</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="thumb">Logo</div></td>
+                <td>品牌 Logo</td>
+                <td>优先 .thumb，预览打开原图</td>
+                <td><span class="tag gold">thumbnail</span></td>
+              </tr>
+              <tr>
+                <td><div class="thumb">CERT</div></td>
+                <td>检测证书图片</td>
+                <td>卡片用缩略图，预览用原图</td>
+                <td><span class="tag gold">thumbnail</span></td>
+              </tr>
+              <tr>
+                <td><div class="thumb failed">PDF</div></td>
+                <td>PDF 证书</td>
+                <td>文件类型占位，不渲染首页缩略图</td>
+                <td><span class="tag">N/A</span></td>
+              </tr>
+              <tr>
+                <td><div class="thumb failed">占位</div></td>
+                <td>缩略图读取失败</td>
+                <td>回退原图；原图失败展示占位</td>
+                <td><span class="tag">fallback</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <aside>
+          <section class="panel">
+            <h2>上传状态机</h2>
+            <div class="upload">
+              <div class="upload-title">
+                <span>品牌 Logo 上传中</span>
+                <span class="tag gold">uploading</span>
+              </div>
+              <div class="desc">正在生成原图与缩略图对象</div>
+              <div class="bar"><span></span></div>
+            </div>
+            <div class="upload">
+              <div class="upload-title">
+                <span>证书图片已完成</span>
+                <span class="tag gold">done</span>
+              </div>
+              <div class="desc">同会话即时回显缩略图卡片</div>
+            </div>
+            <div class="upload">
+              <div class="upload-title">
+                <span>透明 PNG 缩略图失败</span>
+                <span class="tag">failed</span>
+              </div>
+              <div class="error">缩略图生成失败，原图已保存，将回退原图展示。</div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>存量补齐摘要</h2>
+            <div class="summary">
+              <div class="summary-row"><span>待处理品牌图</span><strong>126</strong></div>
+              <div class="summary-row"><span>待处理证书图</span><strong>342</strong></div>
+              <div class="summary-row"><span>已存在有效缩略图</span><strong>89</strong></div>
+              <div class="summary-row"><span>需人工复核异常</span><strong>7</strong></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

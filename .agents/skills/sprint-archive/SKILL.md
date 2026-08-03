@@ -45,6 +45,14 @@ python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
 python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 ```
 
+`validate-sprint-archive-readiness.py` includes the Sprint close stale scan. It MUST fail when Sprint four-piece docs or scoped REQ/BUG top-level Markdown files still contain stale intermediate wording such as "待 `/req-opsx`", "待 `/bug-opsx`", "待 `/opsx-apply`", stale `proposed` / `applied` semantics for archived Changes, unresolved `待验收` / `待实现`, active Change paths for archived Changes, or canonical `openspec/changes/archive/` links. For focused diagnosis, run:
+
+```bash
+python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>
+```
+
+Do not hand-edit `sprint.md` workflow-sync marker blocks while fixing stale scan blockers; rerun Workflow Sync or edit only non-derived human-authored notes.
+
 For a Sprint with 10+ Change ids in `sprint.yaml`, first inspect the machine-readable `change_batches` from readiness / Fact Sheet JSON. Use batch summary counts, blockers, warnings and evidence hints to decide which raw `tasks.md` or `trace.md` snippets need detail. Successful output MUST stay compact: report total changes, batch count, archived/skipped/blocked counts, warning count and recommended next read; do not print full batch JSON or every raw tasks/trace detail.
 
 For single change mode:
@@ -53,7 +61,7 @@ For single change mode:
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id> --change <change-id>
 ```
 
-Readiness distinguishes active and archived Change semantics: active Changes are checked for directory/tasks completion; archived Changes are additionally checked for `trace.md`. If an archived Change lacks `trace.md`, `proposal.md`、`design.md` or `tasks.md` MUST contain a complete `## 归档验证摘要` covering validation command/result, acceptance verdict, Issue/Sprint status, and archive path/time evidence.
+Readiness distinguishes active and archived Change semantics: active Changes are checked for directory/tasks completion; archived Changes are additionally rechecked for `trace.md`. If an archived Change lacks `trace.md`, `proposal.md`、`design.md` or `tasks.md` MUST contain a complete `## 归档验证摘要` covering validation command/result, acceptance verdict, Issue/Sprint status, and archive path/time evidence. This is a Sprint-level secondary gate; new single Change archives are expected to catch the same evidence gap during `/opsx-archive`.
 
 Before any issue package is moved to `issues/**/archive/`, the promote step MUST pass the issue subdocument status gate:
 
@@ -83,9 +91,9 @@ Before the final close step, check the Sprint AI usage snapshot through the Fact
 python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 ```
 
-Inspect `ai_usage_snapshot.snapshot_status`、`ai_usage_snapshot.ai_usage_mode`、`generated_at`、`coverage`、`warnings` and `recommended_action`.
+Inspect `ai_usage_snapshot.fresh_gate`、`snapshot_status`、`ai_usage_mode`、`generated_at`、`coverage`、`warnings` and `recommended_action`.
 
-- If `snapshot_status: present` and `ai_usage_mode: actual`, output only a compact summary: status, mode, path, generated_at, coverage status and warning_count.
+- If `fresh_gate.status: pass`, `snapshot_status: present` and `ai_usage_mode: actual`, output only a compact summary: fresh gate status, snapshot status, mode, path, generated_at, coverage status, usage_matrices presence and warning_count.
 - If snapshot is `missing`、`stale` or `failed`, try to generate/refresh it only when the operator provides a local session input, using:
 
 ```bash
@@ -128,11 +136,13 @@ After the Sprint directory has moved to `iterations/archive/<sprint-id>/` and Wo
 
 ```bash
 python scripts/check-archived-path-residuals.py --sprint <sprint-id>
+python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>
 ```
 
 - Exit code `0` means no stale `iterations/change/<sprint-id>/` or active `openspec/changes/<change-id>/` references were found in this Sprint scope.
 - Exit code `1` MUST block a silent success close-out. Report the file, line, old path, suggested path, and exact retry command from the residual report.
 - The check scope MUST come from `sprint.yaml` requirements / bugs / changes and Sprint four-piece documents; do not broad-scan all `issues/**`, `openspec/archive/**`, or legacy `openspec/changes/archive/**`.
+- The stale scan MUST also pass before close-out; report blocker severity, kind, target, file, line and retry command when it fails.
 - Do not hand-edit workflow-sync marker blocks while fixing residual links.
 
 ## Final Step — Workflow Sync（MUST）

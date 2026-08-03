@@ -31,18 +31,29 @@
 
 ### Requirement: 管理端类目树 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-categories/tree`，`admin` 与 `employee` 可调用。响应 MUST 返回类目树结构，每个节点 MUST 包含 `id`、`name`、`code`、`level`、`status`、`sku_count`（含子级汇总的 SKU 数）及 `children`（若有）。
+系统 MUST 提供 `GET /api/v1/admin/tile-categories/tree`，`admin` 与 `employee` 可调用。响应 MUST 返回类目树结构，每个节点 MUST 包含 `id`、`name`、`code`、`level`、`status`、`sku_count`（含子级汇总的 SKU 数）、`children_count`（直接子类目数量）及 `children`（若有）。`sku_count` 与 `children_count` MUST 表达不同语义：`sku_count` 只用于商品/SKU 数量统计和删除规则判断，`children_count` 只用于类目树层级数量展示。
 
 #### Scenario: 获取完整类目树
 
 - **WHEN** `employee` 携带有效 token 请求 tree 端点
 - **THEN** 系统返回 HTTP 200 与树形数据
+- **AND** 每个类目节点 MUST 返回直接子类目数量字段 `children_count`
 - **AND** 根级 MAY 包含虚拟「全部类目」汇总或前端自行汇总
 
-#### Scenario: 非管理端用户被拒绝
+#### Scenario: 类目树节点区分 SKU 数量与子类目数量
 
-- **WHEN** `store_owner` 或未认证用户请求 tree
-- **THEN** 系统 MUST 返回 HTTP 401 或 403
+- **GIVEN** 某一级类目有 3 个直接子类目且含子级汇总 SKU 数为 21
+- **WHEN** 系统返回该类目树节点
+- **THEN** `children_count` MUST 为 `3`
+- **AND** `sku_count` MAY 为 `21`
+- **AND** 系统 MUST NOT 用 `sku_count` 覆盖 `children_count`
+
+#### Scenario: 叶子类目子类目数量为 0
+
+- **GIVEN** 某类目没有直接子类目
+- **WHEN** 系统返回该类目树节点
+- **THEN** `children_count` MUST 为 `0`
+- **AND** 即使该类目存在关联 SKU，`children_count` 也 MUST NOT 显示商品数量
 
 ### Requirement: 管理端类目列表与筛选 API
 
@@ -159,13 +170,19 @@
 
 ### Requirement: 类目名称输入长度上限
 
-管理端类目创建与更新 MUST 使用统一的业务输入长度规则：类目名称 trim 后 MUST 非空，且 MUST 允许 1 到 15 个用户可见字符；超过 15 个用户可见字符时 MUST 拒绝保存。该规则不改变既有字符集、同层级唯一、编码自动生成、层级、排序权重、启停和删除要求。
+管理端类目创建与更新 MUST 使用统一的业务输入规则：类目名称 trim 后 MUST 非空，MUST 允许 1 到 15 个用户可见字符，且 MUST 允许中文、英文、数字和常见可见特殊字符；常见可见特殊字符 MUST 包含英文括号 `(`、`)` 与中文全角括号 `（`、`）`。超过 15 个用户可见字符时 MUST 拒绝保存。系统 MUST 禁止换行、制表符、不可见控制字符和仅由空白组成的输入。该规则不改变同层级唯一、编码自动生成、层级、排序权重、启停和删除要求。
 
-#### Scenario: 创建 15 字符类目名称
+#### Scenario: 创建特殊字符类目名称
 
-- **WHEN** 管理端提交创建类目请求，`name` 为 15 个用户可见字符且满足字符集、层级、排序权重与同层级唯一规则
+- **WHEN** 管理端提交创建类目请求，`name` 包含合法特殊字符且不超过 15 个用户可见字符
 - **THEN** 系统 MUST 接受该名称并创建类目
 - **AND** 响应 MUST 返回统一 response envelope 与创建后的类目对象
+
+#### Scenario: 更新特殊字符类目名称
+
+- **WHEN** 管理端提交更新类目请求，`name` 包含合法特殊字符且不超过 15 个用户可见字符
+- **THEN** 系统 MUST 接受该名称并更新类目
+- **AND** 系统 MUST 继续保持既有 `code` 不变
 
 #### Scenario: 创建 16 字符类目名称
 
@@ -174,12 +191,6 @@
 - **AND** 响应 MUST 使用统一 response envelope 返回稳定业务错误
 - **AND** 错误 message MUST 表达类目名称最多 15 个字符
 
-#### Scenario: 更新 15 字符类目名称
-
-- **WHEN** 管理端提交更新类目请求，`name` 为 15 个用户可见字符且满足字符集与同层级唯一规则
-- **THEN** 系统 MUST 接受该名称并更新类目
-- **AND** 系统 MUST 继续保持既有 `code` 不变
-
 #### Scenario: 更新 16 字符类目名称
 
 - **WHEN** 管理端提交更新类目请求，`name` 超过 15 个用户可见字符
@@ -187,15 +198,42 @@
 - **AND** 响应 MUST 使用统一 response envelope 返回稳定业务错误
 - **AND** 错误 message MUST 表达类目名称最多 15 个字符
 
-#### Scenario: 前端弹窗长度校验
+#### Scenario: 拒绝控制字符类目名称
 
-- **WHEN** 后台用户在新增或编辑类目弹窗输入 16 个用户可见字符的类目名称
+- **WHEN** 管理端提交创建或更新类目请求，`name` 包含换行、制表符、不可见控制字符或 trim 后为空
+- **THEN** 系统 MUST 拒绝创建或更新
+- **AND** 响应 MUST 使用统一 response envelope 返回稳定业务错误
+- **AND** 错误 message MUST 表达类目名称仅支持中文、英文、数字和特殊字符或等价字段级错误
+
+#### Scenario: 前端弹窗字符集校验
+
+- **WHEN** 后台用户在新增或编辑类目弹窗输入合法特殊字符类目名称
+- **THEN** Web 管理端 MUST 允许提交
+- **AND** 字段级错误 MUST NOT 因特殊字符出现
+
+#### Scenario: 前端弹窗非法字符校验
+
+- **WHEN** 后台用户在新增或编辑类目弹窗输入换行、制表符、不可见控制字符或 16 个用户可见字符的类目名称
 - **THEN** Web 管理端 MUST 在保存前阻止提交
 - **AND** 字段级错误 MUST 展示在类目名称字段或字段组下方
 
-#### Scenario: 展示端 15 字符名称兼容
+#### Scenario: 展示端特殊字符名称兼容
 
-- **WHEN** 系统存在 15 个用户可见字符的合法类目名称
-- **THEN** 管理端类目列表与类目树 MUST NOT 因该名称发生文字重叠、操作遮挡或容器横向撑破
+- **WHEN** 系统存在包含合法特殊字符的类目名称
+- **THEN** 管理端类目列表、类目树和类目选择器 MUST NOT 因该名称发生文字重叠、操作遮挡或容器横向撑破
 - **AND** 小程序分类入口与 Web 展示端分类入口 MUST NOT 因该名称发生文字重叠、操作遮挡或容器横向撑破
+
+#### Scenario: 创建中文括号类目名称
+
+- **WHEN** 管理端提交创建类目请求，`name` 为 `墙砖（哑光）`
+- **THEN** 系统 MUST 接受该名称并创建类目
+- **AND** 响应 MUST 返回统一 response envelope 与创建后的类目对象
+- **AND** 返回的类目名称 MUST 完整保留中文括号
+
+#### Scenario: 更新中文括号类目名称
+
+- **WHEN** 管理端提交更新类目请求，`name` 为 `地砖（防滑）`
+- **THEN** 系统 MUST 接受该名称并更新类目
+- **AND** 系统 MUST 继续保持既有 `code` 不变
+- **AND** 再次读取该类目时名称 MUST 完整保留中文括号
 

@@ -4,7 +4,7 @@ content: 约束AI与开发人员遵循当前项目目录边界、文件归属和
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 17:23:40
+updated_at: 2026-08-03 19:10:00
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -30,6 +30,8 @@ note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录�
 | `issues/` | 原始需求和BUG池 | 否 |
 | `iterations/` | 迭代管理 | 否 |
 | `releases/` | 产品版本发布对象、公开发布公告源文件与发布校验材料 | 否 |
+| `mintlify/` | 公开 Mintlify 文档站源目录、多版本文档投影、公告投影和共享截图资产 | 否 |
+| `deploy/` | 部署环境矩阵、环境化 Compose、env 示例、部署脚本和校验工具 | 否 |
 | `compatibility/` | 兼容性说明 | 否 |
 | `.agents/` | Codex 技能与项目级 Agent 能力（唯一 AI 工具入口） | 否 |
 | `src/` | 源码 | 否 |
@@ -54,21 +56,91 @@ releases/
 │   └── announcement.mdx       # 公开公告模板
 └── v0.1.0/
     ├── release.json           # 机器可读发布事实源
-    └── announcement.mdx       # Mintlify 公告源文件
+    ├── announcement.mdx       # Mintlify 公告源文件
+    ├── usage-docs/            # 产品使用文档；仅用户确认需要生成或更新时存在
+    │   ├── manifest.json
+    │   ├── overview.mdx
+    │   ├── admin/
+    │   └── miniapp/
+    ├── image-build-plan.json  # 镜像构建计划；仅 image_required=true 或有镜像治理证据时生成
+    └── image-manifest.json    # 镜像构建结果 manifest；仅真实构建或受控外部证据完成后生成
 ```
 
 边界：
 
 - `releases/` MUST 只存放产品版本发布对象、公开发布公告源文件、发布校验记录和 Mintlify 文档配置。
+- `releases/vX.Y.Z/usage-docs/` 只允许在该版本确认需要生成或更新产品使用文档时创建；确认不需要时 MUST NOT 创建空目录。
+- `usage-docs/` MUST 只存放该版本公开产品使用文档源文件、`manifest.json` 和必要的 Mintlify 页面源文件，不得替代 `docs/`、`issues/`、`iterations/` 或 `openspec/`。
+- `releases/vX.Y.Z/image-build-plan.json` 与 `image-manifest.json` 属于发布校验材料，MUST NOT 包含真实 `.env`、密钥、数据库连接串、Authorization header、Cookie、本机绝对路径或真实客户数据。
+- 镜像 tar 包、`.sha256` 与其他大体积交付物 MUST 放在仓库外 `../releases/vX.Y.Z/images/`；仓库内 manifest 只记录相对路径、hash 与验证结论。
 - `releases/` MUST NOT 替代 `iterations/` 四件套、`issues/` 需求/BUG 文档、`openspec/changes/` 变更事实源或 `docs/` 长期技术文档。
 - `releases/` MUST NOT 存放运行时生成站点、构建产物、真实客户数据、密钥、数据库连接串或不可公开运维信息。
 - 若 Mintlify 生成输出目录存在，MUST 在 `.gitignore` 或相邻 README 中声明提交边界。
+
+### 2.2 `mintlify/` 文档站源目录
+
+`mintlify/` 用于承载公开 Mintlify 文档站源文件，不是发布事实源。`releases/vX.Y.Z/usage-docs/` 继续保留该版本全量产品使用文档正文与 `manifest.json`，`mintlify/docs/vX.Y.Z/` 由 release 快照同步或投影生成。
+
+推荐结构：
+
+```text
+mintlify/
+├── README.md
+├── mint.json
+├── site-manifest.json
+├── assets/screenshots/
+├── docs/
+│   ├── latest/
+│   └── vX.Y.Z/
+└── releases/
+    └── vX.Y.Z/announcement.mdx
+```
+
+边界：
+
+- `mintlify/` MUST 只存放公开站点配置、MD/MDX 页面、公告投影、站点 manifest 和公开截图资产。
+- `mintlify/assets/screenshots/` SHOULD 使用 `sha256-<hash>-<semantic-name>.<ext>` 命名，跨版本复用必须在 release manifest 或 site manifest 中记录来源、覆盖页面和复用依据。
+- `mintlify/` MUST NOT 存放 `.env`、真实客户数据、密钥、数据库连接串、Authorization header、Cookie、生产私有域名、运行时数据库、日志、构建产物、`node_modules/`、`.mintlify/`、`dist/`、`build/`、`.next/` 或 coverage。
+- `mintlify/` 不得替代 `releases/vX.Y.Z/release.json`、`releases/vX.Y.Z/usage-docs/manifest.json`、`docs/`、`issues/`、`iterations/` 或 `openspec/`。
+
+### 2.3 `deploy/` 部署矩阵目录
+
+`deploy/` 用于承载本地和生产部署环境矩阵，不是运行时数据目录，也不是云资源管理目录。
+
+推荐结构：
+
+```text
+deploy/
+├── README.md
+├── local/
+│   ├── README.md
+│   ├── compose.yml
+│   └── *.env.example
+├── prod/
+│   ├── README.md
+│   ├── compose.tencent-cos.yml
+│   └── *.env.example
+└── scripts/
+    ├── up.sh
+    ├── down.sh
+    └── validate-env.py
+```
+
+边界：
+
+- `deploy/` MUST 只存放部署矩阵 README、环境化 Compose、可提交 env 示例、部署脚本和部署校验工具。
+- `deploy/local/` MUST 表达本地开发环境矩阵；`deploy/prod/` MUST 表达生产或生产等价部署矩阵。
+- `deploy/scripts/` SHOULD 承载环境解析、启动、停止和配置校验逻辑；旧 `scripts/docker-up.sh` 与 `scripts/docker-down.sh` 只保留兼容 wrapper。
+- `deploy/` MUST NOT 存放真实 `.env`、真实密钥、真实数据库连接串、对象存储凭据、真实客户数据、运行时数据库文件、MinIO 对象数据、镜像 tar 包或离线交付包。
 
 生命周期：
 
 1. `/release-propose <version>` 创建或更新产品版本发布对象。
 2. `/release-prepare <version>` 执行发布前校验并生成/更新公告源文件。
-3. `/release-publish <version>` 记录发布确认结果和最终公告位置。
+3. 若用户确认需要产品使用文档，生成并校验 `usage-docs/`；若确认不需要，记录 skipped 且不创建空目录。
+4. `/image-prepare <version>` 在镜像治理适用时生成或更新镜像构建计划。
+5. `/image-build <version>` 在需要真实镜像交付时生成 manifest。
+6. `/release-publish <version>` 记录发布确认结果和最终公告位置。
 
 命名：
 
@@ -158,6 +230,7 @@ src/shared/
 - 故障知识沉淀放入 `docs/knowledge-base/`。
 - 迭代文档放入 `iterations/{change|archive}/sprint-xxx/`（**MUST** 含 `sprint.yaml` 四件套，见 `rules/document-governance.md` §4.1、`rules/iterations-lifecycle.md`）；禁止 `docs/iterations/`。
 - 产品版本发布对象和公开发布公告源文件放入 `releases/`；禁止用 `docs/` 或 `iterations/` 临时代替产品发布目录。
+- Mintlify 公开文档站源文件、多版本使用文档投影、`latest` 指针、公告投影和共享截图资产放入 `mintlify/`；禁止直接绕过 release 快照改写历史产品语义。
 - 正式系统能力放入 `openspec/specs/`。
 - 开发中的变更放入 `openspec/changes/`。
 - 已完成变更放入 `openspec/archive/`。
@@ -169,14 +242,17 @@ src/shared/
 - 禁止创建、恢复或继续写入 `openspec/changes/archive/`。该路径是历史兼容路径，只能在迁移脚本、残留引用扫描或测试 fixture 中作为 legacy 字符串出现，不得作为真实目录存在。
 - 若发现真实目录 `openspec/changes/archive/`，MUST 立即迁移其子目录到 `openspec/archive/`，确认目标不存在且文件完整后删除空的 legacy 目录，并运行 `python scripts/validate-directory-structure.py`。
 - `/opsx-archive` 与 `/sprint-archive` 后置校验 MUST 确认 `openspec/changes/archive/` 不存在。
+- Sprint close stale scan MUST 阻断 Sprint 四件套中新生成或 canonical 语义的 `openspec/changes/archive/` 引用；测试 fixture、迁移脚本和兼容读取逻辑可保留该字符串作为 legacy 例外。
 
 ## 5. Docker与部署文件规则
 
 - 根目录只允许存在项目级编排文件：`docker-compose.yml`（本地开发 / demo）、`docker-compose.prod.yml`（VPS 生产，外部 MySQL + 自建 MinIO）与 `docker-compose.prod.external.yml`（VPS 生产，外部 MySQL + 外部 MinIO）。
+- `deploy/` 下允许环境化 Compose：`deploy/local/compose.yml`、`deploy/prod/compose.tencent-cos.yml` 以及后续经 OpenSpec Change 批准的部署拓扑 Compose。
 - 后端镜像构建文件放入 `src/backend/Dockerfile`。
 - Web镜像构建文件放入 `src/web/Dockerfile`。
 - Web Nginx配置放入 `src/web/nginx.conf`。
-- Docker启动停止脚本放入 `scripts/`。
+- 新部署启动停止和 env 校验脚本放入 `deploy/scripts/`；`scripts/docker-up.sh` 与 `scripts/docker-down.sh` 仅作为兼容 wrapper。
+- 镜像构建脚本与 image plan / manifest validator 放入 `scripts/`，例如 `scripts/build-images.sh`、`scripts/validate-image-build.py`。
 
 ## 6. AI新增文件前检查清单
 

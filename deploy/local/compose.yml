@@ -1,0 +1,131 @@
+# 本地环境矩阵 Compose：通过 env 文件和 self-hosted-storage profile 区分数据库与对象存储组合。
+# 维护要求：新增 service、environment、ports、volumes、networks 时，必须同步 deploy/local/*.env.example 与 docs/02-deployment.md。
+name: tilesfst
+
+services:
+  # FastAPI 后端服务，负责 API、认证、媒体元数据与受控对象存储读取。
+  tilesfst-backend:
+    # 后端镜像构建上下文限定在 src/backend；与根目录 docker-compose.yml 保持一致。
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile
+      args:
+        # 后端 Docker 构建基础镜像；可在 env 中覆盖为镜像源。
+        BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
+    # 固定容器名便于本地 docker logs / exec 调试。
+    container_name: tilesfst-backend
+    # env 文件由 deploy/scripts/up.sh 注入；直接运行 compose config 时可设置 TILESFST_DEPLOY_ENV_FILE。
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:-../../.env}
+    # 宿主机端口可通过 env 覆盖；容器内 FastAPI 固定 8000。
+    ports:
+      - "${HOST_PORT_BACKEND:-8000}:8000"
+    # 本地持久化目录：SQLite、处理产物与临时文件均落在 data/ 下。
+    volumes:
+      - ../../data/sqlite:/app/data/sqlite
+      - ../../data/processed:/app/data/processed
+      - ../../data/tmp:/app/data/tmp
+    networks:
+      - tilesfst
+
+  # React Web 展示端 / 管理端，容器内由 Nginx 托管静态资源并反代 API。
+  tilesfst-web:
+    # Web 构建需要项目根上下文，以便同时复制 src/web 与 src/shared。
+    build:
+      context: ../..
+      dockerfile: src/web/Dockerfile
+      args:
+        # Web Docker 构建 Node 基础镜像；可在 env 中覆盖为镜像源。
+        WEB_NODE_BASE_IMAGE: ${WEB_NODE_BASE_IMAGE:-node:22-alpine}
+        # Web Docker 运行 Nginx 基础镜像；可在 env 中覆盖为镜像源。
+        WEB_NGINX_BASE_IMAGE: ${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}
+    container_name: tilesfst-web
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:-../../.env}
+    environment:
+      # Nginx 模板仅替换 UPLOAD_* 变量，避免误替换 $host 等 Nginx 内置变量。
+      NGINX_ENVSUBST_FILTER: "^UPLOAD_"
+      # 上传专用 body 限制，须不小于后端上传大小限制。
+      UPLOAD_CLIENT_MAX_BODY_SIZE: ${UPLOAD_CLIENT_MAX_BODY_SIZE:-512m}
+      # 浏览器上传请求体读取超时。
+      UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS: ${UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS:-600}
+      # Web Nginx 到 tilesfst-backend 建连超时。
+      UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS: ${UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS:-60}
+      # Web Nginx 向 tilesfst-backend 发送上传请求超时。
+      UPLOAD_PROXY_SEND_TIMEOUT_SECONDS: ${UPLOAD_PROXY_SEND_TIMEOUT_SECONDS:-600}
+      # Web Nginx 等待 tilesfst-backend 上传响应超时。
+      UPLOAD_PROXY_READ_TIMEOUT_SECONDS: ${UPLOAD_PROXY_READ_TIMEOUT_SECONDS:-600}
+      # Web Nginx 向浏览器发送响应超时。
+      UPLOAD_SEND_TIMEOUT_SECONDS: ${UPLOAD_SEND_TIMEOUT_SECONDS:-600}
+      # 大文件上传默认关闭请求缓冲。
+      UPLOAD_PROXY_REQUEST_BUFFERING: ${UPLOAD_PROXY_REQUEST_BUFFERING:-off}
+    ports:
+      - "${HOST_PORT_WEB:-3000}:80"
+    depends_on:
+      - tilesfst-backend
+    networks:
+      - tilesfst
+
+  # 项目自建 MinIO，仅 local-*-minio-managed 环境通过 profile 启用。
+  tilesfst-minio:
+    profiles:
+      - self-hosted-storage
+    image: minio/minio:latest
+    container_name: tilesfst-minio
+    command: server /data --console-address ":9001"
+    environment:
+      # MinIO root 账号从对象存储示例密钥读取；默认值仅允许本地开发使用。
+      MINIO_ROOT_USER: ${OBJECT_STORAGE_ACCESS_KEY:-minioadmin}
+      # MinIO root 密码从对象存储示例密钥读取；默认值仅允许本地开发使用。
+      MINIO_ROOT_PASSWORD: ${OBJECT_STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+      - "${HOST_PORT_MINIO_API:-9000}:9000"
+      - "${HOST_PORT_MINIO_CONSOLE:-9001}:9001"
+    volumes:
+      - ../../data/minio:/data
+    networks:
+      - tilesfst
+
+  # MinIO 初始化任务：创建单一项目 Bucket，并关闭匿名访问。
+  tilesfst-minio-init:
+    profiles:
+      - self-hosted-storage
+    image: minio/mc:latest
+    container_name: tilesfst-minio-init
+    depends_on:
+      - tilesfst-minio
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:-../../.env}
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://tilesfst-minio:9000 $${OBJECT_STORAGE_ACCESS_KEY:-minioadmin} $${OBJECT_STORAGE_SECRET_KEY:-minioadmin};
+      mc mb --ignore-existing local/$${OBJECT_STORAGE_BUCKET:-tilesfst};
+      mc anonymous set none local/$${OBJECT_STORAGE_BUCKET:-tilesfst};
+      echo 'Object storage bucket initialized: '$${OBJECT_STORAGE_BUCKET:-tilesfst};
+      "
+    networks:
+      - tilesfst
+
+  # Mintlify 产品文档站预览服务；local 环境默认通过 docs-site profile 启动。
+  tilesfst-docs-site:
+    profiles:
+      - docs-site
+    image: ${MINTLIFY_NODE_IMAGE:-node:22-alpine}
+    container_name: tilesfst-docs-site
+    working_dir: /workspace/mintlify
+    # deploy/local Compose 从 deploy/local 回到项目根挂载 Mintlify 源目录。
+    volumes:
+      - ../../mintlify:/workspace/mintlify:ro
+      - ../../deploy/scripts/docs-site-static-server.mjs:/workspace/docs-site-static-server.mjs:ro
+    # 容器内 Mintlify 预览端口固定 3000；宿主机端口通过 env 覆盖。
+    ports:
+      - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
+    command: node /workspace/docs-site-static-server.mjs
+    networks:
+      - tilesfst
+
+networks:
+  # 本地开发 bridge 网络；服务间通过 tilesfst-backend、tilesfst-web、tilesfst-minio 名称互访。
+  tilesfst:
+    driver: bridge

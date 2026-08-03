@@ -38,9 +38,9 @@
       >
         <view class="file-frame {{item.file_kind}}">
           <image
-            wx:if="{{item.file_kind == 'image' && !item.image_failed}}"
+            wx:if="{{item.file_kind == 'image' && item.thumbnail_url && !item.image_failed}}"
             class="file-image"
-            src="{{item.file_url}}"
+            src="{{item.thumbnail_url}}"
             mode="aspectFill"
             data-index="{{index}}"
             binderror="onImageError"
@@ -61,4 +61,5 @@
     <view wx:elif="{{loadMoreError}}" class="load-more retry" bindtap="retryLoadMore">{{loadMoreError}}</view>
     <view wx:elif="{{items.length && !hasMore}}" class="load-more">已经到底了</view>
   </view>
+  <home-floating-button offset="tabbar" />
 </view>

@@ -1,0 +1,56 @@
+---
+title: 产品版本 v0.3.4
+description: Sprint 018 产品版本发布公告
+---
+
+# 产品版本 v0.3.4
+
+发布时间：2026-08-03 20:54:14
+
+关联 Sprint：sprint-018
+
+## 新增功能
+
+- 新增 Mintlify 多版本产品文档站目录治理，支持版本化产品使用文档、发布公告投影、`latest` 指针和共享截图资产。
+- 标准化部署环境矩阵，明确本地、演示和生产部署目录、Compose/env 示例和部署脚本边界。
+
+## 修复 BUG
+
+- 修复管理后台品牌列表 Logo、品牌编辑 Logo、证书列表、证书编辑、SKU 表头和类目名称校验相关展示问题。
+- 修复小程序返回首页按钮重复进入能力，以及卡片和 Banner 缩略图展示策略。
+
+## 发布注意事项
+
+- 本版本已完成 release prepare、usage docs、镜像构建计划、镜像构建 manifest 和发布阶段校验。
+- 离线镜像包：`../releases/v0.3.4/images/tilesfst-v0.3.4-linux-amd64.tar.gz`
+- 镜像包 SHA256：以 `releases/v0.3.4/image-manifest.json` 和离线包 `.sha256` sidecar 为准。
+- 生产或生产等价环境必须显式设置 `TILESFST_IMAGE_TAG=v0.3.4`。
+
+## 已知问题
+
+- 后端 pytest 当前因本地缺少 `PIL` 依赖在收集阶段中断，需补齐测试环境后复跑；前端 Vitest 已通过。
+
+## 升级步骤
+
+1. 获取并校验离线镜像包 SHA256。
+2. 在发布环境显式设置 `TILESFST_IMAGE_TAG=v0.3.4`。
+3. 按部署矩阵更新 Compose/env 配置。
+4. 完成 smoke、回归验证和人工 sign-off。
+
+## 回滚说明
+
+1. 回退到上一 Git tag 或上一部署包。
+2. 恢复上一版本 Compose、deploy 脚本和环境变量配置。
+3. 如文档站投影已发布，回退 `latest` 指针和公告投影。
+
+## 影响范围
+
+| 范围 | 影响 |
+|---|---|
+| Web 管理端 | 品牌、证书、SKU、类目展示与校验修复 |
+| 店主 Web | 不涉及 |
+| 小程序 | 首页导航与媒体缩略图展示修复 |
+| 后端 | 类目名称校验与媒体字段契约需复核 |
+| 数据库 | 不涉及 schema 或 migration |
+| 对象存储 | 不改变 MinIO 单桶和凭据边界 |
+| Docker | docs-site profile、deploy 目录、Compose/env 示例和部署脚本治理 |

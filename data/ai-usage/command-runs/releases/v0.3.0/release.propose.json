@@ -1,0 +1,113 @@
+{
+  "release_version": "v0.3.0",
+  "workflow_event": "release.propose",
+  "source": "data/ai-usage release command-runs",
+  "source_data_files": [
+    "~/.codex/sessions/2026/07/31/rollout-2026-07-31T08-26-02-019fb590-537a-7ba0-8965-97c280a27072.jsonl"
+  ],
+  "generated_at": "2026-07-31T00:31:01.958215Z",
+  "estimated": false,
+  "coverage": {
+    "requirements": [
+      "REQ-0081-release-image-build-governance",
+      "REQ-0082-admin-category-name-special-characters",
+      "REQ-0083-miniapp-brand-list-category-summary",
+      "REQ-0084-web-modal-disable-outside-close",
+      "REQ-0085-miniapp-global-home-floating-button"
+    ],
+    "bugs": [
+      "BUG-0090-admin-sku-list-publish-sort-order",
+      "BUG-0091-miniapp-product-list-sort-consistency",
+      "BUG-0092-miniapp-card-images-slow-load",
+      "BUG-0093-miniapp-category-secondary-grid-name-full-display"
+    ],
+    "changes": [
+      "add-miniapp-global-home-floating-button",
+      "fix-admin-sku-list-publish-sort-order",
+      "fix-miniapp-card-image-loading",
+      "fix-miniapp-category-secondary-grid-name-display",
+      "fix-miniapp-product-list-sort-consistency",
+      "update-admin-category-name-special-characters",
+      "update-miniapp-brand-list-category-summary",
+      "update-release-image-build-governance",
+      "update-web-modal-disable-outside-close"
+    ],
+    "sprints": [
+      "sprint-014"
+    ]
+  },
+  "totals": {
+    "input_tokens": 738939,
+    "cached_input_tokens": 667904,
+    "output_tokens": 8628,
+    "reasoning_output_tokens": 823,
+    "total_tokens": 747567,
+    "command_run_count": 1,
+    "model_call_count": 14,
+    "tool_call_count": 28,
+    "tool_output_chars": 0,
+    "retry_count": 0
+  },
+  "command_runs": [
+    {
+      "source_session_hash": "7e80a5478d57590609d87cc8aa97a49ab37e7c098096479d4c4e9fc82626b7c3",
+      "source_data_file": "~/.codex/sessions/2026/07/31/rollout-2026-07-31T08-26-02-019fb590-537a-7ba0-8965-97c280a27072.jsonl",
+      "source_line_start": 8,
+      "source_line_end": 119,
+      "turn_hash": "4b3836262caf1135",
+      "started_at": "2026-07-31T00:27:50.396Z",
+      "ended_at": "2026-07-31T00:31:00.842Z",
+      "command": "release.propose",
+      "workflow_event": "release.propose",
+      "requirements": [
+        "REQ-0081-release-image-build-governance",
+        "REQ-0082-admin-category-name-special-characters",
+        "REQ-0083-miniapp-brand-list-category-summary",
+        "REQ-0084-web-modal-disable-outside-close",
+        "REQ-0085-miniapp-global-home-floating-button"
+      ],
+      "bugs": [
+        "BUG-0090-admin-sku-list-publish-sort-order",
+        "BUG-0091-miniapp-product-list-sort-consistency",
+        "BUG-0092-miniapp-card-images-slow-load",
+        "BUG-0093-miniapp-category-secondary-grid-name-full-display"
+      ],
+      "changes": [
+        "add-miniapp-global-home-floating-button",
+        "fix-admin-sku-list-publish-sort-order",
+        "fix-miniapp-card-image-loading",
+        "fix-miniapp-category-secondary-grid-name-display",
+        "fix-miniapp-product-list-sort-consistency",
+        "update-admin-category-name-special-characters",
+        "update-miniapp-brand-list-category-summary",
+        "update-release-image-build-governance",
+        "update-web-modal-disable-outside-close"
+      ],
+      "sprint_id": "sprint-014",
+      "release_sprints": [
+        "sprint-014"
+      ],
+      "release_version": "v0.3.0",
+      "attribution_confidence": "high",
+      "model_name": "gpt-5.5",
+      "model_provider": "openai",
+      "service_tier": null,
+      "reasoning_effort": "medium",
+      "reasoning_summary": "auto",
+      "model_speed_tier": "frontier",
+      "model_rate_limit_name": null,
+      "model_rate_limit_id": "codex",
+      "model_context_window": 258400,
+      "model_call_count": 14,
+      "input_tokens": 738939,
+      "cached_input_tokens": 667904,
+      "output_tokens": 8628,
+      "reasoning_output_tokens": 823,
+      "total_tokens": 747567,
+      "tool_call_count": 28,
+      "tool_output_chars": 0,
+      "retry_count": 0,
+      "retry_count_method": "tool_result_error_count"
+    }
+  ]
+}

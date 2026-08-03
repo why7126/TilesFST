@@ -1,0 +1,79 @@
+sprint_id: sprint-017
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-01 10:35:08
+end_date: 2026-08-02 19:31:01
+
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+
+requirements:
+  - REQ-0088-versioned-product-usage-docs
+  - REQ-0090-media-five-point-acceptance-template
+  - REQ-0091-media-bug-four-point-acceptance-template
+  - REQ-0089-workflow-subdocument-status-sync
+  - REQ-0092-brand-certificate-image-thumbnails
+bugs:
+  - BUG-0102-miniapp-brand-list-carousel-brand-gallery-text
+changes:
+  - add-versioned-product-usage-docs
+  - add-media-five-point-acceptance-template
+  - add-media-bug-four-point-acceptance-template
+  - improve-workflow-subdocument-status-sync
+  - fix-miniapp-brand-list-carousel-text
+  - add-brand-certificate-image-thumbnails
+
+estimated_story_points: 17.5
+estimated_person_days: 17.5
+capacity_usage: 0.5833
+fix_buffer_person_days: 12.5
+fix_buffer_ratio: 0.4167
+
+scope_estimates:
+  - id: REQ-0088-versioned-product-usage-docs
+    change: add-versioned-product-usage-docs
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: "P1 add 型发布治理增强，主要影响 release 规则、usage-docs 文档源、release.json 元数据、Mintlify 导航与发布校验脚本；不直接影响 API、数据库、Web 管理端运行时、小程序运行时、对象存储或 Orval。"
+  - id: REQ-0090-media-five-point-acceptance-template
+    change: add-media-five-point-acceptance-template
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P1 add 型媒体链路验收治理能力；主要工作为长期模板文档、OpenSpec capability、引用方式、横切 media-upload gate 与验证，不涉及 API、DB、Orval、运行时 Web/小程序实现或 Docker Compose 行为变更。"
+  - id: REQ-0091-media-bug-four-point-acceptance-template
+    change: add-media-bug-four-point-acceptance-template
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: "P1 add 型媒体类 BUG 验收治理能力；主要工作为四联模板落点、BUG acceptance 引用方式、object-storage delta spec、media-upload 横切 gate 与验证，不涉及 API、DB、Orval、运行时 Web/小程序实现或 Docker Compose 行为变更。"
+  - id: REQ-0089-workflow-subdocument-status-sync
+    change: improve-workflow-subdocument-status-sync
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: "P1 workflow 治理增强，主要影响 Workflow Sync、Issue 生命周期规则、命令 Skill、drift check 与 focused pytest；不直接影响业务 API、数据库、Web 管理端运行时、小程序运行时、对象存储或 Orval。"
+  - id: BUG-0102-miniapp-brand-list-carousel-brand-gallery-text
+    change: fix-miniapp-brand-list-carousel-text
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: "low 小程序品牌列表页轮播图展示文案修复；主要工作为移除 BRAND GALLERY 与“轮播图保持现有品牌页能力”两段多余说明文案，并补充静态测试或等价验证；不影响 API、DB、Orval、Web 管理端或 Docker Compose。"
+  - id: REQ-0092-brand-certificate-image-thumbnails
+    change: add-brand-certificate-image-thumbnails
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: "P1 add 型媒体能力扩展，覆盖品牌图片与图片类品牌证书真实缩略图生成、后端受控读取、管理端品牌/证书列表与上传回显、小程序/店主端展示、存量 dry-run/apply 补齐和媒体五联验收；涉及 Backend、Web/Admin、Miniapp、Store-owner Web、Storage，API/DB/Orval/Docker 为条件性影响。"
+
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 17.5
+  capacity_usage: 0.5833
+  note: "project.yaml 未提供显式 Sprint 容量，沿用 sprint-016 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 5 个 REQ、1 个 BUG 与 6 个 Change，估算 17.5 人天，占用 58.33%，低于 30 人天容量，满足容量硬门禁；fix buffer 12.5 人天 / 41.67%，满足建议缓冲。"
+
+deferred_items: []

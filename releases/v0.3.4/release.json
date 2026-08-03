@@ -1,0 +1,270 @@
+{
+  "version": "v0.3.4",
+  "release_time": "2026-08-03 20:54:14",
+  "owner": "product",
+  "summary": "Sprint 018 发布计划：汇总 Mintlify 多版本产品文档站治理、部署环境矩阵标准化，以及管理后台和小程序媒体展示相关缺陷修复。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release-prepare 已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v0.3.4。",
+  "image_required": true,
+  "image_required_rationale": "Sprint 018 包含 docs-site Compose profile、deploy 目录治理、env 示例、Compose 入口和部署脚本等发布镜像输入影响；需后续执行 /image-prepare 与 /image-build。",
+  "image_tag": "v0.3.4",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "当前为 release propose 草稿，未提供受控外部构建证据。"
+  },
+  "usage_docs": {
+    "status": "generated",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": "v0.3.3",
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": true,
+      "confirmed_at": "2026-08-03 22:13:00",
+      "confirmed_by": "operator",
+      "rationale": "用户在当前会话明确确认：usage docs 要生成。"
+    }
+  },
+  "sprints": [
+    "sprint-018"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0094-mintlify-versioned-docs-directory",
+      "title": "Mintlify 多版本产品文档站目录治理",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0093-standardize-deployment-environment-matrix",
+      "title": "部署环境矩阵标准化",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0105-admin-brand-list-logo-renders-text",
+      "title": "管理后台品牌列表 Logo 列显示为文字",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0109-miniapp-home-button-one-time-failure",
+      "title": "小程序返回首页按钮每个页面只能点击一次",
+      "status": "done",
+      "severity": "high",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+      "title": "管理后台证书编辑弹窗文件就绪文案与图片信息异常",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0110-miniapp-card-banner-thumbnail-usage",
+      "title": "小程序卡片与 Banner 缩略图使用策略遗漏",
+      "status": "done",
+      "severity": "high",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0107-admin-certificate-list-main-image-name-only",
+      "title": "管理后台证书列表主图字段仅显示名称",
+      "status": "done",
+      "severity": "low",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0104-admin-sku-list-headers-wrap",
+      "title": "管理后台 SKU 列表表头换行",
+      "status": "done",
+      "severity": "low",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0106-admin-brand-edit-logo-uploaded-text",
+      "title": "管理后台品牌编辑弹窗 Logo 冗余上传成功文案",
+      "status": "done",
+      "severity": "low",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0103-admin-category-name-chinese-parentheses",
+      "title": "管理后台类目名称不支持中文括号",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-mintlify-versioned-docs-site",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-add-mintlify-versioned-docs-site"
+    },
+    {
+      "id": "standardize-deployment-environment-matrix",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-standardize-deployment-environment-matrix"
+    },
+    {
+      "id": "fix-admin-brand-list-logo-rendering",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-brand-list-logo-rendering"
+    },
+    {
+      "id": "fix-miniapp-home-navigation-repeat-click",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-miniapp-home-navigation-repeat-click"
+    },
+    {
+      "id": "fix-admin-certificate-edit-file-image-display",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-certificate-edit-file-image-display"
+    },
+    {
+      "id": "fix-miniapp-card-banner-thumbnail-usage",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-miniapp-card-banner-thumbnail-usage"
+    },
+    {
+      "id": "fix-admin-certificate-list-main-image-name-only",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-certificate-list-main-image-name-only"
+    },
+    {
+      "id": "fix-admin-sku-list-header-wrapping",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-sku-list-header-wrapping"
+    },
+    {
+      "id": "fix-admin-brand-edit-logo-uploaded-text",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-brand-edit-logo-uploaded-text"
+    },
+    {
+      "id": "fix-admin-category-name-chinese-parentheses",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-03-fix-admin-category-name-chinese-parentheses"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-018/acceptance-report.md：10/10 Change 已归档；openspec/archive/2026-08-03-* 覆盖本发布全部 10 个 Change。"
+    },
+    "tests": {
+      "status": "na",
+      "rationale": "部分通过、部分阻断：pnpm --dir src/web test -- --run 于 2026-08-03 21:32:13 通过，59 个测试文件 / 332 条测试通过；uv run pytest 于 2026-08-03 21:32 遇到 environment_blocker，6 个测试模块收集阶段缺少 PIL 依赖，未进入产品回归断言。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "2026-08-03 21:33 执行 ./scripts/generate-openapi-client.sh 重新生成 src/web/openapi.json 与 src/web/src/shared/api/generated.ts；随后 python scripts/validate-api-standard.py 通过。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "2026-08-03 21:31 执行 docker compose config --quiet 通过；deploy/local 与 deploy/prod 部署矩阵文件存在并已按 env 示例校验记录。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "Sprint 018 发布范围未包含数据库 schema 或迁移变更。"
+    },
+    "env_example": {
+      "status": "pass",
+      "evidence": "2026-08-03 21:34 执行 python deploy/scripts/validate-env.py 覆盖 local sqlite/mysql 与 MinIO/COS 示例；managed MinIO 示例使用 --profile self-hosted-storage 后通过。prod mysql-tencent-cos 示例被脚本按真实生产 env 规则拦截示例密钥，证明示例值不会被误当生产配置。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-08-03 21:31 已更新 src/shared/product-version.ts，PRODUCT_VERSION = v0.3.4；python scripts/validate-release.py 未再报告产品版本不一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-08-03 21:35 执行 python scripts/validate-release.py --release-dir releases/v0.3.4 --stage prepare，公告文件存在、mintlify/mint.json 存在且公开安全扫描未报告敏感信息；命令整体仍因 usage docs 确认和 image plan 缺失阻断。"
+    },
+    "usage_docs_preview": {
+      "status": "pass",
+      "evidence": "2026-08-03 22:13 用户确认 v0.3.4 usage docs 要生成；执行 python scripts/generate-usage-docs.py v0.3.4 生成 releases/v0.3.4/usage-docs 并投影到 mintlify/docs/v0.3.4 与 mintlify/docs/latest；2026-08-03 22:18 补充真实系统截图引用和 manifest.screenshots[]，随后执行 python scripts/validate-usage-docs.py --release-dir releases/v0.3.4。 2026-08-03 22:45：按规则修复为继承 v0.3.3 完整 usage docs 页面集。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "evidence": "2026-08-03 22:10:40 执行 python scripts/validate-image-build.py prepare --release v0.3.4 生成 releases/v0.3.4/image-build-plan.json；随后 python scripts/validate-image-build.py validate-plan --release v0.3.4 通过。auto_action_count=1：scripts/build-images.env 的 IMAGE_BUILD_TAG 已规范为 v0.3.4；warning_count=4：docker-compose.prod*.yml 的 TILESFST_IMAGE_TAG fallback 为 v0.0.4，实际发布 env 必须显式设置 TILESFST_IMAGE_TAG=v0.3.4；blocker_count=0。"
+    },
+    "image_build": {
+      "status": "pass",
+      "evidence": "2026-08-03 23:00:37 最终执行 python scripts/validate-image-build.py build --release v0.3.4，生成 releases/v0.3.4/image-manifest.json；tarball=../releases/v0.3.4/images/tilesfst-v0.3.4-linux-amd64.tar.gz，sha256=c4ca3763f31933b5525aa3d48c448fe3c3282201d08f9c7e99934ce521aa5054；python scripts/validate-image-build.py validate-manifest --release v0.3.4 与 shasum -a 256 -c tilesfst-v0.3.4-linux-amd64.tar.gz.sha256 均通过。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "KI-v0.3.4-001",
+      "title": "后端 pytest 本地依赖缺失",
+      "status": "open",
+      "impact": "uv run pytest 在收集阶段因缺少 PIL 依赖中断，分类为 environment_blocker；需安装/同步测试依赖后复跑。"
+    },
+    {
+      "id": "KI-v0.3.4-002",
+      "title": "usage docs 生成决策待确认",
+      "status": "resolved",
+      "impact": "已确认并生成 v0.3.4 usage docs；截图与 Mintlify 投影待校验结果确认。"
+    },
+    {
+      "id": "KI-v0.3.4-003",
+      "title": "镜像构建计划和构建证据待生成",
+      "status": "resolved",
+      "impact": "镜像构建计划、image manifest、离线镜像包和 sha256 sidecar 已生成并通过发布校验。"
+    }
+  ],
+  "upgrade_steps": [
+    "执行 /release-prepare v0.3.4，补齐公告、测试、Mintlify、usage docs 决策和产品版本门禁。",
+    "执行 /image-prepare v0.3.4，生成镜像构建计划并复核 Compose、Dockerfile、deploy 脚本与 env 示例输入。",
+    "执行 /image-build v0.3.4，生成镜像 manifest 和离线交付校验证据。",
+    "完成发布前 smoke、回归验证和必要的人工 sign-off。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心 Web 管理端或小程序展示路径 smoke 失败",
+      "Mintlify 文档站或 release 公告预览阻断",
+      "部署脚本、Compose 或 env 示例校验阻断",
+      "镜像构建、校验或发布输入 hash 漂移"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本 Compose、deploy 脚本和环境变量配置。",
+      "若文档站投影已发布，回退 Mintlify latest 指针和公告投影。",
+      "重新执行 smoke 与回归验证。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "管理后台品牌列表、品牌编辑、证书列表、证书编辑、SKU 列表、类目名称校验等展示与交互修复。",
+    "owner_web": "不涉及。",
+    "miniapp": "小程序首页导航按钮、商品/品牌/证书卡片和 Banner 缩略图展示策略修复。",
+    "backend": "类目名称校验兼容中文括号；缩略图/媒体字段契约需在 prepare 阶段复核，无新增业务 API 声明。",
+    "database": "不涉及",
+    "object_storage": "媒体缩略图与 Banner 展示策略涉及对象 URL 使用方式，未改变 MinIO 单桶策略或凭据边界。",
+    "docker": "涉及 Mintlify docs-site profile、deploy 目录、Compose/env 示例和部署脚本治理。"
+  },
+  "announcement": "announcement.mdx",
+  "publish_confirmation": {
+    "published_at": "2026-08-03 23:00:51",
+    "announcement_url": "releases/v0.3.4/announcement.mdx; mintlify/releases/v0.3.4/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认通过。最终离线镜像包 sha256=c4ca3763f31933b5525aa3d48c448fe3c3282201d08f9c7e99934ce521aa5054；发布环境必须显式设置 TILESFST_IMAGE_TAG=v0.3.4。后端 pytest 本地缺少 PIL 的 environment_blocker 已保留为 known issue。"
+  }
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0087 管理端 SKU 列表排序优化</title>
+    <style>
+      body { margin: 0; background: #18160f; color: #ede8df; font-family: Inter, "PingFang SC", sans-serif; font-size: 13px; }
+      .shell { min-height: 100vh; display: grid; grid-template-columns: 264px 1fr; }
+      .sidebar { background: #100f0a; border-right: 1px solid rgba(255,255,255,.1); padding: 26px 20px; }
+      .brand { color: #c8a055; font-size: 18px; letter-spacing: .16em; margin-bottom: 34px; }
+      .nav-item { padding: 11px 12px; color: rgba(237,232,223,.56); border-radius: 3px; margin-bottom: 6px; }
+      .nav-item.active { color: #ede8df; border: 1px solid rgba(200,160,85,.35); background: rgba(200,160,85,.09); }
+      main { padding: 28px; overflow: auto; }
+      .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+      h1 { font-size: 22px; font-weight: 400; margin: 0 0 8px; }
+      .sub, .page-summary, .page-right { color: rgba(237,232,223,.56); }
+      .primary { border: 0; background: #c8a055; color: #17140e; border-radius: 2px; padding: 10px 16px; font-weight: 600; }
+      .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+      .metric-card, .filters, .table-card { background: #211e16; border: 1px solid rgba(255,255,255,.1); border-radius: 3px; }
+      .metric-card { padding: 15px 16px; }
+      .metric-label { color: rgba(237,232,223,.56); margin-bottom: 8px; }
+      .metric-value { font-size: 24px; }
+      .metric-desc { margin-top: 8px; color: rgba(237,232,223,.34); }
+      .filters { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr) auto; gap: 10px; padding: 14px; margin-bottom: 16px; }
+      .field, .ghost { height: 36px; border-radius: 2px; border: 1px solid rgba(255,255,255,.18); background: #28241a; color: rgba(237,232,223,.56); padding: 0 12px; display: flex; align-items: center; }
+      .ghost { color: #ede8df; justify-content: center; }
+      table { width: 100%; border-collapse: collapse; min-width: 1040px; }
+      th, td { text-align: left; padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,.1); white-space: nowrap; }
+      th { color: rgba(237,232,223,.56); font-weight: 500; background: rgba(255,255,255,.02); }
+      .sku-code { color: rgba(237,232,223,.34); font-size: 12px; margin-top: 4px; }
+      .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 2px; border: 1px solid rgba(255,255,255,.18); color: rgba(237,232,223,.56); }
+      .badge.offline { border-color: rgba(217,119,87,.4); color: #e1a08a; }
+      .badge.online { border-color: rgba(200,160,85,.45); color: #c8a055; }
+      .page-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px; }
+      .page-right { display: flex; gap: 8px; align-items: center; }
+      .page-current { min-width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 2px; background: #c8a055; color: #17140e; }
+      @media (max-width: 920px) { .shell { grid-template-columns: 1fr; } .sidebar { display: none; } main { padding: 18px; } .metrics, .filters { grid-template-columns: 1fr; } .table-card { overflow-x: auto; } }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">TILESFST</div>
+        <div class="nav-item">总览</div>
+        <div class="nav-item">品牌管理</div>
+        <div class="nav-item active">瓷砖 SKU</div>
+        <div class="nav-item">类目管理</div>
+      </aside>
+      <main>
+        <section class="page-head">
+          <div>
+            <h1>瓷砖 SKU</h1>
+            <div class="sub">默认排序：未上架优先，未上架按创建时间倒序，已上架按发布时间倒序。</div>
+          </div>
+          <button class="primary">新增 SKU</button>
+        </section>
+        <section class="metrics">
+          <article class="metric-card"><div class="metric-label">SKU 总数</div><div class="metric-value">1,286</div><div class="metric-desc">当前筛选范围</div></article>
+          <article class="metric-card"><div class="metric-label">未上架</div><div class="metric-value">327</div><div class="metric-desc">默认优先展示</div></article>
+          <article class="metric-card"><div class="metric-label">已上架</div><div class="metric-value">959</div><div class="metric-desc">按发布时间排序</div></article>
+          <article class="metric-card"><div class="metric-label">待完善</div><div class="metric-value">46</div><div class="metric-desc">需要运营处理</div></article>
+        </section>
+        <section class="filters">
+          <div class="field">搜索 SKU 名称 / 编码</div><div class="field">全部品牌</div><div class="field">全部类目</div><div class="field">全部状态</div><div class="field">素材完整度</div><div class="ghost">查询</div>
+        </section>
+        <section class="table-card">
+          <table>
+            <thead><tr><th>SKU 信息</th><th>品牌 / 类目</th><th>状态</th><th>创建时间</th><th>发布时间</th><th>更新时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>云影灰 750x1500<div class="sku-code">SKU-YYG-7501500</div></td><td>岩境 / 大板</td><td><span class="badge offline">草稿</span></td><td>2026-08-01 06:40:00</td><td>-</td><td>2026-08-01 06:50:00</td><td>编辑</td></tr>
+              <tr><td>卡拉拉白 600x1200<div class="sku-code">SKU-KLLB-6001200</div></td><td>岩境 / 墙砖</td><td><span class="badge offline">待完善</span></td><td>2026-07-31 22:10:00</td><td>-</td><td>2026-07-31 22:30:00</td><td>编辑</td></tr>
+              <tr><td>岩脉黑 900x1800<div class="sku-code">SKU-YMH-9001800</div></td><td>山集 / 大板</td><td><span class="badge offline">已下架</span></td><td>2026-07-29 16:20:00</td><td>2026-07-30 09:00:00</td><td>2026-07-31 09:12:00</td><td>编辑</td></tr>
+              <tr><td>星砂米黄 600x600<div class="sku-code">SKU-XXMH-600600</div></td><td>星筑 / 地砖</td><td><span class="badge online">已上架</span></td><td>2026-07-20 11:00:00</td><td>2026-08-01 06:20:00</td><td>2026-08-01 06:21:00</td><td>编辑</td></tr>
+              <tr><td>银河灰 800x800<div class="sku-code">SKU-YHH-800800</div></td><td>星筑 / 地砖</td><td><span class="badge online">已上架</span></td><td>2026-07-18 09:00:00</td><td>2026-07-31 18:30:00</td><td>2026-07-31 18:40:00</td><td>编辑</td></tr>
+            </tbody>
+          </table>
+          <div class="page-bar"><div class="page-summary">共 1,286 条</div><div class="page-right"><span>上一页</span><span class="page-current">1</span><span>2</span><span>下一页</span><span>20 条/页</span></div></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

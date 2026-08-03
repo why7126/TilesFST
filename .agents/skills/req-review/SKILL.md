@@ -109,6 +109,7 @@ python scripts/sync-workflow-status.py --event req.review --req <REQ-id> --sprin
 
 - Exit code **MUST** be `0` before ending this command.
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
+- Confirm the summary includes Issue subdocument checked/updated counts when applicable; `requirement.md` and review-related status fields must not conflict with `trace.md`.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
 
 ## Final Step — AI Usage Post-command Hook (MUST)

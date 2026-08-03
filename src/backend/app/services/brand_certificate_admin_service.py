@@ -21,6 +21,7 @@ from app.repositories.brand_certificate_repository import (
     BrandCertificateRepository,
 )
 from app.repositories.brand_repository import BrandRepository
+from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.schemas.brand_certificate_admin import (
     BrandCertificateCreateRequest,
     BrandCertificateFile,
@@ -68,6 +69,12 @@ def _is_backend_media_reference(file_key: str, file_url: str) -> bool:
     return file_url == f"/media/{file_key}"
 
 
+def _thumbnail_url(file_key: str, file_mime_type: str | None) -> str | None:
+    if file_mime_type not in CERTIFICATE_IMAGE_MIME_TYPES:
+        return None
+    return f"/media/{same_directory_thumbnail_object_key(file_key)}"
+
+
 class BrandCertificateAdminService:
     def __init__(
         self,
@@ -99,6 +106,7 @@ class BrandCertificateAdminService:
             BrandCertificateImage(
                 file_url=image.file_url,
                 file_key=image.file_key,
+                thumbnail_url=_thumbnail_url(image.file_key, image.file_mime_type),
                 file_name=image.file_name,
                 file_mime_type=image.file_mime_type,
                 file_size_bytes=image.file_size_bytes,
@@ -112,6 +120,7 @@ class BrandCertificateAdminService:
                 BrandCertificateImage(
                     file_url=record.file_url,
                     file_key=record.file_key,
+                    thumbnail_url=_thumbnail_url(record.file_key, record.file_mime_type),
                     file_name=record.file_name,
                     file_mime_type=record.file_mime_type,
                     file_size_bytes=record.file_size_bytes,
@@ -131,6 +140,7 @@ class BrandCertificateAdminService:
             issuer=record.issuer,
             file_url=record.file_url,
             file_key=record.file_key,
+            thumbnail_url=_thumbnail_url(record.file_key, record.file_mime_type),
             file_name=record.file_name,
             file_mime_type=record.file_mime_type,
             file_size_bytes=record.file_size_bytes,

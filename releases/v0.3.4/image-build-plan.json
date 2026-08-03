@@ -1,0 +1,458 @@
+{
+  "version": "v0.3.4",
+  "generated_at": "2026-08-03 23:00:01",
+  "image_required": true,
+  "image_required_rationale": "Sprint 018 包含 docs-site Compose profile、deploy 目录治理、env 示例、Compose 入口和部署脚本等发布镜像输入影响；需后续执行 /image-prepare 与 /image-build。",
+  "image_tag": "v0.3.4",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-018"
+    ],
+    "requirements": [
+      {
+        "id": "REQ-0094-mintlify-versioned-docs-directory",
+        "title": "Mintlify 多版本产品文档站目录治理",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0093-standardize-deployment-environment-matrix",
+        "title": "部署环境矩阵标准化",
+        "status": "done",
+        "scope": "formal"
+      }
+    ],
+    "bugs": [
+      {
+        "id": "BUG-0105-admin-brand-list-logo-renders-text",
+        "title": "管理后台品牌列表 Logo 列显示为文字",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0109-miniapp-home-button-one-time-failure",
+        "title": "小程序返回首页按钮每个页面只能点击一次",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+        "title": "管理后台证书编辑弹窗文件就绪文案与图片信息异常",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0110-miniapp-card-banner-thumbnail-usage",
+        "title": "小程序卡片与 Banner 缩略图使用策略遗漏",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0107-admin-certificate-list-main-image-name-only",
+        "title": "管理后台证书列表主图字段仅显示名称",
+        "status": "done",
+        "severity": "low",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0104-admin-sku-list-headers-wrap",
+        "title": "管理后台 SKU 列表表头换行",
+        "status": "done",
+        "severity": "low",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0106-admin-brand-edit-logo-uploaded-text",
+        "title": "管理后台品牌编辑弹窗 Logo 冗余上传成功文案",
+        "status": "done",
+        "severity": "low",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0103-admin-category-name-chinese-parentheses",
+        "title": "管理后台类目名称不支持中文括号",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal"
+      }
+    ],
+    "changes": [
+      {
+        "id": "add-mintlify-versioned-docs-site",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-add-mintlify-versioned-docs-site"
+      },
+      {
+        "id": "standardize-deployment-environment-matrix",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-standardize-deployment-environment-matrix"
+      },
+      {
+        "id": "fix-admin-brand-list-logo-rendering",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-brand-list-logo-rendering"
+      },
+      {
+        "id": "fix-miniapp-home-navigation-repeat-click",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-miniapp-home-navigation-repeat-click"
+      },
+      {
+        "id": "fix-admin-certificate-edit-file-image-display",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-certificate-edit-file-image-display"
+      },
+      {
+        "id": "fix-miniapp-card-banner-thumbnail-usage",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-miniapp-card-banner-thumbnail-usage"
+      },
+      {
+        "id": "fix-admin-certificate-list-main-image-name-only",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-certificate-list-main-image-name-only"
+      },
+      {
+        "id": "fix-admin-sku-list-header-wrapping",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-sku-list-header-wrapping"
+      },
+      {
+        "id": "fix-admin-brand-edit-logo-uploaded-text",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-brand-edit-logo-uploaded-text"
+      },
+      {
+        "id": "fix-admin-category-name-chinese-parentheses",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-03-fix-admin-category-name-chinese-parentheses"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "7886075c1061f737ec70b15832ff58e2fc66a5596f5bb1f766abc804d08fd8cd",
+    "fields": {
+      "version": "v0.3.4",
+      "image_required": true,
+      "image_required_rationale": "Sprint 018 包含 docs-site Compose profile、deploy 目录治理、env 示例、Compose 入口和部署脚本等发布镜像输入影响；需后续执行 /image-prepare 与 /image-build。",
+      "image_tag": "v0.3.4",
+      "sprints": [
+        "sprint-018"
+      ],
+      "requirements": [
+        {
+          "id": "REQ-0094-mintlify-versioned-docs-directory",
+          "title": "Mintlify 多版本产品文档站目录治理",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0093-standardize-deployment-environment-matrix",
+          "title": "部署环境矩阵标准化",
+          "status": "done",
+          "scope": "formal"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "BUG-0105-admin-brand-list-logo-renders-text",
+          "title": "管理后台品牌列表 Logo 列显示为文字",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0109-miniapp-home-button-one-time-failure",
+          "title": "小程序返回首页按钮每个页面只能点击一次",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0108-admin-certificate-edit-file-ready-text-and-image-info",
+          "title": "管理后台证书编辑弹窗文件就绪文案与图片信息异常",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0110-miniapp-card-banner-thumbnail-usage",
+          "title": "小程序卡片与 Banner 缩略图使用策略遗漏",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0107-admin-certificate-list-main-image-name-only",
+          "title": "管理后台证书列表主图字段仅显示名称",
+          "status": "done",
+          "severity": "low",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0104-admin-sku-list-headers-wrap",
+          "title": "管理后台 SKU 列表表头换行",
+          "status": "done",
+          "severity": "low",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0106-admin-brand-edit-logo-uploaded-text",
+          "title": "管理后台品牌编辑弹窗 Logo 冗余上传成功文案",
+          "status": "done",
+          "severity": "low",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0103-admin-category-name-chinese-parentheses",
+          "title": "管理后台类目名称不支持中文括号",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal"
+        }
+      ],
+      "changes": [
+        {
+          "id": "add-mintlify-versioned-docs-site",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-add-mintlify-versioned-docs-site"
+        },
+        {
+          "id": "standardize-deployment-environment-matrix",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-standardize-deployment-environment-matrix"
+        },
+        {
+          "id": "fix-admin-brand-list-logo-rendering",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-brand-list-logo-rendering"
+        },
+        {
+          "id": "fix-miniapp-home-navigation-repeat-click",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-miniapp-home-navigation-repeat-click"
+        },
+        {
+          "id": "fix-admin-certificate-edit-file-image-display",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-certificate-edit-file-image-display"
+        },
+        {
+          "id": "fix-miniapp-card-banner-thumbnail-usage",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-miniapp-card-banner-thumbnail-usage"
+        },
+        {
+          "id": "fix-admin-certificate-list-main-image-name-only",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-certificate-list-main-image-name-only"
+        },
+        {
+          "id": "fix-admin-sku-list-header-wrapping",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-sku-list-header-wrapping"
+        },
+        {
+          "id": "fix-admin-brand-edit-logo-uploaded-text",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-brand-edit-logo-uploaded-text"
+        },
+        {
+          "id": "fix-admin-category-name-chinese-parentheses",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-03-fix-admin-category-name-chinese-parentheses"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "管理后台品牌列表、品牌编辑、证书列表、证书编辑、SKU 列表、类目名称校验等展示与交互修复。",
+        "owner_web": "不涉及。",
+        "miniapp": "小程序首页导航按钮、商品/品牌/证书卡片和 Banner 缩略图展示策略修复。",
+        "backend": "类目名称校验兼容中文括号；缩略图/媒体字段契约需在 prepare 阶段复核，无新增业务 API 声明。",
+        "database": "不涉及",
+        "object_storage": "媒体缩略图与 Banner 展示策略涉及对象 URL 使用方式，未改变 MinIO 单桶策略或凭据边界。",
+        "docker": "涉及 Mintlify docs-site profile、deploy 目录、Compose/env 示例和部署脚本治理。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.3.4",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    ".env.example",
+    "deploy/local/compose.yml",
+    "deploy/local/mysql-minio-external.env.example",
+    "deploy/local/mysql-minio-managed.env.example",
+    "deploy/local/mysql-tencent-cos.env.example",
+    "deploy/local/sqlite-minio-external.env.example",
+    "deploy/local/sqlite-minio-managed.env.example",
+    "deploy/local/sqlite-tencent-cos.env.example",
+    "deploy/prod/compose.tencent-cos.yml",
+    "deploy/prod/mysql-tencent-cos.env.example",
+    "deploy/scripts/down.sh",
+    "deploy/scripts/up.sh",
+    "deploy/scripts/validate-env.py",
+    "docker-compose.prod.external.yml",
+    "docker-compose.prod.yml",
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md",
+    "releases/v0.3.4/announcement.mdx",
+    "scripts/build-images.env.example",
+    "scripts/build-images.sh",
+    "src/backend/Dockerfile",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/schema.sql",
+    "src/shared/product-version.ts",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf"
+  ],
+  "input_hashes": {
+    ".env.example": "e1749b1c72d756d1749983026813814d72a1081f68685ced0c4790d3e1baf4cd",
+    "deploy/local/compose.yml": "d498a83060091cd0a69f8d62de0caafe61cbcb9e354c1b7af11218974cd0d876",
+    "deploy/local/mysql-minio-external.env.example": "737562d7a111b3908af99edcde1e837dea2933d4fe84420c15378d0daa0761b9",
+    "deploy/local/mysql-minio-managed.env.example": "6476d0386a9b536eb8fed33fe2f1edb60de664fd611c668b371ee6d3af673319",
+    "deploy/local/mysql-tencent-cos.env.example": "712c02ef88a8f646086865ffcfeaf30614379e402dfe162bdaca2c8f71c6ad7d",
+    "deploy/local/sqlite-minio-external.env.example": "cb849a5aba4303fde120c079342413754b59c005f6fb725a316c2a77bcae4893",
+    "deploy/local/sqlite-minio-managed.env.example": "5a273017768a3f8931845318381187afc64f97e7964286f7ae04a8e6ed612a63",
+    "deploy/local/sqlite-tencent-cos.env.example": "9ff08eeb64f62d3fd69312b82d540f7499d3e0da8b1f20d95e868fd74d1fac41",
+    "deploy/prod/compose.tencent-cos.yml": "b09fd5da741eefda25828344a3ba3a2924b75db048784928621b3fd16c9746ce",
+    "deploy/prod/mysql-tencent-cos.env.example": "1d49828a35745898866d5b3f7ba02494375619268d9d8ad729a75d7bed7f7d8e",
+    "deploy/scripts/down.sh": "dc9692839a272370eb183b549d30e17e9bbeb79526bd1d518854874f8125ed5d",
+    "deploy/scripts/up.sh": "2c5a42324be118b8848866ed596de0b9503ee71642163932073012ae622be403",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "94f996a7151c4effc41a68c73bf169941984a16e55f03422987b9eedc980cb60",
+    "docker-compose.prod.yml": "fd3a5f6dff4f2b145c10e50f9f4db9b84fc78cff692039645f9817a8fc7f9a65",
+    "docs/04-database-design.md": "8b2a496cae44155f6c6f2c56334158966646a40a755fd54e19daf5f4b43dcb7d",
+    "docs/08-production-image-release.md": "086f87489524c40eb6710a1f556a94d820f3f5eb8459bf098a88bdee334f16f8",
+    "releases/v0.3.4/announcement.mdx": "9e7b7bb7f03bb5028e2693de062cf908cc1c951bd361ab2e01d8f93c5d2e2880",
+    "scripts/build-images.env.example": "c3381e647484deef1cd85153582e13d2638990c3484b229e3a80ce54c44f245f",
+    "scripts/build-images.sh": "7ee91932a86d034b6944c4c8ae69bbe262e4eb0cf58cbb0a88d4541886a4c32e",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "592643fab71bf666a8dc9093539ac7fb2dc22d199cb0d7289318cedfed0e27ff",
+    "src/backend/app/db/mysql_migrations.py": "f2e5fe2775b4eff13906990bf8790aa40d5dcafd4d91751b3cdf679b89d3050f",
+    "src/backend/app/db/schema.mysql.sql": "8d621e100e25d904e0ea38d6a93a3d3349231b1877788cd69f735f89b5da2e69",
+    "src/backend/app/db/schema.sql": "1ad762e44786d48bd726e7443d475adae0618711dfef0dcf4d6296dbab48c89a",
+    "src/shared/product-version.ts": "96fcfa9d5e197f140af849071134d06e02d8c6ef400435c7539f8779f3f7aa7c",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "95478d7a6ecffb86742d2cc43e5b507a1b9f27c90b783b74f42e2e48957e7f92"
+  },
+  "database_impact": {
+    "required": false,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v0.3.4"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v0.3.4"
+    }
+  ],
+  "auto_actions": [],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.4."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.4."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.4."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v0.3.4."
+    }
+  ],
+  "blockers": []
+}

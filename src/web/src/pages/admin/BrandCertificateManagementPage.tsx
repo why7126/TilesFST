@@ -35,6 +35,7 @@ import {
   mediaUploadSettingsFromResponse,
 } from '@/features/admin/lib/media-upload-settings';
 import { AdminListPage } from '@/shared/templates';
+import { AdminFilterSelect } from '@/shared/ui';
 import type {
   BrandAdminItem,
   BrandCertificateCreateRequest,
@@ -104,6 +105,7 @@ function toForm(item: BrandCertificateItem | null): CertificateFormState {
     file: {
       file_url: item.file_url,
       file_key: item.file_key,
+      thumbnail_url: item.thumbnail_url,
       file_name: item.file_name,
       file_mime_type: item.file_mime_type,
       file_size_bytes: item.file_size_bytes,
@@ -121,6 +123,7 @@ function fileToRequest(file: BrandCertificateFile): BrandCertificateFile {
   return {
     file_url: file.file_url,
     file_key: file.file_key,
+    thumbnail_url: file.thumbnail_url,
     file_name: file.file_name,
     file_mime_type: file.file_mime_type,
     file_size_bytes: file.file_size_bytes,
@@ -131,6 +134,7 @@ function imageToRequest(image: BrandCertificateImage, index: number): BrandCerti
   return {
     file_url: image.file_url,
     file_key: image.file_key,
+    thumbnail_url: image.thumbnail_url,
     file_name: image.file_name,
     file_mime_type: image.file_mime_type,
     file_size_bytes: image.file_size_bytes,
@@ -278,10 +282,11 @@ function CertificateFormModal({
     try {
       const result = await uploadBrandCertificateFile(file, setUploadProgress);
       updateForm({
-        file: {
-          file_url: result.file_url ?? result.url,
-          file_key: result.file_key ?? result.object_key,
-          file_name: result.file_name ?? file.name,
+          file: {
+            file_url: result.file_url ?? result.url,
+            file_key: result.file_key ?? result.object_key,
+            thumbnail_url: result.thumbnail_url,
+            file_name: result.file_name ?? file.name,
           file_mime_type: result.mime_type ?? file.type,
           file_size_bytes: result.size ?? file.size,
         },
@@ -309,6 +314,7 @@ function CertificateFormModal({
       const nextImage: BrandCertificateImage = {
         file_url: result.file_url ?? result.url,
         file_key: result.file_key ?? result.object_key,
+        thumbnail_url: result.thumbnail_url,
         file_name: result.file_name ?? file.name,
         file_mime_type: result.mime_type ?? file.type,
         file_size_bytes: result.size ?? file.size,
@@ -394,7 +400,7 @@ function CertificateFormModal({
   const isUploading = uploadState === 'uploading' || imageUploadState === 'uploading';
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="certificate-modal-card"
         role="dialog"
@@ -545,6 +551,7 @@ function CertificateFormModal({
                 state={uploadState}
                 progress={uploadProgress}
                 error={uploadError}
+                showReadyText={mode === 'create' || uploadState === 'uploading'}
                 maxFileSizeMb={maxFileSizeMb}
                 onRemove={() => updateForm({ file: null })}
                 onSelectFile={(selectedFile) => void handleFileChange(selectedFile)}
@@ -650,7 +657,7 @@ function CertificateConfirmDialog({
   const title = action === 'delete' ? '删除证书' : action === 'show' ? '显示证书' : '隐藏证书';
   const confirmLabel = action === 'delete' ? '删除证书' : action === 'show' ? '确认显示' : '确认隐藏';
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onCancel}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="modal-card"
         role="dialog"
@@ -825,6 +832,13 @@ export function BrandCertificateManagementPage() {
     () => brands.find((brand) => String(brand.id) === brandId)?.name,
     [brands, brandId],
   );
+  const brandFilterOptions = useMemo(
+    () => [
+      { value: '', label: '全部品牌' },
+      ...brands.map((brand) => ({ value: String(brand.id), label: brand.name })),
+    ],
+    [brands],
+  );
 
   return (
     <AdminListPage
@@ -916,86 +930,69 @@ export function BrandCertificateManagementPage() {
           {
             id: 'certificate-filter-brand',
             label: '所属品牌',
+            className: 'admin-filter-dropdown',
             control: (
-              <select
+              <AdminFilterSelect
                 id="certificate-filter-brand"
-                className="select"
                 value={brandId}
-                onChange={(event) => {
-                  setBrandId(event.target.value);
+                options={brandFilterOptions}
+                listLabel="证书品牌选项"
+                onChange={(nextBrandId) => {
+                  setBrandId(nextBrandId);
                   setPage(1);
                 }}
-              >
-                <option value="">全部品牌</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
+              />
             ),
           },
           {
             id: 'certificate-filter-type',
             label: '证书类型',
+            className: 'admin-filter-dropdown',
             control: (
-              <select
+              <AdminFilterSelect
                 id="certificate-filter-type"
-                className="select"
                 value={type}
-                onChange={(event) => {
-                  setType(event.target.value);
+                options={CERTIFICATE_TYPE_OPTIONS}
+                listLabel="证书类型选项"
+                onChange={(nextType) => {
+                  setType(nextType);
                   setPage(1);
                 }}
-              >
-                {CERTIFICATE_TYPE_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             ),
           },
           {
             id: 'certificate-filter-validity',
             label: '有效状态',
+            className: 'admin-filter-dropdown',
             control: (
-              <select
+              <AdminFilterSelect
                 id="certificate-filter-validity"
-                className="select"
                 value={validityStatus}
-                onChange={(event) => {
-                  setValidityStatus(event.target.value);
+                options={CERTIFICATE_VALIDITY_OPTIONS}
+                listLabel="证书有效状态选项"
+                onChange={(nextValidityStatus) => {
+                  setValidityStatus(nextValidityStatus);
                   setPage(1);
                 }}
-              >
-                {CERTIFICATE_VALIDITY_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             ),
           },
           {
             id: 'certificate-filter-display',
             label: '展示状态',
+            className: 'admin-filter-dropdown',
             control: (
-              <select
+              <AdminFilterSelect
                 id="certificate-filter-display"
-                className="select"
                 value={displayStatus}
-                onChange={(event) => {
-                  setDisplayStatus(event.target.value);
+                options={CERTIFICATE_DISPLAY_OPTIONS}
+                listLabel="证书展示状态选项"
+                onChange={(nextDisplayStatus) => {
+                  setDisplayStatus(nextDisplayStatus);
                   setPage(1);
                 }}
-              >
-                {CERTIFICATE_DISPLAY_OPTIONS.map((option) => (
-                  <option key={option.label} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              />
             ),
           },
         ],

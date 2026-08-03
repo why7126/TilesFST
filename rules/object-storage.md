@@ -4,7 +4,7 @@ content: 规定 MinIO/S3兼容对象存储/腾讯 COS 桶、对象Key、目录�
 source: 人工编写 + AI辅助生成
 update_method: 对象存储策略变化时由技术负责人确认后更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 15:19:59
+updated_at: 2026-08-01 11:04:15
 note: V5 推荐一个项目一个 Bucket，桶内使用目录前缀区分业务资源；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -65,7 +65,20 @@ videos/default/tiles/42/<uuid>.mp4
 
 MUST NOT 在新 Key 中插入 `{YYYY}/{MM}` 日期分片。存量 `original/.../{YYYY}/{MM}/...` 通过 `scripts/migrate_object_keys.py` 一次性迁移。
 
-## 3. AI必须遵守
+SKU 图片新建前 MAY 使用 `images/default/tiles/pending/<uuid>.<ext>` 作为暂存对象。图片一旦绑定到 SKU、保存为 SKU 图片或进入公开商品响应，后端 MUST 将原图与同目录缩略图正式化到 `images/default/tiles/{tile_id}/` 或等价 SKU 商品目录，并同步数据库引用。发布流程 MUST 兜底阻止公开主图继续引用 `images/default/tiles/pending/`。历史公开 SKU pending 主图迁移使用 `scripts/migrate-pending-tile-images.py`，默认 dry-run，`--apply` 才可写对象存储和数据库。
+
+## 3. 媒体类 BUG 对象存储验收
+
+媒体类 BUG 的修复验收 MUST 引用 `docs/standards/media-bug-four-point-acceptance-template.md`，并在 `key`、`object`、`URL`、`render` 四个维度中至少覆盖以下对象存储事实：
+
+- `key`：业务记录中的 `object_key` 或等价脱敏标识符合单 Bucket、标准前缀和 `{prefix}/{tenant}/{resource_type}/{uuid}.{ext}` 形态；不得记录用户原始文件名、本机绝对路径、临时路径或未脱敏内部路径作为通过证据。
+- `object`：对象存储中真实 object 存在，且 MIME Type、文件大小、扩展名、权限边界、缩略图或封面关系与业务记录一致；对象不存在、0 字节、类型不匹配、权限错误或存储环境不可用 MUST 标记 `fail` 或 `blocked`。
+- `URL`：端侧访问 MUST 通过后端鉴权、代理或签名 URL 策略读取媒体，继续禁止直连未授权对象存储；验收记录必须区分相对 URL、公开 URL、签名 URL、代理 URL 或静态资源 URL，并记录 HTTP 状态、业务错误码和用户可见表现。
+- `render`：对象存储验收不能替代端侧验收；Web 管理端、店主 Web 或小程序受影响时，必须记录对应页面/组件的展示、占位、失败态、小程序合法域名或设备 evidence。
+
+涉及历史对象、缩略图、回填或审计脚本时，验收记录 MUST 包含 dry-run、apply、幂等性或统计摘要，并遵守敏感信息脱敏要求。涉及上传大小、Nginx 或 Docker Web 边界时，MUST 经 `http://localhost:3000` 或等价 Web 入口验证边界文件，或记录明确的 `n/a` 原因。
+
+## 4. AI必须遵守
 
 AI 在新增文件上传、视频上传、图片处理、导入导出能力时：
 
@@ -75,7 +88,7 @@ AI 在新增文件上传、视频上传、图片处理、导入导出能力时�
 4. 必须更新媒体资源相关 OpenSpec 和文档；
 5. 必须补充对象Key生成逻辑和测试。
 
-## 4. 云上对象存储部署要求
+## 5. 云上对象存储部署要求
 
 - 云上对象存储 provider 可使用 `s3-compatible`、`tencent-cos`、`volcengine-tos` 等枚举值表达。
 - `OBJECT_STORAGE_ENDPOINT` MUST 使用后端容器可访问的 endpoint，且不得包含 access key、secret key 或真实不可公开域名截图；`tencent-cos` 使用腾讯云 COS endpoint，例如 `cos.ap-guangzhou.myqcloud.com`。

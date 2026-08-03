@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0082 管理后台瓷砖类目名称允许特殊字符</title>
+  <style>
+    :root {
+      --page: #18160f;
+      --surface: #211e16;
+      --deep: #100f0a;
+      --text: #ede8df;
+      --muted: rgba(237, 232, 223, 0.58);
+      --border: rgba(255, 255, 255, 0.1);
+      --gold: #c8a055;
+      --danger: #e06c57;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      min-height: 100vh;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
+    }
+    aside, section, .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    aside { padding: 18px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 22px; font-weight: 400; }
+    h2 { font-size: 16px; font-weight: 400; }
+    h3 { font-size: 13px; font-weight: 500; }
+    p, td, th, label, input, button { font-size: 13px; }
+    .muted { color: var(--muted); }
+    .tree { margin-top: 20px; display: grid; gap: 10px; }
+    .tree-item {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .content { display: grid; gap: 18px; align-content: start; }
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .button {
+      border: 1px solid var(--gold);
+      background: var(--gold);
+      color: var(--deep);
+      border-radius: 2px;
+      padding: 9px 14px;
+    }
+    .table-card { padding: 0; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 13px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--muted); font-weight: 500; }
+    .name-cell { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .page-row {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.54);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .modal {
+      width: min(520px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+    .field { display: grid; gap: 8px; }
+    input {
+      width: 100%;
+      height: 38px;
+      padding: 0 11px;
+      color: var(--text);
+      background: var(--deep);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+    input:focus { outline: 1px solid var(--gold); border-color: var(--gold); }
+    .help { color: var(--muted); line-height: 1.7; }
+    .error { color: var(--danger); }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }
+    .ghost { background: transparent; color: var(--text); border-color: var(--border); }
+  </style>
+</head>
+<body>
+  <main>
+    <aside>
+      <h2>类目树</h2>
+      <div class="tree">
+        <div class="tree-item">岩板-大规格</div>
+        <div class="tree-item">仿古砖/客厅</div>
+        <div class="tree-item">600x1200(亮面)</div>
+      </div>
+    </aside>
+    <div class="content">
+      <div class="head">
+        <div>
+          <h1>瓷砖类目</h1>
+          <p class="muted">名称支持中文、英文、数字和常见特殊字符，最多 15 个字符</p>
+        </div>
+        <button class="button">新增类目</button>
+      </div>
+      <section class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>类目名称</th>
+              <th>层级</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="name-cell">岩板-大规格</td>
+              <td>一级类目</td>
+              <td>启用</td>
+              <td>编辑</td>
+            </tr>
+            <tr>
+              <td class="name-cell">仿古砖/客厅</td>
+              <td>二级类目</td>
+              <td>启用</td>
+              <td>编辑</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="page-row">
+          <span>共 2 个</span>
+          <span>1 / 1 · 每页 20 条</span>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="overlay">
+    <form class="modal">
+      <h2>编辑类目</h2>
+      <div class="field">
+        <label for="name">类目名称</label>
+        <input id="name" value="600x1200(亮面)" maxlength="15">
+        <p class="help">支持中文、英文、数字和常见特殊字符，最多 15 个字符。</p>
+      </div>
+      <div class="field">
+        <label for="invalid">非法示例</label>
+        <input id="invalid" value="岩板&#10;大规格">
+        <p class="error">类目名称不能包含换行、制表符或不可见控制字符</p>
+      </div>
+      <div class="actions">
+        <button class="button ghost" type="button">取消</button>
+        <button class="button" type="button">保存</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

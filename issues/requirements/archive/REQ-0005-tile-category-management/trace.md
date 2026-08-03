@@ -10,7 +10,7 @@ status: done
 lifecycle_stage: archive
 note: add-tile-category-management 已 archive（2026-06-20）；web-client spec 已含 BUG-0001 fix 场景
 readiness: ready
-updated_at: 2026-06-27 22:33:15
+updated_at: 2026-08-03 09:13:56
 ---
 
 # 需求追踪
@@ -175,7 +175,9 @@ impact:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0001-tile-category-enable-missing | high | done | fix-tile-category-enable-action | 瓷砖类目停用行缺少「启用」操作入口 |
+| BUG-0001-tile-category-enable-missing | high | done | add-tile-category-management | 瓷砖类目停用行缺少「启用」操作入口 |
+| BUG-0095-admin-category-tree-count-shows-product-count | medium | done | — | 管理端类目树右侧计数显示为商品数量而非下级类目数量 |
+| BUG-0103-admin-category-name-chinese-parentheses | medium | done | fix-admin-category-name-chinese-parentheses | 管理后台瓷砖类目名称不支持中文括号 |
 
 ## 8. 视觉验收 Trace Checklist
 

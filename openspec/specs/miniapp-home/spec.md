@@ -63,16 +63,8 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **AND** 页面 SHALL NOT 因商品为空而丢失全部动态模块。
 
 ### Requirement: Banner 与快捷入口
-小程序首页 SHALL 复用已有后台 Banner 配置能力，并展示固定默认快捷业务入口。首页 Banner SHALL 只读取小程序首页轮播位置；品牌入口 SHALL 进入品牌列表页，品牌列表页轮播 SHALL 使用独立位置。
 
-#### Scenario: 快捷入口点击策略
-- **WHEN** 用户点击四个快捷入口之一
-- **THEN** “选瓷砖” SHALL 进入分类 Tab、筛选页或已有分类能力
-- **AND** “品牌馆”或“品牌” SHALL 进入品牌列表页
-- **AND** “新品榜” SHALL 进入商品列表页并带入 `section=new`
-- **AND** “热销榜” SHALL 进入商品列表页并带入 `section=hot`
-- **AND** 新品榜和热销榜入口 SHALL NOT 使用 `/pages/search/index?section=...` 承接
-- **AND** 任一目标不可达时 SHALL 安全降级且不得出现白屏或路由错误。
+小程序首页 SHALL 复用已有后台 Banner 配置能力，并展示固定默认快捷业务入口。首页 Banner SHALL 只读取小程序首页轮播位置；品牌入口 SHALL 进入品牌列表页，品牌列表页轮播 SHALL 使用独立位置。Banner 图片 SHALL 使用后端授权、公开安全且符合性能策略的展示图 URL；若存在缩略图、展示图或压缩图字段，首页 Banner SHALL 优先使用该字段。
 
 #### Scenario: 首页轮播与品牌列表页轮播隔离
 - **WHEN** 小程序首页加载 Banner
@@ -81,10 +73,14 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **WHEN** 品牌列表页无轮播数据
 - **THEN** 首页轮播 SHALL NOT 被用作品牌列表页兜底。
 
-#### Scenario: Banner 品牌详情跳转
-- **WHEN** 后端公开 Banner 响应包含 `jump_type=brand` 和 `target_id`
-- **THEN** 小程序首页和品牌列表页 SHALL 跳转到 `pages/brand-detail/index?brandId={target_id}`
-- **AND** SHALL 保持商品详情跳转、搜索跳转、门店跳转和无跳转的既有行为。
+#### Scenario: Banner 图片性能策略
+- **WHEN** 小程序首页或品牌列表页展示 Banner 图片
+- **THEN** Banner SHALL 优先使用后端提供的缩略图、展示图、压缩图或等价轻量安全 URL
+- **AND** 自定义上传 Banner 图片时后端 SHALL 生成可访问的同目录缩略图对象供小程序 Banner 使用
+- **AND** 若 Banner 只能使用原图 URL，原图 SHALL 满足项目确认的尺寸、压缩或运营上传约束
+- **AND** Banner 图片缺失、缩略图缺失或加载失败时 SHALL 展示稳定占位或隐藏当前 Banner 项
+- **AND** Banner 图片失败 SHALL NOT 阻断快捷入口、商品分区、品牌列表或页面其他内容展示
+- **AND** Banner 跳转、指示点、轮播切换和既有点击行为 SHALL 保持可用。
 
 ### Requirement: 搜索页与商品详情闭环
 系统 SHALL 提供小程序搜索页和商品详情页，使首页搜索、快捷入口、推荐商品和有效 Banner 可进入商品详情。
@@ -160,27 +156,15 @@ TBD - created by archiving change add-miniapp-home. Update Purpose after archive
 - **AND** 微信开发者工具实际加载的脚本 SHALL 包含对应页面的关键业务数据、生命周期和交互方法。
 
 ### Requirement: 新品热销与全部产品承接
-小程序首页 SHALL 在 Banner 与快捷入口后展示新品推荐、热销推荐和全部产品瀑布流，使用户可以连续浏览公开 SKU；首页商品卡片 SHALL 复用统一商品卡片核心结构，并根据模块传入展示密度、来源上下文和位置序号。
 
-#### Scenario: 新品推荐商品卡片
-- **WHEN** 首页展示新品推荐
-- **THEN** 小程序 SHALL 使用横向滚动商品卡片展示 SKU 主图、SKU 编号或商品名称、规格和 `price_display`
-- **AND** 商品图片区域 SHALL NOT 展示“新品”角标或标签
-- **AND** 用户点击商品卡片 SHALL 进入商品详情页
-- **AND** 点击 SHALL 携带 `skuId`、`sourcePage=home`、`sourceModule=new_products`、`index` 和可用 `requestId`。
+小程序首页 SHALL 展示新品推荐、热门商品和全部商品瀑布流，并 SHALL 控制多分区商品卡片图片的首屏加载压力、失败降级和重复数据回退。首页商品分区返回的商品卡片 `cover_image` SHALL 与商品列表页共用同一可访问缩略图解析策略。
 
-#### Scenario: 热销推荐商品卡片
-- **WHEN** 首页展示热销推荐
-- **THEN** 小程序 SHALL 使用双列大卡片展示 SKU 主图、系列或商品名、空间或工艺标签和 `price_display`
-- **AND** 用户点击卡片 SHALL 进入商品详情页
-- **AND** 点击 SHALL 携带 `skuId`、`sourcePage=home`、`sourceModule=hot_products`、`index` 和可用 `requestId`
-- **AND** 卡片内 SHALL NOT 展示收藏心形、分享、购物车、联系客服或询价快捷操作。
-
-#### Scenario: 全部产品瀑布流展示
-- **WHEN** 首页展示全部产品瀑布流
-- **THEN** 小程序 SHALL 复用统一商品卡片核心结构展示公开 SKU
-- **AND** 卡片 SHALL 支持图片失败、字段缺失、不可查看和防重复点击兜底
-- **AND** 首页容器 SHALL 负责瀑布流、分页、加载态和空状态。
+#### Scenario: 首页商品图片加载优先级
+- **WHEN** 首页同时存在 Banner、新品推荐、热门商品和全部商品瀑布流
+- **THEN** 首页 SHALL 优先加载首屏可见商品卡片图片
+- **AND** 首屏外或后续瀑布流卡片图片 SHALL 使用懒加载或等价延迟加载策略
+- **AND** 首页商品卡片 SHALL 优先使用与商品列表页一致的缩略图或等价轻量优化图片 URL
+- **AND** 首页 SHALL NOT 在初始化阶段一次性触发所有分区、所有卡片的图片请求。
 
 ### Requirement: 小程序首页 TabBar 目标与安全降级
 小程序首页 SHALL 以“首页、分类、找砖、收藏、证书”为目标 TabBar 文案，并保证未完成页面可安全降级。

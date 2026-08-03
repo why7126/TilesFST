@@ -409,7 +409,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
   const uploadButtonLabel = isImageUploading ? '上传中' : imageUrl ? '更换' : '选择';
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div className="modal-backdrop" role="presentation">
       <div
         className="banner-modal-card"
         role="dialog"

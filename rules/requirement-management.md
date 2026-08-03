@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-07-19 19:10:47
+updated_at: 2026-08-01 11:16:30
 ---
 
 # 需求管理规范
@@ -55,7 +55,7 @@ REQ-NNNN-slug/
 | `in_sprint` | 已纳入迭代 |
 | `done` | 已交付验收 |
 
-**事实源**：`trace.md` 的 `status`；`requirement.md` frontmatter **MUST** 同步。
+**事实源**：`trace.md` 的 `status`；`requirement.md` frontmatter **MUST** 通过 Workflow Sync 同步。`acceptance.md` MUST 使用 `acceptance_status` 或 `## 验收结果回填` 表达验收结论，避免与 Issue 主状态混淆。
 
 ## 3. 命令与阶段
 
@@ -178,6 +178,8 @@ related_requirements: []
 `lifecycle` 与 `## 变更记录` 中所有时间记录 MUST 遵守 `rules/document-governance.md` 的秒级格式：`YYYY-MM-DD HH:mm:ss`（默认 `Asia/Shanghai`）。
 
 状态变更后 MUST 运行 `python scripts/sync-workflow-status.py`（见 `rules/document-governance.md` §6.1 与 `.agents/skills/workflow-sync/SKILL.md`）。同步脚本会刷新 `updated_at` 并补全缺失的 `created_at`。
+
+状态变化事件（`req.generate`、`req.review`、`req.opsx`、`opsx.apply`、`opsx.archive`、`sprint.archive`）后，Workflow Sync MUST 检查 REQ 顶层子文档：`requirement.md` 同步当前主状态；`acceptance.md` 回填 `acceptance_status`、source Change/Sprint、证据入口和失败项结构；其他顶层 Markdown 若状态字段语义不明，应报告 warning/blocker，归档前不得残留未解释的非闭环状态。
 
 ## 8. 参考命令
 

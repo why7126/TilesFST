@@ -62,6 +62,33 @@ def _seed_public_catalog(api_client: TestClient) -> None:
         db.execute(
             text(
                 """
+                INSERT INTO tile_categories (
+                  id, parent_id, name, code, sort_order, level, description,
+                  status, sku_count, path, created_at, updated_at
+                ) VALUES
+                  (2, 1, '客厅大板', 'living-slab', 2, 2, NULL, 'ENABLED', 1, '/客厅/客厅大板', :now, :now),
+                  (3, 1, '柔光砖', 'soft-tile', 3, 2, NULL, 'ENABLED', 1, '/客厅/柔光砖', :now, :now),
+                  (4, 1, '隐藏类目', 'hidden-category', 4, 2, NULL, 'DISABLED', 1, '/客厅/隐藏类目', :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.execute(
+            text(
+                """
+                UPDATE tiles
+                SET category_id = CASE id
+                  WHEN 2 THEN 3
+                  WHEN 4 THEN 2
+                  ELSE category_id
+                END
+                WHERE id IN (2, 4)
+                """
+            )
+        )
+        db.execute(
+            text(
+                """
                 INSERT INTO brands (
                   id, name, sort_order, short_name, english_name, logo_object_key,
                   description, status, sku_count, created_at, updated_at
@@ -171,10 +198,11 @@ def test_miniapp_home_returns_public_data_and_hides_internal_fields(api_client: 
     assert data["store"]["name"] == "菲尚特瓷砖馆"
     assert data["banners"][0]["title"] == "小程序首页轮播"
     assert data["banners"][0]["jump_type"] == "product"
-    assert data["banners"][0]["image_url"] == "/media/banners/home.webp"
+    assert data["banners"][0]["image_url"] == "/media/banners/home.thumb.webp"
     assert [item["title"] for item in data["shortcuts"]] == ["选瓷砖", "品牌馆", "新品榜", "热销榜"]
     assert data["new_products"][0]["sku_code"] in {"FST-001", "FST-002", "FST-004"}
     assert data["new_products"][0]["cover_image"].startswith("/media/tiles/")
+    assert data["new_products"][0]["cover_image"].endswith(".thumb.webp")
     assert data["new_products"][0]["price_display"].startswith("¥")
     assert all(item["price_display"] != "到店咨询" for item in data["new_products"])
     assert all(item["price_display"] != "到店咨询" for item in data["hot_products"])
@@ -234,7 +262,13 @@ def test_miniapp_brand_list_returns_public_brands_and_brand_list_carousel(
                   (5, '停用品牌砖', 'FST-OFF', 2, 1, 1, '800×800', '柔光',
                    '灰色', 118.0, '内部备注不可公开', 'PUBLISHED', :now, :now),
                   (6, '无公开草稿砖', 'FST-EMPTY', 3, 1, 1, '800×800', '柔光',
-                   '灰色', 118.0, '内部备注不可公开', 'DRAFT', :now, :now)
+                   '灰色', 118.0, '内部备注不可公开', 'DRAFT', :now, :now),
+                  (7, '隐藏类目砖', 'FST-HIDDEN-CAT', 1, 4, 1, '800×800', '柔光',
+                   '灰色', 118.0, '内部备注不可公开', 'PUBLISHED', :now, :now),
+                  (8, '客厅大板砖', 'FST-SLAB', 1, 2, 1, '800×800', '柔光',
+                   '灰色', 118.0, '公开备注', 'PUBLISHED', :now, :now),
+                  (9, '柔光类目砖', 'FST-SOFT-CAT', 1, 3, 1, '800×800', '柔光',
+                   '灰色', 118.0, '公开备注', 'PUBLISHED', :now, :now)
                 """
             ),
             {"now": now},
@@ -252,15 +286,22 @@ def test_miniapp_brand_list_returns_public_brands_and_brand_list_carousel(
     assert [item["title"] for item in data["banners"]] == ["品牌列表页轮播"]
     assert data["banners"][0]["jump_type"] == "brand"
     assert data["banners"][0]["target_id"] == 1
-    assert data["banners"][0]["image_url"] == "/media/banners/brand-list.webp"
+    assert data["banners"][0]["image_url"] == "/media/banners/brand-list.thumb.webp"
     assert data["items"][0] == {
         "brand_id": 1,
         "brand_name": "菲尚特",
         "brand_short_name": "FST",
         "english_name": "Feishangte",
-        "brand_logo_url": "/media/logos/fst.webp",
+        "brand_logo_url": None,
+        "brand_logo_thumbnail_url": "/media/logos/fst.thumb.webp",
         "brand_entry_path": "/pages/brand-detail/index?brandId=1",
-        "product_count": 3,
+        "product_count": 5,
+        "leaf_category_names": ["客厅", "客厅大板", "柔光砖"],
+        "leaf_categories": [
+            {"category_id": 1, "category_name": "客厅"},
+            {"category_id": 2, "category_name": "客厅大板"},
+            {"category_id": 3, "category_name": "柔光砖"},
+        ],
         "description": "品牌说明",
         "available": True,
     }
@@ -269,9 +310,12 @@ def test_miniapp_brand_list_returns_public_brands_and_brand_list_carousel(
         "brand_name": "无公开 SKU 品牌",
         "brand_short_name": "EMPTY",
         "english_name": "EmptyBrand",
-        "brand_logo_url": "/media/logos/empty.webp",
+        "brand_logo_url": None,
+        "brand_logo_thumbnail_url": "/media/logos/empty.thumb.webp",
         "brand_entry_path": "/pages/brand-detail/index?brandId=3",
         "product_count": 0,
+        "leaf_category_names": [],
+        "leaf_categories": [],
         "description": "启用品牌可展示",
         "available": True,
     }
@@ -303,7 +347,7 @@ def test_miniapp_product_list_supports_context_filters_sort_and_facets(api_clien
     assert data["total"] == 2
     assert data["has_more"] is True
     assert data["items"][0]["sku_code"] == "FST-001"
-    assert data["items"][0]["cover_image"] == "/media/tiles/1.webp"
+    assert data["items"][0]["cover_image"] == "/media/tiles/1.thumb.webp"
     assert "remark" not in data["items"][0]
     assert "object_key" not in response.text
     assert data["facets"]["brands"][0]["value"] == "1"
@@ -325,13 +369,13 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
                 """
                 UPDATE tiles
                 SET published_at = CASE id
-                    WHEN 1 THEN '2026-06-03T00:00:00+00:00'
+                    WHEN 1 THEN NULL
                     WHEN 2 THEN '2026-06-01T00:00:00+00:00'
                     WHEN 4 THEN '2026-06-01T00:00:00+00:00'
                     ELSE published_at
                   END,
                   created_at = CASE id
-                    WHEN 1 THEN '2026-05-01T00:00:00+00:00'
+                    WHEN 1 THEN '2026-06-03T00:00:00+00:00'
                     WHEN 2 THEN '2026-05-02T00:00:00+00:00'
                     WHEN 4 THEN '2026-05-03T00:00:00+00:00'
                     ELSE created_at
@@ -341,6 +385,11 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
                     WHEN 2 THEN '2026-06-02T00:00:00+00:00'
                     WHEN 4 THEN '2026-06-03T00:00:00+00:00'
                     ELSE updated_at
+                  END,
+                  category_id = CASE id
+                    WHEN 2 THEN 3
+                    WHEN 4 THEN 2
+                    ELSE category_id
                   END
                 WHERE id IN (1, 2, 4)
                 """
@@ -431,6 +480,105 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
     ]
 
 
+def test_miniapp_product_list_category_and_keyword_default_sort_uses_public_order(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    try:
+        db.execute(
+            text(
+                """
+                UPDATE tiles
+                SET published_at = CASE id
+                    WHEN 1 THEN NULL
+                    WHEN 2 THEN '2026-06-01T00:00:00+00:00'
+                    WHEN 4 THEN '2026-06-01T00:00:00+00:00'
+                    ELSE published_at
+                  END,
+                  created_at = CASE id
+                    WHEN 1 THEN '2026-06-03T00:00:00+00:00'
+                    WHEN 2 THEN '2026-05-02T00:00:00+00:00'
+                    WHEN 4 THEN '2026-05-03T00:00:00+00:00'
+                    ELSE created_at
+                  END,
+                  updated_at = CASE id
+                    WHEN 1 THEN '2026-06-04T00:00:00+00:00'
+                    WHEN 2 THEN '2026-06-02T00:00:00+00:00'
+                    WHEN 4 THEN '2026-06-03T00:00:00+00:00'
+                    ELSE updated_at
+                  END,
+                  category_id = CASE id
+                    WHEN 2 THEN 3
+                    WHEN 4 THEN 2
+                    ELSE category_id
+                  END
+                WHERE id IN (1, 2, 4)
+                """
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    primary_first_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"categoryId": 1, "categoryLevel": "primary", "page": 1, "pageSize": 2},
+    )
+    primary_second_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"categoryId": 1, "categoryLevel": "primary", "page": 2, "pageSize": 2},
+    )
+    secondary_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"categoryId": 2, "categoryLevel": "secondary", "page": 1, "pageSize": 2},
+    )
+    keyword_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"keyword": "FST", "page": 1, "pageSize": 50},
+    )
+    home_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"page": 1, "pageSize": 3},
+    )
+
+    assert primary_first_page.status_code == 200
+    assert primary_second_page.status_code == 200
+    assert secondary_response.status_code == 200
+    assert keyword_response.status_code == 200
+    assert home_response.status_code == 200
+
+    primary_codes = [
+        item["sku_code"]
+        for item in primary_first_page.json()["data"]["items"]
+        + primary_second_page.json()["data"]["items"]
+    ]
+    assert primary_codes == ["FST-002", "FST-004", "FST-001"]
+    primary_images = [
+        item["cover_image"]
+        for item in primary_first_page.json()["data"]["items"]
+        + primary_second_page.json()["data"]["items"]
+    ]
+    assert all(image.startswith("/media/tiles/") for image in primary_images)
+    assert all(image.endswith(".thumb.webp") for image in primary_images)
+    assert primary_first_page.json()["data"]["has_more"] is True
+    assert primary_second_page.json()["data"]["has_more"] is False
+    assert [item["sku_code"] for item in secondary_response.json()["data"]["items"]] == ["FST-004"]
+    assert secondary_response.json()["data"]["items"][0]["cover_image"] == "/media/tiles/4.thumb.webp"
+    assert [item["sku_code"] for item in keyword_response.json()["data"]["items"]] == [
+        "FST-002",
+        "FST-004",
+        "FST-001",
+    ]
+    assert [item["sku_code"] for item in home_response.json()["data"]["items"]] == [
+        "FST-001",
+        "FST-004",
+        "FST-002",
+    ]
+
+
 def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     api_client: TestClient,
 ) -> None:
@@ -507,15 +655,24 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     assert list_response.status_code == 200
     brand_list = list_response.json()["data"]
     assert brand_list["items"][0]["brand_id"] == 1
-    assert brand_list["items"][0]["brand_logo_url"] == "/media/logos/fst.webp"
+    assert brand_list["items"][0]["brand_logo_url"] is None
+    assert brand_list["items"][0]["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
     assert brand_list["items"][0]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
     assert brand_list["items"][0]["product_count"] == 3
+    assert brand_list["items"][0]["leaf_category_names"] == ["客厅"]
+    assert brand_list["items"][0]["leaf_categories"] == [
+        {"category_id": 1, "category_name": "客厅"}
+    ]
     assert "停用品牌" not in list_response.text
     assert "内部品牌备注" not in list_response.text
 
     assert detail_response.status_code == 200
     detail = detail_response.json()["data"]
     assert detail["brand_name"] == "菲尚特"
+    assert detail["brand_logo_url"] == "/media/logos/fst.webp"
+    assert detail["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
+    assert detail["leaf_category_names"] == ["客厅"]
+    assert detail["leaf_categories"] == [{"category_id": 1, "category_name": "客厅"}]
     assert detail["product_path"] == "/pages/product-list/index?brandId=1&sourcePage=brand-detail"
     assert detail["certificate_count"] == 1
     assert "logo_object_key" not in detail_response.text
@@ -525,6 +682,8 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     empty_detail = empty_detail_response.json()["data"]
     assert empty_detail["brand_name"] == "无公开商品品牌"
     assert empty_detail["product_count"] == 0
+    assert empty_detail["leaf_category_names"] == []
+    assert empty_detail["leaf_categories"] == []
     assert empty_detail["product_path"] == "/pages/product-list/index?brandId=3&sourcePage=brand-detail"
     assert empty_detail["certificate_count"] == 0
 
@@ -636,9 +795,12 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
     assert data["items"][0]["certificate_type_label"] == "绿色建材"
     assert data["items"][0]["validity_status"] == "VALID"
     assert data["items"][0]["file_kind"] == "image"
-    assert data["items"][0]["file_url"] == "/media/certificates/green-main.webp"
+    assert data["items"][0]["file_url"] is None
+    assert data["items"][0]["thumbnail_url"] == "/media/certificates/green-main.thumb.webp"
     assert data["items"][0]["file_name"] == "green-main.webp"
     assert data["items"][1]["file_kind"] == "pdf"
+    assert data["items"][1]["file_url"] is None
+    assert data["items"][1]["thumbnail_url"] is None
     assert "file_key" not in response.text
     assert "raw-green" not in response.text
     assert "内部证书备注" not in response.text
@@ -821,7 +983,7 @@ def test_miniapp_product_list_primary_category_aggregates_self_and_enabled_child
     assert primary_response.status_code == 200
     primary_data = primary_response.json()["data"]
     assert primary_data["total"] == 3
-    assert [item["sku_code"] for item in primary_data["items"]] == ["FST-P-022", "FST-P-021", "FST-P-020"]
+    assert [item["sku_code"] for item in primary_data["items"]] == ["FST-P-020", "FST-P-021", "FST-P-022"]
     assert "FST-P-023" not in primary_response.text
     assert {item["value"] for item in primary_data["facets"]["categories"]} == {"10", "11", "12"}
 
@@ -911,15 +1073,15 @@ def test_miniapp_category_tree_returns_public_two_level_data(api_client: TestCli
                   id, parent_id, name, code, sort_order, level, description,
                   status, sku_count, path, created_at, updated_at
                 ) VALUES
-                  (2, 1, '通体大理石', 'polished-marble', 2, 2, '内部备注不可公开',
+                  (20, 1, '通体大理石', 'polished-marble', 2, 2, '内部备注不可公开',
                    'ENABLED', 0, '/客厅/通体大理石', :now, :now),
-                  (3, 1, '柔光砖', 'soft-matte', 1, 2, '内部备注不可公开',
-                   'ENABLED', 0, '/客厅/柔光砖', :now, :now),
-                  (4, 1, '下架分类', 'disabled-child', 0, 2, NULL,
+                  (21, 1, '防滑砖', 'anti-slip', 1, 2, '内部备注不可公开',
+                   'ENABLED', 0, '/客厅/防滑砖', :now, :now),
+                  (22, 1, '下架分类', 'disabled-child', 0, 2, NULL,
                    'DISABLED', 0, '/客厅/下架分类', :now, :now),
-                  (5, NULL, '停用一级', 'disabled-root', 0, 1, NULL,
+                  (23, NULL, '停用一级', 'disabled-root', 0, 1, NULL,
                    'DISABLED', 0, '/停用一级', :now, :now),
-                  (6, 2, '三级分类', 'third-level', 1, 3, NULL,
+                  (24, 20, '三级分类', 'third-level', 1, 3, NULL,
                    'ENABLED', 0, '/客厅/通体大理石/三级分类', :now, :now)
                 """
             ),
@@ -933,9 +1095,14 @@ def test_miniapp_category_tree_returns_public_two_level_data(api_client: TestCli
 
     assert response.status_code == 200
     data = response.json()["data"]
-    assert data["version"].startswith("3-")
+    assert data["version"].startswith("5-")
     assert [item["name"] for item in data["items"]] == ["客厅"]
-    assert [item["name"] for item in data["items"][0]["children"]] == ["柔光砖", "通体大理石"]
+    assert [item["name"] for item in data["items"][0]["children"]] == [
+        "防滑砖",
+        "客厅大板",
+        "通体大理石",
+        "柔光砖",
+    ]
     assert data["items"][0]["children"][0]["coverUrl"] == "/media/miniapp/category-placeholder.webp"
     assert "description" not in data["items"][0]
     assert "sku_count" not in data["items"][0]
@@ -948,19 +1115,34 @@ def test_miniapp_category_tree_returns_public_two_level_data(api_client: TestCli
 
 def test_miniapp_category_tree_allows_empty_children(api_client: TestClient) -> None:
     _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO tile_categories (
+                  id, parent_id, name, code, sort_order, level, description,
+                  status, sku_count, path, created_at, updated_at
+                ) VALUES
+                  (30, NULL, '独立空间', 'empty-root', 5, 1, NULL,
+                   'ENABLED', 0, '/独立空间', :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
 
     response = api_client.get("/api/v1/miniapp/categories/tree?depth=2")
 
     assert response.status_code == 200
     data = response.json()["data"]
-    assert data["items"] == [
-        {
-            "id": 1,
-            "name": "客厅",
-            "sort": 1,
-            "children": [],
-        }
-    ]
+    empty_root = next(item for item in data["items"] if item["name"] == "独立空间")
+    assert empty_root == {"id": 30, "name": "独立空间", "sort": 5, "children": []}
 
 
 def test_miniapp_home_only_uses_admin_miniapp_home_carousel_banners(
@@ -996,7 +1178,7 @@ def test_miniapp_home_only_uses_admin_miniapp_home_carousel_banners(
     assert response.status_code == 200
     banners = response.json()["data"]["banners"]
     assert [item["title"] for item in banners] == ["小程序首页轮播"]
-    assert banners[0]["image_url"] == "/media/banners/home.webp"
+    assert banners[0]["image_url"] == "/media/banners/home.thumb.webp"
 
 
 def test_miniapp_brand_list_does_not_fallback_to_home_carousel(
@@ -1128,6 +1310,7 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["video_count"] == 1
     assert data["media"][0]["media_type"] == "image"
     assert data["media"][0]["url"] == "/media/tiles/1.webp"
+    assert data["cover_image"] == "/media/tiles/1.webp"
     assert data["share"]["image_url"] == "/media/tiles/1.webp"
     assert data["media"][-1]["media_type"] == "video"
     assert data["media"][-1]["url"] == "/media/videos/1.mp4"
@@ -1147,6 +1330,8 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["share"]["path"] == "/pages/tile-detail/index?skuId=1&source=share"
     assert data["remark"] == "适合客厅通铺，建议搭配浅色美缝。"
     assert data["same_series_recommendations"][0]["product_id"] in {2, 4}
+    assert data["same_series_recommendations"][0]["cover_image"].startswith("/media/tiles/")
+    assert data["same_series_recommendations"][0]["cover_image"].endswith(".thumb.webp")
     assert all(item["product_id"] != 1 for item in data["same_series_recommendations"])
     assert "object_key" not in data
     assert "内部备注" not in response.text
@@ -1358,6 +1543,27 @@ def test_miniapp_brand_list_usage_events_validate_dictionary_and_forbidden_prope
         },
     )
     assert accepted.status_code == 200
+
+    category_click = api_client.post(
+        "/api/v1/usage-events",
+        json={
+            "event_name": "brand_list_category_click",
+            "client_type": "wechat_miniapp",
+            "page_path": "/pages/brands/index",
+            "properties": {
+                "page_path": "/pages/brands/index",
+                "brandId": 1,
+                "categoryId": 2,
+                "positionIndex": 0,
+                "categoryIndex": 1,
+                "sourcePage": "brand-list",
+                "sourceEntry": "category-chip",
+                "requestId": "brand-category-test",
+                "client_type": "wechat_miniapp",
+            },
+        },
+    )
+    assert category_click.status_code == 200
 
     rejected = api_client.post(
         "/api/v1/usage-events",
