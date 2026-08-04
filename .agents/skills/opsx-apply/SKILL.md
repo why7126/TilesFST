@@ -80,6 +80,21 @@ For every Change linked to a REQ/BUG:
 
 If any check fails, **BLOCKED**: do not implement. If the linked REQ/BUG is already in a Sprint but `changes[]` lacks `<change-id>`, first run the originating `/req-opsx` or `/bug-opsx` Workflow Sync final step again to repair Sprint scope, then rerun this dry-run gate. Tell the user to run `/sprint-propose` only when the linked REQ/BUG itself is not in any Sprint scope.
 
+If the user already ran `/sprint-propose` for the linked REQ/BUG but the dry-run still reports `change <id> not in sprint scope`, treat this as Sprint scope machine-source persistence failure, not as missing user intent. Repair `iterations/change|archive/<sprint>/sprint.yaml` with:
+
+```bash
+python scripts/add-sprint-scope-item.py \
+  --sprint <sprint-id> \
+  [--req <REQ-id> | --bug <BUG-id>] \
+  --change <change-id> \
+  --size <XS|S|M|L|XL|XXL> \
+  --story-points <number> \
+  --person-days <number> \
+  --rationale "<估算与影响说明>"
+```
+
+Then rerun Workflow Sync, `validate-sprint-scope.py`, and this apply dry-run gate. Do not ask the user to repeat the same `/sprint-propose` command when the issue/change pair and target Sprint are already known.
+
 Only a Change with no linked REQ/BUG may bypass this gate; output the reason explicitly.
 
 ## Cross-cutting Apply Gate（MUST before `src/`）

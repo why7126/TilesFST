@@ -185,9 +185,9 @@
 
 .brand-categories {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 12rpx;
   padding: 24rpx 28rpx 28rpx;
   border-top: 1rpx solid rgba(237,232,223,0.08);
@@ -195,9 +195,11 @@
 }
 
 .category-pill {
+  min-width: 0;
   max-width: 100%;
   min-height: 52rpx;
   padding: 6rpx 20rpx;
+  overflow: hidden;
   border: 1rpx solid rgba(237,232,223,0.18);
   border-radius: 999rpx;
   box-sizing: border-box;
@@ -205,9 +207,9 @@
   color: rgba(237,232,223,0.78);
   font-size: 30rpx;
   line-height: 40rpx;
-  text-align: center;
+  text-align: left;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  word-break: break-all;
 }
 
 .category-pill:active {

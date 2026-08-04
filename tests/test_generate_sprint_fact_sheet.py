@@ -263,6 +263,120 @@ def test_select_fields_can_return_evidence_hints_and_nested_values(tmp_path: Pat
     assert selected["ai_usage_snapshot.snapshot_status"] == "missing"
 
 
+def test_select_fields_can_return_full_ai_usage_matrices(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    usage_matrices = {
+        "metrics": ["total_tokens"],
+        "columns": [{"key": "opsx.apply", "label": "Opsx-Apply"}],
+        "rows": [
+            {
+                "object_id": "Total",
+                "metrics": {"total_tokens": {"Opsx-Apply": 123}},
+            }
+        ],
+    }
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-07-03T00:00:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 123},
+                "usage_matrices": usage_matrices,
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    selected = generate_sprint_fact_sheet.select_fields(
+        fact_sheet,
+        ["ai_usage_snapshot.usage_matrices"],
+    )
+
+    assert selected["ai_usage_snapshot.usage_matrices"] == usage_matrices
+
+
+def test_render_ai_usage_retrospective_section_outputs_sprint_015_style_tables(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-07-03T00:00:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {
+                    "command_run_count": 2,
+                    "model_call_count": 3,
+                    "tool_call_count": 4,
+                    "input_tokens": 1000,
+                    "cached_input_tokens": 800,
+                    "output_tokens": 50,
+                    "reasoning_output_tokens": 5,
+                    "total_tokens": 1055,
+                    "retry_count": 0,
+                },
+                "usage_matrices": {
+                    "metrics": ["total_tokens", "input_tokens", "output_tokens", "model_call_count"],
+                    "columns": [{"key": "opsx.apply", "label": "Opsx-Apply"}],
+                    "rows": [
+                        {
+                            "object_id": "Total",
+                            "metrics": {
+                                "total_tokens": {"Opsx-Apply": 1055},
+                                "input_tokens": {"Opsx-Apply": 1000},
+                                "output_tokens": {"Opsx-Apply": 50},
+                                "model_call_count": {"Opsx-Apply": 3},
+                            },
+                        },
+                        {
+                            "object_id": "sprint-999",
+                            "metrics": {
+                                "total_tokens": {"Opsx-Apply": 1055},
+                                "input_tokens": {"Opsx-Apply": 1000},
+                                "output_tokens": {"Opsx-Apply": 50},
+                                "model_call_count": {"Opsx-Apply": 3},
+                            },
+                        },
+                    ],
+                },
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    markdown = generate_sprint_fact_sheet.render_ai_usage_retrospective_section(fact_sheet)
+
+    assert markdown.startswith("## 模型 Token 使用分析")
+    assert "### Token Usage Fact Sheet" in markdown
+    assert "| 精确 token 统计 | 有 | 来源：`data/ai-usage/sprints/sprint-999.json` |" in markdown
+    assert "| total_tokens | 1,055 | snapshot totals |" in markdown
+    assert "### total_tokens 矩阵" in markdown
+    assert "### input_tokens 矩阵" in markdown
+    assert "### output_tokens 矩阵" in markdown
+    assert "### model_call_count 矩阵" in markdown
+    assert "| 对象 | Opsx-Apply |" in markdown
+    assert "| Total | 1055 |" in markdown
+    assert "矩阵口径" in markdown
+
+
 def test_fact_sheet_reads_ai_usage_snapshot(tmp_path: Path) -> None:
     seed_project(tmp_path)
     snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
@@ -385,6 +499,80 @@ def test_fact_sheet_interprets_sprint_dates_as_project_timezone(tmp_path: Path) 
     assert ai_usage["fresh_gate"]["status"] == "pass"
 
 
+def test_fact_sheet_ignores_future_planned_end_date_for_ai_usage_freshness(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-999",
+                "status: completed",
+                "lifecycle_stage: archive",
+                "start_date: 2026-07-01 09:00:00",
+                "end_date: 2026-08-18 18:00:00",
+                "requirements:",
+                "  - REQ-9999-demo",
+                "bugs:",
+                "  - BUG-9999-demo",
+                "changes:",
+                "  - add-demo",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (sprint_dir / "sprint.md").write_text(
+        "---\nupdated_at: 2026-08-04 23:15:03\n---\n# Sprint\n",
+        encoding="utf-8",
+    )
+    (sprint_dir / "release-note.md").write_text(
+        "---\nupdated_at: 2026-08-04 23:15:03\n---\n# Release\n",
+        encoding="utf-8",
+    )
+    (sprint_dir / "acceptance-report.md").write_text(
+        "---\nupdated_at: 2026-08-04 23:15:03\n---\n# Acceptance\n\n**Verdict:** PASS\n",
+        encoding="utf-8",
+    )
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-08-04T15:30:08Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 100},
+                "usage_matrices": {"metrics": ["total_tokens"], "columns": [], "rows": []},
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+
+    ai_usage = fact_sheet["ai_usage_snapshot"]
+    baseline = summary["ai_usage_snapshot"]["freshness_baseline"]
+    assert ai_usage["snapshot_status"] == "present"
+    assert ai_usage["ai_usage_mode"] == "actual"
+    assert ai_usage["fresh_gate"]["status"] == "pass"
+    assert baseline["source"] == "sprint.md:updated_at"
+    assert baseline["min_generated_at"] == "2026-08-04T15:15:03Z"
+    assert baseline["skipped"] == [
+        {
+            "source": "sprint.yaml:end_date",
+            "value": "2026-08-18 18:00:00",
+            "reason": "future-planned-time",
+        }
+    ]
+
+
 def test_fact_sheet_summary_exposes_ai_usage_fresh_gate_without_evidence_hints(tmp_path: Path) -> None:
     seed_project(tmp_path)
     snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
@@ -410,14 +598,65 @@ def test_fact_sheet_summary_exposes_ai_usage_fresh_gate_without_evidence_hints(t
 
     fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
     summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+    ai_usage = summary["ai_usage_snapshot"]
     fresh_gate = summary["ai_usage_snapshot"]["fresh_gate"]
 
+    assert ai_usage["snapshot_status"] == "present"
+    assert ai_usage["ai_usage_mode"] == "estimated_fallback"
     assert fresh_gate["status"] == "blocker"
+    assert fresh_gate["generated_at"] == "2026-07-03T00:00:00Z"
     assert fresh_gate["usage_matrices_present"] is False
     assert fresh_gate["coverage_status"]["bugs"] == "missing"
     assert "bugs-coverage-missing" in fresh_gate["blockers"]
     assert "usage-matrices-missing" in fresh_gate["blockers"]
     assert "evidence_hints" not in summary
+
+
+def test_large_sprint_summary_uses_compact_ai_usage_matrix_summary(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    change_ids = write_large_sprint(tmp_path, change_count=11)
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-998.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-998",
+                "generated_at": "2026-07-02T11:00:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": [],
+                    "bugs": [],
+                    "changes": change_ids,
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 123},
+                "usage_matrices": {
+                    "metrics": ["total_tokens"],
+                    "columns": [{"key": "opsx.apply", "label": "Opsx-Apply"}],
+                    "rows": [
+                        {
+                            "object_id": "Total",
+                            "metrics": {"total_tokens": {"Opsx-Apply": 123}},
+                        }
+                    ],
+                },
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-998", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+    matrix_summary = summary["ai_usage_snapshot"]["usage_matrices_summary"]
+
+    assert summary["scope"]["counts"]["changes"] == 11
+    assert "usage_matrices" not in summary["ai_usage_snapshot"]
+    assert matrix_summary["available"] is True
+    assert matrix_summary["omitted"] is True
+    assert matrix_summary["rows_count"] == 1
+    assert matrix_summary["columns_count"] == 1
+    assert matrix_summary["fields_path"] == "ai_usage_snapshot.usage_matrices"
+    assert fact_sheet["ai_usage_snapshot"]["usage_matrices"]["rows"][0]["object_id"] == "Total"
 
 
 def test_cli_json_output_is_parseable() -> None:
@@ -449,6 +688,8 @@ def test_cli_summary_output_is_compact_and_parseable() -> None:
     assert payload["sprint"]["sprint_id"] == "sprint-005"
     assert "token_risks" in payload
     assert "detail_triggers" in payload
+    assert "usage_matrices" not in payload["ai_usage_snapshot"]
+    assert "usage_matrices_summary" in payload["ai_usage_snapshot"]
     assert "evidence_hints" not in payload
 
 
@@ -464,6 +705,20 @@ def test_cli_fields_output_can_return_evidence_hints() -> None:
     payload = json.loads(result.stdout)
     assert "evidence_hints" in payload
     assert isinstance(payload["evidence_hints"], list)
+
+
+def test_cli_ai_usage_markdown_outputs_retrospective_section() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--sprint", "sprint-005", "--ai-usage-markdown"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.startswith("## 模型 Token 使用分析")
+    assert "### Token Usage Fact Sheet" in result.stdout
+    assert "### total_tokens 矩阵" in result.stdout or "完整矩阵缺失" in result.stdout
 
 
 def test_cli_fields_unknown_path_returns_nonzero() -> None:

@@ -57,6 +57,7 @@ TBD - created by archiving change add-brand-list-page. Update Purpose after arch
 品牌列表页 SHALL 在顶部轮播或品牌氛围 Hero 下方以每行一个品牌的信息卡片展示公开可见品牌，并 SHALL 为 Logo、长品牌名、商品数量、末级类目胶囊、不可用品牌和小屏视口提供稳定降级。品牌 Logo 或品牌图片小图 SHALL 优先使用后端受控真实缩略图；缩略图缺失或加载失败时 SHALL 安全回退原图、品牌首字或统一占位。
 
 #### Scenario: 单行品牌列表展示
+
 - **WHEN** 品牌列表页获取到公开品牌数据
 - **THEN** 页面 SHALL 以每行一个品牌的信息卡片展示品牌
 - **AND** 每个品牌卡片 SHALL 分为上行品牌信息区和下行类目汇总区
@@ -68,15 +69,16 @@ TBD - created by archiving change add-brand-list-page. Update Purpose after arch
 - **AND** 类目胶囊字号 SHOULD 比品牌名称字号小 2rpx
 - **AND** 品牌列表页 SHALL NOT 继续以一行 2 个品牌卡片作为本需求目标形态。
 
-#### Scenario: 品牌小图安全读取
-- **WHEN** 品牌列表页展示品牌 Logo 或品牌图片
-- **THEN** 图片 URL SHALL 是公开安全 URL 或后端授权 URL
-- **AND** 小图场景 SHALL 优先使用缩略图 URL
-- **AND** 品牌列表接口 SHOULD NOT 为每个列表 item 下发未被列表卡片渲染使用的原图 Logo URL
-- **AND** 小程序页面 SHOULD NOT 在页面 data 中长期保存与接口缩略图 URL 等值的重复派生 URL 字段
-- **AND** 缩略图缺失、为空或加载失败时 SHALL 安全回退原图、品牌首字或统一占位
-- **AND** 大图预览或后续品牌详情查看 SHALL 使用原图或等价安全引用
-- **AND** 响应 SHALL NOT 暴露 MinIO 原始 object key、内部路径、Authorization header 或 Cookie。
+#### Scenario: 品牌类目两列左对齐与长文本省略
+
+- **WHEN** 品牌列表页展示包含多个末级类目的品牌卡片
+- **THEN** 下行类目汇总区 SHALL 使用固定两列布局或等效列约束展示类目胶囊
+- **AND** 左侧列内所有类目胶囊 SHALL 保持左对齐
+- **AND** 右侧列内所有类目胶囊 SHALL 保持左对齐，形成稳定统一的右列起始边界
+- **AND** 类目胶囊 SHALL 受所在列宽约束
+- **AND** 类目名称超出胶囊可用宽度时 SHALL 单行显示省略号
+- **AND** 类目名称 SHALL NOT 换行、撑破胶囊边框、造成文本重叠或横向溢出
+- **AND** 类目胶囊点击 SHALL 继续使用完整类目 ID 和完整类目名称进入商品列表页。
 
 ### Requirement: 品牌卡片点击与埋点
 品牌列表页 SHALL 支持整行点击品牌信息行，并 SHALL 记录品牌页曝光、品牌轮播点击和品牌行点击事件。

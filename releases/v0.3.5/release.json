@@ -1,0 +1,287 @@
+{
+  "version": "v0.3.5",
+  "release_time": "2026-08-04 23:17:43",
+  "owner": "product",
+  "summary": "Sprint 019 产品发布计划：覆盖 OpenSpec/Workflow 治理、发布与 usage docs 治理、小程序展示与导航修复、管理端列表展示治理，以及生产媒体对象前缀与历史漂移维护能力。",
+  "formal_scope_only": true,
+  "version_change_rationale": "当前 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v0.3.4，目标发布版本为 v0.3.5；发布准备前需人工更新产品版本号或补充明确豁免原因。",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端生产媒体维护 CLI、对象存储 provider / 历史媒体对象修复、部署/生产 Compose 维护作业相关变更；按发布规范需要后续执行 /image-prepare v0.3.5 与 /image-build v0.3.5。",
+  "image_tag": "v0.3.5",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部镜像构建证据；默认走本仓库 /image-prepare 与 /image-build 流程。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-04 23:32:13",
+      "confirmed_by": "operator",
+      "rationale": "本版本跳过文档生成"
+    }
+  },
+  "sprints": [
+    "sprint-019"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0095-admin-list-field-display-adapter-checklist",
+      "title": "管理端列表字段展示 adapter 检查表",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0096-miniapp-network-panel-release-checklist",
+      "title": "小程序 Network 面板发布验证清单",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0097-prod-compose-media-maintenance-job",
+      "title": "生产 Docker Compose 环境媒体历史维护任务",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0111-usage-docs-previous-version-semver-sort",
+      "title": "usage docs 前置版本候选使用字符串排序可能选错版本",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0112-certificate-image-object-key-prefix",
+      "title": "证书图片对象 key 未归入 images 前缀",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot",
+      "title": "Fact Sheet AI usage fresh gate 与已刷新 snapshot 状态不一致",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0114-miniapp-brand-list-category-column-alignment",
+      "title": "小程序品牌列表页品牌类目两列对齐异常",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0115-miniapp-home-button-regression-after-second-click",
+      "title": "小程序返回首页按钮第二次点击失效回归",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0116-prod-media-historical-object-drift",
+      "title": "生产历史媒体对象与缩略图规范漂移",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "auto-archive-trace-fallback",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-auto-archive-trace-fallback"
+    },
+    {
+      "id": "add-compact-fact-sheet-summary-for-large-sprints",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-add-compact-fact-sheet-summary-for-large-sprints"
+    },
+    {
+      "id": "fix-certificate-image-object-key-prefix",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-certificate-image-object-key-prefix"
+    },
+    {
+      "id": "fix-usage-docs-previous-version-semver-sort",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-usage-docs-previous-version-semver-sort"
+    },
+    {
+      "id": "fix-fact-sheet-ai-usage-fresh-gate-snapshot",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-fact-sheet-ai-usage-fresh-gate-snapshot"
+    },
+    {
+      "id": "standardize-admin-list-field-display-adapters",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-standardize-admin-list-field-display-adapters"
+    },
+    {
+      "id": "update-miniapp-network-panel-release-checklist",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-update-miniapp-network-panel-release-checklist"
+    },
+    {
+      "id": "fix-miniapp-brand-list-category-column-alignment",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-miniapp-brand-list-category-column-alignment"
+    },
+    {
+      "id": "fix-miniapp-home-button-repeat-click-regression",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-miniapp-home-button-repeat-click-regression"
+    },
+    {
+      "id": "add-prod-media-maintenance-jobs",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-add-prod-media-maintenance-jobs"
+    },
+    {
+      "id": "fix-prod-media-historical-object-drift",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-04-fix-prod-media-historical-object-drift"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "rationale": "Sprint 019 验收报告记录 11/11 Change 已 archive，117/117 tasks 完成，归档入口位于 openspec/archive/2026-08-04-*。",
+      "evidence": "iterations/archive/sprint-019/acceptance-report.md；openspec/archive/2026-08-04-*/trace.md"
+    },
+    "tests": {
+      "status": "na",
+      "rationale": "prepare 聚焦 pytest 未通过，作为发布准备 blocker 记录：125 passed / 4 failed / 1 environment collection blocker。失败分类：fixture_schema_drift、product_regression、environment_blocker；发布确认前需修复后复跑。",
+      "evidence": "uv run pytest tests/test_release_validation.py tests/test_sprint_archive_readiness.py tests/test_generate_sprint_fact_sheet.py tests/test_deploy_media_maintenance_script.py tests/test_miniapp_home.py tests/test_miniapp_static.py；2026-08-04；125 passed, 4 failed。tests/test_media_storage.py 收集失败：ModuleNotFoundError: PIL。"
+    },
+    "orval": {
+      "status": "na",
+      "rationale": "Sprint 019 release-note 记录本范围无需 Orval；BUG-0112 未新增接口，仅按实现结果修正对象 key 形态。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "rationale": "默认 Docker Compose 配置静态校验通过；生产媒体维护作业的镜像构建输入仍需 /image-prepare v0.3.5 继续校验。",
+      "evidence": "docker compose config --quiet；2026-08-04；exit code 0。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "本范围不改数据库表结构；媒体历史对象修复可能涉及数据引用维护脚本，发布准备阶段需确认是否需要 MySQL schema drift / smoke 或回滚证据。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "release-propose 阶段未复核环境变量差异；如生产媒体维护作业引入或依赖 env 示例，需在 /release-prepare 或 /image-prepare 中确认。"
+    },
+    "product_version": {
+      "status": "pass",
+      "rationale": "src/shared/product-version.ts 的 PRODUCT_VERSION 已更新为 v0.3.5。",
+      "evidence": "src/shared/product-version.ts；2026-08-04；PRODUCT_VERSION=v0.3.5。"
+    },
+    "mintlify_preview": {
+      "status": "na",
+      "rationale": "已生成并刷新 releases/v0.3.5/announcement.mdx；发布确认阶段执行 release metadata / public-safety 静态校验。当前版本 usage docs 已跳过，未生成 Mintlify usage docs 投影。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-04 23:32:13: usage docs skipped by operator; 本版本跳过文档生成"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "rationale": "image_required=true；已生成并校验 releases/v0.3.5/image-build-plan.json。计划不再把 announcement.mdx 文案纳入镜像输入 hash；发布 env 必须显式设置 TILESFST_IMAGE_TAG=v0.3.5。",
+      "evidence": "python scripts/validate-image-build.py prepare --release v0.3.5；python scripts/validate-image-build.py validate-plan --release v0.3.5；2026-08-04；plan pass。"
+    },
+    "image_build": {
+      "status": "pass",
+      "rationale": "image_required=true；已按最终 PRODUCT_VERSION 与镜像输入 hash 规则完成 backend/web 镜像构建、平台验证、后端依赖验证、Web Nginx 验证、离线 tar 导出与 sha256 校验。",
+      "evidence": "python scripts/validate-image-build.py build --release v0.3.5；python scripts/validate-image-build.py validate-manifest --release v0.3.5；2026-08-04 23:48:51；manifest pass；tarball sha256=1c4b4cf071824de013fdc842978907a2380e4349fdad1794f36d4e95475c3a2b。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "AI-USAGE-SNAPSHOT-ESTIMATED-FALLBACK",
+      "title": "Sprint 019 AI usage snapshot 使用 estimated fallback",
+      "status": "known",
+      "rationale": "Sprint 019 验收报告记录 Fact Sheet fresh gate 为 stale、ai_usage_mode 为 estimated_fallback；不阻断 release-propose，但如需真实成本分析需用本地 session JSONL 刷新。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-TEST-FIXTURE-SCHEMA-DRIFT",
+      "title": "usage docs 测试 fixture 仍使用旧截图路径契约",
+      "status": "prepare_blocker",
+      "classification": "fixture_schema_drift",
+      "rationale": "tests/test_release_validation.py 中 generated / historical / site projection 流程仍期望或构造 usage-docs/assets 截图路径，与当前共享 Mintlify screenshot 契约不一致；建议同步测试 fixture、manifest.screenshots.path 与 site_asset 约定。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-MINIAPP-BRAND-SORT",
+      "title": "小程序品牌产品列表默认排序聚焦测试失败",
+      "status": "prepare_blocker",
+      "classification": "product_regression",
+      "rationale": "tests/test_miniapp_home.py::test_miniapp_product_list_brand_default_sort_uses_published_at_and_id 期望 FST-001、FST-004、FST-002，实际仅返回 FST-001；发布确认前需定位是产品过滤/排序回归还是测试数据契约漂移。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-MEDIA-STORAGE-PIL",
+      "title": "媒体存储测试依赖 PIL 不可用",
+      "status": "prepare_blocker",
+      "classification": "environment_blocker",
+      "rationale": "tests/test_media_storage.py 收集失败：ModuleNotFoundError: No module named 'PIL'。需安装/恢复 Pillow 测试依赖或调整测试环境后复跑。"
+    }
+  ],
+  "upgrade_steps": [
+    "确认 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v0.3.5。",
+    "校验 release.json、announcement.mdx、usage docs skip 决策、image manifest 与离线包 .sha256 sidecar。",
+    "部署新版本并完成核心 smoke、媒体对象 key/URL/render 验收和小程序 Network 面板验证。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "媒体对象 key、缩略图、签名 URL 或渲染验收失败",
+      "生产媒体维护 dry-run/apply 发现不可接受的数据引用漂移",
+      "小程序品牌列表、返回首页按钮或 Network 证据验收失败"
+    ],
+    "steps": [
+      "回退到上一发布版本 v0.3.4 的部署包或镜像 tag。",
+      "恢复上一版本环境变量和 Compose 配置。",
+      "停止或回滚生产媒体维护作业，按维护脚本 dry-run 结果与备份策略恢复受影响媒体引用。",
+      "复跑媒体对象 key、URL、render 与小程序核心路径 smoke。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "影响管理端品牌证书上传、缩略图、回显验收和列表字段展示治理文档/检查表。",
+    "owner_web": "可能受媒体对象 key 与历史对象漂移修复影响，需回归公开图片/证书资源展示；无新增 owner web UI 功能。",
+    "miniapp": "影响品牌列表类目两列对齐、返回首页按钮重复点击行为和 Network 面板发布验证清单。",
+    "backend": "影响媒体对象 key 分流、历史媒体维护 CLI / provider 适配、workflow/release 治理脚本。",
+    "database": "none",
+    "object_storage": "影响图片/文件前缀分流、证书图片缩略图、SKU/品牌 Logo/证书历史媒体对象审计与修复。",
+    "docker": "生产媒体维护作业涉及生产 Compose / 镜像治理输入，需后续 image prepare/build。"
+  },
+  "announcement": "announcement.mdx",
+  "release_process_notes": [
+    {
+      "recorded_at": "2026-08-04 23:48:51",
+      "event": "release.publish.fix-announcement-image-loop",
+      "summary": "公告文案不再参与镜像输入 hash；已刷新公告状态、PRODUCT_VERSION、image plan 和 manifest。"
+    }
+  ],
+  "publish_confirmation": {
+    "published_at": "2026-08-04 23:49:33",
+    "announcement_url": "releases/v0.3.5/announcement.mdx",
+    "confirmed_by": "operator",
+    "status": "published",
+    "notes": "发布确认完成。最终镜像 sha256 以 image-manifest.json 和离线包 .sha256 sidecar 为准。",
+    "image_manifest": "image-manifest.json",
+    "tarball": "../releases/v0.3.5/images/tilesfst-v0.3.5-linux-amd64.tar.gz",
+    "tarball_sha256": "1c4b4cf071824de013fdc842978907a2380e4349fdad1794f36d4e95475c3a2b"
+  }
+}

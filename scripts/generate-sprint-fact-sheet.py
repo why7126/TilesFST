@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -21,6 +21,7 @@ from workflow_sync.issue_status_residuals import scan_issue_status_residuals
 
 import archived_path_residuals
 import ai_usage
+from archive_evidence import validate_archive_evidence
 import sprint_change_batches
 
 
@@ -190,6 +191,177 @@ def project_time_to_utc_iso(value: Any) -> str | None:
     return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def markdown_frontmatter(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    lines = collect.read_text(path).splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}
+    data: dict[str, str] = {}
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        data[key.strip()] = value.strip().strip('"').strip("'")
+    return data
+
+
+def ai_usage_freshness_baseline(
+    sprint_path: Path,
+    sprint_yaml: dict[str, Any],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Return a real-time freshness baseline for Sprint AI usage snapshots.
+
+    `sprint.yaml.end_date` is often a planned date. If it is in the future,
+    using it as the lower bound makes any current snapshot look stale.
+    """
+
+    now_utc = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    candidates: list[dict[str, str]] = []
+    skipped: list[dict[str, str]] = []
+
+    def add_candidate(source: str, value: Any, *, allow_future: bool = True) -> None:
+        iso = project_time_to_utc_iso(value)
+        parsed = ai_usage.parse_datetime(iso) if iso else None
+        if not iso or parsed is None:
+            return
+        if not allow_future and parsed > now_utc:
+            skipped.append({"source": source, "value": str(value), "reason": "future-planned-time"})
+            return
+        candidates.append({"source": source, "value": str(value), "utc": iso})
+
+    add_candidate("sprint.yaml:start_date", sprint_yaml.get("start_date"))
+    add_candidate("sprint.yaml:end_date", sprint_yaml.get("end_date"), allow_future=False)
+    for name in ("sprint.md", "release-note.md", "acceptance-report.md"):
+        frontmatter = markdown_frontmatter(sprint_path / name)
+        add_candidate(f"{name}:updated_at", frontmatter.get("updated_at"))
+
+    if not candidates:
+        return {"min_generated_at": None, "source": None, "candidates": [], "skipped": skipped}
+
+    selected = max(candidates, key=lambda item: ai_usage.parse_datetime(item["utc"]) or datetime.min.replace(tzinfo=timezone.utc))
+    return {
+        "min_generated_at": selected["utc"],
+        "source": selected["source"],
+        "candidates": candidates,
+        "skipped": skipped,
+    }
+
+
+def format_int(value: Any) -> str:
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, int):
+        return f"{value:,}"
+    return str(value or 0)
+
+
+def render_usage_matrix_table(usage_matrices: dict[str, Any], metric: str) -> list[str]:
+    matrix_columns = [
+        str(column.get("label"))
+        for column in usage_matrices.get("columns", [])
+        if column.get("label")
+    ]
+    matrix_rows = usage_matrices.get("rows") or []
+    lines = [
+        f"### {metric} 矩阵",
+        "",
+        "| 对象 | " + " | ".join(matrix_columns) + " |",
+        "| ------ | " + " | ".join("------:" for _ in matrix_columns) + " |",
+    ]
+    for row in matrix_rows:
+        cells = ((row.get("metrics") or {}).get(metric) or {})
+        lines.append(
+            f"| {row.get('object_id')} | "
+            + " | ".join(str(cells.get(column, 0)) for column in matrix_columns)
+            + " |"
+        )
+    return lines
+
+
+def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
+    sprint_id = fact_sheet["sprint"]["sprint_id"]
+    ai_usage_snapshot_data = fact_sheet.get("ai_usage_snapshot") or {}
+    totals = ai_usage_snapshot_data.get("totals") or {}
+    fresh_gate = ai_usage_snapshot_data.get("fresh_gate") or {}
+    baseline = fact_sheet.get("ai_usage_freshness_baseline") or {}
+    usage_matrices = ai_usage_snapshot_data.get("usage_matrices") or {}
+    matrix_columns = [
+        str(column.get("label"))
+        for column in usage_matrices.get("columns", [])
+        if column.get("label")
+    ]
+    matrix_rows = usage_matrices.get("rows") or []
+    matrix_available = bool(matrix_columns and matrix_rows)
+    source_path = ai_usage_snapshot_data.get("path") or f"data/ai-usage/sprints/{sprint_id}.json"
+    baseline_source = baseline.get("source") or ""
+    skipped = baseline.get("skipped") or []
+    skipped_note = ""
+    if skipped:
+        skipped_note = "；" + "；".join(
+            f"跳过 {item.get('source')}={item.get('value')}（{item.get('reason')}）"
+            for item in skipped
+        )
+    baseline_value = baseline.get("min_generated_at") or ""
+    exact_usage = (
+        "有"
+        if ai_usage_snapshot_data.get("ai_usage_mode") == "actual"
+        and ai_usage_snapshot_data.get("snapshot_status") == "present"
+        and fresh_gate.get("status") == "pass"
+        else "无"
+    )
+
+    lines = [
+        "## 模型 Token 使用分析",
+        "",
+        "### Token Usage Fact Sheet",
+        "",
+        "| 指标 | 值 | 证据/说明 |",
+        "|------|----|-----------|",
+        f"| 精确 token 统计 | {exact_usage} | 来源：`{source_path}` |",
+        f"| AI usage mode | {ai_usage_snapshot_data.get('ai_usage_mode', 'estimated_fallback')} | Fact Sheet: `ai_usage_snapshot.ai_usage_mode` |",
+        f"| Snapshot status | {ai_usage_snapshot_data.get('snapshot_status', 'missing')} | Fact Sheet: `ai_usage_snapshot.snapshot_status` |",
+        f"| Fresh gate | {fresh_gate.get('status', 'blocker')} | Fact Sheet: `ai_usage_snapshot.fresh_gate.status` |",
+        f"| Freshness baseline | {baseline_value} | 来源：`{baseline_source}`{skipped_note} |",
+        f"| Generated at | {ai_usage_snapshot_data.get('generated_at') or ''} | `{source_path}` |",
+        f"| command_run_count | {format_int(totals.get('command_run_count', 0))} | snapshot totals |",
+        f"| model_call_count | {format_int(totals.get('model_call_count', 0))} | snapshot totals |",
+        f"| tool_call_count | {format_int(totals.get('tool_call_count', 0))} | snapshot totals |",
+        f"| input_tokens | {format_int(totals.get('input_tokens', 0))} | snapshot totals |",
+        f"| cached_input_tokens | {format_int(totals.get('cached_input_tokens', 0))} | snapshot totals |",
+        f"| output_tokens | {format_int(totals.get('output_tokens', 0))} | snapshot totals |",
+        f"| reasoning_output_tokens | {format_int(totals.get('reasoning_output_tokens', 0))} | snapshot totals |",
+        f"| total_tokens | {format_int(totals.get('total_tokens', 0))} | snapshot totals |",
+        f"| retry_count | {format_int(totals.get('retry_count', 0))} | snapshot totals |",
+        f"| 矩阵规模 | {len(matrix_rows)} 行 x {len(matrix_columns)} 列 | `usage_matrices.rows` / `usage_matrices.columns` |",
+    ]
+    if ai_usage_snapshot_data.get("note"):
+        lines.append(f"| Fresh gate note | {ai_usage_snapshot_data['note']} | Fact Sheet blocker note |")
+    if ai_usage_snapshot_data.get("recommended_action"):
+        lines.append(f"| Recommended action | {ai_usage_snapshot_data['recommended_action']} | Fact Sheet recommendation |")
+
+    lines.extend(
+        [
+            "",
+            "矩阵口径：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。矩阵数据来自 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet 渲染输出。",
+            "",
+        ]
+    )
+    if matrix_available:
+        for metric in ("total_tokens", "input_tokens", "output_tokens", "model_call_count"):
+            lines.extend(render_usage_matrix_table(usage_matrices, metric))
+            lines.append("")
+    else:
+        lines.append("> 完整矩阵缺失或 fresh gate 未通过；刷新 `data/ai-usage` snapshot 后再输出真实成本矩阵。")
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
     root = root.resolve()
     previous_root = collect.ROOT
@@ -257,6 +429,17 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
             change = collect.load_change_record(change_id, issues, openspec_data)
             change_dir = change_dir_for(root, change)
             trace_exists = bool(change_dir and (change_dir / "trace.md").exists())
+            archive_evidence_status = "n/a"
+            structured_fallback_summary = None
+            if change_dir and change.location == "archived":
+                evidence = validate_archive_evidence(
+                    change_dir,
+                    root,
+                    change_id=change.change_id,
+                    write_minimal_trace=False,
+                )
+                archive_evidence_status = evidence.status
+                structured_fallback_summary = evidence.structured_fallback_summary
             if change.location == "missing":
                 warnings.append(
                     {
@@ -266,13 +449,22 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                     }
                 )
             if change_dir and not trace_exists:
-                warnings.append(
-                    {
-                        "kind": "change-trace-missing",
-                        "target": change.change_id,
-                        "detail": "trace.md not found in change directory",
-                    }
-                )
+                if archive_evidence_status == "fallback-summary-pass":
+                    warnings.append(
+                        {
+                            "kind": "change-trace-fallback-summary",
+                            "target": change.change_id,
+                            "detail": "trace.md not found; structured fallback summary available",
+                        }
+                    )
+                else:
+                    warnings.append(
+                        {
+                            "kind": "change-trace-missing",
+                            "target": change.change_id,
+                            "detail": "trace.md not found in change directory",
+                        }
+                    )
             if change.tasks.total and change.tasks.done < change.tasks.total:
                 warnings.append(
                     {
@@ -298,6 +490,8 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                     "linked_req": change.linked_req,
                     "linked_bug": change.linked_bug,
                     "trace_exists": trace_exists,
+                    "archive_evidence_status": archive_evidence_status,
+                    "structured_fallback_summary": structured_fallback_summary,
                 }
             )
             if change_dir:
@@ -387,6 +581,7 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
             evidence_hints=evidence_hints,
             ordering="sprint.yaml changes[]",
         )
+        usage_baseline = ai_usage_freshness_baseline(sprint.path, sprint_yaml)
 
         return {
             "sprint": {
@@ -417,6 +612,7 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
             "issues": issue_rows,
             "acceptance": acceptance_summary(sprint.path, root),
             "archived_path_residuals": archived_path_residuals.report_to_dict(path_residual_report),
+            "ai_usage_freshness_baseline": usage_baseline,
             "ai_usage_snapshot": ai_usage_snapshot(
                 sprint.sprint_id,
                 root,
@@ -425,9 +621,7 @@ def build_fact_sheet(sprint_id: str, *, root: Path = ROOT) -> dict[str, Any]:
                     "bugs": sprint.bugs,
                     "changes": sprint.changes,
                 },
-                min_generated_at=project_time_to_utc_iso(
-                    sprint_yaml.get("end_date") or sprint_yaml.get("start_date")
-                ),
+                min_generated_at=usage_baseline["min_generated_at"],
             ),
             "four_piece": four_piece,
             "warnings": warnings,
@@ -451,9 +645,37 @@ def warning_summary(warnings: list[dict[str, str]]) -> dict[str, Any]:
     }
 
 
+def usage_matrices_summary(usage_matrices: dict[str, Any]) -> dict[str, Any]:
+    columns = usage_matrices.get("columns") or []
+    rows = usage_matrices.get("rows") or []
+    metrics = usage_matrices.get("metrics") or []
+    if not metrics and rows:
+        metric_names: set[str] = set()
+        for row in rows:
+            metric_names.update((row.get("metrics") or {}).keys())
+        metrics = sorted(metric_names)
+    legacy_views = [
+        key
+        for key in ("by_issue", "by_change", "by_workflow_event", "by_model")
+        if key in usage_matrices
+    ]
+    return {
+        "available": bool(usage_matrices),
+        "omitted": bool(rows),
+        "metrics": metrics,
+        "columns_count": len(columns),
+        "rows_count": len(rows),
+        "legacy_views": legacy_views,
+        "fields_path": "ai_usage_snapshot.usage_matrices",
+        "recommended_read": "Use --fields ai_usage_snapshot.usage_matrices only when a real matrix table is explicitly needed.",
+    }
+
+
 def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
     ai_usage = fact_sheet.get("ai_usage_snapshot") or {}
+    baseline = fact_sheet.get("ai_usage_freshness_baseline") or {}
     residuals = fact_sheet.get("archived_path_residuals") or {}
+    matrices = ai_usage.get("usage_matrices") or {}
     return {
         "sprint": fact_sheet["sprint"],
         "scope": {
@@ -500,12 +722,13 @@ def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
             "snapshot_status": ai_usage.get("snapshot_status", "missing"),
             "estimated": ai_usage.get("estimated", True),
             "generated_at": ai_usage.get("generated_at"),
+            "freshness_baseline": baseline,
             "warning_count": ai_usage.get("warning_count", 0),
             "fresh_gate": ai_usage.get("fresh_gate") or {},
             "recommended_action": ai_usage.get("recommended_action"),
             "note": ai_usage.get("note"),
             "totals": ai_usage.get("totals") or {},
-            "usage_matrices": ai_usage.get("usage_matrices") or {},
+            "usage_matrices_summary": usage_matrices_summary(matrices),
         },
         "token_risks": fact_sheet["token_risks"],
         "four_piece": fact_sheet["four_piece"],
@@ -671,30 +894,12 @@ def render_markdown(fact_sheet: dict[str, Any]) -> str:
     if ai_usage.get("recommended_action"):
         lines.append(f"| recommended_action | {ai_usage['recommended_action']} |")
     usage_matrices = ai_usage.get("usage_matrices") or {}
-    matrix_columns = [
-        str(column.get("label"))
-        for column in usage_matrices.get("columns", [])
-        if column.get("label")
-    ]
-    matrix_rows = usage_matrices.get("rows") or []
-    if matrix_columns and matrix_rows:
+    if usage_matrices.get("columns") and usage_matrices.get("rows"):
         lines.extend(["", "### AI Usage Matrices", ""])
         for metric in ("total_tokens", "input_tokens", "output_tokens", "model_call_count"):
-            lines.extend(
-                [
-                    f"#### {metric}",
-                    "",
-                    "| 对象 | " + " | ".join(matrix_columns) + " |",
-                    "|---|" + "|".join("---:" for _ in matrix_columns) + "|",
-                ]
-            )
-            for row in matrix_rows:
-                cells = ((row.get("metrics") or {}).get(metric) or {})
-                lines.append(
-                    f"| {row.get('object_id')} | "
-                    + " | ".join(str(cells.get(column, 0)) for column in matrix_columns)
-                    + " |"
-                )
+            table = render_usage_matrix_table(usage_matrices, metric)
+            table[0] = f"#### {metric}"
+            lines.extend(table)
             lines.append("")
         if usage_matrices.get("note"):
             lines.append(f"> {usage_matrices['note']}")
@@ -735,6 +940,11 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="FIELD",
         help="Emit selected field paths as JSON, e.g. evidence_hints warnings ai_usage_snapshot.totals",
     )
+    parser.add_argument(
+        "--ai-usage-markdown",
+        action="store_true",
+        help="Emit the retrospective-ready '模型 Token 使用分析' Markdown section.",
+    )
     return parser
 
 
@@ -745,7 +955,9 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
-    if args.fields:
+    if args.ai_usage_markdown:
+        print(render_ai_usage_retrospective_section(fact_sheet), end="")
+    elif args.fields:
         try:
             print(json.dumps(select_fields(fact_sheet, args.fields), ensure_ascii=False, indent=2))
         except KeyError as exc:

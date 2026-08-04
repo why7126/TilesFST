@@ -42,6 +42,8 @@ Use this skill when the user asks to run the workflow command `bug-complete`.
 | acceptance.md | 回归 AC-xxx |
 | trace.md | status → enriching → pending_review |
 
+媒体类 BUG 的 acceptance MUST 引用 `docs/standards/media-bug-four-point-acceptance-template.md`，覆盖 key、object、URL、render 四联。品牌证书相关 BUG MUST 明确图片证书使用 `images/default/brand-certificates/`，PDF/文档证书使用 `files/default/brand-certificates/`，历史对象/缩略图/审计脚本需记录 dry-run、apply、幂等摘要。
+
 ## Readiness
 
 Ready：bug + root-cause + acceptance + trace

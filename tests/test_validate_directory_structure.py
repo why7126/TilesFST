@@ -103,10 +103,55 @@ def test_validate_rejects_deploy_runtime_and_secret_files(tmp_path: Path) -> Non
 
     errors = validator.validate(tmp_path)
 
-    assert any("真实 env" in error and "mysql-tencent-cos.env" in error for error in errors)
     assert any("禁止运行时目录" in error and "deploy/local/data" in error for error in errors)
     assert any("运行时或镜像文件" in error and "tilesfst.sqlite3" in error for error in errors)
     assert any("运行时或镜像文件" in error and "bundle.tar.gz" in error for error in errors)
+
+
+def test_validate_rejects_deploy_env_when_git_status_reports_staged(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    write_required_paths(tmp_path)
+    write_allowed_root_dirs(tmp_path)
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "deploy" / "local").mkdir(parents=True)
+    (tmp_path / "deploy" / "local" / "mysql-tencent-cos.env").write_text(
+        "APP_SECRET_KEY=secret\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        validator,
+        "_git_status_for_path",
+        lambda root, rel: "A ",
+    )
+
+    errors = validator.validate(tmp_path)
+
+    assert any("真实 env" in error and "mysql-tencent-cos.env" in error for error in errors)
+
+
+def test_validate_allows_deploy_env_when_git_status_reports_ignored(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    write_required_paths(tmp_path)
+    write_allowed_root_dirs(tmp_path)
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "deploy" / "local").mkdir(parents=True)
+    (tmp_path / "deploy" / "local" / "mysql-tencent-cos.env").write_text(
+        "APP_SECRET_KEY=secret\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        validator,
+        "_git_status_for_path",
+        lambda root, rel: "!!",
+    )
+
+    errors = validator.validate(tmp_path)
+
+    assert not any("真实 env" in error and "mysql-tencent-cos.env" in error for error in errors)
 
 
 def test_validate_allows_governed_mintlify_root(tmp_path: Path) -> None:

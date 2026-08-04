@@ -4,7 +4,7 @@ content: 瓷砖图片、视频、封面、转码、上传、对象存储、前�
 source: AI自动生成初稿，项目团队确认
 update_method: 新增媒体类型、视频转码、封面生成、上传限制、对象存储策略时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-01 11:04:15
+updated_at: 2026-08-04 11:32:00
 note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 ---
 
@@ -20,6 +20,7 @@ note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 - 瓷砖介绍视频
 - 瓷砖工艺/质检视频
 - 视频封面图
+- 品牌证书图片与 PDF/文档
 - 规格书和检测报告附件
 
 ## 2. 存储规则
@@ -35,13 +36,17 @@ OBJECT_STORAGE_BUCKET=tilesfst
 推荐对象前缀：
 
 ```text
-original/              原始图片、文件
+images/                图片类资源（头像、Logo、SKU 图、Banner、品牌证书图片）
 videos/                原始视频
 videos/covers/         视频封面
 videos/transcoded/     转码后视频
+files/                 PDF、规格书、检测报告、证书文档
 processed/             处理后资源
 thumbnails/            缩略图
+original/              Deprecated，仅存量兼容
 ```
+
+品牌证书必须按媒体类型分流：JPG、PNG、WebP 证书图片使用 `images/default/brand-certificates/` 或等价标准图片前缀，PDF 等证书文档继续使用 `files/default/brand-certificates/`。图片证书缩略图必须与原图保持同一图片资源归属，优先使用同目录 `.thumb` key。
 
 ## 3. 视频规范
 
@@ -81,6 +86,10 @@ thumbnails/            缩略图
 每个维度必须记录 `pass`、`fail`、`n/a` 或 `blocked` 状态、证据和失败/阻塞处理。`n/a` 必须说明不适用原因；`blocked` 不得视为通过；任一 `fail` 必须包含实际结果、期望结果、复现步骤、影响范围和排查线索。
 
 涉及上传链路时，四联验收还必须覆盖上传状态机、同会话即时回显、Docker Web `http://localhost:3000` 边界文件、`object_key` 与受控媒体 URL 一致性。涉及历史对象、缩略图、回填或审计脚本时，必须记录 dry-run、apply、幂等性或统计摘要，且不得泄露敏感信息。
+
+涉及品牌证书时，四联验收必须明确区分图片类证书与 PDF/文档类证书：图片 key 与缩略图 key 使用 `images/`，PDF/文档 key 使用 `files/`；历史图片 key 迁移必须记录 dry-run/apply/幂等摘要。
+
+生产媒体维护作业必须通过后端包内入口或受控兼容脚本执行，默认 dry-run。写入数据库或对象存储的任务 MUST 显式使用 `--apply --confirm-backup`，并在执行前确认 MySQL 与对象存储 bucket/prefix 备份已完成。维护输出 MUST 使用对象 Key hash、标准前缀、统计摘要和枚举化失败原因，不得输出真实 object key 全量值、数据库连接串、access key、secret key、Authorization header、Cookie、真实 `.env` 内容或本机绝对路径。任务结果 MUST 至少提供 key、object、URL、thumbnail benefit、render 维度的验收摘要；只读审计和批处理摘要不能替代受影响端的 Web、小程序或管理端渲染 evidence。
 
 非媒体 BUG 可将本模板标记为 `n/a`，但必须说明“本 BUG 不涉及媒体 key、object、URL 或端侧渲染”的判断依据。通用媒体能力或缩略图收益验收优先引用 `docs/standards/media-five-point-acceptance-template.md`；媒体 BUG 修复闭环优先引用四联模板，必要时同时引用五联模板。
 

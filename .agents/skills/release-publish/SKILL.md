@@ -53,18 +53,17 @@ Publish MUST be blocked unless:
 - Usage docs are either generated with validated `usage_docs_preview=pass`, or explicitly skipped with `usage_docs_preview=na`; `pending_confirmation` blocks publish.
 - If `image_required=true` or offline image delivery is in scope, `releases/<version>/image-manifest.json` validates, or approved external build evidence is present.
 - Manifest version, image tag, source plan, input hashes, tarball path, sidecar sha256, and actual tarball sha256 still match current release inputs.
-- If announcement or release stable inputs changed after `/image-build`, publish MUST block and rerun `/image-prepare <version>` plus `/image-build <version>` before confirmation.
+- If release stable inputs changed after `/image-build`, publish MUST block and rerun `/image-prepare <version>` plus `/image-build <version>` before confirmation. Announcement copy is not an image build input; status-only announcement refreshes do not require image rebuild.
 - User has supplied or confirmed the final announcement location if there is an external URL.
 
 ### Anti-loop Rule（MUST）
 
 `/release-publish` MUST be a confirmation-only command after image evidence exists:
 
-- MUST NOT edit `releases/<version>/announcement.mdx` after a valid `image-manifest.json` exists.
 - MUST NOT write the final tarball sha256, manifest sha256, published timestamp, or publish confirmation into `announcement.mdx`.
 - Announcement text MUST refer to `releases/<version>/image-manifest.json` and the tarball `.sha256` sidecar as the source of truth for final image checksums.
 - Publish confirmation MUST be written only to `releases/<version>/release.json` under `publish_confirmation` or other non-stable publish metadata fields.
-- If announcement content is stale, missing, unsafe, or needs copy edits, BLOCK publish and instruct the operator to update the announcement first, then rerun `/image-prepare <version>` and `/image-build <version>`. Do not repair announcement copy inside `/release-publish`.
+- If announcement content is stale only because usage docs, image prepare/build, or gate status advanced after `/release-prepare`, MAY refresh that status-only copy from current `release.json` / `image-manifest.json` before publish. If announcement is missing, unsafe, or needs scope/feature/risk/rollback copy edits, BLOCK publish and instruct the operator to update the announcement first.
 - `release.json` gate evidence, `known_issues`, `publish_confirmation`, and other publish bookkeeping MUST NOT be treated as image stable input; scripts must continue to hash only stable release scope and input files.
 
 `--force` MUST NOT bypass public-safety failures, missing `release.json` / `announcement.mdx`, usage docs pending confirmation, generated usage docs manifest/navigation/safety failures, skipped usage docs without rationale, missing image manifest for image-required releases, or stale image input hashes.
@@ -93,7 +92,7 @@ Publish MUST be blocked unless:
 }
 ```
 
-5. Re-run validation. If validation reports image input drift caused by announcement changes, STOP and report that `/image-prepare <version>` and `/image-build <version>` must be rerun before publish.
+5. Re-run validation. If validation reports image input drift caused by release stable scope changes, STOP and report that `/image-prepare <version>` and `/image-build <version>` must be rerun before publish.
 
 ## Output
 

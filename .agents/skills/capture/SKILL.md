@@ -47,6 +47,7 @@ Use this skill when the user asks to run the workflow command `capture`.
 - 尚未交付的新能力/流程 → **REQ**
 - 混合输入 → 拆条目后分别归类
 - 新功能 PRD 未达标 → BUG + `related_requirement`
+- 媒体/对象存储输入若描述图片、视频、Logo、证书、缩略图、`object_key` 或 `/media/` 偏差，优先按媒体类 BUG 记录；品牌证书图片应检查是否归入 `images/default/brand-certificates/`，PDF/文档证书应检查是否归入 `files/default/brand-certificates/`
 - 边界不清 → 分类表标注待澄清，capture 写待澄清项
 
 拆分分别套用 `/req-capture` Multi-REQ 与 `/bug-capture` Multi-BUG 规则。

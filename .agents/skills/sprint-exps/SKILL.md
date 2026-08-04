@@ -51,7 +51,11 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    ```bash
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields evidence_hints
    ```
-5. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet summary 的 `ai_usage_snapshot.fresh_gate`；只有当 `fresh_gate.status: pass`、`snapshot_status: present`、`ai_usage_mode: actual` 且 `usage_matrices` 存在时，才按真实统计输出。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少 `usage_matrices`，MUST 先输出 fresh gate blocker、reason、impact 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
+5. 构建 Token Usage Fact Sheet：优先使用自动 Fact Sheet summary 的 compact `ai_usage_snapshot`，包括 `fresh_gate`、`freshness_baseline`、`usage_matrices_summary`、关键 totals、warning_count 与 recommended_action；summary 默认不得消费或转述完整 `usage_matrices.rows`。只有当 `fresh_gate.status: pass`、`snapshot_status: present`、`ai_usage_mode: actual` 且 `usage_matrices_summary.available=true` 时，才可判断真实矩阵可用；此时复盘文档 MUST 优先通过专用 Markdown 渲染命令写入 sprint-015 风格表格：
+   ```bash
+   python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown
+   ```
+   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若当前命令已运行 post-command hook 或用户刚刷新 snapshot，MUST 重新运行 Fact Sheet summary 复核 fresh gate；不得沿用刷新前的 blocker 结论。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
 6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 8. 输出 Experience Analysis Report。
@@ -67,7 +71,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 - MUST NOT 在复盘中复制原始 trace、tasks、acceptance-report、OpenAPI、Orval generated 或测试日志全文；需要证据时只引用路径、聚合计数或短片段。
 - MUST NOT 默认输出完整 `evidence_hints`；完整 evidence hints 只作为按需回读索引。
 - MAY 按 Fact Sheet summary 的 `warnings` / `needs_detail` 回读对应文件片段，例如缺失 trace、状态残留、tasks 未完成、acceptance 结论不清晰；需要完整 evidence hints 时 MUST 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields evidence_hints`。
-- SHOULD 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 做结构化核对，尤其是 `scope.counts`、`change_batches`、`warnings`、`token_risks`、`detail_triggers` 与 `ai_usage_snapshot`；调试兼容问题时 MAY 使用 `--json`。
+- SHOULD 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 做结构化核对，尤其是 `scope.counts`、`change_batches`、`warnings`、`token_risks`、`detail_triggers` 与 compact `ai_usage_snapshot`；summary 默认只包含 `usage_matrices_summary`，不得依赖完整 `usage_matrices.rows`。调试兼容问题时 MAY 使用 `--json`。
 - For 10+ Change Sprint, SHOULD inspect `change_batches` before `changes[]` detail and MUST NOT default to reading every raw `tasks.md` or `trace.md`.
 - MUST 检查 Fact Sheet 中的 `archived_path_residuals` 与 `archived-path-residual` warnings；如存在残留，只引用建议归档路径，不传播旧的 `iterations/change/<sprint-id>/` 或 active `openspec/changes/<change-id>/` 链接。
 
@@ -75,10 +79,10 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 - **模型 Token 使用分析（MUST）**：
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
-  - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的真实统计：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数。
-  - 若 `ai_usage_snapshot.fresh_gate.status != pass`、`ai_usage_snapshot.snapshot_status != present`、`ai_usage_snapshot.ai_usage_mode != actual` 或 `ai_usage_snapshot.usage_matrices` 缺失，MUST 输出 fresh gate blocker、reason（如 missing/stale/failed/coverage-missing/usage-matrices-missing/required-metrics-empty）、impact、recommended_action；默认不得生成真实 token 成本矩阵，不得编造具体 token 数字，不得静默按真实统计展示。
-  - 若 snapshot 过期、覆盖不足、缺少矩阵或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot。仅当用户明确要求继续 fallback 复盘时，MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析，且 MUST 说明不能用于真实 token 成本量化。
-  - 当 `usage_matrices` 可用时，复盘文档 MUST 在 `## 模型 Token 使用分析` 中新增四张指标矩阵表，数据来源为 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet summary 暴露的 `ai_usage_snapshot.usage_matrices`：
+  - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的 compact 真实统计摘要：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数，以及 `usage_matrices_summary` 的矩阵可用性和行列规模。
+  - 若 `ai_usage_snapshot.fresh_gate.status != pass`、`ai_usage_snapshot.snapshot_status != present`、`ai_usage_snapshot.ai_usage_mode != actual` 或 `ai_usage_snapshot.usage_matrices_summary.available != true`，MUST 输出 fresh gate blocker、reason（如 missing/stale/failed/coverage-missing/usage-matrices-missing/required-metrics-empty）、impact、freshness_baseline、recommended_action；默认不得生成真实 token 成本矩阵，不得编造具体 token 数字，不得静默按真实统计展示。
+  - 若 snapshot 过期、覆盖不足、缺少矩阵或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot；覆盖不足或缺少矩阵 MAY 保持 `snapshot_status: present`，但 fresh gate MUST 为 blocker 且 `ai_usage_mode` MUST NOT 作为真实统计使用。仅当用户明确要求继续 fallback 复盘时，MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析，且 MUST 说明不能用于真实 token 成本量化。
+  - 当 compact summary 显示 `usage_matrices_summary.available=true` 且确需写入矩阵表时，MUST 通过 `--ai-usage-markdown` 生成可直接写入复盘文档的表格章节；复盘文档 MUST 在 `## 模型 Token 使用分析` 中新增四张指标矩阵表，数据来源为 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet 渲染输出：
     - 第一张：总 Token 消耗数 `total_tokens`。
     - 第二张：总输入 Token 消耗数 `input_tokens`。
     - 第三张：总输出 Token 消耗数 `output_tokens`。
@@ -110,6 +114,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 | AI usage mode | actual / estimated_fallback | Fact Sheet: `ai_usage_snapshot.ai_usage_mode` |
 | Snapshot status | present / missing / stale / failed | Fact Sheet: `ai_usage_snapshot.snapshot_status` |
 | Fresh gate | pass / blocker | Fact Sheet: `ai_usage_snapshot.fresh_gate.status` |
+| Freshness baseline | 待填 | Fact Sheet: `ai_usage_snapshot.freshness_baseline` |
 | 主要输入消耗 | 待填 | 例如规则重复读取、Sprint 四件套、Issue/Change trace |
 | 主要输出消耗 | 待填 | 例如测试日志、Workflow Sync 报告、diff 输出 |
 | 重复/浪费来源 | 待填 | 例如同一规则多次全量读取、宽泛搜索命中过多 |
@@ -134,7 +139,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 同上结构，指标取 `model_call_count`。
 
-> 矩阵数据来自 `ai_usage_snapshot.usage_matrices`；若缺失，提示刷新 `data/ai-usage` snapshot，不得手工估填具体数值。
+> 矩阵数据优先来自 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown`；summary 只提供 `usage_matrices_summary`。若完整矩阵缺失，提示刷新 `data/ai-usage` snapshot，不得手工估填具体数值。
 
 ### 高消耗来源
 

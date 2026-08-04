@@ -216,8 +216,6 @@ def stable_release_input_hash(release_data: dict[str, Any]) -> str:
 
 def input_files_for_release(release_dir: Path) -> list[Path]:
     files: list[Path] = []
-    announcement = read_json(release_dir / "release.json").get("announcement", "announcement.mdx")
-    files.append(release_dir / str(announcement))
     files.extend(ROOT / item for item in INPUT_FILE_CANDIDATES)
     for pattern in DEPLOY_INPUT_PATTERNS:
         files.extend(path for path in ROOT.glob(pattern) if path.is_file())

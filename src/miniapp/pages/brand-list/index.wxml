@@ -98,7 +98,7 @@
         </view>
         <view class="brand-categories">
           <block wx:if="{{item.category_items.length}}">
-            <text
+            <view
               class="category-pill"
               wx:for="{{item.category_items}}"
               wx:for-item="category"
@@ -107,7 +107,7 @@
               data-brand-index="{{brandIndex}}"
               data-category-index="{{categoryIndex}}"
               catchtap="onCategoryTap"
-            >{{category.category_name}}</text>
+            >{{category.category_name}}</view>
           </block>
           <view wx:else class="category-empty">暂无类目</view>
         </view>

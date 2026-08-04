@@ -56,8 +56,8 @@ openspec status --change "<change-id>" --json
 | Document language | active Change docs MUST pass `python scripts/validate-openspec-language.py` before archive |
 | Archive target | `openspec/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
 | Legacy archive root | `openspec/changes/archive/` MUST NOT exist before or after archive; if present, stop and migrate its children to `openspec/archive/` first |
-| Archive evidence | if a historical archived Change lacks `trace.md`, it MUST contain a complete `## 归档验证摘要` fallback in proposal/design/tasks before Sprint close readiness can pass |
-| Single Change archive evidence | after `/opsx-archive` resolves the canonical archive path, the archived Change MUST contain `trace.md` or a complete `## 归档验证摘要`; failures MUST be reported before claiming archive closure |
+| Archive evidence | if a historical archived Change lacks `trace.md`, archive evidence validation MUST auto-generate a minimal archive trace when safe, or emit a structured fallback summary before Sprint close readiness can pass |
+| Single Change archive evidence | after `/opsx-archive` resolves the canonical archive path, the archived Change MUST contain `trace.md`, `auto-generated-minimal-trace`, or `fallback-summary-pass`; failures MUST be reported before claiming archive closure |
 
 ## Steps
 
@@ -90,10 +90,11 @@ python scripts/promote-issues-for-archive.py --change <change-id> --reason "/ops
 ```
 
 - All exit codes MUST be `0`.
+- `deploy/**/*.env` 作为本地/生产运行配置存在但未被 Git 跟踪或暂存时，MUST NOT block archive；若目录校验报告真实 env blocker，应先确认该 env 是否已被 Git 跟踪/暂存，只有存在提交风险时才阻塞。
 - OpenSpec language validation MUST pass before moving the Change; fix active `proposal.md`、`design.md`、`tasks.md` 中的英文脚手架标题或全英文任务项 before archive.
 - If `scripts/archive-change.sh` reports an OpenSpec CLI English scaffold heading compatibility warning for `## Why` / `## What Changes` while `python scripts/validate-openspec-language.py` passed, treat it as non-blocking noise from the upstream CLI schema. Do not add English scaffold headings to silence it.
 - Directory validation MUST fail if `openspec/changes/archive/` exists. Do not continue by treating it as a historical archive location; migrate to `openspec/archive/` first.
-- Archive evidence validation MUST report `trace-present` or `fallback-summary-pass`; if it reports missing `trace.md` and incomplete fallback summary, stop and add a complete `## 归档验证摘要` to `proposal.md`、`design.md` or `tasks.md` in the archived Change before claiming closure.
+- Archive evidence validation MUST report `trace-present`, `auto-generated-minimal-trace`, or `fallback-summary-pass`; if it reports missing `trace.md` and incomplete fallback summary, stop and add a complete `## 归档验证摘要` to `proposal.md`、`design.md` or `tasks.md` in the archived Change before claiming closure.
 - Print summary Workflow Sync Report and Promote Issue Stage report; use `--output detail` only for debugging.
 - `promote-issues-for-archive.py` includes the issue subdocument status gate. If it reports `Issue Subdocument Status Gate` blockers, stop and reconcile the listed child Markdown `status` values before retrying; do not move REQ/BUG packages to `archive/` with residual `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` or equivalent non-closed states.
 - Before retrying promote, run the suggested dry-run first. `acceptance.md` must contain a closed `acceptance_status` or equivalent result block with source Change/Sprint, evidence entry, failed items or waiver notes; do not claim Issue closure if acceptance result is still missing.

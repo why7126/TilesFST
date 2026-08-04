@@ -140,6 +140,27 @@ trace.md iteration: sprint-xxx
 openspec/changes/<change>/trace.md（若存在）
 ```
 
+## Existing Sprint Scope Update（MUST）
+
+当目标 `iterations/change|archive/<sprint>/sprint.yaml` 已存在，且本命令是在已有 Sprint 中追加或修正 REQ/BUG/Change 正式范围时，MUST 先使用确定性脚本更新机器事实源，不得只手工编辑 `sprint.md`、Issue trace 或 Markdown Scope 表：
+
+```bash
+python scripts/add-sprint-scope-item.py \
+  --sprint <sprint-id> \
+  [--req <REQ-id> | --bug <BUG-id>] \
+  [--change <change-id>] \
+  --size <XS|S|M|L|XL|XXL> \
+  --story-points <number> \
+  --person-days <number> \
+  --rationale "<估算与影响说明>"
+```
+
+- 脚本成功后再运行 Workflow Sync 派生刷新 `sprint.md`、`release-note.md`、`acceptance-report.md`、Issue trace 和 Change trace。
+- 多个范围项追加到同一个 Sprint 时，MUST 严格串行运行 `scripts/add-sprint-scope-item.py`；不得使用并行工具同时写同一个 `sprint.yaml`。脚本虽然带文件锁，但命令编排仍必须以最新写入后的 YAML 作为下一项输入，避免覆盖、重复键或坏 UTF-8。
+- `sprint.md` `## 2. Scope` 主表 MUST 保持六列：`类型 | 编号 | 标题 | 状态 | 估算 | 说明`。不得改成 `范围项 | 状态 | 估算` 窄表；需要降低预览宽度时，只能缩短 `说明` 文案或把细节放入 workflow-sync 分组表。
+- 若新增项带有 Change，结束前 MUST 运行 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run`，并确认输出解析到目标 Sprint，不得报告 `not in sprint scope`。
+- 若 dry-run 仍报告 `not in sprint scope`，MUST 停止并修复 `sprint.yaml` 机器源；不得以 `sprint.md` Scope 表或人工摘要已出现该项作为完成依据。
+
 ## Output
 
 报告 Sprint ID、状态、纳入 REQ/BUG/Change 数量、估算、知识库承接、容量门禁、四件套路径、下一步。

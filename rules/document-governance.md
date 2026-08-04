@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-01 11:16:30
+updated_at: 2026-08-04 10:10:00
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -190,9 +190,12 @@ python scripts/sync-workflow-status.py --event <event> [--sprint auto] [--change
 - 本地校验：`python scripts/sync-workflow-status.py --sprint auto --check`
 - 禁止手工编辑 `sprint.md` 的 `<!-- workflow-sync:* -->` 标记块与派生 Scope 表。
 - `sprint.md` 的 `## 2. Scope` 主表与 `<!-- workflow-sync:scope-* -->` 派生表均属于 Workflow Sync 管辖范围；REQ/BUG/Change 状态、关联 Change、归档说明和估算必须从 `sprint.yaml`、Issue trace 与 OpenSpec Change 状态派生刷新，不得保留“待 req/bug-opsx”等过期规划文案。
+- `sprint.md` 的 `## 2. Scope` 主表 MUST 使用六列规范表头：`类型 | 编号 | 标题 | 状态 | 估算 | 说明`。不得使用 `范围项` 合并 REQ/BUG 与 Change ID，不得删除 `标题` 或 `说明` 字段；若历史文档存在窄表或 legacy 表，Workflow Sync MUST 迁移为六列表。
 - Scope 表、里程碑、archived 时间戳 MUST 使用 `YYYY-MM-DD HH:mm:ss` 且时分秒为实际值；不得使用 `00:00:00` 占位。
 - `sprint.yaml` 中正式纳入的 REQ/BUG MUST 同步出现在 `sprint.md` 的 Sprint 目标列表和对应要点小节；未评审项只能列「延后项（待评审）」。
 - `/sprint-propose` 或任何改变 Sprint 范围的同步动作完成后，MUST 运行 `python scripts/validate-sprint-scope.py <sprint-id> [--item <REQ|BUG|change-id>]`；该校验必须确认 `sprint.yaml` 中的正式范围同时出现在 `sprint.md` `## 2. Scope` 主表与 workflow-sync 派生表，失败时不得结束命令。
+- 对已存在 Sprint 追加或修正正式范围时，`sprint.yaml` MUST 先由确定性脚本 `scripts/add-sprint-scope-item.py` 更新，再由 Workflow Sync 刷新 Markdown 派生块。禁止只修改 `sprint.md`、Issue trace 或 Change trace 后宣称已纳入 Sprint；`/opsx-apply --dry-run` 仍解析不到 Sprint 时视为 Sprint scope 持久化失败，必须先修复 `sprint.yaml`。
+- 多个 REQ/BUG/Change 追加到同一个 Sprint 时，`scripts/add-sprint-scope-item.py` MUST 串行运行。该脚本带有文件锁用于防止并发写坏 `sprint.yaml`，但 Agent 编排不得用并行工具同时写同一 Sprint scope；每个写入后以最新 `sprint.yaml` 为事实源继续下一项。
 - Sprint close / `/sprint-archive` 前 MUST 运行 `python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>`；该 readiness gate 包含 Sprint close stale scan，会检查目标 Sprint 四件套是否残留与真实 Issue/Change 生命周期冲突的“待 `/req-opsx` / `/bug-opsx` / `/opsx-apply`”、`proposed`、`applied` 等中间态文案，以及作为 canonical archive path 的 `openspec/changes/archive/` 旧路径引用。若只需单独复核 stale scan，可运行 `python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>`。命中 blocker 时不得静默关闭 Sprint，且不得手工编辑 `sprint.md` workflow-sync marker 派生块。
 
 常用事件：`req.capture`…`req.opsx`、`bug.capture`…`bug.opsx`、`opsx.propose|apply|archive`、`sprint.propose|apply|archive`。

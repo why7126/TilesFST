@@ -17,6 +17,7 @@ RELEASES_DIR = ROOT / "releases"
 MINTLIFY_DIR = ROOT / "mintlify"
 TEMPLATE_DIR = RELEASES_DIR / "templates" / "usage-docs"
 TIME_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+VERSION_PATTERN = re.compile(r"v(\d+)\.(\d+)\.(\d+)(?:[-.]([A-Za-z0-9.]+))?")
 
 
 def now_text() -> str:
@@ -54,19 +55,34 @@ def repo_relative(path: Path) -> str:
 
 
 def release_dir(version: str) -> Path:
-    if not re.fullmatch(r"v\d+\.\d+\.\d+(?:[-.][A-Za-z0-9.]+)?", version):
+    if not VERSION_PATTERN.fullmatch(version):
         raise ValueError(f"version must be SemVer-like, got {version}")
     return RELEASES_DIR / version
 
 
+def parse_semver(version: str) -> tuple[int, int, int, tuple[int, str, str]] | None:
+    match = VERSION_PATTERN.fullmatch(version)
+    if not match:
+        return None
+    suffix = match.group(4) or ""
+    suffix_rank = (1, "", "") if not suffix else (0, suffix.lower(), suffix)
+    return (int(match.group(1)), int(match.group(2)), int(match.group(3)), suffix_rank)
+
+
 def previous_usage_docs_version(version: str) -> str | None:
-    candidates = []
+    current = parse_semver(version)
+    if current is None:
+        raise ValueError(f"version must be SemVer-like, got {version}")
+    candidates: list[tuple[tuple[int, int, int, tuple[int, str, str]], str]] = []
     for path in RELEASES_DIR.iterdir() if RELEASES_DIR.exists() else []:
         if path.name == version or not path.is_dir():
             continue
-        if re.fullmatch(r"v\d+\.\d+\.\d+(?:[-.][A-Za-z0-9.]+)?", path.name) and (path / "usage-docs").exists():
-            candidates.append(path.name)
-    return sorted(candidates)[-1] if candidates else None
+        parsed = parse_semver(path.name)
+        if parsed is None or parsed >= current:
+            continue
+        if (path / "usage-docs" / "manifest.json").exists():
+            candidates.append((parsed, path.name))
+    return max(candidates)[1] if candidates else None
 
 
 def ensure_generation_confirmed(data: dict[str, Any]) -> dict[str, Any]:

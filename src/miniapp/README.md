@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-08-03 23:45:44
+updated_at: 2026-08-04 09:27:59
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -64,7 +64,7 @@ note: AI新增文件前必须确认目录边界
 
 ## 品牌入口页与品牌主页
 
-品牌入口页位于 `pages/brand-list/index.*`，通过 `GET /api/v1/miniapp/brands` 获取品牌列表页轮播和启用品牌列表。顶部 Hero 保持品牌列表页 Banner 数据、指示器、自动播放和点击行为不变；无 Banner 时展示黑金品牌画廊兜底。轮播下方使用“品牌矩阵”单列卡片：卡片上半区作为品牌入口，展示圆形 Logo、品牌名称、`x 款商品` 和进入箭头；卡片下半区直接展示该品牌所有上架商品绑定的末级类目名称，不额外展示“按类目快速识别”或“全部类目 · 点击查看该品牌下的类目商品”等说明文案。类目来自响应 `leaf_categories`，小程序端按类目名称去重后全部折行展示，不使用 `+N` 折叠；类目胶囊字号比品牌名称小 2rpx，避免在移动端过弱；无类目时仅在类目区展示轻量 `暂无类目`。点击品牌卡片上半区进入 `pages/brand-detail/index?brandId=...`；点击类目标签进入 `pages/product-list/index?brandId=...&categoryId=...&categoryLevel=secondary&categoryName=...&sourcePage=brand-list-category`，不展示“公开”字样。
+品牌入口页位于 `pages/brand-list/index.*`，通过 `GET /api/v1/miniapp/brands` 获取品牌列表页轮播和启用品牌列表。顶部 Hero 保持品牌列表页 Banner 数据、指示器、自动播放和点击行为不变；无 Banner 时展示黑金品牌画廊兜底。轮播下方使用“品牌矩阵”单列卡片：卡片上半区作为品牌入口，展示圆形 Logo、品牌名称、`x 款商品` 和进入箭头；卡片下半区直接展示该品牌所有上架商品绑定的末级类目名称，不额外展示“按类目快速识别”或“全部类目 · 点击查看该品牌下的类目商品”等说明文案。类目来自响应 `leaf_categories`，小程序端按类目名称去重后全部折行展示，不使用 `+N` 折叠；类目胶囊区采用两列固定布局，左右列分别左对齐，类目名称超出胶囊宽度时单行省略，不换行、不撑破边框；类目胶囊字号比品牌名称小 2rpx，避免在移动端过弱；无类目时仅在类目区展示轻量 `暂无类目`。点击品牌卡片上半区进入 `pages/brand-detail/index?brandId=...`；点击类目标签进入 `pages/product-list/index?brandId=...&categoryId=...&categoryLevel=secondary&categoryName=...&sourcePage=brand-list-category`，不展示“公开”字样。
 
 品牌主页位于 `pages/brand-detail/index.*`，通过 `GET /api/v1/miniapp/brands/{brand_id}` 获取品牌图片、品牌名称、英文名、简介、商品数和证书数；导航栏标题必须使用品牌名称 `brand_name`，不得使用品牌简称。顶部品牌文案以浮层形式覆盖在品牌图片上，不展示“x 个商品 / x 个证书”数量行。商品 Tab 复用 `GET /api/v1/miniapp/products?brandId=...` 和 `components/product-card/`，接口默认按 `published_at ASC, id ASC` 返回当前品牌公开 SKU，历史 `published_at` 空值由后端使用 `created_at` 兜底；小程序端只按接口返回顺序首屏展示和加载更多，不做端侧重排。证书 Tab 通过 `GET /api/v1/miniapp/brands/{brand_id}/certificates` 获取当前品牌可公开证书，卡片样式保持与证书列表页一致，卡片主点击进入 `pages/certificate-detail/index?certificateId=...`，文件预览能力下沉到证书详情页。
 
@@ -114,6 +114,10 @@ note: AI新增文件前必须确认目录边界
 - `/miniapp-env auto`：开发版使用本地 API，体验版和正式版使用生产 API；发布后默认恢复到该策略。
 - `/miniapp-env dev` 与 `/miniapp-env auto` 会把 `project.private.config.json` 的 `setting.urlCheck` 设为 `false`，用于本地 HTTP 后端调试；`/miniapp-env prod` 与 `/miniapp-prepare` 会设为 `true`，用于生产域名校验。
 - `/miniapp-check` 检查当前策略、运行入口同步和生产接口；`/miniapp-prepare` 用于上传体验版/提审前切生产、跑静态测试和生产 smoke；`/miniapp-confirm` 记录体验版/正式版验证结论；`/miniapp-restore` 恢复默认策略。
+- `/miniapp-prepare` 的 prod 策略、`urlCheck=true`、静态测试和生产 smoke 属于自动门禁；DevTools Network 与体验版 Network 属于待人工执行的 release/miniapp checklist，不得在未执行时写作自动通过。
+- DevTools Network evidence 应记录微信开发者工具版本、基础库版本、运行策略、`urlCheck`、页面路径、请求域名、HTTP 状态、业务响应状态和资源加载结论，并说明不等同于体验版或真机网络验收。
+- 体验版 Network evidence 应确认最新体验版入口、重新扫码、生产 API 域名、首页或列表页加载、详情页或媒体资源加载结论；无法执行时只能记录 `blocked`、`follow_up` 或明确的 `not_applicable`。
+- Network evidence 记录不得包含 token、Cookie、Authorization header、`.env`、真实密钥、真实客户数据、未脱敏隐私或完整网络日志。
 - `project.config.json` 默认关闭 `urlCheck` 用于本地 HTTP 后端调试；`project.private.config.json` 可在发布验证时打开 `urlCheck`，提交正式版前需在微信公众平台配置生产域名合法域名。
 - 后端代码变更后需重新构建运行镜像，例如 `docker compose up -d --build tilesfst-backend`，否则微信开发者工具可能仍访问到旧接口。
 - 小程序静态与首页聚合回归检查：`uv run pytest tests/test_miniapp_static.py tests/test_miniapp_home.py`。

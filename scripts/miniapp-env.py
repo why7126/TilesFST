@@ -262,6 +262,9 @@ def checklist() -> list[str]:
         "微信公众平台版本管理中将最新开发版本设为体验版",
         "手机删除旧体验版入口后重新扫码最新体验版二维码",
         "体验版首页、分类、品牌、证书、商品详情完成冒烟验证",
+        "待人工执行 DevTools Network 检查：记录 DevTools 版本、基础库版本、prod 策略、urlCheck=true、页面路径、请求域名、HTTP 状态、业务响应状态和资源加载结论；DevTools Network 不等同于体验版或真机网络验收",
+        "待人工执行体验版 Network 检查：重新扫码最新体验版，确认生产 API 域名、首页或列表页加载、详情页或媒体资源加载结论；缺失时记录 blocked、follow_up 或明确 not_applicable，不得写作 passed",
+        "Network evidence 不得包含 token、Cookie、Authorization header、.env、真实密钥、真实客户数据、未脱敏隐私或完整网络日志",
     ]
 
 
@@ -305,7 +308,7 @@ def command_confirm(args: argparse.Namespace) -> int:
         "version": args.version,
         "result": args.result,
         "notes": args.notes,
-        "safe_record": "请将此摘要复制到 release 或 Sprint 验收记录；不要记录微信会话密钥、Cookie、Authorization header 或 .env 内容。",
+        "safe_record": "请将此摘要复制到 release 或 Sprint 验收记录；notes 可承接 DevTools Network、体验版 Network、失败项、阻塞项、剩余风险和下一步；不要记录微信会话密钥、Cookie、Authorization header、.env、真实密钥、真实客户数据、未脱敏隐私或完整网络日志。",
         "next": "/miniapp-restore",
     }
     _print_json(result)

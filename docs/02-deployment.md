@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 00:27:20
+updated_at: 2026-08-04 11:32:00
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -102,6 +102,18 @@ cp scripts/build-images.env.example scripts/build-images.env
 
 环境变量差异通过 `deploy/local/*.env.example` 或 `deploy/prod/*.env.example` 表达；服务拓扑差异通过 Compose 和 profile 表达，不为本地六种环境复制六份完整 Compose。env 示例必须按环境标识、应用安全、数据库、镜像、对象存储、端口等主题分组，并在变量注释中写明候选值或候选格式。真实 env 文件禁止提交。
 
+### 生产媒体维护任务
+
+`deploy/prod/compose.tencent-cos.yml` 提供 `maintenance` profile 下的 `tilesfst-maintenance` 服务，用于在生产等价镜像内执行媒体维护任务。该服务复用后端镜像、外部 MySQL 与腾讯云 COS env 示例，不启动本地 MinIO，也不要求把仓库根目录脚本 bind-mount 到生产容器。日常运维优先使用 `deploy/scripts/media-maintenance.sh` 包装入口；后端包内 `python -m app.modules.media.maintenance` 保持为容器内真实执行入口。
+
+默认命令为只读对象 Key 审计：
+
+```bash
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos object-key-audit --limit 100
+```
+
+维护入口支持 dry-run 优先的任务：`object-key-audit`、`backfill-brand-certificate-thumbnails`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 和 `bug-0116-media-drift`。写入数据库或对象存储时必须显式追加 `--apply --confirm-backup`，并在执行前完成 MySQL 与对象存储 bucket/prefix 备份。任务输出只允许记录统计摘要、对象 Key hash、标准前缀、任务状态和媒体验收摘要，不得输出数据库连接串、对象存储密钥、Authorization header、Cookie、真实 `.env` 内容或本机绝对路径。
+
 ### 服务组成
 
 | 服务 | 容器名 | 端口 | 说明 |
@@ -110,6 +122,7 @@ cp scripts/build-images.env.example scripts/build-images.env
 | tilesfst-web | tilesfst-web | 3000 | React Web 展示端与管理端 |
 | tilesfst-minio | tilesfst-minio | 9000 / 9001 | 本地自建对象存储与控制台，仅 `self-hosted-storage` profile 启动 |
 | tilesfst-docs-site | tilesfst-docs-site | 3001 | Mintlify 文档站预览，仅 `docs-site` profile 启动 |
+| tilesfst-maintenance | tilesfst-maintenance | 无 | 生产媒体维护作业，仅 `maintenance` profile 按需 `run --rm` 启动 |
 
 ### 启动命令
 

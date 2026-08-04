@@ -315,6 +315,39 @@ def test_image_plan_ignores_mutable_release_gate_evidence(tmp_path: Path, monkey
     assert validate_image_build_script.validate_plan("v9.9.9", release_dir) == []
 
 
+def test_image_plan_ignores_announcement_copy_updates(tmp_path: Path, monkeypatch) -> None:
+    root = tmp_path / "repo"
+    release_dir = root / "releases" / "v9.9.9"
+    release_dir.mkdir(parents=True)
+    monkeypatch.setattr(validate_image_build_script, "ROOT", root)
+    monkeypatch.setattr(validate_image_build_script, "RELEASES_DIR", root / "releases")
+    monkeypatch.setattr(validate_image_build_script, "DEFAULT_ENV_FILE", root / "scripts" / "build-images.env")
+    monkeypatch.setattr(validate_image_build_script, "ENV_EXAMPLE_FILE", root / "scripts" / "build-images.env.example")
+    (root / "scripts").mkdir()
+    (root / "scripts" / "build-images.env.example").write_text("IMAGE_BUILD_TAG=v0.0.1\nIMAGE_BUILD_PLATFORM=linux/amd64\n", encoding="utf-8")
+    (root / "scripts" / "build-images.env").write_text("IMAGE_BUILD_TAG=v9.9.9\nIMAGE_BUILD_PLATFORM=linux/amd64\n", encoding="utf-8")
+    announcement = release_dir / "announcement.mdx"
+    announcement.write_text("# public\n\nUsage docs pending.\n", encoding="utf-8")
+    release_data = {
+        "version": "v9.9.9",
+        "announcement": "announcement.mdx",
+        "image_required": True,
+        "image_required_rationale": "docker impact",
+        "sprints": ["sprint-999"],
+        "requirements": [],
+        "bugs": [],
+        "changes": [],
+        "impact_scope": {"database": "none", "docker": "image delivery"},
+    }
+    (release_dir / "release.json").write_text(json.dumps(release_data), encoding="utf-8")
+
+    plan = validate_image_build_script.prepare_plan("v9.9.9", release_dir, root / "scripts" / "build-images.env")
+    announcement.write_text("# public\n\nUsage docs skipped; image build completed.\n", encoding="utf-8")
+
+    assert "releases/v9.9.9/announcement.mdx" not in plan["input_files"]
+    assert validate_image_build_script.validate_plan("v9.9.9", release_dir) == []
+
+
 def test_image_plan_detects_stable_release_scope_drift(tmp_path: Path, monkeypatch) -> None:
     root = tmp_path / "repo"
     release_dir = root / "releases" / "v9.9.9"
@@ -556,6 +589,88 @@ def test_generate_usage_docs_blocks_gate_until_real_screenshots(tmp_path: Path, 
     assert (root / "mintlify" / "docs" / "v9.9.9" / "overview.mdx").exists()
     mint = json.loads((root / "mintlify" / "mint.json").read_text(encoding="utf-8"))
     assert "docs/v9.9.9/overview" in json.dumps(mint)
+
+
+def test_previous_usage_docs_version_uses_semver_and_requires_manifest(tmp_path: Path, monkeypatch) -> None:
+    releases_dir = tmp_path / "releases"
+    for version in ("v0.9.0", "v0.10.0", "v0.11.0", "v0.12.0"):
+        (releases_dir / version / "usage-docs").mkdir(parents=True)
+    (releases_dir / "v0.9.0" / "usage-docs" / "manifest.json").write_text("{}", encoding="utf-8")
+    (releases_dir / "v0.10.0" / "usage-docs" / "manifest.json").write_text("{}", encoding="utf-8")
+    (releases_dir / "v0.11.0" / "usage-docs" / "manifest.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(generate_usage_docs_script, "RELEASES_DIR", releases_dir)
+
+    assert generate_usage_docs_script.previous_usage_docs_version("v0.11.0") == "v0.10.0"
+    assert generate_usage_docs_script.previous_usage_docs_version("v0.12.0") == "v0.11.0"
+    assert generate_usage_docs_script.previous_usage_docs_version("v0.10.1") == "v0.10.0"
+    assert generate_usage_docs_script.previous_usage_docs_version("v0.0.1") is None
+
+    (releases_dir / "v0.11.0" / "usage-docs" / "manifest.json").unlink()
+    assert generate_usage_docs_script.previous_usage_docs_version("v0.12.0") == "v0.10.0"
+
+
+def test_generate_usage_docs_inherits_semver_previous_manifest(tmp_path: Path, monkeypatch) -> None:
+    root = tmp_path / "repo"
+    releases_dir = root / "releases"
+    template_dir = releases_dir / "templates" / "usage-docs"
+    template_dir.mkdir(parents=True)
+    template_dir.joinpath("overview.mdx").write_text("# Template {{VERSION}}\n", encoding="utf-8")
+
+    previous = releases_dir / "v0.10.0" / "usage-docs"
+    previous.mkdir(parents=True)
+    previous.joinpath("overview.mdx").write_text("# v0.10.0 docs\n", encoding="utf-8")
+    previous.joinpath("manifest.json").write_text(
+        json.dumps(
+            {
+                "version": "v0.10.0",
+                "generated_at": "2026-08-03 10:00:00",
+                "source_release": {"path": "release.json", "sha256": "previous"},
+                "input_files": ["release.json"],
+                "pages": ["overview.mdx"],
+                "screenshots": [],
+                "coverage": {"admin": {"status": "covered"}},
+                "manual_overrides": [],
+                "automation_policy": {"content_corrections_require_authorization": True},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (releases_dir / "v0.11.0" / "usage-docs").mkdir(parents=True)
+
+    target = releases_dir / "v0.12.0"
+    target.mkdir(parents=True)
+    target.joinpath("release.json").write_text(
+        json.dumps(
+            {
+                "version": "v0.12.0",
+                "gates": {"usage_docs_preview": {"status": "na", "rationale": "pending"}},
+                "usage_docs": {
+                    "status": "pending_confirmation",
+                    "root": "usage-docs",
+                    "manifest": "usage-docs/manifest.json",
+                    "generation_decision": {
+                        "required": True,
+                        "confirmed_at": "2026-08-04 08:00:00",
+                        "confirmed_by": "operator",
+                        "rationale": "User-visible docs required.",
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generate_usage_docs_script, "RELEASES_DIR", releases_dir)
+    monkeypatch.setattr(generate_usage_docs_script, "MINTLIFY_DIR", root / "mintlify")
+    monkeypatch.setattr(generate_usage_docs_script, "TEMPLATE_DIR", template_dir)
+
+    generate_usage_docs_script.generate_usage_docs("v0.12.0")
+
+    release_data = json.loads(target.joinpath("release.json").read_text(encoding="utf-8"))
+    manifest = json.loads(target.joinpath("usage-docs/manifest.json").read_text(encoding="utf-8"))
+    assert release_data["usage_docs"]["source_version"] == "v0.10.0"
+    assert manifest["source_version"] == "v0.10.0"
+    assert manifest["pages"] == ["overview.mdx"]
+    assert "v0.12.0 docs" in target.joinpath("usage-docs/overview.mdx").read_text(encoding="utf-8")
 
 
 def test_project_existing_usage_docs_migrates_historical_docs(tmp_path: Path, monkeypatch) -> None:

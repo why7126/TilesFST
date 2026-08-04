@@ -3,6 +3,8 @@ purpose: Design System 代码资产说明
 content: Token、组件路径、AI 使用约定与校验方式
 source: initialize-project / build-design-system
 update_method: Token 或组件结构变更时同步更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-08-04 09:00:00
 ---
 
 # Design System
@@ -16,6 +18,7 @@ update_method: Token 或组件结构变更时同步更新
 | `rules/ui-design.md` | 设计规范事实标准 |
 | `src/shared/design-system/spec.md` | 可执行摘要与资产地图 |
 | `openspec/specs/design-system/spec.md` | 已归档正式能力 |
+| `docs/standards/admin-list-field-display-adapters.md` | 管理端列表 image/name/fallback adapter 检查表 |
 
 ## 目录结构
 
@@ -61,3 +64,7 @@ python scripts/validate-design-system.py
 ```
 
 检查 Hex 硬编码、裸原生控件、绕过 shared/ui 等问题。
+
+## 管理端列表字段展示
+
+管理端列表页新增、重构或验收时，先按 `docs/standards/admin-list-field-display-adapters.md` 判断 image/name/fallback adapter 是否适用，并记录 N/A 理由。命中 `admin-list` 横切标签时，同步执行 `docs/knowledge-base/best-practices/admin-list-page-consistency.md` 的分页 DOM、fixed toast、DS confirm 和 no `window.confirm` gate。

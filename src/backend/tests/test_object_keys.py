@@ -22,6 +22,16 @@ def test_build_object_key_normalizes_prefix_and_extension() -> None:
     assert key.endswith(".mp4")
 
 
+def test_map_legacy_brand_certificate_image_key() -> None:
+    old = "files/default/brand-certificates/certificate.webp"
+    assert map_legacy_object_key(old) == "images/default/brand-certificates/certificate.webp"
+
+
+def test_map_legacy_brand_certificate_pdf_key_stays_file_resource() -> None:
+    old = "files/default/brand-certificates/certificate.pdf"
+    assert map_legacy_object_key(old) is None
+
+
 def test_map_legacy_avatar_key() -> None:
     old = "original/default/avatars/2026/06/abc-123.webp"
     assert map_legacy_object_key(old) == "images/default/user/avatars/abc-123.webp"
@@ -55,16 +65,37 @@ def test_collect_migrations_from_sqlite(tmp_path: Path) -> None:
             "CREATE TABLE brands (logo_object_key TEXT)"
         )
         connection.execute(
+            "CREATE TABLE brand_certificates (file_key TEXT)"
+        )
+        connection.execute(
+            "CREATE TABLE brand_certificate_images (file_key TEXT)"
+        )
+        connection.execute(
             "INSERT INTO brands (logo_object_key) VALUES (?)",
             ("original/default/brands/logos/2026/06/logo.webp",),
+        )
+        connection.execute(
+            "INSERT INTO brand_certificates (file_key) VALUES (?)",
+            ("files/default/brand-certificates/certificate.webp",),
+        )
+        connection.execute(
+            "INSERT INTO brand_certificates (file_key) VALUES (?)",
+            ("files/default/brand-certificates/certificate.pdf",),
+        )
+        connection.execute(
+            "INSERT INTO brand_certificate_images (file_key) VALUES (?)",
+            ("files/default/brand-certificates/page.png",),
         )
         connection.commit()
     finally:
         connection.close()
 
     migrations = collect_migrations(db_path)
-    assert len(migrations) == 1
-    assert migrations[0].new_key == "images/default/brands/logos/logo.webp"
+    assert [item.new_key for item in migrations] == [
+        "images/default/brands/logos/logo.webp",
+        "images/default/brand-certificates/certificate.webp",
+        "images/default/brand-certificates/page.png",
+    ]
 
 
 def test_collect_migrations_empty_db(tmp_path: Path) -> None:

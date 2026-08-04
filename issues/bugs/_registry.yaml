@@ -1,23 +1,59 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 113
+next_id: 117
 entries:
+  - id: BUG-0116-prod-media-historical-object-drift
+    title: 生产历史媒体对象与缩略图存在规范漂移
+    status: done
+    severity: high
+    created: "2026-08-04 10:25:13"
+    related_requirement: REQ-0012-object-storage-key-layout
+    related_bug: BUG-0099-public-sku-main-image-key-pending-path
+    related_change: fix-prod-media-historical-object-drift
+    iteration: sprint-019
+  - id: BUG-0115-miniapp-home-button-regression-after-second-click
+    title: 小程序返回首页按钮第二次点击失效回归
+    status: done
+    severity: high
+    created: "2026-08-04 08:44:39"
+    related_requirement: null
+    related_bug: BUG-0109-miniapp-home-button-one-time-failure
+    related_change: fix-miniapp-home-button-repeat-click-regression
+    iteration: null
+  - id: BUG-0114-miniapp-brand-list-category-column-alignment
+    title: 小程序品牌列表页品牌类目两列未分别左对齐
+    status: done
+    severity: medium
+    created: "2026-08-04 08:43:54"
+    related_requirement: REQ-0083-miniapp-brand-list-category-summary
+    related_bug: null
+    related_change: fix-miniapp-brand-list-category-column-alignment
+    iteration: sprint-019
+  - id: BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot
+    title: Fact Sheet AI usage fresh gate 与已刷新 snapshot 状态不一致
+    status: done
+    severity: medium
+    created: "2026-08-04 08:18:50"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-fact-sheet-ai-usage-fresh-gate-snapshot
+    iteration: null
   - id: BUG-0112-certificate-image-object-key-prefix
     title: 证书图片对象 key 未归入 images 前缀
-    status: captured
+    status: done
     severity: high
     created: "2026-08-04 00:21:47"
     related_requirement: REQ-0012-object-storage-key-layout
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-certificate-image-object-key-prefix
+    iteration: sprint-019
   - id: BUG-0111-usage-docs-previous-version-semver-sort
     title: usage docs 前置版本候选使用字符串排序可能选错版本
-    status: captured
+    status: done
     severity: medium
     created: "2026-08-03 23:11:28"
     related_requirement: REQ-0088-versioned-product-usage-docs
     related_bug: null
-    related_change: null
+    related_change: fix-usage-docs-previous-version-semver-sort
     iteration: null
   - id: BUG-0110-miniapp-card-banner-thumbnail-usage
     title: 小程序卡片与 Banner 未确认全部使用缩略图

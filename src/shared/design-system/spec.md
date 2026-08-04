@@ -3,6 +3,8 @@ purpose: Design System 可执行总说明
 content: 设计定位、Token、组件、模板与禁止事项摘要
 source: rules/ui-design.md
 update_method: UI 规范或代码资产变更时同步更新
+created_at: 2026-06-13 00:00:00
+updated_at: 2026-08-04 09:00:00
 note: 上游规范来源为 rules/ui-design.md
 ---
 
@@ -60,6 +62,15 @@ note: 上游规范来源为 rules/ui-design.md
 
 - 店主端：`LandingPage`、`ListPage`、`DetailPage`
 - 管理端：`AdminListPage`、`AdminEditPage`
+- 管理端列表字段展示：`docs/standards/admin-list-field-display-adapters.md`
+
+## 管理端列表字段 adapter
+
+管理端新增、重构或回归列表字段展示时，MUST 使用 `docs/standards/admin-list-field-display-adapters.md` 检查 `image adapter`、`name adapter`、`fallback adapter`。
+
+首批覆盖品牌、证书、SKU、Banner 列表。检查结果必须记录适用列表、检查项、期望表现、验证方式和 `required` / `recommended` / `not_applicable` 等状态。
+
+命中管理端列表横切 UI 时，MUST 同步引用 `docs/knowledge-base/best-practices/admin-list-page-consistency.md`，覆盖分页 DOM、fixed toast、Design System confirm modal 和禁止 `window.confirm`。
 
 ## 禁止事项
 

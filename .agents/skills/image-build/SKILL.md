@@ -51,7 +51,7 @@ scripts/validate-image-build.py
 - 复用 `scripts/build-images.sh` 执行 backend/web 镜像构建、平台验证、后端依赖验证、Web Nginx 验证、tar 导出和 sha256 生成。
 - 构建成功后生成或更新 `releases/<version>/image-manifest.json`。
 - 构建成功后 MUST 立即运行 `python scripts/validate-image-build.py validate-manifest --release <version>`，确认 manifest、tarball、`.sha256` sidecar 和实际 tarball sha256 四者一致。
-- 如果 `/image-build` 后又修改 `release.json` 的 stable fields 或 `announcement.mdx`，MUST 重新执行 `/image-prepare <version>` 与 `/image-build <version>`；不得沿用旧 tarball 或旧 `.sha256`。
+- 如果 `/image-build` 后又修改 `release.json` 的 stable fields 或镜像构建输入文件，MUST 重新执行 `/image-prepare <version>` 与 `/image-build <version>`；不得沿用旧 tarball 或旧 `.sha256`。`announcement.mdx` 不参与镜像构建输入 hash，状态文案刷新不要求重建镜像。
 - Docker、buildx、网络、基础镜像源、依赖安装、镜像验证、tar 导出或 checksum 失败时记录 blocker，不写成功 manifest。
 - 不写入真实 `.env` 内容、密钥、数据库连接串、Authorization header、Cookie、真实客户数据或本机绝对路径。
 

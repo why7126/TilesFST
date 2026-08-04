@@ -369,42 +369,58 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 MUST NOT 输出或写入“真实统计已使用”的结论
 
 ### Requirement: AI usage snapshot 新鲜度与覆盖校验
-系统 MUST 校验 AI usage snapshot 的新鲜度、Sprint 归属、scope 覆盖和必要指标，防止过期或覆盖不足的 snapshot 被当作真实统计使用。
+系统 MUST 校验 AI usage snapshot 的新鲜度、Sprint 归属、scope 覆盖和必要指标，防止过期或覆盖不足的 snapshot 被当作真实统计使用；fresh gate MUST 使用同一个 Sprint snapshot payload 作为状态、时间戳、coverage 和 usage mode 的事实源，避免已刷新 snapshot 被旧缓存、错误时间源或 fallback mode 误判为 stale。
 
 #### Scenario: snapshot 早于关键变更
 - **WHEN** snapshot 生成时间早于目标 Sprint 最近一次 scope、close、archive 或关联 trace 关键更新时间
 - **THEN** 系统 MUST 将 snapshot 标记为 `stale` 或输出等价 warning
 - **AND** 系统 MUST 提示刷新 snapshot
 
+#### Scenario: snapshot 已刷新且覆盖完整
+- **WHEN** snapshot 存在并属于目标 Sprint
+- **AND** snapshot 生成时间不早于目标 Sprint scope、关联 Issue trace 和 Change trace 的关键更新时间
+- **AND** snapshot 覆盖 Sprint scope 中的 requirements、bugs 和 changes
+- **AND** snapshot 包含必要 totals 与 `usage_matrices`
+- **AND** AI usage mode 为 `actual`
+- **THEN** fresh gate MUST 输出通过状态
+- **AND** 系统 MUST NOT 将该 snapshot 标记为 `stale`、`skipped`、`unavailable` 或 `estimated_fallback`
+
 #### Scenario: snapshot 覆盖不足
 - **WHEN** snapshot 不包含目标 Sprint ID、无法覆盖 Sprint scope 中的主要 REQ/BUG/Change，或必要 Token 指标为空
-- **THEN** 系统 MUST 输出覆盖不足 warning
+- **THEN** 系统 MUST 将 snapshot 标记为覆盖不足或输出等价 blocker
 - **AND** 系统 MUST NOT 将该 snapshot 作为完整 `actual` 统计使用
 
-#### Scenario: 无法完全判定新鲜度
+#### Scenario: snapshot 状态与 usage mode 映射
+- **WHEN** fresh gate 计算 snapshot status 和 usage mode
+- **THEN** `actual` MUST 仅在 snapshot 当前、覆盖完整且必要矩阵存在时成立
+- **AND** `estimated_fallback`、`skipped`、`unavailable` MUST 保留具体原因和 recommended_action
+- **AND** fallback mode MUST NOT 覆盖已通过 fresh gate 的真实 snapshot 状态
+
+#### Scenario: 无法可靠判断
 - **WHEN** 系统无法可靠判断 snapshot 是否覆盖所有关键对象
-- **THEN** 系统 MUST 输出 warning
-- **AND** 系统 MUST 在复盘输出中保留该不确定性说明
+- **THEN** 系统 MUST 输出 blocker 或 warning
+- **AND** 系统 MUST 提示刷新 snapshot 或回读具体证据
 
 ### Requirement: `/sprint-exps` 禁止静默 estimated fallback
-`/sprint-exps` MUST 优先读取目标 Sprint 的 AI usage snapshot；当真实 snapshot 不可用时，系统 MUST 显式标注估算模式、原因和补救动作。
+`/sprint-exps` MUST 优先读取目标 Sprint 的 AI usage snapshot；当真实 snapshot 不可用时，系统 MUST 显式标注估算模式、原因和补救动作。当 Fact Sheet fresh gate 通过时，系统 MUST 允许使用真实 snapshot 统计；当 fresh gate 未通过时必须降级并说明原因。
 
-#### Scenario: 使用真实 snapshot 复盘
-- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
-- **AND** 目标 Sprint 存在可用 AI usage snapshot
-- **THEN** `/sprint-exps` MUST 使用 `actual` 口径展示 command run 数、模型调用次数、工具调用次数、失败重跑次数和 input/cached/output/reasoning/total tokens
-- **AND** `/sprint-exps` SHOULD 展示高消耗原因和优化建议
+#### Scenario: fresh gate 通过时使用真实统计
+- **WHEN** `/sprint-exps` 或 Fact Sheet summary 读取到目标 Sprint 的 AI usage snapshot
+- **AND** fresh gate 输出通过状态
+- **AND** AI usage mode 为 `actual`
+- **THEN** 系统 MUST 可使用真实 token totals、模型调用统计和 usage matrices
+- **AND** 输出 MUST 保留 compact fresh gate 摘要，说明 snapshot status、usage mode、coverage 和矩阵 presence
 
-#### Scenario: 真实 snapshot 不可用
-- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
-- **AND** 目标 Sprint 缺少可用 AI usage snapshot
-- **THEN** `/sprint-exps` MAY 使用估算 fallback
-- **AND** 输出 MUST 包含 `ai_usage_mode: estimated_fallback`、reason 和 recommended_action 或等价结构化说明
+#### Scenario: fresh gate 未通过时降级
+- **WHEN** Sprint snapshot 缺失、过期、覆盖不足或缺少矩阵字段
+- **THEN** `/sprint-exps` MUST 明确标注真实统计不可用
+- **AND** `/sprint-exps` MUST 提示刷新 `data/ai-usage` snapshot
+- **AND** 输出 MUST 包含 blocker reason、impact 和 recommended_action
 
-#### Scenario: snapshot 过期或失败
-- **WHEN** `/sprint-exps` 读取到 stale、failed 或覆盖不足的 snapshot
-- **THEN** `/sprint-exps` MUST NOT 静默按真实统计输出
-- **AND** `/sprint-exps` MUST 显示 snapshot 状态、降级原因和刷新建议
+#### Scenario: compact fresh gate 诊断字段
+- **WHEN** Fact Sheet 或 `/sprint-exps` 输出 AI usage fresh gate 结果
+- **THEN** 输出 MUST 包含 status、snapshot_status、ai_usage_mode、generated_at、coverage status、usage_matrices presence、warning_count 和 recommended_action
+- **AND** 输出 MUST NOT 默认打印完整 snapshot JSON、command run 明细或完整 usage matrices rows
 
 ### Requirement: AI usage snapshot 默认流程继承安全边界
 Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成和消费流程 MUST 继承 AI 使用量事实源的脱敏和上下文预算边界。
@@ -1066,4 +1082,55 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **WHEN** 系统执行 Sprint close 中间态文案扫描
 - **THEN** 系统 MUST 以目标 Sprint 的 `sprint.yaml`、关联 REQ、BUG 与 Change 定位检查范围
 - **AND** 系统 MUST NOT 默认扫描整个 `issues/**`、`openspec/archive/**`、generated 文件或无关历史目录
+
+### Requirement: 大型 Sprint Fact Sheet 默认使用 compact AI usage 摘要
+系统 MUST 在 Sprint Fact Sheet summary 中默认输出 compact Token Usage Fact Sheet 摘要，避免 10+ Change Sprint 默认携带完整 `usage_matrices` 明细；完整矩阵 MUST 只能通过 fields、完整 JSON 或用户明确要求的等价路径按需读取。
+
+#### Scenario: 10+ Change Sprint summary 不输出完整矩阵
+- **WHEN** 用户、测试命令或 `/sprint-exps` 请求包含 10 个或以上 Change 的 Sprint Fact Sheet summary
+- **THEN** summary MUST 输出 AI usage mode、snapshot status、fresh gate、warning_count、coverage status、关键 totals、矩阵可用性、矩阵行列规模和 recommended_action
+- **AND** summary MUST NOT 默认输出完整 `usage_matrices.rows` 或四张 usage matrix 明细
+- **AND** summary MUST 提供获取完整矩阵的 fields 路径提示
+
+#### Scenario: 按需读取完整 usage matrices
+- **WHEN** 用户、测试命令或 `/sprint-exps` 明确请求 `ai_usage_snapshot.usage_matrices` 字段
+- **THEN** 系统 MUST 返回完整 `usage_matrices` 结构
+- **AND** 返回内容 MUST 继续遵守 AI 使用量事实脱敏要求，不得包含原始 prompt、系统指令、developer 指令、本机绝对路径、密钥或工具输出全文
+
+#### Scenario: `/sprint-exps` 默认消费 compact summary
+- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
+- **THEN** `/sprint-exps` MUST 先使用 Fact Sheet summary 的 compact AI usage 摘要判断 fresh gate 和矩阵可用性
+- **AND** `/sprint-exps` MUST NOT 在默认路径中读取或转述完整 `usage_matrices`
+- **AND** 仅当用户明确要求矩阵明细或复盘文档确需写入真实矩阵时，`/sprint-exps` MAY 通过 fields 模式读取完整矩阵
+
+### Requirement: 归档 Change 缺失 trace 的最小证据补齐
+系统 MUST 在校验已归档 OpenSpec Change 的归档证据时处理缺失 `trace.md` 的历史归档目录：当归档目录可写且可从归档路径、`tasks.md`、delta spec、proposal/design 或关联 Issue trace 推断出最小事实时，系统 MUST 自动生成最小归档 `trace.md`；当无法安全写入但可形成完整机器可读事实时，系统 MUST 输出结构化 fallback 摘要；当两者都不可用时，系统 MUST 返回非零退出码并报告 blocker。
+
+#### Scenario: 可写归档目录自动生成最小 trace
+- **WHEN** 归档证据校验扫描到 `openspec/archive/YYYY-MM-DD-<change-id>/` 下缺少 `trace.md`
+- **AND** 归档目录可写
+- **AND** 系统可从归档目录名、`tasks.md`、delta spec 或关联 Issue trace 推断最小归档事实
+- **THEN** 系统 MUST 写入最小 `trace.md`
+- **AND** `trace.md` MUST 记录 `change_id`、`status: archived`、归档路径、归档时间或时间来源、任务完成摘要、证据来源和自动生成标记
+- **AND** 校验报告 MUST 将该结果标记为 `auto-generated-minimal-trace`
+
+#### Scenario: 不可写目录输出结构化 fallback 摘要
+- **WHEN** 归档证据校验扫描到已归档 Change 缺少 `trace.md`
+- **AND** 系统无法安全写入归档目录
+- **AND** 系统仍可形成完整归档证据事实
+- **THEN** 系统 MUST 输出结构化 fallback 摘要
+- **AND** 摘要 MUST 包含 `change_id`、`archive_path`、`evidence_status`、`archive_timestamp`、`timestamp_source`、`tasks_done`、`tasks_total`、`spec_delta_paths`、`warnings` 和 `recommended_action`
+- **AND** 调用方 MUST 能用该摘要判断归档证据闭环，不得只依赖自由文本说明
+
+#### Scenario: 证据不足时保持阻断
+- **WHEN** 已归档 Change 缺少 `trace.md`
+- **AND** 系统无法生成最小 trace
+- **AND** 系统无法形成完整结构化 fallback 摘要
+- **THEN** 归档证据校验 MUST 返回非零退出码
+- **AND** 报告 MUST 列出缺失字段、已检查路径和建议人工补齐动作
+
+#### Scenario: 不放宽既有归档门禁
+- **WHEN** 已归档 Change 存在未完成 tasks、缺失 `tasks.md`、legacy archive path 真实残留或关联 Issue 未闭环
+- **THEN** 系统 MUST 保持既有 blocker 语义
+- **AND** 自动生成最小 trace 或结构化 fallback 摘要 MUST NOT 将这些 blocker 误判为通过
 

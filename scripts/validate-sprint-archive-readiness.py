@@ -180,8 +180,8 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
         elif location == "archived" and change_dir is not None:
             evidence = validate_archive_evidence(change_dir, root, change_id=change_id)
             trace_exists = evidence.trace_exists
-            if evidence.status == "trace-present":
-                fallback_summary_status = "trace-present"
+            if evidence.status in {"trace-present", "auto-generated-minimal-trace"}:
+                fallback_summary_status = evidence.status
             elif evidence.status == "fallback-summary-pass":
                 fallback_summary_status = "pass"
                 fallback_summary_file = evidence.fallback_summary_file

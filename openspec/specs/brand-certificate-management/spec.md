@@ -118,57 +118,35 @@
 - **AND** MUST NOT 保存前端伪造的对象存储路径或未授权 URL
 
 ### Requirement: 品牌证书文件上传与预览
-系统 MUST 支持品牌证书文件经后端鉴权上传至 MinIO/S3 兼容对象存储单桶。证书文件 MUST 支持 JPG、PNG、WebP 和 PDF；证书多图图片 MUST 支持 JPG、PNG 和 WebP。图片类证书上传 MUST 生成真实轻量缩略图或记录明确跳过原因；PDF 证书 MUST 继续使用文件类型占位或既有 PDF 占位策略，PDF 首页渲染缩略图不属于本能力范围。证书文件大小上限 MUST 使用文档 / 文件类 effective 上传限制，并 MUST 与管理端系统设置、前端提示、后端校验和部署代理配置一致；MUST NOT 仅使用不可配置的 20MB 硬编码作为大小限制事实源。上传链路 MUST 校验 MIME、大小和对象 Key，MUST 返回可受控读取的 `file_url`、`file_key`、文件名、MIME、大小和可用缩略图引用。前端 MUST NOT 直连未授权对象存储。
 
-#### Scenario: 上传合法证书文件
-- **WHEN** 已授权管理端用户上传合法 JPG、PNG、WebP 或 PDF 证书文件，且文件大小在文档 / 文件类 effective 上限内
-- **THEN** 系统 MUST 将对象写入对象存储单桶
-- **AND** MUST 返回 `file_key` 和可读取的 `file_url`
-- **AND** 对象 Key MUST NOT 使用用户原始文件名。
-
-#### Scenario: 图片证书真实缩略图生成
-- **GIVEN** 已授权管理端用户上传合法 JPG、PNG 或 WebP 证书图片
-- **WHEN** 后端完成原图对象写入
-- **THEN** 系统 MUST 生成与原图可追溯的真实缩略图或记录明确跳过原因
-- **AND** 对大于目标尺寸的图片，缩略图像素尺寸或文件体积 MUST 明显低于原图
-- **AND** 缩略图 MUST NOT 是原图 bytes 复制品
-- **AND** 缩略图生成失败 MUST NOT 阻断原图上传和证书保存。
-
-#### Scenario: 上传约 23MB PDF 证书文件
-- **GIVEN** effective 文档 / 文件上传上限大于等于 23MB
-- **WHEN** 已授权管理端用户上传约 23MB 合法 PDF 证书文件
-- **THEN** 上传 MUST 成功
-- **AND** MUST NOT 被硬编码 20MB 限制拒绝。
-
-#### Scenario: 上传文件类型非法
-- **WHEN** 用户上传非 JPG、PNG、WebP 或 PDF 文件
-- **THEN** 系统 MUST 返回 HTTP 400
-- **AND** 错误码 MUST 为 `CERTIFICATE_FILE_TYPE_INVALID` 或统一文件类型错误码。
-
-#### Scenario: 上传文件过大
-- **WHEN** 用户上传超过文档 / 文件类 effective 上限的证书文件
-- **THEN** 系统 MUST 返回 HTTP 400
-- **AND** 错误码 MUST 为 `CERTIFICATE_FILE_TOO_LARGE` 或统一文件大小错误码
-- **AND** 错误提示 MUST 包含当前有效大小限制或等价可诊断信息
-- **AND** Web Docker 入口 MUST NOT 以 Nginx 413 作为业务校验结果。
-
-#### Scenario: 预览证书文件
-- **WHEN** 管理员点击图片证书或 PDF 证书的预览入口
-- **THEN** 图片证书 MUST 支持大图预览并使用原图或原始受控 URL
-- **AND** PDF 证书 MUST 支持新窗口或等价受控 URL 预览
-- **AND** 预览失败时 MUST 展示稳定错误提示。
+品牌证书文件上传 MUST 通过后端授权上传接口完成，MUST 校验 MIME Type、扩展名、文件大小和对象 Key 前缀。证书上传 MUST 支持 PDF、JPG、PNG、WebP，PDF 等文档类证书 MUST 按文件类资源保存，图片类证书 MUST 按图片类资源保存。图片类证书 MUST 支持多图上传、唯一主图、缩略图 URL、原图 URL 和受控预览；PDF 证书 MUST 支持受控 URL 预览。上传响应与证书详情响应 MUST NOT 暴露对象存储凭据、未授权 raw URL、本机路径或用户原始文件名作为对象 key。
 
 #### Scenario: 上传证书多图图片
+
 - **WHEN** 已授权管理端用户上传合法 JPG、PNG 或 WebP 证书图片
 - **THEN** 系统 MUST 返回可用于证书图片数组保存的文件引用、受控读取 URL、缩略图引用、文件名、MIME 和大小
+- **AND** 图片类证书对象 Key MUST 使用 `images/` 标准图片前缀
+- **AND** 缩略图对象 Key MUST 与原图保持同一图片资源归属
 - **AND** 上传控件 MUST 在同一会话中即时回显图片卡片
 - **AND** 上传失败原因 MUST 展示在上传控件或对应图片卡片内。
 
-#### Scenario: 预览证书主图和图片列表
-- **WHEN** 管理员点击证书主图或默认预览入口
-- **THEN** 系统 MUST 从主图开始预览图片证书
-- **AND** 主图加载失败时 MUST 展示稳定占位和可恢复提示
-- **AND** 预览和展示 MUST 使用后端控制的可读 URL 或签名 URL。
+#### Scenario: 上传 PDF 证书文件
+
+- **WHEN** 已授权管理端用户上传合法 PDF 证书文件
+- **THEN** 系统 MUST 返回可用于证书文件保存的文件引用、受控读取 URL、文件名、MIME 和大小
+- **AND** PDF 证书对象 Key MUST 使用 `files/` 前缀
+- **AND** 系统 MUST NOT 为 PDF 证书生成图片缩略图 key
+- **AND** PDF 证书 MUST 支持新窗口或等价受控 URL 预览。
+
+#### Scenario: 编辑已有证书图片回显
+
+- **GIVEN** 已有品牌证书存在一张或多张图片
+- **WHEN** 管理员打开该证书编辑弹窗
+- **THEN** 图片区域 MUST 正常展示图片列表
+- **AND** 每张图片 MUST 使用可受控读取的缩略图 URL、原图 URL 或稳定占位展示
+- **AND** 图片类证书 key 不符合 `images/` 标准前缀时 MUST 通过迁移或兼容读取策略处理，并在验收证据中记录
+- **AND** 预览、删除和设为主图入口 MUST 可见且不遮挡图片主体识别
+- **AND** MUST NOT 展示对象 key、内部路径、原始文件名或无意义文件名噪音
 
 ### Requirement: 品牌证书展示控制、删除与审计
 

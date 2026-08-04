@@ -54,7 +54,7 @@ class _Storage:
         cert_image = _image_bytes()
         self.objects = {
             "images/default/brands/logos/logo.webp": StoredMediaObject(brand_logo, "image/webp"),
-            "files/default/brand-certificates/cover.webp": StoredMediaObject(cert_image, "image/webp"),
+            "images/default/brand-certificates/cover.webp": StoredMediaObject(cert_image, "image/webp"),
         }
         self.puts: list[tuple[str, bytes, str | None]] = []
 
@@ -99,7 +99,7 @@ def _prepare_db(path: Path) -> None:
             INSERT INTO brand_certificates VALUES (
                 1,
                 NULL,
-                'files/default/brand-certificates/cover.webp',
+                'images/default/brand-certificates/cover.webp',
                 'image/webp'
             );
             INSERT INTO brand_certificates VALUES (
@@ -110,7 +110,7 @@ def _prepare_db(path: Path) -> None:
             );
             INSERT INTO brand_certificate_images VALUES (
                 1,
-                'files/default/brand-certificates/cover.webp',
+                'images/default/brand-certificates/cover.webp',
                 'image/webp'
             );
             """
@@ -144,7 +144,7 @@ def test_brand_certificate_thumbnail_backfill_dry_run_apply_and_repeat(
     assert executed["summary"]["success"] == 2
     assert [put[0] for put in storage.puts] == [
         "images/default/brands/logos/logo.thumb.webp",
-        "files/default/brand-certificates/cover.thumb.webp",
+        "images/default/brand-certificates/cover.thumb.webp",
     ]
 
     repeated = backfill_script.audit(limit=None, execute=True)

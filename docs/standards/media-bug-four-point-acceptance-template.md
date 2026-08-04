@@ -4,7 +4,7 @@ content: 媒体类缺陷修复后的原 BUG 场景、key、object、URL、render
 source: REQ-0091-media-bug-four-point-acceptance-template / add-media-bug-four-point-acceptance-template
 update_method: 媒体 BUG 验收口径、对象存储策略、小程序证据或上传链路治理变化时同步更新
 created_at: 2026-08-01 11:04:15
-updated_at: 2026-08-01 11:04:15
+updated_at: 2026-08-04 09:05:00
 ---
 
 # 媒体类 BUG 四联验收模板
@@ -62,6 +62,8 @@ updated_at: 2026-08-01 11:04:15
 | `object` | 对象存储事实 | object 真实存在，与业务记录 key 对应，MIME、大小、扩展名、权限边界和可读性符合预期 | object 存在性、MIME、size、扩展名、权限结论、对象来源、缩略图/封面关系 | object 缺失、0 字节、类型不符、权限错误、存储环境不可用、缩略图名义存在但无收益 |
 | `URL` | 受控访问结果 | 相对 URL、公开 URL、签名 URL、代理 URL 或等价受控方式可访问，客户端不直连未授权对象存储 | URL 类型、页面或接口入口、HTTP 状态、业务错误码、用户可见表现 | 403、404、签名过期、代理错误、域名错误、后端与对象 key 不一致 |
 | `render` | 端侧用户可见行为 | 受影响端可展示、预览、播放、占位或展示失败态，且符合平台限制 | 端、页面/组件、截图/录屏/日志摘要、失败态、小程序 DevTools/真机/体验版 evidence | 管理端预览失败、列表缩略图缺失、店主 Web 不显示、小程序域名/组件限制、依赖 Web 专属 API |
+
+品牌证书类媒体 BUG 必须在 `key` 维度明确区分图片与 PDF/文档：JPG、PNG、WebP 证书图片 key 和缩略图 key 应使用 `images/default/brand-certificates/` 或等价标准图片前缀；PDF/文档证书 key 应使用 `files/default/brand-certificates/`。涉及历史 `files/` 图片 key 时，`object` 维度必须记录 dry-run/apply/幂等迁移摘要。
 
 ## 5. Markdown 记录模板
 

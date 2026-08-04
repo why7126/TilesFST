@@ -4,7 +4,7 @@ content: 说明 MinIO/S3兼容对象存储/腾讯 COS 单桶策略、目录前�
 source: AI自动生成，人工确认
 update_method: 对象存储策略或媒体资源类型变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-01 08:05:25
+updated_at: 2026-08-04 11:32:00
 note: V5 从多桶策略调整为单桶 + 前缀策略；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -70,8 +70,21 @@ SKU 图片上传链路必须生成真实轻量缩略图，而不是把原图 byt
 `python scripts/audit-miniapp-card-images.py --backfill --execute` 重生成缺失、同 size 或同 bytes 的疑似无效缩略图；脚本输出原图存在、缩略图存在、疑似同 size、疑似同 bytes、需要重生成、跳过和失败原因摘要，不输出密钥、Authorization header、Cookie、`.env` 内容或本机路径。dry-run 不写数据库或对象存储，execute 可重复执行且不会破坏已合格缩略图。
 
 历史公开 SKU 主图若仍位于 pending 目录，通过
-`python scripts/migrate-pending-tile-images.py` 进行 dry-run 预览，通过
-`python scripts/migrate-pending-tile-images.py --apply` 执行迁移。脚本只处理公开 SKU 主图，输出待迁移数量、目标 key、对象缺失、缩略图处理、目标已存在和失败原因摘要；dry-run 不写数据库或对象存储，apply 可重复执行且不会破坏已迁移记录。执行前应先完成数据库与对象存储备份，迁移后再运行小程序卡片图片审计确认 `pending_main_image` 归零。
+`python scripts/migrate-pending-tile-images.py` 或
+`python -m app.modules.media.maintenance formalize-pending-tile-images` 进行 dry-run 预览，通过
+`--apply --confirm-backup` 执行迁移。脚本只处理公开 SKU 主图，输出待迁移数量、目标 key 脱敏摘要、对象缺失、缩略图处理、目标已存在和失败原因摘要；dry-run 不写数据库或对象存储，apply 可重复执行且不会破坏已迁移记录。执行前应先完成数据库与对象存储备份，迁移后再运行小程序卡片图片审计确认 `pending_main_image` 归零。
+
+生产维护任务统一优先使用部署包装入口；包装脚本负责选择 local/prod Compose、env 文件和维护服务，后端包内入口负责执行真实任务：
+
+```bash
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos object-key-audit --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-brand-certificate-thumbnails --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos formalize-pending-tile-images --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos migrate-certificate-image-keys --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos bug-0116-media-drift --limit 100
+```
+
+`object-key-audit` 为只读任务，不支持 apply。`backfill-brand-certificate-thumbnails`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 与 `bug-0116-media-drift` 默认 dry-run；生产写入必须追加 `--apply --confirm-backup`，确认 MySQL 与对象存储 bucket/prefix 已备份。`bug-0116-media-drift` 是 BUG-0116 的聚合入口，按顺序覆盖 SKU pending 主图正式化、证书图片 `files/` 到 `images/` key 迁移、品牌 Logo/证书图片同目录 `.thumb` 缩略图回填和二次对象 key 审计。维护输出只允许出现对象 Key hash、标准前缀、统计摘要、失败原因枚举和媒体验收摘要，不得输出 access key、secret key、数据库连接串、Authorization header、Cookie、真实 `.env` 内容、本机绝对路径或未脱敏 object key。
 
 视频读取由后端 `/media/{object_key}` 受控代理，支持 `GET`、`HEAD` 与视频 `Range` 请求。小程序原生视频预览、保存和转发可能先发送 `HEAD` 探测资源元信息；后端必须返回正确 `Content-Type`、`Content-Length`，并对视频返回 `Accept-Ranges: bytes`。
 

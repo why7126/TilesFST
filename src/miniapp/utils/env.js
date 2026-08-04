@@ -12,7 +12,7 @@ const MINIAPP_API_CONFIGS = {
 };
 
 function resolveMiniappEnvironment() {
-  return 'development';
+  return 'production';
 }
 
 function resolveMiniappApiConfig(environment = resolveMiniappEnvironment()) {

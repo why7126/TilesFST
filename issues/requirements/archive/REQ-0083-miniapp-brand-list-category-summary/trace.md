@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-30 22:13:20
-updated_at: 2026-07-31 08:09:32
+updated_at: 2026-08-04 09:29:10
 ---
 
 # 需求追踪
@@ -37,7 +37,7 @@ iteration: sprint-014
 openspec_changes:
   - change_id: update-miniapp-brand-list-category-summary
     type: update
-    status: archived
+    status: proposed
 readiness: Applied
 readiness_notes: 已补齐需求六件套并通过评审；OpenSpec Change `update-miniapp-brand-list-category-summary` 已纳入 `sprint-014` 并完成 /opsx-apply。自动化验证通过；DevTools 320/375/430 与真机 evidence 保留 follow_up。
 documents:
@@ -81,4 +81,4 @@ knowledge_base_notes: 本 REQ 不命中 req-complete 规定的 admin-list、admi
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-- 2026-07-31 08:07:31 workflow-sync：状态同步为 done（Change archived）
+| BUG-0114-miniapp-brand-list-category-column-alignment | medium | done | fix-miniapp-brand-list-category-column-alignment | 小程序品牌列表页品牌类目两列未分别左对齐 |

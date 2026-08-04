@@ -147,6 +147,7 @@ python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change 
 
 - Exit code **MUST** be `0` before ending this command.
 - 当目标 BUG 已在 Sprint 正式范围内时，Workflow Sync **MUST** 把 `<change-id>` 写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项；结束前用 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 确认后续 `/opsx-apply` 不再报告 `change <id> not in sprint scope`。
+- 若 dry-run 仍报告 `change <id> not in sprint scope`，MUST 使用 `python scripts/add-sprint-scope-item.py --sprint <sprint-id> --bug <BUG-id> --change <change-id> ...` 修复 `sprint.yaml` 机器事实源后重跑 Workflow Sync 和 dry-run；不得只修改 `sprint.md` 或 Issue trace。
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
 - Confirm the summary includes Issue subdocument checked/updated counts when applicable; `bug.md` must reference the linked Change without conflicting with `trace.md`.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).

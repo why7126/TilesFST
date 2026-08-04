@@ -30,6 +30,18 @@ def render_markdown(result) -> str:
     ]
     if result.fallback_summary_file:
         lines.append(f"**Fallback Summary:** `{result.fallback_summary_file}`")
+    if result.generated_trace_file:
+        lines.append(f"**Generated Trace:** `{result.generated_trace_file}`")
+    if result.structured_fallback_summary:
+        lines.extend(
+            [
+                "",
+                "**Structured Fallback Summary:**",
+                "```json",
+                json.dumps(result.structured_fallback_summary, ensure_ascii=False, indent=2),
+                "```",
+            ]
+        )
     lines.extend(
         [
             "",
@@ -51,6 +63,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--archive-path", type=Path, required=True, help="Archived Change directory")
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
+    parser.add_argument(
+        "--no-write-minimal-trace",
+        action="store_true",
+        help="Do not write trace.md; emit structured fallback when possible",
+    )
     return parser
 
 
@@ -64,7 +81,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: archive path not found: {archive_path}", file=sys.stderr)
         return 2
 
-    result = validate_archive_evidence(archive_path, root, change_id=args.change)
+    result = validate_archive_evidence(
+        archive_path,
+        root,
+        change_id=args.change,
+        write_minimal_trace=not args.no_write_minimal_trace,
+    )
     if args.json:
         print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
     else:

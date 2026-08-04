@@ -131,7 +131,7 @@ deploy/
 - `deploy/` MUST 只存放部署矩阵 README、环境化 Compose、可提交 env 示例、部署脚本和部署校验工具。
 - `deploy/local/` MUST 表达本地开发环境矩阵；`deploy/prod/` MUST 表达生产或生产等价部署矩阵。
 - `deploy/scripts/` SHOULD 承载环境解析、启动、停止和配置校验逻辑；旧 `scripts/docker-up.sh` 与 `scripts/docker-down.sh` 只保留兼容 wrapper。
-- `deploy/` MUST NOT 存放真实 `.env`、真实密钥、真实数据库连接串、对象存储凭据、真实客户数据、运行时数据库文件、MinIO 对象数据、镜像 tar 包或离线交付包。
+- `deploy/` MUST NOT 提交真实 `.env`、真实密钥、真实数据库连接串、对象存储凭据、真实客户数据、运行时数据库文件、MinIO 对象数据、镜像 tar 包或离线交付包。真实 `deploy/**/*.env` MAY 作为本地/生产运行配置存在于工作区，但 MUST 保持 Git ignored / untracked；目录结构归档门禁只阻塞已跟踪或待提交的真实 env。
 
 生命周期：
 

@@ -10,6 +10,8 @@ from pathlib import Path
 MEDIA_OBJECT_KEY_QUERIES: tuple[tuple[str, str], ...] = (
     ("users", "avatar_object_key"),
     ("brands", "logo_object_key"),
+    ("brand_certificates", "file_key"),
+    ("brand_certificate_images", "file_key"),
     ("tile_images", "object_key"),
     ("tile_videos", "object_key"),
 )
@@ -21,6 +23,10 @@ _OLD_TILE_IMAGE = re.compile(
 )
 _OLD_TILE_VIDEO = re.compile(
     r"^videos/default/tiles/(?P<tile>[^/]+)/\d{4}/\d{2}/(?P<filename>.+)$"
+)
+_OLD_BRAND_CERTIFICATE_IMAGE = re.compile(
+    r"^files/default/brand-certificates/(?P<filename>.+\.(?:jpe?g|png|webp))$",
+    re.IGNORECASE,
 )
 
 
@@ -47,6 +53,8 @@ def map_legacy_object_key(old_key: str) -> str | None:
         return f"images/default/tiles/{match.group('tile')}/{match.group('filename')}"
     if match := _OLD_TILE_VIDEO.match(key):
         return f"videos/default/tiles/{match.group('tile')}/{match.group('filename')}"
+    if match := _OLD_BRAND_CERTIFICATE_IMAGE.match(key):
+        return f"images/default/brand-certificates/{match.group('filename')}"
 
     return None
 

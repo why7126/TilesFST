@@ -49,7 +49,7 @@ releases/
 - 不需要生成或更新：运行 `scripts/generate-usage-docs.py <version> --skip --rationale "<原因>" --confirmed-by "<确认来源>"` 或等价流程，只更新 `release.json` 的 `usage_docs.status=skipped` 与 `usage_docs_preview=na`，不创建空 `usage-docs/`。
 - 尚未确认：记录 `usage_docs.status=pending_confirmation`，发布准备和发布确认不得伪造 generated。
 
-生成当前版本时，若存在前一个已生成 usage docs 的版本，当前版本必须继承前版完整页面集合，再按本版本发布范围补充说明。不得只生成模板页或只保留当前版本新增/变更页面。
+生成当前版本时，若存在前一个已生成 usage docs 的版本，当前版本必须继承前版完整页面集合，再按本版本发布范围补充说明。自动选择来源版本时 MUST 只从具备 `usage-docs/manifest.json` 的历史版本中按 SemVer 语义选择小于当前版本的最近版本；相邻上一版本未生成 usage docs 时继续向更早版本查找，不得使用字符串字典序。不得只生成模板页或只保留当前版本新增/变更页面。
 
 `域名/docs` 的真实访问由 Mintlify base path、Cloudflare/Vercel/CDN rewrite、Nginx 反向代理或等价方案承载；本仓库只维护源文件和部署边界说明，不提交外部账号、DNS、生产私有域名、密钥或凭据。
 

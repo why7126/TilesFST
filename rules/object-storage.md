@@ -4,7 +4,7 @@ content: 规定 MinIO/S3兼容对象存储/腾讯 COS 桶、对象Key、目录�
 source: 人工编写 + AI辅助生成
 update_method: 对象存储策略变化时由技术负责人确认后更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-01 11:04:15
+updated_at: 2026-08-04 11:32:00
 note: V5 推荐一个项目一个 Bucket，桶内使用目录前缀区分业务资源；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -60,12 +60,18 @@ original/              Deprecated — 仅存量对象；新上传 MUST NOT 使�
 images/default/user/avatars/<uuid>.jpg
 images/default/brands/logos/<uuid>.webp
 images/default/tiles/pending/<uuid>.jpg
+images/default/brand-certificates/<uuid>.webp
+files/default/brand-certificates/<uuid>.pdf
 videos/default/tiles/42/<uuid>.mp4
 ```
 
 MUST NOT 在新 Key 中插入 `{YYYY}/{MM}` 日期分片。存量 `original/.../{YYYY}/{MM}/...` 通过 `scripts/migrate_object_keys.py` 一次性迁移。
 
 SKU 图片新建前 MAY 使用 `images/default/tiles/pending/<uuid>.<ext>` 作为暂存对象。图片一旦绑定到 SKU、保存为 SKU 图片或进入公开商品响应，后端 MUST 将原图与同目录缩略图正式化到 `images/default/tiles/{tile_id}/` 或等价 SKU 商品目录，并同步数据库引用。发布流程 MUST 兜底阻止公开主图继续引用 `images/default/tiles/pending/`。历史公开 SKU pending 主图迁移使用 `scripts/migrate-pending-tile-images.py`，默认 dry-run，`--apply` 才可写对象存储和数据库。
+
+品牌证书按媒体类型分流：JPG、PNG、WebP 证书图片 MUST 使用 `images/default/brand-certificates/` 或等价标准图片前缀；PDF 或其他文档类证书 MUST 使用 `files/default/brand-certificates/`。证书图片缩略图 MUST 与原图保持同一图片资源归属，优先使用同目录 `.thumb` key。历史 `files/default/brand-certificates/*.{jpg,jpeg,png,webp}` 图片 key 通过 `scripts/migrate_object_keys.py` dry-run/apply 迁移；PDF 不得迁入 `images/`。
+
+生产对象存储维护任务 MUST 默认 dry-run，并优先通过 `python -m app.modules.media.maintenance <task>` 在后端镜像或生产等价环境执行。只读审计任务 MUST 拒绝 apply；写入对象存储或数据库的任务 MUST 同时要求 `--apply --confirm-backup`，确认 MySQL 与对象存储 bucket/prefix 已备份。维护任务输出 MUST 使用 object key hash、标准前缀、统计摘要、幂等状态和失败原因枚举，不得输出 access key、secret key、数据库连接串、Authorization header、Cookie、真实 `.env` 内容、本机绝对路径或未脱敏 object key。
 
 ## 3. 媒体类 BUG 对象存储验收
 

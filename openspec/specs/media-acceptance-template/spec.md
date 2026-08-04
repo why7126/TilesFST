@@ -2,11 +2,10 @@
 
 ## Purpose
 定义媒体五联验收模板，统一后续媒体相关 REQ、BUG、OpenSpec Change、Sprint 验收和发布检查对 key、object、URL、thumbnail benefit 与 miniapp render 的证据记录、失败处理、横切上传 gate 和引用方式。
-
 ## Requirements
 ### Requirement: 媒体五联验收模板
 
-系统 MUST 提供一套可复用的媒体五联验收模板，用于后续媒体相关 REQ、BUG、OpenSpec Change、Sprint 验收和发布前检查统一记录 `key`、`object`、`URL`、`thumbnail benefit` 与 `miniapp render` 五个维度的状态、证据、N/A 理由、blocked 原因和失败处理线索。模板 MUST 不记录真实客户数据、真实密钥、Authorization header、Cookie、`.env` 内容或本机绝对路径。
+系统 MUST 提供一套可复用的媒体五联验收模板，用于后续媒体相关 REQ、BUG、OpenSpec Change、Sprint 验收和发布前检查统一记录 `key`、`object`、`URL`、`thumbnail benefit` 与 `miniapp render` 五个维度的状态、证据、N/A 理由、blocked 原因和失败处理线索。模板 MUST 不记录真实客户数据、真实密钥、Authorization header、Cookie、`.env` 内容或本机绝对路径。生产媒体维护作业执行后 MUST 输出可映射到五联维度的验收摘要；不涉及小程序或端侧渲染时 MUST 标记 `n/a` 或 `blocked` 并说明原因。
 
 #### Scenario: 模板包含五联维度
 
@@ -16,46 +15,13 @@
 - **AND** `n/a` 与 `blocked` MUST 记录原因，不得留空
 - **AND** 每个媒体样例 MUST 可独立记录和追踪。
 
-#### Scenario: key 维度覆盖对象标识和命名规则
+#### Scenario: 生产维护作业输出五联摘要
 
-- **WHEN** 模板使用者检查 `key` 维度
-- **THEN** 记录 MUST 包含媒体类型、业务资源、`object_key` 或等价脱敏对象标识
-- **AND** MUST 确认 key 符合 MinIO 单桶 + 前缀策略
-- **AND** MUST 确认 key 不使用用户原始文件名
-- **AND** 历史对象或迁移对象 MUST 记录旧 key、新 key 或兼容读取状态。
-
-#### Scenario: object 维度覆盖对象存储事实
-
-- **WHEN** 模板使用者检查 `object` 维度
-- **THEN** 记录 MUST 确认对象存储中真实 object 存在并能与业务记录中的 key 对应
-- **AND** MUST 覆盖 MIME Type、文件大小、扩展名、安全校验和权限边界
-- **AND** 对象不存在、大小为 0、类型不匹配或权限错误 MUST 记录失败表现和排查线索
-- **AND** 记录 MUST NOT 暴露对象存储凭证或内部绝对路径。
-
-#### Scenario: URL 维度覆盖受控访问结果
-
-- **WHEN** 模板使用者检查 `URL` 维度
-- **THEN** 记录 MUST 区分相对 URL、公开 URL、签名 URL、代理 URL 或等价受控访问方式
-- **AND** MUST 记录访问结果、HTTP 状态、错误码、用户可见表现和入口页面或接口
-- **AND** MUST 确认前端、小程序或管理端未直连未授权对象存储
-- **AND** 403、404、签名过期、域名配置错误或代理错误 MUST 可被记录为失败原因。
-
-#### Scenario: thumbnail benefit 维度覆盖真实收益
-
-- **WHEN** 模板使用者检查 `thumbnail benefit` 维度
-- **THEN** 记录 MUST 说明缩略图、封面图或轻量媒体在该场景中的实际收益
-- **AND** 收益 SHOULD 覆盖列表首屏加载、卡片渲染速度、弱网体验、带宽节省、后台预览效率或视频封面识别等类型
-- **AND** 若场景没有缩略图或封面图，MUST 标记 `n/a` 并说明原因
-- **AND** MUST NOT 仅以“缩略图已生成”作为唯一通过标准。
-
-#### Scenario: miniapp render 维度覆盖小程序端渲染
-
-- **WHEN** 模板使用者检查 `miniapp render` 维度
-- **THEN** 记录 MUST 覆盖微信小程序真机或等价预览环境的媒体渲染结果
-- **AND** 图片类媒体 SHOULD 记录加载、占位、预览或失败态
-- **AND** 视频类媒体 SHOULD 记录播放入口、封面、全屏或失败提示
-- **AND** MUST 记录域名、组件或平台限制导致的 blocked 或 fail
-- **AND** 若本次媒体能力不涉及小程序，MUST 标记 `n/a` 并说明影响判断。
+- **WHEN** 生产媒体维护作业完成 dry-run、apply 或二次审计
+- **THEN** 输出 SHOULD 包含 key、object、URL、thumbnail benefit、miniapp render 的状态摘要
+- **AND** 不涉及缩略图收益时 MUST 将 `thumbnail benefit` 标记为 `n/a` 并说明原因
+- **AND** 不涉及小程序端渲染时 MUST 将 `miniapp render` 标记为 `n/a` 或 `blocked` 并说明影响判断
+- **AND** 任一 `fail` 项 MUST 包含足以支撑后续 `/bug-capture` 的失败现象、影响范围、期望结果和实际结果。
 
 ### Requirement: 媒体五联验收失败记录
 
@@ -109,3 +75,26 @@
 - **WHEN** 后续 REQ、BUG、OpenSpec Change、Sprint 或 Release 涉及图片、视频、Logo、证书图片、SKU 媒体、缩略图、封面图或小程序媒体渲染
 - **THEN** 相关验收材料 SHOULD 引用媒体五联验收模板
 - **AND** 使用者 MUST 按媒体样例逐项记录五联维度、状态、证据和风险。
+
+### Requirement: 媒体类 BUG 必须使用四联验收模板
+
+媒体类 BUG 修复、返修、回归测试、Sprint 验收或发布前检查 SHALL 使用媒体类 BUG 四联验收模板。模板 SHALL 覆盖原 BUG 场景、`key`、`object`、`URL`、`render` 四个维度，并 SHALL 为每个维度记录 `pass`、`fail`、`n/a` 或 `blocked` 状态、证据和失败/阻塞处理。模板 SHALL 遵守对象存储单桶策略、对象 Key 标准前缀、后端受控媒体读取、上传安全和小程序平台限制。模板 SHALL NOT 记录真实客户数据、真实密钥、Authorization header、Cookie、`.env` 内容、本机绝对路径或未脱敏 MinIO 凭证。涉及品牌证书时，模板 SHALL 明确区分图片类证书和 PDF/文档类证书：图片类证书 key 使用 `images/`，PDF/文档类证书 key 使用 `files/`。针对 `BUG-0116-prod-media-historical-object-drift`，验收记录 SHALL 覆盖 SKU 商品图片、品牌 Logo 和品牌证书图片三类历史媒体对象，并 SHALL 记录 dry-run、apply、二次审计、幂等和 fail / blocked 摘要。
+
+#### Scenario: BUG-0116 四联验收覆盖三类对象
+
+- **GIVEN** BUG-0116 修复已执行 dry-run 或 apply
+- **WHEN** 团队回填媒体 BUG 四联验收
+- **THEN** `key` 维度 SHALL 分别记录 SKU 主图、品牌 Logo 和证书图片的脱敏 key、前缀策略、旧 key / 新 key 或不迁移原因
+- **AND** `object` 维度 SHALL 记录原图 object、同目录 `.thumb` object、MIME、size、扩展名、权限、同 size / 同 bytes 检查和 dry-run/apply/幂等摘要
+- **AND** `URL` 维度 SHALL 记录 `/media/{object_key}` 或等价后端受控 URL 的 HTTP 状态、业务错误码和用户可见表现
+- **AND** `render` 维度 SHALL 记录 Web 管理端、店主 Web、小程序受影响页面的展示、预览、占位或失败态 evidence
+- **AND** 任一维度为 `fail` 或 `blocked` 时 SHALL 记录实际结果、期望结果、影响范围、排查线索和重试条件。
+
+#### Scenario: BUG-0116 生产执行证据边界
+
+- **GIVEN** BUG-0116 修复需要在生产或生产等价环境执行维护任务
+- **WHEN** 团队记录验收证据
+- **THEN** 证据 SHALL 包含备份确认摘要、dry-run 摘要、apply 摘要、二次审计摘要和幂等复跑摘要
+- **AND** 若真实生产 apply 尚未执行，验收 SHALL 标记 `blocked` 或 external evidence 待补充
+- **AND** 证据 SHALL NOT 包含生产密钥、数据库 DSN、Authorization header、Cookie、`.env` 内容、本机绝对路径、真实客户数据或不可公开运维地址。
+

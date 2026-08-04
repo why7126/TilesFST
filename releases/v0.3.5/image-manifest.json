@@ -1,0 +1,62 @@
+{
+  "version": "v0.3.5",
+  "image_tag": "v0.3.5",
+  "built_at": "2026-08-04 23:48:51",
+  "platform": "linux/amd64",
+  "backend_image": {
+    "name": "tilesfst-backend",
+    "tag": "v0.3.5",
+    "ref": "tilesfst-backend:v0.3.5"
+  },
+  "web_image": {
+    "name": "tilesfst-web",
+    "tag": "v0.3.5",
+    "ref": "tilesfst-web:v0.3.5"
+  },
+  "tarball": {
+    "path": "../releases/v0.3.5/images/tilesfst-v0.3.5-linux-amd64.tar.gz",
+    "sha256": "1c4b4cf071824de013fdc842978907a2380e4349fdad1794f36d4e95475c3a2b",
+    "exists": true
+  },
+  "input_hashes": {
+    ".env.example": "36419cab0bcf9654254365d5369a078490b16c8c8975d4e9ddb6f8d2288f7597",
+    "deploy/local/compose.yml": "5293b0a63fd8de82284c99f3200dae8e9c6cdcbb5abba9aea2f3418bb84d2315",
+    "deploy/local/mysql-minio-external.env.example": "c2557e586ba6aec0a9eaf01d7a52a72c93d4c096193173b13d0faae0cfd8dd66",
+    "deploy/local/mysql-minio-managed.env.example": "fc6ebb865d89f7c87e11723b8c40b396b0632cf4e74e4156bd71015f7aa66534",
+    "deploy/local/mysql-tencent-cos.env.example": "36f0f38f0911b42c5a590fe03deee0f300e1a5bdc32bfce18ae8f7bd9fb33e53",
+    "deploy/local/sqlite-minio-external.env.example": "fcdad23716ac4eba187591dd5d53494077db2f5ec6c8febd03904156470399f8",
+    "deploy/local/sqlite-minio-managed.env.example": "df30cdeac2e24dc32111c7f16b8c4514f5e4fe66d56af469307ce9f596785412",
+    "deploy/local/sqlite-tencent-cos.env.example": "1a9696fefca76799132566021ae2475ae337c857092e9243a7aa9671d51c438d",
+    "deploy/prod/compose.tencent-cos.yml": "0f931ccfddf31c2ad38ae204140cdb7fdc6ec4c37e155ad8ca19bf4366097faa",
+    "deploy/prod/mysql-tencent-cos.env.example": "78f108d52ec6a72ce027ae909bdb2266440a3e1159e7d73e86b4995b58f12583",
+    "deploy/scripts/docs-site-static-server.mjs": "06731024def530158f49a5b381e6c07d863fb77deec1f2f67890ab3b5f7d119c",
+    "deploy/scripts/down.sh": "eeebd20cbc949ead0c3e8ba14749ecab0d5a8af4b945a802e803402bd6ab6db6",
+    "deploy/scripts/media-maintenance.sh": "f54f4409e6cdcc6a544c1bb754d51ee06c7d15492d550827cdf896e3f0cd3d4e",
+    "deploy/scripts/up.sh": "e0749eb9c4087e512207c683766ac9015eb7a2194bf778803fa051d41ef78bb5",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "8aff35a6c58583ca2ce20c63908c442b207c1901ed088730855fc859beff8606",
+    "docker-compose.prod.yml": "66882ce5c02aa68d3f5d381f34a908f18a3811a7adc4afccc41aa5b242672678",
+    "docs/04-database-design.md": "8b2a496cae44155f6c6f2c56334158966646a40a755fd54e19daf5f4b43dcb7d",
+    "docs/08-production-image-release.md": "e3ef1a00d174a8b871b4f342614a79210572fc0a4b9aaac110edd352ef7b13dc",
+    "scripts/build-images.env.example": "ae162c6b2d4156059a5c4eca0705536a9062284d5af2cad91c104cfbc1409ebd",
+    "scripts/build-images.sh": "64e00b32b3e19775fc70a1ff64ca88f66b385770ec69afcf4e1fec8ca6dae5d6",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "592643fab71bf666a8dc9093539ac7fb2dc22d199cb0d7289318cedfed0e27ff",
+    "src/backend/app/db/mysql_migrations.py": "f2e5fe2775b4eff13906990bf8790aa40d5dcafd4d91751b3cdf679b89d3050f",
+    "src/backend/app/db/schema.mysql.sql": "8d621e100e25d904e0ea38d6a93a3d3349231b1877788cd69f735f89b5da2e69",
+    "src/backend/app/db/schema.sql": "1ad762e44786d48bd726e7443d475adae0618711dfef0dcf4d6296dbab48c89a",
+    "src/shared/product-version.ts": "adaffdd1e121752e4210b13ac85faffdddb93752d10f8432d964b0b4633c7a49",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "941620907b9eb95a2c226253b5fdf5664f6b13b406297af1835a5b4d42044062"
+  },
+  "validation": {
+    "platform": "pass",
+    "backend_dependencies": "pass",
+    "web_nginx": "pass",
+    "tar_export": "pass"
+  },
+  "source_plan": {
+    "path": "releases/v0.3.5/image-build-plan.json",
+    "sha256": "cce758dcfdb75d1705e6d4d8279c0b4ccc40487a2363fc027d6c5394bfa4afe1"
+  }
+}

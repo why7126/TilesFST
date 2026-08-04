@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-01 10:40:28
+updated_at: 2026-08-04 09:00:00
 ---
 
 # 文档索引
@@ -39,6 +39,7 @@ updated_at: 2026-08-01 10:40:28
 | [standards/frontend-test-standard.md](standards/frontend-test-standard.md) | 前端 Vitest |
 | [standards/test-coverage.md](standards/test-coverage.md) | 覆盖率目标 |
 | [standards/xl-admin-page-acceptance-template.md](standards/xl-admin-page-acceptance-template.md) | XL 管理端页面分层验收模板 |
+| [standards/admin-list-field-display-adapters.md](standards/admin-list-field-display-adapters.md) | 管理端列表 image/name/fallback adapter 检查表 |
 | [standards/miniapp-device-evidence-template.md](standards/miniapp-device-evidence-template.md) | 小程序 DevTools/真机验收 evidence 模板 |
 | [standards/media-five-point-acceptance-template.md](standards/media-five-point-acceptance-template.md) | 媒体五联验收模板 |
 

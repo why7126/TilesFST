@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-08-01 08:10:11
-updated_at: 2026-08-03 23:12:19
+updated_at: 2026-08-04 09:30:26
 lifecycle:
   captured: 2026-08-01 08:10:11
   generated: 2026-08-01 08:18:25
@@ -90,4 +90,4 @@ knowledge_base_summary: sprint-015 复盘提示发布前 checklist 需集中补�
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0111-usage-docs-previous-version-semver-sort | medium | captured | — | usage docs 前置版本候选使用字符串排序可能选错版本 |
+| BUG-0111-usage-docs-previous-version-semver-sort | medium | done | fix-usage-docs-previous-version-semver-sort | usage docs 前置版本候选使用字符串排序可能选错版本 |

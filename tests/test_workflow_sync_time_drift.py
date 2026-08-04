@@ -59,6 +59,44 @@ def test_workflow_sync_detail_keeps_file_lists() -> None:
     assert "- `iterations/change/sprint-999/sprint.md`" in text
 
 
+def test_main_scope_table_includes_pure_change(tmp_path: Path) -> None:
+    sprint_dir = tmp_path / "iterations" / "change" / "sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        """changes:
+  - auto-archive-trace-fallback
+scope_estimates:
+  - id: auto-archive-trace-fallback
+    estimated_person_days: 3
+""",
+        encoding="utf-8",
+    )
+    sprint = collect.SprintRecord(
+        sprint_id="sprint-999",
+        path=sprint_dir,
+        status="planning",
+        changes=["auto-archive-trace-fallback"],
+    )
+    changes = {
+        "auto-archive-trace-fallback": DerivedChange(
+            change_id="auto-archive-trace-fallback",
+            state="proposed",
+            display_status="proposed",
+            note="proposed `auto-archive-trace-fallback`",
+            tasks_done=0,
+            tasks_total=13,
+            linked_req=None,
+            linked_bug=None,
+            archive_date=None,
+        )
+    }
+
+    table = sync_patch.render_main_scope_table(sprint, {}, {}, changes)
+
+    assert "| Change | auto-archive-trace-fallback |" in table
+    assert "| proposed | 3 人天 | proposed `auto-archive-trace-fallback` |" in table
+
+
 def test_workflow_sync_summary_keeps_error_diagnostics() -> None:
     report = SyncReport(
         event="sprint.apply",
@@ -618,6 +656,135 @@ updated_at: 2026-07-03 10:00:00
     assert "| BUG | BUG-9999-demo | Demo bug | done | 1.0 人天 | archived `fix-demo`" in text
     assert "| 类型 | ID | Change | 优先级 | 估算 | 状态 | 说明 |" not in text
     assert "stale" not in text
+
+
+def test_patch_sprint_md_rewrites_compact_scope_table_to_canonical_columns(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    sprint_dir = tmp_path / "iterations/change/sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        """sprint_id: sprint-999
+status: planning
+requirements: []
+bugs:
+  - BUG-9999-demo
+changes:
+  - fix-demo
+
+scope_estimates:
+  - id: BUG-9999-demo
+    change: fix-demo
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "demo"
+""",
+        encoding="utf-8",
+    )
+    (sprint_dir / "sprint.md").write_text(
+        """---
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# Sprint 999
+
+## 2. Scope
+
+| 类型 | 范围项 | 状态 | 估算 |
+|---|---|---|---:|
+| BUG | BUG-9999-demo / fix-demo | done / archived | 1.0 人天 |
+
+### 包含需求
+
+### 包含 BUG
+
+### 包含 Change
+""",
+        encoding="utf-8",
+    )
+    bug_dir = tmp_path / "issues/bugs/archive/BUG-9999-demo"
+    bug_dir.mkdir(parents=True)
+    issue = IssueRecord(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        path=bug_dir,
+        title="Demo bug",
+        priority="high",
+        trace_status="done",
+        openspec_changes=[{"change_id": "fix-demo", "status": "archived"}],
+    )
+    sprint = collect.SprintRecord(
+        sprint_id="sprint-999",
+        path=sprint_dir,
+        status="planning",
+        requirements=[],
+        bugs=["BUG-9999-demo"],
+        changes=["fix-demo"],
+    )
+    derived_issue = DerivedIssue(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        display_status="done",
+        linked_change="fix-demo",
+        note="archived `fix-demo`（2026-07-19 23:59:59）",
+    )
+    change = DerivedChange(
+        change_id="fix-demo",
+        state="archived",
+        display_status="archived",
+        note="archived `fix-demo`（2026-07-19 23:59:59）",
+        tasks_done=5,
+        tasks_total=5,
+        linked_req=None,
+        linked_bug="BUG-9999-demo",
+        archive_date="2026-07-19 23:59:59",
+    )
+
+    result = sync_patch.patch_sprint_md(
+        sprint,
+        {"BUG-9999-demo": issue},
+        {"BUG-9999-demo": derived_issue},
+        {"fix-demo": change},
+        "workflow-sync 自动同步 — 1/1 Change archived；0 applied；Sprint `planning`",
+        write=True,
+    )
+
+    text = (sprint_dir / "sprint.md").read_text(encoding="utf-8")
+    assert result.changed is True
+    assert "| 类型 | 编号 | 标题 | 状态 | 估算 | 说明 |" in text
+    assert "| BUG | BUG-9999-demo | Demo bug | done | 1.0 人天 | archived `fix-demo`" in text
+    assert "| 类型 | 范围项 | 状态 | 估算 |" not in text
+
+
+def test_render_changes_table_prefers_source_bug_over_related_requirement() -> None:
+    sprint = collect.SprintRecord(
+        sprint_id="sprint-999",
+        path=Path("iterations/change/sprint-999"),
+        status="planning",
+        requirements=[],
+        bugs=["BUG-9999-demo"],
+        changes=["fix-demo"],
+    )
+    change = DerivedChange(
+        change_id="fix-demo",
+        state="archived",
+        display_status="archived",
+        note="archived `fix-demo`（2026-07-19 23:59:59）",
+        tasks_done=5,
+        tasks_total=5,
+        linked_req="REQ-9999-parent",
+        linked_bug="BUG-9999-demo",
+        archive_date="2026-07-19 23:59:59",
+    )
+
+    table = sync_patch.render_changes_table(sprint, {"fix-demo": change})
+
+    assert "| `fix-demo` | BUG-9999-demo | archived |" in table
+    assert "REQ-9999-parent" not in table
 
 
 def test_normalize_change_record_table_moves_header_before_rows() -> None:

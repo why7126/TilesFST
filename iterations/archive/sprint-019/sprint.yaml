@@ -1,0 +1,120 @@
+sprint_id: sprint-019
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-04 00:00:00
+end_date: 2026-08-18 18:00:00
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+requirements:
+  - REQ-0095-admin-list-field-display-adapter-checklist
+  - REQ-0096-miniapp-network-panel-release-checklist
+  - REQ-0097-prod-compose-media-maintenance-job
+bugs:
+  - BUG-0112-certificate-image-object-key-prefix
+  - BUG-0111-usage-docs-previous-version-semver-sort
+  - BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot
+  - BUG-0114-miniapp-brand-list-category-column-alignment
+  - BUG-0115-miniapp-home-button-regression-after-second-click
+  - BUG-0116-prod-media-historical-object-drift
+changes:
+  - auto-archive-trace-fallback
+  - add-compact-fact-sheet-summary-for-large-sprints
+  - fix-certificate-image-object-key-prefix
+  - fix-usage-docs-previous-version-semver-sort
+  - fix-fact-sheet-ai-usage-fresh-gate-snapshot
+  - standardize-admin-list-field-display-adapters
+  - update-miniapp-network-panel-release-checklist
+  - fix-miniapp-brand-list-category-column-alignment
+  - fix-miniapp-home-button-repeat-click-regression
+  - add-prod-media-maintenance-jobs
+  - fix-prod-media-historical-object-drift
+estimated_story_points: 24
+estimated_person_days: 24
+capacity_usage: 0.8
+fix_buffer_person_days: 6
+fix_buffer_ratio: 0.2
+scope_estimates:
+  - id: auto-archive-trace-fallback
+    change: auto-archive-trace-fallback
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P2 workflow 治理 Change；主要工作为归档证据校验、最小归档 trace 自动生成、结构化 fallback 摘要、Workflow Sync / Sprint close readiness / Fact Sheet 消费兼容和聚焦 pytest。影响 scripts、tests、OpenSpec 工作流技能与治理文档；不影响 API、数据库、Web、小程序、MinIO 或 Orval。
+  - id: add-compact-fact-sheet-summary-for-large-sprints
+    change: add-compact-fact-sheet-summary-for-large-sprints
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 workflow 治理 Change；主要工作为压缩 Sprint Fact Sheet summary 中 AI usage matrices 的默认输出，保留 fields 按需读取完整矩阵，并同步 sprint-exps Skill 与相关 pytest。影响 scripts、.agents/skills、tests 与 OpenSpec delta spec；不影响 API、数据库、Web、小程序、MinIO、Docker Compose 或 Orval。
+  - id: BUG-0112-certificate-image-object-key-prefix
+    bug: BUG-0112-certificate-image-object-key-prefix
+    change: fix-certificate-image-object-key-prefix
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 high 媒体对象存储 BUG；主要工作为修复证书图片 key 前缀分流、历史对象审计/迁移、缩略图前缀、规范/Skill 收敛和媒体四联验收测试。影响后端媒体/品牌证书上传、脚本、规则、docs、Skill、管理端/小程序/店主端展示验收；可能影响 API 响应中的 object_key/URL，需要按实现结果判断是否同步 OpenAPI/Orval。
+  - id: BUG-0111-usage-docs-previous-version-semver-sort
+    bug: BUG-0111-usage-docs-previous-version-semver-sort
+    change: fix-usage-docs-previous-version-semver-sort
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2 release docs governance BUG; 修复 usage docs 前置版本选择的 SemVer 排序与 manifest 过滤，并补充回归测试和 releases README 规则说明。影响 scripts、tests、releases docs 与 OpenSpec trace；不影响 API、数据库、Web、小程序、MinIO、Docker Compose 或 Orval。
+  - id: BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot
+    bug: BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot
+    change: fix-fact-sheet-ai-usage-fresh-gate-snapshot
+    size: S
+    story_points: 2
+    estimated_person_days: 2
+    rationale: P2 workflow 证据 BUG；修复 Fact Sheet AI usage fresh gate 与已刷新 snapshot 状态不一致，避免已刷新证据仍被误判为 stale。影响 scripts、tests 与 sprint fact sheet 证据；不影响 API、数据库、Web、小程序、MinIO、Docker Compose 或 Orval。
+  - id: BUG-0114-miniapp-brand-list-category-column-alignment
+    bug: BUG-0114-miniapp-brand-list-category-column-alignment
+    change: fix-miniapp-brand-list-category-column-alignment
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序展示 BUG；修复品牌列表页品牌类目两列未分别左对齐与长名称溢出风险。影响小程序品牌列表样式与验收；不影响 API、数据库、Web、MinIO、Docker Compose 或 Orval。
+  - id: BUG-0115-miniapp-home-button-regression-after-second-click
+    bug: BUG-0115-miniapp-home-button-regression-after-second-click
+    change: fix-miniapp-home-button-repeat-click-regression
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序导航回归 BUG；修复返回首页悬浮按钮第二次点击失效问题，覆盖多次进入页面后的状态恢复。影响小程序导航行为与验收；不影响 API、数据库、Web、MinIO、Docker Compose 或 Orval。
+  - id: REQ-0095-admin-list-field-display-adapter-checklist
+    requirement: REQ-0095-admin-list-field-display-adapter-checklist
+    change: standardize-admin-list-field-display-adapters
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 管理端列表展示治理需求；建立 image/name/fallback adapter 检查表并纳入 Design System 与验收文档。主要影响 docs 与 Design System 说明，不影响 API、数据库、Web 运行时代码、小程序、MinIO、Docker Compose 或 Orval。
+  - id: REQ-0096-miniapp-network-panel-release-checklist
+    requirement: REQ-0096-miniapp-network-panel-release-checklist
+    change: update-miniapp-network-panel-release-checklist
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序发布治理需求；将 DevTools/体验版 Network 面板验证纳入发布准备清单。主要影响 miniapp/release 检查文档与验收记录，不影响 API、数据库、Web、MinIO、Docker Compose 或 Orval。
+  - id: REQ-0097-prod-compose-media-maintenance-job
+    requirement: REQ-0097-prod-compose-media-maintenance-job
+    change: add-prod-media-maintenance-jobs
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 生产媒体维护作业新增能力；跨后端 maintenance CLI、对象存储 provider 适配、生产 Compose/镜像治理、dry-run/apply/幂等/脱敏输出、媒体四联/五联验收与测试文档同步。影响 backend、storage、deployment、tests、docs；默认不影响 API、数据库 schema、Web、小程序、管理端 UI 或 Orval。追加后 sprint-019 估算 21/30 人天，容量占用 70%，保留 9 人天 fix buffer。
+  - id: BUG-0116-prod-media-historical-object-drift
+    bug: BUG-0116-prod-media-historical-object-drift
+    change: fix-prod-media-historical-object-drift
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1/high 生产历史媒体对象漂移 BUG；覆盖 SKU pending 主图正式化、SKU/品牌 Logo/证书图片缩略图、证书图片 files→images 分流、dry-run/apply/二次审计和媒体四联验收；复用 sprint-019 已纳入的 add-prod-media-maintenance-jobs 生产维护入口。追加后 sprint-019 估算 24/30 人天，容量占用 80%，剩余 6 人天缓冲；fix buffer 从 9 人天下降到 6 人天，需优先控制生产 apply evidence 和 blocked 风险。
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 24
+  capacity_usage: 0.8
+  note: project.yaml 未提供显式 Sprint 容量，沿用 sprint-018 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 2 个 workflow 治理 Change、3 个需求治理 Change、6 个 BUG 修复 Change，估算 24 人天，占用 80%，低于容量上限并保留 6 人天缓冲。
+deferred_items: []

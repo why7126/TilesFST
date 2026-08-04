@@ -464,6 +464,12 @@ def build_file_upload_object_key(resource_type: str, content_type: str | None) -
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
+def build_brand_certificate_upload_object_key(content_type: str | None) -> str:
+    if content_type and content_type.startswith("image/"):
+        return build_image_upload_object_key("brand-certificates", content_type)
+    return build_file_upload_object_key("brand-certificates", content_type)
+
+
 def validate_object_key(object_key: str) -> PurePosixPath:
     key = object_key.strip()
     if not key or key.startswith("/") or "\\" in key or "//" in key:

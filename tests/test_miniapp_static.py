@@ -256,6 +256,30 @@ def test_miniapp_env_script_manages_devtools_url_check() -> None:
     assert "\"expected_urlCheck\": True if strategy == \"prod\" else False" in script
 
 
+def test_miniapp_prepare_network_checklist_is_manual_evidence() -> None:
+    script = (ROOT / "scripts" / "miniapp-env.py").read_text(encoding="utf-8")
+    prepare_skill = (SKILLS / "miniapp-prepare" / "SKILL.md").read_text(encoding="utf-8")
+    confirm_skill = (SKILLS / "miniapp-confirm" / "SKILL.md").read_text(encoding="utf-8")
+    readme = (MINIAPP / "README.md").read_text(encoding="utf-8")
+    evidence = (ROOT / "docs" / "standards" / "miniapp-device-evidence-template.md").read_text(encoding="utf-8")
+
+    for source in [script, prepare_skill, confirm_skill, readme, evidence]:
+        assert "DevTools Network" in source
+        assert "体验版 Network" in source
+        assert "Authorization header" in source
+
+    assert "待人工执行 DevTools Network 检查" in script
+    assert "待人工执行体验版 Network 检查" in script
+    assert "不得写作 passed" in script
+    assert "不等同于体验版或真机网络验收" in script
+    assert "不等同于体验版或真机网络验收" in evidence
+    assert "network_devtools" in evidence
+    assert "network_trial" in evidence
+    assert "未执行时写作自动通过" in readme
+    assert "以上为自动门禁" in prepare_skill
+    assert "失败项、阻塞项、剩余风险和下一步" in confirm_skill
+
+
 def test_miniapp_runtime_entry_scripts_are_not_empty_templates() -> None:
     critical_pages = [
         "pages/index/index",
@@ -627,24 +651,31 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
     for source in [floating_js, floating_ts]:
         assert "const HOME_URL = '/pages/index/index'" in source
         assert "UNLOCK_DELAY_MS = 800" in source
+        assert "LOCK_TIMEOUT_MS = 1600" in source
         assert "navigating: false" in source
         assert "unlockTimer: 0" in source
+        assert "lockStartedAt: 0" in source
         assert "pageLifetimes" in source
         assert "show()" in source
         assert "this.resetNavigationLock()" in source
         assert "detached()" in source
         assert "this.clearUnlockTimer()" in source
         assert "clearTimeout(this.data.unlockTimer)" in source
-        assert "if (this.data.navigating) return;" in source
-        assert "this.setData({ navigating: true })" in source
-        assert "this.setData({ navigating: false })" in source
-        assert "this.setData({ navigating: false, unlockTimer: 0 })" in source
+        assert "isNavigationLocked()" in source
+        assert "if (this.isNavigationLocked()) return;" in source
+        assert "Date.now() - startedAt > LOCK_TIMEOUT_MS" in source
+        assert "this.setData({ navigating: true, lockStartedAt: Date.now() })" in source
+        assert "this.setData({ navigating: false, lockStartedAt: 0 })" in source
+        assert "this.setData({ navigating: false, unlockTimer: 0, lockStartedAt: 0 })" in source
         assert "wx.switchTab" in source
         assert "wx.reLaunch" in source
         assert "wx.showToast({ title: '暂时无法返回首页', icon: 'none' })" in source
         assert "this.triggerEvent('returnhome', { url: HOME_URL })" in source
         assert "this.unlockNavigation();" in source
         assert "complete: () => this.unlockNavigation()" in source
+        assert "let fallbackStarted = false" in source
+        assert "fallbackStarted = true" in source
+        assert "if (!fallbackStarted)" in source
 
     for token in [
         "width: 104rpx",
@@ -662,6 +693,59 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
         "letter-spacing: 0",
     ]:
         assert token in floating_wxss
+
+
+def test_miniapp_home_floating_button_state_flow_supports_repeat_clicks() -> None:
+    class HomeButtonState:
+        def __init__(self) -> None:
+            self.navigating = False
+            self.lock_started_at = 0
+            self.switch_tab_calls = 0
+            self.relaunch_calls = 0
+
+        def reset(self) -> None:
+            self.navigating = False
+            self.lock_started_at = 0
+
+        def is_locked(self, now: int) -> bool:
+            if not self.navigating:
+                return False
+            if self.lock_started_at and now - self.lock_started_at > 1600:
+                self.reset()
+                return False
+            return True
+
+        def click(self, now: int, *, switch_tab_fails: bool = False) -> None:
+            if self.is_locked(now):
+                return
+            self.navigating = True
+            self.lock_started_at = now
+            self.switch_tab_calls += 1
+            if switch_tab_fails:
+                self.relaunch_calls += 1
+            self.reset()
+
+    button = HomeButtonState()
+
+    button.click(1000)
+    button.click(2200)
+    assert button.switch_tab_calls == 2
+    assert button.relaunch_calls == 0
+    assert button.navigating is False
+
+    button.click(3000, switch_tab_fails=True)
+    assert button.switch_tab_calls == 3
+    assert button.relaunch_calls == 1
+    assert button.navigating is False
+
+    button.navigating = True
+    button.lock_started_at = 4000
+    button.click(4200)
+    assert button.switch_tab_calls == 3
+
+    button.click(5701)
+    assert button.switch_tab_calls == 4
+    assert button.navigating is False
 
 
 def test_miniapp_search_matches_req0046_prototype_structure() -> None:
@@ -1444,7 +1528,7 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "status == 'loading'" in brand_wxml
     assert "status == 'empty'" in brand_wxml
     assert "status == 'error'" in brand_wxml
-    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" not in brand_wxss
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in brand_wxss
     assert ".brand-row" in brand_wxss
     assert ".brand-entry" in brand_wxss
     assert ".brand-categories" in brand_wxss
@@ -1453,7 +1537,11 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "font-size: 32rpx" in brand_wxss
     assert "font-size: 30rpx" in brand_wxss
     assert "line-height: 40rpx" in brand_wxss
-    assert "word-break: break-all" in brand_wxss
+    assert "min-width: 0" in brand_wxss
+    assert "text-overflow: ellipsis" in brand_wxss
+    assert "white-space: nowrap" in brand_wxss
+    assert "text-align: left" in brand_wxss
+    assert "word-break: break-all" not in brand_wxss
     assert ".category-more" not in brand_wxss
     assert "env(safe-area-inset-bottom)" in brand_wxss
     assert "min-height: 224rpx" in brand_wxss

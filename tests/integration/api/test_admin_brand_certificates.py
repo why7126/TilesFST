@@ -197,13 +197,13 @@ def test_brand_certificate_saves_images_main_order_and_image_only_fallback(
     payload["images"] = [
         _image_payload(
             name="page-2.webp",
-            key="files/default/brand-certificates/page-2.webp",
+            key="images/default/brand-certificates/page-2.webp",
             is_main=False,
             sort_order=20,
         ),
         _image_payload(
             name="cover.webp",
-            key="files/default/brand-certificates/cover.webp",
+            key="images/default/brand-certificates/cover.webp",
             is_main=True,
             sort_order=10,
         ),
@@ -213,14 +213,14 @@ def test_brand_certificate_saves_images_main_order_and_image_only_fallback(
 
     assert create.status_code == 200
     data = create.json()["data"]
-    assert data["file_key"] == "files/default/brand-certificates/cover.webp"
-    assert data["thumbnail_url"] == "/media/files/default/brand-certificates/cover.thumb.webp"
+    assert data["file_key"] == "images/default/brand-certificates/cover.webp"
+    assert data["thumbnail_url"] == "/media/images/default/brand-certificates/cover.thumb.webp"
     assert data["main_image"]["file_name"] == "cover.webp"
-    assert data["main_image"]["thumbnail_url"] == "/media/files/default/brand-certificates/cover.thumb.webp"
+    assert data["main_image"]["thumbnail_url"] == "/media/images/default/brand-certificates/cover.thumb.webp"
     assert [image["file_name"] for image in data["images"]] == ["cover.webp", "page-2.webp"]
     assert [image["thumbnail_url"] for image in data["images"]] == [
-        "/media/files/default/brand-certificates/cover.thumb.webp",
-        "/media/files/default/brand-certificates/page-2.thumb.webp",
+        "/media/images/default/brand-certificates/cover.thumb.webp",
+        "/media/images/default/brand-certificates/page-2.thumb.webp",
     ]
     assert [image["sort_order"] for image in data["images"]] == [0, 1]
     assert [image["is_main"] for image in data["images"]] == [True, False]
@@ -315,6 +315,7 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         assert pdf.status_code == 200
         data = pdf.json()["data"]
         assert data["file_key"].endswith(".pdf")
+        assert data["file_key"].startswith("files/default/brand-certificates/")
         assert data["file_url"] == data["url"]
         assert data["thumbnail_key"] is None
         assert data["thumbnail_url"] is None
@@ -330,8 +331,10 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         assert image.status_code == 200
         image_data = image.json()["data"]
         thumbnail_key = same_directory_thumbnail_object_key(image_data["file_key"])
+        assert image_data["file_key"].startswith("images/default/brand-certificates/")
         assert image_data["thumbnail_key"] == thumbnail_key
         assert image_data["thumbnail_url"] == f"/media/{thumbnail_key}"
+        assert thumbnail_key.startswith("images/default/brand-certificates/")
         assert image_data["file_key"] in storage.objects
         assert thumbnail_key in storage.objects
         assert storage.objects[thumbnail_key].content != storage.objects[image_data["file_key"]].content

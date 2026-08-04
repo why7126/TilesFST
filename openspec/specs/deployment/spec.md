@@ -206,7 +206,7 @@ The Web deployment layer SHALL proxy Swagger and OpenAPI documentation routes to
 
 ### Requirement: 系统必须提供部署环境矩阵
 
-系统 MUST 在 `deploy/` 下提供部署环境矩阵，用稳定环境 ID 描述本地与生产部署组合。每个环境 ID MUST 映射到 env 示例、Compose 文件、profile 策略、必填变量、安全边界和启动命令。部署矩阵 MUST 遵守“一拓扑一 Compose + 一环境一 env 示例”原则。
+系统 MUST 在 `deploy/` 下提供部署环境矩阵，用稳定环境 ID 描述本地与生产部署组合。每个环境 ID MUST 映射到 env 示例、Compose 文件、profile 策略、必填变量、安全边界和启动命令。部署矩阵 MUST 遵守“一拓扑一 Compose + 一环境一 env 示例”原则。生产部署矩阵涉及媒体历史维护时，MUST 支持受控的一次性维护作业入口，并 SHOULD 以 `deploy/prod/compose.tencent-cos.yml` 作为当前生产主路径。
 
 #### Scenario: 本地部署矩阵覆盖六种组合
 
@@ -233,6 +233,14 @@ The Web deployment layer SHALL proxy Swagger and OpenAPI documentation routes to
 - **THEN** 环境变量差异 MUST 通过 `.env.example` 表达
 - **AND** 服务拓扑差异 MUST 通过 Compose 或 profile 表达
 - **AND** 不得为本地六种环境复制六份完整 Compose
+
+#### Scenario: 生产维护作业入口属于部署矩阵
+
+- **WHEN** 运维阅读生产部署矩阵或生产维护任务文档
+- **THEN** MUST 找到媒体历史维护作业的 Compose 执行入口
+- **AND** SHOULD 找到 `tilesfst-maintenance` service 或等价受控维护入口
+- **AND** MUST 说明根目录 `docker-compose.prod.external.yml` 若保留，仅作为兼容入口
+- **AND** MUST 说明维护作业不得要求下载生产 `.env` 到开发机。
 
 ### Requirement: 系统必须治理 deploy 目录边界
 
@@ -279,7 +287,7 @@ The Web deployment layer SHALL proxy Swagger and OpenAPI documentation routes to
 
 ### Requirement: 部署环境示例必须安全可审查
 
-系统 MUST 为每个部署环境提供独立 `.env.example`。每个 env 示例 MUST 使用示例值，并按环境标识、应用安全、数据库、镜像、对象存储、端口等适用主题分组。每个变量上一行 MUST 说明用途、候选值或候选格式、默认值含义或安全边界。生产 env 示例 MUST 要求 MySQL、腾讯云 COS、`APP_ENV=production`、`APP_DEBUG=false`、非示例密钥和 `OBJECT_STORAGE_AUTO_CREATE_BUCKET=false`。
+系统 MUST 为每个部署环境提供独立 `.env.example`。每个 env 示例 MUST 使用示例值，并按环境标识、应用安全、数据库、镜像、对象存储、端口等适用主题分组。每个变量上一行 MUST 说明用途、候选值或候选格式、默认值含义或安全边界。生产 env 示例 MUST 要求 MySQL、腾讯云 COS、`APP_ENV=production`、`APP_DEBUG=false`、非示例密钥和 `OBJECT_STORAGE_AUTO_CREATE_BUCKET=false`。若生产维护作业新增环境变量、service、profile 或 command，相关 env 示例和 Compose 注释 MUST 同步说明用途、安全边界和禁止提交真实值。
 
 #### Scenario: 本地 env 示例可复制
 
@@ -307,6 +315,13 @@ The Web deployment layer SHALL proxy Swagger and OpenAPI documentation routes to
 - **AND** `APP_DEBUG=true` MUST 被阻断
 - **AND** 示例密钥 MUST 被阻断
 - **AND** 腾讯云 COS 生产环境 `OBJECT_STORAGE_AUTO_CREATE_BUCKET=true` MUST 被阻断
+
+#### Scenario: 维护作业 env 示例脱敏
+
+- **WHEN** 生产维护作业新增或引用 env 变量
+- **THEN** `deploy/prod/*.env.example` 或等价示例 MUST 使用占位值
+- **AND** MUST 说明变量用途、默认值含义和安全边界
+- **AND** MUST NOT 包含真实 `.env` 内容、数据库 URL、对象存储 access key、secret key 或生产私有域名。
 
 ### Requirement: 部署文件必须纳入发布镜像输入追踪
 

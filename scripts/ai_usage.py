@@ -1096,12 +1096,14 @@ def _status_payload(
     coverage: dict[str, Any] | None = None,
     totals: dict[str, Any] | None = None,
     usage_matrices: dict[str, Any] | None = None,
+    usage_mode: str | None = None,
 ) -> dict[str, Any]:
+    resolved_usage_mode = usage_mode or (USAGE_MODE_ACTUAL if status == "present" else "estimated_fallback")
     payload = {
         "snapshot_status": status,
         "snapshot_path": relative_path(path),
         "present": status not in {"missing"},
-        "usage_mode": "actual" if status == "present" else "estimated_fallback",
+        "usage_mode": resolved_usage_mode,
         "generated_at": generated_at,
         "coverage": coverage or {"requirements": "unknown", "bugs": "unknown", "changes": "unknown"},
         "warnings": warnings or [],
@@ -1109,7 +1111,7 @@ def _status_payload(
         "totals": totals or {},
         "usage_matrices": usage_matrices or {},
         "recommended_action": None
-        if status == "present"
+        if status == "present" and resolved_usage_mode == USAGE_MODE_ACTUAL
         else f"Run `python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id>` and re-check {path.name}.",
     }
     payload["fresh_gate"] = sprint_snapshot_fresh_gate(payload)
@@ -1150,6 +1152,7 @@ def sprint_snapshot_fresh_gate(status: dict[str, Any]) -> dict[str, Any]:
         "status": "pass" if not blockers else "blocker",
         "snapshot_status": status.get("snapshot_status"),
         "usage_mode": status.get("usage_mode"),
+        "generated_at": status.get("generated_at"),
         "usage_matrices_present": bool(usage_matrices),
         "totals_present": bool(totals and any(metric_values)),
         "coverage_status": coverage_status,
@@ -1223,15 +1226,20 @@ def check_sprint_snapshot(
 
     if any(warning in warnings for warning in ("sprint-id-mismatch", "snapshot-estimated", "required-metrics-empty")):
         status = "failed"
-    elif any(
-        "stale" in warning
-        or "coverage-" in warning
-        or warning in {"generated-at-missing", "usage-matrices-missing"}
-        for warning in warnings
-    ):
+    elif any("stale" in warning or warning in {"generated-at-missing", "generated-at-invalid"} for warning in warnings):
         status = "stale"
     else:
         status = "present"
+
+    coverage_pass = all(
+        isinstance(coverage.get(key), dict) and coverage[key].get("status") == "pass"
+        for key in ("requirements", "bugs", "changes")
+    )
+    usage_mode = (
+        USAGE_MODE_ACTUAL
+        if status == "present" and usage_matrices and coverage_pass and not data.get("estimated")
+        else "estimated_fallback"
+    )
 
     return _status_payload(
         path=path,
@@ -1241,6 +1249,7 @@ def check_sprint_snapshot(
         coverage=coverage,
         totals=totals,
         usage_matrices=usage_matrices,
+        usage_mode=usage_mode,
     )
 
 

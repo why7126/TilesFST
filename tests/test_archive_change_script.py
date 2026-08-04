@@ -124,7 +124,37 @@ def test_archive_script_relocates_legacy_cli_output(tmp_path: Path) -> None:
     assert "missing standard ## Why / ## What Changes" not in result.stderr
 
 
-def test_archive_evidence_cli_passes_with_complete_fallback_summary(tmp_path: Path) -> None:
+def test_archive_evidence_cli_auto_generates_minimal_trace(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    archive_dir = tmp_path / "openspec" / "archive" / "2026-07-29-fix-demo"
+    archive_dir.mkdir(parents=True)
+    (archive_dir / "tasks.md").write_text("- [x] done\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            "python",
+            str(ROOT / "scripts" / "validate-archive-evidence.py"),
+            "--change",
+            "fix-demo",
+            "--archive-path",
+            str(archive_dir),
+            "--root",
+            str(tmp_path),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "**Evidence Status:** auto-generated-minimal-trace" in result.stdout
+    assert "**Generated Trace:** `openspec/archive/2026-07-29-fix-demo/trace.md`" in result.stdout
+    trace = archive_dir / "trace.md"
+    assert trace.exists()
+    assert "source: auto_generated_minimal_archive_trace" in trace.read_text(encoding="utf-8")
+
+
+def test_archive_evidence_cli_can_emit_structured_fallback_without_writing(tmp_path: Path) -> None:
     write_minimal_project(tmp_path)
     archive_dir = tmp_path / "openspec" / "archive" / "2026-07-29-fix-demo"
     archive_dir.mkdir(parents=True)
@@ -151,6 +181,7 @@ def test_archive_evidence_cli_passes_with_complete_fallback_summary(tmp_path: Pa
             str(archive_dir),
             "--root",
             str(tmp_path),
+            "--no-write-minimal-trace",
         ],
         text=True,
         capture_output=True,
@@ -159,14 +190,15 @@ def test_archive_evidence_cli_passes_with_complete_fallback_summary(tmp_path: Pa
 
     assert result.returncode == 0, result.stderr + result.stdout
     assert "**Evidence Status:** fallback-summary-pass" in result.stdout
-    assert "tasks.md" in result.stdout
+    assert '"evidence_status": "structured-fallback-summary"' in result.stdout
+    assert not (archive_dir / "trace.md").exists()
 
 
-def test_archive_evidence_cli_blocks_missing_trace_and_summary(tmp_path: Path) -> None:
+def test_archive_evidence_cli_blocks_missing_trace_and_task_facts(tmp_path: Path) -> None:
     write_minimal_project(tmp_path)
     archive_dir = tmp_path / "openspec" / "archive" / "2026-07-29-fix-demo"
     archive_dir.mkdir(parents=True)
-    (archive_dir / "tasks.md").write_text("- [x] done\n", encoding="utf-8")
+    (archive_dir / "tasks.md").write_text("done without checklist\n", encoding="utf-8")
 
     result = subprocess.run(
         [
@@ -188,5 +220,5 @@ def test_archive_evidence_cli_blocks_missing_trace_and_summary(tmp_path: Path) -
     assert "**Verdict:** BLOCKED" in result.stdout
     assert "fix-demo" in result.stdout
     assert "openspec/archive/2026-07-29-fix-demo" in result.stdout
+    assert "tasks" in result.stdout
     assert "proposal.md" in result.stdout
-    assert "validation" in result.stdout

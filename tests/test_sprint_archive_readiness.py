@@ -93,59 +93,41 @@ def test_archived_change_with_trace_passes_without_fallback_summary(tmp_path: Pa
     assert readiness.changes[0].fallback_summary_status == "trace-present"
 
 
-def test_archived_change_missing_trace_passes_with_complete_fallback_summary(tmp_path: Path) -> None:
+def test_archived_change_missing_trace_auto_generates_minimal_trace(tmp_path: Path) -> None:
     write_sprint(tmp_path, "sprint-999", ["fix-with-summary"])
     write_tasks(tmp_path, "fix-with-summary", ["- [x] implement", "- [x] test"], archived=True)
-    summary = """# Proposal
-
-## 归档验证摘要
-
-- 验证命令：`pytest tests/test_demo.py`，验证结果：pass。
-- 验收结论：通过。
-- Issue/Sprint 状态：BUG-9999 done，Sprint sprint-999 completed。
-- 归档路径：openspec/archive/2026-07-04-fix-with-summary。
-"""
-    (archived_change_dir(tmp_path, "fix-with-summary") / "proposal.md").write_text(summary, encoding="utf-8")
 
     readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
 
     assert readiness.blockers == []
-    assert readiness.changes[0].trace_exists is False
-    assert readiness.changes[0].fallback_summary_status == "pass"
-    assert readiness.changes[0].fallback_summary_file == (
-        "openspec/archive/2026-07-04-fix-with-summary/proposal.md"
-    )
+    assert readiness.changes[0].trace_exists is True
+    assert readiness.changes[0].fallback_summary_status == "auto-generated-minimal-trace"
+    trace = archived_change_dir(tmp_path, "fix-with-summary") / "trace.md"
+    assert trace.exists()
+    assert "source: auto_generated_minimal_archive_trace" in trace.read_text(encoding="utf-8")
 
 
-def test_archived_change_missing_trace_and_summary_blocks(tmp_path: Path) -> None:
-    write_sprint(tmp_path, "sprint-999", ["fix-missing-summary"])
-    write_tasks(tmp_path, "fix-missing-summary", ["- [x] implement", "- [x] test"], archived=True)
+def test_archived_change_missing_trace_and_task_facts_blocks(tmp_path: Path) -> None:
+    write_sprint(tmp_path, "sprint-999", ["fix-missing-task-facts"])
+    write_tasks(tmp_path, "fix-missing-task-facts", ["implementation done"], archived=True)
 
     readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
 
     assert len(readiness.blockers) == 1
     blocker = readiness.blockers[0].blocker or ""
     assert "missing trace.md" in blocker
-    assert "proposal.md" in blocker
-    assert "validation" in blocker
+    assert "tasks" in blocker
 
 
-def test_archived_change_fallback_summary_missing_required_items_blocks(tmp_path: Path) -> None:
+def test_archived_change_incomplete_tasks_still_blocks_before_evidence(tmp_path: Path) -> None:
     write_sprint(tmp_path, "sprint-999", ["fix-incomplete-summary"])
-    write_tasks(tmp_path, "fix-incomplete-summary", ["- [x] implement", "- [x] test"], archived=True)
-    (archived_change_dir(tmp_path, "fix-incomplete-summary") / "tasks.md").write_text(
-        "- [x] implement\n\n## 归档验证摘要\n\n- 验收结论：通过。\n",
-        encoding="utf-8",
-    )
+    write_tasks(tmp_path, "fix-incomplete-summary", ["- [x] implement", "- [ ] test"], archived=True)
 
     readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
 
     assert len(readiness.blockers) == 1
-    assert readiness.blockers[0].fallback_summary_missing == [
-        "validation",
-        "issue_or_sprint_status",
-        "archive_evidence",
-    ]
+    assert readiness.blockers[0].blocker == "1 incomplete task(s)"
+    assert not (archived_change_dir(tmp_path, "fix-incomplete-summary") / "trace.md").exists()
 
 
 def test_missing_tasks_file_blocks_archive(tmp_path: Path) -> None:

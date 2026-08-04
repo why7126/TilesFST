@@ -5,7 +5,7 @@ lifecycle_stage: archive
 priority: P1
 iteration: sprint-003
 created_at: 2026-06-27 22:15:10
-updated_at: 2026-08-04 00:23:14
+updated_at: 2026-08-04 22:59:06
 ---
 
 # 需求追踪
@@ -92,4 +92,5 @@ documents:
 
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
-| BUG-0112-certificate-image-object-key-prefix | high | captured | — | 证书图片对象 key 未归入 images 前缀 |
+| BUG-0112-certificate-image-object-key-prefix | high | done | fix-certificate-image-object-key-prefix | 证书图片对象 key 未归入 images 前缀 |
+| BUG-0116-prod-media-historical-object-drift | high | done | fix-prod-media-historical-object-drift | 生产历史媒体对象与缩略图存在规范漂移 |

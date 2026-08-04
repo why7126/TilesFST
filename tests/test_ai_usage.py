@@ -608,6 +608,7 @@ def test_check_sprint_snapshot_status_present_missing_stale_failed(tmp_path: Pat
         "status": "pass",
         "snapshot_status": "present",
         "usage_mode": "actual",
+        "generated_at": "2026-07-03T00:00:00Z",
         "usage_matrices_present": True,
         "totals_present": True,
         "coverage_status": {"requirements": "pass", "bugs": "pass", "changes": "pass"},
@@ -668,7 +669,8 @@ def test_sprint_snapshot_fresh_gate_blocks_coverage_and_matrix_gaps(tmp_path: Pa
         },
     )
 
-    assert snapshot["snapshot_status"] == "stale"
+    assert snapshot["snapshot_status"] == "present"
+    assert snapshot["usage_mode"] == "estimated_fallback"
     assert "bugs-coverage-unknown" in snapshot["warnings"]
     assert "usage-matrices-missing" in snapshot["warnings"]
     gate = snapshot["fresh_gate"]

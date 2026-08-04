@@ -60,6 +60,56 @@ services:
     networks:
       - tilesfst
 
+  # 生产媒体维护一次性任务容器；仅启用 maintenance profile 或显式 run 时使用，不随业务服务默认启动。
+  tilesfst-maintenance:
+    profiles:
+      - maintenance
+    # 复用后端生产镜像与统一 tag，确保维护 CLI 与应用依赖、配置解析和对象存储适配层一致。
+    image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile
+      args:
+        # 后端 Docker 构建基础镜像；与 tilesfst-backend 保持一致。
+        BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
+    container_name: tilesfst-maintenance
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:?Set TILESFST_DEPLOY_ENV_FILE to production env}
+    environment:
+      # 生产维护任务必须使用 production 模式，禁止回退 SQLite。
+      APP_ENV: production
+      # 维护 CLI 不输出调试堆栈，避免泄露内部路径或敏感上下文。
+      APP_DEBUG: "false"
+      # 应用签名密钥沿用生产 env 注入；维护 CLI 不打印该值。
+      APP_SECRET_KEY: ${APP_SECRET_KEY:?Set APP_SECRET_KEY in production env}
+      # 生产结构化数据必须写入外部 MySQL。
+      DATABASE_URL: ${DATABASE_URL:?Set production MySQL DATABASE_URL}
+      # 腾讯云 COS provider。
+      OBJECT_STORAGE_PROVIDER: tencent-cos
+      # 腾讯云 COS S3 兼容 endpoint。
+      OBJECT_STORAGE_ENDPOINT: ${OBJECT_STORAGE_ENDPOINT:?Set Tencent COS endpoint}
+      # 腾讯云 SecretId。
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY:?Set Tencent COS SecretId}
+      # 腾讯云 SecretKey。
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY:?Set Tencent COS SecretKey}
+      # 生产 COS 必须使用 HTTPS。
+      OBJECT_STORAGE_SECURE: "true"
+      # COS bucket 必须提前创建。
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET:?Set existing COS bucket}
+      # COS region。
+      OBJECT_STORAGE_REGION: ${OBJECT_STORAGE_REGION:?Set COS region}
+      # COS 通常使用 virtual-host 风格。
+      OBJECT_STORAGE_PATH_STYLE: ${OBJECT_STORAGE_PATH_STYLE:-false}
+      # 生产云上对象存储不自动建桶。
+      OBJECT_STORAGE_AUTO_CREATE_BUCKET: "false"
+    volumes:
+      - ../../data/processed:/app/data/processed
+      - ../../data/tmp:/app/data/tmp
+    # 默认只执行只读对象 key 审计示例；apply 必须由运维显式传参并确认备份。
+    command: uv run --no-sync python -m app.modules.media.maintenance object-key-audit --limit 20
+    networks:
+      - tilesfst
+
   # 生产 Web 容器，托管已构建静态资源并反代后端 API。
   tilesfst-web:
     # Web 生产镜像仓库名与统一 tag 由 env 控制。

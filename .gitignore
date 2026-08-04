@@ -6,6 +6,8 @@
 .env.local
 .env.mysql
 .env.prod-backfill
+src/backend/.env.*
+!src/backend/.env.example
 deploy/**/*.env
 deploy/**/*.env.local
 deploy/**/*.env.prod
@@ -22,26 +24,18 @@ coverage/
 node_modules/
 dist/
 build/
+**/test-results/
 
 # Local databases and object-store runtime files
 *.sqlite3
 *.db
 .minio/
 
-# Runtime data: keep directory structure, ignore generated data and uploaded media
-/data/runtime/**
-/data/sqlite/*.db
-/data/sqlite/*.sqlite
-/data/sqlite/*.sqlite3
-/data/uploads/**
-/data/processed/**
-/data/tmp/**
-/data/minio/**
+# Runtime data and local data assets
+/data/
 
-# AI usage observability: keep raw/local extraction inputs out of git.
-/data/ai-usage/raw/**
-/data/ai-usage/local/**
-/data/ai-usage/**/*.jsonl
+# WeChat developer local preferences
+src/miniapp/project.private.config.json
 
 # Product release docs: keep source, ignore generated Mintlify output
 /releases/.mintlify/**
@@ -61,10 +55,3 @@ build/
 /deploy/**/*.sqlite3
 /deploy/**/*.tar
 /deploy/**/*.tar.gz
-
-# Keep placeholders and documentation
-!/data/**/.gitkeep
-!/data/README.md
-!/data/ai-usage/README.md
-!/data/ai-usage/samples/**
-!/data/samples/**

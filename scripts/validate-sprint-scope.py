@@ -37,6 +37,17 @@ def extract_marker_block(text: str, name: str) -> str:
     return match.group(1) if match else ""
 
 
+def main_scope_table_header(scope: str) -> list[str] | None:
+    for line in scope.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if "类型" in cells:
+            return cells
+    return None
+
+
 def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
     sprint = load_sprint(sprint_id)
     if sprint is None:
@@ -57,6 +68,15 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
     change_block = extract_marker_block(text, "scope-changes")
 
     failures: list[str] = []
+    expected_header = ["类型", "编号", "标题", "状态", "估算", "说明"]
+    header = main_scope_table_header(main_scope)
+    if header != expected_header:
+        actual = "missing" if header is None else " | ".join(header)
+        failures.append(
+            "sprint.md `## 2. Scope` main table header must be "
+            "`类型 | 编号 | 标题 | 状态 | 估算 | 说明`; "
+            f"actual: `{actual}`"
+        )
 
     def in_focus(item_id: str) -> bool:
         return not focus or item_id in focus or short_issue_code(item_id) in focus

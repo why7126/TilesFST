@@ -1,7 +1,28 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 95
+next_id: 98
 entries:
+  - id: REQ-0097-prod-compose-media-maintenance-job
+    title: 生产 Docker Compose 环境支持媒体历史数据维护任务安全执行
+    status: done
+    iteration: null
+    created: "2026-08-04 10:25:13"
+    parent_requirement: null
+    related_change: add-prod-media-maintenance-jobs
+  - id: REQ-0096-miniapp-network-panel-release-checklist
+    title: 小程序网络面板验证纳入发布准备清单
+    status: done
+    iteration: sprint-019
+    created: "2026-08-04 08:22:00"
+    parent_requirement:
+    related_change: update-miniapp-network-panel-release-checklist
+  - id: REQ-0095-admin-list-field-display-adapter-checklist
+    title: 管理端列表字段展示统一 adapter 检查表
+    status: done
+    iteration: sprint-019
+    created: "2026-08-04 08:20:03"
+    parent_requirement:
+    related_change: standardize-admin-list-field-display-adapters
   - id: REQ-0094-mintlify-versioned-docs-directory
     title: Mintlify 多版本产品文档目录与站点浏览
     status: done

@@ -10,6 +10,7 @@
 from collections import defaultdict
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -113,6 +114,28 @@ DEPLOY_FORBIDDEN_SUFFIXES = (".tar.gz", ".env", ".env.local", ".env.prod")
 DEPLOY_FORBIDDEN_DIR_NAMES = {"__pycache__", "data", "minio", "runtime", "uploads", "images"}
 
 
+def _git_status_for_path(root: Path, rel: Path) -> str | None:
+    if not (root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain", "--", str(rel)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout[:2] if result.stdout else ""
+
+
+def _is_git_ignored_or_untracked(root: Path, rel: Path) -> bool:
+    status = _git_status_for_path(root, rel)
+    return status in {"", "!!", "??"}
+
+
 def validate_issue_stage_dirs(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -177,7 +200,8 @@ def validate_deploy_dir(root: Path) -> list[str]:
             continue
         if path.name == ".env" or any(path.name.endswith(suffix) for suffix in DEPLOY_FORBIDDEN_SUFFIXES):
             if not path.name.endswith(".env.example"):
-                errors.append(f"deploy 存在禁止提交的真实 env 文件: {rel}")
+                if not _is_git_ignored_or_untracked(root, rel):
+                    errors.append(f"deploy 存在禁止提交的真实 env 文件: {rel}")
         if path.suffix in DEPLOY_FORBIDDEN_EXTENSIONS or path.name.endswith(".tar.gz"):
             errors.append(f"deploy 存在禁止提交的运行时或镜像文件: {rel}")
 

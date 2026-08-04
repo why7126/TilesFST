@@ -324,11 +324,11 @@ def render_changes_table(
         if not change:
             lines.append(f"| `{change_id}` | — | missing | — |")
             continue
-        link = change.linked_req or change.linked_bug or "—"
-        if change.linked_req:
-            link = short_issue_label(change.linked_req)
-        elif change.linked_bug:
+        link = change.linked_bug or change.linked_req or "—"
+        if change.linked_bug:
             link = short_issue_label(change.linked_bug)
+        elif change.linked_req:
+            link = short_issue_label(change.linked_req)
         goal = change.note
         lines.append(
             f"| `{change.change_id}` | {link} | {change.display_status} | {goal} |"
@@ -406,6 +406,26 @@ def render_main_scope_table(
             rows.append(
                 f"| {kind} | {issue_id} | {title} | {status} | {estimates.get(issue_id, '—')} | {note} |"
             )
+    linked_change_ids = {
+        derived.linked_change
+        for issue_id in [*sprint.requirements, *sprint.bugs]
+        if (derived := derived_issues.get(issue_id)) and derived.linked_change
+    }
+    linked_change_ids.update(
+        issue.related_change
+        for issue_id in sprint.bugs
+        if (issue := issues.get(issue_id)) and issue.related_change
+    )
+    for change_id in sprint.changes:
+        if change_id in linked_change_ids:
+            continue
+        change = changes.get(change_id)
+        status = change.display_status if change else "missing"
+        note = change.note if change else "change directory missing"
+        title = change_id.replace("-", " ") if change else change_id
+        rows.append(
+            f"| Change | {change_id} | {title} | {status} | {estimates.get(change_id, '—')} | {note} |"
+        )
     return "\n".join(rows)
 
 
@@ -414,12 +434,15 @@ def render_scope_summary_paragraphs(
     derived_issues: dict[str, DerivedIssue],
     changes: dict[str, DerivedChange],
 ) -> str:
+    req_codes = "、".join(f"`{short_issue_code(req_id)}`" for req_id in sprint.requirements) or "无"
     bug_codes = "、".join(f"`{short_issue_code(bug_id)}`" for bug_id in sprint.bugs) or "无"
     linked_changes = [
         derived.linked_change
         for issue_id in [*sprint.requirements, *sprint.bugs]
         if (derived := derived_issues.get(issue_id)) and derived.linked_change
     ]
+    issue_linked_change_ids = set(linked_changes)
+    pure_changes = [change_id for change_id in sprint.changes if change_id not in issue_linked_change_ids]
     pending_issue_ids = [
         issue_id
         for issue_id in [*sprint.requirements, *sprint.bugs]
@@ -430,7 +453,7 @@ def render_scope_summary_paragraphs(
     in_progress = sum(1 for change_id in sprint.changes if changes.get(change_id) and changes[change_id].state == "in_progress")
     proposed = sum(1 for change_id in sprint.changes if changes.get(change_id) and changes[change_id].state == "proposed")
     change_summary = (
-        f"Change：已回填 {len(linked_changes)} 个范围项关联 Change；"
+        f"Change：已回填 {len(linked_changes)} 个范围项关联 Change，另有 {len(pure_changes)} 个纯 Change；"
         f"{archived} archived，{applied} applied，{in_progress} in_progress，{proposed} proposed。"
     )
     if pending_issue_ids:
@@ -439,7 +462,8 @@ def render_scope_summary_paragraphs(
     else:
         change_summary += "所有已纳入范围项均已关联 Change；执行开发与归档时以 Scope 表逐项状态为准。"
     return (
-        f"BUG：{bug_codes} 已纳入正式范围，优先级高于新增体验能力；当前完成度与验收风险以 Scope 表状态、关联 Change 和 acceptance-report 为准。\n\n"
+        f"REQ：{req_codes} 已纳入正式范围；BUG：{bug_codes} 已纳入正式范围，优先级高于新增体验能力；"
+        "当前完成度与验收风险以 Scope 表状态、关联 Change 和 acceptance-report 为准。\n\n"
         f"{change_summary}"
     )
 
@@ -457,7 +481,7 @@ def _find_scope_main_table(section: str) -> tuple[int, int] | None:
         if not cells or "类型" not in cells:
             offset += len(line)
             continue
-        if not any(cell in {"编号", "ID"} for cell in cells):
+        if not any(cell in {"编号", "ID", "范围项"} for cell in cells):
             offset += len(line)
             continue
         if "状态" not in cells:

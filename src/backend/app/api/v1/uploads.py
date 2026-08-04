@@ -20,6 +20,7 @@ from app.core.error_codes import (
 from app.repositories.user_repository import UserRecord
 from app.repositories.task_trace_repository import TaskTraceRepository
 from app.modules.media.storage import (
+    build_brand_certificate_upload_object_key,
     build_image_upload_object_key,
     build_file_upload_object_key,
     build_video_upload_object_key,
@@ -859,7 +860,7 @@ async def upload_brand_certificate(
             summary="证书文件 MIME 与大小限制校验通过",
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
-        object_key = build_file_upload_object_key("brand-certificates", file.content_type)
+        object_key = build_brand_certificate_upload_object_key(file.content_type)
         thumbnail_key = (
             same_directory_thumbnail_object_key(object_key)
             if file.content_type and file.content_type.startswith("image/")
