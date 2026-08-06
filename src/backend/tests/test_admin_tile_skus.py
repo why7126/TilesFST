@@ -619,6 +619,32 @@ def test_admin_list_tile_skus(client: TestClient) -> None:
     assert "summary" in body["data"]
 
 
+def test_admin_list_tile_skus_includes_main_image_thumbnail_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+    response = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(
+            brand_id=brand_id,
+            category_id=category_id,
+            spec_id=spec_id,
+            sku_code=f"SKU-THUMB-{uuid4().hex[:6]}",
+        ),
+    )
+    assert response.status_code == 200
+
+    list_response = client.get("/api/v1/admin/tile-skus", headers=headers)
+    assert list_response.status_code == 200
+    item = next(
+        item for item in list_response.json()["data"]["items"] if item["id"] == response.json()["data"]["id"]
+    )
+    assert item["main_image_url"] == "/media/tiles/1/images/main.jpg"
+    assert item["main_image_thumbnail_url"] == "/media/tiles/1/images/main.thumb.jpg"
+
+
 def test_admin_list_tile_skus_includes_published_at(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     brand_id = _create_brand(client, headers)

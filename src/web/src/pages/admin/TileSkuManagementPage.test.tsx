@@ -63,6 +63,7 @@ const listPayload = {
       published_at: null,
       updated_at: '2026-06-20T00:00:00Z',
       main_image_url: null,
+      main_image_thumbnail_url: null,
     },
   ],
   total: 1,
@@ -226,6 +227,41 @@ describe('TileSkuManagementPage', () => {
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
     expect(row.cells[6]).toHaveTextContent(formatSkuDateTime('2026-06-19T16:30:00Z'));
     expect(row.cells[7]).toHaveTextContent(formatSkuDateTime('2026-06-20T00:45:00Z'));
+  });
+
+  it('uses thumbnail image first and falls back to original image', async () => {
+    fetchTileSkusMock.mockResolvedValue({
+      ...listPayload,
+      items: [
+        {
+          ...listPayload.items[0],
+          main_image_url: '/media/tiles/1/images/main.jpg',
+          main_image_thumbnail_url: '/media/tiles/1/images/main.thumb.jpg',
+        },
+      ],
+    });
+
+    const { container } = render(
+      <MemoryRouter>
+        <TileSkuManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('测试 SKU')).toBeInTheDocument();
+    });
+
+    const image = container.querySelector('.sku-thumb img') as HTMLImageElement;
+    expect(image).toHaveAttribute('src', '/media/tiles/1/images/main.thumb.jpg');
+
+    fireEvent.error(image);
+
+    await waitFor(() => {
+      expect(container.querySelector('.sku-thumb img')).toHaveAttribute(
+        'src',
+        '/media/tiles/1/images/main.jpg',
+      );
+    });
   });
 
   it('renders category cascade in one dropdown with child panel opening to the right', async () => {

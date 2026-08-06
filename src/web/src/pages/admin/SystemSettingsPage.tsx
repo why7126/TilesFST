@@ -88,6 +88,9 @@ const FILE_SIZE_OPTIONS = [10, 20, 25, 50, 100, 200].map((mb) => ({
   label: `${mb} MB`,
 }));
 
+const THUMBNAIL_MAX_SIZE_MIN_KB = 0;
+const THUMBNAIL_MAX_SIZE_MAX_KB = 1024;
+
 type ConfirmDialog =
   | { kind: 'reset' }
   | { kind: 'tab-switch'; nextTab: SettingsGroup };
@@ -259,6 +262,16 @@ export function SystemSettingsPage() {
     setError(null);
     setToast(null);
     try {
+      if (activeTab === 'media') {
+        const thumbnailMaxSizeKb = Number(form.thumbnail_max_size_kb ?? 0);
+        if (
+          !Number.isInteger(thumbnailMaxSizeKb) ||
+          thumbnailMaxSizeKb < THUMBNAIL_MAX_SIZE_MIN_KB ||
+          thumbnailMaxSizeKb > THUMBNAIL_MAX_SIZE_MAX_KB
+        ) {
+          throw new Error('缩略图体积目标上限须为 0–1024 KB');
+        }
+      }
       const patch: Record<string, unknown> = {};
       for (const key of Object.keys(form)) {
         if (key in snapshot && form[key] !== snapshot[key]) {
@@ -471,6 +484,25 @@ export function SystemSettingsPage() {
                 onChange={(value) => updateField('max_file_size_mb', Number(value))}
               />
             </div>
+            <label>
+              <span className="settings-field-label">
+                缩略图体积目标上限 (KB)<span className="required">*</span>
+              </span>
+              <input
+                className="settings-input"
+                type="number"
+                min={THUMBNAIL_MAX_SIZE_MIN_KB}
+                max={THUMBNAIL_MAX_SIZE_MAX_KB}
+                step={1}
+                value={Number(form.thumbnail_max_size_kb ?? 0)}
+                onChange={(event) => {
+                  updateField('thumbnail_max_size_kb', Number(event.target.value));
+                }}
+              />
+              <span className="settings-form-help">
+                0 表示不限制；大于 0 时后续新生成缩略图尽量不超过目标上限。历史缩略图需通过维护任务重生成。
+              </span>
+            </label>
             <div>
               <span className="settings-field-label">支持图片格式</span>
               <div className="settings-chips">

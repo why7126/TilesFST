@@ -1,0 +1,25 @@
+---
+title: "实施与客服入口"
+created_at: 2026-08-05 18:40:00
+updated_at: 2026-08-05 18:40:00
+---
+
+# 实施与客服入口
+
+实施和客服需要同时理解管理端维护链路、小程序展示链路和版本边界，便于排查客户反馈。
+
+<Steps>
+  <Step title="先判断影响端">
+    管理端录入、媒体上传、权限问题优先查管理端；浏览、搜索、收藏和证书展示优先查小程序。
+  </Step>
+  <Step title="再确认版本">
+    默认用 [latest 当前版本](/docs/latest/overview) 判断当前能力；历史问题从 [版本索引](/versions/index) 回溯。
+  </Step>
+  <Step title="最后回到 FAQ">
+    常见排查路径集中在 [FAQ](/docs/latest/faq)，包括图片不显示、权限不可见和公开信息边界。
+  </Step>
+</Steps>
+
+<Card title="公开安全边界" icon="lock" href="/governance/public-boundary">
+  对外回复或整理文档时，不得写入真实客户数据、密钥、Cookie、Authorization header、对象存储凭据或生产私有地址。
+</Card>

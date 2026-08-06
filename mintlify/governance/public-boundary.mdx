@@ -1,0 +1,25 @@
+---
+title: "公开安全边界"
+created_at: 2026-08-05 18:40:00
+updated_at: 2026-08-05 18:40:00
+---
+
+# 公开安全边界
+
+Mintlify 文档站是公开产品文档源目录，只承载产品使用说明、发布公告投影和可公开截图资产。
+
+<AccordionGroup>
+  <Accordion title="可以公开写什么？">
+    产品入口、角色说明、操作步骤、版本差异、公开截图、FAQ 和发布公告。
+  </Accordion>
+  <Accordion title="不能公开写什么？">
+    真实客户数据、账号密码、密钥、Cookie、Authorization header、数据库连接串、对象存储凭据、生产私有地址、本地绝对路径和内部调试信息。
+  </Accordion>
+  <Accordion title="截图如何管理？">
+    截图统一放入 `/assets/screenshots/`，文件名使用 hash 前缀，并通过 release manifest 或 site manifest 追溯来源。
+  </Accordion>
+</AccordionGroup>
+
+<Card title="文档站治理说明" icon="book-open" href="/governance/site-governance">
+  查看 release 快照、站点投影、latest 更新和历史版本冻结规则。
+</Card>

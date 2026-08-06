@@ -123,6 +123,7 @@ def test_safe_object_ref_hides_raw_object_key():
 
 def test_pending_tile_formalization_dry_run_uses_acceptance_summary(monkeypatch):
     args = argparse.Namespace(apply=False, limit=1, confirm_backup=False)
+    monkeypatch.setattr(maintenance, "_effective_thumbnail_max_size_kb", lambda: 20)
     monkeypatch.setattr(
         maintenance,
         "_pending_tile_rows",
@@ -141,6 +142,7 @@ def test_pending_tile_formalization_dry_run_uses_acceptance_summary(monkeypatch)
 
     assert result["mode"] == "dry_run"
     assert result["summary"]["total"] == 1
+    assert result["summary"]["thumbnail_max_size_kb"] == 20
     assert result["items"][0]["source"]["object_key_prefix"] == (
         "images/default/tiles/pending"
     )
@@ -149,6 +151,7 @@ def test_pending_tile_formalization_dry_run_uses_acceptance_summary(monkeypatch)
 
 def test_thumbnail_backfill_counts_same_size_and_same_bytes(monkeypatch):
     args = argparse.Namespace(apply=False, limit=None, confirm_backup=False)
+    monkeypatch.setattr(maintenance, "_effective_thumbnail_max_size_kb", lambda: 20)
     storage = _Storage()
     storage.objects = {
         "images/default/brands/logos/logo.jpg": StoredMediaObject(b"same", "image/jpeg"),
@@ -174,9 +177,122 @@ def test_thumbnail_backfill_counts_same_size_and_same_bytes(monkeypatch):
     result = maintenance.run_thumbnail_backfill(args)
 
     assert result["summary"]["retry_candidates"] == 1
+    assert result["summary"]["estimated_writes"] == 1
+    assert result["summary"]["thumbnail_max_size_kb"] == 20
     assert result["summary"]["same_size"] == 1
     assert result["summary"]["same_bytes"] == 1
     assert result["items"][0]["reason"] == "thumbnail_copied_original"
+
+
+def test_thumbnail_backfill_counts_existing_thumbnail_above_target(monkeypatch):
+    args = argparse.Namespace(apply=False, limit=None, confirm_backup=False)
+    monkeypatch.setattr(maintenance, "_effective_thumbnail_max_size_kb", lambda: 20)
+    storage = _Storage()
+    storage.objects = {
+        "images/default/brands/logos/logo.jpg": StoredMediaObject(
+            b"original-content" * 4096,
+            "image/jpeg",
+        ),
+        "images/default/brands/logos/logo.thumb.jpg": StoredMediaObject(
+            b"thumb-content" * 2048,
+            "image/jpeg",
+        ),
+    }
+    monkeypatch.setattr(maintenance, "get_media_storage_client", lambda: storage)
+    monkeypatch.setattr(
+        maintenance,
+        "_thumbnail_source_rows",
+        lambda limit: [
+            {
+                "source_type": "brand_logo",
+                "source_id": 1,
+                "object_key": "images/default/brands/logos/logo.jpg",
+                "mime_type": "image/jpeg",
+            }
+        ],
+    )
+
+    result = maintenance.run_thumbnail_backfill(args)
+
+    assert result["summary"]["retry_candidates"] == 1
+    assert result["summary"]["estimated_writes"] == 1
+    assert result["summary"]["exceeds_target_size"] == 1
+    assert result["summary"]["already_conformant"] == 0
+    assert result["items"][0]["reason"] == "thumbnail_exceeds_target_size"
+
+
+def test_thumbnail_source_rows_include_sku_brand_and_certificate_images(
+    tmp_path,
+    monkeypatch,
+):
+    db_path = tmp_path / "catalog.db"
+    connection = sqlite3.connect(db_path)
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE tile_images (
+                id INTEGER PRIMARY KEY,
+                object_key TEXT
+            );
+            CREATE TABLE brands (
+                id INTEGER PRIMARY KEY,
+                logo_object_key TEXT
+            );
+            CREATE TABLE brand_certificates (
+                id INTEGER PRIMARY KEY,
+                deleted_at TEXT,
+                file_key TEXT,
+                file_mime_type TEXT
+            );
+            CREATE TABLE brand_certificate_images (
+                id INTEGER PRIMARY KEY,
+                file_key TEXT,
+                file_mime_type TEXT
+            );
+            INSERT INTO tile_images VALUES (
+                1,
+                'images/default/tiles/42/main.webp'
+            );
+            INSERT INTO brands VALUES (
+                2,
+                'images/default/brands/logos/logo.webp'
+            );
+            INSERT INTO brand_certificates VALUES (
+                3,
+                NULL,
+                'images/default/brand-certificates/cert.webp',
+                'image/webp'
+            );
+            INSERT INTO brand_certificate_images VALUES (
+                4,
+                'images/default/brand-certificates/extra.webp',
+                'image/webp'
+            );
+            """
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    monkeypatch.setattr(
+        maintenance,
+        "get_session_factory",
+        lambda: lambda: _Session(sqlite3.connect(db_path)),
+    )
+
+    rows = maintenance._thumbnail_source_rows(limit=None)
+
+    assert {row["source_type"] for row in rows} == {
+        "sku_image",
+        "brand_logo",
+        "certificate_file",
+        "certificate_image",
+    }
+    assert {row["object_key"] for row in rows} == {
+        "images/default/tiles/42/main.webp",
+        "images/default/brands/logos/logo.webp",
+        "images/default/brand-certificates/cert.webp",
+        "images/default/brand-certificates/extra.webp",
+    }
 
 
 def _prepare_certificate_db(path) -> None:

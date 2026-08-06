@@ -56,10 +56,12 @@ def release_dir(version: str) -> Path:
     return RELEASES_DIR / version
 
 
-def mint_pages(releases_dir: Path) -> set[str]:
-    mint_path = releases_dir / "mint.json"
+def config_pages(config_root: Path) -> set[str]:
+    docs_path = config_root / "docs.json"
+    mint_path = config_root / "mint.json"
+    config_path = docs_path if docs_path.exists() else mint_path
     errors: list[str] = []
-    data = load_json(mint_path, errors)
+    data = load_json(config_path, errors)
     pages: set[str] = set()
 
     def visit(value: Any) -> None:
@@ -79,32 +81,15 @@ def mint_pages(releases_dir: Path) -> set[str]:
 
     visit(data)
     return pages
+
+
+def mint_pages(releases_dir: Path) -> set[str]:
+    return config_pages(releases_dir)
 
 
 def mintlify_pages(site_root: Path | None = None) -> set[str]:
     site_root = site_root or MINTLIFY_DIR
-    mint_path = site_root / "mint.json"
-    errors: list[str] = []
-    data = load_json(mint_path, errors)
-    pages: set[str] = set()
-
-    def visit(value: Any) -> None:
-        if isinstance(value, dict):
-            for key, nested in value.items():
-                if key == "pages" and isinstance(nested, list):
-                    for page in nested:
-                        if isinstance(page, str):
-                            pages.add(page)
-                        else:
-                            visit(page)
-                else:
-                    visit(nested)
-        elif isinstance(value, list):
-            for item in value:
-                visit(item)
-
-    visit(data)
-    return pages
+    return config_pages(site_root)
 
 
 def scan_files(paths: list[Path], errors: list[str]) -> None:
@@ -396,7 +381,8 @@ def validate_generated_usage_docs(release_path: Path, release_data: dict[str, An
         release_path,
         rdir / str(release_data.get("announcement", "announcement.mdx")),
         rdir.parent / "mint.json",
-        MINTLIFY_DIR / "mint.json",
+        rdir.parent / "docs.json",
+        MINTLIFY_DIR / "docs.json",
         MINTLIFY_DIR / "site-manifest.json",
         manifest_path,
     ]

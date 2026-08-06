@@ -1,6 +1,33 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 117
+next_id: 120
 entries:
+  - id: BUG-0119-openspec-archive-scaffold-warning-noise
+    title: OpenSpec 归档反复暴露英文脚手架兼容 warning
+    status: draft
+    severity: medium
+    created: "2026-08-06 10:05:19"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0118-fact-sheet-ai-usage-future-start-date-freshness
+    title: Fact Sheet AI usage fresh gate 将未来 Sprint start_date 当作 snapshot 新鲜度下限
+    status: in_sprint
+    severity: medium
+    created: "2026-08-06 08:35:36"
+    related_requirement: null
+    related_bug: BUG-0113-fact-sheet-ai-usage-fresh-gate-snapshot
+    related_change: null
+    iteration: null
+  - id: BUG-0117-miniapp-privacy-clipboard-phone-drift
+    title: 小程序残留电话与剪贴板隐私接口能力导致提审隐私声明不匹配
+    status: done
+    severity: high
+    created: "2026-08-05 09:36:21"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: sprint-020
   - id: BUG-0116-prod-media-historical-object-drift
     title: 生产历史媒体对象与缩略图存在规范漂移
     status: done

@@ -13,6 +13,7 @@ import {
 } from '@/features/admin/api/banners-api';
 import { BannerFormModal } from '@/features/admin/components/BannerFormModal';
 import { AdminToast } from '@/features/admin/components/AdminToast';
+import { FallbackListImage } from '@/features/admin/components/FallbackListImage';
 import {
   BANNER_PAGE_SIZES,
   BANNER_STATUS_OPTIONS,
@@ -289,7 +290,10 @@ export function BannerManagementPage() {
                       <td className="admin-sticky-action-cell">
                         <div className="banner-cell">
                           <span className="banner-thumb">
-                            {banner.image_url ? <img src={banner.image_url} alt="" /> : null}
+                            <FallbackListImage
+                              thumbnailUrl={banner.image_thumbnail_url}
+                              originalUrl={banner.image_url}
+                            />
                           </span>
                           <span className="banner-main">{banner.title}</span>
                         </div>

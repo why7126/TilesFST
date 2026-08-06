@@ -19,6 +19,7 @@ from app.db.session import get_session_factory
 from app.modules.media import storage as media_storage
 from app.modules.media.storage import (
     ImageThumbnailResult,
+    StoredMediaObject,
     get_media_storage_client,
     same_directory_thumbnail_object_key,
 )
@@ -99,6 +100,10 @@ def _create_sku(client: TestClient, headers: dict[str, str]) -> tuple[int, str]:
     category_id = _create_category(client, headers)
     spec_id = _create_spec(client, headers)
     main_key = "images/default/tiles/pending/test-main.jpg"
+    get_media_storage_client().objects[main_key] = StoredMediaObject(
+        b"\xff\xd8\xffpending",
+        "image/jpeg",
+    )
     response = client.post(
         "/api/v1/admin/tile-skus",
         headers=headers,
@@ -122,7 +127,8 @@ def _create_sku(client: TestClient, headers: dict[str, str]) -> tuple[int, str]:
         },
     )
     assert response.status_code == 200
-    return response.json()["data"]["id"], main_key
+    created = response.json()["data"]
+    return created["id"], created["images"][0]["object_key"]
 
 
 def _banner_payload(
@@ -185,6 +191,22 @@ def test_list_banners_and_summary(client: TestClient) -> None:
     assert "items" in body["data"]
     assert "summary" in body["data"]
     assert "filtered_count" in body["data"]["summary"]
+
+
+def test_list_banners_includes_image_thumbnail_url(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    banner_id = _create_banner(
+        client,
+        headers,
+        title=f"Thumbnail Banner {uuid4().hex[:6]}",
+        image_object_key="images/default/banners/list-thumb.jpg",
+    )
+
+    response = client.get("/api/v1/admin/banners", headers=headers)
+    assert response.status_code == 200
+    item = next(item for item in response.json()["data"]["items"] if item["id"] == banner_id)
+    assert item["image_url"] == "/media/images/default/banners/list-thumb.jpg"
+    assert item["image_thumbnail_url"] == "/media/images/default/banners/list-thumb.thumb.jpg"
 
 
 def test_employee_can_access_banners(client: TestClient) -> None:
@@ -610,7 +632,15 @@ def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch
         b"\x0d\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
     )
 
-    def fake_thumbnail(content: bytes, content_type: str | None) -> ImageThumbnailResult:
+    captured_target: dict[str, int] = {}
+
+    def fake_thumbnail(
+        content: bytes,
+        content_type: str | None,
+        *,
+        target_max_size_kb: int = 0,
+    ) -> ImageThumbnailResult:
+        captured_target["value"] = target_max_size_kb
         return ImageThumbnailResult(
             content=b"banner-thumbnail",
             content_type=content_type or "image/png",
@@ -624,6 +654,11 @@ def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch
         )
 
     monkeypatch.setattr(media_storage, "generate_image_thumbnail", fake_thumbnail)
+    client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"thumbnail_max_size_kb": 20},
+    )
     response = client.post(
         "/api/v1/admin/uploads/banner-images",
         headers=headers,
@@ -638,6 +673,7 @@ def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch
     assert data["thumbnail_key"] == thumbnail_key
     assert data["thumbnail_url"] == f"/media/{thumbnail_key}"
     assert thumbnail_key in get_media_storage_client().objects
+    assert captured_target["value"] == 20
 
 
 def test_banner_image_upload_rejects_invalid_type(client: TestClient) -> None:

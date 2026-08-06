@@ -20,6 +20,7 @@ import {
   type TileSkuListData,
 } from '@/features/admin/api/tile-skus-api';
 import { AdminToast } from '@/features/admin/components/AdminToast';
+import { FallbackListImage } from '@/features/admin/components/FallbackListImage';
 import { TileSkuFormModal } from '@/features/admin/components/TileSkuFormModal';
 import {
   formatSkuDateTime,
@@ -480,7 +481,10 @@ export function TileSkuManagementPage() {
                   <td>
                     <div className="sku-cell">
                       <div className="sku-thumb">
-                        {item.main_image_url ? <img src={item.main_image_url} alt="" /> : null}
+                        <FallbackListImage
+                          thumbnailUrl={item.main_image_thumbnail_url}
+                          originalUrl={item.main_image_url}
+                        />
                       </div>
                       <span>
                         <span className="sku-name">{item.name}</span>

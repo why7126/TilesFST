@@ -7,6 +7,8 @@ services:
   tilesfst-backend:
     # 生产镜像仓库名与统一 tag 由 env 控制。
     image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    # 生产服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     # 保留 build 入口用于本机生产等价 config/build 验证；上下文与根目录 docker-compose.yml 保持一致。
     build:
       context: ../../src/backend
@@ -114,6 +116,8 @@ services:
   tilesfst-web:
     # Web 生产镜像仓库名与统一 tag 由 env 控制。
     image: ${TILESFST_WEB_IMAGE_REPOSITORY:-tilesfst-web}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    # 生产 Web 服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: src/web/Dockerfile
@@ -153,19 +157,30 @@ services:
   tilesfst-docs-site:
     profiles:
       - docs-site
-    image: ${MINTLIFY_NODE_IMAGE:-node:22-alpine}
+    build:
+      context: ../..
+      dockerfile: deploy/docs-site/Dockerfile
+      args:
+        DOCS_SITE_NODE_BASE_IMAGE: ${DOCS_SITE_NODE_BASE_IMAGE:-node:22-alpine}
+        MINTLIFY_CLI_VERSION: ${MINTLIFY_CLI_VERSION:-4.2.45}
+    image: ${TILESFST_DOCS_SITE_IMAGE_REPOSITORY:-tilesfst-docs-site}:${TILESFST_IMAGE_TAG:-local}
     container_name: tilesfst-docs-site
+    # 文档站服务异常退出后自动拉起；未启用 profile 时不启动。
+    restart: unless-stopped
     working_dir: /workspace/mintlify
     # 仅挂载公开 Mintlify 源目录；不得挂载生产 env、密钥或运行时数据。
     volumes:
       - ../../mintlify:/workspace/mintlify:ro
-      - ../../deploy/scripts/docs-site-static-server.mjs:/workspace/docs-site-static-server.mjs:ro
+      - tilesfst-docs-site-cache:/home/node/.mintlify
     # 容器内 Mintlify 预览端口固定 3000；宿主机端口由生产 env 显式规划。
     ports:
       - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
-    command: node /workspace/docs-site-static-server.mjs
+    command: mintlify dev --host 0.0.0.0 --port 3000
     networks:
       - tilesfst
+
+volumes:
+  tilesfst-docs-site-cache:
 
 networks:
   # 生产 bridge 网络包含业务服务与 docs-site；MySQL 与 COS 为外部服务。

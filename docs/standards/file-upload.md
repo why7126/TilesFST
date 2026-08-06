@@ -45,7 +45,7 @@ file: <binary>
 }
 ```
 
-视频上传额外可含 `duration`、`cover_url`（若已实现）。图片类上传成功时应返回同目录 `.thumb` 缩略图 `thumbnail_key`、`thumbnail_url`；不生成缩略图的文件类型返回 `null`。
+视频上传额外可含 `duration`、`cover_url`（若已实现）。图片类上传成功时应返回同目录 `.thumb` 缩略图 `thumbnail_key`、`thumbnail_url`；不生成缩略图的文件类型返回 `null`。缩略图内容读取 `media.thumbnail_max_size_kb` effective 策略，`0` 表示不限制，正整数表示尽量不超过目标 KB；该策略不得改变 `.thumb` Key / URL 命名规则。
 
 图片、视频、文件上传首批接入 Task Trace。成功响应 MUST 返回后端生成或确认的 `task_trace_id` 与 `task_type`，前端后续行为事件可携带该 ID 继续串联同一次上传任务。
 

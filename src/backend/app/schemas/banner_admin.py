@@ -19,6 +19,7 @@ class BannerAdminItem(BaseModel):
     position: str
     image_object_key: str
     image_url: str
+    image_thumbnail_url: str | None = None
     image_source: str
     sku_gallery_asset_id: int | None = None
     jump_type: str

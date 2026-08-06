@@ -587,8 +587,8 @@ def test_generate_usage_docs_blocks_gate_until_real_screenshots(tmp_path: Path, 
     assert "real system screenshots" in release_data["gates"]["usage_docs_preview"]["evidence"]
     assert manifest["screenshots"] == []
     assert (root / "mintlify" / "docs" / "v9.9.9" / "overview.mdx").exists()
-    mint = json.loads((root / "mintlify" / "mint.json").read_text(encoding="utf-8"))
-    assert "docs/v9.9.9/overview" in json.dumps(mint)
+    docs = json.loads((root / "mintlify" / "docs.json").read_text(encoding="utf-8"))
+    assert "docs/v9.9.9/overview" in json.dumps(docs)
 
 
 def test_previous_usage_docs_version_uses_semver_and_requires_manifest(tmp_path: Path, monkeypatch) -> None:
@@ -800,9 +800,10 @@ def test_usage_docs_site_projection_checks_mintlify_targets(tmp_path: Path, monk
             target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
     (site_root / "releases" / version / "announcement.mdx").write_text("# Public", encoding="utf-8")
     (site_root / "assets" / "screenshots" / "sha256-admin.png").write_bytes(b"fake-png")
-    (site_root / "mint.json").write_text(
+    (site_root / "docs.json").write_text(
         json.dumps(
             {
+                "theme": "mint",
                 "navigation": [
                     {
                         "group": "docs",

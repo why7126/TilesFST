@@ -77,24 +77,16 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 - **AND** 页面 SHALL NOT 白屏或长期停留在无反馈加载状态。
 
 ### Requirement: 证书文件预览
-小程序 SHALL 为公开证书提供图片或 PDF 文件预览能力，并在预览失败时稳定降级。证书列表页卡片主区域 SHALL 进入证书详情页；图片预览和 PDF 打开能力 SHALL 在证书详情页内提供，也 MAY 保留明确的非主点击预览入口。
 
-#### Scenario: 证书列表主点击进入详情页
-- **WHEN** 用户点击证书列表页证书卡片主区域
-- **THEN** 小程序 SHALL 携带 `certificateId` 和可用来源参数进入证书详情页
-- **AND** 小程序 SHALL NOT 直接把卡片主点击绑定为图片预览或 PDF 打开。
-
-#### Scenario: 图片证书预览
-- **WHEN** 用户在证书详情页点击图片预览入口或当前图片
-- **THEN** 小程序 SHALL 使用图片预览能力展示证书图片
-- **AND** 多图证书 SHALL 从当前图片开始预览并支持左右切换
-- **AND** 预览失败时 SHALL 展示稳定错误提示
-- **AND** 用户 SHALL 能返回证书详情继续浏览。
+系统 SHALL 在证书详情页提供图片预览与 PDF/文件打开能力，并 SHALL 在失败路径中保持稳定错误提示。失败兜底不得触发剪贴板隐私接口，不得复制文件 URL。
 
 #### Scenario: PDF 证书预览
+
 - **WHEN** 用户在证书详情页点击 PDF 证书打开入口
-- **THEN** 小程序 SHALL 通过受控 URL 打开、复制提示或项目确认的等价方式处理 PDF
-- **AND** 处理失败时 SHALL 展示稳定错误提示
+- **THEN** 小程序 SHALL 优先通过受控 URL 下载并使用 `wx.openDocument` 打开 PDF 或文件
+- **AND** 下载失败、状态码异常或 `wx.openDocument` 失败时 SHALL 展示稳定错误提示
+- **AND** 小程序 SHALL NOT 调用 `wx.setClipboardData`
+- **AND** 小程序 SHALL NOT 展示“文件链接已复制”或等价复制成功提示
 - **AND** 小程序 SHALL NOT 暴露未授权对象存储直连地址或原始 object key。
 
 ### Requirement: 证书列表视觉、导航与设备验收

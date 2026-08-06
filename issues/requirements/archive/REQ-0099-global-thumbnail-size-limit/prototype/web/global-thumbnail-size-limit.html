@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0099 全局缩略图体积上限设置原型</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --surface-2: #29251a;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --border: rgba(237, 232, 223, 0.12);
+        --gold: #c8a055;
+        --danger: #d8765c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .shell {
+        min-height: 100vh;
+        padding: 28px;
+      }
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+      .eyebrow {
+        color: var(--gold);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1,
+      h2 {
+        margin: 0;
+        font-weight: 500;
+      }
+      h1 {
+        margin-top: 8px;
+        font-size: 24px;
+      }
+      .desc,
+      .help {
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 13px;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .tab {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        padding: 9px 14px;
+        border-radius: 3px;
+      }
+      .tab.active {
+        color: var(--text);
+        border-color: rgba(200, 160, 85, 0.7);
+        background: rgba(200, 160, 85, 0.12);
+      }
+      .panel {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 4px;
+      }
+      .section {
+        padding: 22px;
+        border-bottom: 1px solid var(--border);
+      }
+      .section:last-child {
+        border-bottom: 0;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .status {
+        color: var(--gold);
+        border: 1px solid rgba(200, 160, 85, 0.32);
+        border-radius: 2px;
+        padding: 5px 8px;
+        height: fit-content;
+        font-size: 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      label {
+        display: grid;
+        gap: 7px;
+      }
+      .field-label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: var(--surface-2);
+        color: var(--text);
+        padding: 10px 11px;
+        font-size: 13px;
+      }
+      input:focus,
+      select:focus {
+        outline: 1px solid var(--gold);
+        border-color: var(--gold);
+      }
+      .readonly {
+        min-height: 40px;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 10px 11px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 16px 22px;
+        border-top: 1px solid var(--border);
+      }
+      .btn {
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--text);
+        padding: 10px 14px;
+      }
+      .btn.primary {
+        background: var(--gold);
+        border-color: var(--gold);
+        color: #18160f;
+      }
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        border: 1px solid rgba(200, 160, 85, 0.35);
+        background: #211e16;
+        color: var(--text);
+        border-radius: 4px;
+        padding: 12px 14px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+      }
+      @media (max-width: 960px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 640px) {
+        .shell {
+          padding: 16px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="page-head">
+        <div>
+          <div class="eyebrow">System Settings</div>
+          <h1>系统设置</h1>
+          <p class="desc">维护平台基础信息、媒体策略、安全策略和通知规则。</p>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="系统设置分组">
+        <button class="tab">基础信息</button>
+        <button class="tab active">媒体与存储</button>
+        <button class="tab">安全策略</button>
+        <button class="tab">通知</button>
+      </nav>
+
+      <section class="panel">
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <h2>上传限制</h2>
+              <p class="desc">作用于 SKU 图库、品牌 Logo、Banner 图片、证书图片和视频素材等媒体处理策略。</p>
+            </div>
+            <span class="status">已启用</span>
+          </div>
+          <div class="grid">
+            <label>
+              <span class="field-label">图片最大尺寸 (MB)</span>
+              <select aria-label="图片最大尺寸 (MB)">
+                <option>20</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label">视频最大尺寸 (MB)</span>
+              <select aria-label="视频最大尺寸 (MB)">
+                <option>500</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label">文档最大尺寸 (MB)</span>
+              <select aria-label="文档最大尺寸 (MB)">
+                <option>25</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label">缩略图体积上限 (KB)</span>
+              <input aria-label="缩略图体积上限 (KB)" type="number" min="0" max="1024" value="20" />
+              <span class="help">0 表示不限制；仅对新生成缩略图生效。</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div>
+              <h2>对象存储策略</h2>
+              <p class="desc">桶名与 Key 规则来自运行时环境配置，不可在线修改。</p>
+            </div>
+            <span class="status">只读策略</span>
+          </div>
+          <div class="grid">
+            <label>
+              <span class="field-label">默认存储桶</span>
+              <div class="readonly">tilesfst</div>
+            </label>
+            <label style="grid-column: span 3">
+              <span class="field-label">Key 生成规则</span>
+              <div class="readonly">同目录 .thumb 缩略图规则保持稳定，不随体积上限配置变化</div>
+            </label>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <button class="btn">恢复默认</button>
+          <button class="btn primary">保存设置</button>
+        </footer>
+      </section>
+    </main>
+    <aside class="toast" role="status">设置已保存并立即影响后续新生成缩略图</aside>
+  </body>
+</html>

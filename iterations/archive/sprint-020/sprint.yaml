@@ -1,0 +1,61 @@
+sprint_id: sprint-020
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-19 09:00:00
+end_date: 2026-09-02 18:00:00
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+requirements:
+  - REQ-0098-admin-media-list-thumbnails
+  - REQ-0100-mintlify-docs-site-ia-content-experience
+  - REQ-0099-global-thumbnail-size-limit
+bugs:
+  - BUG-0117-miniapp-privacy-clipboard-phone-drift
+changes:
+  - optimize-admin-media-list-thumbnails
+  - fix-miniapp-privacy-interface-drift
+  - improve-mintlify-docs-site
+  - update-global-thumbnail-size-limit
+estimated_story_points: 14
+estimated_person_days: 14
+capacity_usage: 0.4667
+fix_buffer_person_days: 16
+fix_buffer_ratio: 0.5333
+scope_estimates:
+  - id: REQ-0098-admin-media-list-thumbnails
+    requirement: REQ-0098-admin-media-list-thumbnails
+    change: optimize-admin-media-list-thumbnails
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 管理端媒体列表性能体验优化；覆盖后端 SKU/Banner 列表响应字段、OpenAPI/Orval、Web 管理端 SKU/Banner 缩略图优先展示、品牌/证书列表复核、后端与前端测试。影响 backend、admin web、API、Orval 和受控媒体读取边界；不改数据库、小程序、店主 Web 或上传链路。
+  - id: BUG-0117-miniapp-privacy-clipboard-phone-drift
+    change: fix-miniapp-privacy-interface-drift
+    bug: BUG-0117-miniapp-privacy-clipboard-phone-drift
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P0/P1 发布审核阻断类高优先级 BUG；收敛小程序电话与剪贴板隐私接口残留，覆盖小程序运行入口、后端 miniapp home 服务合约、Pydantic Schema、OpenSpec/README/API 文档与静态/后端测试。影响 miniapp、backend、API docs/tests；不改数据库、Web 管理端或对象存储。
+  - id: REQ-0100-mintlify-docs-site-ia-content-experience
+    requirement: REQ-0100-mintlify-docs-site-ia-content-experience
+    change: improve-mintlify-docs-site
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 Mintlify 文档站信息架构与内容体验优化；覆盖 mintlify 首页/导航/latest/版本上下文、site manifest、README 和文档站校验。影响 docs_site、release_governance 和测试校验；不改后端、数据库、API、Web 应用、小程序或管理端运行时代码。
+  - id: REQ-0099-global-thumbnail-size-limit
+    requirement: REQ-0099-global-thumbnail-size-limit
+    change: update-global-thumbnail-size-limit
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 全局缩略图体积上限策略；覆盖管理后台系统设置-媒体与存储、后端系统设置持久化、SKU/品牌/证书/Banner 上传缩略图生成路径、维护作业历史重生成入口、OpenAPI/Orval、后端与管理端测试。影响 backend、admin web、API、Orval、object storage 和媒体维护作业；不改变 .thumb URL 命名约定，不自动重写历史对象。
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 14
+  capacity_usage: 0.4667
+  note: project.yaml 未提供显式 Sprint 容量，沿用 sprint-019 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 3 个 P1 REQ、1 个高优先级 BUG 与 4 个关联 Change，估算 14 人天，占用 46.67%，保留 16 人天缓冲。
+deferred_items: []

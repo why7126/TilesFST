@@ -4,7 +4,7 @@ content: 说明 MinIO/S3兼容对象存储/腾讯 COS 单桶策略、目录前�
 source: AI自动生成，人工确认
 update_method: 对象存储策略或媒体资源类型变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 11:32:00
+updated_at: 2026-08-05 23:33:54
 note: V5 从多桶策略调整为单桶 + 前缀策略；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -63,7 +63,7 @@ SKU 商品列表缩略图采用与原图同目录、文件名后缀差异化的 
 `images/default/tiles/{tile_id}/<uuid>.webp` 对应
 `images/default/tiles/{tile_id}/<uuid>.thumb.webp`。`thumbnails/` 前缀仅作为历史兼容读取或迁移来源，不作为新生成 SKU 列表缩略图的最终写入位置。
 
-SKU 图片上传链路必须生成真实轻量缩略图，而不是把原图 bytes 复制到 `.thumb` key。后端媒体模块使用 Pillow 解码 JPG、PNG、WebP，按约定最大宽高等比缩小且不放大小图，并尽量保留透明 PNG/WebP 的透明度。对于尺寸大于目标尺寸的原图，`.thumb` 对象应与原图 bytes 不同，像素宽高不超过目标最大宽高，文件体积通常小于原图。若缩略图生成失败，上传链路保持原图对象可读取并记录可观测告警，列表读取继续依赖 `.thumb` 缺失回退原图。
+SKU 图片上传链路必须生成真实轻量缩略图，而不是把原图 bytes 复制到 `.thumb` key。后端媒体模块使用 Pillow 解码 JPG、PNG、WebP，按约定最大宽高等比缩小且不放大小图，并尽量保留透明 PNG/WebP 的透明度。对于尺寸大于目标尺寸的原图，`.thumb` 对象应与原图 bytes 不同，像素宽高不超过目标最大宽高，文件体积通常小于原图。`media.thumbnail_max_size_kb` 为全局缩略图体积目标上限：`0` 表示保持当前不限制模式；正整数表示 SKU、品牌 Logo、Banner、品牌证书图片和维护任务重生成的 `.thumb` 内容尽量不超过该 KB 目标。该配置只影响生成内容，不改变同目录 `.thumb` Key / URL 推导规则。若缩略图生成失败或复杂 PNG 无法达标，上传链路保持原图对象可读取并记录可观测告警，列表读取继续依赖 `.thumb` 缺失回退原图。
 
 `/media/{object_key}` 受控读取在同路径 `.thumb` 缩略图缺失时可回退同目录原图，避免小程序商品卡片收到不可访问的缩略图 URL。历史数据可通过
 `python scripts/audit-miniapp-card-images.py --backfill` 预览缺失缩略图，通过
@@ -84,7 +84,9 @@ SKU 图片上传链路必须生成真实轻量缩略图，而不是把原图 byt
 ./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos bug-0116-media-drift --limit 100
 ```
 
-`object-key-audit` 为只读任务，不支持 apply。`backfill-brand-certificate-thumbnails`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 与 `bug-0116-media-drift` 默认 dry-run；生产写入必须追加 `--apply --confirm-backup`，确认 MySQL 与对象存储 bucket/prefix 已备份。`bug-0116-media-drift` 是 BUG-0116 的聚合入口，按顺序覆盖 SKU pending 主图正式化、证书图片 `files/` 到 `images/` key 迁移、品牌 Logo/证书图片同目录 `.thumb` 缩略图回填和二次对象 key 审计。维护输出只允许出现对象 Key hash、标准前缀、统计摘要、失败原因枚举和媒体验收摘要，不得输出 access key、secret key、数据库连接串、Authorization header、Cookie、真实 `.env` 内容、本机绝对路径或未脱敏 object key。
+`object-key-audit` 为只读任务，不支持 apply。`backfill-brand-certificate-thumbnails`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 与 `bug-0116-media-drift` 默认 dry-run；生产写入必须追加 `--apply --confirm-backup`，确认 MySQL 与对象存储 bucket/prefix 已备份。历史缩略图重生成读取当前 `media.thumbnail_max_size_kb` effective 值；保存系统设置不会自动扫描、读取或覆盖历史 `.thumb` 对象。`backfill-brand-certificate-thumbnails` 保留历史命令名，但实际覆盖 SKU、品牌 Logo 和品牌证书图片同目录 `.thumb` 缩略图。`bug-0116-media-drift` 是 BUG-0116 的聚合入口，按顺序覆盖 SKU pending 主图正式化、证书图片 `files/` 到 `images/` key 迁移、SKU/品牌 Logo/证书图片同目录 `.thumb` 缩略图回填和二次对象 key 审计。维护输出只允许出现对象 Key hash、标准前缀、统计摘要、失败原因枚举和媒体验收摘要，不得输出 access key、secret key、数据库连接串、Authorization header、Cookie、真实 `.env` 内容、本机绝对路径或未脱敏 object key。
+
+生产环境若仍使用根目录兼容 Compose 命令进入后端容器，或需要解读 `bug-0116-media-drift` / `backfill-brand-certificate-thumbnails` 的 JSON 输出，参见 [standards/production-media-maintenance-runbook.md](standards/production-media-maintenance-runbook.md)。
 
 视频读取由后端 `/media/{object_key}` 受控代理，支持 `GET`、`HEAD` 与视频 `Range` 请求。小程序原生视频预览、保存和转发可能先发送 `HEAD` 探测资源元信息；后端必须返回正确 `Content-Type`、`Content-Length`，并对视频返回 `Accept-Ranges: bytes`。
 

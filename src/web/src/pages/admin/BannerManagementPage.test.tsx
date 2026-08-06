@@ -45,6 +45,7 @@ const listWithItem = {
       jump_type: 'NONE',
       status: 'ONLINE',
       image_url: null,
+      image_thumbnail_url: null,
       valid_from: '2026-01-01T00:00:00',
       valid_to: '2026-12-31T23:59:59',
       sort_order: 10,
@@ -202,5 +203,40 @@ describe('BannerManagementPage', () => {
     expect(screen.getByText('品牌列表页轮播')).toBeInTheDocument();
     expect(container.querySelector('.banner-sub')).toBeNull();
     expect(container.querySelector('.banner-position')).toBeTruthy();
+  });
+
+  it('uses thumbnail image first and falls back to original image', async () => {
+    fetchBannersMock.mockResolvedValue({
+      ...listWithItem,
+      items: [
+        {
+          ...listWithItem.items[0],
+          image_url: '/media/images/default/banners/list.jpg',
+          image_thumbnail_url: '/media/images/default/banners/list.thumb.jpg',
+        },
+      ],
+    });
+
+    const { container } = render(
+      <MemoryRouter>
+        <BannerManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('春季主推')).toBeInTheDocument();
+    });
+
+    const image = container.querySelector('.banner-thumb img') as HTMLImageElement;
+    expect(image).toHaveAttribute('src', '/media/images/default/banners/list.thumb.jpg');
+
+    fireEvent.error(image);
+
+    await waitFor(() => {
+      expect(container.querySelector('.banner-thumb img')).toHaveAttribute(
+        'src',
+        '/media/images/default/banners/list.jpg',
+      );
+    });
   });
 });

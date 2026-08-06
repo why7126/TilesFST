@@ -1,7 +1,28 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 98
+next_id: 101
 entries:
+  - id: REQ-0100-mintlify-docs-site-ia-content-experience
+    title: Mintlify 文档站信息架构与内容体验优化
+    status: done
+    iteration: null
+    created: "2026-08-05 09:50:32"
+    parent_requirement: REQ-0094-mintlify-versioned-docs-directory
+    related_change: improve-mintlify-docs-site
+  - id: REQ-0099-global-thumbnail-size-limit
+    title: 全局缩略图生成支持可配置体积上限
+    status: done
+    iteration: null
+    created: "2026-08-05 09:20:34"
+    parent_requirement:
+    related_change: null
+  - id: REQ-0098-admin-media-list-thumbnails
+    title: 管理端图片密集列表使用缩略图展示
+    status: done
+    iteration: null
+    created: "2026-08-05 09:05:07"
+    parent_requirement:
+    related_change: optimize-admin-media-list-thumbnails
   - id: REQ-0097-prod-compose-media-maintenance-job
     title: 生产 Docker Compose 环境支持媒体历史数据维护任务安全执行
     status: done

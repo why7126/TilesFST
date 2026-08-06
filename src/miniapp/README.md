@@ -88,7 +88,7 @@ note: AI新增文件前必须确认目录边界
 证书详情页位于 `pages/certificate-detail/index.*`，通过 `GET /api/v1/miniapp/certificates/{certificate_id}` 加载单张公开证书。页面复用商品详情页的大媒体区、信息分区、品牌入口、分享和错误态结构，但不得展示价格、收藏、推荐、购物车、购买、库存、促销或询价能力。
 
 - 顶部媒体区优先展示主图；多图按主图优先、排序值和 ID 展示，图片可通过 `wx.previewImage` 从当前图开始预览。
-- PDF 或未知文件使用稳定文件占位，通过 `wx.downloadFile` + `wx.openDocument` 打开；失败时复制后端受控 URL 作为兜底。
+- PDF 或未知文件使用稳定文件占位，通过 `wx.downloadFile` + `wx.openDocument` 打开；失败时展示稳定错误提示，不复制文件链接。
 - 页面标题固定为“证书详情”；证书名称面板只展示证书类型和证书名称，不重复展示品牌名称。
 - 证书信息模块展示证书类型、证书编号、发证机构、有效状态和备注说明，不展示有效期；备注说明来自后端 `remark` 公开字段，空值或占位值以安全占位处理。
 - 品牌入口使用后端返回的 `brand_entry_path`，在独立品牌面板中展示所属品牌；分享路径携带 `certificateId` 与 `source=share`；分享直达无页面栈时由 `custom-navigation` 返回兜底到首页。

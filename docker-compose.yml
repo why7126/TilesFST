@@ -14,6 +14,8 @@ services:
         BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
     # 固定容器名便于本地 docker logs / exec 调试。
     container_name: tilesfst-backend
+    # 服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     # 根目录 .env 提供本地端口、数据库、对象存储与管理员初始化配置。
     env_file:
       - .env
@@ -42,6 +44,8 @@ services:
         WEB_NGINX_BASE_IMAGE: ${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}
     # 固定容器名便于本地访问与排障。
     container_name: tilesfst-web
+    # 服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     # 读取 HOST_PORT_WEB 等前端/部署变量；构建期变量仍由 Dockerfile 控制。
     env_file:
       - .env
@@ -79,6 +83,8 @@ services:
     # 本地 demo 使用官方最新镜像；生产部署应评估固定版本标签。
     image: minio/minio:latest
     container_name: tilesfst-minio
+    # 本地自建对象存储异常退出后自动拉起，避免上传链路中断。
+    restart: unless-stopped
     # /data 为对象数据目录，9001 为控制台端口。
     command: server /data --console-address ":9001"
     # MinIO root 账号从对象存储示例密钥读取；默认值仅允许本地开发使用。
@@ -103,6 +109,8 @@ services:
     # mc 客户端镜像只执行初始化命令，不承载业务流量。
     image: minio/mc:latest
     container_name: tilesfst-minio-init
+    # 初始化任务失败时自动重试；成功退出后不重复执行。
+    restart: on-failure
     # 等待 minio 容器启动后再尝试 alias / bucket 初始化。
     depends_on:
       - tilesfst-minio
@@ -123,23 +131,33 @@ services:
 
   # Mintlify 产品文档站预览服务；仅在明确启用 docs-site profile 时启动，不参与业务服务依赖链。
   tilesfst-docs-site:
-    # 本地/演示使用 Node 镜像通过 npx 启动 Mintlify CLI；生产可改为外部托管、静态托管或反向代理。
+    # 本地/演示使用项目内 docs-site 镜像，构建阶段预装 Mintlify CLI，避免运行时下载或污染宿主机 ~/.mintlify*。
     profiles:
       - docs-site
-    image: ${MINTLIFY_NODE_IMAGE:-node:22-alpine}
+    build:
+      context: .
+      dockerfile: deploy/docs-site/Dockerfile
+      args:
+        DOCS_SITE_NODE_BASE_IMAGE: ${DOCS_SITE_NODE_BASE_IMAGE:-node:22-alpine}
+        MINTLIFY_CLI_VERSION: ${MINTLIFY_CLI_VERSION:-4.2.45}
+    image: ${TILESFST_DOCS_SITE_IMAGE_REPOSITORY:-tilesfst-docs-site}:${TILESFST_IMAGE_TAG:-local}
     container_name: tilesfst-docs-site
+    # 文档站预览服务异常退出后自动拉起；未启用 profile 时不启动。
+    restart: unless-stopped
     working_dir: /workspace/mintlify
     # 使用仓库内 mintlify/ 站点源目录；不得挂载真实 .env、密钥或运行时数据库。
     volumes:
       - ./mintlify:/workspace/mintlify:ro
-      - ./deploy/scripts/docs-site-static-server.mjs:/workspace/docs-site-static-server.mjs:ro
+      - tilesfst-docs-site-cache:/home/node/.mintlify
     # 容器内 Mintlify 预览端口固定 3000；宿主机端口通过 HOST_PORT_MINTLIFY_DOCS 覆盖。
     ports:
       - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
-    # 默认使用仓库内置静态预览服务，避免运行时下载 Mintlify CLI 导致端口无响应。
-    command: node /workspace/docs-site-static-server.mjs
+    command: mintlify dev --host 0.0.0.0 --port 3000
     networks:
       - tilesfst
+
+volumes:
+  tilesfst-docs-site-cache:
 
 networks:
   # 本地开发 bridge 网络；服务间通过 tilesfst-backend、tilesfst-web、tilesfst-minio 名称互访。

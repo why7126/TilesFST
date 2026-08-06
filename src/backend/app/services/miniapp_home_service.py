@@ -630,9 +630,7 @@ class MiniappHomeService:
         )
 
     def _services(self) -> list[MiniappServiceItem]:
-        phone = self._setting("miniapp.contact_phone", None)
-        wechat = self._setting("miniapp.contact_wechat", "FeishangteTiles")
-        services = [
+        return [
             MiniappServiceItem(
                 key="authentic",
                 title="正品保障",
@@ -645,28 +643,13 @@ class MiniappHomeService:
                 description="按空间、规格、风格快速筛选",
                 action_type="none",
             ),
+            MiniappServiceItem(
+                key="store",
+                title="门店服务",
+                description="到店体验与选砖建议请以门店公开信息为准",
+                action_type="none",
+            ),
         ]
-        if phone:
-            services.append(
-                MiniappServiceItem(
-                    key="phone",
-                    title="联系门店",
-                    description="电话咨询门店选砖建议",
-                    action_type="phone",
-                    action_value=phone,
-                )
-            )
-        elif wechat:
-            services.append(
-                MiniappServiceItem(
-                    key="wechat",
-                    title="联系门店",
-                    description="复制微信号咨询门店选砖建议",
-                    action_type="copy_wechat",
-                    action_value=wechat,
-                )
-            )
-        return services
 
     @staticmethod
     def _shortcuts() -> list[MiniappShortcutItem]:

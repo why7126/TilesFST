@@ -25,6 +25,7 @@ class MediaSettingsPatch(BaseModel):
     max_file_size_mb: int | None = None
     allowed_image_types: str | None = None
     allowed_video_types: str | None = None
+    thumbnail_max_size_kb: int | None = None
 
 
 class SecuritySettingsPatch(BaseModel):
@@ -83,6 +84,7 @@ class MediaSettingsData(BaseModel):
     max_file_size_mb: int
     allowed_image_types: str
     allowed_video_types: str
+    thumbnail_max_size_kb: int
     minio_bucket: str
     object_key_rule: str
 

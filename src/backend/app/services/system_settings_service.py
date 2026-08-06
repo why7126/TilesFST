@@ -174,6 +174,11 @@ class SystemSettingsService:
             if size < 1 or size > 200:
                 raise AppError(status_code=400, code=40000, message="文档最大尺寸须为 1–200 MB")
             return size
+        if short_key == "thumbnail_max_size_kb":
+            size = int(value)
+            if size < 0 or size > 1024:
+                raise AppError(status_code=400, code=40000, message="缩略图体积目标上限须为 0–1024 KB")
+            return size
         if short_key == "allowed_image_types":
             types = self._normalize_mime_list(str(value))
             env_default = str(_env_default("media.allowed_image_types") or "")

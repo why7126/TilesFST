@@ -223,7 +223,7 @@ def validate_mintlify_site_gate(release_dir: Path, data: dict[str, Any], errors:
         return
     status = str(usage_docs.get("status", "")).lower()
     if status == "generated":
-        mint_config = MINTLIFY_DIR / "mint.json"
+        mint_config = MINTLIFY_DIR / "docs.json"
         require(mint_config.exists(), f"Mintlify site config missing: {mint_config}", errors)
         manifest_path = release_dir / str(usage_docs.get("manifest") or "usage-docs/manifest.json")
         if manifest_path.exists():
@@ -341,7 +341,7 @@ def validate_release(
     if version != product_version:
         require(bool(data.get("version_change_rationale")), "version differs from PRODUCT_VERSION and version_change_rationale is empty", errors)
 
-    mint_config = MINTLIFY_DIR / "mint.json" if MINTLIFY_DIR.exists() else release_dir.parent / "mint.json"
+    mint_config = MINTLIFY_DIR / "docs.json" if MINTLIFY_DIR.exists() else release_dir.parent / "mint.json"
     require(mint_config.exists(), f"Mintlify config missing: {mint_config}", errors)
     scan_public_safety(release_dir, data, errors)
     validate_publish_announcement_stability(release_dir, data, errors, stage=stage)

@@ -62,6 +62,7 @@ class TileSkuAdminItem(BaseModel):
     remark: str | None = None
     status: TileSkuStatus
     main_image_url: str | None = None
+    main_image_thumbnail_url: str | None = None
     image_count: int = 0
     video_count: int = 0
     has_main_image: bool = False

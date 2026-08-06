@@ -1,0 +1,212 @@
+{
+  "version": "v1.0.0",
+  "release_time": "2026-08-06 08:26:43",
+  "owner": "product",
+  "summary": "Sprint 020 产品发布计划：覆盖管理端媒体列表缩略图优先展示、全局缩略图体积上限、小程序隐私接口收敛，以及 Mintlify 文档站信息架构与内容体验优化。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release-prepare 阶段已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v1.0.0。",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端 API / Schema / 媒体处理逻辑、Web 管理端、微信小程序、对象存储缩略图策略、Mintlify docs-site Docker/Compose 变更；按发布规范需要后续执行 /image-prepare v1.0.0 与 /image-build v1.0.0。",
+  "image_tag": "v1.0.0",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部镜像构建证据；默认走本仓库 /image-prepare 与 /image-build 流程。"
+  },
+  "usage_docs": {
+    "status": "generated",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": "v0.3.4",
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": true,
+      "confirmed_at": "2026-08-06 08:30:43",
+      "confirmed_by": "operator",
+      "rationale": "用户在 /release-prepare v1.0.0 中明确要求“生成新版本文档”。"
+    }
+  },
+  "sprints": [
+    "sprint-020"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0098-admin-media-list-thumbnails",
+      "title": "管理端媒体列表缩略图优先展示",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0100-mintlify-docs-site-ia-content-experience",
+      "title": "Mintlify 文档站信息架构与内容体验优化",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0099-global-thumbnail-size-limit",
+      "title": "全局缩略图目标体积上限",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0117-miniapp-privacy-clipboard-phone-drift",
+      "title": "小程序电话与剪贴板隐私接口残留",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "optimize-admin-media-list-thumbnails",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-05-optimize-admin-media-list-thumbnails"
+    },
+    {
+      "id": "fix-miniapp-privacy-interface-drift",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-05-fix-miniapp-privacy-interface-drift"
+    },
+    {
+      "id": "improve-mintlify-docs-site",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-06-improve-mintlify-docs-site"
+    },
+    {
+      "id": "update-global-thumbnail-size-limit",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-05-update-global-thumbnail-size-limit"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "rationale": "Sprint 020 验收报告记录 4/4 Change 已 archive 且 acceptance_status=passed；归档目录均存在。注意：部分归档 trace frontmatter 仍残留 proposed/applied，prepare 前建议执行一致性复核或 workflow sync。",
+      "evidence": "iterations/archive/sprint-020/acceptance-report.md；openspec/archive/2026-08-05-optimize-admin-media-list-thumbnails；openspec/archive/2026-08-05-fix-miniapp-privacy-interface-drift；openspec/archive/2026-08-06-improve-mintlify-docs-site；openspec/archive/2026-08-05-update-global-thumbnail-size-limit"
+    },
+    "tests": {
+      "status": "na",
+      "rationale": "前端测试通过；后端/小程序 pytest 因本地环境缺少 PIL 在收集阶段中断，分类为 environment_blocker，发布确认前需恢复 Pillow/PIL 测试依赖后复跑。",
+      "evidence": "pnpm --dir src/web test -- --run；2026-08-06；59 files passed / 336 tests passed。uv run pytest src/backend/tests/test_admin_banners.py src/backend/tests/test_admin_tile_skus.py src/backend/tests/test_system_settings.py src/backend/tests/test_media_maintenance.py src/backend/tests/test_media_thumbnail_generation.py tests/test_miniapp_static.py tests/test_miniapp_home.py tests/test_release_validation.py；2026-08-06；collection failed: ModuleNotFoundError: No module named 'PIL'。"
+    },
+    "orval": {
+      "status": "pass",
+      "rationale": "本范围包含 API / Orval 影响；API 标准校验通过，Sprint release-note 记录 OpenAPI/Orval 已同步。",
+      "evidence": "python scripts/validate-api-standard.py；2026-08-06；API 标准校验通过。src/web/openapi.json；src/web/src/shared/api/generated.ts。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "rationale": "默认 Docker Compose 配置静态校验通过；docs-site 镜像与 Compose 运行方式仍需 image prepare 继续纳入镜像输入校验。",
+      "evidence": "docker compose config --quiet；2026-08-06；exit code 0。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "Sprint 020 release-note 明确不改变数据库结构；prepare 阶段仍需确认系统设置持久化未引入 schema/migration 变更。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "release-propose 阶段未复核环境变量差异；如 docs-site、媒体处理或缩略图策略依赖 env 示例，需在 /release-prepare 或 /image-prepare 中确认。"
+    },
+    "product_version": {
+      "status": "pass",
+      "rationale": "src/shared/product-version.ts 的 PRODUCT_VERSION 已更新为 v1.0.0。",
+      "evidence": "src/shared/product-version.ts；2026-08-06；PRODUCT_VERSION=v1.0.0。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "rationale": "Mintlify 站点结构、导航与公开安全等价静态校验通过。",
+      "evidence": "python scripts/validate-mintlify-site.py；2026-08-06；Mintlify site validation passed。"
+    },
+    "usage_docs_preview": {
+      "status": "pass",
+      "rationale": "用户确认需要生成新版本文档；已生成 v1.0.0 usage docs、继承 v0.3.4 页面集合、同步 mintlify/docs/v1.0.0 与 latest、登记 releases/mint.json 导航，并通过 usage docs 校验。",
+      "evidence": "python scripts/generate-usage-docs.py v1.0.0 --force；2026-08-06；generated 10 pages。python scripts/validate-usage-docs.py --release-dir releases/v1.0.0；2026-08-06；validation passed。releases/v1.0.0/usage-docs/manifest.json；mintlify/docs/v1.0.0；mintlify/docs/latest；releases/mint.json。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "rationale": "image_required=true；已生成并校验 releases/v1.0.0/image-build-plan.json。计划自动将 IMAGE_BUILD_TAG 更新为 v1.0.0；Compose fallback tag 保持 v0.0.4 但实际发布 env 必须显式设置 TILESFST_IMAGE_TAG=v1.0.0。",
+      "evidence": "python scripts/validate-image-build.py prepare --release v1.0.0；python scripts/validate-image-build.py validate-plan --release v1.0.0；2026-08-06；plan pass；auto_action_count=1；warning_count=4；blocker_count=0。"
+    },
+    "image_build": {
+      "status": "pass",
+      "rationale": "image_required=true；已按 v1.0.0 image build plan 完成 backend/web 镜像构建、平台验证、后端依赖验证、Web Nginx 验证、离线 tar 导出与 sha256 校验。",
+      "evidence": "python scripts/validate-image-build.py build --release v1.0.0；python scripts/validate-image-build.py validate-manifest --release v1.0.0；2026-08-06 08:40:06；manifest pass；tarball sha256=29112bb2e9e36b700eab1ed0dbbf7a7c624aca09db90853f45611f377af2ab1b。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "SPRINT-020-TRACE-STATUS-DRIFT",
+      "title": "部分归档 Change trace frontmatter 状态与归档事实不一致",
+      "status": "prepare_warning",
+      "rationale": "验收报告与归档目录显示 4/4 Change 已 archive，但 optimize-admin-media-list-thumbnails、fix-miniapp-privacy-interface-drift、improve-mintlify-docs-site、update-global-thumbnail-size-limit 的 trace frontmatter 仍可见 proposed/applied 等中间态；建议 prepare 前运行 Workflow Sync 或归档一致性复核。"
+    },
+    {
+      "id": "REQ-0100-SPRINT-TRACE-DRIFT",
+      "title": "REQ-0100 trace 中 iteration 仍为 null",
+      "status": "prepare_warning",
+      "rationale": "sprint.yaml、release-note 和 acceptance-report 均将 REQ-0100 纳入 sprint-020 正式范围，但 REQ trace 的 iteration 字段仍为 null；发布范围按 sprint.yaml 事实源纳入，后续建议同步 trace。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-PIL-TEST-DEPENDENCY",
+      "title": "后端与小程序发布范围 pytest 因缺少 PIL 无法收集",
+      "status": "prepare_blocker",
+      "classification": "environment_blocker",
+      "rationale": "uv run pytest 在 src/backend/tests/test_admin_tile_skus.py 收集阶段失败：ModuleNotFoundError: No module named 'PIL'。需恢复 Pillow/PIL 测试依赖或修复测试环境后复跑。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-IMAGE-PLAN-MISSING",
+      "title": "v1.0.0 尚未生成镜像构建计划",
+      "status": "resolved",
+      "classification": "release_gate_blocker",
+      "rationale": "已运行 /image-prepare v1.0.0 并生成 releases/v1.0.0/image-build-plan.json；validate-plan 通过。"
+    }
+  ],
+  "upgrade_steps": [
+    "确认 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v1.0.0 或记录正式豁免。",
+    "确认 usage docs 生成决策，并在 generated 或 skipped 状态下完成对应校验。",
+    "执行 /image-prepare v1.0.0 与 /image-build v1.0.0，生成镜像构建计划、manifest 和离线包校验证据。",
+    "部署新版本并完成管理端媒体列表缩略图、系统设置缩略图体积上限、小程序隐私接口静态扫描和 Mintlify 文档站 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "管理端媒体列表或系统设置保存/读取出现阻断性回归",
+      "小程序提审隐私接口扫描仍检测到电话或剪贴板能力",
+      "缩略图生成、对象存储读取或历史重生成 dry-run 出现不可接受风险",
+      "Mintlify 文档站构建、导航或公开安全校验失败"
+    ],
+    "steps": [
+      "回退到上一发布版本 v0.3.5 的部署包或镜像 tag。",
+      "恢复上一版本环境变量、Compose 配置和 docs-site 运行方式。",
+      "将全局缩略图体积上限恢复为 0 或上一稳定配置，暂停历史缩略图重生成任务。",
+      "复跑管理端媒体列表、小程序静态扫描、Mintlify 站点和核心后端 smoke。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "影响管理端 SKU/Banner 图片密集列表缩略图展示、系统设置媒体与存储配置、缩略图体积上限配置与相关回显。",
+    "owner_web": "不新增店主 Web 功能；全局缩略图策略可能间接受益于更轻量图片资源。",
+    "miniapp": "移除电话拨打、复制门店微信号和复制证书文件链接残留隐私接口能力，影响小程序提审隐私声明口径与相关交互兜底。",
+    "backend": "影响 SKU/Banner 列表响应字段、miniapp home 服务合约、系统设置持久化、缩略图生成路径和媒体维护作业入口。",
+    "database": "none",
+    "object_storage": "影响新生成缩略图目标体积上限策略和历史缩略图重生成候选口径；不改变 .thumb URL 命名约定，不自动重写历史对象。",
+    "docker": "Mintlify docs-site 变更包含本地可复用 docs-site 镜像、Dockerfile build 与 Compose 运行方式；发布镜像治理需继续 image prepare/build。"
+  },
+  "announcement": "announcement.mdx",
+  "publish_confirmation": {
+    "published_at": "2026-08-06 08:41:34",
+    "announcement_url": "releases/v1.0.0/announcement.mdx",
+    "confirmed_by": "operator",
+    "status": "published",
+    "notes": "发布确认完成。最终镜像 sha256 以 image-manifest.json 和离线包 .sha256 sidecar 为准。",
+    "image_manifest": "image-manifest.json",
+    "tarball": "../releases/v1.0.0/images/tilesfst-v1.0.0-linux-amd64.tar.gz",
+    "tarball_sha256": "29112bb2e9e36b700eab1ed0dbbf7a7c624aca09db90853f45611f377af2ab1b"
+  }
+}

@@ -1,0 +1,61 @@
+---
+title: "瓷砖信息管理平台文档"
+created_at: 2026-08-05 18:14:27
+updated_at: 2026-08-05 18:14:27
+---
+
+# 瓷砖信息管理平台文档
+
+面向瓷砖企业内部维护人员、系统管理员、店主和公开访问者的产品使用文档站。当前站点以 v0.3.4 为 `latest`，历史版本页面保留固定版本语义，发布公告记录每次公开交付的差异。
+
+<CardGroup cols={2}>
+  <Card title="管理端日常维护" icon="database" href="/docs/latest/admin/index">
+    维护品牌、证书、Banner、分类、规格、SKU、图片和上下架状态。
+  </Card>
+  <Card title="系统治理入口" icon="shield-check" href="/docs/latest/admin/governance">
+    查看账号、系统设置、日志审计、接口文档和发布侧注意事项。
+  </Card>
+  <Card title="小程序使用说明" icon="smartphone" href="/docs/latest/miniapp/index">
+    覆盖首页、分类、品牌、商品、证书、搜索和收藏等移动端任务。
+  </Card>
+  <Card title="公开浏览说明" icon="globe" href="/docs/latest/public/index">
+    面向店主和公开访问者说明可展示信息、跳转链路和边界。
+  </Card>
+</CardGroup>
+
+## 常用任务
+
+<Steps>
+  <Step title="确认当前版本">
+    从 [当前版本总览](/docs/latest/overview) 查看 `latest` 指向、适用读者和本版本重点。
+  </Step>
+  <Step title="进入对应角色页面">
+    管理员优先阅读 [管理端使用说明](/docs/latest/admin/index)，店主或导购优先阅读 [小程序使用说明](/docs/latest/miniapp/index)。
+  </Step>
+  <Step title="遇到异常先查 FAQ">
+    图片、权限、收藏、发布部署和公开信息边界集中记录在 [常见问题](/docs/latest/faq)。
+  </Step>
+</Steps>
+
+## 版本入口
+
+<CardGroup cols={3}>
+  <Card title="latest · v0.3.4" icon="sparkles" href="/docs/latest/overview">
+    当前最新公开使用文档。后续发布完成站点校验后，`latest` 会切到新的稳定版本。
+  </Card>
+  <Card title="v0.3.4 固定快照" icon="archive" href="/docs/v0.3.4/overview">
+    v0.3.4 的冻结页面，适合发布验收、回溯和客户沟通引用。
+  </Card>
+  <Card title="v0.3.3 固定快照" icon="history" href="/docs/v0.3.3/overview">
+    v0.3.3 的历史页面。历史版本不随 `latest` 自动变更。
+  </Card>
+</CardGroup>
+
+## 最近发布
+
+- [v0.3.4 发布公告](/releases/v0.3.4/announcement)
+- [v0.3.3 发布公告](/releases/v0.3.3/announcement)
+
+## 公开边界
+
+本网站只承载公开产品使用说明、公告投影和可公开截图资产。不得写入密钥、真实客户数据、数据库连接串、Authorization header、Cookie、对象存储凭据、生产私有运维地址或内部调试信息。

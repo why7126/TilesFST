@@ -3,12 +3,14 @@ purpose: 本地部署矩阵
 content: 六种本地开发部署环境、前置条件和启动方式
 source: REQ-0093 standardize-deployment-environment-matrix
 created_at: 2026-08-03 19:10:00
-updated_at: 2026-08-04 00:27:20
+updated_at: 2026-08-06 00:00:00
 ---
 
 # 本地部署矩阵
 
 本地域复用 `deploy/local/compose.yml`。该文件以根目录 `docker-compose.yml` 为本地/demo 拓扑基线，保持 `tilesfst-backend`、`tilesfst-web`、`tilesfst-minio`、`tilesfst-minio-init`、`self-hosted-storage` profile、默认端口、`data/` 卷和 `UPLOAD_*` Nginx 变量一致。SQLite 环境不要求本机 MySQL；MySQL 环境要求本机已有可访问 MySQL 8.0+。只有 `*-minio-managed` 环境会启用项目自建 MinIO profile。
+
+长期运行服务使用 `restart: unless-stopped` 支持异常退出后自动拉起；`tilesfst-minio-init` 使用 `restart: on-failure`，只在初始化失败时重试。
 
 | 环境 ID | 数据库 | 对象存储 | profile | env 示例 |
 |---|---|---|---|---|
@@ -36,7 +38,7 @@ updated_at: 2026-08-04 00:27:20
 ```bash
 docker compose up -d --build tilesfst-backend tilesfst-web
 docker compose --profile self-hosted-storage up -d --build tilesfst-backend tilesfst-web tilesfst-minio tilesfst-minio-init
-docker compose --profile docs-site up -d tilesfst-docs-site
+docker compose --profile docs-site up -d --build tilesfst-docs-site
 ```
 
 变更本地 Compose 文档或 env 示例后，至少校验：

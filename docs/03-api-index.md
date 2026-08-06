@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-02 18:29:03
+updated_at: 2026-08-05 00:00:00
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -214,7 +214,7 @@ OpenSpec：`openspec/changes/add-system-settings/`
 | POST | `/api/v1/admin/system-settings/{group}/reset` | Bearer（admin） |
 | GET | `/api/v1/admin/system-settings/audit/recent` | Bearer（admin） |
 
-`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组可写 `max_image_size_mb`、`max_video_size_mb`、`max_file_size_mb`、`allowed_image_types`、`allowed_video_types`，并含只读 `minio_bucket`、`object_key_rule`。
+`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组可写 `max_image_size_mb`、`max_video_size_mb`、`max_file_size_mb`、`allowed_image_types`、`allowed_video_types`、`thumbnail_max_size_kb`，并含只读 `minio_bucket`、`object_key_rule`。`thumbnail_max_size_kb=0` 表示不限制；正整数表示后续新生成图片缩略图尽量不超过该 KB 目标，保存设置不自动重建历史 `.thumb` 对象。
 
 ### 3.4.2 管理端接口文档（Sprint 004）
 
@@ -431,7 +431,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
     }
   ],
   "shortcuts": [{"key": "select", "title": "选瓷砖", "filter_type": "all"}],
-  "services": [{"key": "wechat", "title": "联系门店", "action_type": "copy_wechat"}],
+  "services": [{"key": "store", "title": "门店服务", "action_type": "none"}],
   "new_products": [],
   "hot_products": []
 }
@@ -485,7 +485,7 @@ OpenSpec：`openspec/changes/add-brand-management/`
 
 删除规则：仅 `sku_count=0` 且 `status=DISABLED` 时允许；否则 `code=30012`。
 
-品牌 Logo 上传：`POST /api/v1/admin/uploads/brand-logos`（admin/employee；JPG/PNG/WebP）。成功响应包含 `thumbnail_key`、`thumbnail_url`，缩略图与原图同目录并以 `.thumb` 文件名区分。
+品牌 Logo 上传：`POST /api/v1/admin/uploads/brand-logos`（admin/employee；JPG/PNG/WebP）。成功响应包含 `thumbnail_key`、`thumbnail_url`，缩略图与原图同目录并以 `.thumb` 文件名区分；缩略图内容读取 `media.thumbnail_max_size_kb` effective 策略，但 URL / Key 规则不变。
 
 上传接口缺少必填 `file` 或文件参数形状非法时返回 `422 / code=40001` 的统一校验 envelope；业务文件类型、大小错误仍保留上传领域错误码。
 
@@ -508,7 +508,7 @@ OpenSpec：`openspec/changes/add-brand-certificate-management/`
 
 创建/更新请求体包含 `brand_id`、`name`、`sort_order`、`type`、`file`、`images[]`、`is_permanent`、`effective_date`、`expiry_date`、`is_visible` 等字段；`file` 用于 PDF/文档或旧单文件兼容，`images[]` 用于 JPG/PNG/WebP 多图，最多 9 张。有图片时必须且只能有一张 `is_main=true`，保存后按 `sort_order` 连续回填；若只传图片不传 `file`，后端以主图回填 legacy `file_*` 字段。非长期有效证书必须提供 `expiry_date`。错误码：`30013` 不存在、`30014` 同品牌名称重复、`40024` 日期非法、`40025` 文件/图片缺失、`40026` 主图非法、`40027` 图片/文件引用非法、`30010` 品牌不存在。
 
-证书文件上传：`POST /api/v1/admin/uploads/brand-certificates`（admin；JPG/PNG/WebP/PDF；大小使用 `MAX_FILE_SIZE_MB` / `media.max_file_size_mb` effective 值）。JPG/PNG/WebP 成功响应包含同目录 `.thumb` 缩略图 `thumbnail_key`、`thumbnail_url`；PDF 返回 `null` 并由前端使用文件占位。
+证书文件上传：`POST /api/v1/admin/uploads/brand-certificates`（admin；JPG/PNG/WebP/PDF；大小使用 `MAX_FILE_SIZE_MB` / `media.max_file_size_mb` effective 值）。JPG/PNG/WebP 成功响应包含同目录 `.thumb` 缩略图 `thumbnail_key`、`thumbnail_url`，缩略图内容读取 `media.thumbnail_max_size_kb` effective 策略；PDF 返回 `null` 并由前端使用文件占位。
 
 ### 3.5b 管理端 Banner（Sprint 003）
 
@@ -526,7 +526,7 @@ OpenSpec：`openspec/changes/add-banner-management/`
 | DELETE | `/api/v1/admin/banners/{id}` | Bearer（admin/employee） |
 | GET | `/api/v1/admin/topics` | Bearer（admin/employee） |
 
-列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。当前 `display_client` 仅支持 `MINIAPP_HOME`（管理端显示“小程序”）；Banner 保存仅允许 `MINIAPP_HOME_CAROUSEL`（首页轮播）与 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）。创建/更新请求体支持 `jump_type=SKU_DETAIL|BRAND_DETAIL|EXTERNAL_LINK|TOPIC_PAGE|NO_JUMP`，其中品牌详情使用 `brand_id` 作为唯一跳转目标，图片来源可使用品牌 `logo_object_key` 对应的 `brand_logo` 或自定义上传。旧 Web 首页、专题页和历史运营位 Banner 业务记录由迁移清理，不物理删除 MinIO 对象。生产 MySQL `banners` 表结构未完成兼容迁移或保存链路数据库写入异常时，接口返回 `503 / code=30055`，不暴露 SQL、DSN 或内部堆栈。
+列表查询参数：`page`、`page_size`（10/20/50）、`keyword`、`display_client`、`status`、`time_status`。当前 `display_client` 仅支持 `MINIAPP_HOME`（管理端显示“小程序”）；Banner 保存仅允许 `MINIAPP_HOME_CAROUSEL`（首页轮播）与 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）。列表项返回 `image_url` 原图 URL 与 `image_thumbnail_url` 同目录 `.thumb` 缩略图 URL，管理端列表优先使用缩略图，缺失或加载失败时回退原图，详情/编辑继续保留原图语义。创建/更新请求体支持 `jump_type=SKU_DETAIL|BRAND_DETAIL|EXTERNAL_LINK|TOPIC_PAGE|NO_JUMP`，其中品牌详情使用 `brand_id` 作为唯一跳转目标，图片来源可使用品牌 `logo_object_key` 对应的 `brand_logo` 或自定义上传。旧 Web 首页、专题页和历史运营位 Banner 业务记录由迁移清理，不物理删除 MinIO 对象。生产 MySQL `banners` 表结构未完成兼容迁移或保存链路数据库写入异常时，接口返回 `503 / code=30055`，不暴露 SQL、DSN 或内部堆栈。
 响应 `data.summary`：`total`、`filtered_count`、`online_count`、`pending_count`。  
 Banner 图上传：`POST /api/v1/admin/uploads/banner-images`（`images/default/banners/...`）。
 
@@ -566,7 +566,7 @@ OpenSpec：`openspec/changes/add-tile-sku-management/`
 
 列表参数：`page`、`page_size`（10/20/50/100）、`keyword`、`brand_id`、`category_id`、`status`、`material_completeness`；`category_id` 按类目子树筛选，传父类目时包含自身及所有子孙类目的 SKU。
 响应 `data.summary`：`total`、`published_count`、`needs_completion_count`、`draft_count`。
-列表项返回 `published_at`，表示最近一次上架/恢复上架时间；从未发布、发布时间为空或历史数据缺失时返回 `null`。已下架等非 `PUBLISHED` 状态若存在历史 `published_at`，管理端列表、详情与下架响应仍返回该历史发布时间，便于运营继续查看最近一次发布成功时间。
+列表项返回 `main_image_url` 原图 URL 与 `main_image_thumbnail_url` 同目录 `.thumb` 缩略图 URL；管理端 SKU 列表优先使用缩略图，缺失或加载失败时回退原图，详情/编辑/上传预览继续使用原图或原文件。列表项返回 `published_at`，表示最近一次上架/恢复上架时间；从未发布、发布时间为空或历史数据缺失时返回 `null`。已下架等非 `PUBLISHED` 状态若存在历史 `published_at`，管理端列表、详情与下架响应仍返回该历史发布时间，便于运营继续查看最近一次发布成功时间。
 
 创建请求 `save_mode`：`draft`（仅名称必填）| `create`（全必填）。  
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。

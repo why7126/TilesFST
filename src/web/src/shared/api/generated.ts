@@ -84,6 +84,7 @@ export interface BannerAdminItem {
   position: string;
   image_object_key: string;
   image_url: string;
+  image_thumbnail_url?: string | null;
   image_source: string;
   sku_gallery_asset_id?: number | null;
   jump_type: string;
@@ -875,20 +876,11 @@ export interface MiniappShortcutItem {
   filter_value?: string | null;
 }
 
-export type MiniappServiceItemActionType = typeof MiniappServiceItemActionType[keyof typeof MiniappServiceItemActionType];
-
-
-export const MiniappServiceItemActionType = {
-  none: 'none',
-  copy_wechat: 'copy_wechat',
-  phone: 'phone',
-} as const;
-
 export interface MiniappServiceItem {
   key: string;
   title: string;
   description: string;
-  action_type: MiniappServiceItemActionType;
+  action_type: 'none';
   action_value?: string | null;
 }
 
@@ -1325,6 +1317,7 @@ export interface TileSkuAdminItem {
   remark?: string | null;
   status: TileSkuAdminItemStatus;
   main_image_url?: string | null;
+  main_image_thumbnail_url?: string | null;
   image_count?: number;
   video_count?: number;
   has_main_image?: boolean;

@@ -107,6 +107,7 @@ def generate_image_thumbnail(
     max_height: int = 480,
     jpeg_quality: int = 82,
     webp_quality: int = 82,
+    target_max_size_kb: int = 0,
 ) -> ImageThumbnailResult:
     """Generate a same-format thumbnail without upscaling small images."""
 
@@ -129,25 +130,28 @@ def generate_image_thumbnail(
             thumbnail.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
             resized = thumbnail.size != (original_width, original_height)
             output_format, output_content_type = image_format
-            if output_format == "JPEG":
-                if thumbnail.mode not in {"RGB", "L"}:
-                    thumbnail = thumbnail.convert("RGB")
-                save_kwargs: dict[str, object] = {
-                    "format": "JPEG",
-                    "quality": jpeg_quality,
-                    "optimize": True,
-                    "progressive": True,
-                }
-            elif output_format == "WEBP":
-                save_kwargs = {"format": "WEBP", "quality": webp_quality, "method": 6}
-            else:
-                save_kwargs = {"format": "PNG", "optimize": True}
-            output = BytesIO()
-            thumbnail.save(output, **save_kwargs)
+            target_size_bytes = max(0, int(target_max_size_kb or 0)) * 1024
+            thumbnail, thumbnail_content = _encode_thumbnail_with_target(
+                thumbnail=thumbnail,
+                output_format=output_format,
+                jpeg_quality=jpeg_quality,
+                webp_quality=webp_quality,
+                target_size_bytes=target_size_bytes,
+                max_width=max_width,
+                max_height=max_height,
+            )
+            if target_size_bytes and len(thumbnail_content) > target_size_bytes:
+                logger.warning(
+                    "thumbnail target not reached: content_type=%s target=%s actual=%s size=%sx%s",
+                    output_content_type,
+                    target_size_bytes,
+                    len(thumbnail_content),
+                    thumbnail.size[0],
+                    thumbnail.size[1],
+                )
     except UnidentifiedImageError as exc:
         raise ValueError("invalid image content") from exc
 
-    thumbnail_content = output.getvalue()
     return ImageThumbnailResult(
         content=thumbnail_content,
         content_type=output_content_type,
@@ -159,6 +163,86 @@ def generate_image_thumbnail(
         size=len(thumbnail_content),
         resized=resized,
     )
+
+
+def _thumbnail_save_kwargs(
+    output_format: str,
+    *,
+    jpeg_quality: int,
+    webp_quality: int,
+) -> dict[str, object]:
+    if output_format == "JPEG":
+        return {
+            "format": "JPEG",
+            "quality": jpeg_quality,
+            "optimize": True,
+            "progressive": True,
+        }
+    if output_format == "WEBP":
+        return {"format": "WEBP", "quality": webp_quality, "method": 6}
+    return {"format": "PNG", "optimize": True}
+
+
+def _save_thumbnail_bytes(thumbnail: Any, output_format: str, save_kwargs: dict[str, object]) -> bytes:
+    if output_format == "JPEG" and thumbnail.mode not in {"RGB", "L"}:
+        thumbnail = thumbnail.convert("RGB")
+    output = BytesIO()
+    thumbnail.save(output, **save_kwargs)
+    return output.getvalue()
+
+
+def _encode_thumbnail_with_target(
+    *,
+    thumbnail: Any,
+    output_format: str,
+    jpeg_quality: int,
+    webp_quality: int,
+    target_size_bytes: int,
+    max_width: int,
+    max_height: int,
+) -> tuple[Any, bytes]:
+    save_kwargs = _thumbnail_save_kwargs(
+        output_format,
+        jpeg_quality=jpeg_quality,
+        webp_quality=webp_quality,
+    )
+    best_image = thumbnail
+    best_content = _save_thumbnail_bytes(thumbnail, output_format, save_kwargs)
+    if target_size_bytes <= 0 or len(best_content) <= target_size_bytes:
+        return best_image, best_content
+
+    if output_format in {"JPEG", "WEBP"}:
+        quality_key = "quality"
+        default_quality = jpeg_quality if output_format == "JPEG" else webp_quality
+        start_quality = int(save_kwargs.get(quality_key, default_quality))
+        for quality in range(min(start_quality, 78), 34, -8):
+            candidate_kwargs = dict(save_kwargs)
+            candidate_kwargs[quality_key] = quality
+            candidate_content = _save_thumbnail_bytes(thumbnail, output_format, candidate_kwargs)
+            if len(candidate_content) < len(best_content):
+                best_content = candidate_content
+                best_image = thumbnail
+            if len(candidate_content) <= target_size_bytes:
+                return thumbnail, candidate_content
+
+    min_edge = 160
+    current_width, current_height = thumbnail.size
+    while max(current_width, current_height) > min_edge:
+        scale = 0.85
+        current_width = max(min_edge, int(current_width * scale))
+        current_height = max(min_edge, int(current_height * scale))
+        if (current_width, current_height) == thumbnail.size:
+            break
+        candidate = thumbnail.copy()
+        candidate.thumbnail((min(current_width, max_width), min(current_height, max_height)))
+        candidate_content = _save_thumbnail_bytes(candidate, output_format, save_kwargs)
+        if len(candidate_content) < len(best_content):
+            best_content = candidate_content
+            best_image = candidate
+        if len(candidate_content) <= target_size_bytes:
+            return candidate, candidate_content
+        thumbnail = candidate
+    return best_image, best_content
 
 
 class MediaStorageClient(Protocol):
@@ -685,6 +769,7 @@ async def save_upload_file(
     max_size_mb: int,
     timing: UploadTimingContext | None = None,
     thumbnail_key: str | None = None,
+    thumbnail_max_size_kb: int = 0,
 ) -> int:
     resolve_media_path(object_key)
     if thumbnail_key is not None:
@@ -708,7 +793,11 @@ async def save_upload_file(
         stage_started_at = perf_counter()
         _log_upload_stage(timing, "thumbnail_put_start", stage_started_at, size_bytes=len(content))
         try:
-            thumbnail = generate_image_thumbnail(content, file.content_type)
+            thumbnail = generate_image_thumbnail(
+                content,
+                file.content_type,
+                target_max_size_kb=thumbnail_max_size_kb,
+            )
         except (RuntimeError, ValueError, OSError) as exc:
             logger.warning(
                 "media_thumbnail_generation_failed object_key=%s thumbnail_key=%s reason=%s",

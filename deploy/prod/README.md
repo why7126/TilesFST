@@ -3,7 +3,7 @@ purpose: 生产部署矩阵
 content: prod-mysql-tencent-cos 前置条件、启动方式和安全边界
 source: REQ-0093 standardize-deployment-environment-matrix
 created_at: 2026-08-03 19:10:00
-updated_at: 2026-08-04 11:08:00
+updated_at: 2026-08-06 00:00:00
 ---
 
 # 生产部署矩阵
@@ -16,6 +16,7 @@ updated_at: 2026-08-04 11:08:00
 - env 示例：`deploy/prod/mysql-tencent-cos.env.example`。
 - 文档站：默认启用 `docs-site` profile 并启动 `tilesfst-docs-site`，端口由 `HOST_PORT_MINTLIFY_DOCS` 控制。
 - 维护任务：按需启用 `maintenance` profile 或显式 `run --rm tilesfst-maintenance`，用于受控媒体历史维护 dry-run / apply。
+- 重启策略：业务服务与文档站使用 `restart: unless-stopped`；维护任务为一次性受控执行，不配置常驻自启。
 
 说明：根目录 `docker-compose.yml` 只作为本地/demo 编排事实源；生产不继承它的 SQLite 挂载或本地 MinIO profile。当前推荐生产入口是 `deploy/prod/compose.tencent-cos.yml`，根目录 `docker-compose.prod.yml` 与 `docker-compose.prod.external.yml` 仅作为 VPS/离线交付兼容入口维护。
 
@@ -40,7 +41,7 @@ cp deploy/prod/mysql-tencent-cos.env.example deploy/prod/mysql-tencent-cos.env
 ./deploy/scripts/down.sh prod
 ```
 
-生产 Compose 不启动本地 MinIO 或 `minio-init`，也不挂载 SQLite 数据目录；默认启动 `tilesfst-docs-site`，用于生产 `/docs` 承载、反代或发布验收预览。
+生产 Compose 不启动本地 MinIO 或 `minio-init`，也不挂载 SQLite 数据目录；默认启动 `tilesfst-docs-site`，用于生产 `/docs` 承载、反代或发布验收预览。docs-site 使用 `deploy/docs-site/Dockerfile` 构建预装 Mintlify CLI 的本地可复用镜像，运行缓存写入 Docker named volume，不挂载宿主机 `~/.mintlify*`。
 
 ## 生产媒体维护任务
 

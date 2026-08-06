@@ -1,0 +1,29 @@
+---
+title: "文档站治理"
+created_at: 2026-08-05 18:40:00
+updated_at: 2026-08-05 18:40:00
+---
+
+# 文档站治理
+
+本页面向实施、客服和维护人员说明 Mintlify 站点与 release 快照之间的关系。长期治理细节以 `mintlify/README.md` 和 `mintlify/site-manifest.json` 为准。
+
+## 事实源关系
+
+```text
+releases/vX.Y.Z/usage-docs/
+  └── 产品使用文档事实源
+
+mintlify/docs/vX.Y.Z/
+  └── 固定版本站点投影
+
+mintlify/docs/latest/
+  └── 当前默认版本投影
+
+mintlify/site-manifest.json
+  └── latest、hash、截图资产和人工覆盖记录
+```
+
+<Note>
+产品行为说明不得只在 `mintlify/` 中改写。历史版本内容性更正必须记录授权来源、原因、时间和文件范围。
+</Note>

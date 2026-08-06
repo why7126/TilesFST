@@ -9,7 +9,12 @@ from typing import Annotated, TypeVar
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_tile_sku_repository, get_tile_spec_repository, require_admin_user
+from app.core.deps import (
+    get_effective_settings_service,
+    get_tile_sku_repository,
+    get_tile_spec_repository,
+    require_admin_user,
+)
 from app.core.exceptions import AppError
 from app.db.session import get_db
 from app.repositories.tile_sku_repository import TileSkuRepository
@@ -24,8 +29,9 @@ from app.schemas.tile_sku_admin import (
     TileSkuCreateRequest,
     TileSkuUpdateRequest,
 )
-from app.services.tile_sku_admin_service import TileSkuAdminService
+from app.services.effective_settings_service import EffectiveSettingsService
 from app.services.task_trace_service import TaskTraceContext, TaskTraceService, elapsed_ms
+from app.services.tile_sku_admin_service import TileSkuAdminService
 
 router = APIRouter(dependencies=[Depends(require_admin_user)])
 T = TypeVar("T", bound=TileSkuAdminItem)
@@ -34,8 +40,9 @@ T = TypeVar("T", bound=TileSkuAdminItem)
 def get_tile_sku_admin_service(
     repo: Annotated[TileSkuRepository, Depends(get_tile_sku_repository)],
     spec_repo: Annotated[TileSpecRepository, Depends(get_tile_spec_repository)],
+    effective: Annotated[EffectiveSettingsService, Depends(get_effective_settings_service)],
 ) -> TileSkuAdminService:
-    return TileSkuAdminService(repo, spec_repo)
+    return TileSkuAdminService(repo, spec_repo, effective)
 
 
 def _request_id(request: Request) -> str | None:

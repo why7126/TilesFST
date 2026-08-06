@@ -21,15 +21,11 @@ Page({
 
   useService(event) {
     const item = event.currentTarget.dataset.service;
-    if (!item || item.action_type === 'none') return;
+    if (!item) return;
     track('home_contact_click', {
       page_path: '/pages/store-info/index',
       contact_type: item.action_type,
     });
-    if (item.action_type === 'phone' && item.action_value) {
-      wx.makePhoneCall({ phoneNumber: item.action_value });
-    } else if (item.action_value) {
-      wx.setClipboardData({ data: item.action_value });
-    }
+    wx.showToast({ title: '门店服务信息已展示', icon: 'none' });
   },
 });

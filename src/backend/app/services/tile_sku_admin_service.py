@@ -10,6 +10,7 @@ from app.core.exceptions import (
     TileSkuNotFoundError,
     TileSkuPublishForbiddenError,
 )
+from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.modules.media.tile_images import formalize_tile_image_object, is_pending_tile_image_key
 from app.repositories.tile_sku_repository import TileSkuRecord, TileSkuRepository
 from app.repositories.tile_spec_repository import TileSpecRepository
@@ -25,6 +26,7 @@ from app.schemas.tile_sku_admin import (
     TileSkuVideoInput,
     TileSkuVideoItem,
 )
+from app.services.effective_settings_service import EffectiveSettingsService
 
 VALID_PAGE_SIZES = frozenset({10, 20, 50, 100})
 SKU_CODE_GENERATION_ATTEMPTS = 5
@@ -34,10 +36,26 @@ def _video_url(object_key: str) -> str:
     return f"/media/{object_key}"
 
 
+def _thumbnail_url(image_url: str | None) -> str | None:
+    if not image_url or image_url.startswith(("http://", "https://")):
+        return image_url
+    media_prefix = "/media/"
+    raw_key = image_url.removeprefix(media_prefix) if image_url.startswith(media_prefix) else image_url
+    if raw_key.startswith("/"):
+        return image_url
+    return f"{media_prefix}{same_directory_thumbnail_object_key(raw_key)}"
+
+
 class TileSkuAdminService:
-    def __init__(self, repo: TileSkuRepository, spec_repo: TileSpecRepository) -> None:
+    def __init__(
+        self,
+        repo: TileSkuRepository,
+        spec_repo: TileSpecRepository,
+        effective_settings: EffectiveSettingsService | None = None,
+    ) -> None:
         self._repo = repo
         self._spec_repo = spec_repo
+        self._effective_settings = effective_settings
 
     @staticmethod
     def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
@@ -90,8 +108,12 @@ class TileSkuAdminService:
             for idx, vid in enumerate(videos)
         ]
 
-    @staticmethod
-    def _formalize_images(tile_id: int, images: list[dict]) -> list[dict]:
+    def _thumbnail_max_size_kb(self) -> int:
+        if self._effective_settings is None:
+            return 0
+        return self._effective_settings.thumbnail_max_size_kb()
+
+    def _formalize_images(self, tile_id: int, images: list[dict]) -> list[dict]:
         if not images:
             return []
         formalized: list[dict] = []
@@ -99,7 +121,11 @@ class TileSkuAdminService:
             item = dict(image)
             object_key = item["object_key"]
             if is_pending_tile_image_key(object_key):
-                result = formalize_tile_image_object(tile_id=tile_id, object_key=object_key)
+                result = formalize_tile_image_object(
+                    tile_id=tile_id,
+                    object_key=object_key,
+                    thumbnail_max_size_kb=self._thumbnail_max_size_kb(),
+                )
                 item["object_key"] = result.object_key
                 item["url"] = f"/media/{result.object_key}"
             formalized.append(item)
@@ -229,6 +255,7 @@ class TileSkuAdminService:
             remark=record.remark,
             status=record.status,  # type: ignore[arg-type]
             main_image_url=record.main_image_url,
+            main_image_thumbnail_url=_thumbnail_url(record.main_image_url),
             image_count=record.image_count,
             video_count=record.video_count,
             has_main_image=record.has_main_image,

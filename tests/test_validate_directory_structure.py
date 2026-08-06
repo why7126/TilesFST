@@ -77,6 +77,8 @@ def test_validate_allows_deploy_matrix_structure(tmp_path: Path) -> None:
     write_required_paths(tmp_path)
     write_allowed_root_dirs(tmp_path)
     (tmp_path / "deploy" / "README.md").write_text("deploy\n", encoding="utf-8")
+    (tmp_path / "deploy" / "docs-site").mkdir(parents=True)
+    (tmp_path / "deploy" / "docs-site" / "Dockerfile").write_text("FROM node:22-alpine\n", encoding="utf-8")
     (tmp_path / "deploy" / "local").mkdir(parents=True)
     (tmp_path / "deploy" / "prod").mkdir(parents=True)
     (tmp_path / "deploy" / "scripts").mkdir(parents=True)
@@ -161,7 +163,7 @@ def test_validate_allows_governed_mintlify_root(tmp_path: Path) -> None:
     (tmp_path / "mintlify" / "docs").mkdir()
     (tmp_path / "mintlify" / "releases").mkdir()
     (tmp_path / "mintlify" / "README.md").write_text("---\ncreated_at: 2026-08-03 19:10:00\nupdated_at: 2026-08-03 19:10:00\n---\n", encoding="utf-8")
-    (tmp_path / "mintlify" / "mint.json").write_text('{"navigation":[]}', encoding="utf-8")
+    (tmp_path / "mintlify" / "docs.json").write_text('{"navigation":[]}', encoding="utf-8")
     (tmp_path / "mintlify" / "site-manifest.json").write_text('{"versions":[]}', encoding="utf-8")
 
     assert validator.validate(tmp_path) == []
@@ -182,10 +184,14 @@ def test_validate_rejects_mintlify_build_output_and_secrets(tmp_path: Path) -> N
 
 def test_docker_compose_docs_site_profile_is_optional() -> None:
     compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
-    docs_site = compose["services"]["docs-site"]
+    docs_site = compose["services"]["tilesfst-docs-site"]
 
     assert docs_site["profiles"] == ["docs-site"]
+    assert docs_site["build"]["dockerfile"] == "deploy/docs-site/Dockerfile"
+    assert docs_site["image"].startswith("${TILESFST_DOCS_SITE_IMAGE_REPOSITORY:-tilesfst-docs-site}:")
     assert docs_site["working_dir"] == "/workspace/mintlify"
     assert "./mintlify:/workspace/mintlify:ro" in docs_site["volumes"]
+    assert "tilesfst-docs-site-cache:/home/node/.mintlify" in docs_site["volumes"]
     assert "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000" in docs_site["ports"]
+    assert docs_site["command"] == "mintlify dev --host 0.0.0.0 --port 3000"
     assert "depends_on" not in docs_site

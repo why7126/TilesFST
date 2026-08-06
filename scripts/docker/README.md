@@ -4,7 +4,7 @@ content: Compose 服务、脚本与目录约定
 source: initialize-project / project.yaml
 update_method: 部署架构变更时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 00:27:20
+updated_at: 2026-08-05 23:29:59
 ---
 
 # Docker 基线
@@ -19,7 +19,7 @@ updated_at: 2026-08-04 00:27:20
 | tilesfst-web | `src/web/Dockerfile` + nginx | 3000 |
 | tilesfst-minio | `minio/minio`，仅 `self-hosted-storage` profile | 9000 / 9001 |
 | tilesfst-minio-init | `minio/mc`，仅 `self-hosted-storage` profile | — |
-| tilesfst-docs-site | `node:22-alpine` 或 `MINTLIFY_NODE_IMAGE`，仅 `docs-site` profile | 3001 |
+| tilesfst-docs-site | `deploy/docs-site/Dockerfile`，预装 Mintlify CLI，仅 `docs-site` profile | 3001 |
 
 ## 脚本
 

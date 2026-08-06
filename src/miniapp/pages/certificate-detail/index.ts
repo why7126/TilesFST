@@ -225,22 +225,18 @@ Page({
           wx.openDocument({
             filePath: result.tempFilePath,
             fileType: media.media_type === 'pdf' ? 'pdf' : undefined,
-            fail: () => this.copyDocumentUrl(media.url),
+            fail: () => this.showDocumentOpenFailed(),
           });
           return;
         }
-        this.copyDocumentUrl(media.url);
+        this.showDocumentOpenFailed();
       },
-      fail: () => this.copyDocumentUrl(media.url),
+      fail: () => this.showDocumentOpenFailed(),
     });
   },
 
-  copyDocumentUrl(url: string) {
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: '文件链接已复制', icon: 'none' }),
-      fail: () => wx.showToast({ title: '文件暂不可打开', icon: 'none' }),
-    });
+  showDocumentOpenFailed() {
+    wx.showToast({ title: '文件暂不可打开', icon: 'none' });
   },
 
   openBrand() {

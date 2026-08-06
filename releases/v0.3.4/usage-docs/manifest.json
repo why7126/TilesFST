@@ -36,16 +36,25 @@
     "content_hashes": {
       "admin/catalog.mdx": "092d8d9365930a76708f5a53593c5cc3983ed799a788e7d16f85a132dc309cfc",
       "admin/governance.mdx": "ca756d53d16e657646ff5c3c9078490abfb4ce58747a609fa7fc6b63b05438ba",
-      "admin/index.mdx": "667c59373a195a6eb8b9472c55d0985ebdb7f4dc873da436c5087662db796a58",
+      "admin/index.mdx": "37bd39d9c6bc27ddc235b45e576349fc514f53ff14754f04198d9ce0b6c2bc1f",
       "admin/media.mdx": "152274b658454df6043edba92ede63188edafb03bb42f78082915b7e7a1581a3",
       "faq.mdx": "1d80981210bf5d352b3d6ce7679274743db07c4ba56c819d8372bd3d3eba66cd",
       "miniapp/brand-certificate.mdx": "08af6cff6eb23fd2d33f993ea50b213bc522d2e708d76b8057bd643d511f5890",
       "miniapp/browse.mdx": "4e0d2b75ec658f1bca681f19c478800c1e001de1c2de584a938e252ddfe1af73",
-      "miniapp/index.mdx": "561533def27b4df517251d2713857f867e2341939ae7c05842b649eab42c194f",
-      "overview.mdx": "c4c388c62b1e30c6d1a58c111b55552bb2720e3b2c657f606d5593225c18436c",
+      "miniapp/index.mdx": "2e22e8b0f5ea5048f9f94a085eed8e823d001c5ca9c047781be2fe43f7da26c8",
+      "overview.mdx": "f874942ba10ef60a375a8d140ecb1fe085eca92c70537cb2e4e8b7f6943fab2b",
       "public/index.mdx": "d5bdc378a9fd248dec458a7c6b94d628f19e67620b2eb037de07bb48d2fd23c6"
     },
-    "manual_overrides": []
+    "manual_overrides": [
+      {
+        "change_id": "improve-mintlify-docs-site",
+        "reason": "Mintlify 固定版本 overview 补充 latest 与固定快照语义，release usage-docs 源页面不改写。",
+        "confirmed_at": "2026-08-05 18:14:27",
+        "files": [
+          "mintlify/docs/v0.3.4/overview.mdx"
+        ]
+      }
+    ]
   },
   "screenshots": [
     {

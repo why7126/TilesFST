@@ -31,6 +31,8 @@ from app.modules.media.tile_images import (
     deterministic_formal_tile_image_key,
     formalize_tile_image_object,
 )
+from app.repositories.system_settings_repository import SystemSettingsRepository
+from app.services.effective_settings_service import EffectiveSettingsService
 
 IMAGE_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 CERTIFICATE_FILE_PREFIX = "files/default/brand-certificates/"
@@ -118,7 +120,12 @@ def _object_exists(object_key: str) -> bool:
     return True
 
 
-def _needs_regeneration(original_key: str, thumbnail_key: str) -> tuple[bool, str | None]:
+def _needs_regeneration(
+    original_key: str,
+    thumbnail_key: str,
+    *,
+    thumbnail_max_size_kb: int = 0,
+) -> tuple[bool, str | None]:
     try:
         original_info = get_media_storage_client().get_object_info(original_key)
     except AppError as exc:
@@ -127,6 +134,10 @@ def _needs_regeneration(original_key: str, thumbnail_key: str) -> tuple[bool, st
         thumbnail_info = get_media_storage_client().get_object_info(thumbnail_key)
     except AppError:
         return True, "thumbnail_missing"
+
+    target_bytes = max(0, int(thumbnail_max_size_kb or 0)) * 1024
+    if target_bytes and thumbnail_info.total_size > target_bytes:
+        return True, "thumbnail_exceeds_target_size"
 
     if original_info.total_size != thumbnail_info.total_size:
         return False, None
@@ -140,14 +151,32 @@ def _needs_regeneration(original_key: str, thumbnail_key: str) -> tuple[bool, st
     return True, "thumbnail_same_size"
 
 
-def _regenerate_thumbnail(original_key: str, thumbnail_key: str) -> tuple[bool, str | None]:
+def _effective_thumbnail_max_size_kb() -> int:
+    session = get_session_factory()()
+    try:
+        return EffectiveSettingsService(SystemSettingsRepository(session)).thumbnail_max_size_kb()
+    finally:
+        session.close()
+
+
+def _regenerate_thumbnail(
+    original_key: str,
+    thumbnail_key: str,
+    *,
+    thumbnail_max_size_kb: int = 0,
+) -> tuple[bool, str | None, bool]:
     try:
         original = get_media_storage_client().get_object(original_key)
-        thumbnail = generate_image_thumbnail(original.content, original.content_type)
+        thumbnail = generate_image_thumbnail(
+            original.content,
+            original.content_type,
+            target_max_size_kb=thumbnail_max_size_kb,
+        )
         get_media_storage_client().put_object(thumbnail_key, thumbnail.content, thumbnail.content_type)
     except (AppError, RuntimeError, ValueError, OSError) as exc:
-        return False, str(getattr(exc, "code", exc.__class__.__name__))
-    return True, None
+        return False, str(getattr(exc, "code", exc.__class__.__name__)), False
+    target_bytes = max(0, thumbnail_max_size_kb) * 1024
+    return True, None, bool(target_bytes and thumbnail.size > target_bytes)
 
 
 def _image_content_type_for_key(object_key: str, content_type: str | None) -> str | None:
@@ -164,6 +193,15 @@ def _thumbnail_source_rows(limit: int | None) -> list[dict[str, object]]:
     session = get_session_factory()()
     try:
         sql = """
+            SELECT 'sku_image' AS source_type,
+                   id AS source_id,
+                   object_key AS object_key,
+                   NULL AS mime_type
+            FROM tile_images
+            WHERE object_key IS NOT NULL
+              AND object_key != ''
+              AND object_key LIKE 'images/%'
+            UNION ALL
             SELECT 'brand_logo' AS source_type,
                    id AS source_id,
                    logo_object_key AS object_key,
@@ -204,6 +242,7 @@ def _thumbnail_source_rows(limit: int | None) -> list[dict[str, object]]:
 def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
     execute = bool(args.apply)
     limit = args.limit
+    thumbnail_max_size_kb = _effective_thumbnail_max_size_kb()
     result: dict[str, Any] = _base_summary(
         task="backfill-brand-certificate-thumbnails",
         apply=execute,
@@ -217,8 +256,13 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
         "missing_thumbnail": 0,
         "same_size": 0,
         "same_bytes": 0,
+        "exceeds_target_size": 0,
+        "already_conformant": 0,
+        "estimated_writes": 0,
+        "not_within_target": 0,
         "retry_candidates": 0,
         "failure_reasons": {},
+        "thumbnail_max_size_kb": thumbnail_max_size_kb,
     }
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -228,21 +272,34 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
             continue
         seen.add(object_key)
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
-        needs_regeneration, reason = _needs_regeneration(object_key, thumbnail_key)
+        needs_regeneration, reason = _needs_regeneration(
+            object_key,
+            thumbnail_key,
+            thumbnail_max_size_kb=thumbnail_max_size_kb,
+        )
         status = "dry_run" if needs_regeneration and not execute else "skipped"
         if needs_regeneration:
             summary["retry_candidates"] += 1
+            summary["estimated_writes"] += 1
             if reason == "thumbnail_missing":
                 summary["missing_thumbnail"] += 1
             if reason in {"thumbnail_same_size", "thumbnail_copied_original"}:
                 summary["same_size"] += 1
             if reason == "thumbnail_copied_original":
                 summary["same_bytes"] += 1
+            if reason == "thumbnail_exceeds_target_size":
+                summary["exceeds_target_size"] += 1
             if execute:
-                ok, failure = _regenerate_thumbnail(object_key, thumbnail_key)
+                ok, failure, not_within_target = _regenerate_thumbnail(
+                    object_key,
+                    thumbnail_key,
+                    thumbnail_max_size_kb=thumbnail_max_size_kb,
+                )
                 if ok:
                     status = "regenerated"
                     summary["success"] += 1
+                    if not_within_target:
+                        summary["not_within_target"] += 1
                     reason = None
                 else:
                     status = "failed"
@@ -252,6 +309,7 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
                     reasons[reason or "unknown"] = reasons.get(reason or "unknown", 0) + 1
         else:
             summary["skipped"] += 1
+            summary["already_conformant"] += 1
         items.append(
             {
                 "source_type": row["source_type"],
@@ -262,6 +320,7 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 "needs_regeneration": needs_regeneration,
                 "status": status,
                 "reason": reason,
+                "thumbnail_max_size_kb": thumbnail_max_size_kb,
             }
         )
     summary["total"] = len(items)
@@ -332,6 +391,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
     execute = bool(args.apply)
     limit = args.limit
     rows = _pending_tile_rows(limit)
+    thumbnail_max_size_kb = _effective_thumbnail_max_size_kb()
     result: dict[str, Any] = _base_summary(
         task="formalize-pending-tile-images",
         apply=execute,
@@ -344,6 +404,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
         "missing_original": 0,
         "missing_thumbnail": 0,
         "target_exists": 0,
+        "thumbnail_max_size_kb": thumbnail_max_size_kb,
         "failure_reasons": {},
     }
     items: list[dict[str, Any]] = []
@@ -373,6 +434,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                         tile_id=tile_id,
                         object_key=object_key,
                         target_key=target_key,
+                        thumbnail_max_size_kb=thumbnail_max_size_kb,
                     )
                     _update_image_reference(image_id=image_id, target_key=target_key)
                     status = "migrated"
@@ -395,6 +457,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                 "original_exists": original_exists,
                 "thumbnail_exists": thumbnail_exists,
                 "target_exists": destination_exists,
+                "thumbnail_max_size_kb": thumbnail_max_size_kb,
                 "status": status,
                 "failure_reason": failure_reason,
             }
@@ -702,7 +765,7 @@ def _media_acceptance_summary(
 TASKS: dict[str, MaintenanceTask] = {
     "backfill-brand-certificate-thumbnails": MaintenanceTask(
         name="backfill-brand-certificate-thumbnails",
-        description="Audit or regenerate brand logo and brand certificate image thumbnails.",
+        description="Audit or regenerate SKU, brand logo and brand certificate image thumbnails.",
         runner=run_thumbnail_backfill,
         supports_apply=True,
     ),

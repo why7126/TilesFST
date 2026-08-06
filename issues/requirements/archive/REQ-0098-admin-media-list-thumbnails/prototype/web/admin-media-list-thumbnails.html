@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REQ-0098 管理端图片密集列表缩略图策略</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #18160f;
+        --surface: #211e16;
+        --border: rgba(255, 255, 255, 0.1);
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --gold: #c8a055;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, "PingFang SC", system-ui, sans-serif;
+      }
+
+      .shell {
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: 22px;
+        font-weight: 500;
+      }
+
+      .table-card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        font-size: 13px;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+      }
+
+      .media-cell {
+        display: flex;
+        min-width: 260px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .thumb {
+        display: grid;
+        width: 56px;
+        height: 56px;
+        flex: 0 0 auto;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .name {
+        display: block;
+        font-weight: 500;
+      }
+
+      .sub {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent);
+        padding: 3px 7px;
+        color: var(--gold);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <h1>图片密集列表缩略图优先策略</h1>
+      <section class="table-card" aria-label="缩略图策略示意">
+        <table>
+          <thead>
+            <tr>
+              <th>对象</th>
+              <th>列表资源</th>
+              <th>详情 / 预览资源</th>
+              <th>失败兜底</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="media-cell">
+                  <span class="thumb"><img src="/media/demo/sku-main.thumb.webp" alt="" /></span>
+                  <span><span class="name">SKU 主图</span><span class="sub">main_image_thumbnail_url</span></span>
+                </div>
+              </td>
+              <td><span class="badge">缩略图优先</span></td>
+              <td>main_image_url</td>
+              <td>原图 → 无图占位</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="media-cell">
+                  <span class="thumb"><img src="/media/demo/banner.thumb.webp" alt="" /></span>
+                  <span><span class="name">Banner 图片</span><span class="sub">image_thumbnail_url</span></span>
+                </div>
+              </td>
+              <td><span class="badge">缩略图优先</span></td>
+              <td>image_url</td>
+              <td>原图 → 缺图占位</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="media-cell">
+                  <span class="thumb">品牌</span>
+                  <span><span class="name">品牌 Logo</span><span class="sub">logo_thumbnail_url</span></span>
+                </div>
+              </td>
+              <td><span class="badge">复核现状</span></td>
+              <td>logo_url</td>
+              <td>原图 → 首字母</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="media-cell">
+                  <span class="thumb">证书</span>
+                  <span><span class="name">证书图片</span><span class="sub">thumbnail_url</span></span>
+                </div>
+              </td>
+              <td><span class="badge">复核现状</span></td>
+              <td>file_url</td>
+              <td>原文件 → 文件类型占位</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

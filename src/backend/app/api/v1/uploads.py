@@ -22,7 +22,6 @@ from app.repositories.task_trace_repository import TaskTraceRepository
 from app.modules.media.storage import (
     build_brand_certificate_upload_object_key,
     build_image_upload_object_key,
-    build_file_upload_object_key,
     build_video_upload_object_key,
     save_upload_file,
     same_directory_thumbnail_object_key,
@@ -295,6 +294,7 @@ async def _save_traced_upload(
     validate_file: Callable[[], None],
     object_key: str,
     thumbnail_key: str | None = None,
+    thumbnail_max_size_kb: int = 0,
 ) -> UploadResult:
     trace_service, task_trace_id, trace_started = _begin_upload_trace(
         request=request,
@@ -327,6 +327,7 @@ async def _save_traced_upload(
             object_key,
             max_size_mb,
             thumbnail_key=thumbnail_key,
+            thumbnail_max_size_kb=thumbnail_max_size_kb,
         )
     except AppError as exc:
         _finish_upload_trace(
@@ -557,6 +558,7 @@ async def upload_brand_logo(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
         ),
     )
 
@@ -589,6 +591,7 @@ async def upload_banner_image(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
         ),
     )
 
@@ -623,6 +626,7 @@ async def upload_tile_image(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
         ),
     )
 
@@ -866,7 +870,13 @@ async def upload_brand_certificate(
             if file.content_type and file.content_type.startswith("image/")
             else None
         )
-        size = await save_upload_file(file, object_key, max_size_mb, thumbnail_key=thumbnail_key)
+        size = await save_upload_file(
+            file,
+            object_key,
+            max_size_mb,
+            thumbnail_key=thumbnail_key,
+            thumbnail_max_size_kb=effective.thumbnail_max_size_kb() if thumbnail_key else 0,
+        )
     except AppError as exc:
         error_code = CERTIFICATE_FILE_TOO_LARGE if exc.code == FILE_SIZE_EXCEEDED else exc.code
         _finish_upload_trace(

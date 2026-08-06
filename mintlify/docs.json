@@ -1,0 +1,116 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "瓷砖信息管理平台产品文档",
+  "theme": "mint",
+  "colors": {
+    "primary": "#B58B3B",
+    "light": "#D8B76A",
+    "dark": "#6F5426"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "versions": [
+      {
+        "version": "简体中文",
+        "tabs": [
+          {
+            "tab": "用户指南",
+            "groups": [
+              {
+                "group": "入门",
+                "pages": [
+                  "index",
+                  "guides/getting-started",
+                  "docs/latest/overview",
+                  "docs/latest/faq"
+                ]
+              },
+              {
+                "group": "角色入口",
+                "pages": [
+                  "roles/admin",
+                  "roles/store-owner",
+                  "roles/support"
+                ]
+              },
+              {
+                "group": "常用任务",
+                "pages": [
+                  "tasks/catalog-maintenance",
+                  "tasks/media-and-certificate"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "当前版本",
+            "groups": [
+              {
+                "group": "管理端",
+                "pages": [
+                  "docs/latest/admin/index",
+                  "docs/latest/admin/catalog",
+                  "docs/latest/admin/media",
+                  "docs/latest/admin/governance"
+                ]
+              },
+              {
+                "group": "小程序",
+                "pages": [
+                  "docs/latest/miniapp/index",
+                  "docs/latest/miniapp/browse",
+                  "docs/latest/miniapp/brand-certificate"
+                ]
+              },
+              {
+                "group": "公开浏览",
+                "pages": [
+                  "docs/latest/public/index"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "版本与公告",
+            "groups": [
+              {
+                "group": "版本索引",
+                "pages": [
+                  "versions/index",
+                  "docs/v1.0.0/overview",
+                  "docs/v1.0.0/admin/catalog",
+                  "docs/v1.0.0/admin/governance",
+                  "docs/v1.0.0/admin/index",
+                  "docs/v1.0.0/admin/media",
+                  "docs/v1.0.0/faq",
+                  "docs/v1.0.0/miniapp/brand-certificate",
+                  "docs/v1.0.0/miniapp/browse",
+                  "docs/v1.0.0/miniapp/index",
+                  "docs/v1.0.0/public/index"
+                ]
+              },
+              {
+                "group": "发布公告",
+                "pages": [
+                  "releases/v1.0.0/announcement"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "文档治理",
+            "groups": [
+              {
+                "group": "公开边界",
+                "pages": [
+                  "governance/public-boundary",
+                  "governance/site-governance"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

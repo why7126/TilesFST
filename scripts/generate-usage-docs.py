@@ -170,7 +170,7 @@ def build_manifest(
 ) -> dict[str, Any]:
     input_files = [
         "release.json",
-        "../mint.json",
+        "../../mintlify/docs.json",
         "../../src/web/src/features/admin/components/AdminLayout.tsx",
         "../../src/miniapp/app.json",
     ]
@@ -242,7 +242,7 @@ def build_manifest(
 def rewrite_site_links(text: str, version: str) -> str:
     text = text.replace(f"{version}/usage-docs/", f"/docs/{version}/")
     text = text.replace("usage-docs/", f"/docs/{version}/")
-    text = text.replace("../mint.json", "/mint.json")
+    text = text.replace("../mint.json", "/docs.json")
     return text
 
 
@@ -253,14 +253,15 @@ def ensure_mintlify_base() -> None:
         MINTLIFY_DIR / "assets" / "screenshots",
     ):
         path.mkdir(parents=True, exist_ok=True)
-    mint_path = MINTLIFY_DIR / "mint.json"
-    if not mint_path.exists():
+    docs_path = MINTLIFY_DIR / "docs.json"
+    if not docs_path.exists():
         write_json(
-            mint_path,
+            docs_path,
             {
-                "$schema": "https://mintlify.com/schema.json",
+                "$schema": "https://mintlify.com/docs.json",
                 "name": "瓷砖信息管理平台产品文档",
-                "navigation": [{"group": "产品文档", "pages": []}],
+                "theme": "mint",
+                "navigation": {"versions": [{"version": "简体中文", "tabs": []}]},
             },
         )
 
@@ -313,19 +314,90 @@ def copy_shared_screenshots(manifest: dict[str, Any], usage_dir: Path, version: 
 
 
 def update_mintlify_navigation(version: str, pages: list[str], *, has_usage_docs: bool) -> None:
-    nav_pages = [f"releases/{version}/announcement"]
+    page_set = {page.removesuffix(".mdx") for page in pages}
+
+    def refs(prefix: str, candidates: list[str]) -> list[str]:
+        return [f"{prefix}/{page}" for page in candidates if page in page_set]
+
+    latest_pages = refs("docs/latest", ["overview", "faq"])
+    latest_admin_pages = refs("docs/latest", ["admin/index", "admin/catalog", "admin/media", "admin/governance"])
+    latest_miniapp_pages = refs("docs/latest", ["miniapp/index", "miniapp/browse", "miniapp/brand-certificate"])
+    latest_public_pages = refs("docs/latest", ["public/index"])
+    version_pages = refs(
+        f"docs/{version}",
+        [
+            "overview",
+            "admin/catalog",
+            "admin/governance",
+            "admin/index",
+            "admin/media",
+            "faq",
+            "miniapp/brand-certificate",
+            "miniapp/browse",
+            "miniapp/index",
+            "public/index",
+        ],
+    )
+    guides_pages = ["index", "guides/getting-started", *latest_pages] if has_usage_docs else ["index", "guides/getting-started"]
+    docs_navigation = {
+        "versions": [
+            {
+                "version": "简体中文",
+                "tabs": [
+                    {
+                        "tab": "用户指南",
+                        "groups": [
+                            {"group": "入门", "pages": guides_pages},
+                            {"group": "角色入口", "pages": ["roles/admin", "roles/store-owner", "roles/support"]},
+                            {
+                                "group": "常用任务",
+                                "pages": ["tasks/catalog-maintenance", "tasks/media-and-certificate", "docs/latest/faq"],
+                            },
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
     if has_usage_docs:
-        nav_pages.extend(f"docs/{version}/{page.removesuffix('.mdx')}" for page in pages)
-        nav_pages.insert(1, "docs/latest/overview")
+        docs_navigation["versions"][0]["tabs"].extend(
+            [
+                {
+                    "tab": "当前版本",
+                    "groups": [
+                        {"group": "管理端", "pages": latest_admin_pages},
+                        {"group": "小程序", "pages": latest_miniapp_pages},
+                        {"group": "公开浏览", "pages": latest_public_pages},
+                    ],
+                },
+                {
+                    "tab": "版本与公告",
+                    "groups": [
+                        {"group": "版本索引", "pages": ["versions/index", *version_pages]},
+                        {"group": "发布公告", "pages": [f"releases/{version}/announcement"]},
+                    ],
+                },
+                {
+                    "tab": "文档治理",
+                    "groups": [
+                        {"group": "公开边界", "pages": ["governance/public-boundary", "governance/site-governance"]},
+                    ],
+                },
+            ]
+        )
     write_json(
-        MINTLIFY_DIR / "mint.json",
+        MINTLIFY_DIR / "docs.json",
         {
-            "$schema": "https://mintlify.com/schema.json",
+            "$schema": "https://mintlify.com/docs.json",
             "name": "瓷砖信息管理平台产品文档",
-            "navigation": [
-                {"group": "当前版本", "pages": ["docs/latest/overview"] if has_usage_docs else []},
-                {"group": f"{version}", "pages": nav_pages},
-            ],
+            "theme": "mint",
+            "colors": {
+                "primary": "#B58B3B",
+                "light": "#D8B76A",
+                "dark": "#6F5426",
+            },
+            "favicon": "/favicon.svg",
+            "navigation": docs_navigation,
         },
     )
 

@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 11:32:00
+updated_at: 2026-08-06 00:00:00
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -79,6 +79,7 @@ cp scripts/build-images.env.example scripts/build-images.env
 - 本地持久化目录：`data/sqlite/`、`data/processed/`、`data/tmp/`；仅启用项目自建 MinIO 时使用 `data/minio/`。
 - Web 容器运行时仅替换 `UPLOAD_*` Nginx 变量，避免误替换 Nginx 内置变量。
 - Compose project name 固定为 `tilesfst`；本地脚本同样显式使用 `--project-name tilesfst`，避免因入口目录不同生成 `local_*` 或 `projecttilesfst_*` 网络、镜像与容器标签。
+- 长期运行服务统一配置 `restart: unless-stopped`，支持异常退出后自动拉起；MinIO 初始化任务配置 `restart: on-failure`，仅失败时重试，成功后不重复执行。
 
 ### deploy 环境矩阵
 
@@ -136,14 +137,14 @@ cp scripts/build-images.env.example scripts/build-images.env
 - 当选择 `*-minio-managed` 环境时，脚本会启用 `self-hosted-storage` profile 并启动项目自建 MinIO。
 - 若不使用脚本，根目录本地云对象存储场景直接执行 `docker compose up -d --build tilesfst-backend tilesfst-web`；本地自建 MinIO 场景执行 `docker compose --profile self-hosted-storage up -d --build tilesfst-backend tilesfst-web tilesfst-minio tilesfst-minio-init`。
 - 本地启动脚本默认同时启动 `tilesfst-docs-site`。文档站默认访问 `http://localhost:${HOST_PORT_MINTLIFY_DOCS:-3001}`。
-- 若只需要单独启动公开文档站，先确认 `mintlify/mint.json` 与 `mintlify/docs/**` 已生成，再执行 `docker compose --profile docs-site up -d tilesfst-docs-site`。
+- 若只需要单独启动公开文档站，先确认 `mintlify/docs.json` 与 `mintlify/docs/**` 已生成，再执行 `docker compose --profile docs-site up -d --build tilesfst-docs-site`。该服务使用 `deploy/docs-site/Dockerfile` 构建本地可复用 docs-site 镜像，镜像内预装 Mintlify CLI，并把 Mintlify 运行缓存写入 Docker named volume，不写宿主机 `~/.mintlify*`。
 - 同时启动业务系统和文档站可执行 `docker compose --profile docs-site up -d --build tilesfst-backend tilesfst-web tilesfst-docs-site`；若还需要本地 MinIO，再叠加 `--profile self-hosted-storage` 并显式包含 `tilesfst-minio tilesfst-minio-init`。
 
 ### Mintlify 文档站部署选择
 
 生产默认启动 Compose 内 `tilesfst-docs-site`，也可按实际部署改为外部 Mintlify 托管、静态托管、CDN rewrite 或反向代理。未确认生产承载方式时，`/release-prepare <version>` 必须记录 blocker 或待确认项。
 
-发布范围包含 `docs-site` service、Compose profile、`HOST_PORT_MINTLIFY_DOCS`、`MINTLIFY_NODE_IMAGE` 或文档站部署脚本时，必须记录 Docker Compose config 校验；若涉及镜像交付输入，按发布规范评估 `/image-prepare` 与 `/image-build`。真实 Mintlify 账号、token、生产域名和外部托管凭据不得写入仓库。
+发布范围包含 `docs-site` service、Compose profile、`HOST_PORT_MINTLIFY_DOCS`、`DOCS_SITE_NODE_BASE_IMAGE`、`TILESFST_DOCS_SITE_IMAGE_REPOSITORY`、`MINTLIFY_CLI_VERSION` 或文档站 Dockerfile 时，必须记录 Docker Compose config 校验；若涉及镜像交付输入，按发布规范评估 `/image-prepare` 与 `/image-build`。真实 Mintlify 账号、token、生产域名和外部托管凭据不得写入仓库。
 
 ### Docker 基础镜像源
 
@@ -202,7 +203,7 @@ ADMIN_RESET_PASSWORD_ON_STARTUP=false
 | `docker-compose.yml` | 本地/demo 编排事实源：tilesfst-backend、tilesfst-web、可选 self-hosted-storage、可选 docs-site；Compose project name 固定为 `tilesfst` |
 | `docker-compose.prod.yml` | VPS 生产兼容编排（外部 MySQL + 自建 MinIO） |
 | `docker-compose.prod.external.yml` | VPS 生产兼容编排（外部 MySQL + 外部 MinIO/S3 兼容或云上对象存储） |
-| `mintlify/mint.json` | Mintlify 文档站配置 |
+| `mintlify/docs.json` | Mintlify 文档站唯一主配置 |
 | `mintlify/site-manifest.json` | 文档站版本投影与共享截图摘要 |
 | `deploy/local/compose.yml` | 本地环境矩阵 Compose；服务拓扑与根目录 `docker-compose.yml` 保持一致 |
 | `deploy/prod/compose.tencent-cos.yml` | 当前推荐生产拓扑：外部 MySQL + 腾讯云 COS |

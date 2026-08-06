@@ -17,6 +17,7 @@ from app.core.exceptions import (
     BannerSchemaDriftError,
     BannerTitleDuplicatedError,
 )
+from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.repositories.banner_repository import BannerRecord, BannerRepository, compute_time_status
 from app.repositories.topic_repository import TopicRepository
 from app.schemas.banner_admin import (
@@ -58,6 +59,12 @@ def _media_url(object_key: str | None) -> str | None:
     return f"/media/{object_key}"
 
 
+def _media_thumbnail_url(object_key: str | None) -> str | None:
+    if not object_key:
+        return None
+    return f"/media/{same_directory_thumbnail_object_key(object_key)}"
+
+
 def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
     if value is None:
         return None
@@ -97,6 +104,7 @@ class BannerAdminService:
             position=banner.position,
             image_object_key=banner.image_object_key,
             image_url=_media_url(banner.image_object_key) or "",
+            image_thumbnail_url=_media_thumbnail_url(banner.image_object_key),
             image_source=banner.image_source,
             sku_gallery_asset_id=banner.sku_gallery_asset_id,
             jump_type=banner.jump_type,

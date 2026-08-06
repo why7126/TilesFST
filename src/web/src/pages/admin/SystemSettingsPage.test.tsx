@@ -45,6 +45,7 @@ const mediaPayload = {
   max_image_size_mb: 20,
   max_video_size_mb: 500,
   max_file_size_mb: 25,
+  thumbnail_max_size_kb: 0,
   allowed_image_types: 'image/jpeg,image/png,image/webp',
   allowed_video_types: 'video/mp4',
   minio_bucket: 'tilesfst',
@@ -180,6 +181,9 @@ describe('SystemSettingsPage', () => {
     });
     expect(fetchSettingsGroupMock).toHaveBeenCalledWith('media');
     expect(screen.getByText('文档最大尺寸 (MB)')).toBeInTheDocument();
+    expect(screen.getByText('缩略图体积目标上限 (KB)')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('0')).toBeInTheDocument();
+    expect(screen.getByText(/0 表示不限制/)).toBeInTheDocument();
     for (const label of ['图片最大尺寸 (MB)', '视频最大尺寸 (MB)', '文档最大尺寸 (MB)']) {
       expect(screen.getByLabelText(label)).toHaveClass('select');
       expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
@@ -190,5 +194,43 @@ describe('SystemSettingsPage', () => {
     for (const label of ['MP4', 'MOV', 'AVI', 'WebM', 'MKV', 'MPEG', '3GP']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }
+  });
+
+  it('saves thumbnail max size with media settings payload', async () => {
+    renderPage('/admin/settings/media');
+
+    await waitFor(() => {
+      expect(screen.getByText('对象存储策略')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByRole('spinbutton'), {
+      target: { value: '20' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
+
+    await waitFor(() => {
+      expect(patchSettingsGroupMock).toHaveBeenCalledWith('media', {
+        thumbnail_max_size_kb: 20,
+      });
+    });
+    expect(screen.getAllByRole('button', { name: '保存设置' })).toHaveLength(1);
+    expect(document.querySelector('.settings-save-tip')).toBeNull();
+  });
+
+  it('rejects invalid thumbnail max size before save', async () => {
+    renderPage('/admin/settings/media');
+
+    await waitFor(() => {
+      expect(screen.getByText('对象存储策略')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByRole('spinbutton'), {
+      target: { value: '1025' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
+
+    expect(patchSettingsGroupMock).not.toHaveBeenCalled();
+    expect(await screen.findByText('保存失败')).toBeInTheDocument();
+    expect(window.confirm).not.toHaveBeenCalled();
   });
 });

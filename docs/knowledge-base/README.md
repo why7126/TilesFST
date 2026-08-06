@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 23:15:03
+updated_at: 2026-08-06 08:30:00
 ---
 
 # 知识库
@@ -47,6 +47,7 @@ updated_at: 2026-08-04 23:15:03
 | sprint-017 | [`retrospectives/sprint-017-retrospective.md`](retrospectives/sprint-017-retrospective.md) | draft |
 | sprint-018 | [`retrospectives/sprint-018-retrospective.md`](retrospectives/sprint-018-retrospective.md) | draft |
 | sprint-019 | [`retrospectives/sprint-019-retrospective.md`](retrospectives/sprint-019-retrospective.md) | draft |
+| sprint-020 | [`retrospectives/sprint-020-retrospective.md`](retrospectives/sprint-020-retrospective.md) | draft |
 
 ## 最佳实践索引
 

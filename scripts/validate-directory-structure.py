@@ -108,7 +108,7 @@ MINTLIFY_SENSITIVE_PATTERNS = (
 ISSUE_ROOTS = ("issues/requirements", "issues/bugs")
 ISSUE_STAGE_DIRS = ("plan", "review", "archive")
 ISSUE_PREFIX_RE = re.compile(r"^(REQ|BUG)-(\d{4,})(?:-|$)")
-DEPLOY_ALLOWED_TOP_LEVEL = {"README.md", "local", "prod", "scripts"}
+DEPLOY_ALLOWED_TOP_LEVEL = {"README.md", "docs-site", "local", "prod", "scripts"}
 DEPLOY_FORBIDDEN_EXTENSIONS = {".db", ".sqlite", ".sqlite3", ".tar"}
 DEPLOY_FORBIDDEN_SUFFIXES = (".tar.gz", ".env", ".env.local", ".env.prod")
 DEPLOY_FORBIDDEN_DIR_NAMES = {"__pycache__", "data", "minio", "runtime", "uploads", "images"}
@@ -244,7 +244,21 @@ def validate_mintlify_dir(root: Path) -> list[str]:
     if not site_root.is_dir():
         return [f"mintlify 不是目录: {site_root.relative_to(root)}"]
 
-    allowed_children = {"README.md", "mint.json", "assets", "docs", "releases", "site-manifest.json"}
+    allowed_children = {
+        "README.md",
+        "index.mdx",
+        "docs.json",
+        "favicon.svg",
+        "assets",
+        "docs",
+        "governance",
+        "guides",
+        "releases",
+        "roles",
+        "site-manifest.json",
+        "tasks",
+        "versions",
+    }
     for child in site_root.iterdir():
         if child.name not in allowed_children:
             errors.append(f"mintlify/ 存在未登记路径: {child.relative_to(root)}")

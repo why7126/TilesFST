@@ -211,7 +211,45 @@ def test_miniapp_home_returns_public_data_and_hides_internal_fields(api_client: 
     assert "remark" not in data["new_products"][0]
     assert "object_key" not in data["banners"][0]
     assert all(item["sku_code"] != "FST-DRAFT" for item in data["new_products"])
-    assert any(item["action_type"] in {"copy_wechat", "phone"} for item in data["services"])
+    assert data["services"]
+    assert {item["action_type"] for item in data["services"]} == {"none"}
+    assert all(item.get("action_value") is None for item in data["services"])
+
+
+def test_miniapp_home_ignores_legacy_contact_settings_for_privacy_contract(
+    api_client: TestClient,
+) -> None:
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO system_settings (`key`, value, updated_at, updated_by)
+                VALUES
+                  ('miniapp.contact_phone', '13800000000', :now, NULL),
+                  ('miniapp.contact_wechat', 'FeishangteTiles', :now, NULL)
+                ON CONFLICT(`key`) DO UPDATE SET
+                  value = excluded.value,
+                  updated_at = excluded.updated_at
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/home")
+
+    assert response.status_code == 200
+    services = response.json()["data"]["services"]
+    assert services
+    assert {item["action_type"] for item in services} == {"none"}
+    assert all(item.get("action_value") is None for item in services)
+    assert all(item["key"] not in {"phone", "wechat"} for item in services)
 
 
 def test_miniapp_products_return_has_more_for_waterfall(api_client: TestClient) -> None:
@@ -1240,7 +1278,7 @@ def test_miniapp_usage_events_validate_dictionary_and_forbidden_properties(
             "page_path": "/pages/index/index",
             "properties": {
                 "page_path": "/pages/index/index",
-                "contact_type": "copy_wechat",
+                "contact_type": "none",
                 "client_type": "wechat_miniapp",
             },
         },

@@ -155,7 +155,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "wx.previewImage" in certificate_detail_js
     assert "wx.downloadFile" in certificate_detail_js
     assert "wx.openDocument" in certificate_detail_js
-    assert "wx.setClipboardData" in certificate_detail_js
+    assert "wx.setClipboardData" not in certificate_detail_js
+    assert "文件链接已复制" not in certificate_detail_js
     assert "wx.switchTab" in certificate_detail_js
     assert "/pages/certificates/index" in certificate_detail_js
     assert "open-type=\"share\"" not in certificate_detail_wxml
@@ -1164,6 +1165,20 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "certificate_no" not in certificate_wxml
     assert "issuer" not in certificate_wxml
     assert "validity_status_label" not in certificate_wxml
+
+
+def test_miniapp_submission_bundle_has_no_phone_or_clipboard_privacy_api() -> None:
+    sources = {
+        path.relative_to(MINIAPP): path.read_text(encoding="utf-8")
+        for path in MINIAPP.rglob("*.*")
+        if path.suffix in {".js", ".ts", ".wxml"}
+    }
+    offenders = [
+        str(path)
+        for path, text in sources.items()
+        if "wx.makePhoneCall" in text or "wx.setClipboardData" in text
+    ]
+    assert offenders == []
 
 
 def test_miniapp_product_card_component_contract_and_reuse() -> None:

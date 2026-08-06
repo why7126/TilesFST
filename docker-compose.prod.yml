@@ -16,6 +16,8 @@ services:
         BACKEND_PYTHON_BASE_IMAGE: ${BACKEND_PYTHON_BASE_IMAGE:-python:3.12-slim}
     # 后端固定容器名，便于部署脚本与日志检索；与其他 Compose 变体保持一致。
     container_name: tilesfst-backend
+    # 生产服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     # 生产环境变量显式列出；带 :? 的变量缺失时 Compose 会快速失败。
     environment:
       # 生产模式开关；后端会据此启用生产数据库校验。
@@ -115,6 +117,8 @@ services:
         # 可在 .env 中覆盖为镜像源，例如 m.daocloud.io/docker.io/nginx:1.27-alpine。
         WEB_NGINX_BASE_IMAGE: ${WEB_NGINX_BASE_IMAGE:-nginx:1.27-alpine}
     container_name: tilesfst-web
+    # 生产 Web 服务异常退出后自动拉起；手动停止或 docker compose down 后不自启。
+    restart: unless-stopped
     # Nginx 模板仅替换 UPLOAD_* 变量，避免误替换 $host 等 Nginx 内置变量。
     environment:
       NGINX_ENVSUBST_FILTER: "^UPLOAD_"
@@ -146,6 +150,8 @@ services:
     # 生产建议后续固定镜像版本；当前保持与本地编排一致。
     image: minio/minio:latest
     container_name: tilesfst-minio
+    # 生产自建 MinIO 异常退出后自动拉起，避免媒体读写中断。
+    restart: unless-stopped
     # /data 为对象数据目录，9001 为控制台端口。
     command: server /data --console-address ":9001"
     # Root 凭据必须由生产 .env 显式提供。
@@ -167,6 +173,8 @@ services:
     # mc 客户端镜像只负责一次性初始化。
     image: minio/mc:latest
     container_name: tilesfst-minio-init
+    # 初始化任务失败时自动重试；成功退出后不重复执行。
+    restart: on-failure
     depends_on:
       - tilesfst-minio
     # 初始化所需凭据与桶名；缺少密钥时快速失败。

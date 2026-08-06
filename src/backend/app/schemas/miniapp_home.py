@@ -35,7 +35,7 @@ class MiniappServiceItem(BaseModel):
     key: str
     title: str
     description: str
-    action_type: Literal["none", "copy_wechat", "phone"]
+    action_type: Literal["none"]
     action_value: str | None = None
 
 

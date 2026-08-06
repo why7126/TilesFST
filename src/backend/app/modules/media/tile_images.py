@@ -53,6 +53,7 @@ def formalize_tile_image_object(
     tile_id: int,
     object_key: str,
     target_key: str | None = None,
+    thumbnail_max_size_kb: int = 0,
 ) -> FormalizedTileImage:
     source_key = str(resolve_media_path(object_key))
     if not source_key.startswith(PENDING_TILE_IMAGE_PREFIX):
@@ -78,7 +79,11 @@ def formalize_tile_image_object(
         thumbnail_source_key = source_thumbnail_key
     except AppError:
         try:
-            generated_thumbnail = generate_image_thumbnail(original.content, original_content_type)
+            generated_thumbnail = generate_image_thumbnail(
+                original.content,
+                original_content_type,
+                target_max_size_kb=thumbnail_max_size_kb,
+            )
         except (RuntimeError, ValueError, OSError):
             thumbnail = None
             thumbnail_source_key = source_key
