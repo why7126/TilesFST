@@ -58,11 +58,13 @@ python scripts/promote-issue-stage.py --bug <BUG-id> --to review --reason "/bug-
 
 ## 门禁
 
-**仅 `approved`** → `/bug-opsx`、`/sprint-propose`（P0 BUG 优先）
+**仅 `approved`** → 先 `/sprint-propose` 纳入 Sprint，再 `/bug-opsx` 创建修复 Change（P0 BUG 优先）
 
 ## Next
 
-`/bug-opsx BUG-xxxx`
+`/sprint-propose sprint-xxx --bug BUG-xxxx`
+
+若目标 Sprint、修复优先级或容量尚未确定，最终输出 MUST 在「待用户决策/处理」中明确列出。
 
 ---
 
@@ -89,3 +91,19 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event bug.revi
 
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
+

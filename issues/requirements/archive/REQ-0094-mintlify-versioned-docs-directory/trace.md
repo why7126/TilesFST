@@ -3,7 +3,7 @@ requirement_id: REQ-0094-mintlify-versioned-docs-directory
 status: done
 priority: P1
 created_at: 2026-08-03 13:15:49
-updated_at: 2026-08-03 20:39:29
+updated_at: 2026-08-06 11:24:20
 lifecycle_stage: archive
 lifecycle:
   captured: 2026-08-03 13:15:49
@@ -104,3 +104,9 @@ readiness: Ready
 | 2026-08-03 18:55:00 | `/sprint-propose sprint-018` | 纳入 `sprint-018` 正式范围，并关联 Change `add-mintlify-versioned-docs-site`。 |
 
 - 2026-08-03 20:28:27 workflow-sync：状态同步为 done（Change archived）
+
+## 关联缺陷
+
+| BUG | 严重等级 | 状态 | 关联 Change | 说明 |
+|---|---|---|---|---|
+| BUG-0120-docs-site-mintlify-cache-ebusy | medium | done | fix-docs-site-mintlify-cache-ebusy | tilesfst-docs-site Mintlify 缓存 volume 导致 EBUSY 启动失败 |

@@ -27,6 +27,47 @@ def extract_scope_section(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def extract_goal_section(text: str) -> str | None:
+    match = re.search(r"^## 1\. 目标\s*\n(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    return match.group(1) if match else None
+
+
+def extract_target_id_list(text: str) -> set[str] | None:
+    goal = extract_goal_section(text)
+    if goal is None:
+        return None
+    lines = goal.splitlines()
+    start_index: int | None = None
+    for index, line in enumerate(lines):
+        if "Sprint 目标编号列表" in line:
+            start_index = index + 1
+            break
+    if start_index is None:
+        return None
+
+    ids: set[str] = set()
+    for line in lines[start_index:]:
+        stripped = line.strip()
+        if not stripped:
+            if ids:
+                break
+            continue
+        if stripped.startswith("#"):
+            break
+        bullet = re.match(r"^[-*]\s+(.+?)\s*$", stripped)
+        if not bullet:
+            if ids:
+                break
+            continue
+        item = bullet.group(1).strip().strip("`")
+        if item:
+            ids.add(item)
+            short = short_issue_code(item)
+            if short != item:
+                ids.add(short)
+    return ids if ids else None
+
+
 def extract_marker_block(text: str, name: str) -> str:
     pattern = re.compile(
         rf"<!-- workflow-sync:{re.escape(name)}:start -->(.*?)"
@@ -48,6 +89,27 @@ def main_scope_table_header(scope: str) -> list[str] | None:
     return None
 
 
+def target_list_contains(target_ids: set[str] | None, item_id: str) -> bool:
+    if target_ids is None:
+        return False
+    return item_id in target_ids or short_issue_code(item_id) in target_ids
+
+
+def sprint_scope_linked_changes(sprint_path: Path) -> set[str]:
+    yaml_path = sprint_path / "sprint.yaml"
+    if not yaml_path.exists():
+        return set()
+    text = read_text(yaml_path)
+    linked: set[str] = set()
+    for block in re.finditer(r"(?ms)^  - id:\s+(.+?)(?=^  - id:|\Z)", text):
+        item = block.group(0)
+        if re.search(r"^\s+(?:requirement|bug):\s*\S+", item, re.MULTILINE):
+            match = re.search(r"^\s+change:\s*(\S+)\s*$", item, re.MULTILINE)
+            if match:
+                linked.add(match.group(1).strip())
+    return linked
+
+
 def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
     sprint = load_sprint(sprint_id)
     if sprint is None:
@@ -66,6 +128,8 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
     req_block = extract_marker_block(text, "scope-requirements")
     bug_block = extract_marker_block(text, "scope-bugs")
     change_block = extract_marker_block(text, "scope-changes")
+    target_ids = extract_target_id_list(text)
+    linked_changes = sprint_scope_linked_changes(sprint.path)
 
     failures: list[str] = []
     expected_header = ["类型", "编号", "标题", "状态", "估算", "说明"]
@@ -81,6 +145,12 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
     def in_focus(item_id: str) -> bool:
         return not focus or item_id in focus or short_issue_code(item_id) in focus
 
+    def append_target_failure(item_id: str) -> None:
+        if target_ids is None:
+            failures.append("sprint.md Sprint target id list missing or malformed")
+        else:
+            failures.append(f"{item_id} missing from sprint.md Sprint target id list")
+
     for req_id in sprint.requirements:
         if not in_focus(req_id):
             continue
@@ -88,6 +158,8 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
             failures.append(f"{req_id} missing from sprint.md `## 2. Scope` main table")
         if short_issue_code(req_id) not in req_block:
             failures.append(f"{req_id} missing from workflow-sync requirements table")
+        if not target_list_contains(target_ids, req_id):
+            append_target_failure(req_id)
 
     for bug_id in sprint.bugs:
         if not in_focus(bug_id):
@@ -96,6 +168,8 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
             failures.append(f"{bug_id} missing from sprint.md `## 2. Scope` main table")
         if short_issue_code(bug_id) not in bug_block:
             failures.append(f"{bug_id} missing from workflow-sync bugs table")
+        if not target_list_contains(target_ids, bug_id):
+            append_target_failure(bug_id)
 
     for change_id in sprint.changes:
         if focus and change_id not in focus:
@@ -104,6 +178,8 @@ def validate_sprint_scope(sprint_id: str, focus: set[str]) -> list[str]:
             failures.append(f"{change_id} missing from sprint.md `## 2. Scope` main table")
         if change_id not in change_block:
             failures.append(f"{change_id} missing from workflow-sync changes table")
+        if change_id not in linked_changes and not target_list_contains(target_ids, change_id):
+            append_target_failure(change_id)
 
     return failures
 

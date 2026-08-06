@@ -76,7 +76,7 @@ docs/knowledge-base/best-practices/<matched>.md（按标签）
 |---|---|---|
 | REQ | `requirement.md`、`acceptance.md`、`trace.md` 齐全且 approved/in_sprint | 延后并建议 `/req-complete` 或 `/req-review` |
 | BUG | `bug.md`、`root-cause.md`、`acceptance.md`、`trace.md` 齐全且 approved/in_sprint | 延后并建议 `/bug-complete` 或 `/bug-review` |
-| Change | `proposal.md`、`design.md`、`tasks.md` 存在且未 archived | 缺失时提示 `/req-opsx` 或 `/bug-opsx` |
+| Change | 若直接纳入 Change，则 `proposal.md`、`design.md`、`tasks.md` 存在且未 archived | 已评审 REQ/BUG 可先无 Change 纳入；缺失时在输出提示后续 `/req-opsx` 或 `/bug-opsx` |
 
 ### Capacity Gate
 
@@ -140,6 +140,14 @@ trace.md iteration: sprint-xxx
 openspec/changes/<change>/trace.md（若存在）
 ```
 
+已评审但尚未创建 Change 的 REQ/BUG MAY 作为正式范围纳入 Sprint：
+
+- `sprint.yaml` MUST 记录对应 `requirements[]` 或 `bugs[]`。
+- `changes[]` MAY 暂不包含对应 Change。
+- 输出 MUST 明确提示下一步执行 `/req-opsx <REQ-id>` 或 `/bug-opsx <BUG-id>`。
+- 后续 `/req-opsx` 或 `/bug-opsx` 的 Workflow Sync MUST 将新 Change 回填同一 Sprint。
+- `/opsx-apply` 仍 MUST 等待 Change 被写入 `changes[]` 后才能继续。
+
 ## Existing Sprint Scope Update（MUST）
 
 当目标 `iterations/change|archive/<sprint>/sprint.yaml` 已存在，且本命令是在已有 Sprint 中追加或修正 REQ/BUG/Change 正式范围时，MUST 先使用确定性脚本更新机器事实源，不得只手工编辑 `sprint.md`、Issue trace 或 Markdown Scope 表：
@@ -157,13 +165,24 @@ python scripts/add-sprint-scope-item.py \
 
 - 脚本成功后再运行 Workflow Sync 派生刷新 `sprint.md`、`release-note.md`、`acceptance-report.md`、Issue trace 和 Change trace。
 - 多个范围项追加到同一个 Sprint 时，MUST 严格串行运行 `scripts/add-sprint-scope-item.py`；不得使用并行工具同时写同一个 `sprint.yaml`。脚本虽然带文件锁，但命令编排仍必须以最新写入后的 YAML 作为下一项输入，避免覆盖、重复键或坏 UTF-8。
+- `sprint.md` `## 1. 目标` 的 Sprint 目标编号列表 MUST 同步包含本次新增或修正的 REQ/BUG/必要纯 Change；对应 `### xxx 要点` 段落 MUST 同步补齐或更新。
 - `sprint.md` `## 2. Scope` 主表 MUST 保持六列：`类型 | 编号 | 标题 | 状态 | 估算 | 说明`。不得改成 `范围项 | 状态 | 估算` 窄表；需要降低预览宽度时，只能缩短 `说明` 文案或把细节放入 workflow-sync 分组表。
 - 若新增项带有 Change，结束前 MUST 运行 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run`，并确认输出解析到目标 Sprint，不得报告 `not in sprint scope`。
 - 若 dry-run 仍报告 `not in sprint scope`，MUST 停止并修复 `sprint.yaml` 机器源；不得以 `sprint.md` Scope 表或人工摘要已出现该项作为完成依据。
 
 ## Output
 
-报告 Sprint ID、状态、纳入 REQ/BUG/Change 数量、估算、知识库承接、容量门禁、四件套路径、下一步。
+报告 Sprint ID、状态、纳入 REQ/BUG/Change 数量、估算、知识库承接、容量门禁、四件套路径、下一步、待用户决策/处理。
+
+若纳入范围存在已评审但尚未 Change 的 REQ/BUG，下一步 MUST 输出可直接执行的命令，例如：
+
+```text
+下一步：
+- /req-opsx REQ-xxxx
+- /bug-opsx BUG-xxxx
+待用户决策/处理：
+- 确认是否在本 Sprint 内立即创建上述 Change；若暂缓，说明暂缓原因。
+```
 
 ## Final Step — Workflow Sync（MUST）
 
@@ -186,7 +205,7 @@ python scripts/validate-sprint-scope.py <sprint-id> \
 
 - Exit code MUST be `0` before finishing `/sprint-propose`.
 - Pass every REQ/BUG/Change newly added or updated by this run.
-- This check is required because `sprint.yaml` is the machine source, but `sprint.md` `## 2. Scope` is the product-facing planning source; both MUST contain the same formal scope.
+- This check is required because `sprint.yaml` is the machine source, but `sprint.md` `## 1. 目标` target id list and `## 2. Scope` are product-facing planning sources; all MUST contain the same formal scope.
 
 ## Final Step — AI Usage Post-command Hook (MUST)
 
@@ -206,3 +225,18 @@ python scripts/extract-ai-usage.py \
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - Pass every REQ/BUG/Change newly added or updated by this `/sprint-propose` run so the hook can attribute the correct command run and auto-discover the local session when `--session-jsonl` is not available.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

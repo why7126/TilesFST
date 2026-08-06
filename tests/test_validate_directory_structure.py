@@ -191,7 +191,8 @@ def test_docker_compose_docs_site_profile_is_optional() -> None:
     assert docs_site["image"].startswith("${TILESFST_DOCS_SITE_IMAGE_REPOSITORY:-tilesfst-docs-site}:")
     assert docs_site["working_dir"] == "/workspace/mintlify"
     assert "./mintlify:/workspace/mintlify:ro" in docs_site["volumes"]
-    assert "tilesfst-docs-site-cache:/home/node/.mintlify" in docs_site["volumes"]
+    assert all("/home/node/.mintlify" not in volume for volume in docs_site["volumes"])
+    assert "tilesfst-docs-site-cache" not in compose.get("volumes", {})
     assert "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000" in docs_site["ports"]
     assert docs_site["command"] == "mintlify dev --host 0.0.0.0 --port 3000"
     assert "depends_on" not in docs_site

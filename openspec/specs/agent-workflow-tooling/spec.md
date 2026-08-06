@@ -135,7 +135,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 MUST 将 attribution_confidence 标记为 medium 或 low
 
 ### Requirement: Sprint 复盘命令环节 Token 分析
-`/sprint-exps` MUST 优先读取 `data/ai-usage/` 的 Sprint 聚合快照，并在 Sprint AI usage snapshot fresh gate 通过后按命令环节维度展示 AI 使用量分析。fresh gate MUST 确认 snapshot 为 `present`、AI usage mode 为 `actual`、`usage_matrices` 存在、关键 totals 非空、当前 Sprint scope 的 requirements、bugs 和 changes coverage 均通过；未通过时默认不得输出真实成本矩阵或宣称完成真实 token 成本量化。
+`/sprint-exps` MUST 优先读取 `data/ai-usage/` 的 Sprint 聚合快照，并在 Sprint AI usage snapshot fresh gate 通过后按命令环节维度展示 AI 使用量分析。fresh gate MUST 确认 snapshot 为 `present`、AI usage mode 为 `actual`、`usage_matrices` 存在、关键 totals 非空、当前 Sprint scope 的 requirements、bugs 和 changes coverage 均通过；未通过时默认不得输出真实成本矩阵或宣称完成真实 token 成本量化。Fact Sheet 计算 snapshot freshness baseline 时，未来计划 `sprint.yaml:start_date` 与 `sprint.yaml:end_date` MUST NOT 作为 `min_generated_at` 候选；这些未来计划时间 MUST 作为 skipped candidate 暴露，并使用 `future-planned-time` 或等价 reason。
 
 #### Scenario: 存在新鲜且覆盖完整的 Sprint 使用量快照
 - **WHEN** 用户执行 `/sprint-exps sprint-xxx`
@@ -172,6 +172,21 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 输出 MUST 仅包含 status、usage mode、snapshot status、warning_count、coverage status、usage_matrices presence 和 recommended_action 等 compact 字段
 - **AND** 输出 MUST NOT 包含原始 session JSONL、prompt、系统指令、developer 指令、技能全文、本机绝对路径、密钥、Cookie、Authorization header、`.env` 内容或工具输出全文
 
+#### Scenario: 未来计划 start_date 不阻塞完整 snapshot
+- **WHEN** Fact Sheet 为 Sprint 计算 AI usage freshness baseline
+- **AND** `sprint.yaml:start_date` 晚于当前执行时间
+- **AND** snapshot 本身为 `present`、`actual` 且 fresh gate 其他检查均通过
+- **THEN** 系统 MUST 将该 `start_date` 记录到 `ai_usage_freshness_baseline.skipped[]`
+- **AND** skipped reason MUST 为 `future-planned-time` 或等价说明
+- **AND** 系统 MUST NOT 将该 `start_date` 作为 `min_generated_at`
+- **AND** 系统 MUST NOT 仅因该未来 `start_date` 将 snapshot 判定为 `stale`
+
+#### Scenario: 事实更新时间仍阻止陈旧 snapshot
+- **WHEN** Fact Sheet 为 Sprint 计算 AI usage freshness baseline
+- **AND** 四件套 `updated_at` 或其他非未来事实更新时间晚于 snapshot `generated_at`
+- **THEN** 系统 MUST 继续将 snapshot 判定为 `stale`
+- **AND** 系统 MUST 保留刷新 snapshot 的 recommended action
+
 ### Requirement: AI 使用量事实脱敏
 系统 MUST 对 AI 使用量事实源和 Sprint 复盘输出执行脱敏，避免泄露原始 prompt、系统指令、developer 指令、技能全文、本机绝对路径、密钥、Cookie、Authorization、真实客户数据、`.env` 内容和工具输出全文。
 
@@ -198,61 +213,33 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 SHOULD 输出无法归因、缺少 token_count、发现本地绝对路径或疑似敏感内容被跳过的 warnings
 
 ### Requirement: Issue 归档子文档状态一致性门禁
-系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。单个 Issue 的归档与子文档 reconcile MUST 以该 Issue 自身闭环为准，不得仅因所属 Sprint 尚未 completed 而阻断；Sprint completed 仅作为 `/sprint-archive` 整体归档门禁。该门禁 MUST 复用或兼容常规子文档 drift check 的扫描分类结果，并 MUST 区分“日常状态传播缺失”与“闭环 residual reconcile”两类问题。
+系统 MUST 在 REQ / BUG 迁入 `issues/**/archive/` 前检查 issue 包内维护状态字段的 Markdown 子文档，防止 archive 包残留非闭环状态。系统 MUST 在发现残留状态时输出明确修复命令，并 MUST 提供安全的 reconcile 能力，在 Issue 主状态与关联交付对象已闭环时自动同步子文档残留状态。归档同步阶段或 promote 前置流程 MUST 自动处理已由扫描分类确认可安全同步的 residual 状态残留；不得把这类安全残留继续交给 `promote-issues-for-archive` 作为阻断项。单个 Issue 的归档与子文档 reconcile MUST 以该 Issue 自身闭环为准，不得仅因所属 Sprint 尚未 completed 而阻断；Sprint completed 仅作为 `/sprint-archive` 整体归档门禁。该门禁 MUST 复用或兼容常规子文档 drift check 的扫描分类结果，并 MUST 区分“日常状态传播缺失”与“闭环 residual reconcile”两类问题。
 
-#### Scenario: BUG 子文档残留状态阻断归档
-- **GIVEN** 一个 BUG 已满足关联 Change archived 与 `trace.md` done 条件
-- **AND** `bug.md`、`root-cause.md`、`acceptance.md`、`workaround.md` 或其他维护状态字段的子文档仍包含 `draft`、`pending_review`、`in_sprint`、`applied`、`todo`、`open` 或等价非闭环状态
-- **WHEN** 系统执行 issue archive promote
-- **THEN** 系统 MUST 阻断该 BUG 迁入 `issues/bugs/archive/`
-- **AND** 报告 MUST 列出 issue id、文件路径、状态来源、当前状态
-- **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
-- **AND** 报告 MUST 标明该残留属于闭环 residual、常规状态传播缺失还是需要人工判断
-
-#### Scenario: REQ 子文档残留状态阻断归档
-- **GIVEN** 一个 REQ 已满足关联 Change archived 与 `trace.md` done 条件
-- **AND** `requirement.md`、`acceptance.md`、`user-stories.md`、`business-flow.md`、`capture.md` 或其他维护状态字段的子文档仍包含非闭环状态
-- **WHEN** 系统执行 issue archive promote
-- **THEN** 系统 MUST 阻断该 REQ 迁入 `issues/requirements/archive/`
-- **AND** 报告 MUST 列出所有残留状态字段
-- **AND** 报告 MUST 包含可直接执行的 dry-run reconcile 命令与实际写入命令
-- **AND** 报告 MUST 标明该残留属于闭环 residual、常规状态传播缺失还是需要人工判断
-
-#### Scenario: 子文档状态全部闭环后允许归档
-- **GIVEN** 一个 REQ 或 BUG 已满足 archive promote 的主状态条件
-- **AND** issue 包内所有维护状态字段均为 `done`、`archived`、`resolved`、`closed` 或等价闭环状态
-- **AND** `acceptance.md` 或等价验收入口已记录通过、失败、部分通过或豁免结论
-- **WHEN** 系统执行 issue archive promote
-- **THEN** 系统 MAY 将该 issue 从 `review/` 迁入 `archive/`
-
-#### Scenario: Reconcile 建议区分自动修复与上游阻断
-- **WHEN** issue archive promote 因子文档状态残留被阻断
-- **THEN** 报告 MUST 提示先 dry-run 再 apply reconcile
-- **AND** 建议 MUST 区分“可自动 reconcile”的闭环 Issue 与“必须先推进上游流程”的未闭环 Issue
-- **AND** 建议 MUST 标明是否还缺少验收结果回填
-
-#### Scenario: Dry-run 预览子文档状态 reconcile
-- **GIVEN** 一个 REQ 或 BUG 的主状态与关联 Change 已闭环
-- **AND** 所属 Sprint 尚未 completed
-- **WHEN** 用户执行子文档状态 reconcile dry-run 命令
-- **THEN** 系统 MUST 报告将被更新的文件、字段来源、旧状态与目标状态
-- **AND** 系统 MUST NOT 写入文件
-- **AND** 系统 MUST NOT 仅因所属 Sprint 尚未 completed 阻断 dry-run
-
-#### Scenario: 写入子文档状态 reconcile
-- **GIVEN** 一个 REQ 或 BUG 的主状态与关联 Change 已闭环
-- **AND** 所属 Sprint 尚未 completed
-- **WHEN** 用户执行子文档状态 reconcile 写入命令
-- **THEN** 系统 MUST 将子文档残留状态更新为该 issue 的闭环目标状态
+#### Scenario: 归档同步自动清理安全 residual
+- **GIVEN** 一个 REQ 或 BUG 已满足关联 Change archived 与 `trace.md` done 条件
+- **AND** 子文档仅残留扫描分类为可安全同步的历史主状态，例如 `capture.md` 的 `status: captured`
+- **WHEN** 系统执行归档同步或 promote 前置流程
+- **THEN** 系统 MUST 自动将该残留同步为闭环目标状态
 - **AND** 系统 MUST 刷新被修改 Markdown 的 `updated_at`
-- **AND** 系统 MUST NOT 仅因所属 Sprint 尚未 completed 阻断写入
-- **AND** 系统 MUST NOT 写入未在 dry-run 中分类为可安全同步的历史字段
+- **AND** 随后执行 `promote-issues-for-archive` MUST NOT 因该已安全处理的残留触发 Issue Subdocument Status Gate
 
-#### Scenario: 未闭环 Issue 禁止 reconcile 写入
-- **GIVEN** 一个 REQ 或 BUG 的主状态或关联 Change 尚未闭环
-- **WHEN** 用户执行子文档状态 reconcile 写入命令
-- **THEN** 系统 MUST 阻断写入
-- **AND** 报告 MUST 指出需要先完成的上游命令或状态
+#### Scenario: 安全 residual 自动处理保持幂等
+- **GIVEN** 一个已闭环 Issue 的安全 residual 已被归档同步处理
+- **WHEN** 系统再次执行相同归档同步或 promote 前置流程
+- **THEN** 系统 MUST 报告 no delta 或等价摘要
+- **AND** 系统 MUST NOT 重复写入无意义变更
+
+#### Scenario: 人工判断 residual 不自动清理
+- **GIVEN** 一个 REQ 或 BUG 的子文档状态残留缺少闭环证据、验收结果或字段语义不明
+- **WHEN** 系统执行归档同步或 promote 前置流程
+- **THEN** 系统 MUST NOT 自动修改该残留
+- **AND** 系统 MUST 输出 warning 或 blocker
+- **AND** 报告 MUST 包含文件路径、状态来源、当前状态和建议处理命令
+
+#### Scenario: 审计摘要区分 residual 分类
+- **WHEN** 归档同步或 promote 前置流程检查 Issue 子文档状态
+- **THEN** 报告 MUST 汇总可安全同步、需人工判断、缺验收结果、缺 trace 或交付证据、不建议自动修复项的数量
+- **AND** 成功路径 MUST NOT 默认展开全部子文档正文
 
 ### Requirement: Archived Change trace 兜底摘要门禁
 系统 MUST 在 `/opsx-archive` 单个 Change 归档流程中检查 archived Change 的归档验证证据；系统 MUST 在 Sprint 或 OpenSpec 归档 readiness gate 中继续复核 archived Change 的归档验证证据。归档后的 Change 缺失 `trace.md` 时，系统 MUST 要求 `proposal.md`、`design.md` 或 `tasks.md` 中至少一个文件包含标准化归档验证摘要。
@@ -369,16 +356,23 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 系统 MUST NOT 输出或写入“真实统计已使用”的结论
 
 ### Requirement: AI usage snapshot 新鲜度与覆盖校验
-系统 MUST 校验 AI usage snapshot 的新鲜度、Sprint 归属、scope 覆盖和必要指标，防止过期或覆盖不足的 snapshot 被当作真实统计使用；fresh gate MUST 使用同一个 Sprint snapshot payload 作为状态、时间戳、coverage 和 usage mode 的事实源，避免已刷新 snapshot 被旧缓存、错误时间源或 fallback mode 误判为 stale。
+系统 MUST 校验 AI usage snapshot 的新鲜度、Sprint 归属、scope 覆盖和必要指标，防止过期或覆盖不足的 snapshot 被当作真实统计使用；fresh gate MUST 使用同一个 Sprint snapshot payload 作为状态、时间戳、coverage 和 usage mode 的事实源，避免已刷新 snapshot 被旧缓存、错误时间源、未来计划结束时间或 fallback mode 误判为 stale。
 
 #### Scenario: snapshot 早于关键变更
-- **WHEN** snapshot 生成时间早于目标 Sprint 最近一次 scope、close、archive 或关联 trace 关键更新时间
+- **WHEN** snapshot 生成时间早于目标 Sprint 最近一次 scope、close、archive、复盘回链或关联 trace 关键更新时间
 - **THEN** 系统 MUST 将 snapshot 标记为 `stale` 或输出等价 warning
 - **AND** 系统 MUST 提示刷新 snapshot
 
+#### Scenario: 未来计划 end_date 不作为 stale 下限
+- **WHEN** 目标 Sprint 已归档或正在复盘
+- **AND** `sprint.yaml.end_date` 晚于当前时间，属于计划结束时间而非实际关闭时间
+- **THEN** Fact Sheet fresh gate MUST NOT 使用该未来 `end_date` 作为 `min_generated_at`
+- **AND** 系统 MUST 改用 Sprint 四件套 frontmatter `updated_at`、非未来 `end_date`、`start_date` 或等价实际更新时间中的最新值作为 freshness baseline
+- **AND** fresh gate summary SHOULD 暴露 baseline 来源，便于诊断 stale 判定
+
 #### Scenario: snapshot 已刷新且覆盖完整
 - **WHEN** snapshot 存在并属于目标 Sprint
-- **AND** snapshot 生成时间不早于目标 Sprint scope、关联 Issue trace 和 Change trace 的关键更新时间
+- **AND** snapshot 生成时间不早于目标 Sprint scope、四件套 `updated_at`、关联 Issue trace 和 Change trace 的关键更新时间
 - **AND** snapshot 覆盖 Sprint scope 中的 requirements、bugs 和 changes
 - **AND** snapshot 包含必要 totals 与 `usage_matrices`
 - **AND** AI usage mode 为 `actual`
@@ -393,13 +387,6 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 #### Scenario: snapshot 状态与 usage mode 映射
 - **WHEN** fresh gate 计算 snapshot status 和 usage mode
 - **THEN** `actual` MUST 仅在 snapshot 当前、覆盖完整且必要矩阵存在时成立
-- **AND** `estimated_fallback`、`skipped`、`unavailable` MUST 保留具体原因和 recommended_action
-- **AND** fallback mode MUST NOT 覆盖已通过 fresh gate 的真实 snapshot 状态
-
-#### Scenario: 无法可靠判断
-- **WHEN** 系统无法可靠判断 snapshot 是否覆盖所有关键对象
-- **THEN** 系统 MUST 输出 blocker 或 warning
-- **AND** 系统 MUST 提示刷新 snapshot 或回读具体证据
 
 ### Requirement: `/sprint-exps` 禁止静默 estimated fallback
 `/sprint-exps` MUST 优先读取目标 Sprint 的 AI usage snapshot；当真实 snapshot 不可用时，系统 MUST 显式标注估算模式、原因和补救动作。当 Fact Sheet fresh gate 通过时，系统 MUST 允许使用真实 snapshot 统计；当 fresh gate 未通过时必须降级并说明原因。
@@ -1070,38 +1057,54 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 摘要模式和详细模式的退出码 MUST 一致
 
 ### Requirement: Sprint close 中间态文案扫描
-系统 MUST 在 Sprint close、`/sprint-archive` 或等价收尾流程中扫描相关 Issue 包与 Sprint 四件套的中间态残留，防止 completed/archive 状态下仍保留 `planned`、`pending`、`待验收`、`待实现`、active Change 路径或等价旧文案。
+系统 MUST 在 Sprint close、`/sprint-archive` 或等价收尾流程中扫描相关 Issue 包与 Sprint 四件套的中间态残留，防止 completed/archive 状态下仍保留未解释的流程中间态、active Change 路径或等价旧文案。扫描 MUST 区分结构化状态上下文、流程待办说明与普通业务正文；普通业务正文中的业务词 `pending` 不得仅凭独立单词出现就被判定为中间态残留。
 
 #### Scenario: Sprint close 发现中间态文案
 - **WHEN** Sprint close 或 `/sprint-archive` 检查关联 Issue 包、`sprint.md`、`acceptance-report.md`、`release-note.md` 或其他 Sprint 四件套
-- **AND** 文档仍包含未解释的中间态词、active Change 路径或 legacy archive 路径
-- **THEN** 系统 MUST 报告文件路径、行号、命中内容类别和建议修复方式
-- **AND** `/sprint-archive` MUST 不得静默输出完成闭环结论
+- **AND** 文档仍包含未解释的结构化中间态字段、流程待办语义、active Change 路径或 legacy archive 路径
+- **THEN** 系统 MUST 将该命中标记为 blocker
+- **AND** 报告 MUST 包含文件路径、行号、命中片段、关联 Issue 或 Change、真实状态和建议修复动作
+
+#### Scenario: 普通业务正文中的 pending 不阻断
+- **WHEN** 一个已闭环 Issue 子文档的普通正文包含“SKU pending 图片正式化已完成”或等价业务描述
+- **AND** 该行不属于 frontmatter、fenced yaml、状态表格、验收状态字段或流程待办说明
+- **THEN** stale scan MUST NOT 仅因该 `pending` 命中产生 `issue-subdocument-stale-state` blocker
+
+#### Scenario: 结构化 pending 状态继续阻断
+- **WHEN** 一个已闭环 Issue 子文档的 frontmatter、fenced yaml、状态表格或验收结果字段包含 `status: pending_review`、`acceptance_status: pending` 或等价未闭环状态
+- **THEN** stale scan MUST 继续产生 blocker
+- **AND** 报告 MUST 建议运行 Workflow Sync/reconcile 或人工修正语义不明的状态字段
 
 #### Scenario: Sprint close stale scan 范围受控
 - **WHEN** 系统执行 Sprint close 中间态文案扫描
-- **THEN** 系统 MUST 以目标 Sprint 的 `sprint.yaml`、关联 REQ、BUG 与 Change 定位检查范围
-- **AND** 系统 MUST NOT 默认扫描整个 `issues/**`、`openspec/archive/**`、generated 文件或无关历史目录
+- **THEN** 系统 MUST 只扫描目标 Sprint 四件套和该 Sprint scope 关联的 Issue 子文档
+- **AND** 系统 MUST NOT 默认扫描全部 `iterations/**`、`openspec/archive/**` 或历史归档目录
 
 ### Requirement: 大型 Sprint Fact Sheet 默认使用 compact AI usage 摘要
 系统 MUST 在 Sprint Fact Sheet summary 中默认输出 compact Token Usage Fact Sheet 摘要，避免 10+ Change Sprint 默认携带完整 `usage_matrices` 明细；完整矩阵 MUST 只能通过 fields、完整 JSON 或用户明确要求的等价路径按需读取。
 
 #### Scenario: 10+ Change Sprint summary 不输出完整矩阵
 - **WHEN** 用户、测试命令或 `/sprint-exps` 请求包含 10 个或以上 Change 的 Sprint Fact Sheet summary
-- **THEN** summary MUST 输出 AI usage mode、snapshot status、fresh gate、warning_count、coverage status、关键 totals、矩阵可用性、矩阵行列规模和 recommended_action
+- **THEN** summary MUST 输出 AI usage mode、snapshot status、fresh gate、warning_count、coverage status、关键 totals、矩阵可用性、矩阵行列规模、freshness baseline 和 recommended_action
 - **AND** summary MUST NOT 默认输出完整 `usage_matrices.rows` 或四张 usage matrix 明细
 - **AND** summary MUST 提供获取完整矩阵的 fields 路径提示
 
-#### Scenario: 按需读取完整 usage matrices
-- **WHEN** 用户、测试命令或 `/sprint-exps` 明确请求 `ai_usage_snapshot.usage_matrices` 字段
-- **THEN** 系统 MUST 返回完整 `usage_matrices` 结构
-- **AND** 返回内容 MUST 继续遵守 AI 使用量事实脱敏要求，不得包含原始 prompt、系统指令、developer 指令、本机绝对路径、密钥或工具输出全文
+#### Scenario: `/sprint-exps` fresh gate 通过后输出矩阵
+- **WHEN** `/sprint-exps` 的 compact summary 显示 `fresh_gate.status: pass`
+- **AND** `snapshot_status: present`
+- **AND** `ai_usage_mode: actual`
+- **AND** `usage_matrices_summary.available: true`
+- **THEN** `/sprint-exps` MUST 优先通过 Fact Sheet 的 retrospective-ready Markdown 输出生成 token 使用章节
+- **AND** 复盘文档 MUST 输出 `Token Usage Fact Sheet` 表格
+- **AND** 复盘文档 MUST 输出 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵
+- **AND** fields 模式读取 `ai_usage_snapshot.usage_matrices` MUST 仅作为调试或兼容 fallback 使用
 
-#### Scenario: `/sprint-exps` 默认消费 compact summary
-- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
-- **THEN** `/sprint-exps` MUST 先使用 Fact Sheet summary 的 compact AI usage 摘要判断 fresh gate 和矩阵可用性
-- **AND** `/sprint-exps` MUST NOT 在默认路径中读取或转述完整 `usage_matrices`
-- **AND** 仅当用户明确要求矩阵明细或复盘文档确需写入真实矩阵时，`/sprint-exps` MAY 通过 fields 模式读取完整矩阵
+#### Scenario: 命令直接输出复盘表格章节
+- **WHEN** 用户或 `/sprint-exps` 请求 Sprint AI usage Markdown
+- **AND** snapshot fresh gate 通过
+- **THEN** Fact Sheet 命令 MUST 输出可直接写入 `docs/knowledge-base/retrospectives/<sprint-id>-retrospective.md` 的 `## 模型 Token 使用分析` 章节
+- **AND** 输出 MUST 使用与历史 `sprint-015-retrospective.md` 等价的 Markdown 表格结构
+- **AND** 输出 MUST 包含矩阵口径说明，防止将 REQ/BUG 归因行相加后与 `Total` 误比
 
 ### Requirement: 归档 Change 缺失 trace 的最小证据补齐
 系统 MUST 在校验已归档 OpenSpec Change 的归档证据时处理缺失 `trace.md` 的历史归档目录：当归档目录可写且可从归档路径、`tasks.md`、delta spec、proposal/design 或关联 Issue trace 推断出最小事实时，系统 MUST 自动生成最小归档 `trace.md`；当无法安全写入但可形成完整机器可读事实时，系统 MUST 输出结构化 fallback 摘要；当两者都不可用时，系统 MUST 返回非零退出码并报告 blocker。
@@ -1133,4 +1136,211 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **WHEN** 已归档 Change 存在未完成 tasks、缺失 `tasks.md`、legacy archive path 真实残留或关联 Issue 未闭环
 - **THEN** 系统 MUST 保持既有 blocker 语义
 - **AND** 自动生成最小 trace 或结构化 fallback 摘要 MUST NOT 将这些 blocker 误判为通过
+
+### Requirement: OpenSpec 归档输出区分兼容 warning 与真实风险
+系统 MUST 在 `/opsx-archive` 与底层归档封装流程中区分已知 OpenSpec CLI 兼容 warning 与真实归档风险。对于项目中文语言规范已覆盖且不影响归档结果的英文脚手架标题提示，系统 MUST 在安全条件满足时吸收该提示，即使该提示来自 OpenSpec CLI stdout，也 MUST 避免成功路径反复输出固定非阻塞说明；对于真实错误、未知 stdout、未知 stderr、目录结构错误或中文语言校验失败，系统 MUST 保留阻断或可见 warning。
+
+#### Scenario: 已知英文脚手架 warning 被安全吸收
+- **WHEN** `/opsx-archive <change-id>` 或底层归档脚本执行成功
+- **AND** OpenSpec CLI stdout 或 stderr 仅包含 `proposal.md` 缺少英文 `## Why` / `## What Changes` 的已知兼容 warning
+- **AND** `python scripts/validate-openspec-language.py` 通过
+- **THEN** 最终归档说明 MUST NOT 重复展示该固定非阻塞 warning
+- **AND** 系统 MUST NOT 要求为消除该 warning 在 Change 文档中回填英文脚手架标题
+- **AND** 归档成功结论 MUST 继续清晰表达 Change 已归档
+
+#### Scenario: 未知 stdout 仍然可见
+- **WHEN** OpenSpec CLI stdout 包含已知兼容 warning 之外的 warning、error 或诊断文本
+- **THEN** 归档最终输出 MUST 保留未知 stdout 的可见诊断信息
+- **AND** 系统 MUST NOT 将未知 stdout 当作已知兼容 warning 静默吸收
+
+#### Scenario: 未知 stderr 仍然可见
+- **WHEN** OpenSpec CLI stderr 包含已知兼容 warning 之外的 warning 或 error
+- **THEN** 归档最终输出 MUST 保留未知 stderr 的可见诊断信息
+- **AND** 系统 MUST NOT 将未知 stderr 当作已知兼容 warning 静默吸收
+
+#### Scenario: 语言校验失败仍然阻断
+- **WHEN** `python scripts/validate-openspec-language.py` 失败
+- **THEN** 归档流程 MUST 按项目语言规范门禁失败处理
+- **AND** 最终输出 MUST 包含语言校验失败信息
+- **AND** 系统 MUST NOT 因 OpenSpec CLI 兼容 warning 可吸收而覆盖语言校验失败结果
+
+#### Scenario: OpenSpec CLI 失败仍然阻断
+- **WHEN** OpenSpec CLI 返回非零退出码
+- **THEN** 归档流程 MUST 失败
+- **AND** 最终输出 MUST 保留必要错误信息
+- **AND** 系统 MUST NOT 将 CLI 失败路径降级为成功 warning
+
+### Requirement: 规范优化命令 spec-opt
+系统 MUST 提供 `/spec-opt` 命令作为项目治理规范优化入口。该命令 MUST 允许创建或复用 OpenSpec Change，并且 MUST 仅服务治理规范优化，不得修改业务运行时代码。治理规范优化包括新增或修改 `.agents/skills` 命令、`rules/` 文档、`docs/` 文档和 `scripts/` 治理脚本。
+
+#### Scenario: 新增治理命令
+- **WHEN** 用户请求 `/spec-opt` 新增一个项目级命令
+- **THEN** 系统 MUST 在 `.agents/skills/<command>/SKILL.md` 创建或更新对应 Skill
+- **AND** 系统 MUST 创建或复用 OpenSpec Change 记录该治理变更
+- **AND** 系统 MUST 同步更新 `AGENTS.md` 的命令入口和命令速查
+- **AND** 系统 MUST 同步相关 `rules/`、`docs/` 或 `scripts/` 说明
+
+#### Scenario: 修改文档规范
+- **WHEN** 用户请求 `/spec-opt` 新增或修改文档规范
+- **THEN** 系统 MUST 更新对应 `rules/*.md` 或 `docs/**/*.md`
+- **AND** 若影响入口、读取路由或目录边界，系统 MUST 同步 `AGENTS.md`
+- **AND** 若新增或调整 docs 索引，系统 MUST 同步 `docs/README.md`
+
+#### Scenario: 修改治理脚本
+- **WHEN** 用户请求 `/spec-opt` 新增或修改治理脚本
+- **THEN** 系统 MUST 更新 `scripts/` 下对应脚本或校验工具
+- **AND** 系统 SHOULD 更新脚本帮助文本、相关规则文档和对应 Skill 引用
+- **AND** 系统 SHOULD 补充或运行脚本级测试
+
+#### Scenario: 禁止修改业务代码
+- **WHEN** `/spec-opt` 执行治理规范优化
+- **THEN** 系统 MUST NOT 修改 `src/` 下业务运行时代码
+- **AND** 系统 MUST NOT 修改后端 API、数据库 schema、Web、小程序或管理端业务实现
+- **AND** 若用户请求包含业务实现，系统 MUST 引导其改用 REQ/BUG/OpenSpec 业务流程
+
+#### Scenario: 规范优化后的同步校验
+- **WHEN** `/spec-opt` 完成规范、技能、文档或脚本修改
+- **THEN** 系统 MUST 运行 `python scripts/validate-agent-context-budget.py`
+- **AND** 系统 MUST 运行 `python scripts/validate-openspec-language.py`
+- **AND** 系统 MUST 运行 `python scripts/validate-directory-structure.py`
+- **AND** 系统 MUST 运行 `openspec validate <change-id>`
+
+#### Scenario: 输出下一步与待处理点
+- **WHEN** `/spec-opt` 完成执行
+- **THEN** 最终输出 MUST 包含去重后的 `下一步` 与 `待用户决策/处理`
+- **AND** 已在 `下一步` 中给出的命令或动作 MUST NOT 重复写入 `待用户决策/处理`
+
+### Requirement: 所有 Change 纳入 Sprint 后才能 apply
+系统 MUST 要求任意 OpenSpec Change 在执行 `/opsx-apply` 前已经纳入某个 Sprint 的正式范围。该规则 MUST 同时适用于来源于 REQ/BUG 的 Change，以及通过 `/opsx-propose`、`/spec-opt` 或其他治理流程直接创建的非 REQ/BUG Change。
+
+#### Scenario: 非 REQ/BUG Change 未纳入 Sprint 时阻断 apply
+- **WHEN** 用户请求 `/opsx-apply <change-id>`
+- **AND** `<change-id>` 未出现在任何 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`
+- **THEN** 系统 MUST 阻断实现
+- **AND** 系统 MUST 提示先通过 `/sprint-propose` 或等价 Sprint scope 修复流程纳入 Sprint
+- **AND** 系统 MUST NOT 因该 Change 无 REQ/BUG 来源而豁免 Sprint Inclusion Gate
+
+#### Scenario: 非 REQ/BUG Change 已纳入 Sprint 后允许 apply
+- **WHEN** 用户请求 `/opsx-apply <change-id>`
+- **AND** `<change-id>` 已出现在某个 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`
+- **AND** `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 能解析到该 Sprint
+- **THEN** 系统 MAY 继续执行 `/opsx-apply`
+- **AND** 若该 Change 不关联 REQ/BUG，系统 MUST 不要求额外创建 REQ/BUG
+
+#### Scenario: REQ/BUG Change 继续保持双向一致门禁
+- **WHEN** `<change-id>` 关联 REQ 或 BUG
+- **THEN** 系统 MUST 继续要求 Sprint `requirements[]` 或 `bugs[]` 包含对应 Issue
+- **AND** 系统 MUST 继续要求 Issue `trace.md` 的 `iteration` 指向同一 Sprint
+- **AND** 系统 MUST 继续要求 Issue 状态为 `in_sprint` 或后续交付态
+
+#### Scenario: spec-opt 不再豁免纯治理 Change
+- **WHEN** `/spec-opt` 创建或复用纯治理 Change
+- **THEN** 系统 MUST 提示该 Change 仍需纳入 Sprint 后才能 `/opsx-apply`
+- **AND** 系统 MUST NOT 输出“纯治理 Change 可豁免 Sprint Gate”或等价表述
+
+### Requirement: 下一步命令参数标识规范
+系统 MUST 统一命令最终输出中的下一步可执行命令参数。REQ 来源的后续命令 MUST 使用原始 `REQ-*` 标识，BUG 来源的后续命令 MUST 使用原始 `BUG-*` 标识，非 REQ/BUG 的直接 Change MUST 使用 `<change-id>`。
+
+#### Scenario: REQ 来源后续 opsx 命令使用 REQ ID
+- **WHEN** `/req-opsx <REQ-id>` 创建或确认 linked Change
+- **THEN** 系统输出的下一步 `/opsx-apply` MUST 使用 `<REQ-id>`
+- **AND** 后续 `/opsx-apply` 完成后输出的 `/opsx-archive` MUST 继续使用 `<REQ-id>`
+- **AND** 系统 MUST NOT 在 REQ 来源链路中把下一步引导改为真实 `<change-id>`
+
+#### Scenario: BUG 来源后续 opsx 命令使用 BUG ID
+- **WHEN** `/bug-opsx <BUG-id>` 创建或确认 linked Change
+- **THEN** 系统输出的下一步 `/opsx-apply` MUST 使用 `<BUG-id>`
+- **AND** 后续 `/opsx-apply` 完成后输出的 `/opsx-archive` MUST 继续使用 `<BUG-id>`
+- **AND** 系统 MUST NOT 在 BUG 来源链路中把下一步引导改为真实 `<change-id>`
+
+#### Scenario: 非 REQ/BUG Change 使用 change id
+- **WHEN** Change 不关联 REQ 或 BUG
+- **THEN** 系统输出的 `/opsx-apply`、`/opsx-archive` 下一步 MUST 使用真实 `<change-id>`
+
+#### Scenario: opsx 命令解析 REQ 或 BUG target
+- **WHEN** 用户执行 `/opsx-apply <REQ-id>`、`/opsx-archive <REQ-id>`、`/opsx-apply <BUG-id>` 或 `/opsx-archive <BUG-id>`
+- **THEN** 系统 MUST 从对应 Issue `trace.md` 的 `openspec_changes[]` 解析 linked Change
+- **AND** 内部 OpenSpec CLI、Workflow Sync 和 AI Usage hook MUST 使用解析后的真实 `<change-id>`
+- **AND** 最终下一步展示 MUST 继续使用原始 `<REQ-id>` 或 `<BUG-id>`
+
+#### Scenario: 多个候选 Change 需要用户决策
+- **WHEN** 一个 REQ 或 BUG 关联多个符合当前阶段的候选 Change
+- **THEN** 系统 MUST 列出候选 Change
+- **AND** 系统 MUST 要求用户选择目标 Change
+- **AND** 系统 MUST NOT 猜测其中一个 Change 继续执行
+
+### Requirement: OpenSpec 归档 wrapper 吸收已知 proposal warning
+系统 MUST 在 OpenSpec 归档 wrapper 成功路径中吸收项目已确认可忽略的 proposal warning，同时保留未知 stdout/stderr 与失败路径诊断信息。
+
+#### Scenario: 多行 proposal warning stdout 块被整体吸收
+- **WHEN** `scripts/archive-change.sh` 执行 OpenSpec CLI 归档成功
+- **AND** OpenSpec CLI stdout 输出以 `Proposal warnings in proposal.md` 开始的多行 warning 块
+- **THEN** wrapper MUST 不展示该已知 warning 块中的标题行和详情行
+- **AND** wrapper MUST 继续完成归档后的目录结构和归档证据校验
+
+#### Scenario: 未知 stdout 继续保留
+- **WHEN** OpenSpec CLI 归档成功
+- **AND** stdout 中出现不属于已知 proposal warning 块的内容
+- **THEN** wrapper MUST 将该未知 stdout 输出给用户
+
+#### Scenario: 未知 stderr 继续保留
+- **WHEN** OpenSpec CLI 归档成功
+- **AND** stderr 中出现不属于已知 proposal warning 块的内容
+- **THEN** wrapper MUST 将该未知 stderr 输出给用户
+
+#### Scenario: 单行 proposal warning 过滤不回归
+- **WHEN** OpenSpec CLI 归档成功
+- **AND** stdout 或 stderr 输出既有单行 proposal scaffold warning
+- **THEN** wrapper MUST 继续吸收该已知 warning
+
+#### Scenario: 失败路径诊断不丢失
+- **WHEN** OpenSpec CLI 归档失败
+- **THEN** wrapper MUST 输出 OpenSpec CLI 的 stdout/stderr 诊断内容
+- **AND** wrapper MUST 返回非零退出码
+
+### Requirement: 命令技能输出下一步引导
+系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中提供明确可执行的下一步引导。若存在可推进的下一步，输出 MUST 给出可直接复制执行的命令；若没有明确下一步，输出 MUST 说明“暂无可推进下一步”或等价结论。
+
+#### Scenario: 命令成功且存在单一下一步
+- **WHEN** 任一命令技能完成执行
+- **AND** 当前状态存在明确可推进的下一命令
+- **THEN** 最终输出 MUST 包含 `下一步` 或等价字段
+- **AND** 该字段 MUST 包含可直接复制执行的命令，例如 `/bug-review BUG-0122 --approve`
+
+#### Scenario: 命令成功且存在多个分支
+- **WHEN** 任一命令技能完成执行
+- **AND** 下一步取决于用户选择、评审结论、目标 Sprint、容量或验收结果
+- **THEN** 最终输出 MUST 用条件化方式列出可选下一步
+- **AND** 每个可选下一步 SHOULD 包含可直接复制执行的命令或明确处理动作
+
+#### Scenario: 命令完成但暂无下一步
+- **WHEN** 任一命令技能完成执行
+- **AND** 当前状态没有明确可推进的下一步
+- **THEN** 最终输出 MUST 明确说明暂无可推进下一步
+- **AND** 输出 MUST NOT 编造不适用的命令
+
+### Requirement: 命令技能输出待决策或待处理点
+系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中明确列出待用户决策或处理的点。若没有待决策或待处理点，输出 MUST 明确写明“无”或等价结论。
+
+#### Scenario: 存在用户决策点
+- **WHEN** 命令执行后仍需用户选择目标 Sprint、评审结论、范围取舍、容量调整、验收确认、发布确认或环境策略
+- **THEN** 最终输出 MUST 包含 `待用户决策`、`待用户处理`、`决策点` 或等价字段
+- **AND** 输出 MUST 用清晰条目列出每个待决策或待处理点
+
+#### Scenario: 不存在用户决策点
+- **WHEN** 命令执行后无需用户额外决策或处理即可继续
+- **THEN** 最终输出 MUST 包含待决策/待处理字段
+- **AND** 该字段 MUST 标明无待决策或待处理点
+
+#### Scenario: 下一步命令不得重复为待处理项
+- **WHEN** 最终输出的 `下一步` 字段已经给出可直接执行的命令或明确动作
+- **THEN** `待用户决策/处理` 字段 MUST NOT 重复该命令或动作
+- **AND** 只有仍缺少的用户输入、范围选择、策略确认、证据补充、验收确认、发布确认、阻塞项或人工处理事项 MAY 出现在 `待用户决策/处理`
+- **AND** 如果没有这些额外事项，`待用户决策/处理` MUST 写明“无”
+
+#### Scenario: 技能校验发现缺少输出契约
+- **WHEN** 技能校验脚本扫描 `.agents/skills/*/SKILL.md`
+- **AND** 某个命令技能缺少下一步引导、待决策/待处理输出契约或去重约束
+- **THEN** 校验 MUST 返回非零退出码
+- **AND** 报告 MUST 列出不符合要求的技能文件
 

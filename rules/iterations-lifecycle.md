@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-08-04 10:10:00
+updated_at: 2026-08-06 14:01:45
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -69,23 +69,30 @@ capacity_usage = estimated_person_days / capacity_person_days
 - 当 `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时，MAY 继续生成 Sprint，但 MUST 在 `sprint.md` 记录容量风险、fix 缓冲影响和延后项建议。
 - 当 `estimated_person_days <= capacity_person_days` 时，按既有 Review Gate、Readiness Gate 和 Scope 规则继续。
 - 已存在 Sprint 追加或修正正式范围时，MUST 先用 `python scripts/add-sprint-scope-item.py --sprint <sprint-id> [--req <REQ-id>|--bug <BUG-id>] [--change <change-id>] ...` 更新 `sprint.yaml` 机器事实源，再运行 Workflow Sync 派生刷新人读文档；不得只手工编辑 `sprint.md`、Issue trace 或 Change trace。
+- 已评审但尚未创建 Change 的 REQ/BUG MAY 先通过 `/sprint-propose` 纳入正式 Sprint 范围；此时 `sprint.yaml` MUST 记录对应 `requirements[]` 或 `bugs[]`，并在输出中提示后续 `/req-opsx` 或 `/bug-opsx`。创建 Change 后，Workflow Sync MUST 将 Change 回填到同一 Sprint 的 `changes[]` 与 `scope_estimates[].change`。
 - 多个范围项写入同一 `sprint.yaml` 时，MUST 串行执行 `scripts/add-sprint-scope-item.py`。禁止通过并行工具同时追加多个 REQ/BUG/Change 到同一个 Sprint；并发写入可能导致 YAML 旧内容覆盖、重复键或无效 UTF-8 残留。
-- `/sprint-propose` 写入或更新范围后，MUST 在 Workflow Sync 成功后运行 `python scripts/validate-sprint-scope.py <sprint-id> [--item <REQ|BUG|change-id>]`，确认新增或更新项出现在 `sprint.md` `## 2. Scope` 主表和派生表；该校验失败时必须修复后重跑，不得仅以 `sprint.yaml` 或 trace 一致作为完成依据。
+- `/sprint-propose` 写入或更新范围后，MUST 在 Workflow Sync 成功后运行 `python scripts/validate-sprint-scope.py <sprint-id> [--item <REQ|BUG|change-id>]`，确认新增或更新项同时出现在 `sprint.md` `## 1. 目标` 的 Sprint 目标编号列表、`## 2. Scope` 主表和派生表；该校验失败时必须修复后重跑，不得仅以 `sprint.yaml`、trace 或 Scope 表一致作为完成依据。
 - `sprint.md` `## 2. Scope` 主表 MUST 与既有 Sprint 规范保持六列：`类型 | 编号 | 标题 | 状态 | 估算 | 说明`。派生表可按 requirements / bugs / changes 分组，但主表不得用 `范围项` 窄表替代。
 
 ## 3.2 opsx-apply 迭代纳入门禁（MUST）
 
-`/opsx-apply <change-id>` 对来源于 REQ/BUG 的 Change 执行前，目标 Change **MUST** 已纳入某个 `sprint-xxx` 正式范围。门禁判定以 Sprint 四件套与 Issue trace 双向一致为准：
+`/opsx-apply <change-id>` 执行前，目标 Change **MUST** 已纳入某个 `sprint-xxx` 正式范围。该规则适用于所有 Change，包括来源于 REQ/BUG 的 Change，以及通过 `/opsx-propose`、`/spec-opt` 或其他治理流程直接创建的非 REQ/BUG Change。
+
+通用门禁：
 
 - `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]` MUST 包含 `<change-id>`。
+- `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 或等价解析 MUST 能定位到该 Sprint；若报告 sprint skipped / unresolved，MUST 停止 `/opsx-apply`。
+- 对非 REQ/BUG Change，`scope_estimates[]` SHOULD 以该 Change 作为独立范围项记录 `change`、估算和纳入理由；不得因无 REQ/BUG 来源而豁免 Sprint Inclusion Gate。
+
+REQ/BUG 关联 Change 的附加门禁：
+
 - 若 Change 关联 REQ，`requirements[]` MUST 包含对应 `REQ-*`；若关联 BUG，`bugs[]` MUST 包含对应 `BUG-*`。
 - 关联 REQ/BUG `trace.md` MUST 存在 `iteration: sprint-xxx`，且状态为 `in_sprint` 或后续交付态。
 - 若 REQ/BUG 已在 Sprint 中但创建 Change 时 `changes[]` 尚未回填，MUST 先运行对应 `/req-opsx` 或 `/bug-opsx` 的 Workflow Sync，确保 `changes[]` 与 `scope_estimates[].change` 同步后再 apply。
 - 若 `/sprint-propose` 声称已纳入 REQ/BUG/Change，但 `/opsx-apply --dry-run` 仍报告 `change <id> not in sprint scope`，根因优先按 `sprint.yaml` 机器事实源缺失处理：重新运行 `scripts/add-sprint-scope-item.py` 或修正其输入，然后再 Workflow Sync 与 scope 校验；不得要求用户重复口头确认同一纳入动作。
 - `/req-opsx`、`/bug-opsx`、`/opsx-apply`、`/opsx-archive` 后，Workflow Sync MUST 同步刷新 `sprint.md` 的 `## 2. Scope` 主表状态与说明；当 Change archived 时，对应 REQ/BUG 行 MUST 显示 `done` 与归档 Change，不得继续显示 `approved`、`in_sprint` 或“待创建 Change”。
-- `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 或等价解析 MUST 能定位到该 Sprint；若报告 sprint skipped / unresolved，MUST 停止 `/opsx-apply`。
 
-未通过时的修复路径：先运行 `/sprint-propose` 将 REQ/BUG/Change 纳入 `iterations/change/<sprint>/`，完成 Workflow Sync 后再重新执行 `/opsx-apply`。
+未通过时的修复路径：对 REQ/BUG Change，先运行 `/sprint-propose` 将 REQ/BUG 纳入 `iterations/change/<sprint>/`，再运行对应 `/req-opsx` 或 `/bug-opsx` 创建/回填 Change；对非 REQ/BUG Change，先运行 `/sprint-propose` 或 `python scripts/add-sprint-scope-item.py --sprint <sprint-id> --change <change-id> ...` 将 Change 写入 Sprint scope。完成 Workflow Sync 和 scope 校验后再重新执行 `/opsx-apply`。
 
 ## 4. 目录迁移时机（MUST）
 

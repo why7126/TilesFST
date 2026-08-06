@@ -16,6 +16,46 @@ run_language_gate() {
   fi
 }
 
+emit_unknown_archive_output() {
+  local output_file="$1"
+  local stream="$2"
+  local line
+  local has_unknown=0
+  local in_known_proposal_warning=0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ Proposal\ warnings\ in\ proposal\.md ]]; then
+      in_known_proposal_warning=1
+      continue
+    fi
+    if [[ "$line" =~ proposal\.md ]] && [[ "$line" =~ (Why|What\ Changes) ]]; then
+      in_known_proposal_warning=1
+      continue
+    fi
+    if (( in_known_proposal_warning )); then
+      if [[ -z "$line" ]]; then
+        in_known_proposal_warning=0
+        continue
+      fi
+      if [[ "$line" =~ ^[[:space:]] ]] || [[ "$line" =~ ^[-*][[:space:]] ]] || [[ "$line" =~ Missing\ required\ sections ]] || [[ "$line" =~ (Why|What\ Changes|Implementation|Validation|Root\ Cause) ]]; then
+        continue
+      fi
+      in_known_proposal_warning=0
+    fi
+    if [[ -z "$line" ]]; then
+      continue
+    fi
+    if [[ "$stream" == "stderr" ]]; then
+      printf '%s\n' "$line" >&2
+    else
+      printf '%s\n' "$line"
+    fi
+    has_unknown=1
+  done <"$output_file"
+
+  return "$has_unknown"
+}
+
 run_openspec_archive() {
   local change="$1"
   local stdout_file
@@ -30,17 +70,8 @@ run_openspec_archive() {
     fail "openspec archive failed for $change"
   fi
 
-  cat "$stdout_file"
-  if grep -Eqi 'proposal\.md|Why|What Changes' "$stderr_file"; then
-    if grep -Eqi 'Why|What Changes' "$stderr_file"; then
-      echo "NOTE: OpenSpec CLI emitted an English scaffold heading compatibility warning. Project rule is Chinese-first; scripts/validate-openspec-language.py is the blocking gate." >&2
-      grep -Evi 'proposal\.md|Why|What Changes' "$stderr_file" >&2 || true
-    else
-      cat "$stderr_file" >&2
-    fi
-  else
-    cat "$stderr_file" >&2
-  fi
+  emit_unknown_archive_output "$stdout_file" stdout || true
+  emit_unknown_archive_output "$stderr_file" stderr || true
 
   rm -f "$stdout_file" "$stderr_file"
 }

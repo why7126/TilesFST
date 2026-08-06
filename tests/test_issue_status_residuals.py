@@ -96,6 +96,99 @@ def test_promote_gate_report_includes_path_source_and_status(tmp_path: Path, cap
     assert "--reconcile-issue-status-residuals --apply-reconcile" in output
 
 
+def test_promote_reconciles_closed_issue_safe_residual_before_gate(tmp_path: Path) -> None:
+    issue_dir = tmp_path / "issues" / "bugs" / "review" / "BUG-9999-demo"
+    issue_dir.mkdir(parents=True)
+    capture = issue_dir / "capture.md"
+    capture.write_text(
+        "---\nstatus: captured\nupdated_at: 2026-07-01 10:00:00\n---\n# Capture\n",
+        encoding="utf-8",
+    )
+    issue = IssueRecord(issue_id="BUG-9999-demo", kind="bug", path=issue_dir, trace_status="done")
+    candidate = promote_issues_for_archive.PromotionCandidate(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        stage="review",
+        status="done",
+        change_ids=["fix-demo"],
+        pending_changes=[],
+        reason="all linked changes archived and status done",
+    )
+
+    results = promote_issues_for_archive.reconcile_safe_residuals(
+        [candidate],
+        {"BUG-9999-demo": issue},
+        dry_run=False,
+    )
+
+    assert len(results) == 1
+    assert results[0].blockers == []
+    assert results[0].changed_files == 1
+    assert results[0].changed_fields == 1
+    text = capture.read_text(encoding="utf-8")
+    assert "status: done" in text
+    assert "status: captured" not in text
+    assert "updated_at: 2026-07-01 10:00:00" not in text
+    assert promote_issues_for_archive.collect_residual_blockers([candidate], {"BUG-9999-demo": issue}) == []
+
+
+def test_promote_reconcile_dry_run_keeps_residual_blocker(tmp_path: Path) -> None:
+    issue_dir = tmp_path / "issues" / "requirements" / "review" / "REQ-9999-demo"
+    issue_dir.mkdir(parents=True)
+    capture = issue_dir / "capture.md"
+    capture.write_text("---\nstatus: captured\nupdated_at: 2026-07-01 10:00:00\n---\n# Capture\n", encoding="utf-8")
+    issue = IssueRecord(issue_id="REQ-9999-demo", kind="req", path=issue_dir, trace_status="done")
+    candidate = promote_issues_for_archive.PromotionCandidate(
+        issue_id="REQ-9999-demo",
+        kind="req",
+        stage="review",
+        status="done",
+        change_ids=["add-demo"],
+        pending_changes=[],
+        reason="all linked changes archived and status done",
+    )
+
+    results = promote_issues_for_archive.reconcile_safe_residuals(
+        [candidate],
+        {"REQ-9999-demo": issue},
+        dry_run=True,
+    )
+    blockers = promote_issues_for_archive.collect_residual_blockers([candidate], {"REQ-9999-demo": issue})
+
+    assert results[0].dry_run is True
+    assert results[0].changed_fields == 0
+    assert "status: captured" in capture.read_text(encoding="utf-8")
+    assert len(blockers) == 1
+    assert blockers[0].status == "captured"
+
+
+def test_promote_reconcile_does_not_write_unclosed_issue(tmp_path: Path) -> None:
+    issue_dir = tmp_path / "issues" / "bugs" / "review" / "BUG-9999-demo"
+    issue_dir.mkdir(parents=True)
+    root_cause = issue_dir / "root-cause.md"
+    root_cause.write_text("---\nstatus: open\n---\n# Root Cause\n", encoding="utf-8")
+    issue = IssueRecord(issue_id="BUG-9999-demo", kind="bug", path=issue_dir, trace_status="in_sprint")
+    candidate = promote_issues_for_archive.PromotionCandidate(
+        issue_id="BUG-9999-demo",
+        kind="bug",
+        stage="review",
+        status="in_sprint",
+        change_ids=[],
+        pending_changes=[],
+        reason="test only",
+    )
+
+    results = promote_issues_for_archive.reconcile_safe_residuals(
+        [candidate],
+        {"BUG-9999-demo": issue},
+        dry_run=False,
+    )
+
+    assert results[0].blockers == ["issue trace status `in_sprint` is not closed"]
+    assert results[0].changed_fields == 0
+    assert "status: open" in root_cause.read_text(encoding="utf-8")
+
+
 def test_reconcile_dry_run_reports_without_writing(tmp_path: Path) -> None:
     issue_dir = tmp_path / "issues" / "bugs" / "review" / "BUG-9999-demo"
     issue_dir.mkdir(parents=True)

@@ -5,7 +5,7 @@ description: "Archive a completed OpenSpec change"
 
 # opsx-archive
 
-Use when the user asks `/opsx-archive <change-id>` or wants to archive one OpenSpec change.
+Use when the user asks `/opsx-archive <target>` or wants to archive one OpenSpec change. `<target>` may be a `REQ-*`, `BUG-*`, or raw OpenSpec `<change-id>`.
 
 ## Context Budget Guardrails（MUST）
 
@@ -24,8 +24,24 @@ Use when the user asks `/opsx-archive <change-id>` or wants to archive one OpenS
 
 ## Input
 
-- `<change-id>` preferred.
+- `<target>` preferred：可为 `REQ-*`、`BUG-*` 或 OpenSpec `<change-id>`。
 - If omitted and not uniquely inferable, list active changes from `openspec list --json` and ask; never guess.
+
+## Target Resolution（MUST）
+
+在执行 OpenSpec CLI 或归档脚本前，MUST 先解析 `<target>`：
+
+| 输入类型 | 解析规则 | 下一步输出参数 |
+|---|---|---|
+| `REQ-*` | 读取该 REQ `trace.md` 的 `openspec_changes[]`，选择当前 active 且适合 archive 的 linked Change | 继续使用原始 `REQ-*` |
+| `BUG-*` | 读取该 BUG `trace.md` 的 `openspec_changes[]`，选择当前 active 且适合 archive 的 linked Change | 继续使用原始 `BUG-*` |
+| 其他 | 按 OpenSpec `<change-id>` 处理 | 使用 `<change-id>` |
+
+- 若一个 REQ/BUG 只有一个 active linked Change，MUST 将其作为内部 `<change-id>` 继续执行。
+- 若一个 REQ/BUG 有多个候选 linked Change，MUST 列出候选并要求用户选择；不得猜测。
+- 若 REQ/BUG 找不到 linked Change，MUST 停止并提示先运行 `/req-opsx <REQ-id>` 或 `/bug-opsx <BUG-id>`。
+- 后续 `openspec status`、`scripts/archive-change.sh`、Workflow Sync、Issue promote、AI Usage hook 均使用解析后的真实 `<change-id>`。
+- 最终下一步若仍需要引用同一链路，REQ 来源 MUST 使用原始 `REQ-*`，BUG 来源 MUST 使用原始 `BUG-*`，非 REQ/BUG Change 才使用 `<change-id>`。
 
 ## Must Read / Run
 
@@ -36,12 +52,12 @@ rules/document-governance.md
 rules/directory-structure.md
 rules/issues-lifecycle.md
 .agents/skills/workflow-sync/SKILL.md
-openspec/changes/<change-id>/tasks.md
-openspec/changes/<change-id>/trace.md（存在时）
+openspec/changes/<resolved-change-id>/tasks.md
+openspec/changes/<resolved-change-id>/trace.md（存在时）
 ```
 
 ```bash
-openspec status --change "<change-id>" --json
+openspec status --change "<resolved-change-id>" --json
 ```
 
 ## Gates
@@ -117,3 +133,18 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.arc
 ## Output
 
 Report change id, archive path, documentation sync status, spec sync status, warnings/confirmations, scripts run, promoted issues, and next step.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

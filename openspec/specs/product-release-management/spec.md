@@ -322,14 +322,9 @@
 - **WHEN** Docker Compose 启用 `docs-site` profile
 - **THEN** docs-site 服务 SHALL 使用项目内 Dockerfile 构建本地可复用镜像并预装 Mintlify CLI
 - **AND** 服务 SHALL 运行 Mintlify dev preview，而不是目录索引或仅返回 MDX 原文的静态文件服务器
-- **AND** Mintlify 运行缓存 SHALL 写入 Docker named volume 或容器内部路径，不得挂载或写入宿主机 `~/.mintlify*`
+- **AND** Mintlify 运行缓存 SHALL 写入容器内部路径或 CLI 自行管理的临时目录，不得挂载或写入宿主机 `~/.mintlify*`
+- **AND** docs-site 服务 SHALL NOT 将 Docker named volume 直接挂载到 `/home/node/.mintlify`
 - **AND** Compose config 校验 SHALL 覆盖根、local 和 prod docs-site 入口。
-
-#### Scenario: 参考项目内容裁剪
-- **WHEN** 根据外部或本地参考文档站优化 Mintlify 页面
-- **THEN** 实现 SHALL 只吸收适合瓷砖信息管理平台的首页、角色入口、用户指南、快速开始、FAQ、更新公告、分层导航和写作治理模式
-- **AND** 实现 SHALL NOT 照搬参考项目品牌、logo、外部域名、analytics ID、多语言体系、AI 平台产品线或 API endpoint 示例
-- **AND** 所有新增页面内容 SHALL 中文优先，并围绕瓷砖资料、品牌证书、SKU、媒体、小程序浏览和公开使用场景组织。
 
 ### Requirement: 小程序发布前 Network checklist
 产品版本发布管理能力 SHALL 在小程序发布准备流程中纳入 DevTools Network 与体验版 Network 人工检查清单，确保发布确认前能区分自动门禁、真实小程序网络链路验证、阻塞项和 follow-up 风险。

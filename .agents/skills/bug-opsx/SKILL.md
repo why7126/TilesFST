@@ -24,7 +24,10 @@ Use this skill when the user asks to run the workflow command `bug-opsx`.
 
 ## Command Template
 
-将 **`approved`** 的 `issues/bugs/BUG-*` 转为 `openspec/changes/fix-*/`。默认 **fix-***；不写 `src/`。
+将已评审并优先已纳入 Sprint 的 `issues/bugs/BUG-*` 转为 `openspec/changes/fix-*/`。默认 **fix-***；不写 `src/`。
+
+推荐顺序：`/bug-review BUG-xxxx --approve` → `/sprint-propose sprint-xxx --bug BUG-xxxx` → `/bug-opsx BUG-xxxx`。
+兼容追溯场景可在 `approved` 状态直接 `/bug-opsx`，但最终输出 MUST 提醒：若该 BUG 尚未纳入 Sprint，下一步先执行 `/sprint-propose`，不得直接 `/opsx-apply`。
 
 **Input**：`BUG-xxxx`
 
@@ -118,7 +121,8 @@ tasks 末项提醒：`docs/knowledge-base/incidents/`（若适用）
 ## Bug → OpenSpec 完成
 **BUG:** …
 **Change:** fix-…
-**Next:** /opsx-apply fix-…
+**Next:** 若 Workflow Sync 已解析到 Sprint：`/opsx-apply <BUG-id>` 或 `/sprint-apply sprint-xxx`；若未解析到 Sprint：先 `/sprint-propose sprint-xxx --bug <BUG-id>`
+**待用户决策/处理:** 若目标 Sprint 未确定，必须由用户选择 sprint-xxx；若修复需要 hotfix 或常规 Sprint，必须确认发布路径。
 ```
 
 ---
@@ -147,6 +151,7 @@ python scripts/sync-workflow-status.py --event bug.opsx --bug <BUG-id> --change 
 
 - Exit code **MUST** be `0` before ending this command.
 - 当目标 BUG 已在 Sprint 正式范围内时，Workflow Sync **MUST** 把 `<change-id>` 写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项；结束前用 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 确认后续 `/opsx-apply` 不再报告 `change <id> not in sprint scope`。
+- 最终下一步若指向 `/opsx-apply`，MUST 使用原始 `<BUG-id>`，不得改用真实 `<change-id>`；`/opsx-apply` 内部再从 BUG trace 解析 linked Change。
 - 若 dry-run 仍报告 `change <id> not in sprint scope`，MUST 使用 `python scripts/add-sprint-scope-item.py --sprint <sprint-id> --bug <BUG-id> --change <change-id> ...` 修复 `sprint.yaml` 机器事实源后重跑 Workflow Sync 和 dry-run；不得只修改 `sprint.md` 或 Issue trace。
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
 - Confirm the summary includes Issue subdocument checked/updated counts when applicable; `bug.md` must reference the linked Change without conflicting with `trace.md`.
@@ -162,3 +167,18 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event bug.opsx
 
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

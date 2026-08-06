@@ -1,0 +1,43 @@
+---
+change_id: align-reviewed-issue-sprint-first-flow
+status: archived
+created_at: 2026-08-06 15:19:06
+updated_at: 2026-08-06 15:19:06
+source: auto_generated_minimal_archive_trace
+archive_path: openspec/archive/2026-08-06-align-reviewed-issue-sprint-first-flow
+archive_timestamp: 2026-08-06
+timestamp_source: archive_dir_date
+---
+
+# align-reviewed-issue-sprint-first-flow Trace
+
+```yaml
+change_id: align-reviewed-issue-sprint-first-flow
+status: archived
+archive_path: openspec/archive/2026-08-06-align-reviewed-issue-sprint-first-flow
+archive_timestamp: 2026-08-06
+timestamp_source: archive_dir_date
+source: auto_generated_minimal_archive_trace
+tasks:
+  done: 20
+  total: 20
+spec_delta_paths:
+  - openspec/archive/2026-08-06-align-reviewed-issue-sprint-first-flow/specs/agent-workflow-tooling/spec.md
+  - openspec/archive/2026-08-06-align-reviewed-issue-sprint-first-flow/specs/sprint-planning-governance/spec.md
+warnings:
+  - none
+```
+
+## 归档验证摘要
+
+- 证据状态：自动生成最小归档 trace。
+- 归档路径：`openspec/archive/2026-08-06-align-reviewed-issue-sprint-first-flow`。
+- 归档时间来源：`archive_dir_date`，值：`2026-08-06`。
+- 任务完成摘要：20/20。
+- 说明：本文件由归档证据校验自动补齐，只记录可从归档目录和现有文件推断的最小事实，不代表额外人工验收结论。
+
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+| 2026-08-06 15:19:06 | validate-archive-evidence | 自动生成最小归档 trace。 |

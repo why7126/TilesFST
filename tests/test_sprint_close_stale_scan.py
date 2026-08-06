@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -13,6 +14,15 @@ import sprint_close_stale_scan
 
 
 SCRIPT = ROOT / "scripts" / "check-sprint-close-stale-scan.py"
+READINESS_SCRIPT = ROOT / "scripts" / "validate-sprint-archive-readiness.py"
+READINESS_SPEC = importlib.util.spec_from_file_location(
+    "validate_sprint_archive_readiness",
+    READINESS_SCRIPT,
+)
+assert READINESS_SPEC and READINESS_SPEC.loader
+validate_sprint_archive_readiness = importlib.util.module_from_spec(READINESS_SPEC)
+sys.modules[READINESS_SPEC.name] = validate_sprint_archive_readiness
+READINESS_SPEC.loader.exec_module(validate_sprint_archive_readiness)
 
 
 def write_sprint(root: Path, *, stage: str = "archive", status: str = "completed") -> Path:
@@ -84,6 +94,17 @@ status: done
 related_change: fix-demo
 openspec_changes:
   - change_id: fix-demo
+    status: archived
+---
+# Trace
+"""
+
+
+def closed_req_trace() -> str:
+    return """---
+status: done
+openspec_changes:
+  - change_id: add-demo
     status: archived
 ---
 # Trace
@@ -186,6 +207,62 @@ def test_closed_issue_subdocument_stale_wording_blocks(tmp_path: Path) -> None:
     assert report.ok is False
     assert any(hit.kind == "issue-subdocument-stale-state" for hit in report.hits)
     assert any(hit.file.endswith("BUG-9999-demo/acceptance.md") for hit in report.hits)
+
+
+def test_closed_issue_subdocument_business_pending_wording_passes(tmp_path: Path) -> None:
+    write_sprint(tmp_path)
+    write_req(tmp_path, closed_req_trace())
+    write_bug(tmp_path, bug_trace())
+    write_archived_change(tmp_path, "add-demo")
+    write_archived_change(tmp_path, "fix-demo")
+    bug_dir = tmp_path / "issues" / "bugs" / "archive" / "BUG-9999-demo"
+    (bug_dir / "acceptance.md").write_text(
+        "业务说明：SKU pending 图片正式化已完成。\n",
+        encoding="utf-8",
+    )
+
+    report = sprint_close_stale_scan.build_report("sprint-999", root=tmp_path)
+
+    assert report.ok is True
+    assert report.hits == []
+
+
+def test_closed_issue_structured_pending_status_blocks(tmp_path: Path) -> None:
+    write_sprint(tmp_path)
+    write_req(tmp_path, closed_req_trace())
+    write_bug(tmp_path, bug_trace())
+    write_archived_change(tmp_path, "add-demo")
+    write_archived_change(tmp_path, "fix-demo")
+    bug_dir = tmp_path / "issues" / "bugs" / "archive" / "BUG-9999-demo"
+    (bug_dir / "acceptance.md").write_text(
+        "---\nacceptance_status: pending\n---\n# Acceptance\n",
+        encoding="utf-8",
+    )
+
+    report = sprint_close_stale_scan.build_report("sprint-999", root=tmp_path)
+
+    assert report.ok is False
+    assert report.blocker_count == 1
+    assert report.hits[0].kind == "issue-subdocument-stale-state"
+    assert report.hits[0].file.endswith("BUG-9999-demo/acceptance.md")
+
+
+def test_archive_readiness_uses_same_business_pending_boundary(tmp_path: Path) -> None:
+    write_sprint(tmp_path)
+    write_req(tmp_path, closed_req_trace())
+    write_bug(tmp_path, bug_trace())
+    write_archived_change(tmp_path, "add-demo")
+    write_archived_change(tmp_path, "fix-demo")
+    bug_dir = tmp_path / "issues" / "bugs" / "archive" / "BUG-9999-demo"
+    (bug_dir / "acceptance.md").write_text(
+        "业务说明：SKU pending 图片正式化已完成。\n",
+        encoding="utf-8",
+    )
+
+    readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
+
+    assert readiness.stale_scan.ok is True
+    assert readiness.has_blockers is False
 
 
 def test_auto_sprint_requires_single_in_progress_sprint(tmp_path: Path) -> None:

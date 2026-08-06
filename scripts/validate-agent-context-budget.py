@@ -13,6 +13,7 @@ REQUIRED_RULE = "rules/agent-context-budget.md"
 COMMAND_SKILL_NAMES = {
     "capture",
     "initialize-project",
+    "spec-opt",
 }
 COMMAND_SKILL_PREFIXES = (
     "bug-",
@@ -23,6 +24,46 @@ COMMAND_SKILL_PREFIXES = (
     "req-",
     "sprint-",
 )
+NEXT_GUIDANCE_TERMS = (
+    "下一步",
+    "## Next",
+    "Next:",
+    "Next steps",
+    "建议下一步",
+)
+USER_DECISION_TERMS = (
+    "待用户决策",
+    "待用户处理",
+    "决策点",
+    "用户决策",
+)
+NO_DUPLICATE_DECISION_TERMS = (
+    "不得在「待用户决策/处理」中重复",
+    "不得重复",
+)
+SPRINT_BYPASS_PATTERNS = [
+    re.compile(r"(?:non-REQ/BUG|无\s*REQ/BUG|纯治理|pure technical governance).*(?:may bypass|可豁免|可跳过|跳过).*(?:Sprint|sprint|迭代)"),
+    re.compile(r"(?:Only|仅).*(?:non-REQ/BUG|无\s*REQ/BUG|纯治理|pure technical governance).*(?:bypass|豁免|跳过)"),
+    re.compile(r"Sprint skipped\s*(?:可接受|is acceptable)"),
+]
+ISSUE_TARGET_CONTRACTS = {
+    "req-opsx": {
+        "required": ("/opsx-apply <REQ-id>",),
+        "forbidden": ("/opsx-apply <change>", "/opsx-apply <change-id>"),
+    },
+    "bug-opsx": {
+        "required": ("/opsx-apply <BUG-id>",),
+        "forbidden": ("/opsx-apply fix-", "/opsx-apply <change>", "/opsx-apply <change-id>"),
+    },
+    "opsx-apply": {
+        "required": ("Target Resolution", "`REQ-*`", "`BUG-*`", "/opsx-archive <REQ-id>", "/opsx-archive <BUG-id>"),
+        "forbidden": (),
+    },
+    "opsx-archive": {
+        "required": ("Target Resolution", "`REQ-*`", "`BUG-*`"),
+        "forbidden": (),
+    },
+}
 
 # Patterns that are risky when written as a positive/default instruction.
 BROAD_READ_PATTERNS = [
@@ -112,6 +153,50 @@ def validate_skill(path: Path) -> list[str]:
     return errors
 
 
+def validate_final_output_contract(path: Path) -> list[str]:
+    rel = path.relative_to(ROOT)
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+    if not any(term in text for term in NEXT_GUIDANCE_TERMS):
+        errors.append(f"{rel}: 缺少命令完成后的下一步引导")
+    if not any(term in text for term in USER_DECISION_TERMS):
+        errors.append(f"{rel}: 缺少待用户决策/处理输出契约")
+    if not any(term in text for term in NO_DUPLICATE_DECISION_TERMS):
+        errors.append(f"{rel}: 缺少下一步与待用户决策/处理去重约束")
+    return errors
+
+
+def validate_sprint_gate_no_bypass(path: Path) -> list[str]:
+    rel = path.relative_to(ROOT)
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if is_negated(line):
+            continue
+        for pattern in SPRINT_BYPASS_PATTERNS:
+            if pattern.search(line):
+                errors.append(f"{rel}:{lineno}: 存在非 REQ/BUG / 纯治理 Change 跳过 Sprint 门禁表述 `{line.strip()}`")
+                break
+    return errors
+
+
+def validate_issue_target_contract(path: Path) -> list[str]:
+    rel = path.relative_to(ROOT)
+    name = path.parent.name
+    contract = ISSUE_TARGET_CONTRACTS.get(name)
+    if not contract:
+        return []
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+    for term in contract["required"]:
+        if term not in text:
+            errors.append(f"{rel}: 缺少下一步 REQ/BUG 参数规范 `{term}`")
+    for term in contract["forbidden"]:
+        if term in text:
+            errors.append(f"{rel}: 存在下一步回退为 Change 参数的模板 `{term}`")
+    return errors
+
+
 def has_summary_reuse_constraint(text: str) -> bool:
     has_scope = any(term in text for term in SUMMARY_REUSE_RULE_TERMS)
     has_action = any(term in text for term in SUMMARY_REUSE_ACTION_TERMS)
@@ -136,14 +221,19 @@ def is_command_skill(path: Path) -> bool:
 
 
 def main() -> int:
-    skill_paths = sorted(path for path in SKILLS_DIR.glob("*/SKILL.md") if is_command_skill(path))
-    if not skill_paths:
+    all_skill_paths = sorted(SKILLS_DIR.glob("*/SKILL.md"))
+    skill_paths = [path for path in all_skill_paths if is_command_skill(path)]
+    if not all_skill_paths:
         print("未找到命令技能文件。", file=sys.stderr)
         return 1
 
     errors: list[str] = []
     for path in skill_paths:
         errors.extend(validate_skill(path))
+    for path in all_skill_paths:
+        errors.extend(validate_final_output_contract(path))
+        errors.extend(validate_sprint_gate_no_bypass(path))
+        errors.extend(validate_issue_target_contract(path))
 
     if errors:
         print("Agent 上下文预算校验失败：")
@@ -153,7 +243,9 @@ def main() -> int:
 
     print(
         f"Agent 上下文预算校验通过：{len(skill_paths)} 个命令技能均已接入预算规则、"
-        "摘要复用约束与 force-proceed follow-up 门禁。"
+        "摘要复用约束与 force-proceed follow-up 门禁；"
+        f"{len(all_skill_paths)} 个技能均已接入下一步与待用户决策/处理输出契约及去重约束，"
+        "且未发现非 REQ/BUG / 纯治理 Change 跳过 Sprint 门禁表述或 REQ/BUG 下一步参数回退。"
     )
     return 0
 

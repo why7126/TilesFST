@@ -2,7 +2,7 @@
 purpose: 缺陷（BUG）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-01 11:16:30
+updated_at: 2026-08-06 14:28:00
 ---
 
 # 缺陷管理规范
@@ -50,7 +50,7 @@ BUG-NNNN-slug/
 | `draft` | 仅有 bug.md |
 | `enriching` | 缺陷包补齐中 |
 | `pending_review` | 待评审 |
-| `approved` | **确认修复**（可 bug-opsx、可进 Sprint） |
+| `approved` | **确认修复**（推荐先 `/sprint-propose`，再 `/bug-opsx`） |
 | `rejected` | 非缺陷/误报 |
 | `wont_fix` | 不修 |
 | `deferred` | 延后 |
@@ -82,6 +82,7 @@ BUG-NNNN-slug/
 | `/bug-generate` | bug.md |
 | `/bug-complete` | root-cause、workaround、acceptance、trace |
 | `/bug-review` | review.md、status |
+| `/sprint-propose` | iterations/change/sprint-* |
 | `/bug-opsx` | openspec/changes/fix-* |
 
 ## 4. 门禁
@@ -90,8 +91,8 @@ BUG-NNNN-slug/
 
 与 `rules/requirement-management.md` §4.1 一致。BUG `trace.md` `status ∈ { approved, in_sprint }` 后方可：
 
-- `/bug-opsx`
-- 纳入 Sprint 规划（`/sprint-propose`）
+- 纳入 Sprint 规划（评审后优先：`/sprint-propose`）
+- 创建或回填修复 Change（Sprint 后：`/bug-opsx`）
 - `/sprint-apply`
 
 未评审 BUG **不得**写入 Sprint 四件套正式范围；仅可记入 `sprint.md`「延后项（待评审）」并提示 `/bug-review BUG-xxxx --approve`。
@@ -105,11 +106,13 @@ BUG-NNNN-slug/
 - 若 BUG 先进入 Sprint、后执行 `/bug-opsx` 创建 Change，Workflow Sync MUST 将新 Change 回填到该 Sprint 的 `changes[]` 与对应 `scope_estimates[].change`；仅有 BUG 在 `bugs[]` 不足以通过 `/opsx-apply` 门禁。
 - `/opsx-apply` MUST 先用 `--sprint auto` 或等价检查确认能解析到 Sprint；解析失败时必须停止，提示先执行 `/sprint-propose`。
 
-`approved` 只表示已评审通过，可 `/bug-opsx` 与进入 Sprint 规划；不得仅凭 `approved` 直接 `/opsx-apply`。
+`approved` 只表示已评审通过；推荐下一步是先 `/sprint-propose` 进入 Sprint 规划，再 `/bug-opsx` 创建 Change 并回填 Sprint scope。不得仅凭 `approved` 直接 `/opsx-apply`。
+
+BUG 来源链路的下一步命令参数 MUST 始终使用原始 `BUG-*`。`/bug-opsx` 创建或确认 linked Change 后，后续 `/opsx-apply` 与 `/opsx-archive` 的可执行下一步必须写成 `/opsx-apply <BUG-id>`、`/opsx-archive <BUG-id>`；内部再由对应 opsx 命令解析到真实 `<change-id>`。
 
 ### 4.3 其他门禁
 
-- `/bug-opsx`：**仅** `approved` 或已评审后的 `in_sprint`
+- `/bug-opsx`：推荐入口为已评审后的 `in_sprint`；兼容 `approved` 的追溯/补建 Change 场景，但输出 MUST 提醒若尚未纳入 Sprint，应先 `/sprint-propose`
 - Sprint：**P0 BUG** 优先于功能 REQ
 - 旧命令 `/bug-to-change` 已删除 → `/bug-opsx`
 

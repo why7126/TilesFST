@@ -28,6 +28,8 @@ from workflow_sync.collect import (  # noqa: E402
 )
 from workflow_sync.issue_status_residuals import (  # noqa: E402
     IssueStatusResidual,
+    IssueStatusReconcileResult,
+    reconcile_issue_status_residuals,
     scan_issue_status_residuals,
 )
 
@@ -206,6 +208,39 @@ def collect_residual_blockers(candidates: list[PromotionCandidate], issues: dict
     return blockers
 
 
+def reconcile_safe_residuals(
+    candidates: list[PromotionCandidate],
+    issues: dict[str, IssueRecord],
+    *,
+    dry_run: bool,
+) -> list[IssueStatusReconcileResult]:
+    results: list[IssueStatusReconcileResult] = []
+    for item in candidates:
+        issue = issues.get(item.issue_id)
+        if issue is None:
+            continue
+        result = reconcile_issue_status_residuals(issue, write=not dry_run)
+        if result.planned or result.blockers:
+            results.append(result)
+    return results
+
+
+def print_reconcile_results(results: list[IssueStatusReconcileResult]) -> None:
+    if not results:
+        return
+    print("## Issue Subdocument Status Reconcile\n")
+    print("| Issue | Mode | Planned | Changed | Blockers |")
+    print("|-------|------|---------|---------|----------|")
+    for result in results:
+        mode = "dry-run" if result.dry_run else "apply"
+        blockers = "; ".join(result.blockers) if result.blockers else "—"
+        print(
+            f"| {result.issue_id} | {mode} | {len(result.planned)} | "
+            f"{result.changed_files} file(s), {result.changed_fields} field(s) | {blockers} |"
+        )
+    print()
+
+
 def print_residual_blockers(blockers: list[IssueStatusResidual]) -> None:
     if not blockers:
         return
@@ -284,6 +319,10 @@ def main() -> int:
 
     reason = args.reason.strip() or default_reason
     print_report(candidates, dry_run=args.dry_run, context=context)
+    reconcile_results = reconcile_safe_residuals(candidates, issues, dry_run=args.dry_run)
+    print_reconcile_results(reconcile_results)
+    if reconcile_results and not args.dry_run:
+        issues = load_all_issues()
     blockers = collect_residual_blockers(candidates, issues)
     if blockers:
         print_residual_blockers(blockers)

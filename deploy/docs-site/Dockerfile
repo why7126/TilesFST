@@ -3,6 +3,7 @@ FROM ${DOCS_SITE_NODE_BASE_IMAGE}
 
 ARG MINTLIFY_CLI_VERSION=4.2.45
 
+# /home/node/.mintlify is an ephemeral container cache; Compose must not mount it as a volume.
 RUN npm install -g mintlify@${MINTLIFY_CLI_VERSION} \
     && mkdir -p /home/node/.mintlify /workspace/mintlify \
     && chown -R node:node /home/node/.mintlify /workspace

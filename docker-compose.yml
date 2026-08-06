@@ -148,16 +148,12 @@ services:
     # 使用仓库内 mintlify/ 站点源目录；不得挂载真实 .env、密钥或运行时数据库。
     volumes:
       - ./mintlify:/workspace/mintlify:ro
-      - tilesfst-docs-site-cache:/home/node/.mintlify
     # 容器内 Mintlify 预览端口固定 3000；宿主机端口通过 HOST_PORT_MINTLIFY_DOCS 覆盖。
     ports:
       - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
     command: mintlify dev --host 0.0.0.0 --port 3000
     networks:
       - tilesfst
-
-volumes:
-  tilesfst-docs-site-cache:
 
 networks:
   # 本地开发 bridge 网络；服务间通过 tilesfst-backend、tilesfst-web、tilesfst-minio 名称互访。

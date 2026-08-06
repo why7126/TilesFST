@@ -58,14 +58,15 @@ Implement tasks from an OpenSpec change.
 
 5. **Check Sprint inclusion before implementation**
 
-   If the change is linked to any `REQ-*` or `BUG-*`, `/opsx-apply` is allowed only after the REQ/BUG and Change are formally included in a `sprint-xxx`.
+   `/opsx-apply` is allowed only after the Change is formally included in a `sprint-xxx`, regardless of whether it is linked to `REQ-*` / `BUG-*`.
 
    - Run `python scripts/sync-workflow-status.py --event opsx.apply --change "<name>" --sprint auto --dry-run`.
    - Confirm sprint resolution succeeds; skipped/unresolved sprint is blocking.
-   - Confirm the resolved `iterations/change|archive/<sprint>/sprint.yaml` contains the change in `changes[]` and the linked issue in `requirements[]` or `bugs[]`.
-   - Confirm linked issue `trace.md` has `iteration: <sprint-id>` and status `in_sprint` or a later delivery state.
+   - Confirm the resolved `iterations/change|archive/<sprint>/sprint.yaml` contains the change in `changes[]`.
+   - If the Change links to a `REQ-*` or `BUG-*`, confirm the linked issue is also present in `requirements[]` or `bugs[]`.
+   - If linked issues exist, confirm linked issue `trace.md` has `iteration: <sprint-id>` and status `in_sprint` or a later delivery state.
 
-   If this gate fails, stop before code changes and ask the user to run `/sprint-propose` first. Only non-REQ/BUG pure technical governance changes may bypass this gate, and the reason must be stated.
+   If this gate fails, stop before code changes and ask the user to run `/sprint-propose` first, or repair a known Sprint scope with `scripts/add-sprint-scope-item.py --change <change-id> ...`.
 
 6. **Show current progress**
 
@@ -165,3 +166,18 @@ This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
 - **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

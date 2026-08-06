@@ -29,7 +29,7 @@ updated_at: 2026-08-06 00:00:00
 ./deploy/scripts/down.sh local
 ```
 
-所有 local 启动环境默认同时启用 `docs-site` profile，并启动 `tilesfst-docs-site`。文档站默认访问 `http://localhost:3001`，可通过 `HOST_PORT_MINTLIFY_DOCS` 覆盖。
+所有 local 启动环境默认同时启用 `docs-site` profile，并启动 `tilesfst-docs-site`。文档站默认访问 `http://localhost:3001`，可通过 `HOST_PORT_MINTLIFY_DOCS` 覆盖。Mintlify 预览缓存不作为业务数据持久化，仅留在容器临时文件系统内，不写宿主机 `~/.mintlify*`。
 
 真实本地 env 可复制到 `deploy/local/<environment>.env` 或继续使用示例文件进行 `docker compose config` 校验。真实 env 文件已被 `.gitignore` 与目录校验阻断，禁止提交。
 

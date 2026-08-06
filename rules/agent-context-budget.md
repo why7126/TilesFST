@@ -4,7 +4,7 @@ content: 约束AI读取范围、搜索排除、Harness/模板工程噪音、生�
 source: BUG-0061会话token复盘后由AI生成，项目团队Review
 update_method: Agent工作流、Harness模板、技能命令或上下文预算策略变化时更新
 created_at: 2026-07-08 09:26:36
-updated_at: 2026-07-29 16:07:14
+updated_at: 2026-08-06 14:28:00
 note: 所有命令技能与普通开发任务均应遵守，优先级高于单个技能中的宽泛读取建议
 ---
 
@@ -38,7 +38,7 @@ AI 执行任务时 MUST NOT：
 
 - `AGENTS.md`、`openspec/project.md`。
 - 当前任务相关的 `rules/*.md`。
-- 当前命令 Skill、共用 Skill（如 `.agents/skills/workflow-sync/SKILL.md`）以及 `.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project`。
+- 当前命令 Skill、共用 Skill（如 `.agents/skills/workflow-sync/SKILL.md`）以及 `.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/spec-opt`、`.agents/skills/initialize-project`。
 
 可复用摘要 SHOULD 至少表达以下信息，字段名可等价：
 
@@ -112,11 +112,15 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 
 ## 7. 技能文件要求
 
-`.agents/skills/{req,bug,opsx,sprint,release,image,build}-*`、`.agents/skills/capture`、`.agents/skills/initialize-project` 命令技能 MUST：
+`.agents/skills/*/SKILL.md` 命令技能 MUST：
 
 - 在 `Context Budget Guardrails` 或等价章节中引用本文件。
 - 保留命令特定的 Must Read 与业务门禁，但不得要求默认宽泛读取整目录。
 - 对 apply/archive/sprint 类高消耗命令，明确要求先读取 OpenSpec CLI `contextFiles`、任务文件、trace/status 片段，再按需扩展。
+- 对 `/opsx-apply` 命令，MUST 明确所有 Change 都必须先纳入 Sprint，禁止恢复“无 REQ/BUG 来源或纯治理 Change 可跳过 Sprint Inclusion Gate”的豁免。
+- 对下一步命令输出，MUST 明确 REQ 来源链路使用原始 `REQ-*`，BUG 来源链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 不得回退为真实 `<change-id>`，非 REQ/BUG Change 才使用 `<change-id>`。
+- 对 `/spec-opt` 规范优化命令，MUST 明确只修改治理资产，覆盖 `.agents/skills`、`rules/`、`docs/`、`scripts/`、`AGENTS.md` 和 active OpenSpec Change 的同步矩阵，并禁止修改业务 `src/`。
+- 在最终输出契约中区分「下一步」与「待用户决策/处理」：已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」；后者只列缺失输入、范围/策略选择、证据补充、验收/发布确认、阻塞项或人工处理事项，没有则写“无”。
 
 ## 8. 校验
 

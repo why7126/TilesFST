@@ -41,7 +41,7 @@ cp deploy/prod/mysql-tencent-cos.env.example deploy/prod/mysql-tencent-cos.env
 ./deploy/scripts/down.sh prod
 ```
 
-生产 Compose 不启动本地 MinIO 或 `minio-init`，也不挂载 SQLite 数据目录；默认启动 `tilesfst-docs-site`，用于生产 `/docs` 承载、反代或发布验收预览。docs-site 使用 `deploy/docs-site/Dockerfile` 构建预装 Mintlify CLI 的本地可复用镜像，运行缓存写入 Docker named volume，不挂载宿主机 `~/.mintlify*`。
+生产 Compose 不启动本地 MinIO 或 `minio-init`，也不挂载 SQLite 数据目录；默认启动 `tilesfst-docs-site`，用于生产 `/docs` 承载、反代或发布验收预览。docs-site 使用 `deploy/docs-site/Dockerfile` 构建预装 Mintlify CLI 的本地可复用镜像；Mintlify 预览缓存不作为业务数据持久化，仅留在容器临时文件系统内，不挂载宿主机 `~/.mintlify*`。
 
 ## 生产媒体维护任务
 

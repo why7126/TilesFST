@@ -216,7 +216,7 @@ def ai_usage_freshness_baseline(
 ) -> dict[str, Any]:
     """Return a real-time freshness baseline for Sprint AI usage snapshots.
 
-    `sprint.yaml.end_date` is often a planned date. If it is in the future,
+    Sprint start/end dates are often planned dates. If they are in the future,
     using it as the lower bound makes any current snapshot look stale.
     """
 
@@ -234,7 +234,7 @@ def ai_usage_freshness_baseline(
             return
         candidates.append({"source": source, "value": str(value), "utc": iso})
 
-    add_candidate("sprint.yaml:start_date", sprint_yaml.get("start_date"))
+    add_candidate("sprint.yaml:start_date", sprint_yaml.get("start_date"), allow_future=False)
     add_candidate("sprint.yaml:end_date", sprint_yaml.get("end_date"), allow_future=False)
     for name in ("sprint.md", "release-note.md", "acceptance-report.md"):
         frontmatter = markdown_frontmatter(sprint_path / name)

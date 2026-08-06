@@ -1,9 +1,54 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 120
+next_id: 125
 entries:
+  - id: BUG-0124-openspec-archive-multiline-proposal-warning-stdout
+    title: OpenSpec CLI 多行 proposal warning stdout 块仍出现在归档成功输出中
+    status: done
+    severity: medium
+    created: "2026-08-06 14:02:15"
+    related_requirement: null
+    related_bug: BUG-0123-openspec-archive-proposal-warning-stdout
+    related_change: fix-openspec-archive-multiline-proposal-warning-stdout
+    iteration: sprint-021
+  - id: BUG-0123-openspec-archive-proposal-warning-stdout
+    title: OpenSpec CLI proposal warning 仍通过 stdout 出现在归档成功输出中
+    status: done
+    severity: medium
+    created: "2026-08-06 12:10:56"
+    related_requirement: null
+    related_bug: BUG-0119-openspec-archive-scaffold-warning-noise
+    related_change: null
+    iteration: null
+  - id: BUG-0122-archive-sync-issue-subdoc-residual-cleanup
+    title: 归档同步阶段未自动清理安全 Issue 子文档状态残留
+    status: done
+    severity: medium
+    created: "2026-08-06 11:29:58"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: sprint-021
+  - id: BUG-0121-stale-scan-pending-business-word
+    title: stale scan 对业务词 pending 误判为流程中间态
+    status: done
+    severity: medium
+    created: "2026-08-06 11:13:56"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-stale-scan-pending-business-word
+    iteration: sprint-021
+  - id: BUG-0120-docs-site-mintlify-cache-ebusy
+    title: tilesfst-docs-site Mintlify 缓存 volume 导致 EBUSY 启动失败
+    status: done
+    severity: medium
+    created: "2026-08-06 10:39:49"
+    related_requirement: REQ-0094-mintlify-versioned-docs-directory
+    related_bug: null
+    related_change: null
+    iteration: null
   - id: BUG-0119-openspec-archive-scaffold-warning-noise
     title: OpenSpec 归档反复暴露英文脚手架兼容 warning
-    status: draft
+    status: done
     severity: medium
     created: "2026-08-06 10:05:19"
     related_requirement: null
@@ -12,7 +57,7 @@ entries:
     iteration: null
   - id: BUG-0118-fact-sheet-ai-usage-future-start-date-freshness
     title: Fact Sheet AI usage fresh gate 将未来 Sprint start_date 当作 snapshot 新鲜度下限
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-08-06 08:35:36"
     related_requirement: null

@@ -171,16 +171,12 @@ services:
     # 仅挂载公开 Mintlify 源目录；不得挂载生产 env、密钥或运行时数据。
     volumes:
       - ../../mintlify:/workspace/mintlify:ro
-      - tilesfst-docs-site-cache:/home/node/.mintlify
     # 容器内 Mintlify 预览端口固定 3000；宿主机端口由生产 env 显式规划。
     ports:
       - "${HOST_PORT_MINTLIFY_DOCS:-3001}:3000"
     command: mintlify dev --host 0.0.0.0 --port 3000
     networks:
       - tilesfst
-
-volumes:
-  tilesfst-docs-site-cache:
 
 networks:
   # 生产 bridge 网络包含业务服务与 docs-site；MySQL 与 COS 为外部服务。

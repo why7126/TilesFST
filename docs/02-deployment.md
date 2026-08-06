@@ -137,7 +137,7 @@ cp scripts/build-images.env.example scripts/build-images.env
 - 当选择 `*-minio-managed` 环境时，脚本会启用 `self-hosted-storage` profile 并启动项目自建 MinIO。
 - 若不使用脚本，根目录本地云对象存储场景直接执行 `docker compose up -d --build tilesfst-backend tilesfst-web`；本地自建 MinIO 场景执行 `docker compose --profile self-hosted-storage up -d --build tilesfst-backend tilesfst-web tilesfst-minio tilesfst-minio-init`。
 - 本地启动脚本默认同时启动 `tilesfst-docs-site`。文档站默认访问 `http://localhost:${HOST_PORT_MINTLIFY_DOCS:-3001}`。
-- 若只需要单独启动公开文档站，先确认 `mintlify/docs.json` 与 `mintlify/docs/**` 已生成，再执行 `docker compose --profile docs-site up -d --build tilesfst-docs-site`。该服务使用 `deploy/docs-site/Dockerfile` 构建本地可复用 docs-site 镜像，镜像内预装 Mintlify CLI，并把 Mintlify 运行缓存写入 Docker named volume，不写宿主机 `~/.mintlify*`。
+- 若只需要单独启动公开文档站，先确认 `mintlify/docs.json` 与 `mintlify/docs/**` 已生成，再执行 `docker compose --profile docs-site up -d --build tilesfst-docs-site`。该服务使用 `deploy/docs-site/Dockerfile` 构建本地可复用 docs-site 镜像，镜像内预装 Mintlify CLI；Mintlify 预览缓存不作为业务数据持久化，仅留在容器临时文件系统内，不写宿主机 `~/.mintlify*`。
 - 同时启动业务系统和文档站可执行 `docker compose --profile docs-site up -d --build tilesfst-backend tilesfst-web tilesfst-docs-site`；若还需要本地 MinIO，再叠加 `--profile self-hosted-storage` 并显式包含 `tilesfst-minio tilesfst-minio-init`。
 
 ### Mintlify 文档站部署选择

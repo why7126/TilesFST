@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-01 11:16:30
+updated_at: 2026-08-06 14:28:00
 ---
 
 # 需求管理规范
@@ -49,7 +49,7 @@ REQ-NNNN-slug/
 | `draft` | 仅有 requirement.md |
 | `enriching` | 六件套补齐中 |
 | `pending_review` | 文档齐，待评审 |
-| `approved` | **评审通过**（可 req-opsx、可进 Sprint） |
+| `approved` | **评审通过**（推荐先 `/sprint-propose`，再 `/req-opsx`） |
 | `rejected` | 不做 |
 | `deferred` | 延后 |
 | `in_sprint` | 已纳入迭代 |
@@ -81,7 +81,8 @@ REQ-NNNN-slug/
 | `/req-generate` | captured, exploring | requirement.md → draft |
 | `/req-complete` | draft, enriching | 六件套 → pending_review |
 | `/req-review` | pending_review | review.md → approved/rejected/deferred |
-| `/req-opsx` | **approved** | openspec/changes/* |
+| `/sprint-propose` | **approved** | iterations/change/sprint-* |
+| `/req-opsx` | **in_sprint** 或已评审 approved 的兼容/追溯场景 | openspec/changes/* |
 
 ## 4. 门禁
 
@@ -91,8 +92,8 @@ REQ-NNNN-slug/
 
 | 动作 | 命令 |
 |------|------|
-| 创建 OpenSpec Change | `/req-opsx` |
-| 纳入 Sprint 规划 | `/sprint-propose` |
+| 纳入 Sprint 规划（评审后优先） | `/sprint-propose` |
+| 创建 OpenSpec Change（Sprint 后回填） | `/req-opsx` |
 | 迭代内开发 | `/sprint-apply` |
 
 **未评审**（`draft`、`pending_review`、`captured`、`enriching`、`exploring` 等）时：
@@ -115,13 +116,15 @@ REQ-NNNN-slug/
 - 若 REQ 先进入 Sprint、后执行 `/req-opsx` 创建 Change，Workflow Sync MUST 将新 Change 回填到该 Sprint 的 `changes[]` 与对应 `scope_estimates[].change`；仅有 REQ 在 `requirements[]` 不足以通过 `/opsx-apply` 门禁。
 - `/opsx-apply` MUST 先用 `--sprint auto` 或等价检查确认能解析到 Sprint；解析失败时必须停止，提示先执行 `/sprint-propose`。
 
-`approved` 只表示已评审通过，可 `/req-opsx` 与进入 Sprint 规划；不得仅凭 `approved` 直接 `/opsx-apply`。
+`approved` 只表示已评审通过；推荐下一步是先 `/sprint-propose` 进入 Sprint 规划，再 `/req-opsx` 创建 Change 并回填 Sprint scope。不得仅凭 `approved` 直接 `/opsx-apply`。
 
 当 REQ 已处于 `in_sprint` 且 `/req-opsx` 创建新 Change 时，Workflow Sync **MUST** 将该 Change 同步写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项。若 `/opsx-apply` dry-run 报告 `change <id> not in sprint scope`，优先重新运行 `/req-opsx` Final Step 的 Workflow Sync 修复派生范围；只有 REQ/BUG 本身未纳入 Sprint 时，才需要重新 `/sprint-propose`。
 
+REQ 来源链路的下一步命令参数 MUST 始终使用原始 `REQ-*`。`/req-opsx` 创建或确认 linked Change 后，后续 `/opsx-apply` 与 `/opsx-archive` 的可执行下一步必须写成 `/opsx-apply <REQ-id>`、`/opsx-archive <REQ-id>`；内部再由对应 opsx 命令解析到真实 `<change-id>`。
+
 ### 4.3 其他门禁
 
-- `/req-opsx`：**仅** `approved` 或已评审后的 `in_sprint`
+- `/req-opsx`：推荐入口为已评审后的 `in_sprint`；兼容 `approved` 的追溯/补建 Change 场景，但输出 MUST 提醒若尚未纳入 Sprint，应先 `/sprint-propose`
 - 旧命令 `/requirement-to-opsx` 已删除 → `/req-opsx`
 
 ## 5. Readiness（req-opsx / req-complete）

@@ -41,7 +41,14 @@ Use this skill when the user asks to run the workflow command `req-opsx`.
 ```text
 /req-capture → /req-explore → /req-generate → /req-complete → /req-review (approved)
         │
-        └─ /req-opsx REQ-*  →  /opsx-apply  →  /opsx-archive
+        └─ /sprint-propose sprint-* --req REQ-*  →  /req-opsx REQ-*  →  /opsx-apply  →  /opsx-archive
+```
+
+兼容追溯场景可在 `approved` 状态直接 `/req-opsx`，但最终输出 MUST 提醒：若该 REQ 尚未纳入 Sprint，下一步先执行 `/sprint-propose`，不得直接 `/opsx-apply`。
+
+```text
+        │
+        └─ legacy/追溯：/req-opsx REQ-*  →  必须补 /sprint-propose  →  /opsx-apply
 ```
 
 ---
@@ -169,7 +176,8 @@ openspec_changes:
 ## Req → OpenSpec 完成
 **REQ:** …
 **Change:** …
-**Next:** /opsx-apply <change> 或 /sprint-apply sprint-xxx
+**Next:** 若 Workflow Sync 已解析到 Sprint：`/opsx-apply <REQ-id>` 或 `/sprint-apply sprint-xxx`；若未解析到 Sprint：先 `/sprint-propose sprint-xxx --req <REQ-id>`
+**待用户决策/处理:** 若目标 Sprint 未确定，必须由用户选择 sprint-xxx；若 Change 范围需要拆分，必须确认拆分策略。
 ```
 
 ---
@@ -203,6 +211,7 @@ python scripts/sync-workflow-status.py --event req.opsx --req <REQ-id> --change 
 
 - Exit code **MUST** be `0` before ending this command.
 - 当目标 REQ 已在 Sprint 正式范围内时，Workflow Sync **MUST** 把 `<change-id>` 写入同一 Sprint 的 `changes[]`，同步 `scope_estimates[].change`，并移除对应 open-change 延后项；结束前用 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 确认后续 `/opsx-apply` 不再报告 `change <id> not in sprint scope`。
+- 最终下一步若指向 `/opsx-apply`，MUST 使用原始 `<REQ-id>`，不得改用真实 `<change-id>`；`/opsx-apply` 内部再从 REQ trace 解析 linked Change。
 - Print the summary **Workflow Sync Report** to the user; use `--output detail` only for debugging.
 - Confirm the summary includes Issue subdocument checked/updated counts when applicable; `requirement.md` must reference the linked Change without conflicting with `trace.md`.
 - Do **not** hand-edit `sprint.md` Scope marker blocks (`<!-- workflow-sync:* -->`).
@@ -217,3 +226,18 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event req.opsx
 
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

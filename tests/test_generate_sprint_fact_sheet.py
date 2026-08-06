@@ -573,6 +573,120 @@ def test_fact_sheet_ignores_future_planned_end_date_for_ai_usage_freshness(tmp_p
     ]
 
 
+def test_fact_sheet_ignores_future_planned_start_date_for_ai_usage_freshness(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-999",
+                "status: completed",
+                "lifecycle_stage: archive",
+                "start_date: 2026-08-19 09:00:00",
+                "end_date: 2026-08-20 18:00:00",
+                "requirements:",
+                "  - REQ-9999-demo",
+                "bugs:",
+                "  - BUG-9999-demo",
+                "changes:",
+                "  - add-demo",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    for name in ("sprint.md", "release-note.md", "acceptance-report.md"):
+        (sprint_dir / name).write_text(
+            "---\nupdated_at: 2026-08-04 23:15:03\n---\n# Doc\n",
+            encoding="utf-8",
+        )
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-08-04T15:30:08Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 100},
+                "usage_matrices": {"metrics": ["total_tokens"], "columns": [], "rows": []},
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+
+    ai_usage = fact_sheet["ai_usage_snapshot"]
+    baseline = summary["ai_usage_snapshot"]["freshness_baseline"]
+    assert ai_usage["snapshot_status"] == "present"
+    assert ai_usage["ai_usage_mode"] == "actual"
+    assert ai_usage["fresh_gate"]["status"] == "pass"
+    assert baseline["source"] == "sprint.md:updated_at"
+    assert baseline["min_generated_at"] == "2026-08-04T15:15:03Z"
+    assert baseline["skipped"] == [
+        {
+            "source": "sprint.yaml:start_date",
+            "value": "2026-08-19 09:00:00",
+            "reason": "future-planned-time",
+        },
+        {
+            "source": "sprint.yaml:end_date",
+            "value": "2026-08-20 18:00:00",
+            "reason": "future-planned-time",
+        },
+    ]
+
+
+def test_fact_sheet_still_marks_snapshot_stale_from_updated_at_baseline(tmp_path: Path) -> None:
+    seed_project(tmp_path)
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    for name in ("sprint.md", "release-note.md", "acceptance-report.md"):
+        (sprint_dir / name).write_text(
+            "---\nupdated_at: 2026-07-03 09:00:00\n---\n# Doc\n",
+            encoding="utf-8",
+        )
+    snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
+    snapshot_dir.mkdir(parents=True)
+    (snapshot_dir / "sprint-999.json").write_text(
+        json.dumps(
+            {
+                "sprint_id": "sprint-999",
+                "generated_at": "2026-07-03T00:30:00Z",
+                "estimated": False,
+                "coverage": {
+                    "requirements": ["REQ-9999-demo"],
+                    "bugs": ["BUG-9999-demo"],
+                    "changes": ["add-demo"],
+                },
+                "totals": {"command_run_count": 1, "model_call_count": 1, "total_tokens": 100},
+                "usage_matrices": {"metrics": ["total_tokens"], "columns": [], "rows": []},
+                "warnings": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    fact_sheet = generate_sprint_fact_sheet.build_fact_sheet("sprint-999", root=tmp_path)
+    summary = generate_sprint_fact_sheet.build_summary(fact_sheet)
+
+    ai_usage = fact_sheet["ai_usage_snapshot"]
+    baseline = summary["ai_usage_snapshot"]["freshness_baseline"]
+    assert baseline["source"] == "sprint.md:updated_at"
+    assert baseline["min_generated_at"] == "2026-07-03T01:00:00Z"
+    assert ai_usage["snapshot_status"] == "stale"
+    assert ai_usage["ai_usage_mode"] == "estimated_fallback"
+    assert ai_usage["fresh_gate"]["status"] == "blocker"
+    assert "snapshot-stale" in ai_usage["warnings"]
+
+
 def test_fact_sheet_summary_exposes_ai_usage_fresh_gate_without_evidence_hints(tmp_path: Path) -> None:
     seed_project(tmp_path)
     snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"

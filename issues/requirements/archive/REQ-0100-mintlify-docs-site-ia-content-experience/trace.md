@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-08-05 09:50:32
-updated_at: 2026-08-06 08:23:35
+updated_at: 2026-08-06 14:26:03
 ---
 
 # 需求追踪
@@ -38,7 +38,7 @@ iteration: null
 openspec_changes:
   - change_id: improve-mintlify-docs-site
     type: update
-    status: archived
+    status: proposed
 knowledge_base_refs:
   - docs/knowledge-base/README.md
   - docs/knowledge-base/retrospectives/sprint-017-retrospective.md

@@ -1,7 +1,21 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 101
+next_id: 103
 entries:
+  - id: REQ-0102-sprint-goal-scope-consistency-validation
+    title: Sprint 目标编号列表与 Scope 一致性校验
+    status: done
+    iteration: sprint-021
+    created: "2026-08-06 11:14:12"
+    parent_requirement:
+    related_change: update-sprint-goal-scope-consistency-validation
+  - id: REQ-0101-media-acceptance-three-part-template
+    title: 媒体类需求三段验收模板
+    status: pending_review
+    iteration: null
+    created: "2026-08-06 11:13:32"
+    parent_requirement:
+    related_change: null
   - id: REQ-0100-mintlify-docs-site-ia-content-experience
     title: Mintlify 文档站信息架构与内容体验优化
     status: done

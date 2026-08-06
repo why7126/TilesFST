@@ -83,7 +83,7 @@ This is required because `/opsx-apply --sprint auto` resolves by `changes[]`, no
 
 When sprint sync is skipped, the script still updates the target issue `trace.md`, `_registry.yaml`, and parent requirement related-bug index when applicable.
 
-For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for REQ/BUG-sourced changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, unless the Change is explicitly documented as a non-REQ/BUG pure technical governance Change.
+For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for all Changes, including non-REQ/BUG pure technical governance Changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, or repair a known Sprint scope with `scripts/add-sprint-scope-item.py --change <change-id> ...`.
 
 If the user already selected a target Sprint or previously ran `/sprint-propose`, skipped/unresolved sync usually means `sprint.yaml` machine scope was not persisted or lacks the Change. Repair with `scripts/add-sprint-scope-item.py`, then rerun Workflow Sync and `validate-sprint-scope.py`; do not rely on `sprint.md` Scope text alone.
 
@@ -172,7 +172,7 @@ Guardrails:
 5. Scope 表 archived 时间与 §里程碑「目标日期」MUST 为 `YYYY-MM-DD HH:mm:ss` 且时分秒 MUST 非 `00:00:00`（见 `rules/document-governance.md` §6.1）。
 6. `sprint.md` `## 2. Scope` 主表 MUST 使用六列：`类型 | 编号 | 标题 | 状态 | 估算 | 说明`。Workflow Sync MUST migrate legacy/narrow tables, including `范围项 | 状态 | 估算`, back to this format.
 7. 同一 Sprint 的多个范围项更新 MUST 串行写入 `sprint.yaml`；不要并行运行多个 `scripts/add-sprint-scope-item.py`。
-8. §Sprint 目标 不在 sync 范围；纳入 REQ/BUG 时 MUST 同步更新 **编号列表** 与 **`### xxx 要点`** 两处。
+8. §Sprint 目标 不在 sync marker 范围；纳入 REQ/BUG/必要纯 Change 时，发起命令 MUST 同步更新 **Sprint 目标编号列表** 与 **`### xxx 要点`** 两处。Workflow Sync 继续维护 `## 2. Scope` 主表和 marker 分组表；最终必须通过 `validate-sprint-scope.py` 兜底发现目标编号列表与正式 Scope 的不一致。
 9. Issue `trace.md` 的 `## 变更记录` MUST 保持表头紧跟章节标题；若历史记录行出现在表头前，脚本 SHOULD 自动归一化并在报告中体现 delta。
 10. `/opsx-apply` 前 MUST confirm linked REQ/BUG is in a `sprint-xxx`; `--sprint auto` unresolved means do not run apply.
 
@@ -185,3 +185,18 @@ Guardrails:
 - parent requirement `trace.md` related bug index
 - `issues/requirements/_registry.yaml` / `issues/bugs/_registry.yaml`
 - 写入时自动维护 Frontmatter `created_at` / `updated_at`（`rules/document-governance.md` §2.4）
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

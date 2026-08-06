@@ -148,12 +148,27 @@ def _line_has_stale_state_word(line: str) -> bool:
     return re.search(r"(?<![A-Za-z0-9_-])(?:proposed|applied)(?![A-Za-z0-9_-])", line) is not None
 
 
+def _line_has_pending_state_context(line: str) -> bool:
+    if re.search(
+        r"(?i)\b(?:status|state|acceptance_status|review_status|workflow_status)\b\s*[:=|]\s*`?pending`?\b",
+        line,
+    ):
+        return True
+    if re.search(r"(?:状态|验收|评审|流程|结果|结论).*?\bpending\b", line, re.IGNORECASE):
+        return True
+    if "|" in line and re.search(r"(?<![A-Za-z0-9_-])pending(?![A-Za-z0-9_-])", line, re.IGNORECASE):
+        return True
+    return False
+
+
 def _line_has_issue_intermediate_word(line: str) -> bool:
-    return re.search(
-        r"(?<![A-Za-z0-9_-])(?:planned|pending|proposed|applied|in_sprint|待验收|待实现|待归档)(?![A-Za-z0-9_-])",
+    if re.search(
+        r"(?<![A-Za-z0-9_-])(?:planned|proposed|applied|in_sprint|待验收|待实现|待归档)(?![A-Za-z0-9_-])",
         line,
         re.IGNORECASE,
-    ) is not None
+    ):
+        return True
+    return _line_has_pending_state_context(line)
 
 
 def _manual_fix_suggestion(sprint_id: str) -> str:

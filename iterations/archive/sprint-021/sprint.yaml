@@ -1,0 +1,114 @@
+sprint_id: sprint-021
+status: completed
+lifecycle_stage: archive
+start_date: 2026-09-03 09:00:00
+end_date: 2026-09-17 18:00:00
+capacity:
+  developers: 2
+  testers: 1
+  capacity_person_days: 30
+requirements:
+  - REQ-0102-sprint-goal-scope-consistency-validation
+bugs:
+  - BUG-0118-fact-sheet-ai-usage-future-start-date-freshness
+  - BUG-0119-openspec-archive-scaffold-warning-noise
+  - BUG-0120-docs-site-mintlify-cache-ebusy
+  - BUG-0122-archive-sync-issue-subdoc-residual-cleanup
+  - BUG-0121-stale-scan-pending-business-word
+  - BUG-0123-openspec-archive-proposal-warning-stdout
+  - BUG-0124-openspec-archive-multiline-proposal-warning-stdout
+changes:
+  - fix-fact-sheet-ai-usage-start-date-freshness
+  - fix-openspec-archive-scaffold-warning-noise
+  - fix-docs-site-mintlify-cache-ebusy
+  - fix-archive-sync-issue-subdoc-residual-cleanup
+  - update-sprint-goal-scope-consistency-validation
+  - fix-stale-scan-pending-business-word
+  - fix-openspec-archive-proposal-warning-stdout
+  - require-all-changes-sprint-before-apply
+  - standardize-next-step-issue-ids
+  - fix-openspec-archive-multiline-proposal-warning-stdout
+estimated_story_points: 10
+estimated_person_days: 10
+capacity_usage: 0.3333
+fix_buffer_person_days: 20
+fix_buffer_ratio: 0.6667
+scope_estimates:
+  - id: BUG-0118-fact-sheet-ai-usage-future-start-date-freshness
+    bug: BUG-0118-fact-sheet-ai-usage-future-start-date-freshness
+    change: fix-fact-sheet-ai-usage-start-date-freshness
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 治理报表准确性修复；收敛 Fact Sheet AI usage freshness baseline 对未来 start_date 的误判，覆盖脚本逻辑与聚焦回归测试。影响 workflow tooling 与测试；不改 API、数据库、Web、小程序、管理端运行时代码或 Docker。
+  - id: BUG-0119-openspec-archive-scaffold-warning-noise
+    bug: BUG-0119-openspec-archive-scaffold-warning-noise
+    change: fix-openspec-archive-scaffold-warning-noise
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 治理工具输出噪音修复；收敛 OpenSpec 归档封装层对已知英文脚手架兼容 warning 的成功路径输出，覆盖脚本逻辑与回归测试。不改 API、数据库、Web、小程序、管理端运行时代码或 Docker。
+  - id: BUG-0120-docs-site-mintlify-cache-ebusy
+    bug: BUG-0120-docs-site-mintlify-cache-ebusy
+    change: fix-docs-site-mintlify-cache-ebusy
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 docs-site 部署修复；移除 Mintlify 运行缓存 direct volume 挂载，覆盖根/local/prod Compose、部署文档、目录结构测试与 docs-site 启动验证。不改 API、数据库、Web 业务 UI、小程序、管理端运行时代码、Orval 或对象存储上传链路。
+  - id: BUG-0122-archive-sync-issue-subdoc-residual-cleanup
+    change: fix-archive-sync-issue-subdoc-residual-cleanup
+    bug: BUG-0122-archive-sync-issue-subdoc-residual-cleanup
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium 归档工作流修复；收敛 Workflow Sync 与 promote-issues-for-archive 之间对子文档安全状态残留的自动 reconcile 缺口，覆盖归档门禁、安全残留、人工判断保留、幂等与审计摘要。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: REQ-0102-sprint-goal-scope-consistency-validation
+    change: update-sprint-goal-scope-consistency-validation
+    requirement: REQ-0102-sprint-goal-scope-consistency-validation
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 Sprint 工作流校验治理；补齐 Sprint 目标编号列表与 Scope 一致性校验，覆盖 validate-sprint-scope.py、/sprint-propose 与 Workflow Sync 规则边界、脚本级回归测试。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: BUG-0121-stale-scan-pending-business-word
+    change: fix-stale-scan-pending-business-word
+    bug: BUG-0121-stale-scan-pending-business-word
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2/medium Sprint archive readiness 治理修复；承接 sprint-020 T-020-003，收敛 stale scan 对业务正文 pending 的误判，覆盖脚本上下文识别、Sprint archive readiness 一致性与回归测试。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: BUG-0123-openspec-archive-proposal-warning-stdout
+    change: fix-openspec-archive-proposal-warning-stdout
+    bug: BUG-0123-openspec-archive-proposal-warning-stdout
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2/medium OpenSpec 归档 wrapper 成功输出治理修复；承接 BUG-0119 后续噪音缺口，精确吸收 CLI stdout 中已知 proposal scaffold warning，同时保留未知 stdout/stderr 与失败诊断。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: require-all-changes-sprint-before-apply
+    change: require-all-changes-sprint-before-apply
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 治理流程门禁修复；统一所有 OpenSpec Change 在 /opsx-apply 前必须纳入 Sprint，覆盖 opsx-apply/spec-opt/workflow-sync 技能、AGENTS、rules、docs 与校验脚本。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: standardize-next-step-issue-ids
+    change: standardize-next-step-issue-ids
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 命令下一步引导规范优化；统一 REQ/BUG 来源的后续 /opsx-* 命令使用原始 REQ/BUG ID，非 REQ/BUG Change 使用 change id，覆盖技能、规则、docs、OpenSpec 与校验。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+  - id: BUG-0124-openspec-archive-multiline-proposal-warning-stdout
+    change: fix-openspec-archive-multiline-proposal-warning-stdout
+    bug: BUG-0124-openspec-archive-multiline-proposal-warning-stdout
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2/medium OpenSpec 归档 wrapper 成功输出治理回归修复；承接 BUG-0123 后续真实 CLI 多行 proposal warning stdout 块遗漏，需整体吸收已知多行 warning，同时保留未知 stdout/stderr 与失败诊断。不改 API、数据库、Web、小程序、管理端运行时代码、Orval 或 Docker。
+capacity_gate:
+  result: pass
+  capacity_person_days: 30
+  estimated_person_days: 10
+  capacity_usage: 0.3333
+  note: project.yaml 未提供显式 Sprint 容量，沿用 sprint-020 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 1 个 P1 REQ 与 6 个 medium BUG，估算 7 人天，占用 23%，保留 23 人天 fix 缓冲。
+deferred_items:
+  - id: T-020-002
+    source: docs/knowledge-base/retrospectives/sprint-020-retrospective.md
+    reason: 本 Sprint 聚焦 BUG-0118，媒体类验收模板行动项暂不纳入正式范围。

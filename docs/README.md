@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-05 23:16:00
+updated_at: 2026-08-06 14:28:00
 ---
 
 # 文档索引
@@ -54,9 +54,21 @@ updated_at: 2026-08-05 23:16:00
 
 | 类型 | 路径 |
 |------|------|
-| 需求 | `issues/requirements/REQ-*` |
-| 缺陷 | `issues/bugs/BUG-*` |
+| 需求 | `issues/requirements/{plan,review,archive}/REQ-*` |
+| 缺陷 | `issues/bugs/{plan,review,archive}/BUG-*` |
 | 迭代 | `iterations/change/sprint-xxx/`（进行中）、`iterations/archive/sprint-xxx/`（已归档） |
 | 产品版本发布 | `releases/vX.Y.Z/` |
 
 禁止恢复 `docs/prd/`、`docs/bugs/`、`docs/iterations/`。
+
+## AI 命令入口提示
+
+项目级 AI 命令入口统一维护在 `.agents/skills/`，总入口与命令链以仓库根目录 [AGENTS.md](../AGENTS.md) 为准。已评审 REQ/BUG 的推荐顺序为先 `/sprint-propose` 纳入 Sprint，再 `/req-opsx` 或 `/bug-opsx` 创建并回填 Change。
+
+规范优化入口使用 `/spec-opt`。新增或修改 `.agents/skills` 命令、`rules/` 文档、`docs/` 文档规范或 `scripts/` 治理脚本时，以 `/spec-opt` 和对应 OpenSpec Change 为准；该命令只服务治理资产，不修改业务 `src/` 代码。
+
+所有 OpenSpec Change 在 `/opsx-apply` 前都必须纳入 Sprint 正式范围。通过 `/opsx-propose` 或 `/spec-opt` 直接创建的非 REQ/BUG Change，也需要先进入 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`，不得因“纯治理”或“无 REQ/BUG 来源”跳过 Sprint。
+
+下一步命令参数保持来源对象一致：REQ 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `REQ-*`；BUG 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用 `<change-id>`。
+
+命令完成输出必须区分「下一步」与「待用户决策/处理」：已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」。

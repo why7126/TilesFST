@@ -67,8 +67,24 @@ def write_minimal_project(root: Path) -> None:
     )
 
 
-def write_fake_openspec(bin_dir: Path) -> None:
+def write_fake_openspec(
+    bin_dir: Path,
+    extra_stderr: str = "",
+    *,
+    known_warning_stream: str = "stderr",
+    extra_stdout: str = "",
+    multiline_warning: bool = False,
+) -> None:
     fake = bin_dir / "openspec"
+    known_warning = (
+        "Proposal warnings in proposal.md\\n"
+        "Missing required sections:\\n"
+        "  - ## Why\\n"
+        "  - ## What Changes"
+        if multiline_warning
+        else "proposal.md is missing standard ## Why / ## What Changes headings"
+    )
+    warning_redirect = ">&2" if known_warning_stream == "stderr" else ""
     fake.write_text(
         "\n".join(
             [
@@ -77,7 +93,9 @@ def write_fake_openspec(bin_dir: Path) -> None:
                 "[[ \"$1\" == \"archive\" ]] || exit 64",
                 "change_id=\"$2\"",
                 "archive_date=\"2026-07-29\"",
-                "echo \"proposal.md is missing standard ## Why / ## What Changes headings\" >&2",
+                f"echo {known_warning!r} {warning_redirect}".rstrip(),
+                *(f"echo {extra_stdout!r}".splitlines() if extra_stdout else []),
+                *(f"echo {extra_stderr!r} >&2".splitlines() if extra_stderr else []),
                 "mkdir -p \"openspec/changes/archive/${archive_date}-${change_id}\"",
                 "mv \"openspec/changes/${change_id}/tasks.md\" \"openspec/changes/archive/${archive_date}-${change_id}/tasks.md\"",
                 "mv \"openspec/changes/${change_id}/trace.md\" \"openspec/changes/archive/${archive_date}-${change_id}/trace.md\"",
@@ -120,8 +138,157 @@ def test_archive_script_relocates_legacy_cli_output(tmp_path: Path) -> None:
     assert "OpenSpec 文档语言校验通过" in result.stdout
     assert "目录结构校验通过" in result.stdout
     assert "**Evidence Status:** trace-present" in result.stdout
-    assert "English scaffold heading compatibility warning" in result.stderr
+    assert "English scaffold heading compatibility warning" not in result.stderr
     assert "missing standard ## Why / ## What Changes" not in result.stderr
+
+
+def test_archive_script_preserves_unknown_stderr_with_known_cli_warning(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    change_dir = tmp_path / "openspec" / "changes" / "fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "tasks.md").write_text("- [x] 完成归档测试夹具准备。\n", encoding="utf-8")
+    (change_dir / "trace.md").write_text("---\nstatus: done\n---\n# Trace\n", encoding="utf-8")
+
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    write_fake_openspec(bin_dir, extra_stderr="unexpected archive warning")
+
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "fix-demo", "2026-07-29"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "unexpected archive warning" in result.stderr
+    assert "missing standard ## Why / ## What Changes" not in result.stderr
+
+
+def test_archive_script_filters_known_cli_warning_from_stdout(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    change_dir = tmp_path / "openspec" / "changes" / "fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "tasks.md").write_text("- [x] 完成归档测试夹具准备。\n", encoding="utf-8")
+    (change_dir / "trace.md").write_text("---\nstatus: done\n---\n# Trace\n", encoding="utf-8")
+
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    write_fake_openspec(bin_dir, known_warning_stream="stdout")
+
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "fix-demo", "2026-07-29"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "missing standard ## Why / ## What Changes" not in result.stdout
+    assert "missing standard ## Why / ## What Changes" not in result.stderr
+
+
+def test_archive_script_preserves_unknown_stdout_with_known_cli_warning(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    change_dir = tmp_path / "openspec" / "changes" / "fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "tasks.md").write_text("- [x] 完成归档测试夹具准备。\n", encoding="utf-8")
+    (change_dir / "trace.md").write_text("---\nstatus: done\n---\n# Trace\n", encoding="utf-8")
+
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    write_fake_openspec(
+        bin_dir,
+        known_warning_stream="stdout",
+        extra_stdout="unexpected archive stdout",
+    )
+
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "fix-demo", "2026-07-29"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "unexpected archive stdout" in result.stdout
+    assert "missing standard ## Why / ## What Changes" not in result.stdout
+    assert "missing standard ## Why / ## What Changes" not in result.stderr
+
+
+def test_archive_script_filters_multiline_proposal_warning_from_stdout(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    change_dir = tmp_path / "openspec" / "changes" / "fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "tasks.md").write_text("- [x] 完成归档测试夹具准备。\n", encoding="utf-8")
+    (change_dir / "trace.md").write_text("---\nstatus: done\n---\n# Trace\n", encoding="utf-8")
+
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    write_fake_openspec(bin_dir, known_warning_stream="stdout", multiline_warning=True)
+
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "fix-demo", "2026-07-29"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "Proposal warnings in proposal.md" not in result.stdout
+    assert "Missing required sections" not in result.stdout
+    assert "## Why" not in result.stdout
+    assert "## What Changes" not in result.stdout
+
+
+def test_archive_script_language_gate_failure_blocks_before_archive(tmp_path: Path) -> None:
+    write_minimal_project(tmp_path)
+    change_dir = tmp_path / "openspec" / "changes" / "fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "proposal.md").write_text("## Why\n\nEnglish scaffold.\n", encoding="utf-8")
+    (change_dir / "tasks.md").write_text("- [x] 完成归档测试夹具准备。\n", encoding="utf-8")
+    (change_dir / "trace.md").write_text("---\nstatus: done\n---\n# Trace\n", encoding="utf-8")
+
+    bin_dir = tmp_path / ".venv" / "bin"
+    bin_dir.mkdir(parents=True)
+    write_fake_openspec(bin_dir)
+
+    env = os.environ.copy()
+    env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+    result = subprocess.run(
+        [str(SCRIPT), "fix-demo", "2026-07-29"],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "OpenSpec 文档语言校验失败" in result.stdout
+    assert (tmp_path / "openspec" / "changes" / "fix-demo").exists()
+    assert not (tmp_path / "openspec" / "archive" / "2026-07-29-fix-demo").exists()
 
 
 def test_archive_evidence_cli_auto_generates_minimal_trace(tmp_path: Path) -> None:

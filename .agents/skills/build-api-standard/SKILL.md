@@ -50,8 +50,8 @@ docs/03-api-index.md
 
 | 场景 | 做法 |
 |------|------|
-| 新业务 API | 对应业务 REQ 的 `/req-opsx` → `add-*` |
-| 治理规范变更 | 新 REQ + `/req-opsx`（MODIFIED `api-governance`） |
+| 新业务 API | 对应业务 REQ 的 `/sprint-propose` → `/req-opsx` → `add-*` |
+| 治理规范变更 | 新 REQ + `/sprint-propose` + `/req-opsx`（MODIFIED `api-governance`） |
 | 接口实现后 | **MUST** 更新 OpenAPI + `scripts/generate-openapi-client.sh` |
 
 ---
@@ -104,7 +104,7 @@ scripts/validate-api-standard.py
 
 ## Step 5 — OpenSpec
 
-已归档 **勿重建** `build-api-standard`。新治理需求走 `/req-opsx`。
+已归档 **勿重建** `build-api-standard`。新治理需求走 `/sprint-propose` 后再 `/req-opsx`。
 
 ---
 
@@ -115,3 +115,18 @@ scripts/validate-api-standard.py
 □ Orval 生成无报错
 □ error_codes 与 rules/api.md 一致
 ```
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

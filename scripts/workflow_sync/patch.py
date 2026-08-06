@@ -458,7 +458,10 @@ def render_scope_summary_paragraphs(
     )
     if pending_issue_ids:
         pending = "、".join(f"`{short_issue_code(issue_id)}`" for issue_id in pending_issue_ids)
-        change_summary += f"仍待创建或回填 Change：{pending}；执行开发前必须先运行对应 `/req-opsx` 或 `/bug-opsx`。"
+        change_summary += (
+            f"仍待创建或回填 Change：{pending}；这些范围项已在 Sprint 中，"
+            "执行开发前必须运行对应 `/req-opsx` 或 `/bug-opsx` 创建并回填 Change。"
+        )
     else:
         change_summary += "所有已纳入范围项均已关联 Change；执行开发与归档时以 Scope 表逐项状态为准。"
     return (

@@ -5,7 +5,7 @@ description: "Implement tasks from an OpenSpec change"
 
 # opsx-apply
 
-Use this skill when the user asks to run `/opsx-apply <change-id>` or implement an OpenSpec change.
+Use this skill when the user asks to run `/opsx-apply <target>` or implement an OpenSpec change. `<target>` may be a `REQ-*`, `BUG-*`, or raw OpenSpec `<change-id>`.
 
 ## Context Budget Guardrails（MUST）
 
@@ -26,9 +26,25 @@ Use this skill when the user asks to run `/opsx-apply <change-id>` or implement 
 
 ## Input
 
-- `<change-id>`：指定 Change。
+- `<target>`：指定目标；可为 `REQ-*`、`BUG-*` 或 OpenSpec `<change-id>`。
 - Omitted：若上下文唯一可推断则使用；否则列 active changes 并询问。
 - `--skip-cross-cutting-gate`：仅 P0 热修可跳过，输出必须说明理由。
+
+## Target Resolution（MUST）
+
+在执行 OpenSpec CLI 前，MUST 先解析 `<target>`：
+
+| 输入类型 | 解析规则 | 下一步输出参数 |
+|---|---|---|
+| `REQ-*` | 读取该 REQ `trace.md` 的 `openspec_changes[]`，选择当前 active 且适合 apply 的 linked Change | 继续使用原始 `REQ-*` |
+| `BUG-*` | 读取该 BUG `trace.md` 的 `openspec_changes[]`，选择当前 active 且适合 apply 的 linked Change | 继续使用原始 `BUG-*` |
+| 其他 | 按 OpenSpec `<change-id>` 处理 | 使用 `<change-id>` |
+
+- 若一个 REQ/BUG 只有一个 active linked Change，MUST 将其作为内部 `<change-id>` 继续执行。
+- 若一个 REQ/BUG 有多个候选 linked Change，MUST 列出候选并要求用户选择；不得猜测。
+- 若 REQ/BUG 找不到 linked Change，MUST 停止并提示先运行 `/req-opsx <REQ-id>` 或 `/bug-opsx <BUG-id>`。
+- 后续 `openspec status`、`openspec instructions apply`、Workflow Sync、AI Usage hook 均使用解析后的真实 `<change-id>`。
+- 最终下一步若指向 `/opsx-archive`，REQ 来源 MUST 输出 `/opsx-archive <REQ-id>`，BUG 来源 MUST 输出 `/opsx-archive <BUG-id>`，非 REQ/BUG Change 才输出 `/opsx-archive <change-id>`。
 
 ## Must Read
 
@@ -50,8 +66,8 @@ rules/iterations-lifecycle.md
 Then run:
 
 ```bash
-openspec status --change "<change-id>" --json
-openspec instructions apply --change "<change-id>" --json
+openspec status --change "<resolved-change-id>" --json
+openspec instructions apply --change "<resolved-change-id>" --json
 ```
 
 Read every concrete path in `contextFiles`.
@@ -69,16 +85,31 @@ docs/knowledge-base/best-practices/<matched>.md
 
 Before editing `src/`, running implementation checks, or marking any task complete, verify the target Change is eligible for `/opsx-apply`.
 
-For every Change linked to a REQ/BUG:
+For every Change:
 
-1. Identify linked `REQ-*` / `BUG-*` from Change trace, proposal/design, tasks, or Issue `trace.md` `openspec_changes[]`.
-2. Confirm `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` resolves a Sprint and does not report sprint skipped/unresolved.
+1. Identify whether the Change is linked to `REQ-*` / `BUG-*` from Change trace, proposal/design, tasks, or Issue `trace.md` `openspec_changes[]`.
+2. Confirm `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` resolves a Sprint and does not report sprint skipped/unresolved. This is mandatory for all Changes, including non-REQ/BUG Changes created by `/opsx-propose` or `/spec-opt`.
 3. Read the resolved `iterations/change|archive/<sprint>/sprint.yaml` snippet and confirm:
    - `changes[]` contains `<change-id>`.
-   - `requirements[]` contains linked `REQ-*` and/or `bugs[]` contains linked `BUG-*`.
-4. Confirm each linked Issue `trace.md` has `iteration: <sprint-id>` and `status: in_sprint` or a later delivery state.
+   - for linked REQ/BUG Changes, `requirements[]` contains linked `REQ-*` and/or `bugs[]` contains linked `BUG-*`.
+   - for non-REQ/BUG Changes, `scope_estimates[]` contains an independent Change scope item or equivalent estimate/rationale for `<change-id>`.
+4. For linked REQ/BUG Changes, confirm each linked Issue `trace.md` has `iteration: <sprint-id>` and `status: in_sprint` or a later delivery state.
 
 If any check fails, **BLOCKED**: do not implement. If the linked REQ/BUG is already in a Sprint but `changes[]` lacks `<change-id>`, first run the originating `/req-opsx` or `/bug-opsx` Workflow Sync final step again to repair Sprint scope, then rerun this dry-run gate. Tell the user to run `/sprint-propose` only when the linked REQ/BUG itself is not in any Sprint scope.
+
+If a non-REQ/BUG Change is not in Sprint scope, **BLOCKED**: do not implement. First run `/sprint-propose` for the Change or repair a known Sprint with:
+
+```bash
+python scripts/add-sprint-scope-item.py \
+  --sprint <sprint-id> \
+  --change <change-id> \
+  --size <XS|S|M|L|XL|XXL> \
+  --story-points <number> \
+  --person-days <number> \
+  --rationale "<估算与影响说明>"
+```
+
+Then rerun Workflow Sync, `validate-sprint-scope.py`, and this apply dry-run gate.
 
 If the user already ran `/sprint-propose` for the linked REQ/BUG but the dry-run still reports `change <id> not in sprint scope`, treat this as Sprint scope machine-source persistence failure, not as missing user intent. Repair `iterations/change|archive/<sprint>/sprint.yaml` with:
 
@@ -95,7 +126,7 @@ python scripts/add-sprint-scope-item.py \
 
 Then rerun Workflow Sync, `validate-sprint-scope.py`, and this apply dry-run gate. Do not ask the user to repeat the same `/sprint-propose` command when the issue/change pair and target Sprint are already known.
 
-Only a Change with no linked REQ/BUG may bypass this gate; output the reason explicitly.
+No Change may bypass this Sprint Inclusion Gate merely because it has no linked REQ/BUG.
 
 ## Cross-cutting Apply Gate（MUST before `src/`）
 
@@ -190,3 +221,18 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.app
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
 - Use the Sprint resolved by Workflow Sync; do not pass the literal value `auto` to `extract-ai-usage.py`.
 - If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+
+## Final Output Contract（MUST）
+
+命令结束前，最终回复 MUST 明确包含：
+
+```text
+下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
+待用户决策/处理：
+- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
+```
+
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
+- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

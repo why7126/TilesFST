@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 10:10:00
+updated_at: 2026-08-06 14:01:45
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -81,7 +81,7 @@ Issue 子文档同步（MUST）：
 - `review.md`、`root-cause.md`、`workaround.md` 等文档若保留 `status`，必须明确其字段语义；无法安全判断时 Workflow Sync MUST 报告 warning 或 blocker，不得静默覆盖。
 - `opsx.apply` 后验收入口 SHOULD 标记 `acceptance_status: pending` 并记录 source Change/Sprint；`opsx.archive` / `sprint.archive` 后 SHOULD 回填闭环验收结论、证据入口、失败项或豁免说明。
 
-当已纳入 Sprint 的 REQ/BUG 执行 `/req-opsx` 或 `/bug-opsx` 创建 Change 时，Workflow Sync MUST 同步更新对应 `iterations/change|archive/<sprint>/sprint.yaml`：补入 `changes[]`、填充匹配 `scope_estimates[].change`，并移除该 Issue 的 open-change 延后项，确保后续 `/opsx-apply` 门禁可从 Sprint scope 解析到同一个 Change。
+已评审 REQ/BUG 的推荐顺序为先执行 `/sprint-propose` 纳入 Sprint 正式范围，再执行 `/req-opsx` 或 `/bug-opsx` 创建 Change。当已纳入 Sprint 的 REQ/BUG 执行 `/req-opsx` 或 `/bug-opsx` 创建 Change 时，Workflow Sync MUST 同步更新对应 `iterations/change|archive/<sprint>/sprint.yaml`：补入 `changes[]`、填充匹配 `scope_estimates[].change`，并移除该 Issue 的 open-change 延后项，确保后续 `/opsx-apply` 门禁可从 Sprint scope 解析到同一个 Change。
 
 `trace.md` 的 `## 变更记录` MUST 使用标准 Markdown 表格，且表头必须紧跟章节标题之后：
 
@@ -134,12 +134,12 @@ estimated_person_days: <number>
 
 以下变化必须创建 Change：新功能、行为性 BUG 修复、API/数据库/权限/Docker/环境变量/UI/上传存储/测试验收发布治理变化。
 
-来源于 REQ/BUG 的 Change 在执行 `/opsx-apply` 前 **MUST** 已纳入某个 `sprint-xxx` 正式范围：
+所有 Change 在执行 `/opsx-apply` 前 **MUST** 已纳入某个 `sprint-xxx` 正式范围，包括来源于 REQ/BUG 的 Change，以及通过 `/opsx-propose`、`/spec-opt` 或其他治理流程直接创建的非 REQ/BUG Change：
 
-- `iterations/change|archive/<sprint>/sprint.yaml` 的 `requirements[]` / `bugs[]` / `changes[]` MUST 能同时追溯到目标 REQ/BUG 与 Change。
-- 关联 REQ/BUG `trace.md` 的 `iteration` MUST 指向同一个 `sprint-xxx`，且 `status` MUST 为 `in_sprint` 或后续交付态。
+- `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]` MUST 包含目标 Change。
+- 若 Change 关联 REQ/BUG，`requirements[]` / `bugs[]` MUST 能同时追溯到目标 REQ/BUG，且关联 REQ/BUG `trace.md` 的 `iteration` MUST 指向同一个 `sprint-xxx`，`status` MUST 为 `in_sprint` 或后续交付态。
+- 若 Change 不关联 REQ/BUG，`scope_estimates[]` SHOULD 以该 Change 作为独立范围项记录估算、容量占用和纳入理由；不得要求为此自动创建 REQ/BUG。
 - 若 `python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto --dry-run` 无法解析到 Sprint，MUST 视为门禁失败；先运行 `/sprint-propose` 纳入迭代并完成同步，不得继续实现。
-- 仅非 REQ/BUG 来源的纯技术治理 Change 可豁免此门禁；豁免原因 MUST 写入执行输出。
 
 Change 推荐结构：
 

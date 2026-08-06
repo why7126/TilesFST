@@ -393,30 +393,20 @@ The BUG-0075 fix SHALL include focused regression coverage for admin brand-detai
 - **AND** homepage carousel and brand-list carousel queries SHALL remain separated by `position`.
 
 ### Requirement: Sprint close stale scan 回归测试
-测试治理 SHALL 要求 Sprint close stale scan、Workflow Sync 四件套刷新和旧归档路径残留检查具备聚焦自动化回归覆盖。
+测试治理 SHALL 要求 Sprint close stale scan、Workflow Sync 四件套刷新、旧归档路径残留检查和 Issue 子文档 residual reconcile 具备聚焦自动化回归覆盖。
 
-#### Scenario: stale 中间态文案触发测试失败
-- **WHEN** pytest 使用 fixture 构造一个目标 Sprint 四件套，其中已创建或已归档 Change 仍显示待 `/req-opsx`、待 `/bug-opsx` 或待 `/opsx-apply`
-- **THEN** stale scan 测试 MUST 断言命令返回非零退出码
-- **AND** 断言报告包含命中文件、关联对象、真实状态和建议修复动作
+#### Scenario: 安全 Issue 子文档 residual 自动清理回归
+- **WHEN** pytest fixture 构造一个已闭环 Issue，且 `capture.md` 仅残留可安全同步的 `status: captured`
+- **THEN** 测试 MUST 断言归档同步或 promote 前置流程会自动处理该 residual
+- **AND** 再次执行 `promote-issues-for-archive` MUST 不因该 residual 返回 Issue Subdocument Status Gate
 
-#### Scenario: legacy archive path 真实残留触发测试失败
-- **WHEN** pytest 使用 fixture 构造 Sprint 四件套或新生成报告引用 `openspec/changes/archive/` 作为 canonical archive path
-- **THEN** stale scan 或 residual 测试 MUST 断言该引用被标记为 blocker
-- **AND** 断言建议改用 `openspec/archive/`
+#### Scenario: 人工判断 Issue 子文档 residual 仍阻断
+- **WHEN** pytest fixture 构造一个缺少闭环证据、验收结果或状态字段语义不明的 Issue residual
+- **THEN** 测试 MUST 断言归档同步或 promote 前置流程不会自动写入该字段
+- **AND** 报告 MUST 包含 warning 或 blocker 以及建议处理命令
 
-#### Scenario: 允许的 legacy 例外不触发失败
-- **WHEN** pytest fixture、兼容读取 helper 或迁移脚本中包含 `openspec/changes/archive/` legacy 字符串
-- **THEN** 测试 MUST 断言 stale scan 将其归类为允许例外或忽略
-- **AND** 该例外 MUST NOT 造成 Sprint close gate 失败
-
-#### Scenario: Workflow Sync 刷新后 stale scan 通过
-- **WHEN** Workflow Sync 根据 `sprint.yaml`、Issue trace 和 Change 状态刷新 `sprint.md` Scope 派生块
-- **THEN** 测试 MUST 断言刷新后的四件套不再保留由机器事实可确定的过期规划文案
-- **AND** 再次运行 stale scan MUST 返回 0
-
-#### Scenario: 测试保持路径解析兼容
-- **WHEN** 测试需要读取 Change tasks、trace 或归档证据
-- **THEN** 测试 MUST 继续兼容 active path、canonical archive path 和 legacy archive fallback
-- **AND** 新断言 MUST 区分“兼容读取 legacy”与“生成 canonical legacy 路径”两种语义
+#### Scenario: Issue 子文档 residual reconcile 幂等
+- **WHEN** 测试对同一已闭环 Issue 重复执行 residual reconcile
+- **THEN** 第二次执行 MUST 报告 no delta 或等价摘要
+- **AND** 测试 MUST 断言没有重复更新时间戳或产生无意义 diff
 
