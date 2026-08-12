@@ -1,4 +1,5 @@
 import { miniappApiConfig } from '../utils/env';
+import { reportPerformanceMetric } from './performance';
 
 const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
 const CLIENT_TYPE = 'wechat_miniapp';
@@ -80,6 +81,7 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
   function tryRequest(index: number): Promise<T> {
     const currentBaseUrl = urls[index] || DEFAULT_BASE_URL;
     const url = `${currentBaseUrl}${path}`;
+    const startedAt = Date.now();
     return new Promise((resolve, reject) => {
       wx.request<ApiResponse<T>>({
         ...options,
@@ -92,6 +94,12 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
         },
         success: (res) => {
           const body = res.data;
+          reportPerformanceMetric({
+            page_key: path,
+            metric_name: 'api_duration',
+            duration_ms: Date.now() - startedAt,
+            device_class: 'miniapp',
+          });
           if (res.statusCode >= 200 && res.statusCode < 300 && body?.code === 0) {
             resolve(normalizeMediaUrls(body.data, currentBaseUrl) as T);
             return;
@@ -112,6 +120,12 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
           reject(error);
         },
         fail: (error) => {
+          reportPerformanceMetric({
+            page_key: path,
+            metric_name: 'api_failed_duration',
+            duration_ms: Date.now() - startedAt,
+            device_class: 'miniapp',
+          });
           attempts.push({
             url,
             errMsg: error.errMsg,

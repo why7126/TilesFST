@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fetchBannersMock = vi.fn();
+const bannerManagementCss = readFileSync(
+  resolve(process.cwd(), 'src/features/admin/styles/banner-management.css'),
+  'utf8',
+);
 
 vi.mock('@/features/auth/api/auth-api', () => ({
   getErrorMessage: (_err: unknown, fallback: string) => fallback,
@@ -42,7 +48,8 @@ const listWithItem = {
       title: '春季主推',
       position: 'MINIAPP_BRAND_LIST_CAROUSEL',
       display_client: 'MINIAPP_HOME',
-      jump_type: 'NONE',
+      jump_type: 'BRAND_DETAIL',
+      jump_target_label: '目标品牌',
       status: 'ONLINE',
       image_url: null,
       image_thumbnail_url: null,
@@ -163,6 +170,7 @@ describe('BannerManagementPage', () => {
     expect(container.querySelector('.section-head')).toBeNull();
     expect(container.querySelector('.banner-pagination')).toBeNull();
     expect(container.querySelector('.table-toolbar')).toBeNull();
+    expect(screen.getByPlaceholderText('搜索位置 / 跳转对象 / 链接')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '搜索' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
 
@@ -182,7 +190,7 @@ describe('BannerManagementPage', () => {
     ).toBeTruthy();
   });
 
-  it('shows dedicated display position column without banner-sub in first column', async () => {
+  it('shows banner image only and dedicated jump target column', async () => {
     fetchBannersMock.mockResolvedValue(listWithItem);
 
     const { container } = render(
@@ -192,17 +200,59 @@ describe('BannerManagementPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('春季主推')).toBeInTheDocument();
+      expect(screen.getByText('目标品牌')).toBeInTheDocument();
     });
 
+    expect(screen.queryByText('内部识别')).not.toBeInTheDocument();
+    expect(screen.queryByText('春季主推')).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Banner' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '跳转对象' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '展示位置' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '展示端' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '跳转类型' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '状态' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '有效期' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '排序' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '更新时间' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
       'admin-sticky-action-cell',
     );
     expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
     expect(screen.getByText('品牌列表页轮播')).toBeInTheDocument();
     expect(container.querySelector('.banner-sub')).toBeNull();
+    expect(container.querySelector('.banner-main')).toBeNull();
     expect(container.querySelector('.banner-position')).toBeTruthy();
+    expect(container.querySelector('.banner-jump-target')).toHaveTextContent('目标品牌');
+  });
+
+  it('keeps banner table headers and non-validity fields on one line', async () => {
+    fetchBannersMock.mockResolvedValue(listWithItem);
+
+    const { container } = render(
+      <MemoryRouter>
+        <BannerManagementPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('目标品牌')).toBeInTheDocument();
+    });
+
+    const table = container.querySelector('.banner-mgmt-table') as HTMLTableElement;
+    const row = table.querySelector('tbody tr') as HTMLTableRowElement;
+    const validityCell = row.querySelector('.banner-validity-cell') as HTMLTableCellElement;
+    expect(validityCell).toBeInTheDocument();
+    expect(validityCell.querySelector('.time-range br')).toBeInTheDocument();
+
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-mgmt-table th,\n\.admin-shell \.banner-mgmt-table td \{[\s\S]*white-space: nowrap;/,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.time-range \{[\s\S]*white-space: normal;/,
+    );
+    expect(bannerManagementCss).toMatch(
+      /\.admin-shell \.banner-validity-cell \{[\s\S]*white-space: normal;/,
+    );
   });
 
   it('uses thumbnail image first and falls back to original image', async () => {
@@ -224,7 +274,7 @@ describe('BannerManagementPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('春季主推')).toBeInTheDocument();
+      expect(screen.getByText('目标品牌')).toBeInTheDocument();
     });
 
     const image = container.querySelector('.banner-thumb img') as HTMLImageElement;

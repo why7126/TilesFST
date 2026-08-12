@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { CircleHelp } from 'lucide-react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type {
@@ -120,6 +121,22 @@ function formatVideoSize(bytes?: number | null): string {
   return `${Math.round(bytes / 1024)} KB`;
 }
 
+function toDatetimeLocalValue(value?: string | null): string {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+  ].join('-') + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 interface TileSkuFormModalProps {
   open: boolean;
   mode: 'create' | 'edit';
@@ -137,6 +154,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [surfaceFinish, setSurfaceFinish] = useState('');
   const [colorFamily, setColorFamily] = useState('');
   const [referencePrice, setReferencePrice] = useState('');
+  const [recallPinSortOrder, setRecallPinSortOrder] = useState('9999');
+  const [recallPinStartsAt, setRecallPinStartsAt] = useState('');
+  const [recallPinEndsAt, setRecallPinEndsAt] = useState('');
   const [remark, setRemark] = useState('');
   const [images, setImages] = useState<ImageDraft[]>([]);
   const [videos, setVideos] = useState<VideoDraft[]>([]);
@@ -146,6 +166,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [mediaSettings, setMediaSettings] = useState(DEFAULT_MEDIA_UPLOAD_SETTINGS);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recallPinSortOrderError, setRecallPinSortOrderError] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
@@ -176,6 +197,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setRecallPinSortOrderError(null);
     setVideoUploadState('idle');
     setVideoUploadProgress(0);
     setVideoUploadError(null);
@@ -190,6 +212,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setReferencePrice(
         sku.reference_price != null ? String(sku.reference_price) : '0',
       );
+      setRecallPinSortOrder(String(sku.recall_pin_sort_order ?? 9999));
+      setRecallPinStartsAt(toDatetimeLocalValue(sku.recall_pin_starts_at));
+      setRecallPinEndsAt(toDatetimeLocalValue(sku.recall_pin_ends_at));
       setRemark(sku.remark ?? '');
       setImages(
         normalizeImages((sku.images ?? []).map((img, idx) => ({
@@ -218,6 +243,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setSurfaceFinish('');
       setColorFamily('');
       setReferencePrice('0');
+      setRecallPinSortOrder('9999');
+      setRecallPinStartsAt('');
+      setRecallPinEndsAt('');
       setRemark('');
       setImages([]);
       setVideos([]);
@@ -257,7 +285,20 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     return price;
   };
 
+  const parseRecallPinSortOrder = (): number | null => {
+    const trimmed = recallPinSortOrder.trim();
+    if (!trimmed) {
+      return 9999;
+    }
+    const order = Number.parseInt(trimmed, 10);
+    if (!Number.isInteger(order) || String(order) !== trimmed || order <= 0) {
+      return null;
+    }
+    return order;
+  };
+
   const validateSubmitFields = (): boolean => {
+    setRecallPinSortOrderError(null);
     if (!name.trim()) {
       setError('商品名称不能为空');
       return false;
@@ -278,6 +319,14 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setError('参考价格不能为空');
       return false;
     }
+    if (parseRecallPinSortOrder() === null) {
+      setRecallPinSortOrderError('排序值必须为正整数');
+      return false;
+    }
+    if (recallPinStartsAt && recallPinEndsAt && recallPinStartsAt > recallPinEndsAt) {
+      setError('召回置顶开始时间不能晚于结束时间');
+      return false;
+    }
     return true;
   };
 
@@ -294,6 +343,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       color_family: colorFamily.trim() || null,
       reference_price: price,
       remark: remark.trim() || null,
+      recall_pin_sort_order: parseRecallPinSortOrder() ?? 9999,
+      recall_pin_starts_at: recallPinStartsAt ? new Date(recallPinStartsAt).toISOString() : null,
+      recall_pin_ends_at: recallPinEndsAt ? new Date(recallPinEndsAt).toISOString() : null,
       images: normalizedImages.map((img, idx) => ({
         object_key: img.object_key,
         url: img.url,
@@ -537,6 +589,39 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               />
             </div>
             <div className="brand-form-item">
+              <label className="sku-label-with-help">
+                <span>
+                  排序 <span className="req">*</span>
+                </span>
+                <span
+                  className="sku-help-icon"
+                  title="默认 9999；只能填写正整数。数值越低，小程序普通商品列表和搜索 SKU 结果越靠前。"
+                  aria-label="排序字段说明：默认 9999；只能填写正整数。数值越低，小程序普通商品列表和搜索 SKU 结果越靠前。"
+                  role="img"
+                >
+                  <CircleHelp aria-hidden="true" size={14} strokeWidth={1.8} />
+                </span>
+              </label>
+              <input
+                className="input"
+                type="number"
+                step="1"
+                min="1"
+                value={recallPinSortOrder}
+                aria-invalid={recallPinSortOrderError ? 'true' : undefined}
+                aria-describedby={recallPinSortOrderError ? 'recall-pin-sort-order-error' : undefined}
+                onChange={(e) => {
+                  setRecallPinSortOrder(e.target.value);
+                  setRecallPinSortOrderError(null);
+                }}
+              />
+              {recallPinSortOrderError ? (
+                <p id="recall-pin-sort-order-error" className="sku-field-error">
+                  {recallPinSortOrderError}
+                </p>
+              ) : null}
+            </div>
+            <div className="brand-form-item">
               <label>主色系</label>
               <input
                 className="input"
@@ -550,6 +635,25 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                 className="input"
                 value={surfaceFinish}
                 onChange={(e) => setSurfaceFinish(e.target.value)}
+              />
+            </div>
+            <p className="sku-section-label">运营配置</p>
+            <div className="brand-form-item">
+              <label>生效开始时间</label>
+              <input
+                className="input"
+                type="datetime-local"
+                value={recallPinStartsAt}
+                onChange={(e) => setRecallPinStartsAt(e.target.value)}
+              />
+            </div>
+            <div className="brand-form-item">
+              <label>生效结束时间</label>
+              <input
+                className="input"
+                type="datetime-local"
+                value={recallPinEndsAt}
+                onChange={(e) => setRecallPinEndsAt(e.target.value)}
               />
             </div>
             <div className="brand-form-item sku-form-full">

@@ -53,6 +53,7 @@ class MiniappProductCard(BaseModel):
     price_display: str
     is_new: bool = False
     is_hot: bool = False
+    is_recall_pinned: bool = False
 
 
 class MiniappSearchFacetOption(BaseModel):

@@ -1166,7 +1166,7 @@ Web 客户端 MUST 修复管理端 Sidebar 各菜单图标无法区分的缺陷�
 
 ### Requirement: 管理端个人资料路由
 
-Web 客户端 MUST 注册 `/admin/profile` 路由，受管理端路由守卫保护。`admin` 与 `employee` MUST 可访问；`store_owner` MUST 跳转 forbidden。`AdminLayout` MUST 通过 `GET /api/v1/profile/me` 预取当前用户 profile 摘要，并将 `email` 与 `avatar_url`（非空时）传递给侧栏 `AdminUserMenu`；MUST NOT 依赖 auth login `/me` 的 `UserProfile` 获取头像 URL。
+Web 客户端 MUST 注册 `/admin/profile` 路由，受管理端路由守卫保护。`admin` 与 `employee` MUST 可访问；`store_owner` MUST 跳转 forbidden。`AdminLayout` MUST 通过 `GET /api/v1/profile/me` 预取当前用户 profile 摘要，并将 `avatar_url`（非空时）传递给侧栏 `AdminUserMenu`；MUST NOT 依赖 auth login `/me` 的 `UserProfile` 获取头像 URL。用户邮箱 SHALL 作为真实联系邮箱字段处理，允许为空；Web 客户端 MUST NOT 在任何管理端身份展示区域通过用户名拼接邮箱样式占位。
 
 #### Scenario: 路由注册与守卫
 
@@ -1179,12 +1179,39 @@ Web 客户端 MUST 注册 `/admin/profile` 路由，受管理端路由守卫保�
 - **WHEN** `store_owner` 访问 `/admin/profile`
 - **THEN** MUST 跳转 `/admin/forbidden`
 
-#### Scenario: 侧栏邮箱展示
+#### Scenario: 侧栏用户菜单身份展示
 
-- **WHEN** 用户 profile 含 email
-- **THEN** Sidebar 用户区 MUST 展示该 email
-- **WHEN** email 为空
-- **THEN** MAY fallback `{username}@tilesfst.com`
+- **WHEN** 用户查看管理端 Sidebar 底部用户菜单触发区
+- **THEN** Sidebar 用户区 MUST 只展示当前用户昵称
+- **AND** 昵称为空时 MUST 展示用户名
+- **AND** MUST NOT 展示邮箱、副标题、`{username}@tilesfst.com` 或 `admin@tilesfst.com`
+
+#### Scenario: 个人资料页顶部身份栏邮箱展示
+
+- **WHEN** 用户访问 `/admin/profile`
+- **AND** 当前用户 `profile.email` 非空
+- **THEN** 个人资料页顶部身份栏 MAY 展示该真实邮箱
+- **AND** 展示内容 MUST 来自 `profile.email`
+
+- **WHEN** 用户访问 `/admin/profile`
+- **AND** 当前用户 `profile.email` 为空
+- **THEN** 个人资料页顶部身份栏 MUST NOT 展示 `{username}@tilesfst.com`
+- **AND** MUST NOT 展示 `admin@tilesfst.com`
+- **AND** MUST 省略邮箱片段或使用不暗示真实邮箱存在的展示
+
+#### Scenario: 个人资料联系邮箱编辑入口
+
+- **WHEN** 用户查看个人资料基础资料表单
+- **THEN** 表单 MUST 保留“联系邮箱”输入框
+- **AND** 邮箱为空时输入框 MUST 保持为空
+- **AND** MUST NOT 自动填入 `{username}@tilesfst.com` 或 `admin@tilesfst.com`
+
+#### Scenario: 用户管理页邮箱能力边界
+
+- **WHEN** 本 BUG 修复实施
+- **THEN** MUST NOT 要求用户管理列表新增邮箱列
+- **AND** MUST NOT 要求用户创建或编辑弹窗新增联系邮箱输入框
+- **AND** 管理员维护用户联系邮箱能力 MUST 由独立需求定义
 
 #### Scenario: 侧栏头像数据 plumbing
 
@@ -1192,12 +1219,6 @@ Web 客户端 MUST 注册 `/admin/profile` 路由，受管理端路由守卫保�
 - **THEN** MUST 调用 `GET /api/v1/profile/me`（或等价 `fetchProfileMe`）
 - **AND** 响应中的 `avatar_url` MUST 传递给 `AdminUserMenu`
 - **AND** MUST NOT 扩展 auth `UserProfile` schema 作为唯一数据源
-
-#### Scenario: Profile 上传后侧栏刷新
-
-- **WHEN** 用户在 `/admin/profile` 成功上传并持久化新头像
-- **THEN** 导航至其他 `/admin/*` 页时侧栏 MUST 展示新头像图片
-- **AND** MUST NOT 要求整页硬刷新浏览器
 
 ### Requirement: 管理端修改密码弹窗组件
 
@@ -1319,7 +1340,7 @@ Web 客户端 MUST 提供瓷砖规格管理页，路由为 `/admin/tile-specs`�
 
 ### Requirement: 管理端 Banner 管理页
 
-Web 客户端 MUST 提供 Banner 管理页，路由为 `/admin/banners`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0016-banner-management/prototype/web/banner-management-list.html` 与 `banner-management-list.png` 的 CSS Port 策略（**展示位置独立列**与第一列仅标题为 BUG-0039 策略 delta，MUST 以本 requirement 为准）。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。列表表格 MUST NOT 展示与 page-hero 重复的「Banner 列表」section 标题或「当前显示 X-Y / N」toolbar 统计行。列表底部分页 MUST 复用与用户管理页一致的标准 DOM 与样式（`pagination` + `page-summary` + `page-right` + `page-buttons` + `page-size-wrap`），MUST NOT 使用 `banner-pagination` / `table-toolbar` 范围行结构。展示端筛选、表格和弹窗文案 MUST 仅表达“小程序”；展示位置 MUST 仅表达“首页轮播”和“品牌列表页轮播”。
+Web 客户端 MUST 提供 Banner 管理页，路由为 `/admin/banners`，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0016-banner-management/prototype/web/banner-management-list.html` 与 `banner-management-list.png` 的 CSS Port 策略（**展示位置独立列**与第一列仅标题为 BUG-0039 策略 delta，MUST 以本 requirement 为准）。页面 MUST 复用 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容最大宽度 1080px）。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。列表表格 MUST NOT 展示与 page-hero 重复的「Banner 列表」section 标题或「当前显示 X-Y / N」toolbar 统计行。列表底部分页 MUST 复用与用户管理页一致的标准 DOM 与样式（`pagination` + `page-summary` + `page-right` + `page-buttons` + `page-size-wrap`），MUST NOT 使用 `banner-pagination` / `table-toolbar` 范围行结构。展示端筛选、表格和弹窗文案 MUST 仅表达“小程序”；展示位置 MUST 仅表达“首页轮播”和“品牌列表页轮播”。Banner 列表 MUST 以缩略图、展示位置、跳转类型、跳转目标、排序或更新时间提供记录识别上下文；如继续展示 `title`，该文案 MUST 降级为内部识别信息，MUST NOT 表达为运营必须维护的前台标题。
 
 #### Scenario: Banner 列表页布局
 
@@ -1327,97 +1348,35 @@ Web 客户端 MUST 提供 Banner 管理页，路由为 `/admin/banners`，视觉
 - **THEN** 页面 MUST 展示 page-hero（眉标 `OPERATIONS / BANNER MANAGEMENT`、标题「Banner 管理」、说明、「＋ 新增 Banner」）
 - **AND** MUST 展示 4 指标卡（Banner 总数/当前筛选/已上线/待生效）
 - **AND** MUST 展示关键词、展示端、展示位置、状态、时间状态筛选与 Banner 表格、分页
-- **AND** 展示端控件 MUST 仅显示“小程序”或等价只读表达
+- **AND** 展示端控件 MUST 仅表达“小程序”
 - **AND** 展示位置控件 MUST 仅提供“首页轮播”和“品牌列表页轮播”
-- **AND** 表格 MUST 含 Banner 缩略图（86×38）与标题、**展示位置**、展示端、跳转类型、状态、有效期、排序、更新时间、操作
-- **AND** 第一列 MUST 仅展示缩略图与 Banner 标题，MUST NOT 在同一单元格叠放展示位置副文案
-- **AND** MUST NOT 展示导出、批量操作
+- **AND** 表格 MUST 含 Banner 缩略图（86×38）与识别上下文、**展示位置**、展示端、跳转类型、状态、有效期、排序、更新时间、操作
+- **AND** 第一列 MUST NOT 只依赖人工标题识别 Banner
+- **AND** 关键词搜索 placeholder SHOULD 不再强调“标题”
 - **AND** MUST NOT 展示「Banner 列表」section 标题或「当前显示 … / …」toolbar 行。
-
-#### Scenario: 展示位置独立列
-
-- **WHEN** 管理员查看 Banner 列表表格
-- **THEN** MUST 存在表头「展示位置」
-- **AND** 单元格 MUST 展示 `position` 对应中文文案「首页轮播」或「品牌列表页轮播」
-- **AND** 「展示位置」列 MUST 与「展示端」列语义区分，MUST NOT 重复展示同一信息。
-
-#### Scenario: 筛选与分页
-
-- **WHEN** 用户输入筛选条件并点击查询
-- **THEN** 系统 MUST 重置页码为 1 并重新加载列表
-- **AND** 分页左侧 MUST 显示「共 {total} 个 Banner」（`page-summary`）
-- **AND** 分页 MUST 使用与用户管理页一致的 `page-buttons`（含当前页 `.page-btn.active`）与 `page-size-wrap`（「每页显示」+ 10/20/50 条选项）
-- **AND** MUST NOT 使用连续多页码条替代单页 active 按钮模式
-- **AND** `total` MUST 仅统计小程序两个轮播位置范围内的 Banner。
-
-#### Scenario: 上线与下线二次确认
-
-- **WHEN** 用户点击行内「上线」或「下线」
-- **THEN** MUST 弹出二次确认（对齐 `BrandManagementPage` / REQ-0008）
-- **AND** 确认后 MUST 调用 online/offline API 并刷新列表。
-
-#### Scenario: 删除按钮规则
-
-- **WHEN** 列表行 `status=ONLINE`
-- **THEN** 「删除」MUST 不可点；提示「已上线 Banner 需先下线后删除」
-- **WHEN** `status` 为 `DRAFT`、`OFFLINE` 或 `EXPIRED`
-- **THEN** 「删除」MUST 可点击且二次确认。
-
-#### Scenario: Banner 管理 CSS Port
-
-- **WHEN** 开发者查看 Banner 管理页源码
-- **THEN** 视觉样式 MUST 主要来自 `features/admin/styles/banner-management.css`
-- **AND** 颜色 MUST 通过 semantic token 引用 `globals.css`
-- **AND** TSX MUST NOT 包含裸 Hex。
-
-#### Scenario: 未登录访问
-
-- **WHEN** 未登录用户访问 `/admin/banners`
-- **THEN** 前端 MUST 跳转至 `/admin/login`。
-
-#### Scenario: 管理端列表横切质量
-
-- **WHEN** 开发者实现 Banner 管理范围收敛
-- **THEN** 分页 DOM MUST 对齐用户管理基准
-- **AND** 指标卡 MUST 使用 `.metric-label`、`.metric-value`、`.metric-desc` 或共享 `MetricCard`
-- **AND** 保存、删除、上线、下线反馈 MUST 使用 fixed toast 或等价固定反馈
-- **AND** 状态/危险操作 MUST 使用 DS confirm modal
-- **AND** MUST NOT 使用 `window.confirm` 或会造成 layout shift 的文档流 notice。
 
 ### Requirement: Banner 新增编辑弹窗
 
-Web 客户端 MUST 提供 `BannerFormModal`，宽 **880px**（与瓷砖 SKU 弹窗 `.sku-modal-card` 一致，`max-width: 100%` 响应式保留）、最大高度 92vh、内容区可滚动（头尾固定）。弹窗 MUST 按 `jump_type` 展示条件字段：`SKU_DETAIL`（关联 SKU + 图库选图）、`BRAND_DETAIL`（关联品牌 + 品牌 Logo 取图）、`EXTERNAL_LINK`（HTTPS 外链）、`TOPIC_PAGE`（关联专题）、`NO_JUMP`（无跳转目标）。弹窗 MUST NOT 展示状态编辑或状态策略说明块。Banner 图片模块 MUST NOT 展示冗余来源首行标题（如「自定义上传 / SKU 主图」）；自定义上传按钮 MUST 使用「选择/更换/上传中」文案并对齐 `BrandFormModal` 的 `hidden` file input 模式。展示端 MUST 默认为“小程序”且不得保存为其他端；展示位置 MUST 仅允许“首页轮播”和“品牌列表页轮播”。关联 SKU、关联品牌与关联专题 MUST 为单一可搜索选择控件（Combobox），MUST NOT 分离为独立搜索框与下拉框。运营备注 `textarea` MUST 占满整行且 placeholder 字号与同弹窗 input 一致。有效期 MUST 为单字段区间「{开始} 至 {结束}」，格式 `YYYY-MM-DD HH:mm`（分钟精度），MUST NOT 使用原生 `<input type="datetime-local">` 作为最终方案。视觉 MUST 对齐管理端大表单弹窗基准（宽度与 SKU 弹窗一致）。
+Web 客户端 MUST 提供 `BannerFormModal`，宽 **880px**（与瓷砖 SKU 弹窗 `.sku-modal-card` 一致，`max-width: 100%` 响应式保留）、最大高度 92vh、内容区可滚动（头尾固定）。弹窗 MUST 按 `jump_type` 展示条件字段：`SKU_DETAIL`（关联 SKU + 图库选图）、`BRAND_DETAIL`（关联品牌 + 品牌 Logo 取图）、`EXTERNAL_LINK`（HTTPS 外链）、`TOPIC_PAGE`（关联专题）、`NO_JUMP`（无跳转目标）。弹窗 MUST NOT 展示状态编辑或状态策略说明块。弹窗 MUST NOT 展示“Banner 标题”输入框、标题必填提示或标题重复提示；保存时若 API 仍要求 `title`，Web 客户端 MUST 自动生成或保留内部标题并提交，且该内部标题 MUST NOT 作为小程序前台主标题。Banner 图片模块 MUST NOT 展示冗余来源首行标题（如「自定义上传 / SKU 主图」）；自定义上传按钮 MUST 使用「选择/更换/上传中」文案并对齐 `BrandFormModal` 的 `hidden` file input 模式。展示端 MUST 默认为“小程序”且不得保存为其他端；展示位置 MUST 仅允许“首页轮播”和“品牌列表页轮播”。关联 SKU、关联品牌与关联专题 MUST 为单一可搜索选择控件（Combobox），MUST NOT 分离为独立搜索框与下拉框。运营备注 `textarea` MUST 占满整行且 placeholder 字号与同弹窗 input 一致。有效期 MUST 为单字段区间「{开始} 至 {结束}」，格式 `YYYY-MM-DD HH:mm`（分钟精度），MUST NOT 使用原生 `<input type="datetime-local">` 作为最终方案。视觉 MUST 对齐管理端大表单弹窗基准（宽度与 SKU 弹窗一致）。
 
-#### Scenario: 公共字段
+#### Scenario: Banner 弹窗公共字段
 
 - **WHEN** 用户打开新增或编辑 Banner 弹窗
-- **THEN** MUST 展示 Banner 标题、展示端、展示位置、Banner 图片、跳转类型、排序、有效期、运营备注
-- **AND** 展示端 MUST 显示为“小程序”且不得出现 Web 首页、专题页等旧选项
+- **THEN** MUST 展示展示端、展示位置、Banner 图片、跳转类型、排序、有效期、运营备注
+- **AND** MUST NOT 展示“Banner 标题”输入框
+- **AND** MUST NOT 展示“Banner 标题不能为空”或“同一展示端 + 展示位置下标题不可重复”等运营可见提示
+- **AND** 展示端 MUST 为“小程序”且不可改为其他端
 - **AND** 展示位置 MUST 仅提供“首页轮播”和“品牌列表页轮播”
 - **AND** 新增 Banner 默认展示位置 SHOULD 为“首页轮播”
-- **AND** 主按钮 MUST 为「保存 Banner」品牌金样式
-- **AND** 弹窗主体超出视口时 MUST 可纵向滚动且 footer 操作按钮始终可达。
+- **AND** 主按钮 MUST 为「保存 Banner」品牌金样式。
 
-#### Scenario: jump_type 切换
+#### Scenario: 隐藏标题后保存
 
-- **WHEN** 用户切换跳转类型
-- **THEN** MUST 清空不兼容的跳转目标字段
-- **AND** MUST 展示对应该类型的条件块。
-
-#### Scenario: Banner 弹窗横切质量
-
-- **WHEN** 开发者实现或回归 Banner 弹窗
-- **THEN** TSX MUST NOT 同时挂载通用 `modal-card` 与 `banner-modal-card`
-- **AND** 1440px 视口下 Computed width MUST 符合 Banner/SKU 大弹窗基准
-- **AND** 矮视口下 body 必须可滚动，footer 主操作按钮始终可达。
-
-#### Scenario: Banner 图片上传回归
-
-- **WHEN** 用户在 Banner 弹窗选择图片
-- **THEN** 上传控件 MUST 呈现 `idle -> uploading -> done/failed` 状态机
-- **AND** 成功后 MUST 在同一会话即时回显缩略图或文件卡片
-- **AND** 失败信息 MUST 显示在上传控件附近
-- **AND** Docker Web `:3000` 边界下小文件上传必须成功，超限文件必须返回业务错误而非 Nginx 413。
+- **GIVEN** 用户已完成 Banner 图片、展示位置、跳转类型、排序和有效期等字段
+- **WHEN** 用户点击「保存 Banner」
+- **THEN** Web 客户端 MUST 不因标题为空阻断保存
+- **AND** 如请求体仍需要 `title`，Web 客户端 MUST 自动提交内部标题
+- **AND** 保存失败时 MUST NOT 要求运营填写隐藏标题字段。
 
 ### Requirement: Banner 管理 PNG 视觉验收 Gate
 
@@ -1692,6 +1651,8 @@ The Web admin client SHALL render the API docs page according to the REQ-0022 pr
 
 Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索交互、表格最后一列固定浮动和分页页码呈现。适用页面 MUST 包含 `/admin/tile-skus`、`/admin/brands`、`/admin/tile-categories`、`/admin/tile-specs`、`/admin/banners`、`/admin/users`、`/admin/logs` 与 `/admin/api-docs`。上述页面 MUST 按「标题模块 → 指标卡模块 → 筛选/搜索模块 → 列表模块」顺序展示；筛选/搜索模块 MUST 以瓷砖 SKU 页为交互和样式基线但 MUST NOT 展示【查询】或【搜索】显式提交按钮；重置按钮 MUST 保持统一尺寸和样式；列表最后一列 MUST 使用以接口文档页为基线的固定浮动操作列；分页 MUST 最多展示 5 个可点击页码。新增或迁移管理端列表页 MUST 优先复用 `AdminListPage` 或等价 Design System 模板组合，不得在业务页面内重复实现已有列表页骨架、分页 DOM、sticky action column 或 fixed toast 契约。
 
+`/admin/banners` 列表 MUST 将 Banner 列作为图片识别列，仅展示主图、缩略图或缺图 fallback，不得展示标题、内部识别、展示位置、状态、排序、跳转类型或更新时间等文字。`/admin/banners` MUST 新增独立“跳转对象”列，展示管理端 Banner API 返回的跳转对象文案。新增列后展示位置、展示端、跳转类型、状态、有效期、排序、更新时间和操作列 MUST 保留。
+
 #### Scenario: 列表页模块顺序统一
 
 - **WHEN** 已登录管理端用户访问任一适用页面
@@ -1708,37 +1669,6 @@ Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索
 - **AND** 页面 MUST 展示统一形态的「重置」按钮
 - **AND** 筛选控件变化 MUST 将当前页重置为 1 并刷新或重新计算列表结果。
 
-#### Scenario: 日志审计状态结果筛选使用下拉
-
-- **WHEN** 用户查看 `/admin/logs` 的状态 / 结果筛选项
-- **THEN** 页面 MUST 使用下拉选择交互，而不是自由输入框
-- **AND** 下拉 MUST 同时支持 `result=success`、`result=failed` 与常见 HTTP status code 精确筛选
-- **AND** 常见 HTTP status code MUST 至少包含 200、201、204、301、302、304、400、401、403、404、409、422、429、500、502、503、504
-- **AND** 若当前列表数据出现上述静态集合未覆盖的状态码，页面 SHOULD 将该状态码补充为可选项。
-
-#### Scenario: 日志审计操作者筛选使用可搜索单选下拉
-
-- **WHEN** 用户查看 `/admin/logs` 的操作者筛选项
-- **THEN** 页面 MUST 使用单选可搜索下拉，而不是 User ID 自由输入框
-- **AND** 下拉 MUST 支持按用户名称和账号模糊搜索
-- **AND** 候选项 MUST 只展示账号和用户名称两行，不展示角色或状态
-- **AND** 已选态 MUST 展示用户名称或名称加账号，不展示裸 User ID
-- **AND** 清空或重置后 MUST 恢复全部操作者筛选。
-
-#### Scenario: 日志审计时间范围使用固定最近窗口
-
-- **WHEN** 用户查看 `/admin/logs` 的时间范围筛选项
-- **THEN** 页面 MUST 提供最近5分钟、最近10分钟、最近30分钟、最近1小时、最近3小时、最近6小时、最近12小时、最近1天、最近2天、最近3天和最近7天
-- **AND** 页面 MUST NOT 提供全部时间选项
-- **AND** 默认时间范围 MUST 为最近1天。
-
-#### Scenario: 日志审计操作者候选状态可用
-
-- **WHEN** `/admin/logs` 操作者候选处于加载中、无结果或加载失败状态
-- **THEN** 下拉控件 MUST 展示可感知状态
-- **AND** 候选失败反馈 MUST 使用 fixed toast 或等价固定层时不得造成 hero、筛选区或表格纵向位移
-- **AND** 页面 MUST 允许用户继续使用日志类型、状态、时间范围、Task Trace ID、路径 / Request ID 等其他筛选。
-
 #### Scenario: 重置按钮统一
 
 - **WHEN** 用户对比任一适用页面的筛选/搜索模块
@@ -1753,6 +1683,35 @@ Web 客户端 MUST 统一管理端列表型页面的模块顺序、筛选/搜索
 - **AND** 固定列 MUST 使用与接口文档页一致的右侧背景、左侧分割线和阴影层次
 - **AND** 行 hover 时固定列背景 MUST 与当前行 hover 状态协调
 - **AND** 固定列内的编辑、启停、删除、查看、重置密码等操作权限、禁用态和确认流程 MUST 不回退。
+
+#### Scenario: Banner 列仅展示图片
+
+- **WHEN** 已登录管理端用户访问 `/admin/banners`
+- **THEN** Banner 列 MUST 仅渲染主图、缩略图或缺图 fallback
+- **AND** Banner 列 MUST NOT 渲染标题、内部识别或其他文本
+- **AND** 图片加载失败时 MUST 沿用既有 fallback，不得显示浏览器默认破图。
+
+#### Scenario: Banner 跳转对象列
+
+- **WHEN** `/admin/banners` 列表项包含跳转对象展示字段
+- **THEN** 表格 MUST 展示独立“跳转对象”列
+- **AND** 品牌详情 MUST 显示品牌名称
+- **AND** SKU 详情 MUST 显示 SKU 名称且不显示 SKU 编码
+- **AND** 专题页 MUST 显示专题名称
+- **AND** 外部链接 MUST 显示链接地址
+- **AND** 无跳转 MUST 显示 `-`。
+
+#### Scenario: Banner 跳转对象长文本不撑宽表格
+
+- **WHEN** 跳转对象为长外部链接或长名称
+- **THEN** 单元格 MUST 使用截断、title tooltip 或等价方式保留完整可访问信息
+- **AND** 表格、分页、筛选区和 sticky 操作列 MUST 不被撑破、遮挡或错位。
+
+#### Scenario: Banner 列表字段不换行
+
+- **WHEN** 管理员查看 `/admin/banners` 列表
+- **THEN** 除“有效期”列可保留起止时间换行展示外，所有表头字段 MUST 单行展示
+- **AND** Banner 列、展示位置、展示端、跳转类型、跳转对象、状态、排序、更新时间和操作列字段 MUST 单行展示，不得自动换行。
 
 ### Requirement: 管理端 MetricCard 基础组件
 Web 管理端 SHALL provide reusable `MetricCard` and `MetricCardGrid` or equivalent foundation components for admin list summary strips. The components MUST preserve the existing admin list DOM contract and MUST NOT change backend API behavior.
@@ -1863,48 +1822,53 @@ Web 管理端 MUST provide a shared or equivalent error parsing strategy for man
 
 ### Requirement: 管理端主题选择器侧边栏位置
 
-Web admin clients SHALL render the global theme selector inside the AdminLayout sidebar, positioned directly above the bottom user avatar/account block. The selector SHALL NOT render in the page top-right content or header area on AdminLayout pages.
+Web admin clients SHALL NOT render the global theme selector as an independent control inside the AdminLayout sidebar. The management-side theme preference control SHALL move into the sidebar bottom `AdminUserMenu` dropdown or equivalent user menu surface, because theme preference is a user/account preference rather than a navigation item.
 
-#### Scenario: 主题选择器位于侧边栏用户区上方
+#### Scenario: 侧边栏不再渲染独立主题选择器
 
 - **WHEN** an authenticated admin user opens any AdminLayout page
-- **THEN** the sidebar SHALL render the 「界面主题」 selector
-- **AND** the selector SHALL be positioned above the bottom user avatar/account block
-- **AND** the selector SHALL not overlap the avatar, username, email, user menu trigger, navigation items, or sidebar collapse control.
+- **THEN** the sidebar SHALL NOT render an independent 「界面主题」 selector above the bottom user avatar/account block
+- **AND** the sidebar navigation, collapse control, user avatar, username, email, and user menu trigger SHALL remain readable and usable.
 
-#### Scenario: 顶部区域不再渲染主题选择器
+#### Scenario: 用户菜单内提供主题按钮
 
-- **WHEN** an authenticated admin user opens pages such as `/admin/dashboard`, `/admin/users`, `/admin/settings`, or `/admin/api-docs`
-- **THEN** the page top-right content/header area SHALL NOT render the 「界面主题」 selector
-- **AND** page-level top actions SHALL remain reserved for page-specific commands or filters.
+- **WHEN** an authenticated admin user opens the sidebar bottom user menu
+- **THEN** the dropdown SHALL include a theme toggle button
+- **AND** the button SHALL switch between `dark_flagship` and `system`
+- **AND** the button SHALL NOT show additional visible switch copy beside it such as 「暗色旗舰」 or 「跟随系统」
+- **AND** the button SHALL expose its current state or next action through `aria-label`, tooltip, or equivalent accessible metadata.
 
-#### Scenario: 主题切换行为保持不变
+#### Scenario: 主题按钮不影响用户菜单操作
 
-- **WHEN** the user changes the active theme from the sidebar selector
-- **THEN** the selected theme SHALL apply immediately according to existing theme switching behavior
-- **AND** existing local and account-level persistence behavior SHALL remain unchanged
-- **AND** current page state such as filters, pagination, forms, open dialogs, and upload state SHALL not be reset by moving the selector.
+- **WHEN** the theme button is present in the user menu
+- **THEN** profile navigation, password change, theme switching, and logout menu items SHALL each render a distinct suitable icon
+- **AND** the theme row SHALL render a left theme icon, the visible label 「界面主题」, and a right-side switch-style toggle
+- **AND** the theme row SHALL NOT render adjacent 「暗色旗舰」 or 「跟随系统」 mode explanation text
+- **AND** profile navigation, password change, logout, click-outside close, and keyboard activation behavior SHALL remain available
+- **AND** theme switching SHALL NOT reset current route, filters, pagination, form input, or open overlay state.
 
 #### Scenario: 侧边栏收起与窄屏不重叠
 
 - **WHEN** the AdminLayout sidebar is collapsed or rendered in a narrow viewport
-- **THEN** the theme selector SHALL remain accessible through a compact or equivalent sidebar treatment
-- **AND** text, icons, select trigger, user avatar, and menu controls SHALL not overlap or become unreadable.
+- **THEN** the user menu SHALL remain accessible where the current responsive model exposes it
+- **AND** the theme button SHALL NOT overlap avatar, menu items, user identity text, navigation items, or sidebar controls.
 
 #### Scenario: Design System 约束
 
-- **WHEN** implementing or styling the sidebar theme selector
+- **WHEN** implementing or styling the user-menu theme button
 - **THEN** Web UI changes SHALL use existing semantic token classes, CSS variables, or established admin/sidebar classes
-- **AND** TSX/CSS SHALL NOT introduce raw Hex color values for this placement fix.
+- **AND** TSX/CSS SHALL NOT introduce raw Hex color values for this placement change.
 
 ### Requirement: Web 主题切换与偏好持久化
 
-The Web client MUST provide theme switching for `system`, `dark_flagship`, `comfort_dark`, and `light` on management-side and supported store-owner Web surfaces. The active mode MUST persist locally and, for authenticated users, synchronize with the account-level theme preference API. Switching themes MUST apply immediately without losing current page state. Account preference synchronization failures MUST be communicated with recoverable admin feedback that automatically dismisses or provides an explicit close affordance; the feedback MUST NOT remain persistently visible without user control.
+The Web client MUST provide management-side theme switching for `system` and `dark_flagship`. The active mode MUST persist locally and, for authenticated users, synchronize with the account-level theme preference API. Switching themes MUST apply immediately without losing current page state. Account preference synchronization failures MUST be communicated with recoverable admin feedback that automatically dismisses or provides an explicit close affordance; the feedback MUST NOT remain persistently visible without user control.
 
 #### Scenario: 登录前主题偏好
 
-- **WHEN** an unauthenticated user changes theme on the login page
-- **THEN** the selected mode SHALL persist locally
+- **WHEN** an unauthenticated user uses local theme initialization
+- **THEN** the selected mode SHALL persist locally when it is `system` or `dark_flagship`
+- **AND** the Web client SHALL normalize historical local `light` to `system`
+- **AND** the Web client SHALL normalize historical local `comfort_dark` to `dark_flagship`
 - **AND** the login page SHALL update immediately without requiring reload
 - **AND** the Web client SHALL NOT call the account-level theme preference API.
 
@@ -1912,8 +1876,21 @@ The Web client MUST provide theme switching for `system`, `dark_flagship`, `comf
 
 - **WHEN** a user logs in successfully
 - **THEN** the Web client SHALL load the account-level `theme_mode`
-- **AND** the account-level value SHALL become authoritative when present
+- **AND** `system` and `dark_flagship` SHALL be accepted as supported account modes
+- **AND** historical account values `light` and `comfort_dark` SHALL be normalized before applying local visual state
 - **AND** the active local theme SHALL remain visually stable while synchronization completes.
+
+#### Scenario: 跟随系统解析
+
+- **WHEN** the active mode is `system`
+- **THEN** the Web client SHALL resolve actual visual theme from `prefers-color-scheme`
+- **AND** operating-system light preference SHALL resolve to the light visual token set
+- **AND** operating-system dark or unknown preference SHALL resolve to the dark visual token set.
+
+#### Scenario: 暗色旗舰解析
+
+- **WHEN** the active mode is `dark_flagship`
+- **THEN** the Web client SHALL resolve actual visual theme to dark regardless of operating-system light preference.
 
 #### Scenario: 主题切换失败可恢复
 
@@ -1922,13 +1899,6 @@ The Web client MUST provide theme switching for `system`, `dark_flagship`, `comf
 - **AND** it SHALL show a recoverable error message using the existing toast or equivalent Design System feedback
 - **AND** the error feedback SHALL automatically dismiss or provide an explicit close affordance
 - **AND** the error feedback SHALL NOT persist indefinitely, stack repeatedly, or block the user from continuing management-side work.
-
-#### Scenario: 主题切换重复失败不刷屏
-
-- **WHEN** an authenticated user changes theme multiple times and multiple backend persistence attempts fail
-- **THEN** the Web client SHALL avoid unbounded duplicate toast stacking
-- **AND** the latest recoverable error feedback SHALL remain readable
-- **AND** the management sidebar, routed page content, login/logout controls, and current page state SHALL remain usable.
 
 ### Requirement: 管理端主题舒适度首批验收矩阵
 
@@ -2243,4 +2213,39 @@ Web 客户端 MUST 在管理端和店主 Web 展示端标准 Dialog / Modal 中�
 - **THEN** 前端测试 MUST 至少覆盖一个表单弹窗和一个确认弹窗的外部点击不关闭行为
 - **AND** 测试 MUST 覆盖明确关闭入口仍可关闭弹窗
 - **AND** 如触及上传弹窗，测试或验收记录 MUST 覆盖外部点击不打断上传状态机
+
+### Requirement: Web 真实用户性能采集与观测
+Web 客户端 SHALL 为管理端和店主展示端提供真实用户页面加载性能采集，并 SHALL 支持管理端性能观测入口或后续看板所需的查询预留。
+
+#### Scenario: Web 管理端采集 RUM 指标
+- **WHEN** 管理端用户进入已接入的 `/admin/*` 页面
+- **THEN** Web 客户端 SHALL 采集受控页面 key、端类型、版本、首屏可用、完整加载、关键接口或关键资源耗时
+- **AND** 端类型 SHALL 标记为 `web_admin`
+- **AND** 版本号 SHALL 与管理端左上角产品版本徽标同源
+- **AND** 每个 RUM 事件 SHALL 生成受控 `request_id`
+- **AND** 采集和上报失败 SHALL NOT 影响管理端路由守卫、权限校验、列表、表单、弹窗、上传或保存行为。
+
+#### Scenario: 店主 Web 展示端采集 RUM 指标
+- **WHEN** 店主 Web 展示端用户进入已接入的公开页面
+- **THEN** Web 客户端 SHALL 采集受控页面 key、端类型、版本、首屏可用、完整加载、关键接口或关键资源耗时
+- **AND** 端类型 SHALL 标记为 `web_catalog`
+- **AND** 匿名访问 SHALL NOT 因性能上报获得管理端权限或内部性能查询能力。
+
+#### Scenario: 管理端性能观测入口
+- **WHEN** 管理端实现真实用户性能观测页面
+- **THEN** 页面 SHALL 使用 Design System semantic token 和既有管理端组件
+- **AND** 页面 SHALL 支持时间范围、端类型、页面、版本和网络筛选
+- **AND** 页面 SHALL 展示样本量、分位耗时、慢页面排行、版本对比、空数据、加载失败、权限不足和样本不足状态
+- **AND** 页面 SHALL 将页面 key 与版本号拆分为独立列，并使用右侧冻结“操作”列打开明细
+- **AND** 页面 SHALL 使用后端真实分页展示聚合列表
+- **AND** 页面 SHALL 支持从聚合行跳转独立性能样本页查看最近安全样本明细，样本字段 SHALL 使用“版本号”命名
+- **AND** 性能样本页 SHALL 使用管理端列表样式展示聚合筛选上下文和样本列表
+- **AND** 页面筛选项 SHALL 使用与其他管理页一致的显式 Label
+- **AND** 页面标题 SHALL 与管理端导航保持“性能观测”一致
+- **AND** 页面 SHALL NOT 展示敏感字段原值、完整 URL 查询参数、签名 URL、Authorization、Cookie 或 Token。
+
+#### Scenario: Web RUM 测试覆盖
+- **WHEN** Web 测试运行
+- **THEN** 测试 SHALL 覆盖采集事件字段、采样或降级策略和上报失败不阻断主流程
+- **AND** 若管理端性能观测页面纳入实现，测试或浏览器 smoke SHALL 覆盖主要筛选、摘要、慢页面排行、空态和权限态。
 

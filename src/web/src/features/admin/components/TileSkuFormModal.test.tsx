@@ -83,6 +83,9 @@ function editableSku(
     surface_finish: '哑光',
     color_family: null,
     reference_price: 268,
+    recall_pin_sort_order: 9999,
+    recall_pin_starts_at: null,
+    recall_pin_ends_at: null,
     remark: null,
     status: TileSkuAdminItemStatus.DRAFT,
     main_image_url: normalizedImages.find((img) => img.is_main)?.url ?? null,
@@ -410,6 +413,81 @@ describe('TileSkuFormModal', () => {
     expect(createTileSkuMock.mock.calls[0]?.[0]).not.toHaveProperty('sku_code');
     expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders recall pin operation fields and submits normalized config', async () => {
+    const onSuccess = vi.fn();
+    const { container } = renderModal({ mode: 'create', onSuccess });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('运营配置')).toBeInTheDocument();
+    const sortLabel = screen.getByText('排序').closest('label');
+    expect(sortLabel?.querySelector('.req')).toBeTruthy();
+    expect(sortLabel?.querySelector('.sku-help-icon')).toHaveAttribute(
+      'title',
+      '默认 9999；只能填写正整数。数值越低，小程序普通商品列表和搜索 SKU 结果越靠前。',
+    );
+
+    const labels = Array.from(container.querySelectorAll('.brand-form-item label'));
+    const priceLabel = labels.find((label) => label.textContent?.includes('参考价格（元）'));
+    expect(labels.indexOf(priceLabel!)).toBeLessThan(labels.indexOf(sortLabel!));
+
+    const nameInput = container.querySelector('.brand-form-item .input') as HTMLInputElement;
+    fireEvent.change(nameInput, { target: { value: '测试商品' } });
+
+    const selects = container.querySelectorAll('.brand-form-item .select');
+    fireEvent.change(selects[0]!, { target: { value: '1' } });
+    fireEvent.change(selects[1]!, { target: { value: '10' } });
+    fireEvent.change(selects[2]!, { target: { value: '5' } });
+
+    const numberInputs = container.querySelectorAll('input[type="number"]');
+    fireEvent.change(numberInputs[1]!, { target: { value: '3' } });
+
+    const dateInputs = container.querySelectorAll('input[type="datetime-local"]');
+    fireEvent.change(dateInputs[0]!, { target: { value: '2026-08-07T09:30' } });
+    fireEvent.change(dateInputs[1]!, { target: { value: '2026-08-08T18:45' } });
+
+    fireEvent.click(screen.getByRole('button', { name: '创建 SKU' }));
+
+    await waitFor(() => {
+      expect(createTileSkuMock).toHaveBeenCalled();
+    });
+    const payload = createTileSkuMock.mock.calls[0]?.[0];
+    expect(payload).toMatchObject({ recall_pin_sort_order: 3 });
+    expect(payload?.recall_pin_starts_at).toMatch(/^2026-08-07T/);
+    expect(payload?.recall_pin_ends_at).toMatch(/^2026-08-08T/);
+    expect(onSuccess).toHaveBeenCalledWith('SKU 创建成功，已保存为草稿');
+  });
+
+  it('shows recall pin sort validation below the sort field', async () => {
+    const { container } = renderModal({ mode: 'create' });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
+    });
+
+    const nameInput = container.querySelector('.brand-form-item .input') as HTMLInputElement;
+    fireEvent.change(nameInput, { target: { value: '测试商品' } });
+
+    const selects = container.querySelectorAll('.brand-form-item .select');
+    fireEvent.change(selects[0]!, { target: { value: '1' } });
+    fireEvent.change(selects[1]!, { target: { value: '10' } });
+    fireEvent.change(selects[2]!, { target: { value: '5' } });
+
+    const numberInputs = container.querySelectorAll('input[type="number"]');
+    fireEvent.change(numberInputs[1]!, { target: { value: '0' } });
+
+    fireEvent.click(screen.getByRole('button', { name: '创建 SKU' }));
+
+    const sortInput = numberInputs[1]!;
+    const sortField = sortInput.closest('.brand-form-item');
+    expect(sortInput).toHaveAttribute('aria-invalid', 'true');
+    expect(sortField?.querySelector('.sku-field-error')).toHaveTextContent('排序值必须为正整数');
+    expect(container.querySelector('.admin-notice')).toBeNull();
+    expect(createTileSkuMock).not.toHaveBeenCalled();
   });
 
   it('closes directly after traced SKU create without showing task trace feedback', async () => {

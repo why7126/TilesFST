@@ -72,6 +72,13 @@ docs/08-production-image-release.md
 - Docker 不可用、网络不可用、构建 env 示例异常、自动修正后仍版本不一致或真实构建前置条件不满足时记录 blocker；不得伪造 pass 证据。
 - 不写入真实 `.env` 内容、密钥、数据库连接串、Authorization header、Cookie、真实客户数据或本机绝对路径。
 
+## Warning / Blocker Contract（MUST）
+
+- Compose fallback tag mismatch is a warning when the release deploy env must explicitly set `TILESFST_IMAGE_TAG=<version>`; it MUST NOT block the plan by itself.
+- Auto-created or normalized safe build env values MUST be reported as `auto_actions`, not hidden.
+- Any plan blocker MUST include the blocking field, observed value, expected value, and safe remediation command.
+- The final response MUST explicitly say whether `/image-build <version>` can run now.
+
 ## Command
 
 ```bash
@@ -91,6 +98,8 @@ Report compact summary only:
 - blocker count
 - key blockers
 - next command: `/image-build <version>` when plan is unblocked and image delivery is required
+
+If warnings exist but blocker count is zero, keep the next command as `/image-build <version>` and list the warnings under `待用户决策/处理` only when they require operator action before deployment.
 
 ## AI Usage Post-command Hook（MUST）
 
@@ -120,4 +129,3 @@ Print only the compact hook summary.
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

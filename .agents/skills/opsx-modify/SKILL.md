@@ -14,6 +14,10 @@ Use this skill when the user asks `/opsx-modify <change-id|REQ-id|BUG-id> <修�
 - 大 diff 先用 `git diff --stat` / `git diff --name-only`；只展开手写源码、测试和本次文档片段。
 - 命令输出优先 `max_output_tokens <= 8000`；测试失败只展开失败用例、关键栈和相关片段。
 
+## Prototype UI Modify Gate（MUST）
+
+若验收反馈或目标 Change 涉及 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*`、UI Skeleton 或明确视觉参照，MUST 读取 `docs/standards/prototype-ui-acceptance.md`，并复核 UI Contract、Skeleton、1440px 视觉证据、computed style、Mock/API 边界和最终一致性。任何 UI 返修会使相关旧截图 stale，必须重新取证并更新 Change `trace.md` 或验收记录。
+
 ### Force-proceed Follow-up Guardrails（MUST）
 
 - `force-proceed` 仅允许继续当前命令的非阻断部分，MUST NOT 默认自动创建 follow-up REQ/BUG；除非用户在当前命令中明确授权自动 capture，否则只输出标准 capture 文案，并明确“未自动创建 Issue”。
@@ -52,6 +56,20 @@ Examples:
 - 当前 Change 已 archive。
 
 超出范围时 MUST stop，并建议走 `/req-capture`、`/bug-capture` 或新 OpenSpec Change。
+
+## Stage Routing（MUST）
+
+`/opsx-modify` MUST 先按阶段判断是否允许返修：
+
+| 阶段 / 条件 | 处理 |
+|---|---|
+| Change 已 `/opsx-apply`、未 `/opsx-archive`，且反馈仍属于原需求、原 Change、原验收项或原能力边界 | 允许继续 `/opsx-modify` |
+| Change 未归档，但反馈新增原需求未包含的功能，或改变 API / DB / 权限 / 部署 / 对象存储边界 | BLOCKED；建议 `/req-capture` 或 `/capture` |
+| Change 未归档，但反馈是独立缺陷且影响范围超出当前 Change | BLOCKED；建议 `/bug-capture` 或 `/capture`，能确认父需求时关联 `related_requirement` |
+| 原 REQ / Change 已归档，但所属 Sprint 未归档 | BLOCKED；不得返修原 Change；已交付能力偏差建议 `/bug-capture`，新增能力建议 `/req-capture` |
+| 所属 Sprint 已归档 | BLOCKED；作为新生命周期输入处理；偏差走 `/bug-capture`，增强走 `/req-capture` |
+
+若一个反馈同时包含当前 Change 内偏差与范围外事项，MUST 只处理范围内偏差；范围外事项输出标准 capture 文案，且明确“未自动创建 Issue”，除非用户在当前命令中明确授权自动 capture。
 
 ## Must Read
 
@@ -202,4 +220,3 @@ This event means “验收返修已同步”，not first implementation and not 
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

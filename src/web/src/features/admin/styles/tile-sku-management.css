@@ -27,8 +27,8 @@
 }
 
 .admin-shell .sku-mgmt-table {
-  width: max(100%, 1180px);
-  min-width: 1180px;
+  width: max(100%, 1260px);
+  min-width: 1260px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -63,10 +63,14 @@
 
 .admin-shell .sku-mgmt-table th:nth-child(4),
 .admin-shell .sku-mgmt-table td:nth-child(4),
+.admin-shell .sku-mgmt-table th:nth-child(6),
+.admin-shell .sku-mgmt-table td:nth-child(6),
 .admin-shell .sku-mgmt-table th:nth-child(7),
 .admin-shell .sku-mgmt-table td:nth-child(7),
 .admin-shell .sku-mgmt-table th:nth-child(8),
-.admin-shell .sku-mgmt-table td:nth-child(8) {
+.admin-shell .sku-mgmt-table td:nth-child(8),
+.admin-shell .sku-mgmt-table th:nth-child(9),
+.admin-shell .sku-mgmt-table td:nth-child(9) {
   min-width: 110px;
 }
 
@@ -147,6 +151,7 @@
 .admin-shell .sku-status {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   height: 22px;
   padding: 0 8px;
   border-radius: 1px;
@@ -227,6 +232,31 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px 14px;
+}
+
+.admin-shell .sku-label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-shell .sku-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-weak);
+  cursor: help;
+}
+
+.admin-shell .sku-help-icon:hover {
+  color: var(--admin-gold);
+}
+
+.admin-shell .sku-field-error {
+  margin: 6px 0 0;
+  color: var(--admin-danger, #e07050);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .admin-shell .sku-task-trace-feedback {

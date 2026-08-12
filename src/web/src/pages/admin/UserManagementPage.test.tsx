@@ -32,6 +32,7 @@ const listPayload = {
       username: 'demo_user',
       display_name: '',
       email: 'hidden@example.com',
+      phone: null,
       role: 'employee',
       status: 'active',
       last_login_at: null,
@@ -67,7 +68,7 @@ describe('UserManagementPage', () => {
 
     expect(screen.queryByRole('button', { name: '搜索' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('搜索用户名/昵称')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('搜索用户名/昵称/邮箱/手机')).toBeInTheDocument();
     for (const label of ['角色', '状态', '登录情况']) {
       expect(screen.getByLabelText(label)).toHaveClass('select');
       expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
@@ -79,7 +80,12 @@ describe('UserManagementPage', () => {
     expect(screen.getByText('每页显示')).toBeInTheDocument();
     expect(screen.getByText('demo_user')).toBeInTheDocument();
     expect(screen.getByText('未设置昵称')).toBeInTheDocument();
-    expect(screen.queryByText('hidden@example.com')).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '状态' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '联系邮箱' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: '手机号码' })).toBeInTheDocument();
+    expect(screen.getByText('hidden@example.com')).toBeInTheDocument();
+    expect(screen.getByText('-')).toBeInTheDocument();
+    expect(screen.getByText('2026-06-01 00:00')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: '操作' })).toHaveClass(
       'admin-sticky-action-cell',
     );

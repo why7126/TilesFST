@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS tiles (
   color_family TEXT,
   reference_price REAL,
   remark TEXT,
+  recall_pin_sort_order INTEGER NOT NULL DEFAULT 9999 CHECK (recall_pin_sort_order > 0),
+  recall_pin_starts_at TEXT,
+  recall_pin_ends_at TEXT,
   status TEXT NOT NULL DEFAULT 'DRAFT'
     CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
   published_at TEXT,
@@ -64,6 +67,8 @@ CREATE TABLE IF NOT EXISTS tile_images (
 
 CREATE INDEX IF NOT EXISTS idx_tiles_published_at
   ON tiles(published_at);
+CREATE INDEX IF NOT EXISTS idx_tiles_recall_pin
+  ON tiles(recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at);
 
 CREATE TABLE IF NOT EXISTS tile_videos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -276,6 +281,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_domain_created
   ON audit_logs(domain, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created
+  ON audit_logs(created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_task_trace
   ON audit_logs(task_trace_id, created_at DESC);
@@ -310,6 +317,10 @@ CREATE INDEX IF NOT EXISTS idx_request_logs_actor_created
   ON request_logs(actor_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_request_logs_status_created
   ON request_logs(status_code, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_client_created
+  ON request_logs(client_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_result_created
+  ON request_logs(result, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_request_logs_path_created
   ON request_logs(path, created_at DESC);
 
@@ -342,6 +353,35 @@ CREATE INDEX IF NOT EXISTS idx_usage_events_request_id
   ON usage_events(request_id);
 CREATE INDEX IF NOT EXISTS idx_usage_events_actor_created
   ON usage_events(actor_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usage_events_client_created
+  ON usage_events(client_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usage_events_result_created
+  ON usage_events(result, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS performance_events (
+  id TEXT PRIMARY KEY,
+  client_type TEXT NOT NULL CHECK (client_type IN ('web_admin', 'web_catalog', 'wechat_miniapp')),
+  page_key TEXT NOT NULL,
+  app_version TEXT,
+  network_type TEXT,
+  device_class TEXT,
+  metric_name TEXT NOT NULL,
+  duration_ms INTEGER NOT NULL CHECK (duration_ms >= 0),
+  sample_rate REAL NOT NULL DEFAULT 1.0 CHECK (sample_rate >= 0 AND sample_rate <= 1),
+  occurred_at TEXT NOT NULL,
+  server_received_at TEXT NOT NULL,
+  request_id TEXT,
+  metadata TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_performance_events_received
+  ON performance_events(server_received_at DESC);
+CREATE INDEX IF NOT EXISTS idx_performance_events_client_page_metric
+  ON performance_events(client_type, page_key, metric_name, server_received_at DESC);
+CREATE INDEX IF NOT EXISTS idx_performance_events_version
+  ON performance_events(app_version, server_received_at DESC);
+CREATE INDEX IF NOT EXISTS idx_performance_events_network
+  ON performance_events(network_type, device_class, server_received_at DESC);
 
 CREATE TABLE IF NOT EXISTS task_traces (
   id TEXT PRIMARY KEY,

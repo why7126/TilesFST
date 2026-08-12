@@ -41,7 +41,15 @@ function queryPair(key, value) {
 
 function normalizeProduct(product) {
   const skuId = numberValue(product.sku_id || product.product_id || product.id);
-  const badge = product.is_new ? '新品' : product.is_hot ? '热销' : product.status === 'offline' ? '下架' : '';
+  const badge = product.is_recall_pinned
+    ? '置顶'
+    : product.is_new
+      ? '新品'
+      : product.is_hot
+        ? '热销'
+        : product.status === 'offline'
+          ? '下架'
+          : '';
   const available = Boolean(skuId) && product.available !== false && product.is_public !== false && product.status !== 'offline';
   return {
     skuId,

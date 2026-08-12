@@ -118,6 +118,13 @@ def test_sqlite_init_migrates_legacy_task_trace_log_tables(
             if table == "request_logs":
                 assert "client_request_id" in columns
                 assert "idx_request_logs_client_request_id" in indexes
+                assert "idx_request_logs_client_created" in indexes
+                assert "idx_request_logs_result_created" in indexes
+            if table == "usage_events":
+                assert "idx_usage_events_client_created" in indexes
+                assert "idx_usage_events_result_created" in indexes
+            if table == "audit_logs":
+                assert "idx_audit_logs_created" in indexes
             assert f"idx_{table}_task_trace" in indexes
 
 
@@ -472,6 +479,56 @@ def test_repository_filters_and_masks_metadata(client: TestClient) -> None:
 
     assert result.total >= 1
     assert result.items[0].log_type == "usage_event"
+
+
+def test_log_repository_uses_typed_source_when_log_type_is_selected() -> None:
+    source, params = LogRepository._list_source_sql(
+        log_type="request",
+        client_type="web_admin",
+        result="failed",
+        start_time="2026-08-11T00:00:00+00:00",
+    )
+
+    assert "FROM request_logs r" in source
+    assert "FROM usage_events" not in source
+    assert "FROM audit_logs" not in source
+    assert "UNION ALL" not in source
+    assert "r.client_type = :client_type" in source
+    assert "r.result = :result" in source
+    assert "r.created_at >= :start_time" in source
+    assert params == {
+        "client_type": "web_admin",
+        "result": "failed",
+        "start_time": "2026-08-11T00:00:00+00:00",
+    }
+
+
+def test_log_repository_pushes_filters_into_mixed_log_sources() -> None:
+    source, params = LogRepository._list_source_sql(
+        client_type="web_admin",
+        result="failed",
+        path_or_request_id="req_admin_slow",
+        task_trace_id="task_trace_admin_slow",
+        start_time="2026-08-11T00:00:00+00:00",
+        end_time="2026-08-11T23:59:59+00:00",
+    )
+
+    assert source.count("UNION ALL") == 2
+    assert "FROM request_logs r" in source
+    assert "FROM usage_events e" in source
+    assert "FROM audit_logs a" in source
+    assert "r.client_type = :client_type" in source
+    assert "e.client_type = :client_type" in source
+    assert "r.result = :result" in source
+    assert "e.result = :result" in source
+    assert "a.task_trace_id = :task_trace_id" in source
+    assert "a.created_at >= :start_time" in source
+    assert "a.created_at <= :end_time" in source
+    assert "1 = 0" in source
+    assert params["client_type"] == "web_admin"
+    assert params["result"] == "failed"
+    assert params["path_or_request_id"] == "%req_admin_slow%"
+    assert params["task_trace_id"] == "task_trace_admin_slow"
 
 
 def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) -> None:

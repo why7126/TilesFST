@@ -11,6 +11,7 @@ type ProductCard = {
   price_display: string;
   is_new: boolean;
   is_hot: boolean;
+  is_recall_pinned?: boolean;
 };
 
 type HomeData = {

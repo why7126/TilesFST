@@ -350,6 +350,7 @@ class MiniappHomeService:
             spec=spec,
             price_min=price_min,
             price_max=price_max,
+            apply_recall_pin=True,
         )
         named = self._repo.list_search_named_results(keyword=normalized)
         certificates = self._repo.list_search_certificates(keyword=normalized)
@@ -552,7 +553,7 @@ class MiniappHomeService:
         record = self._repo.get_product(sku_id)
         if record is None:
             raise TileSkuNotFoundError("商品暂不可查看")
-        card = self._to_product_card(record, force_hot=record.hot_score > 0, prefer_thumbnail=False)
+        card = self._to_product_card(record, force_hot=record.hot_score > 0, prefer_thumbnail=True)
         media = self._media_items(record)
         image_count = sum(1 for item in media if item.media_type == "image")
         video_count = sum(1 for item in media if item.media_type == "video")
@@ -567,7 +568,7 @@ class MiniappHomeService:
             if client_id and client_id.strip()
             else False
         )
-        share_image = media[0].url if media else (
+        share_image = (media[0].preview_url or media[0].url) if media else (
             self._media_url(record.main_image_url) if record.main_image_url else None
         )
         return MiniappSkuDetailData(
@@ -786,35 +787,42 @@ class MiniappHomeService:
     def _media_items(self, record: MiniappProductRecord) -> list[MiniappSkuMediaItem]:
         media = self._repo.list_product_media(record.id)
         if not media and record.main_image_url:
-            url = self._media_url(record.main_image_url)
+            url = self._card_media_url(record.main_image_url, prefer_thumbnail=True)
+            preview_url = self._media_url(record.main_image_url)
             return [
                 MiniappSkuMediaItem(
                     media_id=0,
                     media_type="image",
                     url=url,
-                    preview_url=url,
+                    preview_url=preview_url,
                     sort_order=0,
                     is_main=True,
                 )
             ]
         image_cover_url = next(
             (
-                self._media_url(item.url)
+                self._card_media_url(item.url, prefer_thumbnail=True)
                 for item in sorted(media, key=lambda item: (not item.is_main, item.sort_order, item.id))
                 if item.media_type == "image"
             ),
-            self._media_url(record.main_image_url) if record.main_image_url else None,
+            self._card_media_url(record.main_image_url, prefer_thumbnail=True)
+            if record.main_image_url
+            else None,
         )
         items: list[MiniappSkuMediaItem] = []
         for item in media:
-            url = self._media_url(item.url)
+            is_video = item.media_type == "video"
+            url = self._media_url(item.url) if is_video else self._card_media_url(
+                item.url,
+                prefer_thumbnail=True,
+            )
             items.append(
                 MiniappSkuMediaItem(
                     media_id=item.id,
-                    media_type="video" if item.media_type == "video" else "image",
+                    media_type="video" if is_video else "image",
                     url=url,
-                    preview_url=url if item.media_type == "image" else None,
-                    cover_url=image_cover_url if item.media_type == "video" else None,
+                    preview_url=self._media_url(item.url) if not is_video else None,
+                    cover_url=image_cover_url if is_video else None,
                     sort_order=item.sort_order,
                     is_main=item.is_main,
                     duration_seconds=item.duration_seconds,
@@ -856,6 +864,7 @@ class MiniappHomeService:
             price_display=_price_display(record.reference_price),
             is_new=is_new,
             is_hot=force_hot or record.hot_score > 0,
+            is_recall_pinned=record.is_recall_pinned,
         )
 
     @staticmethod

@@ -67,87 +67,47 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 
 ### Requirement: 商品卡片
 
-商品列表页 SHALL 使用统一商品卡片展示公开 SKU，并 SHALL 为商品主图、名称、品牌/规格、价格、状态标识、图片加载性能和失败降级提供稳定体验。公开 SKU 有真实主图时，列表接口返回给商品卡片的 `cover_image` SHALL 是可通过后端 `/media/{object_key}` 或等价受控链路读取的图片 URL。列表缩略图或等价轻量优化图片 SHALL 是真实轻量资源；系统 SHALL NOT 仅以 `.thumb` 对象存在但内容等同原图的资源作为图片加载性能优化完成标准。
+商品列表页 SHALL 使用统一商品卡片展示公开 SKU，并 SHALL 为商品主图、名称、品牌/规格、价格、状态标识、图片加载性能和失败降级提供稳定体验。公开 SKU 有真实主图时，列表接口返回给商品卡片的 `cover_image` SHALL 是可通过后端 `/media/{object_key}` 或等价受控链路读取的图片 URL。列表缩略图或等价轻量优化图片 SHALL 是真实轻量资源；系统 SHALL NOT 仅以 `.thumb` 对象存在但内容等同原图的资源作为图片加载性能优化完成标准。从品牌列表页进入的品牌分类商品列表页 SHALL 继续复用商品卡片缩略图优先策略。
 
-#### Scenario: 卡片图片缩略图优先
-- **WHEN** 小程序商品卡片展示列表、搜索结果、首页推荐或品牌详情商品 Tab 中的公开 SKU
+#### Scenario: 品牌分类商品列表保持缩略图优先
+
+- **WHEN** 用户从品牌列表页点击品牌类目并进入商品列表页
+- **AND** 商品列表请求携带 `brandId` 与 `categoryId`
 - **THEN** 商品卡片 SHALL 优先使用列表缩略图或等价轻量优化图片 URL
-- **AND** 缩略图缺失时 SHALL 安全回退到原主图或统一占位图
-- **AND** 详情页、图片预览或需要高清展示的场景 SHALL NOT 被强制降级为列表缩略图
-- **AND** 小程序商品卡片 SHALL NOT 在缩略图可用时直接使用原图 URL 作为卡片首选展示图。
+- **AND** 商品卡片 SHALL NOT 因品牌过滤、分类过滤或入口参数组合而直接回退原图字段
+- **AND** 非首屏商品卡片图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略
+- **AND** 商品详情、图片预览或分享场景 SHALL 保留原图或安全高清 URL。
 
-#### Scenario: 卡片图片来源跨入口一致
-- **WHEN** 同一公开 SKU 出现在商品列表、搜索结果、首页推荐、首页瀑布流或品牌详情商品 Tab
-- **THEN** 各入口商品卡片 SHALL 使用同一缩略图优先解析策略
-- **AND** 不同入口 SHALL NOT 因字段名差异分别读取原图、缩略图或不可访问 URL
-- **AND** 缩略图缺失、为空或加载失败时 SHALL 按同一降级顺序展示原图或占位。
+#### Scenario: 品牌分类商品列表媒体性能 evidence
+
+- **WHEN** 团队验收品牌分类商品列表页图片加载性能
+- **THEN** evidence SHALL 覆盖商品卡片图片 URL、HTTP 状态、资源大小、加载耗时和小程序渲染结果
+- **AND** evidence SHALL 区分请求 `.thumb` URL、实际 resolved key 和是否回退原图
+- **AND** 缩略图缺失、0 字节、体积无收益或回退原图 SHALL 标记为性能风险或失败项。
 
 ### Requirement: 商品列表公开数据接口
 
-系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。品牌查询、分类查询和普通搜索查询在未显式请求新品、热销、价格排序或搜索相关性排序时，SHALL 使用与品牌详情页商品 Tab 一致的默认排序：按 SKU 发布时间 `published_at` 升序、SKU ID 升序返回；历史数据 `published_at` 为空时 SHALL 使用 SKU 创建时间 `created_at` 作为排序兜底。响应 MAY 保留 SKU 编码作为内部兼容字段，但公开商品列表 UI SHALL NOT 渲染该编码。
-
-#### Scenario: 商品列表查询参数
-
-- **WHEN** 小程序请求商品列表
-- **THEN** 请求 SHALL 支持 `categoryId`、`categoryLevel`、`keyword`、`brandId`、`spec`、`priceRange`、`sort`、`page` 和 `pageSize` 中适用参数
-- **AND** `categoryLevel` 有值时 SHALL 仅允许 `primary` 或 `secondary`
-- **AND** 服务端 SHALL 校验参数合法性
-- **AND** 非法参数 SHALL 返回统一错误或可恢复空状态所需信息。
-
-#### Scenario: 品牌过滤查询默认排序
-
-- **WHEN** 商品列表请求携带 `brandId={brandId}` 且未请求新品、热销、搜索相关性或价格排序
-- **THEN** 服务端 SHALL 仅查询当前品牌下可公开 SKU
-- **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
-- **AND** 服务端 SHALL 按发布时间升序返回 SKU
-- **AND** 当多条 SKU 发布时间相同时，服务端 SHALL 按 SKU ID 升序返回
-- **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义
-- **AND** 服务端 SHALL NOT 改变搜索页相关性排序、新品榜召回规则或热销榜热度优先排序。
-
-#### Scenario: 一级分类聚合查询
-
-- **WHEN** 商品列表请求携带 `categoryId={primaryCategoryId}` 且 `categoryLevel=primary`
-- **THEN** 服务端 SHALL 查询该一级分类下所有启用二级分类关联的可公开 SKU
-- **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
-- **AND** 服务端 SHALL NOT 只返回直接挂载在一级分类下的 SKU
-- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
-- **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
-
-#### Scenario: 二级分类精确查询
-
-- **WHEN** 商品列表请求携带 `categoryId={secondaryCategoryId}` 且 `categoryLevel=secondary`
-- **THEN** 服务端 SHALL 仅查询该二级分类关联的可公开 SKU
-- **AND** 服务端 SHALL 继续过滤不可公开、停用、下架或删除的 SKU、品牌、分类和规格
-- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
-- **AND** 响应 SHALL 保持分页、是否有更多数据和可用筛选项语义。
-
-#### Scenario: 普通搜索结果默认排序
-
-- **WHEN** 商品列表请求携带 `keyword={keyword}` 且未请求搜索相关性、价格、新品或热销排序
-- **THEN** 服务端 SHALL 返回匹配关键词的可公开 SKU
-- **AND** 服务端 SHALL 按发布时间升序、SKU ID 升序返回 SKU，历史数据 `published_at` 为空时使用 `created_at` 作为排序兜底
-- **AND** 分页请求 SHALL 继续携带该关键词并保持同一排序规则
-- **AND** 响应 SHALL NOT 因分页加载更多出现重复、漏项或已加载商品顺序跳动。
-
-#### Scenario: 搜索相关性排序优先级明确
-
-- **WHEN** 搜索商品结果页明确请求搜索相关性排序
-- **THEN** 服务端 MAY 使用相关性排序优先于默认发布时间排序
-- **AND** 相关性相同或未命中相关性差异时 SHALL 使用发布时间升序、SKU ID 升序作为稳定兜底
-- **AND** 实现和验收材料 SHALL 记录相关性排序覆盖默认排序的原因与验收口径。
-
-#### Scenario: 首页全部产品排序不受影响
-
-- **WHEN** 首页请求或展示“全部产品”列表
-- **THEN** 系统 SHALL 保持首页“全部产品”既有排序策略
-- **AND** 不得因搜索商品结果页或分类商品列表页排序统一而改变首页“全部产品”列表顺序。
+系统 SHALL 为小程序商品列表提供公开 SKU 查询能力，并过滤不可公开数据、内部字段和敏感信息。分类查询 SHALL 支持 `categoryLevel=primary|secondary` 以区分一级分类聚合和二级分类精确查询。品牌查询、分类查询和普通搜索查询在未显式请求新品、热销、价格排序或搜索相关性排序时，SHALL 使用与品牌详情页商品 Tab 一致的默认排序：按 SKU 发布时间 `published_at` 升序、SKU ID 升序返回；历史数据 `published_at` 为空时 SHALL 使用 SKU 创建时间 `created_at` 作为排序兜底。响应 MAY 保留 SKU 编码作为内部兼容字段，但公开商品列表 UI SHALL NOT 渲染该编码。响应 SHALL 使用布尔字段表达商品是否为当前列表中实际生效的召回置顶展示商品。
 
 #### Scenario: 商品列表响应字段
 
 - **WHEN** 商品列表请求成功
 - **THEN** 响应 SHALL 返回商品列表、分页信息、是否有更多数据和可用筛选项
 - **AND** 每个商品 SHALL 至少包含公开 `skuId`、商品名称、品牌、规格、参考价格和安全主图 URL
+- **AND** 每个商品 SHALL 包含等价于 `is_recall_pinned` 的布尔字段，用于表达该商品是否为当前列表中实际生效的召回置顶展示商品
+- **AND** 该字段 SHALL 基于后端排序层的置顶生效判断生成，不得要求小程序端根据排序位置推断
 - **AND** 响应 MAY 包含 `sku_code` 作为兼容字段，但公开端 UI SHALL NOT 展示该字段。
+
+#### Scenario: 新品榜和热销榜不触发置顶标识
+- **WHEN** 商品列表请求为新品商品列表或热销商品列表
+- **THEN** 系统 SHALL NOT 应用召回置顶逻辑
+- **AND** 商品响应中的置顶展示字段 SHALL 为 false 或不触发小程序展示“置顶”标识
+- **AND** 新品榜和热销榜原有排序语义 SHALL NOT 因置顶标识能力改变。
+
+#### Scenario: 缺省字段兼容
+- **WHEN** 小程序商品卡片接收到旧接口数据或缺少置顶展示字段的数据
+- **THEN** 小程序 SHALL 默认按非置顶商品处理
+- **AND** 小程序 SHALL NOT 展示“置顶”标识。
 
 ### Requirement: 商品列表空状态与异常状态
 商品列表页 SHALL 根据上下文展示可恢复的空状态和异常状态。商品列表页不提供筛选控件，因此空状态 SHALL NOT 依赖清空筛选入口恢复。
@@ -244,4 +204,49 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **THEN** 事件 SHOULD 包含页面路径、分享渠道、分类、品牌、关键词、榜单和结果上下文中的可用字段
 - **AND** 埋点失败 SHALL NOT 阻断分享
 - **AND** 分享行为 SHALL NOT 影响下拉刷新、加载更多、商品卡片点击或错误重试。
+
+### Requirement: 商品列表召回置顶排序
+
+小程序普通商品列表公开查询 MUST 支持少量召回 SKU 置顶排序。普通商品列表包括分类商品、品牌商品、普通关键词商品和非榜单推荐入口；首页无筛选全部产品瀑布流 MUST 保持既有首页排序，不应用本能力。后端 MUST 先应用公开条件和当前请求筛选，再计算召回置顶资格，并在分页前对完整结果集排序。每次请求默认最多 4 个生效召回 SKU 进入置顶区；超过上限时按 `recall_pin_sort_order` 升序、既有排序兜底和 SKU ID 升序裁定。小程序端 MUST 按接口返回顺序展示，不得做跨页本地重排，也不得展示召回置顶 UI 标识。
+
+#### Scenario: 普通商品列表置顶排序
+
+- **GIVEN** 当前普通商品列表存在多个可公开 SKU
+- **AND** 其中部分 SKU 的 `recall_pin_sort_order` 小于 `9999` 且当前时间处于有效期内
+- **WHEN** 小程序请求 `/api/v1/miniapp/products`
+- **THEN** 生效召回 SKU MUST 排在非召回 SKU 之前
+- **AND** 生效召回 SKU MUST 按 `recall_pin_sort_order` 升序排列
+- **AND** 非召回 SKU MUST 保持该入口既有排序规则。
+
+#### Scenario: 筛选条件先于置顶资格
+
+- **GIVEN** 某 SKU 配置了生效召回置顶
+- **WHEN** 该 SKU 不满足当前关键词、品牌、类目、规格、价格区间或公开展示条件
+- **THEN** 系统 MUST 排除该 SKU
+- **AND** MUST NOT 将其强行插入列表顶部。
+
+#### Scenario: 置顶上限裁定
+
+- **GIVEN** 当前请求内有 5 个或更多生效召回候选 SKU
+- **WHEN** 后端计算商品列表排序
+- **THEN** 仅排序值最靠前的 4 个 SKU MUST 进入置顶区
+- **AND** 其余召回候选 MUST 按普通商品排序参与结果。
+
+#### Scenario: 分页前排序稳定
+
+- **WHEN** 用户刷新商品列表或加载更多
+- **THEN** 后端 MUST 在分页前完成召回置顶排序
+- **AND** 多页合并后 MUST NOT 出现重复、漏项或已加载商品顺序跳动。
+
+#### Scenario: 榜单和价格排序不受影响
+
+- **WHEN** 商品列表请求为 `section=new`、`section=hot`、价格升序或价格降序
+- **THEN** 后端 MUST 跳过召回置顶排序
+- **AND** 结果 MUST 保持新品榜、热销榜或价格排序原有语义。
+
+#### Scenario: 不应用置顶逻辑的入口无置顶标识
+
+- **WHEN** 小程序展示新品榜、热销榜、价格排序结果或后端未标记为当前列表实际生效置顶的 SKU
+- **THEN** 商品卡片 MUST NOT 展示“置顶”“推荐”“召回”等置顶角标、标签或说明文案
+- **AND** 页面 MUST NOT 新增排序说明、筛选控件或列表控件。
 

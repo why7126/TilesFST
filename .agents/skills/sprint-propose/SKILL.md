@@ -30,6 +30,14 @@ Use this skill when the user asks to run `/sprint-propose` or create/update a Sp
 - 自然语言目标：由 Agent 推导候选范围和编号。
 - Flags：`--req`、`--bug`、`--change`、`--duration 2w`、`--dry-run`。
 
+## Sprint ID Rules（MUST）
+
+- Sprint ID MUST 使用 `sprint-xxx` 三位数字递增格式，例如 `sprint-022`。
+- 当用户未指定 Sprint ID 且当前没有 `iterations/change/sprint-xxx/` 进行中迭代时，MAY 自动创建下一个 Sprint。
+- 自动编号 MUST 同时扫描 `iterations/archive/` 与 `iterations/change/` 下符合 `sprint-[0-9]{3}` 的目录和 `sprint.yaml:sprint_id`，取最大编号加一；例如最新归档为 `sprint-021` 且无进行中迭代时，自动创建 `sprint-022`。
+- 如果已存在 `iterations/change/sprint-xxx/` 进行中迭代，MUST 优先复用或要求用户明确选择，不得默认另建并行 Sprint。
+- 不得使用日期、主题词或混合命名创建 Sprint，例如 `sprint-2026-08-07-spec-sync`。
+
 ## Must Read
 
 ```text

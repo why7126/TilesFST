@@ -188,6 +188,39 @@ def _seed_public_catalog(api_client: TestClient) -> None:
         db.close()
 
 
+def _set_recall_pin(
+    sku_id: int,
+    *,
+    sort_order: int,
+    starts_at: str | None = None,
+    ends_at: str | None = None,
+) -> None:
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    try:
+        db.execute(
+            text(
+                """
+                UPDATE tiles
+                SET recall_pin_sort_order = :sort_order,
+                    recall_pin_starts_at = :starts_at,
+                    recall_pin_ends_at = :ends_at
+                WHERE id = :id
+                """
+            ),
+            {
+                "id": sku_id,
+                "sort_order": sort_order,
+                "starts_at": starts_at,
+                "ends_at": ends_at,
+            },
+        )
+        db.commit()
+    finally:
+        db.close()
+
+
 def test_miniapp_home_returns_public_data_and_hides_internal_fields(api_client: TestClient) -> None:
     _seed_public_catalog(api_client)
 
@@ -614,6 +647,143 @@ def test_miniapp_product_list_category_and_keyword_default_sort_uses_public_orde
         "FST-001",
         "FST-004",
         "FST-002",
+    ]
+
+
+def test_miniapp_product_list_recall_pin_applies_before_pagination_and_respects_branches(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    _set_recall_pin(1, sort_order=20)
+    _set_recall_pin(2, sort_order=5)
+    _set_recall_pin(4, sort_order=10)
+
+    pinned_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "page": 1, "pageSize": 2},
+    )
+    second_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "page": 2, "pageSize": 2},
+    )
+    price_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "sort": "price_asc", "page": 1, "pageSize": 3},
+    )
+    home_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"page": 1, "pageSize": 3},
+    )
+    new_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "section": "new", "page": 1, "pageSize": 3},
+    )
+    hot_page = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "section": "hot", "page": 1, "pageSize": 3},
+    )
+
+    assert pinned_page.status_code == 200
+    assert second_page.status_code == 200
+    assert [item["sku_code"] for item in pinned_page.json()["data"]["items"]] == [
+        "FST-002",
+        "FST-004",
+    ]
+    assert [
+        item["is_recall_pinned"] for item in pinned_page.json()["data"]["items"]
+    ] == [True, True]
+    assert [item["sku_code"] for item in second_page.json()["data"]["items"]] == ["FST-001"]
+    assert [
+        item["is_recall_pinned"] for item in second_page.json()["data"]["items"]
+    ] == [True]
+    assert [item["sku_code"] for item in price_page.json()["data"]["items"]] == [
+        "FST-001",
+        "FST-004",
+        "FST-002",
+    ]
+    assert all(
+        item["is_recall_pinned"] is False for item in price_page.json()["data"]["items"]
+    )
+    assert [item["sku_code"] for item in home_page.json()["data"]["items"]] == [
+        "FST-004",
+        "FST-002",
+        "FST-001",
+    ]
+    assert all(item["is_recall_pinned"] is False for item in home_page.json()["data"]["items"])
+    assert new_page.status_code == 200
+    assert hot_page.status_code == 200
+    assert all(item["is_recall_pinned"] is False for item in new_page.json()["data"]["items"])
+    assert all(item["is_recall_pinned"] is False for item in hot_page.json()["data"]["items"])
+
+
+def test_miniapp_product_list_recall_pin_ignores_expired_and_filtered_items(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    _set_recall_pin(
+        1,
+        sort_order=1,
+        starts_at="2099-01-01T00:00:00+00:00",
+        ends_at=None,
+    )
+    _set_recall_pin(2, sort_order=2)
+    _set_recall_pin(4, sort_order=3)
+
+    price_filtered_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"brandId": 1, "priceRange": "0-150", "page": 1, "pageSize": 10},
+    )
+    keyword_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"keyword": "FST", "page": 1, "pageSize": 10},
+    )
+
+    assert price_filtered_response.status_code == 200
+    assert [item["sku_code"] for item in price_filtered_response.json()["data"]["items"]] == [
+        "FST-004",
+        "FST-001",
+    ]
+    assert [
+        item["is_recall_pinned"]
+        for item in price_filtered_response.json()["data"]["items"]
+    ] == [True, False]
+    assert keyword_response.status_code == 200
+    assert [item["sku_code"] for item in keyword_response.json()["data"]["items"]] == [
+        "FST-002",
+        "FST-004",
+        "FST-001",
+    ]
+    assert [
+        item["is_recall_pinned"] for item in keyword_response.json()["data"]["items"]
+    ] == [True, True, False]
+
+
+def test_miniapp_search_sku_results_apply_recall_pin_but_suggestions_do_not(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    _set_recall_pin(1, sort_order=20)
+    _set_recall_pin(4, sort_order=1)
+
+    search_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=银河&page=1&page_size=10&request_id=req-pin"
+    )
+    suggestion_response = api_client.get(
+        "/api/v1/miniapp/search/suggestions?keyword=银河&scope=all&limit=8&request_id=req-suggest"
+    )
+
+    assert search_response.status_code == 200
+    data = search_response.json()["data"]
+    assert [item["sku_code"] for item in data["items"]] == ["FST-004", "FST-001"]
+    assert [item["is_recall_pinned"] for item in data["items"]] == [True, True]
+    sku_section = next(section for section in data["sections"] if section["entity_type"] == "sku")
+    assert [item["sku_code"] for item in sku_section["items"]] == ["FST-004", "FST-001"]
+    assert [item["is_recall_pinned"] for item in sku_section["items"]] == [True, True]
+    assert suggestion_response.status_code == 200
+    suggestions = suggestion_response.json()["data"]["suggestions"]
+    assert [item["text"] for item in suggestions if item["entity_type"] == "sku"] == [
+        "银河灰",
+        "银河灰柔光",
     ]
 
 
@@ -1347,12 +1517,13 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["image_count"] == 2
     assert data["video_count"] == 1
     assert data["media"][0]["media_type"] == "image"
-    assert data["media"][0]["url"] == "/media/tiles/1.webp"
-    assert data["cover_image"] == "/media/tiles/1.webp"
+    assert data["media"][0]["url"] == "/media/tiles/1.thumb.webp"
+    assert data["media"][0]["preview_url"] == "/media/tiles/1.webp"
+    assert data["cover_image"] == "/media/tiles/1.thumb.webp"
     assert data["share"]["image_url"] == "/media/tiles/1.webp"
     assert data["media"][-1]["media_type"] == "video"
     assert data["media"][-1]["url"] == "/media/videos/1.mp4"
-    assert data["media"][-1]["cover_url"] == "/media/tiles/1.webp"
+    assert data["media"][-1]["cover_url"] == "/media/tiles/1.thumb.webp"
     assert "original/default" not in response.text
     assert "original-upload-name.mp4" not in response.text
     assert [item["label"] for item in data["parameters"]] == [

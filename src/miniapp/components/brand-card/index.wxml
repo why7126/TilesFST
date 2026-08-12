@@ -9,6 +9,7 @@
       class="brand-logo-image"
       src="{{normalized.logoSrc}}"
       mode="aspectFill"
+      lazy-load="{{true}}"
       binderror="onImageError"
     ></image>
     <view wx:else class="brand-logo-empty">{{normalized.fallbackText}}</view>

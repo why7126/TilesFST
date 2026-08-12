@@ -132,6 +132,15 @@ No Change may bypass this Sprint Inclusion Gate merely because it has no linked 
 
 Skip only with `--skip-cross-cutting-gate` and explicit P0/hotfix reason.
 
+### Prototype UI Gate（MUST）
+
+If the Change or linked REQ has `prototype/`, `prototype_refs`, `AC-PROTOTYPE-*`, UI Skeleton, or explicit visual references, MUST read `docs/standards/prototype-ui-acceptance.md` before editing UI files.
+
+- If `design.md` lacks UI Contract, first add the contract and Skeleton plan; do not mark UI implementation complete.
+- Before detailed UI implementation is considered complete, record 1440px desktop visual evidence or equivalent evidence. Miniapp UI requires WeChat DevTools, real-device screenshot, or equivalent evidence.
+- For high-risk visual differences, record computed style, Playwright assertion, WeChat DevTools evidence, or equivalent evidence with selector/page/viewport/result.
+- Mock/API boundary MUST be explicit. If real API integration is out of scope, record it as non-goal or follow-up.
+
 Infer tags from trace, proposal/design, change id, and tasks:
 
 | Tag | Trigger | Best-practice |

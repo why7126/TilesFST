@@ -31,8 +31,12 @@ function formatLoginTime(value: string | null | undefined): string {
   return value.replace('T', ' ').slice(0, 16);
 }
 
-function formatDate(value: string): string {
-  return value.slice(0, 10);
+function formatDateTime(value: string): string {
+  return value.replace('T', ' ').slice(0, 16);
+}
+
+function formatContact(value: string | null | undefined): string {
+  return value?.trim() || '-';
 }
 
 export function UserManagementPage() {
@@ -232,7 +236,7 @@ export function UserManagementPage() {
             <span className="field-label">关键词</span>
             <input
               className="input"
-              placeholder="搜索用户名/昵称"
+              placeholder="搜索用户名/昵称/邮箱/手机"
               value={keywordDraft}
               onChange={(e) => setKeywordDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleKeywordEnter()}
@@ -290,6 +294,8 @@ export function UserManagementPage() {
               <th>用户</th>
               <th>角色</th>
               <th>状态</th>
+              <th>联系邮箱</th>
+              <th>手机号码</th>
               <th>最后登录</th>
               <th>创建时间</th>
               <th className="admin-sticky-action-cell">操作</th>
@@ -342,8 +348,10 @@ export function UserManagementPage() {
                       {statusLabel(user.status)}
                     </span>
                   </td>
+                  <td>{formatContact(user.email)}</td>
+                  <td>{formatContact(user.phone)}</td>
                   <td>{formatLoginTime(user.last_login_at)}</td>
-                  <td>{formatDate(user.created_at)}</td>
+                  <td>{formatDateTime(user.created_at)}</td>
                   <td>
                     <div className="actions">
                       <button

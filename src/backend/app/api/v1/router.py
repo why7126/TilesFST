@@ -16,6 +16,7 @@ from app.api.v1 import (
     admin_brand_certificates,
     auth,
     miniapp,
+    performance_events,
     profile,
     tiles,
     usage_events,
@@ -43,6 +44,16 @@ api_router.include_router(
 )
 api_router.include_router(admin_logs.router, prefix="/admin/logs", tags=["admin-logs"])
 api_router.include_router(usage_events.router, prefix="/usage-events", tags=["usage-events"])
+api_router.include_router(
+    performance_events.router,
+    prefix="/performance-events",
+    tags=["performance-events"],
+)
+api_router.include_router(
+    performance_events.admin_router,
+    prefix="/admin/performance-events",
+    tags=["admin-performance-events"],
+)
 api_router.include_router(admin_brands.router, prefix="/admin/brands", tags=["admin-brands"])
 api_router.include_router(
     admin_brand_certificates.router,

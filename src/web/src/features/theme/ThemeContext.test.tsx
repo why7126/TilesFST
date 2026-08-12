@@ -57,14 +57,32 @@ describe('ThemeProvider', () => {
   it('applies local theme mode and writes the first-paint storage key', async () => {
     renderThemeSwitcher();
 
-    selectTheme('界面主题', '舒适暗色');
+    selectTheme('界面主题', '暗色旗舰');
 
     await waitFor(() => {
-      expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+      expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
     });
     expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark_flagship');
     expect(updateThemePreference).not.toHaveBeenCalled();
+  });
+
+  it('normalizes historical local theme modes on initialization', async () => {
+    localStorage.setItem(THEME_STORAGE_KEY, 'comfort_dark');
+
+    renderThemeSwitcher();
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
+    });
+    expect(document.documentElement.dataset.theme).toBe('dark');
+
+    localStorage.setItem(THEME_STORAGE_KEY, 'light');
+    renderThemeSwitcher();
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.themeMode).toBe('system');
+    });
   });
 
   it('syncs authenticated account preference and keeps local theme active on failure', async () => {
@@ -90,12 +108,12 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     );
 
-    selectTheme('界面主题', '浅色');
+    selectTheme('界面主题', '暗色旗舰');
 
     await waitFor(() => {
-      expect(updateThemePreference).toHaveBeenCalledWith('light');
+      expect(updateThemePreference).toHaveBeenCalledWith('dark_flagship');
     });
-    expect(document.documentElement.dataset.themeMode).toBe('light');
+    expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
     expect(screen.getByText('主题已在本机生效，但账号偏好同步失败，请稍后重试。')).toBeInTheDocument();
   });
 });

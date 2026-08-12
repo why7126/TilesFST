@@ -122,6 +122,8 @@ HTML > PNG > *-context.md > acceptance.md > ui-design.md > openspec/specs
 
 design.md **MUST** 含 Conflict Resolution；delta spec 用 MODIFIED/REMOVED 消化。
 
+带 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*` 或明确引用既有页面视觉的 UI Change，MUST 同步读取 `docs/standards/prototype-ui-acceptance.md`，并在 `design.md` 写入 UI Contract，至少覆盖事实源优先级、页面入口、信息架构、视觉 token、交互状态、图标文案、Mock/API 边界、权限规则和最终一致性参照。
+
 ---
 
 ## Step 4 — UI Explore Gate

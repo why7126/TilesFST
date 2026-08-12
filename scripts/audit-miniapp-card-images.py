@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit public miniapp product card image object references."""
+"""Audit public miniapp brand-chain image object references."""
 
 from __future__ import annotations
 
@@ -94,7 +94,8 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
     session = get_session_factory()()
     try:
         sql = """
-            SELECT t.id AS product_id, t.sku_code, ti.object_key
+            SELECT 1 AS resource_order, 'product_card' AS resource_type, t.id AS resource_id, t.sku_code AS label,
+                   ti.object_key AS object_key
             FROM tiles t
             LEFT JOIN tile_images ti
               ON ti.tile_id = t.id
@@ -106,7 +107,31 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
               AND b.status = 'ENABLED'
               AND c.status = 'ENABLED'
               AND (t.spec_id IS NULL OR s.status = 'ENABLED')
-            ORDER BY t.id ASC
+            UNION ALL
+            SELECT 2 AS resource_order, 'brand_logo' AS resource_type, b.id AS resource_id, b.name AS label,
+                   b.logo_object_key AS object_key
+            FROM brands b
+            WHERE b.status = 'ENABLED'
+              AND COALESCE(b.logo_object_key, '') <> ''
+            UNION ALL
+            SELECT 3 AS resource_order, 'brand_banner' AS resource_type, bn.id AS resource_id, bn.title AS label,
+                   bn.image_object_key AS object_key
+            FROM banners bn
+            WHERE bn.status = 'ONLINE'
+              AND bn.position = 'MINIAPP_BRAND_LIST_CAROUSEL'
+              AND COALESCE(bn.image_object_key, '') <> ''
+            UNION ALL
+            SELECT 4 AS resource_order, 'brand_certificate' AS resource_type, bci.id AS resource_id, bc.name AS label,
+                   bci.file_key AS object_key
+            FROM brand_certificate_images bci
+            JOIN brand_certificates bc ON bc.id = bci.certificate_id
+            JOIN brands b ON b.id = bc.brand_id
+            WHERE bc.deleted_at IS NULL
+              AND bc.is_visible = 1
+              AND b.status = 'ENABLED'
+              AND bci.file_mime_type IN ('image/jpeg', 'image/jpg', 'image/png', 'image/webp')
+              AND COALESCE(bci.file_key, '') <> ''
+            ORDER BY resource_order ASC, resource_id ASC
         """
         params: dict[str, int] = {}
         if limit is not None:
@@ -125,10 +150,12 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
     needs_regeneration = 0
     skipped_valid_thumbnail = 0
     pending_main_image = 0
+    resources_by_type: dict[str, int] = {}
     backfill_success = 0
     backfill_failed = 0
     failure_reasons: dict[str, int] = {}
     for row in rows:
+        resource_type = str(row["resource_type"])
         object_key = str(row["object_key"] or "").strip()
         thumbnail_key = same_directory_thumbnail_object_key(object_key) if object_key else ""
         is_pending = object_key.startswith("images/default/tiles/pending/")
@@ -146,6 +173,7 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
         needs_regeneration += 1 if row_needs_regeneration else 0
         skipped_valid_thumbnail += 1 if (thumbnail_exists and not row_needs_regeneration) else 0
         pending_main_image += 1 if is_pending else 0
+        resources_by_type[resource_type] = resources_by_type.get(resource_type, 0) + 1
         backfill_status = "not_requested"
         failure_reason = audit_result.get("failure_reason")
         if backfill and object_key and original_exists and row_needs_regeneration:
@@ -165,8 +193,11 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
                 backfill_status = "dry_run"
         items.append(
             {
-                "product_id": int(row["product_id"]),
-                "sku_code": str(row["sku_code"]),
+                "resource_type": resource_type,
+                "resource_id": int(row["resource_id"]),
+                "label": str(row["label"]),
+                "product_id": int(row["resource_id"]) if resource_type == "product_card" else None,
+                "sku_code": str(row["label"]) if resource_type == "product_card" else None,
                 "main_object_key_present": bool(object_key),
                 "pending_main_image": is_pending,
                 "original_exists": original_exists,
@@ -181,7 +212,9 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
         )
 
     return {
-        "total_public_products": len(items),
+        "total_public_products": resources_by_type.get("product_card", 0),
+        "total_resources": len(items),
+        "resources_by_type": resources_by_type,
         "missing_main_image": missing_main,
         "pending_main_image": pending_main_image,
         "missing_original_object": missing_original,

@@ -1,0 +1,8 @@
+- [x] 创建并纳入 `apply-projectmoonbox-governance-learnings` OpenSpec Change 与 `sprint-022` scope。
+- [x] 应用 `/spec-study` 日志优先学习顺序和学习报告规则。
+- [x] 新增 `/git-check` 技能与推送前安全检测脚本，并同步安全规则。
+- [x] 新增原型驱动 UI 验收标准，并同步 UI 规则和相关 opsx/req 技能。
+- [x] 新增 Issue 当前态看板索引规则与初始索引文件。
+- [x] 增强命令引导式反馈契约。
+- [x] 写入同一次 `/spec-study apply` 学习报告并更新 spec-logs 总账。
+- [x] 运行治理校验、OpenSpec 校验、Sprint scope 校验、Workflow Sync 和 AI Usage Hook。

@@ -1,6 +1,51 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 125
+next_id: 130
 entries:
+  - id: BUG-0129-miniapp-rum-app-version-production
+    title: 小程序 RUM 与管理后台性能观测口径不一致
+    status: draft
+    severity: medium
+    created: "2026-08-12 09:21:24"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0128-admin-user-menu-email-subtitle
+    title: 管理后台身份展示不应显示伪邮箱
+    status: done
+    severity: low
+    created: "2026-08-11 21:43:22"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-identity-fake-email-display
+    iteration: sprint-022
+  - id: BUG-0127-admin-log-audit-slow-load
+    title: 管理后台日志审计表数据加载很慢
+    status: done
+    severity: medium
+    created: "2026-08-11 08:41:56"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-log-audit-slow-load
+    iteration: sprint-022
+  - id: BUG-0126-miniapp-brand-media-slow-load
+    title: 小程序品牌链路图片加载速度慢
+    status: done
+    severity: high
+    created: "2026-08-10 22:57:12"
+    related_requirement: null
+    related_bug: BUG-0110-miniapp-card-banner-thumbnail-usage
+    related_change: null
+    iteration: null
+  - id: BUG-0125-miniapp-sku-detail-media-original-load
+    title: 微信小程序商品详情页媒体加载慢
+    status: done
+    severity: high
+    created: "2026-08-07 22:24:59"
+    related_requirement: null
+    related_bug: BUG-0110-miniapp-card-banner-thumbnail-usage
+    related_change: null
+    iteration: null
   - id: BUG-0124-openspec-archive-multiline-proposal-warning-stdout
     title: OpenSpec CLI 多行 proposal warning stdout 块仍出现在归档成功输出中
     status: done

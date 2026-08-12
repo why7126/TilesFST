@@ -23,6 +23,7 @@
   border-bottom: 0.5px solid var(--admin-line);
   font-size: 12px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .admin-shell .banner-mgmt-table th {
@@ -38,7 +39,7 @@
 .admin-shell .banner-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
 }
 
 .admin-shell .banner-thumb {
@@ -61,14 +62,20 @@
   object-fit: contain;
 }
 
-.admin-shell .banner-main {
-  color: var(--admin-text);
-  font-size: 13px;
-}
-
 .admin-shell .banner-position {
   color: var(--admin-weak);
   font-size: 13px;
+}
+
+.admin-shell .banner-jump-target {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--admin-text);
+  font-size: 12px;
+  vertical-align: middle;
 }
 
 .admin-shell .badge.web {
@@ -128,6 +135,11 @@
 
 .admin-shell .time-range {
   line-height: 1.6;
+  white-space: normal;
+}
+
+.admin-shell .banner-validity-cell {
+  white-space: normal;
 }
 
 .admin-shell .banner-actions {

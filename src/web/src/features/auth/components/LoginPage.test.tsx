@@ -49,12 +49,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     fireEvent.click(screen.getByLabelText('主题'));
-    fireEvent.click(screen.getByRole('option', { name: '浅色' }));
+    fireEvent.click(screen.getByRole('option', { name: '暗色旗舰' }));
 
     await waitFor(() => {
-      expect(document.documentElement).toHaveAttribute('data-theme-mode', 'light');
+      expect(document.documentElement).toHaveAttribute('data-theme-mode', 'dark_flagship');
     });
-    expect(localStorage.getItem('tilesfst.theme_mode')).toBe('light');
+    expect(localStorage.getItem('tilesfst.theme_mode')).toBe('dark_flagship');
   });
 
   it('does not render WeCom login entry', () => {

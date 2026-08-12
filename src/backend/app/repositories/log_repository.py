@@ -200,7 +200,7 @@ class LogRepository:
         start_time: str | None = None,
         end_time: str | None = None,
     ) -> LogQueryResult:
-        where, params = self._build_filters(
+        source, params = self._list_source_sql(
             log_type=log_type,
             keyword=keyword,
             actor_user_id=actor_user_id,
@@ -215,10 +215,9 @@ class LogRepository:
         )
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
-        source = self._union_source_sql()
         total = int(
             self._db.execute(
-                text(f"SELECT COUNT(*) FROM ({source}) logs {where}"),
+                text(f"SELECT COUNT(*) FROM ({source}) logs"),
                 params,
             ).scalar_one()
             or 0
@@ -228,7 +227,6 @@ class LogRepository:
                 text(
                     f"""
                     SELECT * FROM ({source}) logs
-                    {where}
                     ORDER BY created_at DESC
                     LIMIT :limit OFFSET :offset
                     """
@@ -253,24 +251,30 @@ class LogRepository:
         return self._to_record(dict(row)) if row else None
 
     def get_metrics(self, *, today_start: str, slow_threshold_ms: int = 1000) -> LogMetrics:
-        source = self._union_source_sql()
-        row = (
-            self._db.execute(
-                text(
-                    f"""
-                    SELECT
-                      SUM(CASE WHEN created_at >= :today_start THEN 1 ELSE 0 END) AS today_logs,
-                      SUM(CASE WHEN log_type = 'request' AND status_code >= 400 THEN 1 ELSE 0 END) AS api_errors,
-                      SUM(CASE WHEN log_type = 'request' AND duration_ms >= :slow_threshold_ms THEN 1 ELSE 0 END) AS slow_requests,
-                      SUM(CASE WHEN log_type = 'audit' AND created_at >= :today_start THEN 1 ELSE 0 END) AS sensitive_ops
-                    FROM ({source}) logs
-                    """
-                ),
-                {"today_start": today_start, "slow_threshold_ms": slow_threshold_ms},
-            )
-            .mappings()
-            .one()
-        )
+        row = self._db.execute(
+            text(
+                """
+                SELECT
+                  (
+                    SELECT COUNT(*) FROM request_logs WHERE created_at >= :today_start
+                  ) + (
+                    SELECT COUNT(*) FROM usage_events WHERE created_at >= :today_start
+                  ) + (
+                    SELECT COUNT(*) FROM audit_logs WHERE created_at >= :today_start
+                  ) AS today_logs,
+                  (
+                    SELECT COUNT(*) FROM request_logs WHERE status_code >= 400
+                  ) AS api_errors,
+                  (
+                    SELECT COUNT(*) FROM request_logs WHERE duration_ms >= :slow_threshold_ms
+                  ) AS slow_requests,
+                  (
+                    SELECT COUNT(*) FROM audit_logs WHERE created_at >= :today_start
+                  ) AS sensitive_ops
+                """
+            ),
+            {"today_start": today_start, "slow_threshold_ms": slow_threshold_ms},
+        ).mappings().one()
         return LogMetrics(
             today_logs=int(row["today_logs"] or 0),
             api_errors=int(row["api_errors"] or 0),
@@ -722,6 +726,245 @@ class LogRepository:
             params["end_time"] = end_time
 
         return ("WHERE " + " AND ".join(clauses), params) if clauses else ("", params)
+
+    @classmethod
+    def _list_source_sql(cls, **filters: Any) -> tuple[str, dict[str, Any]]:
+        requested_type = (filters.get("log_type") or "").strip()
+        source_types = [requested_type] if requested_type else ["request", "usage_event", "audit"]
+        params: dict[str, Any] = {}
+        sources = [
+            cls._typed_source_sql(log_type=source_type, filters=filters, params=params)
+            for source_type in source_types
+        ]
+        return "\nUNION ALL\n".join(source for source in sources if source), params
+
+    @classmethod
+    def _typed_source_sql(cls, *, log_type: str, filters: dict[str, Any], params: dict[str, Any]) -> str:
+        if log_type == "request":
+            where = cls._build_typed_filters(
+                log_type="request",
+                alias="r",
+                filters=filters,
+                params=params,
+                column_map={
+                    "actor_user_id": "actor_user_id",
+                    "client_type": "client_type",
+                    "status_code": "status_code",
+                    "result": "result",
+                    "created_at": "created_at",
+                    "task_trace_id": "task_trace_id",
+                    "metadata": "metadata",
+                },
+            )
+            return f"""
+            SELECT
+              r.id AS id,
+              'request' AS log_type,
+              r.request_id AS request_id,
+              r.actor_user_id AS actor_user_id,
+              r.actor_role AS actor_role,
+              COALESCE(u.display_name, u.username) AS actor_name,
+              u.username AS actor_username,
+              r.client_type AS client_type,
+              r.client_request_id AS client_request_id,
+              NULL AS event_name,
+              r.method AS method,
+              r.path AS path,
+              r.status_code AS status_code,
+              r.duration_ms AS duration_ms,
+              r.ip_address_masked AS ip_address_masked,
+              r.user_agent_summary AS user_agent_summary,
+              r.summary AS summary,
+              r.error_code AS error_code,
+              r.result AS result,
+              r.task_trace_id AS task_trace_id,
+              COALESCE(t.task_type, r.task_type) AS task_type,
+              t.status AS task_status,
+              t.duration_ms AS task_duration_ms,
+              t.slowest_span_name AS task_slowest_span_name,
+              r.metadata AS metadata,
+              r.created_at AS created_at
+            FROM request_logs r
+            LEFT JOIN users u ON u.id = r.actor_user_id
+            LEFT JOIN task_traces t ON t.task_trace_id = r.task_trace_id
+            {where}
+            """
+        if log_type == "usage_event":
+            where = cls._build_typed_filters(
+                log_type="usage_event",
+                alias="e",
+                filters=filters,
+                params=params,
+                column_map={
+                    "actor_user_id": "actor_user_id",
+                    "client_type": "client_type",
+                    "result": "result",
+                    "created_at": "created_at",
+                    "task_trace_id": "task_trace_id",
+                    "metadata": "metadata",
+                },
+            )
+            return f"""
+            SELECT
+              e.id AS id,
+              'usage_event' AS log_type,
+              e.request_id AS request_id,
+              e.actor_user_id AS actor_user_id,
+              e.actor_role AS actor_role,
+              COALESCE(u.display_name, u.username) AS actor_name,
+              u.username AS actor_username,
+              e.client_type AS client_type,
+              NULL AS client_request_id,
+              e.event_name AS event_name,
+              NULL AS method,
+              e.page_path AS path,
+              NULL AS status_code,
+              e.duration_ms AS duration_ms,
+              e.ip_address_masked AS ip_address_masked,
+              e.user_agent_summary AS user_agent_summary,
+              e.summary AS summary,
+              NULL AS error_code,
+              e.result AS result,
+              e.task_trace_id AS task_trace_id,
+              COALESCE(t.task_type, e.task_type) AS task_type,
+              t.status AS task_status,
+              t.duration_ms AS task_duration_ms,
+              t.slowest_span_name AS task_slowest_span_name,
+              e.metadata AS metadata,
+              e.created_at AS created_at
+            FROM usage_events e
+            LEFT JOIN users u ON u.id = e.actor_user_id
+            LEFT JOIN task_traces t ON t.task_trace_id = e.task_trace_id
+            {where}
+            """
+        if log_type == "audit":
+            where = cls._build_typed_filters(
+                log_type="audit",
+                alias="a",
+                filters=filters,
+                params=params,
+                column_map={
+                    "actor_user_id": "actor_user_id",
+                    "created_at": "created_at",
+                    "task_trace_id": "task_trace_id",
+                    "metadata": "metadata",
+                },
+            )
+            return f"""
+            SELECT
+              a.id AS id,
+              'audit' AS log_type,
+              NULL AS request_id,
+              a.actor_user_id AS actor_user_id,
+              NULL AS actor_role,
+              COALESCE(u.display_name, u.username) AS actor_name,
+              u.username AS actor_username,
+              'backend' AS client_type,
+              NULL AS client_request_id,
+              a.action_type AS event_name,
+              NULL AS method,
+              a.domain AS path,
+              NULL AS status_code,
+              NULL AS duration_ms,
+              NULL AS ip_address_masked,
+              NULL AS user_agent_summary,
+              a.summary AS summary,
+              NULL AS error_code,
+              'success' AS result,
+              a.task_trace_id AS task_trace_id,
+              COALESCE(t.task_type, a.task_type) AS task_type,
+              t.status AS task_status,
+              t.duration_ms AS task_duration_ms,
+              t.slowest_span_name AS task_slowest_span_name,
+              a.metadata AS metadata,
+              a.created_at AS created_at
+            FROM audit_logs a
+            LEFT JOIN users u ON u.id = a.actor_user_id
+            LEFT JOIN task_traces t ON t.task_trace_id = a.task_trace_id
+            {where}
+            """
+        return ""
+
+    @staticmethod
+    def _build_typed_filters(
+        *,
+        log_type: str,
+        alias: str,
+        filters: dict[str, Any],
+        params: dict[str, Any],
+        column_map: dict[str, str],
+    ) -> str:
+        def column(name: str) -> str:
+            return f"{alias}.{column_map[name]}"
+
+        clauses: list[str] = []
+        for key in ("actor_user_id", "client_type", "status_code", "result"):
+            value = filters.get(key)
+            if value in (None, ""):
+                continue
+            if key == "client_type" and log_type == "audit":
+                clauses.append("1 = 1" if value == "backend" else "1 = 0")
+                continue
+            if key == "status_code" and log_type != "request":
+                clauses.append("1 = 0")
+                continue
+            if key == "result" and log_type == "audit":
+                clauses.append("1 = 1" if value == "success" else "1 = 0")
+                continue
+            if key not in column_map:
+                continue
+            clauses.append(f"{column(key)} = :{key}")
+            params[key] = value
+
+        keyword = (filters.get("keyword") or "").strip()
+        if keyword:
+            params["keyword"] = f"%{keyword}%"
+            if log_type == "request":
+                clauses.append(
+                    "(r.summary LIKE :keyword OR r.path LIKE :keyword OR r.request_id LIKE :keyword OR r.client_request_id LIKE :keyword OR COALESCE(u.display_name, u.username) LIKE :keyword)"
+                )
+            elif log_type == "usage_event":
+                clauses.append(
+                    "(e.summary LIKE :keyword OR e.page_path LIKE :keyword OR e.event_name LIKE :keyword OR e.request_id LIKE :keyword OR COALESCE(u.display_name, u.username) LIKE :keyword)"
+                )
+            else:
+                clauses.append(
+                    "(a.summary LIKE :keyword OR a.domain LIKE :keyword OR a.action_type LIKE :keyword OR COALESCE(u.display_name, u.username) LIKE :keyword)"
+                )
+
+        resource_id = (filters.get("resource_id") or "").strip()
+        if resource_id:
+            clauses.append(f"{column('metadata')} LIKE :resource_id")
+            params["resource_id"] = f"%{resource_id}%"
+
+        path_or_request_id = (filters.get("path_or_request_id") or "").strip()
+        if path_or_request_id:
+            params["path_or_request_id"] = f"%{path_or_request_id}%"
+            if log_type == "request":
+                clauses.append(
+                    "(r.path LIKE :path_or_request_id OR r.request_id LIKE :path_or_request_id OR r.client_request_id LIKE :path_or_request_id OR r.task_trace_id LIKE :path_or_request_id)"
+                )
+            elif log_type == "usage_event":
+                clauses.append("(e.page_path LIKE :path_or_request_id OR e.request_id LIKE :path_or_request_id OR e.task_trace_id LIKE :path_or_request_id)")
+            else:
+                clauses.append("(a.domain LIKE :path_or_request_id OR a.task_trace_id LIKE :path_or_request_id)")
+
+        task_trace_id = (filters.get("task_trace_id") or "").strip()
+        if task_trace_id:
+            clauses.append(f"{column('task_trace_id')} = :task_trace_id")
+            params["task_trace_id"] = task_trace_id
+
+        start_time = filters.get("start_time")
+        if start_time:
+            clauses.append(f"{column('created_at')} >= :start_time")
+            params["start_time"] = start_time
+
+        end_time = filters.get("end_time")
+        if end_time:
+            clauses.append(f"{column('created_at')} <= :end_time")
+            params["end_time"] = end_time
+
+        return "WHERE " + " AND ".join(clauses) if clauses else ""
 
     @staticmethod
     def _union_source_sql() -> str:

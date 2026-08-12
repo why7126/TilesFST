@@ -218,3 +218,39 @@
 - **AND** Sprint 输出 MUST 提示下一步执行 `/bug-opsx BUG-xxxx`
 - **AND** 后续 `/opsx-apply` 仍 MUST 等待 Change 回填到 `changes[]` 后才能继续
 
+### Requirement: Sprint 自动编号与规范命名
+
+系统 MUST 使用 `sprint-xxx` 三位数字递增格式命名 Sprint，并在当前没有进行中迭代且需要自动创建 Sprint 时按最新编号加一创建。
+
+#### Scenario: 无进行中迭代时自动创建下一个 Sprint
+
+- **WHEN** 当前不存在 `iterations/change/sprint-[0-9]{3}/` 进行中 Sprint
+- **AND** 命令需要为 active Change 自动创建 Sprint
+- **THEN** 系统 MUST 扫描 `iterations/archive/` 与 `iterations/change/` 下符合 `sprint-[0-9]{3}` 的目录和 `sprint.yaml:sprint_id`
+- **AND** 系统 MUST 取最大编号加一作为新 Sprint ID
+- **AND** 如果最新归档 Sprint 为 `sprint-021` 且无进行中 Sprint，新建 Sprint MUST 为 `sprint-022`
+
+#### Scenario: 存在进行中迭代时不得默认新建并行 Sprint
+
+- **WHEN** `iterations/change/` 下已存在 `sprint-[0-9]{3}/`
+- **THEN** 系统 MUST 优先复用该进行中 Sprint 或要求用户明确选择
+- **AND** 系统 MUST NOT 默认另建并行 Sprint
+
+#### Scenario: 非规范 Sprint 名称必须修正
+
+- **WHEN** 系统发现新建 Sprint 使用日期、主题词或混合命名，例如 `sprint-2026-08-07-spec-sync`
+- **THEN** 系统 MUST 将其重命名为自动编号结果
+- **AND** 系统 MUST 同步更新四件套 `sprint_id`、标题、路径引用、Workflow Sync、AI Usage 和校验命令
+
+### Requirement: Issue 生命周期与索引治理
+
+系统 SHALL 使用 `issues/requirements/` 与 `issues/bugs/` 下的阶段目录、registry、trace、Sprint 四件套和 OpenSpec Change 共同维护 Issue 生命周期事实源。
+
+#### Scenario: 维护当前态看板索引
+
+- **GIVEN** REQ 或 BUG 发生 capture、生成、补齐、评审、纳入 Sprint、创建 Change、apply、archive 或状态同步
+- **WHEN** 对应命令完成
+- **THEN** 命令 SHOULD 更新 `issues/requirements/CHANGELOG.md` 或 `issues/bugs/CHANGELOG.md` 中该 Issue 的当前态行
+- **AND** 当前态行 SHOULD 包含状态、阶段、关联 Sprint、关联 Change、最近更新时间、下一步和事实源路径
+- **AND** 当前态看板不得替代 `_registry.yaml`、单条 `trace.md`、Sprint 四件套或 OpenSpec Change 作为机器事实源
+

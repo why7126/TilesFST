@@ -89,7 +89,8 @@ describe('AdminSidebar collapse', () => {
       'src',
       '/logos/64x64.png',
     );
-    expect(screen.getByLabelText('主题')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Admin'));
+    expect(screen.getByRole('menuitem', { name: '切换到暗色旗舰' })).toBeInTheDocument();
   });
 
   it('keeps active nav item class when collapsed', () => {

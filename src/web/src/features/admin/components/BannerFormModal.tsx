@@ -27,6 +27,26 @@ type ImageUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
 const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME' satisfies BannerCreateRequestDisplayClient;
 const MINIAPP_HOME_POSITION = 'MINIAPP_HOME_CAROUSEL' satisfies BannerCreateRequestPosition;
 
+function buildInternalBannerTitle(params: {
+  mode: 'create' | 'edit';
+  existingTitle: string;
+  position: BannerCreateRequestPosition;
+  jumpType: string;
+}): string {
+  const existingTitle = params.existingTitle.trim();
+  if (params.mode === 'edit' && existingTitle) {
+    return existingTitle;
+  }
+  return `internal-${params.position}-${params.jumpType}-${Date.now()}`;
+}
+
+function normalizeBannerSaveError(message: string): string {
+  if (message.includes('标题')) {
+    return 'Banner 内部识别信息保存失败，请稍后重试';
+  }
+  return message;
+}
+
 interface BannerFormModalProps {
   open: boolean;
   mode: 'create' | 'edit';
@@ -333,11 +353,6 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     setError(null);
 
     const sort = Number.parseInt(sortOrder, 10);
-    if (!title.trim()) {
-      setError('Banner 标题不能为空');
-      setSubmitting(false);
-      return;
-    }
     if (!Number.isFinite(sort) || sort < 1) {
       setError('排序必须为正整数');
       setSubmitting(false);
@@ -348,9 +363,15 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       setSubmitting(false);
       return;
     }
+    const internalTitle = buildInternalBannerTitle({
+      mode,
+      existingTitle: title,
+      position,
+      jumpType,
+    });
 
     const payload = {
-      title: title.trim(),
+      title: internalTitle,
       display_client: MINIAPP_DISPLAY_CLIENT,
       position,
       image_object_key: imageKey,
@@ -377,7 +398,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       }
       onClose();
     } catch (err) {
-      setError(getErrorMessage(err, '保存失败'));
+      setError(normalizeBannerSaveError(getErrorMessage(err, '保存失败')));
     } finally {
       setSubmitting(false);
     }
@@ -428,19 +449,6 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
         <div className="modal-body">
           {error ? <p className="page-desc text-[var(--admin-danger)]">{error}</p> : null}
           <div className="banner-form-grid">
-            <label className="banner-form-row full">
-              <span className="field-label">
-                Banner 标题<span className="banner-form-required">*</span>
-              </span>
-              <input
-                className="input"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="请输入 Banner 标题"
-              />
-              <div className="banner-form-help">同一展示端 + 展示位置下标题不可重复，建议 2-30 个字符。</div>
-            </label>
-
             <label className="banner-form-row">
               <span className="field-label">
                 展示端<span className="banner-form-required">*</span>

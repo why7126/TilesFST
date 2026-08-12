@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.schemas.common import ApiResponse
@@ -13,17 +15,20 @@ class LoginRequest(BaseModel):
     remember_me: bool = False
 
 
+ThemeMode = Literal["system", "dark_flagship"]
+
+
 class UserProfile(BaseModel):
     id: str
     username: str
     display_name: str
     role: str
     status: str
-    theme_mode: str = "system"
+    theme_mode: ThemeMode = "system"
 
 
 class ThemePreferenceUpdateRequest(BaseModel):
-    theme_mode: str = Field(min_length=1)
+    theme_mode: str = Field(min_length=1, json_schema_extra={"enum": ["system", "dark_flagship"]})
 
 
 class LoginData(BaseModel):

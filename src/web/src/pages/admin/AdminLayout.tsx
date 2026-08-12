@@ -29,7 +29,6 @@ export function AdminLayout() {
   const [notice, setNotice] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-  const [profileEmail, setProfileEmail] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => readAdminSidebarCollapsed());
 
@@ -93,17 +92,14 @@ export function AdminLayout() {
 
   const loadProfileShell = useCallback(async () => {
     if (!user || (user.role !== 'admin' && user.role !== 'employee')) {
-      setProfileEmail(null);
       setProfileAvatarUrl(null);
       return;
     }
 
     try {
       const profile = await fetchProfileMe();
-      setProfileEmail(profile.email ?? null);
       setProfileAvatarUrl(profile.avatar_url ?? null);
     } catch {
-      setProfileEmail(null);
       setProfileAvatarUrl(null);
     }
   }, [user]);
@@ -135,7 +131,6 @@ export function AdminLayout() {
       >
         <AdminSidebar
           user={user}
-          profileEmail={profileEmail}
           profileAvatarUrl={profileAvatarUrl}
           onLogout={logout}
           onPlaceholder={showPlaceholder}

@@ -36,3 +36,21 @@ Agent 在检查 OpenAPI、Orval、构建产物、Workflow Sync 输出或大 diff
 - **THEN** 脚本 MUST 检查 `.agents/skills/{req,bug,opsx,sprint,build}-*`、`.agents/skills/capture` 与 `.agents/skills/initialize-project` 是否引用 `rules/agent-context-budget.md`
 - **AND** 脚本 MUST 报告缺少预算入口或出现默认宽泛读取指令的技能文件
 
+### Requirement: 上下文预算与命令输出治理
+
+系统 SHALL 约束 AI 在命令执行中的读取范围、输出体量、摘要复用、用户反馈和后续动作生成方式。
+
+#### Scenario: 日志优先降低跨项目学习读取成本
+
+- **GIVEN** `/spec-study` 学习对象包含治理日志总账
+- **WHEN** AI 需要识别可迁移治理能力
+- **THEN** AI SHALL 先读取日志总账和相关单次日志摘要
+- **AND** 只在证据不足时读取真实规则、技能、脚本或部署片段补证
+
+#### Scenario: 需要用户决策时收敛问题
+
+- **GIVEN** 命令遇到需要用户选择、确认、补充或处理的事项
+- **WHEN** 命令不能继续自动执行
+- **THEN** AI SHALL 每轮只聚焦 1 到 3 个关键决策
+- **AND** 每个决策 SHOULD 提供互斥选项、推荐项和可补充说明入口
+

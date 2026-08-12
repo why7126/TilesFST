@@ -74,6 +74,7 @@ openspec status --change "<resolved-change-id>" --json
 | Legacy archive root | `openspec/changes/archive/` MUST NOT exist before or after archive; if present, stop and migrate its children to `openspec/archive/` first |
 | Archive evidence | if a historical archived Change lacks `trace.md`, archive evidence validation MUST auto-generate a minimal archive trace when safe, or emit a structured fallback summary before Sprint close readiness can pass |
 | Single Change archive evidence | after `/opsx-archive` resolves the canonical archive path, the archived Change MUST contain `trace.md`, `auto-generated-minimal-trace`, or `fallback-summary-pass`; failures MUST be reported before claiming archive closure |
+| Prototype final consistency | if linked REQ or Change has `prototype/**`, `prototype_refs`, `AC-PROTOTYPE-*`, or UI Skeleton, MUST read `docs/standards/prototype-ui-acceptance.md`; linked REQ `requirement.md` / `acceptance.md` / `trace.md` MUST match final Change UI Contract, Skeleton, screenshots, computed style evidence, Mock/API boundary and 1440px visual acceptance |
 
 ## Steps
 

@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-08-06 14:01:45
+updated_at: 2026-08-07 09:20:34
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -36,8 +36,17 @@ iterations/
 - 每个 `sprint-xxx/` 目录 **MUST** 仅存在于 `change/` 或 `archive/` 之一（不得多份拷贝）。
 - 阶段子目录内 **禁止** 再嵌套 `change/archive`。
 - 四件套规范见 `rules/document-governance.md` §4.1。
+- Sprint ID **MUST** 使用 `sprint-xxx` 三位数字递增格式，例如 `sprint-022`；不得使用日期、主题词或混合命名作为 Sprint ID。
 
-### 2.1 遗留扁平路径（兼容）
+### 2.1 Sprint 自动编号（MUST）
+
+- 当当前没有 `iterations/change/sprint-xxx/` 进行中迭代，且命令需要为 active Change 自动创建 Sprint 时，系统 MAY 自动创建下一个 Sprint。
+- 自动创建时 MUST 扫描 `iterations/archive/` 与 `iterations/change/` 下符合 `sprint-[0-9]{3}` 的目录和 `sprint.yaml:sprint_id`，取最大编号加一；例如最新归档为 `sprint-021` 且无进行中迭代时，新建 Sprint MUST 为 `sprint-022`。
+- 自动创建 Sprint MUST 落在 `iterations/change/sprint-xxx/`，四件套中的 `sprint_id`、标题、路径引用、Workflow Sync、AI Usage 和校验命令 MUST 使用同一个规范编号。
+- 如果已存在 `iterations/change/sprint-xxx/` 进行中迭代，MUST 优先复用或要求用户明确选择；不得默认另建并行 Sprint。
+- 若发现新建 Sprint 使用了非规范名称，MUST 立即重命名为自动编号结果，并同步所有引用与校验记录。
+
+### 2.2 遗留扁平路径（兼容）
 
 历史 Sprint 可能仍在：
 

@@ -73,6 +73,30 @@ describe('ProfilePage', () => {
     expect(screen.getByText('资料更新')).toBeInTheDocument();
   });
 
+  it('shows true email in identity meta when email is present', async () => {
+    renderProfilePage();
+
+    await screen.findByDisplayValue('Admin User');
+    const identityMeta = document.querySelector('.identity-meta');
+    expect(identityMeta).toHaveTextContent('后台管理员 · admin@tilesfst.com · 最近登录');
+  });
+
+  it('omits fake email from identity meta when email is empty', async () => {
+    const api = await import('@/features/admin/api/profile-api');
+    vi.mocked(api.fetchProfileMe).mockResolvedValue({
+      ...profile,
+      email: null,
+    });
+
+    renderProfilePage();
+
+    await screen.findByDisplayValue('Admin User');
+    const identityMeta = document.querySelector('.identity-meta');
+    expect(identityMeta).toHaveTextContent('后台管理员 · 最近登录');
+    expect(identityMeta).not.toHaveTextContent('admin@tilesfst.com');
+    expect(screen.getByLabelText('联系邮箱')).toHaveValue('');
+  });
+
   it('does not show role or status fields in the profile form grid', async () => {
     renderProfilePage();
 

@@ -112,6 +112,7 @@ class BannerAdminService:
             external_url=banner.external_url,
             topic_id=banner.topic_id,
             brand_id=banner.brand_id,
+            jump_target_label=banner.jump_target_label,
             sort_order=banner.sort_order,
             valid_from=banner.valid_from,
             valid_to=banner.valid_to,

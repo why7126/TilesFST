@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+DEFAULT_RECALL_PIN_SORT_ORDER = 9999
 
 SaveMode = Literal["draft", "create"]
 TileSkuStatus = Literal["PUBLISHED", "DRAFT", "NEEDS_COMPLETION", "DISABLED"]
@@ -60,6 +62,9 @@ class TileSkuAdminItem(BaseModel):
     color_family: str | None = None
     reference_price: float | None = None
     remark: str | None = None
+    recall_pin_sort_order: int = DEFAULT_RECALL_PIN_SORT_ORDER
+    recall_pin_starts_at: str | None = None
+    recall_pin_ends_at: str | None = None
     status: TileSkuStatus
     main_image_url: str | None = None
     main_image_thumbnail_url: str | None = None
@@ -101,8 +106,20 @@ class TileSkuCreateRequest(BaseModel):
     color_family: str | None = None
     reference_price: float = 0.0
     remark: str | None = None
+    recall_pin_sort_order: int | None = DEFAULT_RECALL_PIN_SORT_ORDER
+    recall_pin_starts_at: str | None = None
+    recall_pin_ends_at: str | None = None
     images: list[TileSkuImageInput] = Field(default_factory=list)
     videos: list[TileSkuVideoInput] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_recall_pin_config(self) -> "TileSkuCreateRequest":
+        _validate_recall_pin_config(
+            self.recall_pin_sort_order,
+            self.recall_pin_starts_at,
+            self.recall_pin_ends_at,
+        )
+        return self
 
 
 class TileSkuUpdateRequest(BaseModel):
@@ -116,5 +133,28 @@ class TileSkuUpdateRequest(BaseModel):
     color_family: str | None = None
     reference_price: float | None = None
     remark: str | None = None
+    recall_pin_sort_order: int | None = None
+    recall_pin_starts_at: str | None = None
+    recall_pin_ends_at: str | None = None
     images: list[TileSkuImageInput] | None = None
     videos: list[TileSkuVideoInput] | None = None
+
+    @model_validator(mode="after")
+    def validate_recall_pin_config(self) -> "TileSkuUpdateRequest":
+        _validate_recall_pin_config(
+            self.recall_pin_sort_order,
+            self.recall_pin_starts_at,
+            self.recall_pin_ends_at,
+        )
+        return self
+
+
+def _validate_recall_pin_config(
+    sort_order: int | None,
+    starts_at: str | None,
+    ends_at: str | None,
+) -> None:
+    if sort_order is not None and sort_order <= 0:
+        raise ValueError("召回排序值必须为正整数")
+    if starts_at and ends_at and starts_at > ends_at:
+        raise ValueError("召回置顶开始时间不能晚于结束时间")

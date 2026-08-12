@@ -667,10 +667,11 @@ def _log_media_read(
     range_requested: bool = False,
     cacheable: bool = False,
 ) -> None:
+    fallback_used = bool(resolved_key and resolved_key != object_key)
     logger.info(
         (
             "media_read status=%s elapsed_ms=%s object_key_hash=%s resolved_key_hash=%s "
-            "media_type=%s size_bytes=%s range=%s cacheable=%s"
+            "media_type=%s size_bytes=%s range=%s cacheable=%s fallback=%s"
         ),
         status_code,
         _elapsed_ms(started_at),
@@ -680,7 +681,15 @@ def _log_media_read(
         total_size,
         range_requested,
         cacheable,
+        fallback_used,
     )
+
+
+def _observability_headers(requested_key: str, resolved_key: str) -> dict[str, str]:
+    return {
+        "X-Media-Resolved-Key-Hash": _media_key_fingerprint(resolved_key),
+        "X-Media-Fallback": "1" if requested_key != resolved_key else "0",
+    }
 
 
 def _range_not_satisfiable_response(total_size: int) -> Response:
@@ -908,6 +917,7 @@ def get_media_file_response(object_key: str, range_header: str | None = None) ->
                         "Accept-Ranges": "bytes",
                         "Content-Range": f"bytes {start}-{end}/{total_size}",
                         "Content-Length": str(length),
+                        **_observability_headers(object_key, resolved_key),
                     },
                 )
 
@@ -918,7 +928,10 @@ def get_media_file_response(object_key: str, range_header: str | None = None) ->
             or mimetypes.guess_type(resolved_key)[0]
         )
         total_size = stored_object.total_size or len(stored_object.content)
-        headers = _cache_headers(resolved_key, media_type, total_size)
+        headers = {
+            **_cache_headers(resolved_key, media_type, total_size),
+            **_observability_headers(object_key, resolved_key),
+        }
         _log_media_read(
             object_key=object_key,
             resolved_key=resolved_key,
@@ -945,7 +958,11 @@ def get_media_file_response(object_key: str, range_header: str | None = None) ->
 def get_media_head_response(object_key: str, range_header: str | None = None) -> Response:
     resolved_key, info = _resolve_media_info(object_key)
     media_type = info.content_type or mimetypes.guess_type(resolved_key)[0] or "application/octet-stream"
-    headers = {"Content-Length": str(info.total_size), **_cache_headers(resolved_key, media_type, info.total_size)}
+    headers = {
+        "Content-Length": str(info.total_size),
+        **_cache_headers(resolved_key, media_type, info.total_size),
+        **_observability_headers(object_key, resolved_key),
+    }
 
     if _is_video_media_type(media_type):
         headers["Accept-Ranges"] = "bytes"

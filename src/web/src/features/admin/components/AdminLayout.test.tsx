@@ -33,9 +33,15 @@ function renderAdminLayout(initialEntry = '/admin/dashboard') {
   );
 }
 
-function selectTheme(valueLabel: string) {
-  fireEvent.click(screen.getByLabelText('界面主题'));
-  fireEvent.click(screen.getByRole('option', { name: valueLabel }));
+function openUserMenu() {
+  fireEvent.click(screen.getByText('Admin User'));
+}
+
+function clickThemeToggle(accessibleName: string) {
+  if (!screen.queryByRole('menuitem', { name: accessibleName })) {
+    openUserMenu();
+  }
+  fireEvent.click(screen.getByRole('menuitem', { name: accessibleName }));
 }
 
 vi.mock('../../../features/auth/hooks/useAuth', () => ({
@@ -108,10 +114,16 @@ describe('AdminLayout', () => {
     );
     expect(screen.getByLabelText('后台导航')).toBeInTheDocument();
     const sidebar = screen.getByLabelText('后台导航');
-    const themeSelect = screen.getByLabelText('界面主题');
-    expect(sidebar).toContainElement(themeSelect);
-    expect(container.querySelector('.sidebar-theme')).toContainElement(themeSelect);
+    expect(screen.queryByLabelText('界面主题')).not.toBeInTheDocument();
+    expect(container.querySelector('.sidebar-theme')).not.toBeInTheDocument();
     expect(container.querySelector('.admin-theme-row')).not.toBeInTheDocument();
+    openUserMenu();
+    const themeButton = screen.getByRole('menuitem', { name: '切换到暗色旗舰' });
+    expect(sidebar).toContainElement(themeButton);
+    expect(themeButton).toHaveClass('theme-toggle');
+    expect(themeButton).toHaveTextContent('界面主题');
+    expect(themeButton.querySelector('svg')).toBeTruthy();
+    expect(themeButton.querySelector('.theme-switch-track')).toBeTruthy();
     expect(screen.queryByRole('button', { name: '退出登录' })).not.toBeInTheDocument();
     expect(screen.getByText('数据概览')).toBeInTheDocument();
   });
@@ -139,15 +151,17 @@ describe('AdminLayout', () => {
 
     const { container } = renderAdminLayout();
 
-    expect(screen.getAllByLabelText('界面主题')).toHaveLength(1);
+    expect(screen.queryByLabelText('界面主题')).not.toBeInTheDocument();
+    openUserMenu();
+    expect(screen.getByRole('menuitem', { name: '切换到暗色旗舰' })).toBeInTheDocument();
     expect(container.querySelector('.admin-theme-row')).not.toBeInTheDocument();
 
-    selectTheme('舒适暗色');
+    fireEvent.click(screen.getByRole('menuitem', { name: '切换到暗色旗舰' }));
 
     await waitFor(() => {
-      expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+      expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
     });
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark_flagship');
   });
 
   it('auto-dismisses theme sync failure toast while keeping the local theme active', async () => {
@@ -184,23 +198,23 @@ describe('AdminLayout', () => {
 
     renderAdminLayout();
 
-    selectTheme('浅色');
+    clickThemeToggle('切换到暗色旗舰');
 
     const toastMessage = '主题已在本机生效，但账号偏好同步失败，请稍后重试。';
     await act(async () => {
       await Promise.resolve();
     });
     expect(screen.getByText(toastMessage)).toBeInTheDocument();
-    expect(document.documentElement.dataset.themeMode).toBe('light');
-    expect(document.documentElement.dataset.theme).toBe('light');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
-    expect(updateThemePreference).toHaveBeenCalledWith('light');
+    expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark_flagship');
+    expect(updateThemePreference).toHaveBeenCalledWith('dark_flagship');
 
     act(() => {
       vi.advanceTimersByTime(3200);
     });
     expect(screen.queryByText(toastMessage)).not.toBeInTheDocument();
-    expect(document.documentElement.dataset.themeMode).toBe('light');
+    expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
   });
 
   it('keeps repeated theme sync failures to one readable layout toast', async () => {
@@ -238,23 +252,23 @@ describe('AdminLayout', () => {
 
     const { container } = renderAdminLayout();
 
-    selectTheme('浅色');
+    clickThemeToggle('切换到暗色旗舰');
     await waitFor(() => {
-      expect(updateThemePreference).toHaveBeenCalledWith('light');
+      expect(updateThemePreference).toHaveBeenCalledWith('dark_flagship');
     });
 
-    selectTheme('舒适暗色');
+    clickThemeToggle('切换到跟随系统');
 
     await waitFor(() => {
-      expect(updateThemePreference).toHaveBeenCalledWith('comfort_dark');
+      expect(updateThemePreference).toHaveBeenCalledWith('system');
     });
 
     await waitFor(() => {
       expect(container.querySelectorAll('.admin-toast')).toHaveLength(1);
     });
     expect(screen.getAllByText('主题已在本机生效，但账号偏好同步失败，请稍后重试。')).toHaveLength(1);
-    expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+    expect(document.documentElement.dataset.themeMode).toBe('system');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('system');
   });
 
   it('does not call account theme sync when switching theme before login', async () => {
@@ -274,12 +288,12 @@ describe('AdminLayout', () => {
 
     renderAdminLayout();
 
-    selectTheme('舒适暗色');
+    clickThemeToggle('切换到暗色旗舰');
 
     await waitFor(() => {
-      expect(document.documentElement.dataset.themeMode).toBe('comfort_dark');
+      expect(document.documentElement.dataset.themeMode).toBe('dark_flagship');
     });
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('comfort_dark');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark_flagship');
     expect(updateThemePreference).not.toHaveBeenCalled();
   });
 
@@ -404,7 +418,7 @@ describe('AdminLayout', () => {
     );
   });
 
-  it('shows log audit and api docs below system settings for admin users', async () => {
+  it('shows observability entries below system settings for admin users', async () => {
     const { useAuth } = await import('../../../features/auth/hooks/useAuth');
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
@@ -429,7 +443,8 @@ describe('AdminLayout', () => {
 
     const buttons = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
     expect(buttons.indexOf('日志审计')).toBe(buttons.indexOf('系统设置') + 1);
-    expect(buttons.indexOf('接口文档')).toBe(buttons.indexOf('日志审计') + 1);
+    expect(buttons.indexOf('性能观测')).toBe(buttons.indexOf('日志审计') + 1);
+    expect(buttons.indexOf('接口文档')).toBe(buttons.indexOf('性能观测') + 1);
   });
 
   it('hides admin-only system entries for employee users', async () => {

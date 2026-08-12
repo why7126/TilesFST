@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 
+UNSET = object()
+
 
 @dataclass
 class UserRecord:
@@ -98,6 +100,8 @@ class UserRepository:
         role: str,
         status: str = "active",
         avatar_object_key: str | None = None,
+        email: str | None = None,
+        phone: str | None = None,
     ) -> UserRecord:
         now = datetime.now(UTC).isoformat()
         user_id = str(uuid4())
@@ -109,7 +113,7 @@ class UserRepository:
                     role, status, avatar_object_key, token_version, theme_mode, last_login_at,
                     created_at, updated_at
                 ) VALUES (
-                    :id, :username, NULL, NULL, :password_hash, :display_name,
+                    :id, :username, :phone, :email, :password_hash, :display_name,
                     :role, :status, :avatar_object_key, 0, 'system', NULL, :created_at, :updated_at
                 )
                 """
@@ -119,6 +123,8 @@ class UserRepository:
                 "username": username,
                 "password_hash": hash_password(password),
                 "display_name": display_name,
+                "email": email,
+                "phone": phone,
                 "role": role,
                 "status": status,
                 "avatar_object_key": avatar_object_key,
@@ -148,6 +154,8 @@ class UserRepository:
                 (
                   username LIKE :keyword
                   OR IFNULL(display_name, '') LIKE :keyword
+                  OR IFNULL(email, '') LIKE :keyword
+                  OR IFNULL(phone, '') LIKE :keyword
                 )
                 """
             )
@@ -249,6 +257,8 @@ class UserRepository:
         role: str | None = None,
         avatar_object_key: str | None = None,
         update_avatar: bool = False,
+        email: str | None | object = UNSET,
+        phone: str | None | object = UNSET,
     ) -> UserRecord | None:
         user = self.get_by_id(user_id)
         if user is None:
@@ -258,6 +268,8 @@ class UserRepository:
         new_display = display_name if display_name is not None else user.display_name
         new_role = role if role is not None else user.role
         new_avatar = avatar_object_key if update_avatar else user.avatar_object_key
+        new_email = email if email is not UNSET else user.email
+        new_phone = phone if phone is not UNSET else user.phone
 
         self._db.execute(
             text(
@@ -265,6 +277,8 @@ class UserRepository:
                 UPDATE users
                 SET display_name = :display_name,
                     role = :role,
+                    email = :email,
+                    phone = :phone,
                     avatar_object_key = :avatar_object_key,
                     updated_at = :updated_at
                 WHERE id = :id
@@ -274,6 +288,8 @@ class UserRepository:
                 "id": user_id,
                 "display_name": new_display,
                 "role": new_role,
+                "email": new_email,
+                "phone": new_phone,
                 "avatar_object_key": new_avatar,
                 "updated_at": now,
             },

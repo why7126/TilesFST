@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from app.core.exceptions import (
     UserCannotDeleteLoggedInError,
     UserInvalidStatusTransitionError,
@@ -12,7 +14,7 @@ from app.core.exceptions import (
 )
 from app.core.protected_account import PROTECTED_ACCOUNT_REASON, is_protected_username
 from app.core.user_validation import generate_random_password, validate_username
-from app.repositories.user_repository import UserRecord, UserRepository
+from app.repositories.user_repository import UNSET, UserRecord, UserRepository
 from app.schemas.user_admin import (
     UserAdminItem,
     UserAdminListData,
@@ -25,12 +27,37 @@ from app.services.effective_settings_service import EffectiveSettingsService
 
 VALID_ROLES = frozenset({"admin", "employee", "store_owner"})
 VALID_STATUSES = frozenset({"active", "disabled", "deleted"})
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PHONE_RE = re.compile(r"^[0-9+\-\s]+$")
 
 
 def _avatar_url(object_key: str | None) -> str | None:
     if not object_key:
         return None
     return f"/media/{object_key}"
+
+
+def _normalize_email(email: str | None) -> str | None:
+    if email is None:
+        return None
+    value = email.strip()
+    if not value:
+        return None
+    if not EMAIL_RE.fullmatch(value):
+        raise UserInvalidUsernameError("联系邮箱格式不正确")
+    return value
+
+
+def _normalize_phone(phone: str | None) -> str | None:
+    if phone is None:
+        return None
+    value = phone.strip()
+    if not value:
+        return None
+    if not PHONE_RE.fullmatch(value):
+        raise UserInvalidUsernameError("手机号码仅允许数字、空格、+、-")
+    return value
+
 
 class UserAdminService:
     def __init__(
@@ -125,6 +152,8 @@ class UserAdminService:
             display_name=payload.display_name.strip() if payload.display_name else None,
             role=payload.role,
             avatar_object_key=payload.avatar_object_key,
+            email=_normalize_email(payload.email),
+            phone=_normalize_phone(payload.phone),
         )
         return UserCreateData(user=self.to_item(user), initial_password=password)
 
@@ -148,6 +177,8 @@ class UserAdminService:
             role=payload.role,
             avatar_object_key=payload.avatar_object_key,
             update_avatar=payload.avatar_object_key is not None,
+            email=_normalize_email(payload.email) if "email" in payload.model_fields_set else UNSET,
+            phone=_normalize_phone(payload.phone) if "phone" in payload.model_fields_set else UNSET,
         )
         assert updated is not None
         return self.to_item(updated)

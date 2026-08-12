@@ -58,11 +58,6 @@
             data-key="home.banners[{{index}}].image_url"
           ></image>
           <view class="hero-shade"></view>
-          <view class="hero-copy">
-            <view class="hero-title">{{item.title || '臻选好砖\\n美好生活'}}</view>
-            <view class="hero-subtitle">{{item.subtitle || home.store.description || '精选优质瓷砖 · 打造理想空间'}}</view>
-            <view class="hero-button">了解更多</view>
-          </view>
         </view>
       </swiper-item>
     </swiper>

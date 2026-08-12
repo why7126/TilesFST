@@ -18,6 +18,8 @@ interface UserFormModalProps {
 export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserFormModalProps) {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState('store_owner');
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -36,12 +38,16 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
     if (mode === 'edit' && user) {
       setUsername(user.username);
       setDisplayName(user.display_name ?? '');
+      setEmail(user.email ?? '');
+      setPhone(user.phone ?? '');
       setRole(user.role);
       setAvatarKey(user.avatar_object_key ?? null);
       setAvatarUrl(user.avatar_url ?? null);
     } else {
       setUsername('');
       setDisplayName('');
+      setEmail('');
+      setPhone('');
       setRole('store_owner');
       setAvatarKey(null);
       setAvatarUrl(null);
@@ -89,6 +95,8 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
         const data = await createUser({
           username: username.trim().toLowerCase(),
           display_name: displayName.trim() || null,
+          email: email.trim() || null,
+          phone: phone.trim() || null,
           role,
           avatar_object_key: avatarKey,
         });
@@ -96,6 +104,8 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
       } else if (user) {
         await updateUser(user.id, {
           display_name: displayName.trim() || null,
+          email: email.trim() || null,
+          phone: phone.trim() || null,
           role,
           avatar_object_key: avatarKey,
         });
@@ -110,7 +120,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
   };
 
   return (
-    <div className="modal-backdrop" role="presentation">
+    <div className="modal-backdrop user-form-modal-backdrop" role="presentation">
       <div
         className="modal-card"
         role="dialog"
@@ -230,6 +240,33 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
               placeholder="默认为空，可后续修改"
             />
             <div className="form-help">未填写时前台可展示用户名。</div>
+          </div>
+          <div className="form-row">
+            <label className="field-label" htmlFor="um-email">
+              联系邮箱
+            </label>
+            <input
+              id="um-email"
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+            />
+            <div className="form-help">仅作为联系信息，不用于登录。</div>
+          </div>
+          <div className="form-row">
+            <label className="field-label" htmlFor="um-phone">
+              手机号码
+            </label>
+            <input
+              id="um-phone"
+              className="input"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+86 138 0000 2026"
+            />
+            <div className="form-help">允许数字、空格、+、-，不限定国家格式。</div>
           </div>
           <div className="form-row">
             <label className="field-label" htmlFor="um-role">

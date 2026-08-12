@@ -50,3 +50,11 @@ AI生成代码时不得：
 - 关闭上传校验。
 - 提交真实数据文件。
 - 生成危险命令执行逻辑。
+
+推送到 Git 仓库前 SHOULD 运行 `/git-check` 或等价脚本：
+
+```bash
+python scripts/git-check.py
+```
+
+该脚本用于扫描 staged、modified tracked 和 untracked 文件中的真实环境文件、运行时数据、数据库文件、大文件、密钥/Token/连接串、本机绝对路径和不应进入 Git 的本地数据。扫描报告必须脱敏；脚本不得自动删除文件、修改 `.gitignore` 或 unstage。深度复核可使用 `python scripts/git-check.py --all` 扫描全仓当前文件。

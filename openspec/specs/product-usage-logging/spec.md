@@ -105,73 +105,59 @@
 - **AND** 测试 SHALL 同时覆盖未知事件仍被拒绝和禁止字段仍被拒绝。
 
 ### Requirement: 日志存储与保留
-系统 SHALL 将 request logs、Request Snapshot 与 usage events 存储在关系型存储中，并提供可查询索引和保留周期治理。
-
-#### Scenario: 关系型存储支持 demo 与生产
-- **WHEN** 应用运行在本地或 Docker demo 模式
-- **THEN** 日志 SHALL 使用 SQLite 兼容 schema 存储
-- **AND** 当应用运行在 MySQL 生产环境
-- **THEN** 日志 SHALL 使用 MySQL 兼容 schema，且不得包含 SQLite-only DDL。
+系统 SHALL 将 request logs、Request Snapshot 与 usage events 存储在关系型存储中，并提供可查询索引和保留周期治理。日志查询常用索引 SHALL 在 SQLite demo 与 MySQL production 之间保持兼容，并 SHALL 支持管理端日志审计页的时间范围、客户端、状态或结果、操作者、request id、path 和 Task Trace 查询。
 
 #### Scenario: 常用筛选字段建立索引
-- **WHEN** 日志按创建时间、日志类型、操作者、request id、status code 或 path 查询
+- **WHEN** 日志按创建时间、日志类型、操作者、request id、status code 或 result、client type、path 或 task trace id 查询
 - **THEN** 系统 SHALL 使用索引或等价优化的数据库访问方式
+- **AND** SQLite schema、SQLite migration、MySQL schema 和 MySQL migration SHALL 保持兼容索引定义
 - **AND** SHALL NOT 在过滤前将全部日志加载到内存。
 
-#### Scenario: 定义保留周期策略
-- **WHEN** 评估日志保留周期
-- **THEN** request logs 与 usage events SHALL 遵循既有审计保留策略，或遵循明确文档化的专用保留配置。
-
-#### Scenario: metadata 保持可展示
-- **WHEN** 日志包含 metadata
-- **THEN** 系统 SHALL 在脱敏和截断后以 JSON 或等价可解析结构存储 metadata
-- **AND** 若 metadata 解析失败，列表页 SHALL 仍展示核心日志字段。
-
-#### Scenario: Request Snapshot 存储兼容
-- **WHEN** 系统持久化 Request Snapshot
-- **THEN** Snapshot SHALL 存储为 JSON metadata 或等价结构化字段
-- **AND** SQLite demo schema 与 MySQL production schema SHALL 保持兼容
-- **AND** 实现阶段 SHALL 明确哪些 Snapshot 字段需要索引、冗余列或仅用于详情展示。
-
-#### Scenario: Snapshot 存储失败不阻断主流程
-- **WHEN** Request Snapshot 采集或持久化失败但主业务请求已经完成
-- **THEN** 系统 SHALL NOT 因日志采集失败改变主业务响应结果
-- **AND** 系统 SHALL 记录可观测错误摘要，且该摘要 SHALL NOT 暴露敏感信息。
+#### Scenario: BUG-0127 日志索引一致性
+- **WHEN** 修复管理端日志审计加载慢问题
+- **THEN** 系统 SHALL 至少评估并按需补齐 `request_logs(client_type, created_at)`、`request_logs(result, created_at)`、`usage_events(client_type, created_at)`、`usage_events(result, created_at)` 和 `audit_logs(created_at)` 等常用查询索引
+- **AND** 新增或调整索引 SHALL 同步到 SQLite / MySQL schema、迁移、数据库文档和测试
+- **AND** 迁移 SHALL 幂等执行，不破坏既有日志数据。
 
 ### Requirement: 管理端日志查询 API
-系统 SHALL 提供仅管理员可用的日志列表与详情查询 API，并在日志详情中返回统一 Request Snapshot。
+系统 SHALL 提供仅管理员可用的日志列表与详情查询 API，并在日志详情中返回统一 Request Snapshot。日志列表查询 SHALL 在日志量增长后保持可接受的首屏、筛选和分页性能；系统 SHALL 使用索引友好的查询路径、条件下推、低成本计数和可解耦指标策略，避免默认首屏被无条件三表 UNION、全量排序、全量计数或同步摘要聚合明显阻塞。
 
 #### Scenario: 管理员查询日志列表
 - **WHEN** 已认证 admin 调用 `GET /api/v1/admin/logs`
-- **THEN** 系统 SHALL 返回统一响应，包含分页日志项、total、page、page_size 和指标摘要。
+- **THEN** 系统 SHALL 返回统一响应，包含分页日志项、total、page、page_size 和指标摘要或指标延迟态
+- **AND** 日志列表数据 SHALL 可在指标聚合失败、延迟或独立加载时先行返回
+- **AND** 响应 SHALL NOT 暴露 Authorization、Cookie、Token、密码、真实密钥、数据库 DSN、`.env` 内容、真实客户数据、内部绝对路径、完整请求体或完整响应体。
 
 #### Scenario: 支持日志列表筛选
 - **WHEN** admin 按日志类型、时间范围、操作者、client type、status code 或 result、resource id、path、keyword、request id 或 task trace id 筛选
-- **THEN** 系统 SHALL 仅返回匹配日志，并按最新优先排序。
+- **THEN** 系统 SHALL 仅返回匹配日志，并按最新优先排序
+- **AND** 可下推筛选条件 SHALL 在对应日志表查询阶段尽量生效
+- **AND** 系统 SHALL NOT 在过滤前将全部 request logs、usage events 或 audit logs 加载到内存。
 
-#### Scenario: 操作者筛选保持 actor_user_id 语义
-- **WHEN** admin 通过日志审计页面选择某个操作者候选后查询日志
-- **THEN** 日志列表 API SHALL 使用该用户的稳定 `actor_user_id` 作为过滤条件
-- **AND** API SHALL NOT 将用户显示名称、昵称或账号字符串解释为 `actor_user_id`
-- **AND** API SHALL 保持既有 `actor_user_id` 查询参数兼容。
+#### Scenario: 指定日志类型使用低成本查询路径
+- **WHEN** admin 指定 `log_type=request`、`log_type=usage_event` 或 `log_type=audit`
+- **THEN** 系统 SHALL 优先查询对应单表或等价低成本路径
+- **AND** 不应继续无条件扫描另外两类日志表
+- **AND** total、分页和 `created_at DESC` 排序 SHALL 与该日志类型的既有语义一致。
 
-#### Scenario: 管理员查询日志详情
-- **WHEN** 已认证 admin 针对已存在日志调用 `GET /api/v1/admin/logs/{id}`
-- **THEN** 系统 SHALL 返回基础信息、请求信息、操作者与客户端、操作上下文、事件属性和 metadata 等详情分组。
+#### Scenario: 混合日志分页保持稳定
+- **WHEN** admin 未指定日志类型并查询混合日志列表
+- **THEN** 系统 SHALL 合并 request logs、usage events 和 audit logs 的匹配记录
+- **AND** 结果 SHALL 按 `created_at DESC` 稳定排序
+- **AND** total、page、page_size 和 items SHALL 与筛选条件保持一致
+- **AND** 实现 SHALL 通过等价测试覆盖跨日志类型排序、分页边界、空结果和重复时间戳场景。
 
-#### Scenario: 日志详情返回 Request Snapshot
-- **WHEN** 已认证 admin 查询包含 Request Snapshot 的请求日志详情
-- **THEN** 日志详情 API SHALL 返回结构化 Request Snapshot
-- **AND** Snapshot SHALL 包含请求信息、输入摘要、业务资源、响应结果、操作者与客户端、环境与时间分组或等价字段
-- **AND** Snapshot 缺失字段 SHALL 使用空值、未采集状态或等价可展示表达。
+#### Scenario: 摘要指标不阻塞列表首屏
+- **WHEN** 日志审计页需要展示 `today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`
+- **THEN** 系统 SHALL 使用缓存、独立接口、异步加载、索引友好聚合或等价策略获取指标
+- **AND** 指标查询失败、超时或降级 SHALL NOT 阻断列表数据展示
+- **AND** 指标口径、延迟态或错误态 SHALL 在 API、Web 页面和测试中保持一致。
 
-#### Scenario: 拒绝非管理员访问
-- **WHEN** employee、店主端客户端、小程序用户或匿名用户调用管理端日志 API
-- **THEN** 系统 SHALL 使用已文档化的 forbidden 响应拒绝访问。
-
-#### Scenario: 日志不存在返回 not found
-- **WHEN** admin 请求不存在的 log id
-- **THEN** 系统 SHALL 返回已文档化的 404 类错误响应。
+#### Scenario: 日志查询性能证据
+- **WHEN** BUG-0127 修复完成并进入验收
+- **THEN** 团队 SHALL 记录 SQLite demo 数据下优化前后的列表接口耗时和 `EXPLAIN QUERY PLAN` 摘要
+- **AND** 团队 SHALL 记录生产或生产等价 MySQL 的 `EXPLAIN`、慢查询摘要或无法获取时的原因与剩余风险
+- **AND** 验收 SHALL 覆盖默认首屏、常用筛选、单日志类型筛选、混合分页、指标加载和非管理员访问拒绝。
 
 ### Requirement: 使用行为事件接收 API
 系统 SHALL 为受支持客户端提供 usage event 接收 API。

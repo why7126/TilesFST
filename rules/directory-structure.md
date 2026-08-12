@@ -4,7 +4,7 @@ content: 约束AI与开发人员遵循当前项目目录边界、文件归属和
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-03 19:10:00
+updated_at: 2026-08-08 20:57:09
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -225,8 +225,9 @@ src/shared/
 
 - 主文档（`docs/00–07-*.md`）与总索引 `docs/README.md`。
 - API/测试等治理细则放入 `docs/standards/`（**禁止**在 `docs/` 根目录新增无序号治理 MD）。
-- 产品需求放入 `issues/requirements/{plan|review|archive}/REQ-*`（**禁止** `docs/prd/`；**禁止** 在 requirements 根下新建扁平 `REQ-*`）。
-- BUG 分析放入 `issues/bugs/{plan|review|archive}/BUG-*`（**禁止** `docs/bugs/`）。
+- 规范工程日志统一放入 `docs/spec-logs/`：`CHANGELOG.md` 记录规范、脚本、技能和命令变更历史摘要；`/spec-study` 学习报告使用 `YYYYMMDDhhmmss-study-xxx.md`，`/spec-opt` 本项目规范、技能、脚本迭代日志使用 `YYYYMMDDhhmmss-governance-xxx.md`；该目录不替代 `docs/standards/`、`docs/knowledge-base/`、`openspec/changes/` 或 `iterations/`，且不得包含用户隐私数据、真实客户数据、密钥、访问令牌、本机绝对路径、未脱敏日志、学习对象源码或截图中的个人信息。
+- 产品需求放入 `issues/requirements/{plan|review|archive}/REQ-*`（**禁止** `docs/prd/`；**禁止** 在 requirements 根下新建扁平 `REQ-*`）。`issues/requirements/CHANGELOG.md` 仅作为目录级当前态看板索引。
+- BUG 分析放入 `issues/bugs/{plan|review|archive}/BUG-*`（**禁止** `docs/bugs/`）。`issues/bugs/CHANGELOG.md` 仅作为目录级当前态看板索引。
 - 故障知识沉淀放入 `docs/knowledge-base/`。
 - 迭代文档放入 `iterations/{change|archive}/sprint-xxx/`（**MUST** 含 `sprint.yaml` 四件套，见 `rules/document-governance.md` §4.1、`rules/iterations-lifecycle.md`）；禁止 `docs/iterations/`。
 - 产品版本发布对象和公开发布公告源文件放入 `releases/`；禁止用 `docs/` 或 `iterations/` 临时代替产品发布目录。

@@ -15,6 +15,7 @@ from app.modules.media.tile_images import formalize_tile_image_object, is_pendin
 from app.repositories.tile_sku_repository import TileSkuRecord, TileSkuRepository
 from app.repositories.tile_spec_repository import TileSpecRepository
 from app.schemas.tile_sku_admin import (
+    DEFAULT_RECALL_PIN_SORT_ORDER,
     MaterialCompleteness,
     TileSkuAdminItem,
     TileSkuAdminListData,
@@ -176,6 +177,19 @@ class TileSkuAdminService:
         return value
 
     @staticmethod
+    def _normalize_recall_pin_sort_order(value: int | None) -> int:
+        if value is None:
+            return DEFAULT_RECALL_PIN_SORT_ORDER
+        if value <= 0:
+            raise AuthInvalidRequestError("召回排序值必须为正整数")
+        return value
+
+    @staticmethod
+    def _validate_recall_pin_period(starts_at: str | None, ends_at: str | None) -> None:
+        if starts_at and ends_at and starts_at > ends_at:
+            raise AuthInvalidRequestError("召回置顶开始时间不能晚于结束时间")
+
+    @staticmethod
     def _normalize_surface_finish(value: str | None) -> str:
         trimmed = (value or "").strip()
         return trimmed or "-"
@@ -253,6 +267,9 @@ class TileSkuAdminService:
             color_family=record.color_family,
             reference_price=record.reference_price,
             remark=record.remark,
+            recall_pin_sort_order=record.recall_pin_sort_order,
+            recall_pin_starts_at=record.recall_pin_starts_at,
+            recall_pin_ends_at=record.recall_pin_ends_at,
             status=record.status,  # type: ignore[arg-type]
             main_image_url=record.main_image_url,
             main_image_thumbnail_url=_thumbnail_url(record.main_image_url),
@@ -330,6 +347,13 @@ class TileSkuAdminService:
         reference_price = self._validate_reference_price(
             payload.reference_price if payload.reference_price is not None else 0.0
         )
+        recall_pin_sort_order = self._normalize_recall_pin_sort_order(
+            payload.recall_pin_sort_order
+        )
+        self._validate_recall_pin_period(
+            payload.recall_pin_starts_at,
+            payload.recall_pin_ends_at,
+        )
 
         images = self._normalize_images(payload.images)
         videos = self._normalize_videos(payload.videos)
@@ -349,6 +373,9 @@ class TileSkuAdminService:
             color_family=self._normalize_optional(payload.color_family, max_len=50),
             reference_price=reference_price,
             remark=self._normalize_optional(payload.remark, max_len=500),
+            recall_pin_sort_order=recall_pin_sort_order,
+            recall_pin_starts_at=payload.recall_pin_starts_at,
+            recall_pin_ends_at=payload.recall_pin_ends_at,
             status=status,
         )
         if images:
@@ -398,6 +425,22 @@ class TileSkuAdminService:
             if payload.reference_price is not None
             else record.reference_price
         )
+        recall_pin_sort_order = (
+            self._normalize_recall_pin_sort_order(payload.recall_pin_sort_order)
+            if payload.recall_pin_sort_order is not None
+            else record.recall_pin_sort_order
+        )
+        recall_pin_starts_at = (
+            payload.recall_pin_starts_at
+            if "recall_pin_starts_at" in payload.model_fields_set
+            else record.recall_pin_starts_at
+        )
+        recall_pin_ends_at = (
+            payload.recall_pin_ends_at
+            if "recall_pin_ends_at" in payload.model_fields_set
+            else record.recall_pin_ends_at
+        )
+        self._validate_recall_pin_period(recall_pin_starts_at, recall_pin_ends_at)
 
         status = record.status
         if record.status == "NEEDS_COMPLETION":
@@ -427,6 +470,9 @@ class TileSkuAdminService:
                 if payload.remark is not None
                 else record.remark
             ),
+            recall_pin_sort_order=recall_pin_sort_order,
+            recall_pin_starts_at=recall_pin_starts_at,
+            recall_pin_ends_at=recall_pin_ends_at,
             status=status,
             old_brand_id=record.brand_id,
             old_category_id=record.category_id,

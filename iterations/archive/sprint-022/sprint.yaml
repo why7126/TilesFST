@@ -1,0 +1,167 @@
+sprint_id: sprint-022
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-07 09:06:21
+end_date: 2026-08-07 18:00:00
+capacity:
+  developers: 1
+  testers: 1
+requirements:
+  - REQ-0103-product-recall-list-pin-priority
+  - REQ-0104-miniapp-recall-pinned-product-badge
+  - REQ-0106-admin-banner-title-hidden
+  - REQ-0107-real-user-page-load-rum
+  - REQ-0108-admin-banner-list-display-optimization
+  - REQ-0109-admin-theme-user-menu-modes
+  - REQ-0110-admin-user-contact-info-management
+capacity_person_days: 30
+capacity_usage: 0.875
+bugs:
+  - BUG-0125-miniapp-sku-detail-media-original-load
+  - BUG-0126-miniapp-brand-media-slow-load
+  - BUG-0127-admin-log-audit-slow-load
+  - BUG-0128-admin-user-menu-email-subtitle
+changes:
+  - add-spec-sync-skill
+  - rename-spec-sync-to-spec-study
+  - add-spec-logs-governance-log-convention
+  - avoid-duplicate-spec-study-reports
+  - fix-miniapp-sku-detail-media-thumbnails
+  - add-product-recall-list-pin-priority
+  - update-miniapp-recall-pinned-product-badge
+  - add-spec-logs-change-history
+  - update-banner-title-hidden-display
+  - add-real-user-page-load-rum
+  - apply-projectmoonbox-governance-learnings
+  - fix-miniapp-brand-media-performance
+  - update-admin-banner-list-display-optimization
+  - update-admin-theme-user-menu-modes
+  - fix-admin-log-audit-slow-load
+  - refine-capture-explore-modify-stage-routing
+  - fix-admin-identity-fake-email-display
+  - update-admin-user-contact-info-management
+scope_estimates:
+  - type: change
+    id: add-spec-sync-skill
+    title: 新增 spec-study Harness 学习同步技能
+    size: S
+    story_points: 1
+    person_days: 0.5
+    rationale: 纯治理技能扩展，承载跨项目 Harness 学习与同步流程。
+  - id: rename-spec-sync-to-spec-study
+    change: rename-spec-sync-to-spec-study
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 治理命令改名：spec-sync 调整为 spec-study，仅修改技能、规则、校验与文档命名。
+  - id: add-spec-logs-governance-log-convention
+    change: add-spec-logs-governance-log-convention
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 治理日志规则扩展：spec-study 学习报告与 spec-opt 治理迭代日志统一进入 docs/spec-logs，并通过文件名前缀区分。
+  - id: avoid-duplicate-spec-study-reports
+    change: avoid-duplicate-spec-study-reports
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 治理规则修正：约束 spec-study 同一次学习应用流程只生成一份正式 study 报告，避免重复日志。
+  - id: BUG-0125-miniapp-sku-detail-media-original-load
+    change: fix-miniapp-sku-detail-media-thumbnails
+    bug: BUG-0125-miniapp-sku-detail-media-original-load
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 高优先级小程序媒体性能 BUG：已有缩略图能力覆盖详情页遗漏，需调整 SKU 详情接口、小程序详情页渲染、测试断言与媒体四联验收；估算 1 人天，纳入后 sprint-022 总估算约 1.75 人天，fix 缓冲低于推荐 30% 需记录风险。
+  - id: REQ-0103-product-recall-list-pin-priority
+    change: add-product-recall-list-pin-priority
+    requirement: REQ-0103-product-recall-list-pin-priority
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 商品召回排序能力：涉及 SKU 召回排序字段与有效期、SQLite/MySQL migration、管理端 SKU 维护入口、后端公开商品列表与搜索排序、小程序无 UI 标识展示、OpenAPI/Orval 和回归测试；估算 3 人天，容量修正为 30 人天后总占用约 15.83%。
+  - id: REQ-0104-miniapp-recall-pinned-product-badge
+    change: update-miniapp-recall-pinned-product-badge
+    requirement: REQ-0104-miniapp-recall-pinned-product-badge
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序置顶标识补充：基于 REQ-0103 已有召回置顶排序能力，新增 MiniappProductCard 置顶生效字段、小程序商品卡片角标展示、OpenAPI/Orval 同步与普通列表/搜索/新品榜/热销榜回归测试；估算 1 人天，纳入后 sprint-022 总估算约 5.75/30 人天，容量门禁通过。
+  - id: add-spec-logs-change-history
+    change: add-spec-logs-change-history
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 治理文档规范优化：新增 docs/spec-logs/CHANGELOG.md 变更历史总账，并同步 spec-opt、AGENTS、rules、docs 与 OpenSpec delta；不改业务 src。
+  - id: REQ-0106-admin-banner-title-hidden
+    change: update-banner-title-hidden-display
+    requirement: REQ-0106-admin-banner-title-hidden
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 Banner 体验优化：隐藏管理端 Banner 标题运营字段、保留内部标题兼容、小程序首页与品牌列表页移除标题遮罩；涉及 Web 管理端弹窗/列表、小程序两处轮播、可能的 API/Orval 判断与回归测试，估算 1 人天，纳入后 sprint-022 总估算约 7/30 人天，容量门禁通过。
+  - id: REQ-0107-real-user-page-load-rum
+    change: add-real-user-page-load-rum
+    requirement: REQ-0107-real-user-page-load-rum
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 真实用户加载耗时监控：涉及 Web 与微信小程序端侧 RUM 采集、后端匿名性能上报接口、SQLite/MySQL 性能事件存储与聚合、管理端性能观测入口或查询预留、OpenAPI/Orval/docs/tests 同步；估算 5 人天，追加后 sprint-022 总估算约 12/30 人天，容量门禁通过。
+  - id: BUG-0126-miniapp-brand-media-slow-load
+    change: fix-miniapp-brand-media-performance
+    bug: BUG-0126-miniapp-brand-media-slow-load
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: 高优先级小程序品牌链路媒体性能 BUG：涉及品牌列表/品牌详情/品牌分类商品列表图片懒加载、缩略图对象审计与回填、/media 缓存可观测、媒体四联验收和小程序真机/DevTools evidence；估算 3 人天，追加后 sprint-022 总估算约 15/30 人天，容量门禁通过。
+  - id: apply-projectmoonbox-governance-learnings
+    change: apply-projectmoonbox-governance-learnings
+    size: M
+    story_points: 3
+    estimated_person_days: 2
+    rationale: 跨项目治理学习落地：应用 ProjectMoonBox 的日志优先 spec-study、git-check 安全门禁、原型 UI 验收、Issue 当前态看板和引导式反馈契约；仅修改治理资产，不触碰 src 业务代码。
+  - id: REQ-0108-admin-banner-list-display-optimization
+    change: update-admin-banner-list-display-optimization
+    requirement: REQ-0108-admin-banner-list-display-optimization
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 Banner 管理列表展示优化：Banner 列只显示主图，新增跳转对象只读展示字段，涉及后端列表响应、OpenAPI/Orval、管理端表格渲染和回归测试；不改 DB/小程序/表单，估算 1 人天，追加后 sprint-022 总估算约 18/30 人天，容量门禁通过。
+  - id: REQ-0109-admin-theme-user-menu-modes
+    change: update-admin-theme-user-menu-modes
+    requirement: REQ-0109-admin-theme-user-menu-modes
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 管理后台主题偏好入口与模式收敛：移动主题切换到用户菜单、收敛为暗色旗舰/跟随系统两种模式、处理历史主题值兼容并同步 API/OpenAPI/Orval 与前端测试；估算 1 人天，追加后 sprint-022 总估算约 19/30 人天，容量门禁通过。
+  - id: BUG-0127-admin-log-audit-slow-load
+    change: fix-admin-log-audit-slow-load
+    bug: BUG-0127-admin-log-audit-slow-load
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 管理后台日志审计性能 BUG：涉及后端日志列表查询条件下推、指定日志类型单表路径、摘要指标解耦或低成本聚合、SQLite/MySQL 索引与迁移、数据库/API 文档和后端回归/查询计划测试；估算 3 人天，追加后 sprint-022 总估算约 22/30 人天，容量门禁通过但 fix 缓冲降至约 26.67%，低于推荐 30% 需记录风险。
+  - id: BUG-0128-admin-user-menu-email-subtitle
+    change: fix-admin-identity-fake-email-display
+    bug: BUG-0128-admin-user-menu-email-subtitle
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2 管理后台身份展示修复：移除用户菜单栏邮箱副标题，个人资料页顶部身份栏不再拼接伪邮箱，保留联系邮箱编辑入口并更新前端回归测试；不涉及后端 API/数据库/小程序，估算 1 人天，追加后 sprint-022 总估算约 23/30 人天，容量门禁通过但 fix 缓冲进一步低于推荐 30%。
+  - id: refine-capture-explore-modify-stage-routing
+    change: refine-capture-explore-modify-stage-routing
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 治理命令规则优化：将需求相关不如预期的阶段分流标准写入 capture、explore 与 opsx-modify；不改业务 src。
+  - id: REQ-0110-admin-user-contact-info-management
+    change: update-admin-user-contact-info-management
+    requirement: REQ-0110-admin-user-contact-info-management
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 管理端用户联系信息维护：涉及用户管理创建/编辑 API 入参和校验、列表状态列后新增联系邮箱与手机号码独立列、空值显示 '-'、关键词搜索扩展、OpenAPI/Orval 和前后端回归测试；估算 3 人天，追加后 sprint-022 总估算约 26.25/30 人天，容量门禁通过但 fix 缓冲进一步低于推荐 30%。
+estimated_story_points: 29.5
+estimated_person_days: 26.25
+fix_buffer_person_days: 3.75
+fix_buffer_ratio: 0.125

@@ -23,6 +23,9 @@ class TileSkuRecord:
     color_family: str | None
     reference_price: float | None
     remark: str | None
+    recall_pin_sort_order: int
+    recall_pin_starts_at: str | None
+    recall_pin_ends_at: str | None
     status: str
     published_at: str | None
     created_at: str
@@ -79,7 +82,8 @@ class TileSkuRepository:
             SELECT
               t.id, t.name, t.sku_code, t.brand_id, t.category_id, t.spec_id,
               t.size, t.surface_finish, t.color_family, t.reference_price,
-              t.remark, t.status,
+              t.remark, t.recall_pin_sort_order, t.recall_pin_starts_at,
+              t.recall_pin_ends_at, t.status,
               t.published_at,
               t.created_at, t.updated_at,
               b.name AS brand_name,
@@ -116,6 +120,9 @@ class TileSkuRepository:
             color_family=row.get("color_family"),
             reference_price=row.get("reference_price"),
             remark=row.get("remark"),
+            recall_pin_sort_order=int(row.get("recall_pin_sort_order") or 9999),
+            recall_pin_starts_at=row.get("recall_pin_starts_at"),
+            recall_pin_ends_at=row.get("recall_pin_ends_at"),
             status=row["status"],
             published_at=row.get("published_at"),
             created_at=row["created_at"],
@@ -321,6 +328,9 @@ class TileSkuRepository:
         color_family: str | None,
         reference_price: float | None,
         remark: str | None,
+        recall_pin_sort_order: int,
+        recall_pin_starts_at: str | None,
+        recall_pin_ends_at: str | None,
         status: str,
     ) -> TileSkuRecord:
         now = self._now()
@@ -329,10 +339,14 @@ class TileSkuRepository:
                 """
                 INSERT INTO tiles (
                   name, sku_code, brand_id, category_id, spec_id, size, surface_finish,
-                  color_family, reference_price, remark, status, published_at, created_at, updated_at
+                  color_family, reference_price, remark, recall_pin_sort_order,
+                  recall_pin_starts_at, recall_pin_ends_at, status, published_at,
+                  created_at, updated_at
                 ) VALUES (
                   :name, :sku_code, :brand_id, :category_id, :spec_id, :size, :surface_finish,
-                  :color_family, :reference_price, :remark, :status, :published_at, :created_at, :updated_at
+                  :color_family, :reference_price, :remark, :recall_pin_sort_order,
+                  :recall_pin_starts_at, :recall_pin_ends_at, :status, :published_at,
+                  :created_at, :updated_at
                 )
                 """
             ),
@@ -347,6 +361,9 @@ class TileSkuRepository:
                 "color_family": color_family,
                 "reference_price": reference_price,
                 "remark": remark,
+                "recall_pin_sort_order": recall_pin_sort_order,
+                "recall_pin_starts_at": recall_pin_starts_at,
+                "recall_pin_ends_at": recall_pin_ends_at,
                 "status": status,
                 "published_at": now if status == "PUBLISHED" else None,
                 "created_at": now,
@@ -376,6 +393,9 @@ class TileSkuRepository:
         color_family: str | None,
         reference_price: float | None,
         remark: str | None,
+        recall_pin_sort_order: int,
+        recall_pin_starts_at: str | None,
+        recall_pin_ends_at: str | None,
         status: str,
         old_brand_id: int,
         old_category_id: int,
@@ -390,7 +410,10 @@ class TileSkuRepository:
                   category_id = :category_id, spec_id = :spec_id, size = :size,
                   surface_finish = :surface_finish,
                   color_family = :color_family, reference_price = :reference_price,
-                  remark = :remark, status = :status, updated_at = :updated_at
+                  remark = :remark, recall_pin_sort_order = :recall_pin_sort_order,
+                  recall_pin_starts_at = :recall_pin_starts_at,
+                  recall_pin_ends_at = :recall_pin_ends_at, status = :status,
+                  updated_at = :updated_at
                 WHERE id = :id
                 """
             ),
@@ -406,6 +429,9 @@ class TileSkuRepository:
                 "color_family": color_family,
                 "reference_price": reference_price,
                 "remark": remark,
+                "recall_pin_sort_order": recall_pin_sort_order,
+                "recall_pin_starts_at": recall_pin_starts_at,
+                "recall_pin_ends_at": recall_pin_ends_at,
                 "status": status,
                 "updated_at": now,
             },

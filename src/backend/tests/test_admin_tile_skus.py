@@ -689,6 +689,62 @@ def test_admin_list_tile_skus_includes_published_at(client: TestClient) -> None:
     assert published_body["summary"]["total"] >= 1
 
 
+def test_admin_tile_sku_recall_pin_config_defaults_validates_and_roundtrips(
+    client: TestClient,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    brand_id = _create_brand(client, headers)
+    category_id = _create_category(client, headers)
+    spec_id = _create_spec(client, headers)
+
+    created = client.post(
+        "/api/v1/admin/tile-skus",
+        headers=headers,
+        json=_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+    )
+    assert created.status_code == 200
+    data = created.json()["data"]
+    assert data["recall_pin_sort_order"] == 9999
+    assert data["recall_pin_starts_at"] is None
+    assert data["recall_pin_ends_at"] is None
+
+    invalid_order = client.put(
+        f"/api/v1/admin/tile-skus/{data['id']}",
+        headers=headers,
+        json={
+            **_create_sku_payload(brand_id=brand_id, category_id=category_id, spec_id=spec_id),
+            "recall_pin_sort_order": 0,
+        },
+    )
+    assert invalid_order.status_code == 422
+
+    invalid_period = client.put(
+        f"/api/v1/admin/tile-skus/{data['id']}",
+        headers=headers,
+        json={
+            "recall_pin_sort_order": 3,
+            "recall_pin_starts_at": "2026-08-08T00:00:00+00:00",
+            "recall_pin_ends_at": "2026-08-07T00:00:00+00:00",
+        },
+    )
+    assert invalid_period.status_code == 422
+
+    updated = client.put(
+        f"/api/v1/admin/tile-skus/{data['id']}",
+        headers=headers,
+        json={
+            "recall_pin_sort_order": 3,
+            "recall_pin_starts_at": "2026-08-07T00:00:00+00:00",
+            "recall_pin_ends_at": None,
+        },
+    )
+    assert updated.status_code == 200
+    body = updated.json()["data"]
+    assert body["recall_pin_sort_order"] == 3
+    assert body["recall_pin_starts_at"] == "2026-08-07T00:00:00+00:00"
+    assert body["recall_pin_ends_at"] is None
+
+
 def test_admin_list_tile_skus_uses_publish_state_business_time_order(
     client: TestClient,
 ) -> None:

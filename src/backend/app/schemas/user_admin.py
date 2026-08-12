@@ -41,12 +41,16 @@ class UserCreateRequest(BaseModel):
     display_name: str | None = Field(default=None, max_length=32)
     role: str
     avatar_object_key: str | None = None
+    email: str | None = None
+    phone: str | None = None
 
 
 class UserUpdateRequest(BaseModel):
     display_name: str | None = Field(default=None, max_length=32)
     role: str | None = None
     avatar_object_key: str | None = None
+    email: str | None = None
+    phone: str | None = None
 
 
 class UserStatusUpdateRequest(BaseModel):

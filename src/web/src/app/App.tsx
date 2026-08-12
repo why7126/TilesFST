@@ -12,6 +12,8 @@ import { BrandCertificateManagementPage } from '../pages/admin/BrandCertificateM
 import { BrandManagementPage } from '../pages/admin/BrandManagementPage';
 import { DashboardPage } from '../pages/admin/DashboardPage';
 import { LogAuditPage } from '../pages/admin/LogAuditPage';
+import { PerformanceRumPage } from '../pages/admin/PerformanceRumPage';
+import { PerformanceSamplesPage } from '../pages/admin/PerformanceSamplesPage';
 import { ProfilePage } from '../pages/admin/ProfilePage';
 import { TileCategoryManagementPage } from '../pages/admin/TileCategoryManagementPage';
 import { TileSkuManagementPage } from '../pages/admin/TileSkuManagementPage';
@@ -21,12 +23,14 @@ import { UserManagementPage } from '../pages/admin/UserManagementPage';
 import { ForbiddenPage } from '../pages/admin/ForbiddenPage';
 import { LoginPage } from '../pages/admin/LoginPage';
 import { DesignSystemPage } from '../pages/dev/DesignSystemPage';
+import { installWebRum } from '../features/performance/rum';
 
 function AuthBootstrap({ children }: { children: ReactNode }) {
   const restoreSession = useAuthStore((state) => state.restoreSession);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    installWebRum();
     void restoreSession().finally(() => setReady(true));
   }, [restoreSession]);
 
@@ -76,6 +80,8 @@ export function App() {
                 <Route element={<ProtectedRoute requireAdmin />}>
                   <Route path="/admin/users" element={<UserManagementPage />} />
                   <Route path="/admin/logs" element={<LogAuditPage />} />
+                  <Route path="/admin/performance" element={<PerformanceRumPage />} />
+                  <Route path="/admin/performance/samples" element={<PerformanceSamplesPage />} />
                   <Route path="/admin/api-docs" element={<ApiDocsPage />} />
                   <Route path="/admin/settings" element={<Navigate to="/admin/settings/basic" replace />} />
                   <Route path="/admin/settings/:tab" element={<SystemSettingsPage />} />

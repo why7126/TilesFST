@@ -27,14 +27,34 @@ def test_update_current_user_theme_preference_persists(api_client: TestClient) -
     update = api_client.patch(
         "/api/v1/auth/me/theme",
         headers=headers,
-        json={"theme_mode": "comfort_dark"},
+        json={"theme_mode": "dark_flagship"},
     )
     assert update.status_code == 200
-    assert update.json()["data"]["theme_mode"] == "comfort_dark"
+    assert update.json()["data"]["theme_mode"] == "dark_flagship"
 
     current = api_client.get("/api/v1/auth/me", headers=headers)
     assert current.status_code == 200
-    assert current.json()["data"]["theme_mode"] == "comfort_dark"
+    assert current.json()["data"]["theme_mode"] == "dark_flagship"
+
+
+def test_legacy_theme_preference_values_are_normalized(api_client: TestClient) -> None:
+    headers = _login(api_client)
+
+    light = api_client.patch(
+        "/api/v1/auth/me/theme",
+        headers=headers,
+        json={"theme_mode": "light"},
+    )
+    assert light.status_code == 200
+    assert light.json()["data"]["theme_mode"] == "system"
+
+    comfort = api_client.patch(
+        "/api/v1/auth/me/theme",
+        headers=headers,
+        json={"theme_mode": "comfort_dark"},
+    )
+    assert comfort.status_code == 200
+    assert comfort.json()["data"]["theme_mode"] == "dark_flagship"
 
 
 def test_invalid_theme_preference_returns_400_without_changing_value(api_client: TestClient) -> None:
@@ -42,7 +62,7 @@ def test_invalid_theme_preference_returns_400_without_changing_value(api_client:
     ok = api_client.patch(
         "/api/v1/auth/me/theme",
         headers=headers,
-        json={"theme_mode": "light"},
+        json={"theme_mode": "dark_flagship"},
     )
     assert ok.status_code == 200
 
@@ -55,11 +75,11 @@ def test_invalid_theme_preference_returns_400_without_changing_value(api_client:
     assert invalid.json() == {"code": 40001, "message": "无效的主题模式", "data": None}
 
     current = api_client.get("/api/v1/auth/me", headers=headers)
-    assert current.json()["data"]["theme_mode"] == "light"
+    assert current.json()["data"]["theme_mode"] == "dark_flagship"
 
 
 def test_unauthenticated_user_cannot_update_theme_preference(api_client: TestClient) -> None:
-    response = api_client.patch("/api/v1/auth/me/theme", json={"theme_mode": "light"})
+    response = api_client.patch("/api/v1/auth/me/theme", json={"theme_mode": "dark_flagship"})
 
     assert response.status_code == 401
     assert response.json()["code"] == 40102
@@ -87,7 +107,7 @@ def test_disabled_user_cannot_update_theme_preference(api_client: TestClient) ->
     response = api_client.patch(
         "/api/v1/auth/me/theme",
         headers=user_headers,
-        json={"theme_mode": "comfort_dark"},
+        json={"theme_mode": "dark_flagship"},
     )
 
     assert response.status_code == 403

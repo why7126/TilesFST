@@ -106,6 +106,24 @@ Only run expensive or environment-dependent checks when they match release scope
 
 If `impact_scope.database` is not `none` / `na` / `不涉及`, `database_migration` MUST be `pass` and its evidence MUST explicitly mention MySQL or `schema.mysql.sql`, a schema drift / target MySQL smoke check, and database rollback or backup evidence. Do not paste raw `DATABASE_URL` or credentials into release artifacts.
 
+## Actionable Blockers（MUST）
+
+When `/release-prepare` records blockers, each blocker MUST include:
+
+- `classification` using the existing failure taxonomy where possible.
+- `current_evidence` summarizing the command/path/time that exposed the blocker.
+- `safe_remediation` with a concrete next command or manual action when known.
+- `rerun_check` with the exact validation command to rerun after remediation.
+
+Examples:
+
+- `environment_blocker` for missing PIL/Pillow SHOULD mention restoring the backend uv environment and rerunning the affected `uv run python -m pytest ...` command.
+- MySQL drift SHOULD name only the missing table/column categories, never credentials, and SHOULD suggest applying the existing idempotent migration entrypoint or the project-approved migration path before rerunning `scripts/check-mysql-schema-drift.py --json`.
+- Missing image plan SHOULD point to `/image-prepare <version>`.
+- Missing image manifest SHOULD point to `/image-build <version>` after image plan is valid.
+
+The final response MUST group blockers into `已解决`, `仍阻塞`, and `仅 warning` when more than one gate changed during the command.
+
 ## Usage Docs Decision（MUST）
 
 Before generating or validating current-version product usage docs, ask the user whether this release needs usage docs generation or update. Do not infer confirmation from the presence of user-visible changes alone.
@@ -196,4 +214,3 @@ python scripts/extract-ai-usage.py \
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

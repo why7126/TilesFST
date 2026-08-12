@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>真实用户性能观测 Prototype</title>
+    <style>
+      :root {
+        --page: #18160f;
+        --surface: #211e16;
+        --deep: #100f0a;
+        --text: #ede8df;
+        --muted: rgba(237, 232, 223, 0.58);
+        --line: rgba(255, 255, 255, 0.1);
+        --gold: #c8a055;
+        --danger: #d97052;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page);
+        color: var(--text);
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      .page {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-end;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+        margin-bottom: 18px;
+      }
+
+      .filter {
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        padding: 10px 12px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .metric, .panel {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        border-radius: 3px;
+      }
+
+      .metric {
+        padding: 16px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .value {
+        margin-top: 8px;
+        color: var(--gold);
+        font-size: 26px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 14px;
+      }
+
+      .panel {
+        padding: 16px;
+        min-height: 260px;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .trend {
+        height: 172px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(to top, transparent 24%, rgba(255,255,255,.05) 25%, transparent 26%),
+          linear-gradient(135deg, rgba(200,160,85,.18), rgba(217,112,82,.1));
+        border-radius: 2px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 11px 8px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+
+      th { color: var(--muted); font-weight: 400; }
+
+      .slow { color: var(--danger); }
+      .good { color: var(--gold); }
+
+      @media (max-width: 900px) {
+        header { display: block; }
+        .filters { grid-template-columns: 1fr 1fr; }
+        .metrics { grid-template-columns: 1fr 1fr; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <div>
+          <h1>真实用户性能观测</h1>
+          <div class="subtitle">按端类型、页面、版本和网络追踪首屏可用与完整加载体验</div>
+        </div>
+        <div class="subtitle">样本不足项需标记，不作为趋势结论</div>
+      </header>
+
+      <section class="filters" aria-label="筛选">
+        <div class="filter">最近 24 小时</div>
+        <div class="filter">全部端类型</div>
+        <div class="filter">全部页面</div>
+        <div class="filter">全部版本</div>
+        <div class="filter">全部网络</div>
+      </section>
+
+      <section class="metrics" aria-label="摘要指标">
+        <div class="metric"><div class="label">样本量</div><div class="value">12,840</div></div>
+        <div class="metric"><div class="label">P75 首屏可用</div><div class="value">1.8s</div></div>
+        <div class="metric"><div class="label">P95 首屏可用</div><div class="value">3.9s</div></div>
+        <div class="metric"><div class="label">慢页面</div><div class="value">7</div></div>
+        <div class="metric"><div class="label">上报失败率</div><div class="value">0.3%</div></div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>首屏可用趋势</h2>
+          <div class="trend" role="img" aria-label="首屏可用 P75 和 P95 趋势占位图"></div>
+        </div>
+        <div class="panel">
+          <h2>慢页面排行</h2>
+          <table>
+            <thead><tr><th>页面</th><th>端</th><th>P95</th><th>样本</th></tr></thead>
+            <tbody>
+              <tr><td>product-detail</td><td>miniapp</td><td class="slow">4.6s</td><td>1,208</td></tr>
+              <tr><td>brand-list</td><td>web_catalog</td><td class="slow">3.8s</td><td>892</td></tr>
+              <tr><td>tile-admin</td><td>web_admin</td><td class="good">2.1s</td><td>514</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

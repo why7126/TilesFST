@@ -115,6 +115,26 @@ Use this skill when the user asks to run the workflow command `explore`, or want
 - 逐项探索，或在信息量过大时先给主题地图并建议优先级。
 - 不得把多主题混成一个含糊结论。
 
+## 需求相关偏差阶段分流（MUST）
+
+当用户讨论某个已有关联 REQ、BUG、Change 或 Sprint 的“不如预期”时，`/explore` MUST 只读判断阶段并输出类型倾向与建议命令，不得自动落盘：
+
+| 阶段 / 条件 | 类型倾向 | 建议路径 |
+|---|---|---|
+| 目标 Change 已 `/opsx-apply`、未 `/opsx-archive`，且反馈仍属于原需求、原 Change、原验收项或原能力边界 | 验收返修 | `/opsx-modify <REQ-id|BUG-id|change-id> <反馈>` |
+| 目标 Change 未归档，但反馈新增原需求未包含的功能，或改变 API / DB / 权限 / 部署 / 对象存储边界 | 新需求 / 范围变更 | `/req-capture` 或 `/capture` |
+| 目标 Change 未归档，但反馈是独立缺陷且影响范围超出当前 Change | BUG | `/bug-capture` 或 `/capture`，并建议关联原 REQ |
+| 原 REQ / Change 已归档，但所属 Sprint 未归档 | 归档后缺陷或新增需求 | 偏差走 `/bug-capture`；增强走 `/req-capture` |
+| 所属 Sprint 已归档 | 新生命周期输入 | 偏差走 `/bug-capture`；增强走 `/req-capture` |
+
+判断顺序 SHOULD 为：
+
+1. 先确认是否存在 active Change 可承接返修。
+2. 再判断反馈是否仍在原验收边界内。
+3. 最后按“已承诺能力偏差 → BUG；新增能力 / 体验增强 → REQ”分流。
+
+若用户要求“记录下来”或“创建 BUG/需求”，MUST 退出 `/explore` 默认只读边界，按对应 capture Skill 规则执行。
+
 ## 可读取内容
 
 - 用户给出的文件、日志、截图或上下文。
@@ -187,4 +207,3 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event explore 
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

@@ -1,0 +1,6 @@
+- [x] 新增 OpenSpec proposal、design、tasks 与 agent-workflow-tooling delta。
+- [x] 更新 `/capture` 阶段分流规则。
+- [x] 更新 `/explore` 阶段分流规则。
+- [x] 更新 `/opsx-modify` 阶段边界与超范围推荐路径。
+- [x] 写入治理迭代日志并更新 `docs/spec-logs/CHANGELOG.md`。
+- [x] 运行治理文档、目录结构与 OpenSpec 校验。

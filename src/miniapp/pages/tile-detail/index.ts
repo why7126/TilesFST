@@ -20,6 +20,7 @@ type ProductCard = {
   brand_name?: string;
   color_family?: string;
   price_display: string;
+  is_recall_pinned?: boolean;
 };
 
 type LegacyProductDetail = ProductCard & {

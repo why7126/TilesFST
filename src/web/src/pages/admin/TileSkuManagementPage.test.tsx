@@ -56,6 +56,9 @@ const listPayload = {
       size: '600×600',
       surface_finish: '哑光',
       reference_price: 268,
+      recall_pin_sort_order: 7,
+      recall_pin_starts_at: null,
+      recall_pin_ends_at: null,
       has_main_image: true,
       image_count: 2,
       video_count: 1,
@@ -154,7 +157,8 @@ describe('TileSkuManagementPage', () => {
     expect(headers.indexOf('发布时间')).toBeLessThan(headers.indexOf('更新时间'));
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
     expect(row.cells[0]).not.toHaveClass('admin-sticky-action-cell');
-    expect(row.cells[6]).toHaveTextContent('—');
+    expect(row.cells[5]).toHaveTextContent('7');
+    expect(row.cells[7]).toHaveTextContent('—');
     expect(row.cells[row.cells.length - 1]).toHaveClass('admin-sticky-action-cell');
 
     const pagination = screen.getByText('共 1 条').closest('.pagination');
@@ -179,21 +183,24 @@ describe('TileSkuManagementPage', () => {
 
     const table = screen.getByRole('table');
     expect(table).toHaveClass('sku-mgmt-table');
-    expect(tileSkuCss).toContain('width: max(100%, 1180px)');
-    expect(tileSkuCss).toContain('min-width: 1180px');
+    expect(tileSkuCss).toContain('width: max(100%, 1260px)');
+    expect(tileSkuCss).toContain('min-width: 1260px');
     expect(tileSkuCss).toContain('overflow-x: auto');
     expect(tileSkuCss).toContain('white-space: nowrap');
+    expect(tileSkuCss).toContain('.admin-shell .sku-status');
     expect(tileSkuCss).toContain('.sku-mgmt-table th:nth-child(7)');
     expect(tileSkuCss).toContain('.sku-mgmt-table th:nth-child(8)');
+    expect(tileSkuCss).toContain('.sku-mgmt-table th:nth-child(9)');
 
     const headers = screen.getAllByRole('columnheader');
-    expect(headers).toHaveLength(9);
+    expect(headers).toHaveLength(10);
     expect(headers.map((header) => header.textContent)).toEqual([
       'SKU 信息',
       '品牌 / 类目',
       '规格 / 工艺',
       '参考价格',
       '素材',
+      '排序',
       '状态',
       '发布时间',
       '更新时间',
@@ -225,8 +232,8 @@ describe('TileSkuManagementPage', () => {
     });
 
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
-    expect(row.cells[6]).toHaveTextContent(formatSkuDateTime('2026-06-19T16:30:00Z'));
-    expect(row.cells[7]).toHaveTextContent(formatSkuDateTime('2026-06-20T00:45:00Z'));
+    expect(row.cells[7]).toHaveTextContent(formatSkuDateTime('2026-06-19T16:30:00Z'));
+    expect(row.cells[8]).toHaveTextContent(formatSkuDateTime('2026-06-20T00:45:00Z'));
   });
 
   it('uses thumbnail image first and falls back to original image', async () => {
@@ -495,7 +502,7 @@ describe('TileSkuManagementPage', () => {
     });
 
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
-    expect(row.cells[6]).toHaveTextContent('—');
+    expect(row.cells[7]).toHaveTextContent('—');
   });
 
   it('shows restore action for disabled SKU rows', async () => {
@@ -526,7 +533,7 @@ describe('TileSkuManagementPage', () => {
     expect(screen.getByRole('button', { name: '删除' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '上架' })).not.toBeInTheDocument();
     const row = screen.getByText('测试 SKU').closest('tr') as HTMLTableRowElement;
-    expect(row.cells[6]).toHaveTextContent('2026-07-30 00:20');
+    expect(row.cells[7]).toHaveTextContent('2026-07-30 00:20');
   });
 
   it('uses the full filter-card width without an unused grid column', () => {

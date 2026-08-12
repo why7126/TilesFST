@@ -84,7 +84,53 @@ def apply_migrations(connection: Connection) -> None:
     _ensure_banner_support(connection)
     _ensure_system_settings_support(connection)
     _ensure_product_usage_logging_support(connection)
+    _ensure_performance_events_support(connection)
     _ensure_miniapp_sku_favorites_support(connection)
+
+
+def _ensure_performance_events_support(connection: Connection) -> None:
+    connection.execute(
+        text(
+            """
+            CREATE TABLE IF NOT EXISTS performance_events (
+              id TEXT PRIMARY KEY,
+              client_type TEXT NOT NULL CHECK (client_type IN ('web_admin', 'web_catalog', 'wechat_miniapp')),
+              page_key TEXT NOT NULL,
+              app_version TEXT,
+              network_type TEXT,
+              device_class TEXT,
+              metric_name TEXT NOT NULL,
+              duration_ms INTEGER NOT NULL CHECK (duration_ms >= 0),
+              sample_rate REAL NOT NULL DEFAULT 1.0 CHECK (sample_rate >= 0 AND sample_rate <= 1),
+              occurred_at TEXT NOT NULL,
+              server_received_at TEXT NOT NULL,
+              request_id TEXT,
+              metadata TEXT
+            )
+            """
+        )
+    )
+    indexes = {
+        "idx_performance_events_received": (
+            "CREATE INDEX idx_performance_events_received "
+            "ON performance_events(server_received_at DESC)"
+        ),
+        "idx_performance_events_client_page_metric": (
+            "CREATE INDEX idx_performance_events_client_page_metric "
+            "ON performance_events(client_type, page_key, metric_name, server_received_at DESC)"
+        ),
+        "idx_performance_events_version": (
+            "CREATE INDEX idx_performance_events_version "
+            "ON performance_events(app_version, server_received_at DESC)"
+        ),
+        "idx_performance_events_network": (
+            "CREATE INDEX idx_performance_events_network "
+            "ON performance_events(network_type, device_class, server_received_at DESC)"
+        ),
+    }
+    for name, sql in indexes.items():
+        if not _index_exists(connection, name):
+            connection.execute(text(sql))
 
 
 def _ensure_brand_certificates_support(connection: Connection) -> None:
@@ -212,6 +258,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         "idx_request_logs_request_id": "CREATE INDEX idx_request_logs_request_id ON request_logs(request_id)",
         "idx_request_logs_actor_created": "CREATE INDEX idx_request_logs_actor_created ON request_logs(actor_user_id, created_at DESC)",
         "idx_request_logs_status_created": "CREATE INDEX idx_request_logs_status_created ON request_logs(status_code, created_at DESC)",
+        "idx_request_logs_client_created": "CREATE INDEX idx_request_logs_client_created ON request_logs(client_type, created_at DESC)",
+        "idx_request_logs_result_created": "CREATE INDEX idx_request_logs_result_created ON request_logs(result, created_at DESC)",
         "idx_request_logs_path_created": "CREATE INDEX idx_request_logs_path_created ON request_logs(path, created_at DESC)",
         "idx_request_logs_task_trace": "CREATE INDEX idx_request_logs_task_trace ON request_logs(task_trace_id, created_at DESC)",
         "idx_request_logs_client_request_id": "CREATE INDEX idx_request_logs_client_request_id ON request_logs(client_request_id)",
@@ -261,6 +309,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         "idx_usage_events_event_created": "CREATE INDEX idx_usage_events_event_created ON usage_events(event_name, created_at DESC)",
         "idx_usage_events_request_id": "CREATE INDEX idx_usage_events_request_id ON usage_events(request_id)",
         "idx_usage_events_actor_created": "CREATE INDEX idx_usage_events_actor_created ON usage_events(actor_user_id, created_at DESC)",
+        "idx_usage_events_client_created": "CREATE INDEX idx_usage_events_client_created ON usage_events(client_type, created_at DESC)",
+        "idx_usage_events_result_created": "CREATE INDEX idx_usage_events_result_created ON usage_events(result, created_at DESC)",
         "idx_usage_events_task_trace": "CREATE INDEX idx_usage_events_task_trace ON usage_events(task_trace_id, created_at DESC)",
     }
     for name, sql in usage_indexes.items():
@@ -277,6 +327,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
             connection.execute(
                 text("CREATE INDEX idx_audit_logs_task_trace ON audit_logs(task_trace_id, created_at DESC)")
             )
+        if not _index_exists(connection, "idx_audit_logs_created"):
+            connection.execute(text("CREATE INDEX idx_audit_logs_created ON audit_logs(created_at DESC)"))
 
     if not _table_exists(connection, "task_traces"):
         connection.execute(
@@ -427,6 +479,7 @@ def _ensure_system_settings_support(connection: Connection) -> None:
                 """
             )
         )
+        connection.execute(text("CREATE INDEX idx_audit_logs_created ON audit_logs(created_at DESC)"))
         connection.execute(
             text(
                 """
@@ -781,6 +834,24 @@ def _ensure_tiles_sku_extended(connection: Connection) -> None:
                     """
                 )
             )
+        if "recall_pin_sort_order" not in columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE tiles ADD COLUMN recall_pin_sort_order INTEGER NOT NULL DEFAULT 9999"
+                )
+            )
+        if "recall_pin_starts_at" not in columns:
+            connection.execute(text("ALTER TABLE tiles ADD COLUMN recall_pin_starts_at TEXT"))
+        if "recall_pin_ends_at" not in columns:
+            connection.execute(text("ALTER TABLE tiles ADD COLUMN recall_pin_ends_at TEXT"))
+        connection.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS idx_tiles_recall_pin
+                ON tiles(recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at)
+                """
+            )
+        )
         _ensure_tile_videos_table(connection)
         return
     _rebuild_tiles_sku_table(connection)
@@ -863,6 +934,9 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
               color_family TEXT,
               reference_price REAL,
               remark TEXT,
+              recall_pin_sort_order INTEGER NOT NULL DEFAULT 9999,
+              recall_pin_starts_at TEXT,
+              recall_pin_ends_at TEXT,
               status TEXT NOT NULL DEFAULT 'DRAFT'
                 CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
               published_at TEXT,
@@ -893,10 +967,14 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
                     """
                     INSERT INTO tiles_new (
                       id, name, sku_code, brand_id, category_id, size, surface_finish,
-                      color_family, reference_price, remark, status, published_at, created_at, updated_at
+                      color_family, reference_price, remark, recall_pin_sort_order,
+                      recall_pin_starts_at, recall_pin_ends_at, status, published_at,
+                      created_at, updated_at
                     ) VALUES (
                       :id, :name, :sku_code, :brand_id, :category_id, :size, :surface_finish,
-                      :color_family, :reference_price, :remark, :status, :published_at, :created_at, :updated_at
+                      :color_family, :reference_price, :remark, :recall_pin_sort_order,
+                      :recall_pin_starts_at, :recall_pin_ends_at, :status, :published_at,
+                      :created_at, :updated_at
                     )
                     """
                 ),
@@ -911,6 +989,9 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
                     "color_family": row_dict.get("color"),
                     "reference_price": None,
                     "remark": row_dict.get("description"),
+                    "recall_pin_sort_order": int(row_dict.get("recall_pin_sort_order") or 9999),
+                    "recall_pin_starts_at": row_dict.get("recall_pin_starts_at"),
+                    "recall_pin_ends_at": row_dict.get("recall_pin_ends_at"),
                     "status": status,
                     "published_at": row_dict.get("published_at")
                     or (row_dict.get("updated_at") if status == "PUBLISHED" else None),
@@ -921,4 +1002,12 @@ def _rebuild_tiles_sku_table(connection: Connection) -> None:
 
     connection.execute(text("DROP TABLE tiles"))
     connection.execute(text("ALTER TABLE tiles_new RENAME TO tiles"))
+    connection.execute(
+        text(
+            """
+            CREATE INDEX IF NOT EXISTS idx_tiles_recall_pin
+            ON tiles(recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at)
+            """
+        )
+    )
     connection.execute(text("PRAGMA foreign_keys=ON"))

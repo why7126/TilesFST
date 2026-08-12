@@ -31,6 +31,7 @@ class MiniappProductRecord:
     brand_logo_object_key: str | None
     category_path: str | None
     remark: str | None
+    is_recall_pinned: bool = False
 
 
 @dataclass
@@ -117,6 +118,8 @@ class MiniappCertificateImageResult:
 
 
 class MiniappHomeRepository:
+    RECALL_PIN_LIMIT = 4
+
     def __init__(self, db: Session) -> None:
         self._db = db
 
@@ -514,19 +517,28 @@ class MiniappHomeRepository:
         )
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
+        params["recall_now"] = datetime.now(UTC).isoformat()
         hot_sql = self._hot_score_sql()
+        list_default = not only_new and (
+            brand_id is not None or category_id is not None or bool((keyword or "").strip())
+        )
         order_sql = self._product_order_sql(
             sort=sort,
             hot_first=hot_first,
-            list_default=not only_new
-            and (brand_id is not None or category_id is not None or bool((keyword or "").strip())),
+            list_default=list_default,
         )
+        apply_recall_pin = list_default and not hot_first and sort == "default"
+        if apply_recall_pin:
+            order_sql = self._with_recall_pin_order(order_sql)
         rows = (
             self._db.execute(
                 text(
                     f"""
-                    {self._product_select_sql(hot_sql)}
-                    {where}
+                    WITH filtered_products AS (
+                      {self._product_select_sql(hot_sql)}
+                      {where}
+                    )
+                    SELECT * FROM filtered_products
                     ORDER BY {order_sql}
                     LIMIT :limit OFFSET :offset
                     """
@@ -543,7 +555,9 @@ class MiniappHomeRepository:
             ).scalar_one()
             or 0
         )
-        return [self._to_product(dict(row)) for row in rows], total
+        return [
+            self._to_product(dict(row), include_recall_pin=apply_recall_pin) for row in rows
+        ], total
 
     def list_product_facets(
         self,
@@ -605,6 +619,7 @@ class MiniappHomeRepository:
         spec: str | None,
         price_min: float | None,
         price_max: float | None,
+        apply_recall_pin: bool = False,
     ) -> tuple[list[MiniappProductRecord], int]:
         where, params = self._search_product_filters(
             keyword=keyword,
@@ -616,26 +631,34 @@ class MiniappHomeRepository:
         )
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
+        params["recall_now"] = datetime.now(UTC).isoformat()
         hot_sql = self._hot_score_sql()
+        search_order_sql = """
+          CASE
+            WHEN lower(sku_code) = :exact_keyword THEN 0
+            WHEN lower(sku_code) LIKE :prefix_keyword THEN 1
+            WHEN lower(name) = :exact_keyword THEN 2
+            WHEN lower(brand_name) = :exact_keyword THEN 3
+            WHEN sku_code LIKE :keyword OR name LIKE :keyword THEN 4
+            ELSE 5
+          END,
+          CASE WHEN main_image_url IS NULL THEN 1 ELSE 0 END,
+          hot_score DESC,
+          COALESCE(published_at, created_at) ASC,
+          id ASC
+        """
+        if apply_recall_pin:
+            search_order_sql = self._with_recall_pin_order(search_order_sql)
         rows = (
             self._db.execute(
                 text(
                     f"""
-                    {self._product_select_sql(hot_sql)}
-                    {where}
-                    ORDER BY
-                      CASE
-                        WHEN lower(t.sku_code) = :exact_keyword THEN 0
-                        WHEN lower(t.sku_code) LIKE :prefix_keyword THEN 1
-                        WHEN lower(t.name) = :exact_keyword THEN 2
-                        WHEN lower(b.name) = :exact_keyword THEN 3
-                        WHEN t.sku_code LIKE :keyword OR t.name LIKE :keyword THEN 4
-                        ELSE 5
-                      END,
-                      CASE WHEN main_image_url IS NULL THEN 1 ELSE 0 END,
-                      hot_score DESC,
-                      COALESCE(t.published_at, t.created_at) ASC,
-                      t.id ASC
+                    WITH filtered_products AS (
+                      {self._product_select_sql(hot_sql)}
+                      {where}
+                    )
+                    SELECT * FROM filtered_products
+                    ORDER BY {search_order_sql}
                     LIMIT :limit OFFSET :offset
                     """
                 ),
@@ -660,7 +683,9 @@ class MiniappHomeRepository:
             ).scalar_one()
             or 0
         )
-        return [self._to_product(dict(row)) for row in rows], total
+        return [
+            self._to_product(dict(row), include_recall_pin=apply_recall_pin) for row in rows
+        ], total
 
     def list_search_named_results(self, *, keyword: str) -> dict[str, list[MiniappNamedResult]]:
         params = {"keyword": f"%{keyword.strip()}%"}
@@ -808,7 +833,7 @@ class MiniappHomeRepository:
                       AND t.id = :product_id
                     """
                 ),
-                {"product_id": product_id},
+                {"product_id": product_id, "recall_now": datetime.now(UTC).isoformat()},
             )
             .mappings()
             .first()
@@ -923,7 +948,11 @@ class MiniappHomeRepository:
                     LIMIT :limit
                     """
                 ),
-                {"product_id": product.id, "limit": limit},
+                {
+                    "product_id": product.id,
+                    "limit": limit,
+                    "recall_now": datetime.now(UTC).isoformat(),
+                },
             )
             .mappings()
             .all()
@@ -941,6 +970,7 @@ class MiniappHomeRepository:
             "product_id": product.id,
             "brand_id": product.brand_id,
             "limit": limit,
+            "recall_now": datetime.now(UTC).isoformat(),
         }
         exclude_clause = ""
         for index, product_id in enumerate(sorted(exclude_ids)):
@@ -1035,7 +1065,8 @@ class MiniappHomeRepository:
         return f"""
             SELECT
               t.id, t.name, t.sku_code, t.size, t.surface_finish,
-              t.color_family, t.reference_price, t.remark, t.created_at, t.updated_at,
+              t.color_family, t.reference_price, t.remark, t.published_at,
+              t.created_at, t.updated_at,
               b.name AS brand_name,
               b.id AS brand_id,
               b.short_name AS brand_short_name,
@@ -1048,7 +1079,28 @@ class MiniappHomeRepository:
                 WHERE ti.tile_id = t.id AND ti.is_main = 1
                 ORDER BY ti.sort_order, ti.id LIMIT 1
               ) AS main_image_url,
-              ({hot_score_sql}) AS hot_score
+              ({hot_score_sql}) AS hot_score,
+              COALESCE(t.recall_pin_sort_order, 9999) AS recall_pin_sort_order,
+              t.recall_pin_starts_at,
+              t.recall_pin_ends_at,
+              CASE
+                WHEN COALESCE(t.recall_pin_sort_order, 9999) BETWEEN 1 AND 9998
+                  AND (t.recall_pin_starts_at IS NULL OR t.recall_pin_starts_at <= :recall_now)
+                  AND (t.recall_pin_ends_at IS NULL OR t.recall_pin_ends_at >= :recall_now)
+                THEN 1 ELSE 0
+              END AS recall_pin_eligible,
+              ROW_NUMBER() OVER (
+                ORDER BY
+                  CASE
+                    WHEN COALESCE(t.recall_pin_sort_order, 9999) BETWEEN 1 AND 9998
+                      AND (t.recall_pin_starts_at IS NULL OR t.recall_pin_starts_at <= :recall_now)
+                      AND (t.recall_pin_ends_at IS NULL OR t.recall_pin_ends_at >= :recall_now)
+                    THEN 0 ELSE 1
+                  END ASC,
+                  COALESCE(t.recall_pin_sort_order, 9999) ASC,
+                  COALESCE(t.published_at, t.created_at) ASC,
+                  t.id ASC
+              ) AS recall_pin_rank
             FROM tiles t
             JOIN brands b ON b.id = t.brand_id
             JOIN tile_categories c ON c.id = t.category_id
@@ -1149,22 +1201,38 @@ class MiniappHomeRepository:
             params["filter_value"] = f"%{cleaned_filter}%"
         if only_new:
             if dialect_name == "mysql":
-                clauses.append("t.created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)")
+                clauses.append(
+                    "COALESCE(t.published_at, t.created_at) >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)"
+                )
             else:
-                clauses.append("t.created_at >= datetime('now', '-90 days')")
+                clauses.append("COALESCE(t.published_at, t.created_at) >= datetime('now', '-90 days')")
         return "WHERE " + " AND ".join(clauses), params
 
     @staticmethod
     def _product_order_sql(*, sort: str, hot_first: bool, list_default: bool = False) -> str:
         if hot_first:
-            return "hot_score DESC, t.updated_at DESC, t.id DESC"
+            return "hot_score DESC, updated_at DESC, id DESC"
         if sort == "price_asc":
-            return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price ASC, t.updated_at DESC, t.id DESC"
+            return "CASE WHEN reference_price IS NULL THEN 1 ELSE 0 END, reference_price ASC, updated_at DESC, id DESC"
         if sort == "price_desc":
-            return "CASE WHEN t.reference_price IS NULL THEN 1 ELSE 0 END, t.reference_price DESC, t.updated_at DESC, t.id DESC"
+            return "CASE WHEN reference_price IS NULL THEN 1 ELSE 0 END, reference_price DESC, updated_at DESC, id DESC"
         if list_default and sort == "default":
-            return "COALESCE(t.published_at, t.created_at) ASC, t.id ASC"
-        return "t.updated_at DESC, t.id DESC"
+            return "COALESCE(published_at, created_at) ASC, id ASC"
+        return "updated_at DESC, id DESC"
+
+    @classmethod
+    def _with_recall_pin_order(cls, base_order_sql: str) -> str:
+        return f"""
+            CASE
+              WHEN recall_pin_eligible = 1 AND recall_pin_rank <= {cls.RECALL_PIN_LIMIT}
+              THEN 0 ELSE 1
+            END ASC,
+            CASE
+              WHEN recall_pin_eligible = 1 AND recall_pin_rank <= {cls.RECALL_PIN_LIMIT}
+              THEN recall_pin_sort_order ELSE NULL
+            END ASC,
+            {base_order_sql}
+        """
 
     @staticmethod
     def _search_product_filters(
@@ -1282,7 +1350,12 @@ class MiniappHomeRepository:
         )
 
     @staticmethod
-    def _to_product(row: dict[str, Any]) -> MiniappProductRecord:
+    def _to_product(
+        row: dict[str, Any],
+        *,
+        include_recall_pin: bool = False,
+    ) -> MiniappProductRecord:
+        recall_pin_rank = int(row.get("recall_pin_rank") or 0)
         return MiniappProductRecord(
             id=int(row["id"]),
             name=str(row["name"]),
@@ -1305,4 +1378,9 @@ class MiniappHomeRepository:
             brand_logo_object_key=row.get("brand_logo_object_key"),
             category_path=row.get("category_path"),
             remark=row.get("remark"),
+            is_recall_pinned=(
+                include_recall_pin
+                and int(row.get("recall_pin_eligible") or 0) == 1
+                and 0 < recall_pin_rank <= MiniappHomeRepository.RECALL_PIN_LIMIT
+            ),
         )

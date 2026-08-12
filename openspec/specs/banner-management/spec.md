@@ -5,47 +5,23 @@
 ## Requirements
 ### Requirement: Banner 数据模型与业务规则
 
-系统 MUST 提供 `banners` 表存储运营 Banner 配置，字段 MUST 包含：`title`、`display_client`、`position`、`image_object_key`、`image_source`、`sku_gallery_asset_id`、`jump_type`、条件跳转目标（`sku_id` / `brand_id` / `external_url` / `topic_id`）、`sort_order`、`valid_from`、`valid_to`、`status`、`remark`、时间戳。业务唯一键 MUST 为 `(display_client, position, title)`。新建 Banner MUST 默认 `status=DRAFT`。`display_client` 当前业务范围 MUST 仅支持小程序展示端，存储值 MAY 沿用兼容枚举 `MINIAPP_HOME`，管理端文案 MUST 显示为“小程序”。`position` MUST 仅支持 `MINIAPP_HOME_CAROUSEL` 与 `MINIAPP_BRAND_LIST_CAROUSEL`。`jump_type` MUST 为 `SKU_DETAIL`、`BRAND_DETAIL`、`EXTERNAL_LINK`、`TOPIC_PAGE`、`NO_JUMP` 之一。弹窗保存 MUST NOT 修改 `status`；上线/下线 MUST 仅通过列表 API 变更。生产 MySQL 既有 `banners` 表 MUST 具备创建和编辑 Banner 所需的全部写入字段，至少包括 `image_source`、`sku_gallery_asset_id`、`topic_id`、`brand_id`、`valid_from`、`valid_to`、`remark`；缺失时 MUST 通过幂等迁移、启动前校验或发布前 drift 修复补齐，而不是让保存接口暴露原始数据库异常。
+系统 MUST 提供 `banners` 表存储运营 Banner 配置，字段 MUST 包含：`title`、`display_client`、`position`、`image_object_key`、`image_source`、`sku_gallery_asset_id`、`jump_type`、条件跳转目标（`sku_id` / `brand_id` / `external_url` / `topic_id`）、`sort_order`、`valid_from`、`valid_to`、`status`、`remark`、时间戳。业务唯一键 MUST 为 `(display_client, position, title)`。`title` 在当前阶段 MUST 作为系统内部兼容字段保留，MUST NOT 作为运营必须手工维护的前台展示标题；当管理端隐藏标题字段但保存链路仍需要 `title` 时，系统 MUST 自动生成、保留或补齐内部标题，并在冲突时兜底生成新的唯一值，而不是要求运营手动填写标题。新建 Banner MUST 默认 `status=DRAFT`。`display_client` 当前业务范围 MUST 仅支持小程序展示端，存储值 MAY 沿用兼容枚举 `MINIAPP_HOME`，管理端文案 MUST 显示为“小程序”。`position` MUST 仅支持 `MINIAPP_HOME_CAROUSEL` 与 `MINIAPP_BRAND_LIST_CAROUSEL`。`jump_type` MUST 为 `SKU_DETAIL`、`BRAND_DETAIL`、`EXTERNAL_LINK`、`TOPIC_PAGE`、`NO_JUMP` 之一。弹窗保存 MUST NOT 修改 `status`；上线/下线 MUST 仅通过列表 API 变更。生产 MySQL 既有 `banners` 表 MUST 具备创建和编辑 Banner 所需的全部写入字段，至少包括 `image_source`、`sku_gallery_asset_id`、`topic_id`、`brand_id`、`valid_from`、`valid_to`、`remark`；缺失时 MUST 通过幂等迁移、启动前校验或发布前 drift 修复补齐，而不是让保存接口暴露原始数据库异常。
 
-#### Scenario: 品牌详情 Banner 新增保存
+#### Scenario: 隐藏标题后的 Banner 保存
 
 - **GIVEN** 管理端用户具备 Banner 管理权限
-- **AND** 存在 `ENABLED` 品牌
-- **WHEN** 客户端 `POST /api/v1/admin/banners` 提交 `jump_type=BRAND_DETAIL`、合法 `brand_id`、合法图片来源、展示位置、排序和有效期
-- **THEN** 服务端 MUST 创建 Banner 并返回统一成功响应
-- **AND** 持久化记录 MUST 保留 `brand_id`、`jump_type`、`image_source` 和 `image_object_key`
-- **AND** 新建 Banner MUST 默认 `status=DRAFT`。
+- **AND** 新增或编辑 Banner 弹窗不展示标题输入框
+- **WHEN** 用户完成图片、展示位置、跳转类型、排序和有效期等字段后保存
+- **THEN** 系统 MUST 创建或更新 Banner
+- **AND** 系统 MUST 自动生成、保留或补齐内部 `title`
+- **AND** 保存失败提示 MUST NOT 要求运营填写 Banner 标题。
 
-#### Scenario: 品牌详情 Banner 编辑保存
+#### Scenario: 内部标题唯一性兜底
 
-- **GIVEN** 已存在品牌详情 Banner
-- **AND** 新目标品牌存在且为 `ENABLED`
-- **WHEN** 客户端 `PUT /api/v1/admin/banners/{id}` 修改品牌、图片来源、排序、有效期或备注
-- **THEN** 服务端 MUST 保存修改后的品牌详情配置
-- **AND** 管理端列表、详情和编辑弹窗 MUST 回显同一 `brand_id` 与图片配置。
-
-#### Scenario: 品牌详情 Banner 图片来源校验
-
-- **WHEN** `image_source=brand_logo`
-- **THEN** `image_object_key` MUST 与所选品牌 `logo_object_key` 一致
-- **AND** 品牌缺少 Logo 时 MUST 返回稳定业务错误而不是保存空引用
-- **WHEN** `image_source=custom_upload`
-- **THEN** `image_object_key` MUST 引用经后端授权上传的 Banner 图片对象
-- **AND** 前端不得直连未授权对象存储。
-
-#### Scenario: 品牌详情 Banner 失败提示
-
-- **WHEN** 所选品牌不存在、未启用、品牌 Logo 缺失、Logo key 不匹配、标题重复或生产 schema drift 尚未修复
-- **THEN** 服务端 MUST 返回统一错误 envelope 和稳定业务错误码或等价可定位错误
-- **AND** 响应与日志 MUST NOT 泄露数据库密码、DSN、MinIO 凭据、原始 SQL 或内部堆栈
-- **AND** 生产 schema drift MUST 在迁移、启动检查或发布前校验阶段暴露为可运维失败，而不是让 `POST /api/v1/admin/banners` 返回裸 500。
-
-#### Scenario: 品牌详情 Banner 展示读取一致
-
-- **WHEN** 品牌详情 Banner 保存成功并上线且处于有效期内
-- **THEN** 管理端列表与详情 MUST 读取到相同配置
-- **AND** 小程序首页轮播或品牌列表页轮播查询 MUST 按 `position` 分流返回对应 Banner
-- **AND** 公开查询结果 MUST 保留品牌详情跳转所需目标信息。
+- **GIVEN** Banner 保存链路仍使用 `(display_client, position, title)` 唯一键
+- **WHEN** 自动生成或保留的内部标题发生唯一性冲突
+- **THEN** 系统 MUST 兜底生成新的唯一内部标题或返回可运维错误
+- **AND** 系统 MUST NOT 要求运营手工修改隐藏字段。
 
 ### Requirement: Topics 最小主数据
 
@@ -62,6 +38,8 @@
 系统 MUST 提供 Admin Banners REST API，路径前缀 `/api/v1/admin/banners`。`admin` 与 `employee` MUST 可调用；`store_owner` MUST 403。列表 API MUST 支持 keyword、`display_client`、`status`、`time_status` 分页筛选，并返回 summary（总数、筛选数、已上线、待生效）。列表、summary 和分页 MUST 仅统计小程序首页轮播与小程序品牌列表页轮播范围内的 Banner。MUST 提供 online/offline 端点；删除 MUST 拒绝 `status=ONLINE` 的记录。
 
 管理端 Banner 列表项存在图片时，响应 MUST 新增 `image_thumbnail_url` 或等价 Banner 图片缩略图字段，并保留 `image_url` 与 `image_object_key` 原有语义。`image_thumbnail_url` MUST 基于最终 `image_object_key` 派生，图片来源为 SKU 主图、SKU 图集、品牌 Logo、专题封面或自定义上传时，缩略图字段 MUST 与最终展示图片一致，不得改用跳转目标的其它图片。新增字段 MUST 同步 OpenAPI、Orval、接口文档和测试。
+
+管理端 Banner 列表项 MUST 返回只读跳转对象展示字段，例如 `jump_target_label`。该字段 MUST 根据 `jump_type` 生成：品牌详情显示品牌名称，SKU 详情显示 SKU 名称，专题页显示专题名称，外部链接显示链接地址，无跳转显示 `-`。该字段 MUST 仅作为响应展示字段，不得要求创建或更新 Banner 时提交。新增或修改字段 MUST 同步 Pydantic Schema、OpenAPI、Orval、接口文档和测试。
 
 #### Scenario: 列表与 summary
 
@@ -101,6 +79,25 @@
 - **AND** 页面 MUST NOT 显示浏览器默认破图
 - **AND** 表格行高、分页、筛选和操作列布局 MUST 保持稳定
 
+#### Scenario: Banner 列表跳转对象展示字段
+
+- **GIVEN** Banner 列表项配置了品牌详情、SKU 详情、专题页、外部链接或无跳转
+- **WHEN** 管理端请求 Banner 列表
+- **THEN** 响应项 MUST 包含 `jump_target_label` 或等价跳转对象展示字段
+- **AND** 品牌详情 MUST 返回品牌名称
+- **AND** SKU 详情 MUST 返回 SKU 名称且不得拼接 SKU 编码
+- **AND** 专题页 MUST 返回专题名称
+- **AND** 外部链接 MUST 返回链接地址
+- **AND** 无跳转 MUST 返回 `-` 或可由前端稳定渲染为 `-` 的空值。
+
+#### Scenario: Banner 列表跳转对象兜底
+
+- **GIVEN** Banner 关联的品牌、SKU 或专题不存在、不可用或名称为空
+- **WHEN** 管理端请求 Banner 列表
+- **THEN** 服务端 MUST 返回稳定兜底展示值
+- **AND** 响应 MUST NOT 泄露内部 SQL、对象 key、未授权字段或内部堆栈
+- **AND** 列表渲染 MUST NOT 因兜底值为空而报错。
+
 ### Requirement: Banner 图片上传
 
 Banner 自定义上传 MUST 经后端授权写入 MinIO 单桶，object_key MUST 使用 `images/default/banners/{uuid}.{ext}` 形态（与 `update-object-storage-key-layout` 语义前缀一致）。上传 MUST 受 `MAX_IMAGE_SIZE_MB` 与 `ALLOWED_IMAGE_TYPES` 约束。
@@ -113,17 +110,13 @@ Banner 自定义上传 MUST 经后端授权写入 MinIO 单桶，object_key MUST
 
 ### Requirement: Banner 管理错误码
 
-系统 MUST 为 Banner 业务规则提供统一错误码：`BANNER_TITLE_DUPLICATED`、`BANNER_JUMP_TARGET_INVALID`、`BANNER_DELETE_FORBIDDEN`、`BANNER_NOT_FOUND`、`BANNER_EXTERNAL_URL_INVALID`，并登记 `docs/standards/error-codes.md`。
+系统 MUST 为 Banner 业务规则提供统一错误码：`BANNER_TITLE_DUPLICATED`、`BANNER_JUMP_TARGET_INVALID`、`BANNER_DELETE_FORBIDDEN`、`BANNER_NOT_FOUND`、`BANNER_EXTERNAL_URL_INVALID`，并登记 `docs/standards/error-codes.md`。标题重复错误码 MAY 继续用于内部标题冲突，但管理端隐藏标题字段后，用户可见提示 MUST 转换为系统自动重试、内部保存失败或联系管理员类文案，MUST NOT 要求运营填写或修改 Banner 标题。
 
-#### Scenario: 标题重复
+#### Scenario: 内部标题重复
 
 - **WHEN** 创建或更新导致 `(display_client, position, title)` 冲突
-- **THEN** MUST 返回 `BANNER_TITLE_DUPLICATED`
-
-#### Scenario: 非法外链
-
-- **WHEN** `external_url` 非 `https://` 或含非法 scheme
-- **THEN** MUST 返回 `BANNER_EXTERNAL_URL_INVALID`
+- **THEN** 系统 SHOULD 自动生成新的内部标题并重试保存
+- **AND** 如无法自动恢复，错误提示 MUST NOT 暴露为“Banner 标题重复，请修改标题”。
 
 ### Requirement: 管理端 Banner 图片预览
 

@@ -9,6 +9,7 @@ type ProductCard = {
   category_name?: string | null;
   brand_name?: string | null;
   price_display: string;
+  is_recall_pinned?: boolean;
 };
 
 type Suggestion = {

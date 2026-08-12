@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-06 14:28:00
+updated_at: 2026-08-08 20:57:09
 ---
 
 # 文档索引
@@ -43,6 +43,7 @@ updated_at: 2026-08-06 14:28:00
 | [standards/miniapp-device-evidence-template.md](standards/miniapp-device-evidence-template.md) | 小程序 DevTools/真机验收 evidence 模板 |
 | [standards/media-five-point-acceptance-template.md](standards/media-five-point-acceptance-template.md) | 媒体五联验收模板 |
 | [standards/production-media-maintenance-runbook.md](standards/production-media-maintenance-runbook.md) | 生产媒体维护作业 Runbook |
+| [standards/prototype-ui-acceptance.md](standards/prototype-ui-acceptance.md) | 带 prototype 的 UI Contract、Skeleton、截图和最终一致性验收 |
 
 细则文档 **不加** `00–` 序号；新增标准放入 `standards/`。
 
@@ -50,12 +51,21 @@ updated_at: 2026-08-06 14:28:00
 
 故障与事故沉淀，按主题命名，见 [knowledge-base/README.md](knowledge-base/README.md)。
 
+## 层 4：规范工程日志（`docs/spec-logs/`）
+
+`/spec-study` 学习其他项目 Harness 工程后生成的学习报告和 `/spec-opt` 本项目规范、技能、脚本迭代日志统一放入 [spec-logs/](spec-logs/)，通过文件名区分：`YYYYMMDDhhmmss-study-xxx.md` 与 `YYYYMMDDhhmmss-governance-xxx.md`。
+
+[spec-logs/CHANGELOG.md](spec-logs/CHANGELOG.md) 是规范工程变更历史总账，用于汇总规范、脚本、技能、命令和治理文档更新记录；详细事实仍以单次日志、OpenSpec Change、Sprint 或 Issue 为准。
+
+该目录只记录治理结论和脱敏摘要，不得包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志、学习对象源码或截图中的个人信息。
+
 ## 需求与迭代（不在 docs/ 根目录）
 
 | 类型 | 路径 |
 |------|------|
 | 需求 | `issues/requirements/{plan,review,archive}/REQ-*` |
 | 缺陷 | `issues/bugs/{plan,review,archive}/BUG-*` |
+| 需求/缺陷当前态看板 | `issues/requirements/CHANGELOG.md`、`issues/bugs/CHANGELOG.md` |
 | 迭代 | `iterations/change/sprint-xxx/`（进行中）、`iterations/archive/sprint-xxx/`（已归档） |
 | 产品版本发布 | `releases/vX.Y.Z/` |
 
@@ -66,6 +76,8 @@ updated_at: 2026-08-06 14:28:00
 项目级 AI 命令入口统一维护在 `.agents/skills/`，总入口与命令链以仓库根目录 [AGENTS.md](../AGENTS.md) 为准。已评审 REQ/BUG 的推荐顺序为先 `/sprint-propose` 纳入 Sprint，再 `/req-opsx` 或 `/bug-opsx` 创建并回填 Change。
 
 规范优化入口使用 `/spec-opt`。新增或修改 `.agents/skills` 命令、`rules/` 文档、`docs/` 文档规范或 `scripts/` 治理脚本时，以 `/spec-opt` 和对应 OpenSpec Change 为准；该命令只服务治理资产，不修改业务 `src/` 代码。
+
+推送前安全检测入口使用 `/git-check`，默认运行 `python scripts/git-check.py` 扫描 staged、modified tracked 和 untracked 文件中的真实 env、运行时数据、密钥、连接串、本机绝对路径和大文件风险。
 
 所有 OpenSpec Change 在 `/opsx-apply` 前都必须纳入 Sprint 正式范围。通过 `/opsx-propose` 或 `/spec-opt` 直接创建的非 REQ/BUG Change，也需要先进入 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`，不得因“纯治理”或“无 REQ/BUG 来源”跳过 Sprint。
 

@@ -169,7 +169,6 @@
 .admin-shell[data-sidebar-state='collapsed'] .nav-title,
 .admin-shell[data-sidebar-state='collapsed'] .nav-label,
 .admin-shell[data-sidebar-state='collapsed'] .user-name,
-.admin-shell[data-sidebar-state='collapsed'] .user-email,
 .admin-shell[data-sidebar-state='collapsed'] .user-trigger .chevron {
   display: none;
 }
@@ -312,49 +311,6 @@
   border-top: 0.5px solid var(--admin-line);
 }
 
-.admin-shell .sidebar-theme {
-  margin-top: auto;
-  padding: 14px 0 16px;
-  border-top: 0.5px solid var(--admin-line);
-}
-
-.admin-shell .sidebar-theme .theme-switcher {
-  width: 100%;
-  justify-content: space-between;
-}
-
-.admin-shell .sidebar-theme .theme-switcher-select {
-  flex: 0 0 auto;
-}
-
-.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme {
-  padding: 12px 0 14px;
-}
-
-.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher {
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-}
-
-.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-label {
-  width: 100%;
-  justify-content: center;
-  font-size: 0;
-}
-
-.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-label svg {
-  width: 16px;
-  height: 16px;
-}
-
-.admin-shell[data-sidebar-state='collapsed'] .sidebar-theme .theme-switcher-select {
-  width: 48px;
-  min-width: 0;
-  padding: 6px 4px;
-  font-size: 0;
-}
-
 .admin-shell .user-trigger {
   width: 100%;
   min-height: 56px;
@@ -429,16 +385,6 @@
   text-overflow: ellipsis;
 }
 
-.admin-shell .user-email {
-  display: block;
-  margin-top: 3px;
-  font-size: 11px;
-  color: var(--admin-weak);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .admin-shell .chevron {
   color: var(--admin-weak);
   font-size: 14px;
@@ -469,7 +415,7 @@
 
 .admin-shell .dropdown-item {
   width: 100%;
-  height: 38px;
+  min-height: 40px;
   padding: 0 10px;
   display: flex;
   align-items: center;
@@ -485,9 +431,70 @@
   text-align: left;
 }
 
+.admin-shell .dropdown-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  color: currentcolor;
+  opacity: 0.78;
+}
+
+.admin-shell .dropdown-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-shell .dropdown-item:hover {
   color: var(--admin-text);
   background: rgb(255 255 255 / 0.04);
+}
+
+.admin-shell .dropdown-item.theme-toggle {
+  justify-content: flex-start;
+}
+
+.admin-shell .theme-switch-track {
+  width: 34px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--admin-gold-bg);
+  border: 0.5px solid var(--admin-gold-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 0 auto;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.admin-shell .theme-switch-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--admin-muted);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.28);
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.admin-shell .dropdown-item.theme-toggle:hover .theme-switch-track {
+  border-color: var(--admin-gold);
+}
+
+.admin-shell .dropdown-item.theme-toggle[aria-label='切换到跟随系统'] .theme-switch-track {
+  background: var(--admin-gold);
+  border-color: var(--admin-gold);
+  justify-content: flex-end;
+}
+
+.admin-shell .dropdown-item.theme-toggle[aria-label='切换到跟随系统'] .theme-switch-thumb {
+  background: var(--admin-sidebar-bg);
 }
 
 .admin-shell .dropdown-item.logout {

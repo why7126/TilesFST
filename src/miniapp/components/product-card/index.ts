@@ -18,6 +18,7 @@ type ProductCardInput = {
   price_display?: string | null;
   is_new?: boolean;
   is_hot?: boolean;
+  is_recall_pinned?: boolean;
   available?: boolean;
   is_public?: boolean;
   status?: string | null;
@@ -76,7 +77,15 @@ function queryPair(key: string, value: unknown): string {
 
 function normalizeProduct(product: ProductCardInput): NormalizedProductCard {
   const skuId = numberValue(product.sku_id || product.product_id || product.id);
-  const badge = product.is_new ? '新品' : product.is_hot ? '热销' : product.status === 'offline' ? '下架' : '';
+  const badge = product.is_recall_pinned
+    ? '置顶'
+    : product.is_new
+      ? '新品'
+      : product.is_hot
+        ? '热销'
+        : product.status === 'offline'
+          ? '下架'
+          : '';
   const available = Boolean(skuId) && product.available !== false && product.is_public !== false && product.status !== 'offline';
   return {
     skuId,

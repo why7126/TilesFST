@@ -225,6 +225,8 @@ def test_media_file_response_falls_back_from_thumbnail_to_original_key() -> None
     assert response.media_type == "image/png"
     assert response.headers["cache-control"].startswith("public, max-age=604800")
     assert response.headers["etag"].startswith('W/"')
+    assert response.headers["x-media-fallback"] == "1"
+    assert response.headers["x-media-resolved-key-hash"]
     assert storage.requested_keys == [
         "thumbnails/default/tiles/1/images/2026/06/1.png",
         "default/tiles/1/images/2026/06/1.png",
@@ -260,6 +262,8 @@ def test_media_file_response_falls_back_from_same_directory_thumbnail_to_origina
         set_media_storage_client(None)
 
     assert response.media_type == "image/jpeg"
+    assert response.headers["x-media-fallback"] == "1"
+    assert response.headers["x-media-resolved-key-hash"]
     assert storage.requested_keys == [
         "images/default/tiles/pending/abc.thumb.jpg",
         "images/default/tiles/pending/abc.jpg",
@@ -279,6 +283,8 @@ def test_media_head_response_returns_image_cache_headers() -> None:
 
     assert response.headers["cache-control"].startswith("public, max-age=604800")
     assert response.headers["etag"].startswith('W/"')
+    assert response.headers["x-media-fallback"] == "0"
+    assert response.headers["x-media-resolved-key-hash"]
 
 
 def test_media_file_response_returns_partial_content_for_video_range() -> None:

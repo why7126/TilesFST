@@ -92,6 +92,7 @@ export interface BannerAdminItem {
   external_url?: string | null;
   topic_id?: number | null;
   brand_id?: number | null;
+  jump_target_label?: string | null;
   sort_order: number;
   valid_from?: string | null;
   valid_to?: string | null;
@@ -553,13 +554,21 @@ export interface ApiResponseLogObservabilityData {
   data?: LogObservabilityData | null;
 }
 
+export type UserProfileThemeMode = typeof UserProfileThemeMode[keyof typeof UserProfileThemeMode];
+
+
+export const UserProfileThemeMode = {
+  system: 'system',
+  dark_flagship: 'dark_flagship',
+} as const;
+
 export interface UserProfile {
   id: string;
   username: string;
   display_name: string;
   role: string;
   status: string;
-  theme_mode?: string;
+  theme_mode?: UserProfileThemeMode;
 }
 
 export interface LoginData {
@@ -898,6 +907,7 @@ export interface MiniappProductCard {
   price_display: string;
   is_new?: boolean;
   is_hot?: boolean;
+  is_recall_pinned?: boolean;
 }
 
 export interface MiniappHomeData {
@@ -929,6 +939,7 @@ export interface MiniappProductDetail {
   price_display: string;
   is_new?: boolean;
   is_hot?: boolean;
+  is_recall_pinned?: boolean;
   images?: string[];
   videos?: string[];
   surface_finish?: string | null;
@@ -1120,6 +1131,7 @@ export interface MiniappSkuDetailData {
   price_display: string;
   is_new?: boolean;
   is_hot?: boolean;
+  is_recall_pinned?: boolean;
   brand: MiniappSkuBrandInfo;
   media?: MiniappSkuMediaItem[];
   image_count?: number;
@@ -1156,6 +1168,95 @@ export interface ApiResponseNoneType {
   message?: string;
   /** @nullable */
   data?: null;
+}
+
+export interface PerformanceEventIngestData {
+  accepted: number;
+  rejected?: number;
+}
+
+export interface ApiResponsePerformanceEventIngestData {
+  code?: number;
+  message?: string;
+  data?: PerformanceEventIngestData | null;
+}
+
+export interface PerformanceSampleItem {
+  id: string;
+  client_type: string;
+  page_key: string;
+  metric_name: string;
+  duration_ms: number;
+  app_version?: string | null;
+  network_type?: string | null;
+  device_class?: string | null;
+  request_id?: string | null;
+  occurred_at: string;
+  server_received_at: string;
+}
+
+export type PerformanceSampleDataFilters = {[key: string]: string | number | null};
+
+export interface PerformanceSampleData {
+  items: PerformanceSampleItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  filters: PerformanceSampleDataFilters;
+}
+
+export interface ApiResponsePerformanceSampleData {
+  code?: number;
+  message?: string;
+  data?: PerformanceSampleData | null;
+}
+
+export type PerformanceAggregateItemSampleStatus = typeof PerformanceAggregateItemSampleStatus[keyof typeof PerformanceAggregateItemSampleStatus];
+
+
+export const PerformanceAggregateItemSampleStatus = {
+  ok: 'ok',
+  insufficient: 'insufficient',
+} as const;
+
+export interface PerformanceAggregateItem {
+  client_type: string;
+  page_key: string;
+  metric_name: string;
+  app_version?: string | null;
+  network_type?: string | null;
+  device_class?: string | null;
+  sample_count: number;
+  average_ms: number;
+  max_ms: number;
+  p50_ms: number;
+  p75_ms: number;
+  p95_ms: number;
+  p99_ms: number;
+  sample_status: PerformanceAggregateItemSampleStatus;
+}
+
+export type PerformanceSummaryDataFilters = {[key: string]: string | number | null};
+
+export type PerformanceSummaryDataThresholds = {[key: string]: number};
+
+export interface PerformanceSummaryData {
+  items: PerformanceAggregateItem[];
+  slow_pages: PerformanceAggregateItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  total_events: number;
+  filters: PerformanceSummaryDataFilters;
+  thresholds: PerformanceSummaryDataThresholds;
+}
+
+export interface ApiResponsePerformanceSummaryData {
+  code?: number;
+  message?: string;
+  data?: PerformanceSummaryData | null;
 }
 
 export interface ProfileMe {
@@ -1315,6 +1416,9 @@ export interface TileSkuAdminItem {
   color_family?: string | null;
   reference_price?: number | null;
   remark?: string | null;
+  recall_pin_sort_order?: number;
+  recall_pin_starts_at?: string | null;
+  recall_pin_ends_at?: string | null;
   status: TileSkuAdminItemStatus;
   main_image_url?: string | null;
   main_image_thumbnail_url?: string | null;
@@ -1838,6 +1942,58 @@ export interface MiniappSkuFavoriteRequest {
   favorite: boolean;
 }
 
+export type PerformanceEventCreateClientType = typeof PerformanceEventCreateClientType[keyof typeof PerformanceEventCreateClientType];
+
+
+export const PerformanceEventCreateClientType = {
+  web_admin: 'web_admin',
+  web_catalog: 'web_catalog',
+  wechat_miniapp: 'wechat_miniapp',
+} as const;
+
+export interface PerformanceEventCreate {
+  client_type: PerformanceEventCreateClientType;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     * @pattern ^[a-zA-Z0-9_:/.-]+$
+     */
+  page_key: string;
+  app_version?: string | null;
+  network_type?: string | null;
+  device_class?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 64
+     * @pattern ^[a-zA-Z0-9_.:-]+$
+     */
+  metric_name: string;
+  /**
+     * @minimum 0
+     * @maximum 300000
+     */
+  duration_ms: number;
+  /**
+     * @minimum 0
+     * @maximum 1
+     */
+  sample_rate?: number;
+  /**
+     * @minLength 1
+     * @maxLength 64
+     */
+  occurred_at: string;
+  request_id?: string | null;
+}
+
+export interface PerformanceEventBatchCreate {
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  events: PerformanceEventCreate[];
+}
+
 export interface ProfilePatchRequest {
   display_name?: string | null;
   email?: string | null;
@@ -1846,9 +2002,20 @@ export interface ProfilePatchRequest {
   avatar_object_key?: string | null;
 }
 
+/**
+ * @minLength 1
+ */
+export type ThemePreferenceUpdateRequestThemeMode = typeof ThemePreferenceUpdateRequestThemeMode[keyof typeof ThemePreferenceUpdateRequestThemeMode];
+
+
+export const ThemePreferenceUpdateRequestThemeMode = {
+  system: 'system',
+  dark_flagship: 'dark_flagship',
+} as const;
+
 export interface ThemePreferenceUpdateRequest {
   /** @minLength 1 */
-  theme_mode: string;
+  theme_mode: ThemePreferenceUpdateRequestThemeMode;
 }
 
 export interface TileCategoryCreateRequest {
@@ -1942,6 +2109,9 @@ export interface TileSkuCreateRequest {
   color_family?: string | null;
   reference_price?: number;
   remark?: string | null;
+  recall_pin_sort_order?: number | null;
+  recall_pin_starts_at?: string | null;
+  recall_pin_ends_at?: string | null;
   images?: TileSkuImageInput[];
   videos?: TileSkuVideoInput[];
 }
@@ -1957,6 +2127,9 @@ export interface TileSkuUpdateRequest {
   color_family?: string | null;
   reference_price?: number | null;
   remark?: string | null;
+  recall_pin_sort_order?: number | null;
+  recall_pin_starts_at?: string | null;
+  recall_pin_ends_at?: string | null;
   images?: TileSkuImageInput[] | null;
   videos?: TileSkuVideoInput[] | null;
 }
@@ -2020,6 +2193,8 @@ export interface UserCreateRequest {
   display_name?: string | null;
   role: string;
   avatar_object_key?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
 export interface UserStatusUpdateRequest {
@@ -2030,6 +2205,8 @@ export interface UserUpdateRequest {
   display_name?: string | null;
   role?: string | null;
   avatar_object_key?: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
 export type SearchProductsApiV1MiniappProductsGetParams = {
@@ -2262,6 +2439,71 @@ export const GetLogObservabilityApiV1AdminLogsObservabilityGetLogType = {
   request: 'request',
   usage_event: 'usage_event',
   audit: 'audit',
+} as const;
+
+export type SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetParams = {
+client_type?: SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetClientType;
+page_key?: string | null;
+app_version?: string | null;
+network_type?: string | null;
+device_class?: string | null;
+metric_name?: string | null;
+start_time?: string | null;
+end_time?: string | null;
+/**
+ * @minimum 1
+ * @maximum 10000
+ */
+min_samples?: number;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+limit?: number | null;
+};
+
+export type SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetClientType = typeof SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetClientType[keyof typeof SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetClientType] | null;
+
+
+export const SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetClientType = {
+  web_admin: 'web_admin',
+  web_catalog: 'web_catalog',
+  wechat_miniapp: 'wechat_miniapp',
+} as const;
+
+export type ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetParams = {
+client_type?: ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetClientType;
+page_key?: string | null;
+app_version?: string | null;
+network_type?: string | null;
+device_class?: string | null;
+metric_name?: string | null;
+start_time?: string | null;
+end_time?: string | null;
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+limit?: number | null;
+};
+
+export type ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetClientType = typeof ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetClientType[keyof typeof ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetClientType] | null;
+
+
+export const ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetClientType = {
+  web_admin: 'web_admin',
+  web_catalog: 'web_catalog',
+  wechat_miniapp: 'wechat_miniapp',
 } as const;
 
 export type ListBrandsApiV1AdminBrandsGetParams = {
@@ -2896,6 +3138,47 @@ const createUsageEventApiV1UsageEventsPost = (
   }
 
 /**
+ * 匿名上报 Web 与微信小程序 RUM 性能事件；失败不得阻断主业务流程。
+ * @summary 上报真实用户页面性能事件
+ */
+const ingestPerformanceEventsApiV1PerformanceEventsPost = (
+    performanceEventBatchCreate: PerformanceEventBatchCreate, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponsePerformanceEventIngestData>> => {
+    return axiosInstance.post(
+      `/api/v1/performance-events`,
+      performanceEventBatchCreate,options
+    );
+  }
+
+/**
+ * 系统管理员按端、页面、版本、网络和时间范围查询 RUM 聚合指标。
+ * @summary 真实用户页面性能聚合
+ */
+const summarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGet = (
+    params?: SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponsePerformanceSummaryData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/performance-events/summary`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
+ * 系统管理员按聚合维度查看最近 RUM 受控样本；不返回完整 URL、Header、Cookie、签名 URL 或原始 payload。
+ * @summary 真实用户页面性能样本明细
+ */
+const listPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGet = (
+    params?: ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponsePerformanceSampleData>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/performance-events/samples`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+
+/**
  * @summary 品牌列表
  */
 const listBrandsApiV1AdminBrandsGet = (
@@ -3524,7 +3807,7 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getCertificateDetailApiV1MiniappCertificatesCertificateIdGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
+return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getCertificateDetailApiV1MiniappCertificatesCertificateIdGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,ingestPerformanceEventsApiV1PerformanceEventsPost,summarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGet,listPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGet,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -3566,6 +3849,9 @@ export type ListLogsApiV1AdminLogsGetResult = AxiosResponse<ApiResponseLogListDa
 export type GetLogObservabilityApiV1AdminLogsObservabilityGetResult = AxiosResponse<ApiResponseLogObservabilityData>
 export type GetLogDetailApiV1AdminLogsLogIdGetResult = AxiosResponse<ApiResponseLogDetailData>
 export type CreateUsageEventApiV1UsageEventsPostResult = AxiosResponse<ApiResponseUsageEventData>
+export type IngestPerformanceEventsApiV1PerformanceEventsPostResult = AxiosResponse<ApiResponsePerformanceEventIngestData>
+export type SummarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGetResult = AxiosResponse<ApiResponsePerformanceSummaryData>
+export type ListPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGetResult = AxiosResponse<ApiResponsePerformanceSampleData>
 export type ListBrandsApiV1AdminBrandsGetResult = AxiosResponse<ApiResponseBrandAdminListData>
 export type CreateBrandApiV1AdminBrandsPostResult = AxiosResponse<ApiResponseBrandAdminItem>
 export type GetBrandApiV1AdminBrandsBrandIdGetResult = AxiosResponse<ApiResponseBrandAdminItem>

@@ -31,6 +31,9 @@ class Tile(Base):
     reference_price: Mapped[float | None] = mapped_column(Real, nullable=True)
     remark: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String, nullable=False, default="DRAFT")
+    recall_pin_sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=9999)
+    recall_pin_starts_at: Mapped[str | None] = mapped_column(String, nullable=True)
+    recall_pin_ends_at: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[str | None] = mapped_column(String, nullable=True)
     updated_at: Mapped[str | None] = mapped_column(String, nullable=True)
 

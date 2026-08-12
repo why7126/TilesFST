@@ -207,6 +207,91 @@ def test_list_banners_includes_image_thumbnail_url(client: TestClient) -> None:
     item = next(item for item in response.json()["data"]["items"] if item["id"] == banner_id)
     assert item["image_url"] == "/media/images/default/banners/list-thumb.jpg"
     assert item["image_thumbnail_url"] == "/media/images/default/banners/list-thumb.thumb.jpg"
+    assert item["jump_target_label"] == "-"
+
+
+def test_list_banners_includes_jump_target_labels(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    sku_id, main_key = _create_sku(client, headers)
+    logo_key = "images/default/brands/logos/banner-target-brand.webp"
+    brand_id = _create_brand(client, headers, logo_object_key=logo_key, name="目标品牌")
+    topics = client.get("/api/v1/admin/topics", headers=headers)
+    topic = topics.json()["data"]["items"][0]
+
+    expected = {
+        _create_banner(
+            client,
+            headers,
+            title=f"SKU Target {uuid4().hex[:6]}",
+            jump_type="SKU_DETAIL",
+            sku_id=sku_id,
+            image_object_key=main_key,
+            image_source="sku_main_image",
+        ): "Banner Test SKU",
+        _create_banner(
+            client,
+            headers,
+            title=f"Brand Target {uuid4().hex[:6]}",
+            jump_type="BRAND_DETAIL",
+            brand_id=brand_id,
+            image_object_key=logo_key,
+            image_source="brand_logo",
+        ): "目标品牌",
+        _create_banner(
+            client,
+            headers,
+            title=f"Topic Target {uuid4().hex[:6]}",
+            jump_type="TOPIC_PAGE",
+            topic_id=topic["id"],
+        ): topic["title"],
+        _create_banner(
+            client,
+            headers,
+            title=f"External Target {uuid4().hex[:6]}",
+            jump_type="EXTERNAL_LINK",
+            external_url="https://example.com/promo",
+        ): "https://example.com/promo",
+        _create_banner(
+            client,
+            headers,
+            title=f"No Jump Target {uuid4().hex[:6]}",
+        ): "-",
+    }
+
+    response = client.get("/api/v1/admin/banners", headers=headers)
+    assert response.status_code == 200
+    items = {item["id"]: item["jump_target_label"] for item in response.json()["data"]["items"]}
+    for banner_id, label in expected.items():
+        assert items[banner_id] == label
+
+
+def test_list_banners_jump_target_label_falls_back_for_missing_object(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    sku_id, main_key = _create_sku(client, headers)
+    banner_id = _create_banner(
+        client,
+        headers,
+        title=f"Missing SKU Target {uuid4().hex[:6]}",
+        jump_type="SKU_DETAIL",
+        sku_id=sku_id,
+        image_object_key=main_key,
+        image_source="sku_main_image",
+    )
+
+    session = get_session_factory()()
+    try:
+        session.execute(
+            text("UPDATE banners SET sku_id = :missing_id WHERE id = :id"),
+            {"missing_id": 99999999, "id": banner_id},
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    response = client.get("/api/v1/admin/banners", headers=headers)
+    assert response.status_code == 200
+    item = next(item for item in response.json()["data"]["items"] if item["id"] == banner_id)
+    assert item["jump_target_label"] == "-"
 
 
 def test_employee_can_access_banners(client: TestClient) -> None:

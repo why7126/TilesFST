@@ -60,6 +60,7 @@ Use this skill when the user asks to run `/spec-opt ...` or requests optimizatio
 - 不得绕过 active Change 直接修改 `openspec/specs/`。
 - 若仅为文档错别字、链接修复或非行为性小修，可说明豁免原因；否则按 Change 流程执行。
 - 纯治理 Change 无 REQ/BUG 来源时，仍 MUST 先纳入某个 Sprint 的 `changes[]` 后才能 `/opsx-apply`；不得因“不关联 REQ/BUG”或“未触碰业务 src”豁免 Sprint Inclusion Gate。
+- 当当前没有 `iterations/change/sprint-xxx/` 进行中迭代且 `/spec-opt` 需要自动创建 Sprint 承载纯治理 Change 时，MUST 按 `rules/iterations-lifecycle.md` 自动编号：扫描 `iterations/archive/` 与 `iterations/change/` 中符合 `sprint-[0-9]{3}` 的最大编号并加一，例如最新归档为 `sprint-021` 时创建 `sprint-022`；不得使用日期、主题词或混合命名。
 
 ## Documentation Sync Matrix（MUST）
 
@@ -74,6 +75,28 @@ Use this skill when the user asks to run `/spec-opt ...` or requests optimizatio
 
 同步文档时 MUST 更新 Markdown frontmatter `updated_at`，不得修改既有 `created_at`。
 
+## Spec Logs（MUST）
+
+`/spec-opt` 完成本项目规范、技能、脚本、目录边界或校验规则迭代后，MUST 在 `docs/spec-logs/` 写入治理迭代日志，并维护 `docs/spec-logs/CHANGELOG.md` 变更历史总账。
+
+命名规则：
+
+```text
+YYYYMMDDhhmmss-governance-xxx.md
+```
+
+- `YYYYMMDDhhmmss` MUST 使用日志生成时刻的 `Asia/Shanghai` 日期时间，精确到秒。
+- `governance` 用于区分本项目规范工程迭代日志，与 `/spec-study` 生成的 `YYYYMMDDhhmmss-study-xxx.md` 学习报告区分。
+- `xxx` MUST 使用小写 kebab-case 表达治理主题，例如 `skill-output-contract`、`api-governance-rules`、`spec-logs`。
+
+治理迭代日志 MUST 包含：迭代目标、变更摘要、影响范围、更新文件、验证结果、API/DB/Web/小程序/管理端/Orval/Docker 影响和后续建议。
+
+治理迭代日志 MUST NOT 包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码。涉及隐私风险时，只能使用脱敏占位符或聚合描述。
+
+`docs/spec-logs/CHANGELOG.md` MUST 按时间倒序汇总每次规范、脚本、技能、命令和治理文档更新。每条记录 MUST 至少包含时间、来源命令、关联 Change、类型、影响范围、更新文件、验证结果、详细日志链接和跨项目落地提示词；该文件只做摘要索引，不替代单次治理日志、OpenSpec Change、Sprint 或 Issue 事实源。
+
+跨项目落地提示词 MUST 说明其他项目要落地同类规范时可直接给 AI 的 Prompt，要求可复制、脱敏、项目无关，不得包含本项目业务数据、用户隐私、真实客户数据、密钥、访问令牌、未脱敏日志或本机绝对路径。
+
 ## Implementation Loop
 
 1. 识别治理优化目标和禁止业务实现的边界。
@@ -81,8 +104,10 @@ Use this skill when the user asks to run `/spec-opt ...` or requests optimizatio
 3. 判断影响范围：skills / rules / docs / scripts / AGENTS / OpenSpec。
 4. 按文档同步矩阵做最小范围修改。
 5. 修改脚本时补充或运行脚本级最小验证。
-6. 每完成一组 task，立即把 `tasks.md` 对应 `- [ ]` 标记为 `- [x]`。
-7. 使用聚焦 diff 复核没有修改 `src/` 业务代码。
+6. 写入或更新 `docs/spec-logs/YYYYMMDDhhmmss-governance-xxx.md` 治理迭代日志。
+7. 新增或更新 `docs/spec-logs/CHANGELOG.md` 变更历史总账。
+8. 每完成一组 task，立即把 `tasks.md` 对应 `- [ ]` 标记为 `- [x]`。
+9. 使用聚焦 diff 复核没有修改 `src/` 业务代码。
 
 ## Validation（MUST）
 

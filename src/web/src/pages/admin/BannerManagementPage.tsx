@@ -202,7 +202,7 @@ export function BannerManagementPage() {
             <span className="field-label">关键词</span>
             <input
               className="input"
-              placeholder="搜索标题 / 位置 / 跳转链接"
+              placeholder="搜索位置 / 跳转对象 / 链接"
               value={keyword}
               onChange={(e) => {
                 setKeyword(e.target.value);
@@ -264,6 +264,7 @@ export function BannerManagementPage() {
                 <th>展示位置</th>
                 <th>展示端</th>
                 <th>跳转类型</th>
+                <th>跳转对象</th>
                 <th>状态</th>
                 <th>有效期</th>
                 <th>排序</th>
@@ -274,11 +275,11 @@ export function BannerManagementPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9}>加载中…</td>
+                  <td colSpan={10}>加载中…</td>
                 </tr>
               ) : (data?.items.length ?? 0) === 0 ? (
                 <tr>
-                  <td colSpan={9}>暂无 Banner</td>
+                  <td colSpan={10}>暂无 Banner</td>
                 </tr>
               ) : (
                 data?.items.map((banner) => {
@@ -295,7 +296,6 @@ export function BannerManagementPage() {
                               originalUrl={banner.image_url}
                             />
                           </span>
-                          <span className="banner-main">{banner.title}</span>
                         </div>
                       </td>
                       <td>
@@ -312,9 +312,17 @@ export function BannerManagementPage() {
                         </span>
                       </td>
                       <td>
-                        <span className={statusDisplay.className}>{statusDisplay.label}</span>
+                        <span
+                          className="banner-jump-target"
+                          title={banner.jump_target_label ?? undefined}
+                        >
+                          {banner.jump_target_label || '-'}
+                        </span>
                       </td>
                       <td>
+                        <span className={statusDisplay.className}>{statusDisplay.label}</span>
+                      </td>
+                      <td className="banner-validity-cell">
                         <div className="time-range">
                           {formatBannerDateTime(banner.valid_from)}
                           <br />

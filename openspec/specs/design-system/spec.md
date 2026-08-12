@@ -306,13 +306,20 @@ Design System SHALL include test expectations for admin list foundation componen
 
 ### Requirement: Web 多主题 Design Token
 
-Web Design System MUST support four theme modes: `system`, `dark_flagship`, `comfort_dark`, and `light`. Theme modes MUST be implemented through semantic tokens and theme-scoped CSS variables, not business-component raw Hex values. Existing industrial stone dark values remain the `dark_flagship` mode baseline; `comfort_dark` and `light` MUST provide complete token values for page, surface, text, border, accent, focus, danger, success, warning, shadow, and overlay semantics.
+Web Design System MUST expose two user-selectable theme modes for the current product surface: `system` and `dark_flagship`. Theme behavior MUST be implemented through semantic tokens and theme-scoped CSS variables, not business-component raw Hex values. Existing industrial stone dark values remain the `dark_flagship` mode baseline. The `system` mode MUST resolve to the light visual token set when the operating system prefers light and to the dark visual token set otherwise. Historical `comfort_dark` and `light` values MUST NOT remain visible user options, though migration or normalization code MAY continue recognizing them for backward compatibility.
 
-#### Scenario: 主题模式完整
+#### Scenario: 主题模式收敛
 
-- **WHEN** Web initializes Design System tokens
-- **THEN** `system`, `dark_flagship`, `comfort_dark`, and `light` modes SHALL be available
-- **AND** each mode SHALL define complete semantic token values for core page, surface, text, border, accent, focus, feedback, shadow, and overlay semantics.
+- **WHEN** Web initializes user-selectable Design System theme modes
+- **THEN** only `system` and `dark_flagship` modes SHALL be available to users
+- **AND** `comfort_dark` and independent `light` SHALL NOT be exposed as user-selectable modes.
+
+#### Scenario: 系统模式可解析浅色
+
+- **WHEN** the active user-selectable mode is `system`
+- **AND** the operating system prefers light colors
+- **THEN** the resolved visual token set SHALL use the light theme variables
+- **AND** semantic classes such as `bg-page`, `text-primary`, `text-brand-gold`, and `border-border-default` SHALL continue to resolve without business-page rewrites.
 
 #### Scenario: 暗色旗舰保持品牌基线
 
@@ -328,19 +335,20 @@ Web Design System MUST support four theme modes: `system`, `dark_flagship`, `com
 
 ### Requirement: Design System 主题预览与舒适度验收
 
-The `/design-system` page MUST provide a theme preview surface for all supported theme modes and include representative tile SKU components used in REQ-0020 acceptance.
+The `/design-system` page MUST provide a theme preview surface for the current supported user-selectable theme modes and include representative surfaces affected by theme behavior.
 
 #### Scenario: 主题切换可预览
 
 - **WHEN** a user opens `/design-system`
-- **THEN** the page SHALL allow switching among `system`, `dark_flagship`, `comfort_dark`, and `light`
-- **AND** token previews and representative components SHALL update immediately.
+- **THEN** the page SHALL allow switching between `system` and `dark_flagship`
+- **AND** token previews and representative components SHALL update immediately
+- **AND** the page SHALL NOT expose `comfort_dark` or independent `light` as selectable modes.
 
-#### Scenario: 瓷砖 SKU 组件覆盖
+#### Scenario: 管理端主题按钮验收
 
-- **WHEN** `/design-system` is used for REQ-0020 acceptance
-- **THEN** it SHALL include representative previews for buttons, inputs, tables, dialogs, toast, media upload state, and tile SKU list/form/modal components
-- **AND** those previews SHALL be usable to verify login/list/form/modal comfort regressions across themes.
+- **WHEN** `/design-system` or equivalent admin design acceptance is used for this Change
+- **THEN** it SHALL support verification that user-menu theme controls use semantic tokens
+- **AND** the evidence SHALL cover `dark_flagship` and `system` with operating-system light resolution where feasible.
 
 ### Requirement: Clipboard 复制交互治理
 
@@ -433,4 +441,29 @@ Design System SHALL define a mandatory admin filter dropdown gate for any new or
 - **WHEN** a Change affects multiple admin pages or a shared admin filter dropdown component
 - **THEN** the apply evidence MUST list the affected admin page matrix or explain why only a single page is in scope
 - **AND** the matrix SHOULD include representative pages from brand, tile category, tile spec, brand certificate, Banner, user, logs, API docs, settings, or theme surfaces when those pages are affected
+
+### Requirement: 原型驱动 UI 验收门禁
+
+系统 SHALL 对包含 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*`、UI Skeleton 或明确引用既有页面视觉的 UI Change 执行原型驱动验收门禁。
+
+#### Scenario: 生成 UI Contract
+
+- **GIVEN** `/req-opsx` 创建带 prototype 的 UI Change
+- **WHEN** Change `design.md` 被生成
+- **THEN** `design.md` SHALL 包含 UI Contract
+- **AND** UI Contract SHALL 覆盖事实源优先级、页面入口、信息架构、视觉 token、交互状态、图标文案、Mock/API 边界、权限规则和一致性参照
+
+#### Scenario: UI 实现前完成 Skeleton
+
+- **GIVEN** `/opsx-apply` 处理带 prototype 的 UI Change
+- **WHEN** 进入细节实现前
+- **THEN** AI SHALL 先完成 UI Skeleton 首轮确认
+- **AND** 记录 1440px 桌面视口截图或等价视觉证据
+
+#### Scenario: 归档前复核最终一致性
+
+- **GIVEN** `/opsx-archive` 归档带 prototype 的 UI Change
+- **WHEN** 关联 REQ 或 Change 包含视觉验收证据要求
+- **THEN** AI SHALL 复核 UI Contract、Skeleton、截图、computed style、Mock/API 边界和最终实现一致
+- **AND** 缺证据、证据过期或边界未声明时 SHALL 阻断归档
 

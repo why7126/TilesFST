@@ -120,6 +120,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_ts
     assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_js
     assert 'src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"' in brand_list_wxml
+    assert 'lazy-load="{{index > 0}}"' in brand_list_wxml
+    assert 'lazy-load="{{brandIndex > 1}}"' in brand_list_wxml
     assert "brand_detail_view" in brand_detail_ts
     assert "brand_detail_tab_click" in brand_detail_ts
     assert "brand_certificate_click" in brand_detail_ts
@@ -130,6 +132,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert 'class="brand-overlay"' in brand_detail_wxml
     assert brand_detail_wxml.index('class="brand-logo-frame') < brand_detail_wxml.index('class="brand-overlay"')
     assert "brand.brand_logo_thumbnail_url || brand.brand_logo_url" in brand_detail_wxml
+    assert 'lazy-load="{{false}}"' in brand_detail_wxml
+    assert 'lazy-load="{{index > 1}}"' in brand_detail_wxml
     assert "height: 380rpx" in brand_detail_wxss
     assert ".brand-hero {\n  margin-top: 12rpx;\n  padding: 0;" in brand_detail_wxss
     assert "brand-meta" not in brand_detail_wxml
@@ -1200,6 +1204,13 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "暂无参考价" not in card_js
     assert "function priceText" in card_js
     assert "value === 0" in card_js
+    assert "is_recall_pinned?: boolean" in card_ts
+    assert "product.is_recall_pinned" in card_ts
+    assert "product.is_recall_pinned" in card_js
+    assert "'置顶'" in card_ts
+    assert "'置顶'" in card_js
+    assert "product.is_new" in card_ts
+    assert card_ts.index("product.is_recall_pinned") < card_ts.index("product.is_new")
     assert "legacyNoPriceText" in card_js
     assert "点击进入 SKU 详情" not in card_js
     assert "product_card_exposure" in card_js
@@ -1248,6 +1259,11 @@ def test_miniapp_home_images_have_runtime_fallback_handlers() -> None:
     assert 'wx:for="{{home.banners}}"' in home_wxml
     assert 'src="{{item.image_url}}"' in home_wxml
     assert 'data-key="home.banners[{{index}}].image_url"' in home_wxml
+    banner_block = home_wxml[
+        home_wxml.index('wx:for="{{home.banners}}"'):home_wxml.index('<view wx:else class="hero"')
+    ]
+    assert "{{item.title" not in banner_block
+    assert "hero-copy" not in banner_block
     assert 'image-fallback="{{imageFallback}}"' in home_wxml
     assert "imageFallback: '/assets/tile-placeholder.png'" in home_js
     assert "this.setData({ [key]: this.data.imageFallback })" in home_js
@@ -1281,6 +1297,8 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "{{product.sku_code}}" not in detail_wxml[detail_wxml.index('<view class="summary">'):detail_wxml.index('<view class="brand-card-wrap">')]
     assert "SKU 编码" not in detail_wxml
     assert "<video" in detail_wxml
+    assert 'src="{{item.url || imageFallback}}"' in detail_wxml
+    assert 'data-url="{{item.preview_url || item.url}}"' in detail_wxml
     assert 'src="{{item.url}}"' in detail_wxml
     assert 'poster="{{item.cover_url || product.cover_image || imageFallback}}"' in detail_wxml
     assert "poster=\"{{item.cover_url || ''}}\"" not in detail_wxml
@@ -1496,11 +1514,17 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "<swiper" in brand_wxml
     assert "autoplay" in brand_wxml
     assert "circular" in brand_wxml
+    assert 'lazy-load="{{index > 0}}"' in brand_wxml
+    assert 'lazy-load="{{brandIndex > 1}}"' in brand_wxml
     assert 'indicator-active-color="#C8A055"' in brand_wxml
     assert "BRAND GALLERY" not in brand_wxml
     assert "轮播图保持现有品牌页能力" not in brand_wxml
+    carousel_block = brand_wxml[
+        brand_wxml.index('wx:for="{{banners}}"'):brand_wxml.index('<view wx:else class="brand-hero fallback"')
+    ]
+    assert "{{item.title" not in carousel_block
+    assert 'wx:if="{{item.subtitle}}"' not in carousel_block
     assert "全球严选瓷砖品牌" in brand_wxml
-    assert 'wx:if="{{item.subtitle}}"' in brand_wxml
     assert "品牌矩阵" in brand_wxml
     assert "按类目快速识别" not in brand_wxml
     assert "brand-list" in brand_wxml
@@ -1697,3 +1721,35 @@ def test_miniapp_styles_keep_primary_tappable_targets_at_least_44pt() -> None:
     assert "min-height: 88rpx" in css
     assert "env(safe-area-inset-bottom)" in css
     assert "overflow: hidden" in css
+
+
+def test_miniapp_performance_rum_reports_without_privacy_payloads() -> None:
+    app_js = _read("app.js")
+    app_ts = _read("app.ts")
+    api_js = _read("services/api.js")
+    api_ts = _read("services/api.ts")
+    performance_js = _read("services/performance.js")
+    performance_ts = _read("services/performance.ts")
+    performance_source = "\n".join([performance_js, performance_ts])
+
+    assert "reportPerformanceMetric" in app_js
+    assert "reportPerformanceMetric" in app_ts
+    assert "api_duration" in api_js
+    assert "api_failed_duration" in api_ts
+    assert "/api/v1/performance-events" in performance_source
+    assert "wx.getNetworkType" in performance_source
+    assert "cachedNetworkType" in performance_source
+    assert "network_type: networkType" in performance_source
+    assert "network_type: 'unknown'" not in api_js
+    assert "network_type: 'unknown'" not in api_ts
+    assert "fail:" in performance_js
+    assert "不阻断小程序主流程" in performance_js
+    for forbidden in [
+        "Authorization",
+        "Cookie",
+        "openid",
+        "phoneNumber",
+        "raw_payload",
+        "raw_response",
+    ]:
+        assert forbidden not in performance_source

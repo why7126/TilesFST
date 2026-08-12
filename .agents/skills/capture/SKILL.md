@@ -52,6 +52,20 @@ Use this skill when the user asks to run the workflow command `capture`.
 
 拆分分别套用 `/req-capture` Multi-REQ 与 `/bug-capture` Multi-BUG 规则。
 
+## 需求相关偏差阶段分流（MUST）
+
+当输入描述某个已有关联 REQ、BUG、Change 或 Sprint 的“不如预期”时，MUST 先判断生命周期阶段，再决定是否创建新的 REQ / BUG：
+
+| 阶段 / 条件 | 分类与动作 |
+|---|---|
+| 目标 Change 已 `/opsx-apply`、未 `/opsx-archive`，且反馈仍属于原需求、原 Change、原验收项或原能力边界 | 不自动创建 REQ / BUG；提示走 `/opsx-modify <REQ-id|BUG-id|change-id> <反馈>` |
+| 目标 Change 未归档，但反馈新增原需求未包含的功能，或改变 API / DB / 权限 / 部署 / 对象存储边界 | 按新增能力记录为 REQ；建议 `/req-capture`，必要时说明会形成后续 Change |
+| 目标 Change 未归档，但反馈是独立缺陷且影响范围超出当前 Change | 按 BUG 记录；建议 `/bug-capture`，能确认父需求时写 `related_requirement` |
+| 原 REQ / Change 已归档，但所属 Sprint 未归档 | 不得回到 `/opsx-modify`；已交付能力偏差按 BUG 记录并关联原 REQ，新增能力按 REQ 记录 |
+| 所属 Sprint 已归档 | 作为新的生命周期输入处理；已交付能力偏差走 BUG，新增期望走 REQ |
+
+若同一条反馈同时包含“当前 Change 内验收偏差”和“范围外新增诉求 / 独立缺陷”，MUST 拆分：范围内部分建议 `/opsx-modify`，范围外部分按 REQ / BUG capture 记录。
+
 ---
 
 ## Directory Gate（MUST）
@@ -115,4 +129,3 @@ done
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

@@ -148,4 +148,5 @@ src/web/src/features/auth/styles/login-page.css
 
 - UI 任务前读取本文件相关章节，并检查可复用模板/组件。
 - UI 变更完成前访问或等价验证 `/design-system`；登录页和有 prototype 的页面需按 HTML > PNG > context > acceptance > 本文件优先级验收。
+- 带 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*`、UI Skeleton 或明确引用既有页面视觉的 UI Change MUST 同步遵守 `docs/standards/prototype-ui-acceptance.md`：`/req-opsx` 写入 UI Contract，`/opsx-apply` 先完成 Skeleton 与 1440px 视觉证据，必要时记录 computed style，`/opsx-archive` 复核最终一致性。
 - Change 输出需说明是否影响 Web / 管理端 / 小程序、是否修改 token、是否运行 `pnpm sync:tokens`、是否存在裸 Hex。

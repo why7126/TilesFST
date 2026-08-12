@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-06 14:01:45
+updated_at: 2026-08-08 21:03:00
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -25,6 +25,8 @@ docs/
 ├── NN-topic.md              # 主文档，有序号
 ├── standards/<topic>.md     # 治理细则
 ├── knowledge-base/**        # incidents / retrospectives / best-practices
+├── spec-logs/CHANGELOG.md   # 规范、脚本、技能和命令的变更历史总账
+├── spec-logs/YYYYMMDDhhmmss-*.md # 单次治理日志或学习报告
 └── README.md                # 导航
 ```
 
@@ -38,8 +40,11 @@ docs/
 | 兼容性 | `docs/05-compatibility-matrix.md` |
 | 媒体/MinIO | 对应 standards、兼容性、部署文档 |
 | 故障/复盘/最佳实践 | `docs/knowledge-base/{incidents,retrospectives,best-practices}/` |
+| 规范/脚本/技能/命令治理更新 | `docs/spec-logs/CHANGELOG.md`、对应 `docs/spec-logs/YYYYMMDDhhmmss-governance-*.md` 或 `/spec-study` 的 `YYYYMMDDhhmmss-study-*.md` |
 
 规则：保留 YAML Frontmatter；不确定内容标 `待确认`；产品范围、验收、架构边界、上线策略需人工确认。
+
+`docs/spec-logs/CHANGELOG.md` 是规范工程变更历史总账，MUST 按倒序记录 `/spec-opt` 和经确认应用的 `/spec-study` 对规范、脚本、技能、命令和治理文档的更新摘要。每条记录 SHOULD 包含时间、来源命令、关联 Change、类型、影响范围、更新文件、验证结果、详细日志链接和跨项目落地提示词。跨项目落地提示词 MUST 可复制、脱敏、项目无关，用于说明其他项目要落地同类规范时可直接给 AI 的 Prompt。该文件不得替代单次 `governance` 日志、`study` 报告、OpenSpec Change、Sprint 或 Issue 事实源。
 
 ## 3. 时间与元数据（MUST）
 
@@ -68,6 +73,8 @@ updated_at: YYYY-MM-DD HH:mm:ss
 issues/requirements/{plan,review,archive}/REQ-xxxx-slug/
 issues/bugs/{plan,review,archive}/BUG-xxxx-slug/
 ```
+
+`issues/requirements/CHANGELOG.md` 与 `issues/bugs/CHANGELOG.md` 是目录级当前态看板索引，SHOULD 每个 Issue 一行维护状态、阶段、Sprint、Change、最近更新时间、下一步和事实源路径。它们不参与机器状态判断，不能替代 `_registry.yaml`、单条 `trace.md`、Sprint 四件套或 OpenSpec Change。
 
 需求至少包含编号、来源、目标用户、价值、描述、优先级、状态、关联迭代、关联 Change、验收要点。BUG 至少包含编号、来源、严重程度、影响范围、复现步骤、实际/期望结果、日志/截图、状态、关联迭代、关联 Change、回归测试。
 

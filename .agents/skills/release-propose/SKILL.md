@@ -63,6 +63,18 @@ src/shared/product-version.ts
 | Public safety | Do not include secrets, real customer data, internal DB URLs, MinIO credentials, tokens, or non-public ops details. |
 | Product version | If `src/shared/product-version.ts` differs from `<version>`, set `version_change_rationale` or list the mismatch as a blocking gap for prepare/publish. |
 
+## Operator Decisions（MUST）
+
+`/release-propose` MUST surface a compact decision summary for the release operator before ending:
+
+| Decision | Required output |
+|---|---|
+| Usage docs | `required=true/false/pending` plus confirmation source and rationale when known. |
+| Public announcement | `generated/skipped/pending` plus whether `announcement.mdx` is final copy or placeholder. |
+| Image build | `image_required=true/false` plus whether `/image-prepare` and `/image-build` are expected. |
+
+If any decision is unknown, keep the release as a draft plan and list the missing decision under `待用户决策/处理` with 2-3 structured choices. If the user supplied these decisions in the command text, record them in `release.json` and echo them in the final response; do not ask again.
+
 ## Artifacts（非 `--dry-run` MUST）
 
 Create or update:
@@ -108,6 +120,8 @@ Report version, selected Sprint / REQ / BUG / Change counts, created/updated pat
 /release-prepare <version>
 ```
 
+Output MUST include a `发布决策摘要` section covering usage docs, announcement, and image build. Gate gaps MUST distinguish `missing_decision`, `prepare_evidence_missing`, and `publish_evidence_missing` where applicable.
+
 ## Final Step — AI Usage Post-command Hook (MUST)
 
 After the release plan is written and validation has been attempted, run:
@@ -146,4 +160,3 @@ python scripts/extract-ai-usage.py \
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

@@ -64,6 +64,7 @@ Publish MUST be blocked unless:
 - Announcement text MUST refer to `releases/<version>/image-manifest.json` and the tarball `.sha256` sidecar as the source of truth for final image checksums.
 - Publish confirmation MUST be written only to `releases/<version>/release.json` under `publish_confirmation` or other non-stable publish metadata fields.
 - If announcement content is stale only because usage docs, image prepare/build, or gate status advanced after `/release-prepare`, MAY refresh that status-only copy from current `release.json` / `image-manifest.json` before publish. If announcement is missing, unsafe, or needs scope/feature/risk/rollback copy edits, BLOCK publish and instruct the operator to update the announcement first.
+- If the operator asks to generate or replace public announcement copy after publish, this is allowed as a status/content refresh when stable release scope and image input files are unchanged. Update `announcement.mdx` and non-stable announcement metadata in `release.json`, then rerun release publish validation and image manifest validation. Do not rerun `/image-prepare` or `/image-build` unless stable release scope or image input files changed.
 - `release.json` gate evidence, `known_issues`, `publish_confirmation`, and other publish bookkeeping MUST NOT be treated as image stable input; scripts must continue to hash only stable release scope and input files.
 
 `--force` MUST NOT bypass public-safety failures, missing `release.json` / `announcement.mdx`, usage docs pending confirmation, generated usage docs manifest/navigation/safety failures, skipped usage docs without rationale, missing image manifest for image-required releases, or stale image input hashes.
@@ -97,6 +98,8 @@ Publish MUST be blocked unless:
 ## Output
 
 Report version, publish status, announcement file/URL, validation command result, gate summary, updated files, and rollback reminder.
+
+If announcement was skipped earlier and later generated after publish, report it as `announcement_decision.status=generated_after_publish` and explicitly state that image manifest validation still passed without rebuild.
 
 ## Final Step — AI Usage Post-command Hook (MUST)
 
@@ -136,4 +139,3 @@ python scripts/extract-ai-usage.py \
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

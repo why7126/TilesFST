@@ -2,14 +2,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import type { UserProfile } from '@/shared/api/generated';
 import { ProductVersionBadge } from '@/shared/ui/product-version-badge';
-import { ThemeSwitcher } from '@/features/theme/ThemeSwitcher';
 
 import { adminNavSections, isAdminNavItemActive } from '../data/admin-nav';
 import { AdminUserMenu } from './AdminUserMenu';
 
 interface AdminSidebarProps {
   user: UserProfile | null;
-  profileEmail?: string | null;
   profileAvatarUrl?: string | null;
   onLogout: () => Promise<void>;
   onPlaceholder: () => void;
@@ -20,7 +18,6 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({
   user,
-  profileEmail,
   profileAvatarUrl,
   onLogout,
   onPlaceholder,
@@ -107,12 +104,8 @@ export function AdminSidebar({
           </nav>
         ))}
       </div>
-      <div className="sidebar-theme" aria-label="侧边栏主题偏好">
-        <ThemeSwitcher compact={collapsed} />
-      </div>
       <AdminUserMenu
         user={user}
-        profileEmail={profileEmail}
         avatarUrl={profileAvatarUrl}
         onLogout={onLogout}
         onOpenPasswordChange={onOpenPasswordChange}

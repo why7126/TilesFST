@@ -22,7 +22,7 @@ note: AI新增文件前必须确认目录边界
 
 首页通过 `GET /api/v1/miniapp/home` 获取门店摘要、Banner、快捷入口、服务区、新品推荐和热门推荐。
 
-- Banner 使用后台管理端 Banner 管理数据；后端仅聚合已上线、展示端为 `MINIAPP_HOME`（管理端显示“小程序”）、且在有效期内的 Banner。小程序首页只读取 `MINIAPP_HOME_CAROUSEL`（首页轮播），品牌列表页只读取 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播），品牌列表页无轮播数据时不使用首页轮播兜底。小程序首页与品牌列表页均通过 `swiper` 使用 Banner `image_url` 渲染轮播图，并支持 `product`、`brand`、`search`、`store`、`none` 跳转类型；`brand` 使用 `target_id` 跳转 `pages/brand-detail/index?brandId=...`。没有可用 Banner 时首页降级展示本地黑金品牌 Hero。
+- Banner 使用后台管理端 Banner 管理数据；后端仅聚合已上线、展示端为 `MINIAPP_HOME`（管理端显示“小程序”）、且在有效期内的 Banner。小程序首页只读取 `MINIAPP_HOME_CAROUSEL`（首页轮播），品牌列表页只读取 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播），品牌列表页无轮播数据时不使用首页轮播兜底。小程序首页与品牌列表页均通过 `swiper` 使用 Banner `image_url` 渲染轮播图，有图 Banner 不渲染后台内部标题遮罩，并支持 `product`、`brand`、`search`、`store`、`none` 跳转类型；`brand` 使用 `target_id` 跳转 `pages/brand-detail/index?brandId=...`。没有可用 Banner 时首页降级展示本地黑金品牌 Hero。
 - 新品推荐、热门推荐卡片使用 SKU 主图字段 `cover_image`；缺少主图时降级为 `/assets/tile-placeholder.png`。两者在首页均使用横向滑动列表和 `components/product-card/` 的 `compact` 密度，保持一致的卡片点击、详情跳转和来源上下文传参。
 - 商品价格展示使用后端格式化字段 `price_display`；已维护价格显示为 `¥xx.xx`，未维护、非正或旧无价文案显示为 `暂无`，不再展示旧咨询类文案。
 - 首页左上角产品 Logo 使用 `src/miniapp/assets/logos/product-logo.png`，来源于 Web 公共 Logo 资源 `src/web/public/logos/64x64.png`。

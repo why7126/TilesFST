@@ -48,14 +48,11 @@
             class="brand-hero-image"
             src="{{item.image_url}}"
             mode="aspectFill"
+            lazy-load="{{index > 0}}"
             binderror="onImageError"
             data-index="{{index}}"
           ></image>
           <view class="brand-hero-shade"></view>
-          <view class="brand-hero-copy">
-            <view class="brand-hero-title">{{item.title || '全球严选瓷砖品牌'}}</view>
-            <view wx:if="{{item.subtitle}}" class="brand-hero-subtitle">{{item.subtitle}}</view>
-          </view>
         </view>
       </swiper-item>
     </swiper>
@@ -85,6 +82,7 @@
               class="brand-logo-image"
               src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"
               mode="aspectFit"
+              lazy-load="{{brandIndex > 1}}"
               binderror="onLogoError"
               data-index="{{brandIndex}}"
             ></image>

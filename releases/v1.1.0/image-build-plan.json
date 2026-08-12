@@ -1,0 +1,555 @@
+{
+  "version": "v1.1.0",
+  "generated_at": "2026-08-12 08:48:40",
+  "image_required": true,
+  "image_required_rationale": "用户确认本次需要构建镜像；发布范围包含后端 API / Schema / 数据库迁移、Web 管理端、小程序、对象存储媒体策略、OpenAPI/Orval 与部署镜像输入，按发布规范后续必须执行 /image-prepare v1.1.0 与 /image-build v1.1.0。",
+  "image_tag": "v1.1.0",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-022"
+    ],
+    "requirements": [
+      {
+        "id": "REQ-0103-product-recall-list-pin-priority",
+        "title": "商品召回列表支持少量商品排序置顶",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0104-miniapp-recall-pinned-product-badge",
+        "title": "小程序召回置顶商品展示“置顶”标识",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0106-admin-banner-title-hidden",
+        "title": "Banner 标题隐藏与小程序前台标题遮罩移除",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0107-real-user-page-load-rum",
+        "title": "微信小程序和 Web 页面真实用户加载耗时监控",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0108-admin-banner-list-display-optimization",
+        "title": "Web 管理后台 Banner 列表显示内容优化",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0109-admin-theme-user-menu-modes",
+        "title": "管理后台主题切换入口与模式收敛",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "REQ-0110-admin-user-contact-info-management",
+        "title": "用户管理页支持维护用户联系邮箱和手机号码",
+        "status": "done",
+        "scope": "formal"
+      }
+    ],
+    "bugs": [
+      {
+        "id": "BUG-0125-miniapp-sku-detail-media-original-load",
+        "title": "微信小程序商品详情页媒体加载慢",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0126-miniapp-brand-media-slow-load",
+        "title": "小程序品牌链路图片加载速度慢",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0127-admin-log-audit-slow-load",
+        "title": "管理后台日志审计表数据加载很慢",
+        "status": "done",
+        "scope": "formal"
+      },
+      {
+        "id": "BUG-0128-admin-user-menu-email-subtitle",
+        "title": "管理后台身份展示不应显示伪邮箱",
+        "status": "done",
+        "scope": "formal"
+      }
+    ],
+    "changes": [
+      {
+        "id": "add-spec-sync-skill",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-07-add-spec-sync-skill"
+      },
+      {
+        "id": "rename-spec-sync-to-spec-study",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-07-rename-spec-sync-to-spec-study"
+      },
+      {
+        "id": "add-spec-logs-governance-log-convention",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-07-add-spec-logs-governance-log-convention"
+      },
+      {
+        "id": "avoid-duplicate-spec-study-reports",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-07-avoid-duplicate-spec-study-reports"
+      },
+      {
+        "id": "fix-miniapp-sku-detail-media-thumbnails",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-fix-miniapp-sku-detail-media-thumbnails"
+      },
+      {
+        "id": "add-product-recall-list-pin-priority",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-add-product-recall-list-pin-priority"
+      },
+      {
+        "id": "update-miniapp-recall-pinned-product-badge",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-update-miniapp-recall-pinned-product-badge"
+      },
+      {
+        "id": "add-spec-logs-change-history",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-add-spec-logs-change-history"
+      },
+      {
+        "id": "update-banner-title-hidden-display",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-update-banner-title-hidden-display"
+      },
+      {
+        "id": "add-real-user-page-load-rum",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-add-real-user-page-load-rum"
+      },
+      {
+        "id": "apply-projectmoonbox-governance-learnings",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-apply-projectmoonbox-governance-learnings"
+      },
+      {
+        "id": "fix-miniapp-brand-media-performance",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-fix-miniapp-brand-media-performance"
+      },
+      {
+        "id": "update-admin-banner-list-display-optimization",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-update-admin-banner-list-display-optimization"
+      },
+      {
+        "id": "update-admin-theme-user-menu-modes",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-update-admin-theme-user-menu-modes"
+      },
+      {
+        "id": "fix-admin-log-audit-slow-load",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-fix-admin-log-audit-slow-load"
+      },
+      {
+        "id": "refine-capture-explore-modify-stage-routing",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-refine-capture-explore-modify-stage-routing"
+      },
+      {
+        "id": "fix-admin-identity-fake-email-display",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-fix-admin-identity-fake-email-display"
+      },
+      {
+        "id": "update-admin-user-contact-info-management",
+        "status": "archived",
+        "scope": "formal",
+        "archive_path": "openspec/archive/2026-08-11-update-admin-user-contact-info-management"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "8ab70aeef2f8f4053e45741304b7cbde6defedf8840235cb439ba97d85d85b69",
+    "fields": {
+      "version": "v1.1.0",
+      "image_required": true,
+      "image_required_rationale": "用户确认本次需要构建镜像；发布范围包含后端 API / Schema / 数据库迁移、Web 管理端、小程序、对象存储媒体策略、OpenAPI/Orval 与部署镜像输入，按发布规范后续必须执行 /image-prepare v1.1.0 与 /image-build v1.1.0。",
+      "image_tag": "v1.1.0",
+      "sprints": [
+        "sprint-022"
+      ],
+      "requirements": [
+        {
+          "id": "REQ-0103-product-recall-list-pin-priority",
+          "title": "商品召回列表支持少量商品排序置顶",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0104-miniapp-recall-pinned-product-badge",
+          "title": "小程序召回置顶商品展示“置顶”标识",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0106-admin-banner-title-hidden",
+          "title": "Banner 标题隐藏与小程序前台标题遮罩移除",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0107-real-user-page-load-rum",
+          "title": "微信小程序和 Web 页面真实用户加载耗时监控",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0108-admin-banner-list-display-optimization",
+          "title": "Web 管理后台 Banner 列表显示内容优化",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0109-admin-theme-user-menu-modes",
+          "title": "管理后台主题切换入口与模式收敛",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "REQ-0110-admin-user-contact-info-management",
+          "title": "用户管理页支持维护用户联系邮箱和手机号码",
+          "status": "done",
+          "scope": "formal"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "BUG-0125-miniapp-sku-detail-media-original-load",
+          "title": "微信小程序商品详情页媒体加载慢",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0126-miniapp-brand-media-slow-load",
+          "title": "小程序品牌链路图片加载速度慢",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0127-admin-log-audit-slow-load",
+          "title": "管理后台日志审计表数据加载很慢",
+          "status": "done",
+          "scope": "formal"
+        },
+        {
+          "id": "BUG-0128-admin-user-menu-email-subtitle",
+          "title": "管理后台身份展示不应显示伪邮箱",
+          "status": "done",
+          "scope": "formal"
+        }
+      ],
+      "changes": [
+        {
+          "id": "add-spec-sync-skill",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-07-add-spec-sync-skill"
+        },
+        {
+          "id": "rename-spec-sync-to-spec-study",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-07-rename-spec-sync-to-spec-study"
+        },
+        {
+          "id": "add-spec-logs-governance-log-convention",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-07-add-spec-logs-governance-log-convention"
+        },
+        {
+          "id": "avoid-duplicate-spec-study-reports",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-07-avoid-duplicate-spec-study-reports"
+        },
+        {
+          "id": "fix-miniapp-sku-detail-media-thumbnails",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-fix-miniapp-sku-detail-media-thumbnails"
+        },
+        {
+          "id": "add-product-recall-list-pin-priority",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-add-product-recall-list-pin-priority"
+        },
+        {
+          "id": "update-miniapp-recall-pinned-product-badge",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-update-miniapp-recall-pinned-product-badge"
+        },
+        {
+          "id": "add-spec-logs-change-history",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-add-spec-logs-change-history"
+        },
+        {
+          "id": "update-banner-title-hidden-display",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-update-banner-title-hidden-display"
+        },
+        {
+          "id": "add-real-user-page-load-rum",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-add-real-user-page-load-rum"
+        },
+        {
+          "id": "apply-projectmoonbox-governance-learnings",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-apply-projectmoonbox-governance-learnings"
+        },
+        {
+          "id": "fix-miniapp-brand-media-performance",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-fix-miniapp-brand-media-performance"
+        },
+        {
+          "id": "update-admin-banner-list-display-optimization",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-update-admin-banner-list-display-optimization"
+        },
+        {
+          "id": "update-admin-theme-user-menu-modes",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-update-admin-theme-user-menu-modes"
+        },
+        {
+          "id": "fix-admin-log-audit-slow-load",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-fix-admin-log-audit-slow-load"
+        },
+        {
+          "id": "refine-capture-explore-modify-stage-routing",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-refine-capture-explore-modify-stage-routing"
+        },
+        {
+          "id": "fix-admin-identity-fake-email-display",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-fix-admin-identity-fake-email-display"
+        },
+        {
+          "id": "update-admin-user-contact-info-management",
+          "status": "archived",
+          "scope": "formal",
+          "archive_path": "openspec/archive/2026-08-11-update-admin-user-contact-info-management"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "影响 Banner 管理列表与标题隐藏、主题入口、性能观测、日志审计、用户管理联系信息和身份展示。",
+        "owner_web": "不新增店主 Web 独立能力；RUM Web 采集可能影响店主 Web 性能观测口径。",
+        "miniapp": "影响商品列表、商品详情、品牌列表、品牌详情、品牌分类商品列表、召回置顶标识和 RUM 网络类型采集。",
+        "backend": "影响公开商品/SKU/品牌接口、性能事件上报与查询、Banner 管理、日志审计、用户管理、媒体 URL 与缓存语义。",
+        "database": "影响 SKU 召回排序字段、性能事件存储、日志审计索引和用户联系信息相关 schema/migration。",
+        "object_storage": "影响商品详情与品牌链路媒体缩略图 URL、缓存标记和历史对象审计口径；不改变 MinIO 单桶前缀策略。",
+        "docker": "用户确认需要本版本镜像构建；需后续 image prepare/build 生成受控镜像证据。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v1.1.0",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    ".env.example",
+    "deploy/local/compose.yml",
+    "deploy/local/mysql-minio-external.env.example",
+    "deploy/local/mysql-minio-managed.env.example",
+    "deploy/local/mysql-tencent-cos.env.example",
+    "deploy/local/sqlite-minio-external.env.example",
+    "deploy/local/sqlite-minio-managed.env.example",
+    "deploy/local/sqlite-tencent-cos.env.example",
+    "deploy/prod/compose.tencent-cos.yml",
+    "deploy/prod/mysql-tencent-cos.env.example",
+    "deploy/scripts/down.sh",
+    "deploy/scripts/media-maintenance.sh",
+    "deploy/scripts/up.sh",
+    "deploy/scripts/validate-env.py",
+    "docker-compose.prod.external.yml",
+    "docker-compose.prod.yml",
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md",
+    "scripts/build-images.env.example",
+    "scripts/build-images.sh",
+    "src/backend/Dockerfile",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/schema.sql",
+    "src/shared/product-version.ts",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf"
+  ],
+  "input_hashes": {
+    ".env.example": "cbd3c2a6c85888ede93ee63f5c7b052e8733460ce0679a5b8c5ac05296450441",
+    "deploy/local/compose.yml": "bb92abd5c69507d32157b2f62a040eab4a937421850aa941624ca41f70fec89e",
+    "deploy/local/mysql-minio-external.env.example": "d18b36153dcbbafdeb91040ca08f8f6eb1eb1b750641a6437ef93df5fe926cbc",
+    "deploy/local/mysql-minio-managed.env.example": "329b800e73bcf3887a0bae37ceeaa6d5c61f77bdfa7d35e46d84fe75a26ded36",
+    "deploy/local/mysql-tencent-cos.env.example": "c7de8e093f6368560e35fd6bab0a87020dd6203c4a89d91a740fcf0ae06f9cb5",
+    "deploy/local/sqlite-minio-external.env.example": "01fc8c071fade5038793a136919cc5803e678473126f350066152dd5ecac45dc",
+    "deploy/local/sqlite-minio-managed.env.example": "47610e2f9d904eb5d3e7487570d1847a5db78a9ecba26371e8e7abbb00bed181",
+    "deploy/local/sqlite-tencent-cos.env.example": "efdc707202ff4620162f23c6df6a37ffdb19b99b1fc9139cd91b5f9a5a0b12a0",
+    "deploy/prod/compose.tencent-cos.yml": "ac58331284d79d7d6c9c727e9459aec440380466b64199549bc7a037796dab6b",
+    "deploy/prod/mysql-tencent-cos.env.example": "e6dc69f4aa5c79f3268871bd990aaa8faf39ccf47dc2a10e52c98111ccd00034",
+    "deploy/scripts/down.sh": "eeebd20cbc949ead0c3e8ba14749ecab0d5a8af4b945a802e803402bd6ab6db6",
+    "deploy/scripts/media-maintenance.sh": "f54f4409e6cdcc6a544c1bb754d51ee06c7d15492d550827cdf896e3f0cd3d4e",
+    "deploy/scripts/up.sh": "e0749eb9c4087e512207c683766ac9015eb7a2194bf778803fa051d41ef78bb5",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "f8dedb6b97875910ac313092d5329d7482448b0f499853285d8fc268e86f55d9",
+    "docker-compose.prod.yml": "242805e32dfdd2695d1159f015c4b9a4fde2ba38bbfa0ae876a5b4973f0b8287",
+    "docs/04-database-design.md": "262170a16c6d66710bfcf2ec7e2edaef82d33b387042986cf952397311a92cfa",
+    "docs/08-production-image-release.md": "e3ef1a00d174a8b871b4f342614a79210572fc0a4b9aaac110edd352ef7b13dc",
+    "scripts/build-images.env.example": "ae162c6b2d4156059a5c4eca0705536a9062284d5af2cad91c104cfbc1409ebd",
+    "scripts/build-images.sh": "64e00b32b3e19775fc70a1ff64ca88f66b385770ec69afcf4e1fec8ca6dae5d6",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "e0edb0ad5890f225973a75c95cdd1387c077ac6f6f2ec98bb6b68a59b1972891",
+    "src/backend/app/db/mysql_migrations.py": "10abe84b05351dac25c56befa3f080b55db94f198966563d2e0b5f8d38846f12",
+    "src/backend/app/db/schema.mysql.sql": "bf4ac8a12a9f7e078d86755bff968d9e1ed44b1622708f46b59df94c149e6aca",
+    "src/backend/app/db/schema.sql": "dc991d3cf5b169f1b70bbb557a35208b51486e4a886691291609861b03a65f40",
+    "src/shared/product-version.ts": "1ac0c252b34729d33eb634a8563d34eaa347e29e7b21a2907e3d40cb014e2cc2",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "941620907b9eb95a2c226253b5fdf5664f6b13b406297af1835a5b4d42044062"
+  },
+  "database_impact": {
+    "required": true,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v1.1.0"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v1.1.0"
+    }
+  ],
+  "auto_actions": [
+    {
+      "code": "image_tag_normalized",
+      "message": "Set IMAGE_BUILD_TAG to v1.1.0 in scripts/build-images.env."
+    }
+  ],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.0."
+    }
+  ],
+  "blockers": []
+}

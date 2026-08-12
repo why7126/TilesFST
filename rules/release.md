@@ -112,6 +112,18 @@ releases/vX.Y.Z/usage-docs/
 
 ## 发布前门禁
 
+## 发布决策摘要
+
+发布流程 MUST 在 `/release-propose` 或最晚 `/release-prepare` 阶段形成并回显三类操作决策：
+
+| 决策 | 记录位置 | 说明 |
+|---|---|---|
+| 产品使用文档 | `release.json.usage_docs.generation_decision` | 生成、跳过或待确认；待确认阻断发布确认。 |
+| 公开公告 | `release.json.announcement_decision` 与 `announcement.mdx` | 可先跳过或占位；发布后补生成公告属于非稳定发布元数据刷新。 |
+| 镜像构建 | `release.json.image_required`、`image_plan`、`image_manifest` | 涉及后端、Web、Docker、DB、对象存储或离线交付时通常为 required。 |
+
+命令输出 MUST 将这三类决策放入摘要，避免操作者在多个命令之间依赖记忆。已确认的决策不得重复追问；未知决策必须以结构化选项列入待用户处理。
+
 发布确认前 MUST 校验：
 
 | 门禁 | 要求 |
@@ -131,6 +143,8 @@ releases/vX.Y.Z/usage-docs/
 
 任一必填门禁失败时，发布流程 MUST 阻断，并输出失败原因与修复建议。
 
+发布阻塞项输出 MUST 可执行：除描述失败原因外，还应给出安全修复路径和复跑校验命令。MySQL drift 只能列出缺失表/字段类别，不得输出 raw `DATABASE_URL`、凭据或生产私有连接信息。环境依赖问题应区分本地测试环境与产品回归，不得把可修复的测试环境问题伪装为产品风险。
+
 当发布范围涉及后端运行代码、Web 构建产物、Dockerfile、Compose、`.env.example`、镜像构建脚本、构建 env 示例、数据库 schema / migration、API / Orval 生成物或离线镜像交付时，发布对象 MUST 将 `image_required` 设为 `true`，并按以下顺序执行：
 
 ```text
@@ -148,6 +162,8 @@ releases/vX.Y.Z/usage-docs/
 发布确认阶段 MUST 重新校验 manifest 的版本、tag、source plan、input hashes、tarball 路径、sidecar sha256 和实际 tarball sha256。manifest 生成后 Dockerfile、构建脚本、schema、migration、Compose 或 release stable input 漂移时，镜像证据失效，必须重新执行 `/image-prepare` 与 `/image-build`，或记录经批准的外部构建证据。公告文案不参与镜像二进制构建，MUST NOT 纳入 image build plan / manifest input hash；公告中的发布状态、usage docs 决策和镜像 evidence 描述可在发布确认前按当前 `release.json`、`image-manifest.json` 和 `.sha256` sidecar 刷新。发布输出 MUST 以当前 manifest 中的 sha256 为唯一发布 sha，并提醒在 tarball 所在目录执行 `shasum -a 256 -c <tarball>.sha256`。
 
 `/release-publish` 是发布确认命令，不得把最终 tarball sha256、manifest sha256、发布时间或发布确认写回公告。公告中如需描述镜像校验，MUST 引用 `releases/<version>/image-manifest.json` 与离线包 `.sha256` sidecar 作为事实源。最终 sha、发布时间、公告位置和确认人只写入 `release.json.publish_confirmation` 或发布输出。若发布确认发现公告只残留 usage docs、image prepare/build、门禁状态等可由当前 release metadata 推导出的过期状态，MAY 在 publish 前刷新公告并继续校验；若公告涉及范围、功能、风险、回滚、公开安全或需人工 copy edit 的实质变更，MUST 阻断 publish 并要求先修公告。
+
+发布确认后补充生成公开公告时，若仅更新 `announcement.mdx` 与 `release.json` 的非稳定公告元数据，且 release stable scope 与镜像输入文件未变化，MUST 复跑 `validate-release --stage publish`、`validate-image-build.py validate-manifest` 和 tarball sidecar 校验，但 MUST NOT 要求重新 `/image-prepare` 或 `/image-build`。如公告补写改变发布范围、风险声明、回滚策略或包含不安全内容，必须先修正公告并重新通过公开安全校验。
 
 外部构建证据只可作为受控替代证据，必须记录来源、版本、image tag、平台、镜像 digest 或 tarball sha256、校验方式、负责人确认和风险说明；不得绕过公开安全扫描、版本一致性校验或 input hash 漂移校验。
 

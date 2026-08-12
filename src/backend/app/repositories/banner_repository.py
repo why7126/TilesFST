@@ -15,6 +15,10 @@ VALID_BANNER_SCOPE_SQL = (
     "display_client = 'MINIAPP_HOME' "
     "AND position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')"
 )
+VALID_BANNER_SCOPE_SQL_ALIASED = (
+    "b.display_client = 'MINIAPP_HOME' "
+    "AND b.position IN ('MINIAPP_HOME_CAROUSEL', 'MINIAPP_BRAND_LIST_CAROUSEL')"
+)
 
 
 @dataclass
@@ -31,6 +35,7 @@ class BannerRecord:
     external_url: str | None
     topic_id: int | None
     brand_id: int | None
+    jump_target_label: str | None
     sort_order: int
     valid_from: str | None
     valid_to: str | None
@@ -145,6 +150,7 @@ class BannerRepository:
             external_url=row.get("external_url"),
             topic_id=int(row["topic_id"]) if row.get("topic_id") is not None else None,
             brand_id=int(row["brand_id"]) if row.get("brand_id") is not None else None,
+            jump_target_label=row.get("jump_target_label"),
             sort_order=int(row["sort_order"]),
             valid_from=row.get("valid_from"),
             valid_to=row.get("valid_to"),
@@ -158,14 +164,23 @@ class BannerRepository:
         now_iso = datetime.now(UTC).isoformat()
         total_row = (
             self._db.execute(
-                text(f"SELECT COUNT(*) AS c FROM banners WHERE {VALID_BANNER_SCOPE_SQL}")
+                text(f"SELECT COUNT(*) AS c FROM banners b WHERE {VALID_BANNER_SCOPE_SQL_ALIASED}")
             )
             .mappings()
             .one()
         )
         filtered_row = (
             self._db.execute(
-                text(f"SELECT COUNT(*) AS c FROM banners WHERE {where_sql}"),
+                text(
+                    f"""
+                    SELECT COUNT(*) AS c
+                    FROM banners b
+                    LEFT JOIN brands ON brands.id = b.brand_id
+                    LEFT JOIN tiles ON tiles.id = b.sku_id
+                    LEFT JOIN topics ON topics.id = b.topic_id
+                    WHERE {where_sql}
+                    """
+                ),
                 params,
             )
             .mappings()
@@ -174,19 +189,21 @@ class BannerRepository:
         online_row = (
             self._db.execute(
                 text(
-                    f"SELECT COUNT(*) AS c FROM banners "
-                    f"WHERE {VALID_BANNER_SCOPE_SQL} AND status = 'ONLINE'"
+                    f"SELECT COUNT(*) AS c FROM banners b "
+                    f"WHERE {VALID_BANNER_SCOPE_SQL_ALIASED} AND b.status = 'ONLINE'"
                 ),
             )
             .mappings()
             .one()
         )
-        pending_sql = _time_status_sql("PENDING", now_iso)
+        pending_sql = _time_status_sql("PENDING", now_iso).replace("status", "b.status").replace(
+            "valid_from", "b.valid_from"
+        ).replace("valid_to", "b.valid_to")
         pending_row = (
             self._db.execute(
                 text(
-                    f"SELECT COUNT(*) AS c FROM banners "
-                    f"WHERE {VALID_BANNER_SCOPE_SQL} AND {pending_sql}"
+                    f"SELECT COUNT(*) AS c FROM banners b "
+                    f"WHERE {VALID_BANNER_SCOPE_SQL_ALIASED} AND {pending_sql}"
                 ),
             )
             .mappings()
@@ -209,28 +226,49 @@ class BannerRepository:
         status: str | None,
         time_status: str | None,
     ) -> BannerListResult:
-        conditions = [VALID_BANNER_SCOPE_SQL]
+        conditions = [VALID_BANNER_SCOPE_SQL_ALIASED]
         params: dict[str, Any] = {}
         now_iso = datetime.now(UTC).isoformat()
 
         if keyword:
             conditions.append(
-                "(title LIKE :keyword OR position LIKE :keyword OR external_url LIKE :keyword)"
+                "("
+                "b.title LIKE :keyword "
+                "OR b.position LIKE :keyword "
+                "OR b.external_url LIKE :keyword "
+                "OR brands.name LIKE :keyword "
+                "OR tiles.name LIKE :keyword "
+                "OR topics.title LIKE :keyword"
+                ")"
             )
             params["keyword"] = f"%{keyword}%"
         if display_client:
-            conditions.append("display_client = :display_client")
+            conditions.append("b.display_client = :display_client")
             params["display_client"] = display_client
         if status:
-            conditions.append("status = :status")
+            conditions.append("b.status = :status")
             params["status"] = status
         if time_status:
-            conditions.append(_time_status_sql(time_status, now_iso))
+            conditions.append(
+                _time_status_sql(time_status, now_iso)
+                .replace("status", "b.status")
+                .replace("valid_from", "b.valid_from")
+                .replace("valid_to", "b.valid_to")
+            )
 
         where_sql = " AND ".join(conditions)
         total = int(
             self._db.execute(
-                text(f"SELECT COUNT(*) AS c FROM banners WHERE {where_sql}"),
+                text(
+                    f"""
+                    SELECT COUNT(*) AS c
+                    FROM banners b
+                    LEFT JOIN brands ON brands.id = b.brand_id
+                    LEFT JOIN tiles ON tiles.id = b.sku_id
+                    LEFT JOIN topics ON topics.id = b.topic_id
+                    WHERE {where_sql}
+                    """
+                ),
                 params,
             ).scalar_one()
         )
@@ -240,9 +278,22 @@ class BannerRepository:
             self._db.execute(
                 text(
                     f"""
-                    SELECT * FROM banners
+                    SELECT
+                      b.*,
+                      CASE
+                        WHEN b.jump_type = 'BRAND_DETAIL' THEN COALESCE(NULLIF(brands.name, ''), '-')
+                        WHEN b.jump_type = 'SKU_DETAIL' THEN COALESCE(NULLIF(tiles.name, ''), '-')
+                        WHEN b.jump_type = 'TOPIC_PAGE' THEN COALESCE(NULLIF(topics.title, ''), '-')
+                        WHEN b.jump_type = 'EXTERNAL_LINK' THEN COALESCE(NULLIF(b.external_url, ''), '-')
+                        WHEN b.jump_type = 'NO_JUMP' THEN '-'
+                        ELSE '-'
+                      END AS jump_target_label
+                    FROM banners b
+                    LEFT JOIN brands ON brands.id = b.brand_id
+                    LEFT JOIN tiles ON tiles.id = b.sku_id
+                    LEFT JOIN topics ON topics.id = b.topic_id
                     WHERE {where_sql}
-                    ORDER BY sort_order ASC, updated_at DESC
+                    ORDER BY b.sort_order ASC, b.updated_at DESC
                     LIMIT :limit OFFSET :offset
                     """
                 ),

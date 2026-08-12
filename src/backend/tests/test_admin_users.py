@@ -47,7 +47,7 @@ def _get_user_snapshot(username: str) -> dict[str, object]:
         row = session.execute(
             text(
                 """
-                SELECT id, username, display_name, role, status, password_hash,
+                SELECT id, username, display_name, role, status, email, phone, password_hash,
                        avatar_object_key, token_version
                 FROM users
                 WHERE username = :username
@@ -135,6 +135,112 @@ def test_create_user_success(client: TestClient) -> None:
     data = response.json()["data"]
     assert data["user"]["username"] == "new_store_01"
     _assert_basic_password_policy(data["initial_password"])
+
+
+def test_create_user_saves_contact_info(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    response = client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={
+            "username": "contact_user",
+            "display_name": "联系用户",
+            "role": "store_owner",
+            "email": " contact@example.com ",
+            "phone": " +86 138 0000 2026 ",
+        },
+    )
+    assert response.status_code == 200
+    user = response.json()["data"]["user"]
+    assert user["email"] == "contact@example.com"
+    assert user["phone"] == "+86 138 0000 2026"
+
+    snapshot = _get_user_snapshot("contact_user")
+    assert snapshot["email"] == "contact@example.com"
+    assert snapshot["phone"] == "+86 138 0000 2026"
+
+
+def test_update_user_contact_info_and_clear(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    create = client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={
+            "username": "contact_edit",
+            "role": "employee",
+            "email": "old@example.com",
+            "phone": "138 0000 0000",
+        },
+    )
+    user_id = create.json()["data"]["user"]["id"]
+
+    update = client.patch(
+        f"/api/v1/admin/users/{user_id}",
+        headers=headers,
+        json={"email": "new@example.com", "phone": "+1 555-0100"},
+    )
+    assert update.status_code == 200
+    assert update.json()["data"]["email"] == "new@example.com"
+    assert update.json()["data"]["phone"] == "+1 555-0100"
+
+    clear = client.patch(
+        f"/api/v1/admin/users/{user_id}",
+        headers=headers,
+        json={"email": None, "phone": ""},
+    )
+    assert clear.status_code == 200
+    assert clear.json()["data"]["email"] is None
+    assert clear.json()["data"]["phone"] is None
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        ({"email": "not-an-email"}, "联系邮箱格式不正确"),
+        ({"phone": "138-0000 ext"}, "手机号码仅允许数字、空格、+、-"),
+    ],
+)
+def test_create_user_invalid_contact_info_returns_business_message(
+    client: TestClient,
+    payload: dict[str, str],
+    message: str,
+) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    username = f"bad_{next(iter(payload))}_contact"
+    response = client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={"username": username, "role": "store_owner", **payload},
+    )
+    body = response.json()
+
+    assert response.status_code == 400
+    assert body["code"] == 40010
+    assert body["message"] == message
+    assert "detail" not in body
+
+
+def test_admin_list_users_searches_contact_info(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    client.post(
+        "/api/v1/admin/users",
+        headers=headers,
+        json={
+            "username": "search_contact",
+            "display_name": "检索联系人",
+            "role": "store_owner",
+            "email": "lookup@example.com",
+            "phone": "+86 139 0000 2026",
+        },
+    )
+
+    by_email = client.get("/api/v1/admin/users?keyword=lookup", headers=headers)
+    by_phone = client.get("/api/v1/admin/users?keyword=139%200000", headers=headers)
+
+    assert by_email.status_code == 200
+    assert by_phone.status_code == 200
+    assert any(item["username"] == "search_contact" for item in by_email.json()["data"]["items"])
+    assert any(item["username"] == "search_contact" for item in by_phone.json()["data"]["items"])
 
 
 def test_create_user_duplicate_username(client: TestClient) -> None:
@@ -316,7 +422,7 @@ def test_protected_admin_cannot_change_status(client: TestClient) -> None:
     assert after["status"] == before["status"]
 
 
-def test_keyword_matches_username_and_display_name_only(client: TestClient) -> None:
+def test_keyword_matches_username_display_name_email_and_phone(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     username = "kw_search_user"
     display_name = "昵称搜索专用"
@@ -367,7 +473,7 @@ def test_keyword_matches_username_and_display_name_only(client: TestClient) -> N
     )
     assert by_email.status_code == 200
     usernames = [item["username"] for item in by_email.json()["data"]["items"]]
-    assert username not in usernames
+    assert username in usernames
 
     by_phone = client.get(
         "/api/v1/admin/users",
@@ -376,7 +482,7 @@ def test_keyword_matches_username_and_display_name_only(client: TestClient) -> N
     )
     assert by_phone.status_code == 200
     usernames = [item["username"] for item in by_phone.json()["data"]["items"]]
-    assert username not in usernames
+    assert username in usernames
 
 
 def test_user_list_returns_accessible_avatar_url(client: TestClient) -> None:

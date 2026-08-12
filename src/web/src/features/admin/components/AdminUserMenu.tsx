@@ -1,13 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { KeyRound, LogOut, SunMoon, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { useTheme } from '@/features/theme/ThemeContext';
 import type { UserProfile } from '@/shared/api/generated';
 
-import { getUserDisplayName, getUserEmail, getUserInitials } from '../lib/user-display';
+import { getUserDisplayName, getUserInitials } from '../lib/user-display';
 
 interface AdminUserMenuProps {
   user: UserProfile | null;
-  profileEmail?: string | null;
   avatarUrl?: string | null;
   onLogout: () => Promise<void>;
   onOpenPasswordChange: () => void;
@@ -15,7 +16,6 @@ interface AdminUserMenuProps {
 
 export function AdminUserMenu({
   user,
-  profileEmail,
   avatarUrl,
   onLogout,
   onOpenPasswordChange,
@@ -26,12 +26,15 @@ export function AdminUserMenu({
   const [avatarImageFailed, setAvatarImageFailed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, setMode } = useTheme();
 
   const displayName = getUserDisplayName(user?.display_name, user?.username);
-  const email = getUserEmail(user?.username, profileEmail);
   const initials = getUserInitials(user?.display_name, user?.username);
   const isProfileActive = location.pathname.startsWith('/admin/profile');
   const showAvatarImage = Boolean(avatarUrl) && !avatarImageFailed;
+  const nextThemeMode = mode === 'dark_flagship' ? 'system' : 'dark_flagship';
+  const themeActionLabel =
+    nextThemeMode === 'system' ? '切换到跟随系统' : '切换到暗色旗舰';
 
   useEffect(() => {
     setAvatarImageFailed(false);
@@ -77,8 +80,8 @@ export function AdminUserMenu({
             navigate('/admin/profile');
           }}
         >
-          <span className="dropdown-icon" aria-hidden />
-          个人资料
+          <UserRound className="dropdown-icon" size={15} strokeWidth={1.7} aria-hidden />
+          <span className="dropdown-label">个人资料</span>
         </button>
         <button
           type="button"
@@ -89,13 +92,29 @@ export function AdminUserMenu({
             onOpenPasswordChange();
           }}
         >
-          <span className="dropdown-icon" aria-hidden />
-          密码修改
+          <KeyRound className="dropdown-icon" size={15} strokeWidth={1.7} aria-hidden />
+          <span className="dropdown-label">密码修改</span>
+        </button>
+        <button
+          type="button"
+          className="dropdown-item theme-toggle"
+          role="menuitem"
+          aria-label={themeActionLabel}
+          title={themeActionLabel}
+          onClick={() => {
+            void setMode(nextThemeMode);
+          }}
+        >
+          <SunMoon className="dropdown-icon" size={15} strokeWidth={1.7} aria-hidden />
+          <span className="dropdown-label">界面主题</span>
+          <span className="theme-switch-track" aria-hidden>
+            <span className="theme-switch-thumb" />
+          </span>
         </button>
         <div className="dropdown-divider" role="separator" />
         <button type="button" className="dropdown-item logout" role="menuitem" onClick={handleLogout}>
-          <span className="dropdown-icon" aria-hidden />
-          退出登录
+          <LogOut className="dropdown-icon" size={15} strokeWidth={1.7} aria-hidden />
+          <span className="dropdown-label">退出登录</span>
         </button>
       </div>
       <button
@@ -120,7 +139,6 @@ export function AdminUserMenu({
         </span>
         <span>
           <span className="user-name">{displayName}</span>
-          <span className="user-email">{email}</span>
         </span>
         <span className="chevron" aria-hidden>
           ⌃

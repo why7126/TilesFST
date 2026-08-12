@@ -1,7 +1,56 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 103
+next_id: 111
 entries:
+  - id: REQ-0110-admin-user-contact-info-management
+    title: 用户管理页支持维护用户联系邮箱和手机号码
+    status: done
+    iteration: sprint-022
+    created: "2026-08-11 22:03:20"
+    parent_requirement: REQ-0005-user-management
+    related_change: update-admin-user-contact-info-management
+  - id: REQ-0109-admin-theme-user-menu-modes
+    title: 管理后台主题切换入口与模式收敛
+    status: done
+    iteration: sprint-022
+    created: "2026-08-11 08:44:06"
+    parent_requirement:
+    related_change: update-admin-theme-user-menu-modes
+  - id: REQ-0108-admin-banner-list-display-optimization
+    title: Web 管理后台 Banner 列表显示内容优化
+    status: done
+    iteration: null
+    created: "2026-08-11 08:33:52"
+    parent_requirement:
+    related_change: null
+  - id: REQ-0107-real-user-page-load-rum
+    title: 微信小程序和Web页面真实用户加载耗时监控
+    status: done
+    iteration: null
+    created: "2026-08-10 22:26:02"
+    parent_requirement:
+    related_change: null
+  - id: REQ-0106-admin-banner-title-hidden
+    title: Banner 标题隐藏与小程序前台标题遮罩移除
+    status: done
+    iteration: sprint-022
+    created: "2026-08-10 22:27:41"
+    parent_requirement:
+    related_change: null
+  - id: REQ-0104-miniapp-recall-pinned-product-badge
+    title: 小程序召回置顶商品展示“置顶”标识
+    status: done
+    iteration: null
+    created: "2026-08-08 09:16:44"
+    parent_requirement: REQ-0103-product-recall-list-pin-priority
+    related_change: null
+  - id: REQ-0103-product-recall-list-pin-priority
+    title: 商品召回列表支持少量商品排序置顶
+    status: done
+    iteration: sprint-022
+    created: "2026-08-07 22:19:41"
+    parent_requirement: REQ-0006-tile-sku-management
+    related_change: null
   - id: REQ-0102-sprint-goal-scope-consistency-validation
     title: Sprint 目标编号列表与 Scope 一致性校验
     status: done

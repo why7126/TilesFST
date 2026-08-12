@@ -25,6 +25,7 @@ MYSQL_COMPAT_CLIENT_REQUEST_ID_VERSION = "mysql_compat_client_request_id_v1"
 MYSQL_COMPAT_BRAND_CERTIFICATE_IMAGES_VERSION = "mysql_compat_brand_certificate_images_v1"
 MYSQL_COMPAT_TILES_PUBLISHED_AT_VERSION = "mysql_compat_tiles_published_at_v1"
 MYSQL_COMPAT_USERS_THEME_MODE_VERSION = "mysql_compat_users_theme_mode_v1"
+MYSQL_COMPAT_PERFORMANCE_EVENTS_VERSION = "mysql_compat_performance_events_v1"
 
 BANNER_WRITE_FIELD_COLUMNS: dict[str, str] = {
     "image_source": "VARCHAR(64) NOT NULL DEFAULT 'custom_upload'",
@@ -180,6 +181,7 @@ def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMig
     _ensure_brand_certificate_images_support(connection)
     _ensure_tiles_published_at_support(connection)
     _ensure_users_theme_mode_support(connection)
+    _ensure_performance_events_support(connection)
     connection.exec_driver_sql(
         """
         INSERT IGNORE INTO schema_migrations (version, applied_at)
@@ -237,7 +239,44 @@ def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMig
         """,
         (MYSQL_COMPAT_USERS_THEME_MODE_VERSION,),
     )
+    connection.exec_driver_sql(
+        """
+        INSERT IGNORE INTO schema_migrations (version, applied_at)
+        VALUES (%s, UTC_TIMESTAMP(3))
+        """,
+        (MYSQL_COMPAT_PERFORMANCE_EVENTS_VERSION,),
+    )
     return reports
+
+
+def _ensure_performance_events_support(connection: Connection) -> None:
+    if not _has_table(connection, "performance_events"):
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE performance_events (
+              id CHAR(36) PRIMARY KEY,
+              client_type VARCHAR(32) NOT NULL,
+              page_key VARCHAR(120) NOT NULL,
+              app_version VARCHAR(64),
+              network_type VARCHAR(32),
+              device_class VARCHAR(32),
+              metric_name VARCHAR(64) NOT NULL,
+              duration_ms INT NOT NULL,
+              sample_rate DECIMAL(5,4) NOT NULL DEFAULT 1.0000,
+              occurred_at VARCHAR(64) NOT NULL,
+              server_received_at VARCHAR(64) NOT NULL,
+              request_id VARCHAR(128),
+              metadata TEXT,
+              CONSTRAINT chk_performance_events_client_type CHECK (client_type IN ('web_admin', 'web_catalog', 'wechat_miniapp')),
+              CONSTRAINT chk_performance_events_duration CHECK (duration_ms >= 0),
+              CONSTRAINT chk_performance_events_sample_rate CHECK (sample_rate >= 0 AND sample_rate <= 1),
+              INDEX idx_performance_events_received (server_received_at),
+              INDEX idx_performance_events_client_page_metric (client_type, page_key, metric_name, server_received_at),
+              INDEX idx_performance_events_version (app_version, server_received_at),
+              INDEX idx_performance_events_network (network_type, device_class, server_received_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """
+        )
 
 
 def _ensure_users_theme_mode_support(connection: Connection) -> None:
@@ -263,6 +302,19 @@ def _ensure_tiles_published_at_support(connection: Connection) -> None:
         )
     if not _has_index(connection, "tiles", "idx_tiles_published_at"):
         connection.exec_driver_sql("CREATE INDEX idx_tiles_published_at ON tiles (published_at)")
+    if not _has_column(connection, "tiles", "recall_pin_sort_order"):
+        connection.exec_driver_sql(
+            "ALTER TABLE tiles ADD COLUMN recall_pin_sort_order INT NOT NULL DEFAULT 9999"
+        )
+    if not _has_column(connection, "tiles", "recall_pin_starts_at"):
+        connection.exec_driver_sql("ALTER TABLE tiles ADD COLUMN recall_pin_starts_at VARCHAR(64) NULL")
+    if not _has_column(connection, "tiles", "recall_pin_ends_at"):
+        connection.exec_driver_sql("ALTER TABLE tiles ADD COLUMN recall_pin_ends_at VARCHAR(64) NULL")
+    if not _has_index(connection, "tiles", "idx_tiles_recall_pin"):
+        connection.exec_driver_sql(
+            "CREATE INDEX idx_tiles_recall_pin ON tiles "
+            "(recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at)"
+        )
 
 
 def _ensure_brand_certificate_images_support(connection: Connection) -> None:
@@ -305,6 +357,28 @@ def _ensure_client_request_id_support(connection: Connection) -> None:
         )
 
 
+def _ensure_log_query_indexes(connection: Connection) -> None:
+    index_specs = {
+        "request_logs": {
+            "idx_request_logs_client_created": "(client_type, created_at)",
+            "idx_request_logs_result_created": "(result, created_at)",
+        },
+        "usage_events": {
+            "idx_usage_events_client_created": "(client_type, created_at)",
+            "idx_usage_events_result_created": "(result, created_at)",
+        },
+        "audit_logs": {
+            "idx_audit_logs_created": "(created_at)",
+        },
+    }
+    for table_name, indexes in index_specs.items():
+        if not _has_table(connection, table_name):
+            continue
+        for index_name, columns in indexes.items():
+            if not _has_index(connection, table_name, index_name):
+                connection.exec_driver_sql(f"CREATE INDEX {index_name} ON {table_name} {columns}")
+
+
 def _ensure_task_trace_support(connection: Connection) -> None:
     for table_name in ("request_logs", "usage_events", "audit_logs"):
         if not _has_table(connection, table_name):
@@ -322,6 +396,8 @@ def _ensure_task_trace_support(connection: Connection) -> None:
             connection.exec_driver_sql(
                 f"CREATE INDEX {index_name} ON {table_name} (task_trace_id, created_at)"
             )
+
+    _ensure_log_query_indexes(connection)
 
     if not _has_table(connection, "task_traces"):
         connection.exec_driver_sql(

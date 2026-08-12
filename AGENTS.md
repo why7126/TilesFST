@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-06 14:28:00
+updated_at: 2026-08-08 20:57:09
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -59,7 +59,7 @@ rules/agent-context-budget.md
 
 | 路径 | 说明 |
 |---|---|
-| `.agents/skills/{req,bug,opsx,sprint,release,image,build,miniapp,usage-docs}-*`、`.agents/skills/capture`、`.agents/skills/explore`、`.agents/skills/spec-opt`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / image / build / miniapp / usage-docs 工作流技能，以及通用 capture / explore / 规范优化 / 初始化入口 |
+| `.agents/skills/{req,bug,opsx,sprint,release,image,build,miniapp,usage-docs}-*`、`.agents/skills/capture`、`.agents/skills/explore`、`.agents/skills/spec-opt`、`.agents/skills/spec-study`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / image / build / miniapp / usage-docs 工作流技能，以及通用 capture / explore / 规范优化 / 跨项目 Harness 学习应用 / 初始化入口 |
 | `.agents/skills/workflow-sync` | 状态同步技能 |
 | `.agents/skills/openspec-*` | OpenSpec 基础操作技能 |
 
@@ -91,8 +91,9 @@ rules/agent-context-budget.md
 | 小程序发布 | `/miniapp-env`、`/miniapp-check`、`/miniapp-prepare`、`/miniapp-confirm`、`/miniapp-restore` |
 | 产品使用文档 | `/usage-docs-generate`、`/usage-docs-update`、`/usage-docs-validate` |
 | Bootstrap | `/initialize-project`、`/build-design-system`、`/build-api-standard`、`/build-test-framework` |
+| Git 安全 | `/git-check` |
 | 通用探索 | `/explore`（只读分析问题、需求或话题；不写代码、不落盘）、`/capture`（类型未决时收集 REQ/BUG） |
-| 规范优化 | `/spec-opt`（新增或修改项目治理规范、技能命令、文档索引与治理脚本；仅治理资产，不改业务 `src/`） |
+| 规范优化 | `/spec-opt`（新增或修改项目治理规范、技能命令、文档索引与治理脚本；仅治理资产，不改业务 `src/`）、`/spec-study`（学习其他项目 Harness 工程，用户确认后应用治理资产；默认不改业务 `src/`） |
 
 旧命令已废弃：`/requirement-to-change`、`/requirement-to-opsx`、`/bug-to-change`、`/create-iteration`。
 
@@ -125,6 +126,7 @@ rules/agent-context-budget.md
 ## 6. 强制红线
 
 - 不允许绕过 OpenSpec Change 直接开发功能。
+- 所有命令在需要用户选择、确认、补充信息或处理阻塞时，必须优先采用“原生交互卡片 + 结构化选项 + 推荐项 + 可补充说明”的引导式反馈；当客户端或工具层不支持原生交互卡片时，降级为文本结构化选项；每轮只聚焦 1-3 个关键决策，并根据用户答案动态收敛。
 - 不允许直接修改 `openspec/specs/`，除归档合并动作外。
 - 新功能、治理扩展、目录边界变化必须先有 OpenSpec Change。
 - 未评审的 REQ/BUG 不得进入 Sprint 正式规划，不得 `/req-opsx`、`/bug-opsx`、`/sprint-apply`。
@@ -139,6 +141,7 @@ rules/agent-context-budget.md
 - API 变更必须同步 OpenAPI / Orval / docs / tests。
 - DB 结构变更必须同步 schema、数据库文档和测试。
 - UI 变更必须遵守 Design System semantic token，禁止裸 Hex。
+- 带 `prototype/` 的 UI 页面必须先完成原型拆解、UI Contract、UI Skeleton 首轮确认、1440px 与关键交互视觉验收、computed style 证据、Mock/API 边界声明和最终一致性检查；不得缺少视觉证据、样式证据或文档回填即归档。
 
 ## 7. 文档与时间规范
 
@@ -162,6 +165,7 @@ rules/agent-context-budget.md
 | OpenSpec 已归档变更 | `openspec/archive/YYYY-MM-DD-<change-id>/`（禁止 `openspec/changes/archive/`） |
 | 正式规格 | `openspec/specs/<capability>/spec.md` |
 | 复盘 / 事故知识 | `docs/knowledge-base/` |
+| 规范工程日志 | `docs/spec-logs/CHANGELOG.md`、`docs/spec-logs/YYYYMMDDhhmmss-study-xxx.md`、`docs/spec-logs/YYYYMMDDhhmmss-governance-xxx.md`；`CHANGELOG.md` 记录规范、脚本、技能和命令变更历史摘要，单次日志保留详细事实；不得包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志或学习对象源码 |
 | 发布对象 | `releases/vX.Y.Z/` |
 | Mintlify 文档站源目录 | `mintlify/`（公开站点配置、多版本投影、共享截图资产；不得替代 release 快照事实源） |
 | 镜像发布证据 | `releases/vX.Y.Z/image-build-plan.json`、`releases/vX.Y.Z/image-manifest.json` |
@@ -169,6 +173,8 @@ rules/agent-context-budget.md
 | 本地数据 | `data/`（不得提交真实客户数据和运行时数据库） |
 
 目录迁移和校验详见 `rules/issues-lifecycle.md`、`rules/iterations-lifecycle.md`、`rules/directory-structure.md`。
+
+Sprint 命名必须使用 `sprint-xxx` 三位数字递增格式。当前没有 `iterations/change/sprint-xxx/` 进行中迭代且命令需要自动创建 Sprint 时，取 `iterations/archive/` 与 `iterations/change/` 中最大规范编号加一；例如最新归档为 `sprint-021` 时自动创建 `sprint-022`。
 
 ## 9. Design System 执行摘要
 

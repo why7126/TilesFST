@@ -1,4 +1,5 @@
 const { miniappApiConfig } = require('../utils/env');
+const { reportPerformanceMetric } = require('./performance');
 
 const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
 const CLIENT_TYPE = 'wechat_miniapp';
@@ -63,6 +64,7 @@ function request(path, options = {}) {
   function tryRequest(index) {
     const currentBaseUrl = urls[index] || DEFAULT_BASE_URL;
     const url = `${currentBaseUrl}${path}`;
+    const startedAt = Date.now();
     return new Promise((resolve, reject) => {
       wx.request({
         ...options,
@@ -75,6 +77,12 @@ function request(path, options = {}) {
         },
         success: (res) => {
           const body = res.data;
+          reportPerformanceMetric({
+            page_key: path,
+            metric_name: 'api_duration',
+            duration_ms: Date.now() - startedAt,
+            device_class: 'miniapp',
+          });
           if (res.statusCode >= 200 && res.statusCode < 300 && body && body.code === 0) {
             resolve(normalizeMediaUrls(body.data, currentBaseUrl));
             return;
@@ -93,6 +101,12 @@ function request(path, options = {}) {
           reject(error);
         },
         fail: (error) => {
+          reportPerformanceMetric({
+            page_key: path,
+            metric_name: 'api_failed_duration',
+            duration_ms: Date.now() - startedAt,
+            device_class: 'miniapp',
+          });
           attempts.push({
             url,
             errMsg: error && error.errMsg,

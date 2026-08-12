@@ -11,7 +11,16 @@ from app.schemas.auth import LoginData, UserProfile
 
 from app.services.effective_settings_service import EffectiveSettingsService
 
-SUPPORTED_THEME_MODES = frozenset({"system", "dark_flagship", "comfort_dark", "light"})
+SUPPORTED_THEME_MODES = frozenset({"system", "dark_flagship"})
+LEGACY_THEME_MODE_MAP = {
+    "light": "system",
+    "comfort_dark": "dark_flagship",
+}
+
+
+def normalize_theme_mode(theme_mode: str | None) -> str:
+    normalized = (theme_mode or "system").strip()
+    return LEGACY_THEME_MODE_MAP.get(normalized, normalized)
 
 
 class AuthService:
@@ -33,7 +42,7 @@ class AuthService:
             display_name=user.display_name or user.username,
             role=user.role,
             status=user.status,
-            theme_mode=user.theme_mode,
+            theme_mode=normalize_theme_mode(user.theme_mode),
         )
 
     def login(self, *, username: str, password: str, remember_me: bool) -> LoginData:
@@ -70,7 +79,7 @@ class AuthService:
         return self.to_profile(user)
 
     def update_theme_mode(self, user: UserRecord, theme_mode: str) -> UserProfile:
-        normalized = theme_mode.strip()
+        normalized = normalize_theme_mode(theme_mode)
         if normalized not in SUPPORTED_THEME_MODES:
             raise AuthInvalidRequestError("无效的主题模式")
         updated = self._repo.update_theme_mode(user.id, normalized)

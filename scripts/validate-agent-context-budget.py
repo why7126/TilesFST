@@ -12,8 +12,10 @@ SKILLS_DIR = ROOT / ".agents" / "skills"
 REQUIRED_RULE = "rules/agent-context-budget.md"
 COMMAND_SKILL_NAMES = {
     "capture",
+    "git-check",
     "initialize-project",
     "spec-opt",
+    "spec-study",
 }
 COMMAND_SKILL_PREFIXES = (
     "bug-",

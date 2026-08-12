@@ -467,6 +467,7 @@ export function TileSkuManagementPage() {
               <th>规格 / 工艺</th>
               <th>参考价格</th>
               <th>素材</th>
+              <th>排序</th>
               <th>状态</th>
               <th>发布时间</th>
               <th>更新时间</th>
@@ -508,6 +509,7 @@ export function TileSkuManagementPage() {
                       </span>
                     </div>
                   </td>
+                  <td>{item.recall_pin_sort_order ?? 9999}</td>
                   <td>
                     <span className={tileSkuStatusBadgeClass(item.status)}>
                       {tileSkuStatusLabel(item.status)}

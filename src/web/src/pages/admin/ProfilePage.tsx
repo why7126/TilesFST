@@ -184,7 +184,11 @@ export function ProfilePage() {
 
   const roleText = roleLabel(profile.role);
   const statusText = statusLabel(profile.status);
-  const emailDisplay = profile.email?.trim() || `${profile.username}@tilesfst.com`;
+  const identityMetaParts = [
+    roleText,
+    profile.email?.trim() || null,
+    `最近登录 ${formatDisplayTimestamp(profile.last_login_at)}`,
+  ].filter(Boolean);
 
   return (
     <>
@@ -216,10 +220,7 @@ export function ProfilePage() {
               </div>
               <div>
                 <div className="identity-name">{profile.display_name}</div>
-                <div className="identity-meta">
-                  {roleText} · {emailDisplay} · 最近登录{' '}
-                  {formatDisplayTimestamp(profile.last_login_at)}
-                </div>
+                <div className="identity-meta">{identityMetaParts.join(' · ')}</div>
                 <div className="identity-tags">
                   <span className="mini-badge gold">{roleText}</span>
                   <span className="mini-badge">可管理商品资料</span>

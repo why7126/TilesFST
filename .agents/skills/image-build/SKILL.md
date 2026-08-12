@@ -55,6 +55,22 @@ scripts/validate-image-build.py
 - Docker、buildx、网络、基础镜像源、依赖安装、镜像验证、tar 导出或 checksum 失败时记录 blocker，不写成功 manifest。
 - 不写入真实 `.env` 内容、密钥、数据库连接串、Authorization header、Cookie、真实客户数据或本机绝对路径。
 
+## Build Failure Contract（MUST）
+
+If build fails before manifest generation, record a release blocker instead of writing a success manifest. The blocker MUST include the failing phase:
+
+- `docker_access`
+- `buildx`
+- `base_image_or_network`
+- `backend_build`
+- `web_build`
+- `backend_dependency_validation`
+- `web_nginx_validation`
+- `tar_export`
+- `checksum_validation`
+
+When sandbox or permission prevents Docker/buildx access, retry with the same command using the required approval path before declaring the blocker. Do not print full Docker logs in the final response; summarize the failing phase and the first actionable error.
+
 ## Command
 
 ```bash
@@ -112,4 +128,3 @@ Print only the compact hook summary.
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

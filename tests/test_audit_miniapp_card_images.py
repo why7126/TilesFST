@@ -51,11 +51,30 @@ class _Result:
 class _Storage:
     def __init__(self) -> None:
         image = _image_bytes()
+        thumbnail = _image_bytes(size=(240, 160))
         self.objects = {
             "images/default/tiles/pending/abc.jpg": StoredMediaObject(
                 image,
                 "image/jpeg",
-            )
+            ),
+            "images/default/brands/logos/fst.jpg": StoredMediaObject(image, "image/jpeg"),
+            "images/default/brands/logos/fst.thumb.jpg": StoredMediaObject(
+                thumbnail,
+                "image/jpeg",
+            ),
+            "images/default/banners/brand.jpg": StoredMediaObject(image, "image/jpeg"),
+            "images/default/banners/brand.thumb.jpg": StoredMediaObject(
+                thumbnail,
+                "image/jpeg",
+            ),
+            "images/default/brand-certificates/cert.jpg": StoredMediaObject(
+                image,
+                "image/jpeg",
+            ),
+            "images/default/brand-certificates/cert.thumb.jpg": StoredMediaObject(
+                thumbnail,
+                "image/jpeg",
+            ),
         }
         self.puts: list[tuple[str, bytes, str | None]] = []
 
@@ -90,16 +109,60 @@ def _prepare_db(path: Path) -> None:
                 spec_id INTEGER
             );
             CREATE TABLE tile_images (tile_id INTEGER, object_key TEXT, is_main INTEGER);
-            CREATE TABLE brands (id INTEGER PRIMARY KEY, status TEXT);
+            CREATE TABLE brands (
+                id INTEGER PRIMARY KEY,
+                name TEXT,
+                status TEXT,
+                logo_object_key TEXT
+            );
             CREATE TABLE tile_categories (id INTEGER PRIMARY KEY, status TEXT);
             CREATE TABLE tile_specs (id INTEGER PRIMARY KEY, status TEXT);
-            INSERT INTO brands VALUES (1, 'ENABLED');
+            CREATE TABLE banners (
+                id INTEGER PRIMARY KEY,
+                title TEXT,
+                position TEXT,
+                status TEXT,
+                image_object_key TEXT
+            );
+            CREATE TABLE brand_certificates (
+                id INTEGER PRIMARY KEY,
+                brand_id INTEGER,
+                name TEXT,
+                is_visible INTEGER,
+                deleted_at TEXT
+            );
+            CREATE TABLE brand_certificate_images (
+                id INTEGER PRIMARY KEY,
+                certificate_id INTEGER,
+                file_key TEXT,
+                file_mime_type TEXT
+            );
+            INSERT INTO brands VALUES (
+                1,
+                '菲尚特',
+                'ENABLED',
+                'images/default/brands/logos/fst.jpg'
+            );
             INSERT INTO tile_categories VALUES (1, 'ENABLED');
             INSERT INTO tiles VALUES (1, 'FST-001', 'PUBLISHED', 1, 1, NULL);
             INSERT INTO tile_images VALUES (
                 1,
                 'images/default/tiles/pending/abc.jpg',
                 1
+            );
+            INSERT INTO banners VALUES (
+                7,
+                '品牌列表页轮播',
+                'MINIAPP_BRAND_LIST_CAROUSEL',
+                'ONLINE',
+                'images/default/banners/brand.jpg'
+            );
+            INSERT INTO brand_certificates VALUES (3, 1, '绿色证书', 1, NULL);
+            INSERT INTO brand_certificate_images VALUES (
+                9,
+                3,
+                'images/default/brand-certificates/cert.jpg',
+                'image/jpeg'
             );
             """
         )
@@ -123,9 +186,17 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
     )
 
     dry_run = audit_script.audit(limit=None, backfill=True, execute=False)
+    assert dry_run["total_resources"] == 4
+    assert dry_run["resources_by_type"] == {
+        "product_card": 1,
+        "brand_logo": 1,
+        "brand_banner": 1,
+        "brand_certificate": 1,
+    }
     assert dry_run["pending_main_image"] == 1
     assert dry_run["missing_thumbnail_object"] == 1
     assert dry_run["needs_thumbnail_regeneration"] == 1
+    assert dry_run["items"][0]["resource_type"] == "product_card"
     assert dry_run["items"][0]["thumbnail_key"] == "images/default/tiles/pending/abc.thumb.jpg"
     assert dry_run["items"][0]["backfill_status"] == "dry_run"
     assert storage.puts == []

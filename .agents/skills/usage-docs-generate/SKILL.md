@@ -53,6 +53,15 @@ Before running generation, confirm `releases/<version>/release.json` contains:
 
 If confirmation is missing, BLOCKED. Ask the user whether this release needs usage docs generation or update. Do not infer confirmation from user-visible changes alone.
 
+When blocking for missing confirmation, present exactly two unblock paths:
+
+```text
+python scripts/generate-usage-docs.py <version>
+python scripts/generate-usage-docs.py <version> --skip --confirmed-by operator --rationale "<why usage docs are not needed for this release>"
+```
+
+The final response MUST say whether `usage_docs.status` is `generated`, `skipped`, or `pending_confirmation`, and whether this blocks `/release-publish`.
+
 ## Steps
 
 1. Validate release directory exists.
@@ -114,4 +123,3 @@ Report version, generated files, manifest path, release gate status, validation 
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

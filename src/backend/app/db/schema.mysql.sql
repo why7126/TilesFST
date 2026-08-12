@@ -141,6 +141,9 @@ CREATE TABLE IF NOT EXISTS tiles (
   color_family VARCHAR(128),
   reference_price DOUBLE,
   remark TEXT,
+  recall_pin_sort_order INT NOT NULL DEFAULT 9999,
+  recall_pin_starts_at VARCHAR(64),
+  recall_pin_ends_at VARCHAR(64),
   status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
   published_at VARCHAR(64),
   created_at VARCHAR(64) NOT NULL,
@@ -149,9 +152,11 @@ CREATE TABLE IF NOT EXISTS tiles (
   CONSTRAINT fk_tiles_category FOREIGN KEY(category_id) REFERENCES tile_categories(id),
   CONSTRAINT fk_tiles_spec FOREIGN KEY(spec_id) REFERENCES tile_specs(id),
   CONSTRAINT chk_tiles_status CHECK (status IN ('PUBLISHED', 'DRAFT', 'NEEDS_COMPLETION', 'DISABLED')),
+  CONSTRAINT chk_tiles_recall_pin_sort_order CHECK (recall_pin_sort_order > 0),
   INDEX idx_tiles_brand_status (brand_id, status),
   INDEX idx_tiles_category_status (category_id, status),
   INDEX idx_tiles_published_at (published_at),
+  INDEX idx_tiles_recall_pin (recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at),
   INDEX idx_tiles_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -296,6 +301,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at VARCHAR(64) NOT NULL,
   CONSTRAINT fk_audit_logs_actor FOREIGN KEY(actor_user_id) REFERENCES users(id),
   INDEX idx_audit_logs_domain_created (domain, created_at),
+  INDEX idx_audit_logs_created (created_at),
   INDEX idx_audit_logs_task_trace (task_trace_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -326,6 +332,8 @@ CREATE TABLE IF NOT EXISTS request_logs (
   INDEX idx_request_logs_client_request_id (client_request_id),
   INDEX idx_request_logs_actor_created (actor_user_id, created_at),
   INDEX idx_request_logs_status_created (status_code, created_at),
+  INDEX idx_request_logs_client_created (client_type, created_at),
+  INDEX idx_request_logs_result_created (result, created_at),
   INDEX idx_request_logs_path_created (path(255), created_at),
   INDEX idx_request_logs_task_trace (task_trace_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -355,7 +363,32 @@ CREATE TABLE IF NOT EXISTS usage_events (
   INDEX idx_usage_events_event_created (event_name, created_at),
   INDEX idx_usage_events_request_id (request_id),
   INDEX idx_usage_events_actor_created (actor_user_id, created_at),
+  INDEX idx_usage_events_client_created (client_type, created_at),
+  INDEX idx_usage_events_result_created (result, created_at),
   INDEX idx_usage_events_task_trace (task_trace_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS performance_events (
+  id CHAR(36) PRIMARY KEY,
+  client_type VARCHAR(32) NOT NULL,
+  page_key VARCHAR(120) NOT NULL,
+  app_version VARCHAR(64),
+  network_type VARCHAR(32),
+  device_class VARCHAR(32),
+  metric_name VARCHAR(64) NOT NULL,
+  duration_ms INT NOT NULL,
+  sample_rate DECIMAL(5,4) NOT NULL DEFAULT 1.0000,
+  occurred_at VARCHAR(64) NOT NULL,
+  server_received_at VARCHAR(64) NOT NULL,
+  request_id VARCHAR(128),
+  metadata TEXT,
+  CONSTRAINT chk_performance_events_client_type CHECK (client_type IN ('web_admin', 'web_catalog', 'wechat_miniapp')),
+  CONSTRAINT chk_performance_events_duration CHECK (duration_ms >= 0),
+  CONSTRAINT chk_performance_events_sample_rate CHECK (sample_rate >= 0 AND sample_rate <= 1),
+  INDEX idx_performance_events_received (server_received_at),
+  INDEX idx_performance_events_client_page_metric (client_type, page_key, metric_name, server_received_at),
+  INDEX idx_performance_events_version (app_version, server_received_at),
+  INDEX idx_performance_events_network (network_type, device_class, server_received_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS task_traces (

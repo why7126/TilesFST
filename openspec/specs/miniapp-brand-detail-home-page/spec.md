@@ -47,25 +47,15 @@ TBD - created by archiving change add-miniapp-brand-detail-home-page. Update Pur
 - **AND** 连续点击 SHALL NOT 重复打开多个品牌主页。
 
 ### Requirement: 微信小程序品牌主页信息区
-系统 SHALL 提供单品牌主页/详情页，并在页面上半部分展示可公开品牌图片和品牌基础信息。品牌主页信息区的小图展示 SHOULD 优先使用后端受控真实缩略图；大图预览、分享图或需要高清资源的入口 MAY 使用原图或等价安全引用。
+系统 SHALL 提供单品牌主页/详情页，并在页面上半部分展示可公开品牌图片和品牌基础信息。品牌主页信息区的小图展示 SHOULD 优先使用后端受控真实缩略图；大图预览、分享图或需要高清资源的入口 MAY 使用原图或等价安全引用。品牌主页信息区 SHALL 区分小图展示 URL 与高清预览或分享 URL，避免首屏直接加载大图。
 
-#### Scenario: 品牌主页加载公开信息
-- **WHEN** 用户通过 `brandId` 访问品牌主页/详情页
-- **THEN** 小程序 SHALL 加载该品牌的公开信息
-- **AND** 页面上半部分 SHALL 展示品牌图片或 Logo、品牌名称和品牌介绍
-- **AND** 品牌图片或 Logo 小图 SHOULD 优先使用缩略图
-- **AND** 响应 SHALL NOT 暴露后台内部字段、对象存储原始 key、内部备注、Authorization header、Cookie 或敏感配置。
+#### Scenario: 品牌详情 Logo 展示使用轻量缩略图
 
-#### Scenario: 品牌信息降级
-- **WHEN** 品牌主图缩略图缺失、Logo 缩略图缺失、原图缺失、图片加载失败或品牌介绍为空
-- **THEN** 小程序 SHALL 使用统一占位、回退到可用图片、隐藏区域或展示简短兜底文案
-- **AND** 页面 SHALL NOT 展示破图、异常空字段或错误字段名。
-
-#### Scenario: 品牌不可访问
-- **WHEN** `brandId` 缺失、非法、品牌不存在、品牌禁用、品牌下架或品牌不可公开
-- **THEN** 小程序 SHALL 展示可恢复错误态
-- **AND** 页面 SHALL 提供返回或回首页能力
-- **AND** 页面 SHALL NOT 白屏。
+- **WHEN** 用户进入品牌主页/详情页且品牌存在 Logo 或品牌图片
+- **THEN** 页面上半部分展示的小图 SHALL 优先使用后端受控真实轻量缩略图
+- **AND** 分享图、预览图或高清查看入口 MAY 使用原图或等价安全高清 URL
+- **AND** 缩略图缺失、为空、0 字节、体积无收益或加载失败时 SHALL 安全回退并记录性能风险
+- **AND** 响应和页面 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称、Authorization header、Cookie 或未授权素材路径。
 
 ### Requirement: 微信小程序品牌主页 Tab 内容
 品牌主页/详情页 SHALL 在品牌信息区下方通过 Tab 展示当前品牌关联内容，首期包含商品和证书。
@@ -85,51 +75,26 @@ TBD - created by archiving change add-miniapp-brand-detail-home-page. Update Pur
 
 ### Requirement: 品牌主页商品 Tab
 
-商品 Tab SHALL 展示当前品牌下的公开 SKU 列表，并复用或对齐既有商品列表双列卡片、分页和状态机。商品 Tab SHALL 按 SKU 发布时间 `published_at` 升序、ID 升序展示当前品牌公开 SKU；历史数据 `published_at` 为空时，系统 SHALL 使用 SKU 创建时间 `created_at` 作为排序兜底。
+商品 Tab SHALL 展示当前品牌下的公开 SKU 列表，并复用或对齐既有商品列表双列卡片、分页和状态机。商品 Tab SHALL 按 SKU 发布时间 `published_at` 升序、ID 升序展示当前品牌公开 SKU；历史数据 `published_at` 为空时，系统 SHALL 使用 SKU 创建时间 `created_at` 作为排序兜底。商品 Tab 的商品卡片图片 SHALL 复用商品列表缩略图优先策略，且非首屏商品图片 SHALL 启用懒加载或等价延迟加载。
 
-#### Scenario: 当前品牌商品列表
+#### Scenario: 品牌详情商品 Tab 使用商品卡片缩略图策略
 
-- **WHEN** 用户查看品牌主页商品 Tab
-- **THEN** 小程序 SHALL 仅展示当前品牌下可公开 SKU
-- **AND** 商品卡片 SHALL 展示主图、商品名称、品牌或规格、参考价格和状态徽标
-- **AND** 商品列表 SHALL 使用一行 2 个商品卡片布局
-- **AND** 商品列表 SHALL 按发布时间升序展示
-- **AND** 当多条 SKU 发布时间相同时，商品列表 SHALL 按 SKU ID 升序稳定展示。
-
-#### Scenario: 商品 Tab 分页与跳转
-
-- **WHEN** 用户刷新、上拉加载更多或点击商品卡片
-- **THEN** 商品 Tab SHALL 支持首屏加载、下拉刷新、上拉加载更多、无更多和加载失败重试
-- **AND** 加载更多追加后的整体列表 SHALL 继续保持发布时间升序、ID 升序，不得跨页重复、遗漏或顺序漂移
-- **AND** 点击商品卡片 SHALL 携带 `skuId` 进入 SKU 详情页
-- **AND** 页面 SHOULD 携带 `brandId`、`sourcePage=brand_detail`、`sourceModule=brand_products`、`index` 和可用 `requestId`。
-
-#### Scenario: 当前品牌无商品
-
-- **WHEN** 当前品牌没有可公开 SKU
-- **THEN** 商品 Tab SHALL 展示品牌上下文空态
-- **AND** 页面 SHALL NOT 自动展示其他品牌商品。
+- **WHEN** 用户查看品牌详情页商品 Tab
+- **THEN** 商品卡片图片 SHALL 优先使用列表缩略图或等价轻量优化图片 URL
+- **AND** 非首屏商品卡片图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略
+- **AND** 商品详情、图片预览或分享场景 SHALL NOT 被强制降级为列表缩略图
+- **AND** 缩略图缺失回退原图时 SHALL 记录为性能风险。
 
 ### Requirement: 品牌主页证书 Tab
-证书 Tab SHALL 展示当前品牌关联且可公开的证书列表，并过滤不可展示证书和内部字段。证书 Tab 图片小图 SHOULD 优先使用后端受控真实缩略图；图片预览或证书详情 SHALL 使用原图、原文件或等价安全引用。
+证书 Tab SHALL 展示当前品牌关联且可公开的证书列表，并过滤不可展示证书和内部字段。证书 Tab 图片小图 SHOULD 优先使用后端受控真实缩略图；图片预览或证书详情 SHALL 使用原图、原文件或等价安全引用。证书 Tab SHALL 对非首屏图片类证书启用懒加载或等价延迟加载策略。
 
-#### Scenario: 当前品牌证书列表
-- **WHEN** 用户查看品牌主页证书 Tab
-- **THEN** 小程序 SHALL 仅展示当前品牌关联且可公开的证书
-- **AND** 证书项 SHALL 展示证书图片缩略图、证书名称、证书类型和必要有效状态
-- **AND** 证书响应 SHALL NOT 暴露后台内部字段、审计字段、内部备注、对象存储原始 key、Authorization header、Cookie 或敏感配置。
+#### Scenario: 证书图片使用缩略图且预览保留原图
 
-#### Scenario: 证书预览或详情
-- **WHEN** 用户点击可公开证书项
-- **THEN** 小程序 SHALL 支持预览证书图片或进入证书详情
-- **AND** 证书文件 SHALL 使用受控读取 URL 或等价安全引用
-- **AND** 图片预览 SHALL 使用原图或原始受控 URL
-- **AND** 证书加载失败 SHALL 展示稳定错误提示。
-
-#### Scenario: 当前品牌无证书
-- **WHEN** 当前品牌没有可公开证书
-- **THEN** 证书 Tab SHALL 展示品牌上下文空态
-- **AND** 页面 SHALL NOT 展示其他品牌证书。
+- **WHEN** 用户查看品牌详情页证书 Tab 且证书为图片类资源
+- **THEN** 证书列表小图 SHALL 优先使用同目录 `.thumb` 缩略图或等价轻量图片 URL
+- **AND** 图片预览或证书详情 SHALL 使用原图、原文件或等价受控高清 URL
+- **AND** 非首屏证书图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略
+- **AND** `.thumb` 缺失、体积无收益或实际回退原图时 SHALL 在媒体四联验收中记录。
 
 ### Requirement: 品牌主页导航、设备验收与埋点
 品牌入口页和品牌主页/详情页 SHALL 遵守小程序导航、设备视口、运行入口和埋点质量门禁。

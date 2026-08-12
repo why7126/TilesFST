@@ -1,0 +1,351 @@
+{
+  "version": "v1.1.0",
+  "release_time": "2026-08-12 08:40:00",
+  "owner": "product",
+  "summary": "Sprint 022 产品发布计划：覆盖治理流程优化、商品召回置顶、小程序置顶标识、Banner 展示优化、RUM 性能观测、媒体性能修复、管理端主题入口、日志审计性能和用户联系信息维护。",
+  "formal_scope_only": true,
+  "version_change_rationale": "release-prepare 阶段已将 src/shared/product-version.ts 的 PRODUCT_VERSION 更新为 v1.1.0。",
+  "image_required": true,
+  "image_required_rationale": "用户确认本次需要构建镜像；发布范围包含后端 API / Schema / 数据库迁移、Web 管理端、小程序、对象存储媒体策略、OpenAPI/Orval 与部署镜像输入，按发布规范后续必须执行 /image-prepare v1.1.0 与 /image-build v1.1.0。",
+  "image_tag": "v1.1.0",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部镜像构建证据；默认走本仓库 /image-prepare 与 /image-build 流程。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-12 08:36:32",
+      "confirmed_by": "operator",
+      "rationale": "用户确认本次 v1.1.0 发布不需要生成产品使用文档"
+    }
+  },
+  "sprints": [
+    "sprint-022"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0103-product-recall-list-pin-priority",
+      "title": "商品召回列表支持少量商品排序置顶",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0104-miniapp-recall-pinned-product-badge",
+      "title": "小程序召回置顶商品展示“置顶”标识",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0106-admin-banner-title-hidden",
+      "title": "Banner 标题隐藏与小程序前台标题遮罩移除",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0107-real-user-page-load-rum",
+      "title": "微信小程序和 Web 页面真实用户加载耗时监控",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0108-admin-banner-list-display-optimization",
+      "title": "Web 管理后台 Banner 列表显示内容优化",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0109-admin-theme-user-menu-modes",
+      "title": "管理后台主题切换入口与模式收敛",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "REQ-0110-admin-user-contact-info-management",
+      "title": "用户管理页支持维护用户联系邮箱和手机号码",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0125-miniapp-sku-detail-media-original-load",
+      "title": "微信小程序商品详情页媒体加载慢",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0126-miniapp-brand-media-slow-load",
+      "title": "小程序品牌链路图片加载速度慢",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0127-admin-log-audit-slow-load",
+      "title": "管理后台日志审计表数据加载很慢",
+      "status": "done",
+      "scope": "formal"
+    },
+    {
+      "id": "BUG-0128-admin-user-menu-email-subtitle",
+      "title": "管理后台身份展示不应显示伪邮箱",
+      "status": "done",
+      "scope": "formal"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-spec-sync-skill",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-07-add-spec-sync-skill"
+    },
+    {
+      "id": "rename-spec-sync-to-spec-study",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-07-rename-spec-sync-to-spec-study"
+    },
+    {
+      "id": "add-spec-logs-governance-log-convention",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-07-add-spec-logs-governance-log-convention"
+    },
+    {
+      "id": "avoid-duplicate-spec-study-reports",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-07-avoid-duplicate-spec-study-reports"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-media-thumbnails",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-fix-miniapp-sku-detail-media-thumbnails"
+    },
+    {
+      "id": "add-product-recall-list-pin-priority",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-add-product-recall-list-pin-priority"
+    },
+    {
+      "id": "update-miniapp-recall-pinned-product-badge",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-update-miniapp-recall-pinned-product-badge"
+    },
+    {
+      "id": "add-spec-logs-change-history",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-add-spec-logs-change-history"
+    },
+    {
+      "id": "update-banner-title-hidden-display",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-update-banner-title-hidden-display"
+    },
+    {
+      "id": "add-real-user-page-load-rum",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-add-real-user-page-load-rum"
+    },
+    {
+      "id": "apply-projectmoonbox-governance-learnings",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-apply-projectmoonbox-governance-learnings"
+    },
+    {
+      "id": "fix-miniapp-brand-media-performance",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-fix-miniapp-brand-media-performance"
+    },
+    {
+      "id": "update-admin-banner-list-display-optimization",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-update-admin-banner-list-display-optimization"
+    },
+    {
+      "id": "update-admin-theme-user-menu-modes",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-update-admin-theme-user-menu-modes"
+    },
+    {
+      "id": "fix-admin-log-audit-slow-load",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-fix-admin-log-audit-slow-load"
+    },
+    {
+      "id": "refine-capture-explore-modify-stage-routing",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-refine-capture-explore-modify-stage-routing"
+    },
+    {
+      "id": "fix-admin-identity-fake-email-display",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-fix-admin-identity-fake-email-display"
+    },
+    {
+      "id": "update-admin-user-contact-info-management",
+      "status": "archived",
+      "scope": "formal",
+      "archive_path": "openspec/archive/2026-08-11-update-admin-user-contact-info-management"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "rationale": "sprint-022 已完成归档，18/18 Change 已 archive，Sprint archive readiness 与 stale scan 均通过。",
+      "evidence": "iterations/archive/sprint-022/acceptance-report.md；python scripts/validate-sprint-archive-readiness.py --sprint sprint-022；python scripts/check-archived-path-residuals.py --sprint sprint-022。"
+    },
+    "tests": {
+      "status": "pass",
+      "rationale": "前端 vitest 通过；后端与小程序发布范围 pytest 已通过。PIL/Pillow 测试环境问题已通过 src/backend uv 环境同步并使用 python -m pytest 复跑解决。",
+      "evidence": "pnpm --dir src/web test -- --run；2026-08-12；62 files passed / 353 tests passed。cd src/backend && uv run python -m pytest ../../src/backend/tests/test_admin_banners.py ../../src/backend/tests/test_admin_tile_skus.py ../../src/backend/tests/test_admin_users.py ../../src/backend/tests/test_performance_events.py ../../src/backend/tests/test_product_usage_logging.py ../../tests/test_miniapp_home.py ../../tests/test_miniapp_static.py ../../tests/test_media_storage.py；2026-08-12；199 passed, 4 warnings。"
+    },
+    "orval": {
+      "status": "pass",
+      "rationale": "发布范围包含 API / Orval 影响；API 标准校验通过，OpenAPI/Orval 客户端生成通过。",
+      "evidence": "python scripts/validate-api-standard.py；2026-08-12；API 标准校验通过。./scripts/generate-openapi-client.sh；2026-08-12；orval v8.17.0 generated tileApi client。src/web/openapi.json；src/web/src/shared/api/generated.ts。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "rationale": "Docker Compose 静态配置校验通过；镜像输入 hash 与构建计划仍需 /image-prepare v1.1.0 生成。",
+      "evidence": "docker compose config --quiet；2026-08-12；exit code 0。"
+    },
+    "database_migration": {
+      "status": "pass",
+      "rationale": "发布范围包含数据库影响；已使用根目录 .env.mysql 连接目标 MySQL 执行受控幂等迁移并复跑 drift/smoke。目标 schema 已与 schema.mysql.sql 对齐。",
+      "evidence": "cd src/backend && set -a; source ../../.env.mysql; set +a; uv run python -c 'from app.db.session import init_database; init_database()'；2026-08-12；mysql migrations applied。set -a; source .env.mysql; set +a; uv --project src/backend run python scripts/check-mysql-schema-drift.py --json；2026-08-12；missing_tables=[], missing_columns={}, expected_table_count=23, actual_table_count=23。MySQL smoke；2026-08-12；performance_events exists, tiles recall_pin_ends_at/recall_pin_sort_order/recall_pin_starts_at columns exist, schema_migrations contains mysql_compat_performance_events_v1 and mysql_compat_tiles_published_at_v1。Rollback evidence；2026-08-12；release.json rollback steps retained; archived Change trace/design reviewed for add-real-user-page-load-rum and add-product-recall-list-pin-priority database impact."
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "release-propose 阶段未发现用户提供的环境变量变更确认；如镜像构建、RUM 或对象存储依赖 env 示例，需在 /release-prepare 或 /image-prepare 中确认。"
+    },
+    "product_version": {
+      "status": "pass",
+      "rationale": "src/shared/product-version.ts 的 PRODUCT_VERSION 已更新为 v1.1.0。",
+      "evidence": "src/shared/product-version.ts；2026-08-12；PRODUCT_VERSION=v1.1.0。"
+    },
+    "mintlify_preview": {
+      "status": "na",
+      "rationale": "用户在发布确认后补充要求生成公开公告；已更新 releases/v1.1.0/announcement.mdx。Mintlify preview 不作为本次发布准备目标。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-12 08:36:32: usage docs skipped by operator; 用户确认本次 v1.1.0 发布不需要生成产品使用文档"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "rationale": "image_required=true；已生成并校验 releases/v1.1.0/image-build-plan.json。",
+      "evidence": "python scripts/validate-image-build.py prepare --release v1.1.0；2026-08-12；image_required=True, auto_action_count=1, warning_count=4, blocker_count=0。python scripts/validate-image-build.py validate-plan --release v1.1.0；2026-08-12；Result: pass。"
+    },
+    "image_build": {
+      "status": "pass",
+      "rationale": "image_required=true；已完成 backend/web 镜像构建、平台验证、后端依赖验证、Web Nginx 验证、离线包导出和 manifest 校验。",
+      "evidence": "python scripts/validate-image-build.py build --release v1.1.0；2026-08-12；backend=tilesfst-backend:v1.1.0, web=tilesfst-web:v1.1.0, platform=linux/amd64, tarball=../releases/v1.1.0/images/tilesfst-v1.1.0-linux-amd64.tar.gz, sha256=cafcd659f1f6d82dff26fbdf8b554128e93cd82948fa39a75864fbd4f0a6111d。python scripts/validate-image-build.py validate-manifest --release v1.1.0；2026-08-12；Result: pass。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "PREPARE-BLOCKER-PRODUCT-VERSION",
+      "title": "PRODUCT_VERSION 已更新到 v1.1.0",
+      "status": "resolved",
+      "classification": "release_gate_blocker",
+      "rationale": "release-prepare 阶段已更新 src/shared/product-version.ts，product_version gate 已通过。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-PIL-TEST-DEPENDENCY",
+      "title": "后端与小程序发布范围 pytest 的 PIL/Pillow 环境已恢复",
+      "status": "resolved",
+      "classification": "environment_blocker",
+      "rationale": "Pillow 已在 src/backend uv 环境中同步并验证可 import PIL；使用 uv run python -m pytest 复跑发布范围后端/小程序测试，结果 199 passed, 4 warnings。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-MYSQL-SCHEMA-DRIFT",
+      "title": "目标 MySQL schema drift 已修复",
+      "status": "resolved",
+      "classification": "database_schema_drift",
+      "rationale": "已使用根目录 .env.mysql 对目标 MySQL 执行幂等迁移；复跑 drift 显示 missing_tables=[]、missing_columns={}，smoke 确认 performance_events 表、tiles 三个召回置顶字段和对应 schema_migrations 记录存在。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-IMAGE-PLAN-MISSING",
+      "title": "v1.1.0 镜像构建计划已生成",
+      "status": "resolved",
+      "classification": "release_gate_blocker",
+      "rationale": "已执行 /image-prepare v1.1.0，生成 releases/v1.1.0/image-build-plan.json 并通过 validate-plan；plan 无 blocker。"
+    },
+    {
+      "id": "PREPARE-BLOCKER-IMAGE-MANIFEST-MISSING",
+      "title": "v1.1.0 镜像构建 manifest 已生成",
+      "status": "resolved",
+      "classification": "release_gate_blocker",
+      "rationale": "已执行 /image-build v1.1.0，生成 releases/v1.1.0/image-manifest.json，并通过 validate-manifest；离线包与 sha256 sidecar 校验一致。"
+    }
+  ],
+  "upgrade_steps": [
+    "目标 MySQL 已应用 performance_events 表与 tiles 召回置顶字段迁移，并通过 scripts/check-mysql-schema-drift.py --json 与轻量 smoke。",
+    "release-prepare 阶段已更新 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v1.1.0。",
+    "确认 usage docs 保持 skipped，不创建 releases/v1.1.0/usage-docs/ 空目录。",
+    "image-prepare 阶段已生成 releases/v1.1.0/image-build-plan.json；生产部署 env 必须显式设置 TILESFST_IMAGE_TAG=v1.1.0。",
+    "image-build 阶段已生成 releases/v1.1.0/image-manifest.json、离线包和 sha256 校验证据。",
+    "部署新版本并完成后端 API、Web 管理端、小程序媒体链路、RUM、日志审计和用户管理 smoke。"
+  ],
+  "rollback": {
+    "conditions": [
+      "核心路径 smoke 失败",
+      "商品召回排序、置顶标识或 Banner 展示出现阻断性回归",
+      "小程序商品详情或品牌链路媒体加载出现明显性能回退",
+      "RUM 上报、日志审计或用户联系信息维护出现数据或权限风险",
+      "镜像构建 manifest、tarball sha256 或部署 smoke 校验失败"
+    ],
+    "steps": [
+      "回退到上一发布版本 v1.0.0 的部署包或镜像 tag。",
+      "恢复上一版本环境变量、Compose 配置和对象存储访问策略。",
+      "如涉及数据库迁移，按对应 archived Change 的回滚说明与备份策略处理。",
+      "复跑后端核心 API、Web 管理端、小程序媒体链路和登录/权限 smoke。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "影响 Banner 管理列表与标题隐藏、主题入口、性能观测、日志审计、用户管理联系信息和身份展示。",
+    "owner_web": "不新增店主 Web 独立能力；RUM Web 采集可能影响店主 Web 性能观测口径。",
+    "miniapp": "影响商品列表、商品详情、品牌列表、品牌详情、品牌分类商品列表、召回置顶标识和 RUM 网络类型采集。",
+    "backend": "影响公开商品/SKU/品牌接口、性能事件上报与查询、Banner 管理、日志审计、用户管理、媒体 URL 与缓存语义。",
+    "database": "影响 SKU 召回排序字段、性能事件存储、日志审计索引和用户联系信息相关 schema/migration。",
+    "object_storage": "影响商品详情与品牌链路媒体缩略图 URL、缓存标记和历史对象审计口径；不改变 MinIO 单桶前缀策略。",
+    "docker": "用户确认需要本版本镜像构建；需后续 image prepare/build 生成受控镜像证据。"
+  },
+  "announcement": "announcement.mdx",
+  "announcement_decision": {
+    "status": "generated_after_publish",
+    "confirmed_at": "2026-08-12 08:59:59",
+    "confirmed_by": "operator",
+    "rationale": "用户在发布确认后补充要求生成公开公告；announcement.mdx 已由占位文件更新为公开发布说明。"
+  },
+  "publish_confirmation": {
+    "published_at": "2026-08-12 08:58:39",
+    "announcement_url": "releases/v1.1.0/announcement.mdx",
+    "confirmed_by": "operator",
+    "status": "published",
+    "notes": "发布确认已记录；用户已在发布确认后补充生成公开公告。最终镜像 sha256 以 releases/v1.1.0/image-manifest.json 和 tarball .sha256 sidecar 为准；回滚按 release.json rollback 步骤执行。"
+  }
+}

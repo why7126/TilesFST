@@ -22,6 +22,7 @@ vi.mock('../api/users-api', () => ({
 }));
 
 import { UserFormModal } from './UserFormModal';
+import '@/features/admin/styles/user-management.css';
 
 describe('UserFormModal', () => {
   beforeEach(() => {
@@ -45,8 +46,29 @@ describe('UserFormModal', () => {
     expect(screen.getByText('用户名', { selector: '.field-label' })).toBeInTheDocument();
     expect(screen.getByText('头像', { selector: '.field-label' })).toBeInTheDocument();
     expect(screen.getByText('昵称', { selector: '.field-label' })).toBeInTheDocument();
+    expect(screen.getByText('联系邮箱', { selector: '.field-label' })).toBeInTheDocument();
+    expect(screen.getByText('手机号码', { selector: '.field-label' })).toBeInTheDocument();
     expect(screen.getByText('角色', { selector: '.field-label' })).toBeInTheDocument();
     expect(screen.getByLabelText('用户名')).toBeInTheDocument();
+    expect(screen.getByLabelText('联系邮箱')).toBeInTheDocument();
+    expect(screen.getByLabelText('手机号码')).toBeInTheDocument();
+    expect(document.querySelector('.modal-backdrop.user-form-modal-backdrop')).toBeInTheDocument();
+    expect(document.querySelector('.modal-card.user-form-modal-card')).not.toBeInTheDocument();
+  });
+
+  it('scopes user form modal styling without adding a dedicated card class', () => {
+    render(
+      <UserFormModal
+        open
+        mode="create"
+        user={null}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    expect(document.querySelector('.modal-backdrop.user-form-modal-backdrop')).toBeInTheDocument();
+    expect(document.querySelector('.modal-card.user-form-modal-card')).not.toBeInTheDocument();
   });
 
   it('uploads avatar with progress and updates preview on create', async () => {
@@ -83,12 +105,16 @@ describe('UserFormModal', () => {
     );
 
     fireEvent.change(screen.getByLabelText('用户名'), { target: { value: 'new_user_01' } });
+    fireEvent.change(screen.getByLabelText('联系邮箱'), { target: { value: 'contact@example.com' } });
+    fireEvent.change(screen.getByLabelText('手机号码'), { target: { value: '+86 138 0000 2026' } });
     fireEvent.click(screen.getByRole('button', { name: '创建用户' }));
 
     await waitFor(() => {
       expect(createUserMock).toHaveBeenCalledWith(
         expect.objectContaining({
           username: 'new_user_01',
+          email: 'contact@example.com',
+          phone: '+86 138 0000 2026',
           avatar_object_key: 'original/default/avatars/demo.webp',
         }),
       );
@@ -115,8 +141,8 @@ describe('UserFormModal', () => {
           status: 'active',
           avatar_object_key: 'original/default/avatars/old.webp',
           avatar_url: '/media/original/default/avatars/old.webp',
-          email: null,
-          phone: null,
+          email: 'owner@example.com',
+          phone: '+86 139 0000 2026',
           last_login_at: null,
           created_at: '2026-06-01T00:00:00Z',
         }}
@@ -128,6 +154,8 @@ describe('UserFormModal', () => {
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/avatars/old.webp',
     );
+    expect(screen.getByLabelText('联系邮箱')).toHaveValue('owner@example.com');
+    expect(screen.getByLabelText('手机号码')).toHaveValue('+86 139 0000 2026');
 
     const file = new File(['avatar'], 'avatar.webp', { type: 'image/webp' });
     fireEvent.change(screen.getByLabelText('更换头像'), { target: { files: [file] } });
@@ -197,8 +225,54 @@ describe('UserFormModal', () => {
     expect(createUserMock).toHaveBeenCalledWith(
       expect.objectContaining({
         username: 'abc',
+        email: null,
+        phone: null,
       }),
     );
+  });
+
+  it('submits edited contact info and clears blank values', async () => {
+    updateUserMock.mockResolvedValue({});
+    const onSuccess = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <UserFormModal
+        open
+        mode="edit"
+        user={{
+          id: 'u1',
+          username: 'demo_user',
+          display_name: '演示',
+          role: 'employee',
+          status: 'active',
+          avatar_object_key: null,
+          avatar_url: null,
+          email: 'old@example.com',
+          phone: '+86 139 0000 2026',
+          last_login_at: null,
+          created_at: '2026-06-01T00:00:00Z',
+        }}
+        onClose={onClose}
+        onSuccess={onSuccess}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('联系邮箱'), { target: { value: 'new@example.com' } });
+    fireEvent.change(screen.getByLabelText('手机号码'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存' }));
+
+    await waitFor(() => {
+      expect(updateUserMock).toHaveBeenCalledWith(
+        'u1',
+        expect.objectContaining({
+          email: 'new@example.com',
+          phone: null,
+        }),
+      );
+    });
+    expect(onSuccess).toHaveBeenCalledWith('用户信息已更新');
+    expect(onClose).toHaveBeenCalled();
   });
 
   it('clears create error and succeeds after username is fixed', async () => {

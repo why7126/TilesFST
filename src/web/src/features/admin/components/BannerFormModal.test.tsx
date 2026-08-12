@@ -159,6 +159,8 @@ describe('BannerFormModal', () => {
   it('defaults to miniapp and only exposes the two supported positions', () => {
     renderBannerModal();
 
+    expect(screen.queryByLabelText(/Banner 标题/)).toBeNull();
+    expect(screen.queryByText('Banner 标题不能为空')).toBeNull();
     const displayClientSelect = screen.getByRole('combobox', { name: '展示端' }) as HTMLSelectElement;
     expect(displayClientSelect).toBeDisabled();
     expect(displayClientSelect.value).toBe('MINIAPP_HOME');
@@ -173,9 +175,9 @@ describe('BannerFormModal', () => {
   });
 
   it('adds brand detail jump with brand logo behavior like sku detail', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1800000000000);
     const { container } = renderBannerModal();
 
-    fireEvent.change(screen.getByLabelText(/Banner 标题/), { target: { value: '品牌轮播' } });
     fireEvent.change(screen.getByLabelText(/跳转类型/), { target: { value: 'BRAND_DETAIL' } });
 
     const brandInput = await screen.findByRole('combobox', { name: '关联品牌' });
@@ -205,9 +207,48 @@ describe('BannerFormModal', () => {
           image_object_key: 'images/default/brands/logos/mk.webp',
           sku_id: null,
           topic_id: null,
+          title: 'internal-MINIAPP_HOME_CAROUSEL-BRAND_DETAIL-1800000000000',
         }),
       );
     });
+    nowSpy.mockRestore();
+  });
+
+  it('saves no-jump banner with generated internal title instead of requiring an operator title', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1800000001000);
+    renderBannerModal();
+
+    expect(screen.queryByLabelText(/Banner 标题/)).toBeNull();
+    fireEvent.change(screen.getByLabelText(/排序/), { target: { value: '12' } });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    uploadBannerImageMock.mockResolvedValue({
+      object_key: 'images/default/banners/no-title.webp',
+      url: '/media/images/default/banners/no-title.webp',
+    });
+    fireEvent.change(fileInput, {
+      target: {
+        files: [new File(['banner'], 'banner.webp', { type: 'image/webp' })],
+      },
+    });
+
+    await waitFor(() => {
+      expect(uploadBannerImageMock).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '保存 Banner' }));
+
+    await waitFor(() => {
+      expect(createBannerMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'internal-MINIAPP_HOME_CAROUSEL-NO_JUMP-1800000001000',
+          image_object_key: 'images/default/banners/no-title.webp',
+          jump_type: 'NO_JUMP',
+          sort_order: 12,
+        }),
+      );
+    });
+    expect(screen.queryByText('Banner 标题不能为空')).toBeNull();
+    nowSpy.mockRestore();
   });
 
   it('uses banner-modal-card only so admin modal-card 520px cascade cannot override 880px', () => {

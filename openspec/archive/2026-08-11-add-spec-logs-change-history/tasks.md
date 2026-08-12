@@ -1,0 +1,6 @@
+- [x] 新增 `docs/spec-logs/CHANGELOG.md` 变更历史总账。
+- [x] 更新 `docs/spec-logs/README.md`，说明变更历史与单次日志边界。
+- [x] 更新 `docs/README.md` 和 `rules/document-governance.md`，同步文档索引和治理规则。
+- [x] 写入本次 `/spec-opt` 治理迭代日志。
+- [x] 运行治理文档与 OpenSpec 校验。
+- [x] 为 `CHANGELOG.md` 变更历史表补充跨项目落地提示词列，并同步相关规则。

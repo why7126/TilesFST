@@ -1,5 +1,5 @@
 export function getUserInitials(displayName?: string | null, username?: string | null): string {
-  const name = (displayName || username || 'AU').trim();
+  const name = displayName?.trim() || username?.trim() || 'AU';
   const parts = name.split(/\s+/).filter(Boolean);
 
   if (parts.length >= 2) {
@@ -10,17 +10,5 @@ export function getUserInitials(displayName?: string | null, username?: string |
 }
 
 export function getUserDisplayName(displayName?: string | null, username?: string | null): string {
-  return displayName || username || 'Admin User';
-}
-
-export function getUserEmail(username?: string | null, email?: string | null): string {
-  if (email?.trim()) {
-    return email.trim();
-  }
-
-  if (!username) {
-    return 'admin@tilesfst.com';
-  }
-
-  return `${username}@tilesfst.com`;
+  return displayName?.trim() || username?.trim() || 'Admin User';
 }

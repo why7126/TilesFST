@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-30 23:09:15
+updated_at: 2026-08-10 00:00:00
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -57,6 +57,7 @@ users 1 ── * usage_events.actor_user_id（Sprint 004，可选 FK）
 request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK）
 task_traces.task_trace_id ── * task_trace_spans.task_trace_id（逻辑关联，非 FK）
 task_traces.task_trace_id ── * request_logs / usage_events / audit_logs.task_trace_id（逻辑关联，非 FK）
+performance_events.request_id ── request_logs.request_id（逻辑关联，非 FK）
 
 （users 与 tiles 无直接外键，权限通过 JWT role 控制）
 ```
@@ -74,6 +75,7 @@ task_traces.task_trace_id ── * request_logs / usage_events / audit_logs.task
 | audit_logs | ✓ Sprint 003 | 统一审计日志（含 system_settings） |
 | request_logs | ✓ Sprint 004 | API 请求日志（REQ-0024） |
 | usage_events | ✓ Sprint 004 / Sprint 008 | 产品使用行为埋点事件（REQ-0024）；小程序详情访问、分享、咨询、首页快捷入口、瀑布流与安全降级事件用于热销推荐辅助排序和产品优先级判断 |
+| performance_events | ✓ Sprint 022 / REQ-0107 | Web 与微信小程序真实用户页面加载性能事件 |
 | task_traces | ✓ Sprint 011 / REQ-0069 | 可追踪业务任务摘要，用于串联上传等长耗时任务 |
 | task_trace_spans | ✓ Sprint 011 / REQ-0069 | Task Trace 节点时间线与耗时明细 |
 | tile_categories | 桩 | 分类 |
@@ -222,7 +224,7 @@ OpenSpec：`openspec/changes/add-system-settings/`（与 REQ-0014 统一目标�
 | metadata | TEXT | NULL | JSON diff |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_audit_logs_domain_created (domain, created_at DESC)`、`idx_audit_logs_task_trace (task_trace_id, created_at DESC)`
+索引：`idx_audit_logs_domain_created (domain, created_at DESC)`、`idx_audit_logs_created (created_at DESC)`、`idx_audit_logs_task_trace (task_trace_id, created_at DESC)`
 
 Repository：`audit_log_repository.py`
 
@@ -254,9 +256,9 @@ API 请求日志。OpenSpec：`openspec/changes/add-product-usage-logging/`
 | metadata | TEXT | NULL | JSON 扩展信息，已做敏感字段过滤；请求日志可包含 `request_snapshot` 结构化请求快照 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_client_request_id`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_path_created`、`idx_request_logs_task_trace`
+索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_client_request_id`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_client_created`、`idx_request_logs_result_created`、`idx_request_logs_path_created`、`idx_request_logs_task_trace`
 
-`metadata.request_snapshot` 作为详情展示契约存储统一 Request Snapshot。`client_request_id` 是独立查询列，用于辅助跨端请求归因和日志审计展示；它不作为认证授权依据，也不得覆盖服务端可信 `request_id`。当前快照字段仅用于管理端日志详情排障，不参与列表筛选；常用筛选仍依赖 `request_id`、`client_request_id`、`actor_user_id`、`status_code`、`path`、`created_at`、`task_trace_id` 等既有索引。REQ-0076 链路观测仪表复用 `request_logs`、`usage_events`、`audit_logs`、`task_traces`、`task_trace_spans` 的时间、状态和 trace 索引进行聚合，不新增表、字段或索引；若后续需要按 `route_template`、`resource_id` 或 `client_type` 聚合，应通过新的 OpenSpec Change 评估冗余列或索引，避免直接依赖 SQLite/MySQL JSON 方言差异。
+`metadata.request_snapshot` 作为详情展示契约存储统一 Request Snapshot。`client_request_id` 是独立查询列，用于辅助跨端请求归因和日志审计展示；它不作为认证授权依据，也不得覆盖服务端可信 `request_id`。当前快照字段仅用于管理端日志详情排障，不参与列表筛选；常用筛选仍依赖 `request_id`、`client_request_id`、`actor_user_id`、`status_code`、`client_type`、`result`、`path`、`created_at`、`task_trace_id` 等索引。REQ-0076 链路观测仪表复用 `request_logs`、`usage_events`、`audit_logs`、`task_traces`、`task_trace_spans` 的时间、状态和 trace 索引进行聚合，不新增表、字段或索引；BUG-0127 补齐 `client_type + created_at` 与 `result + created_at` 索引用于日志审计列表条件下推和低成本筛选。若后续需要按 `route_template`、`resource_id` 聚合，仍应通过新的 OpenSpec Change 评估冗余列或索引，避免直接依赖 SQLite/MySQL JSON 方言差异。
 
 Repository：`log_repository.py`；Service：`log_service.py`；中间件：`request_logging.py`
 
@@ -287,13 +289,41 @@ Repository：`log_repository.py`；Service：`log_service.py`；中间件：`req
 | metadata | TEXT | NULL | JSON 属性快照，禁止 password/token/secret 等敏感字段 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_actor_created`、`idx_usage_events_task_trace`
+索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_actor_created`、`idx_usage_events_client_created`、`idx_usage_events_result_created`、`idx_usage_events_task_trace`
 
 Repository：`log_repository.py`；Service：`log_service.py`
 
 ---
 
-## 5.7 task_traces（Sprint 011 / REQ-0069）
+## 5.7 performance_events（Sprint 022 / REQ-0107）
+
+真实用户页面加载性能事件。用于采集 Web 管理端、店主展示端与微信小程序在真实用户环境中的首屏、完整加载、应用启动和关键接口耗时。
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| id | TEXT / VARCHAR(64) | PK | UUID |
+| client_type | TEXT / VARCHAR(32) | NOT NULL | `web_admin`、`web_catalog`、`wechat_miniapp` |
+| page_key | TEXT / VARCHAR(255) | NOT NULL | 页面、路由或接口摘要，不含 query 和敏感参数 |
+| metric_name | TEXT / VARCHAR(64) | NOT NULL | 指标名，如 `first_content_ready`、`full_load`、`app_launch_ready`、`api_duration` |
+| duration_ms | INTEGER | NOT NULL | 耗时毫秒，0–600000 |
+| sample_rate | REAL / DECIMAL(5,4) | NOT NULL | 实际采样率，0–1 |
+| app_version | TEXT / VARCHAR(64) | NULL | Web、小程序或后端标记版本 |
+| network_type | TEXT / VARCHAR(32) | NULL | 网络类别摘要 |
+| device_class | TEXT / VARCHAR(32) | NULL | 设备类别摘要 |
+| request_id | TEXT / VARCHAR(64) | NULL | 前端或接口链路 ID，逻辑关联 |
+| metadata | TEXT / JSON | NULL | 受控摘要 JSON，不存 Header、Cookie、Authorization、完整请求/响应体、手机号、openid、token 或签名 URL |
+| occurred_at | TEXT / DATETIME | NOT NULL | 客户端事件发生时间 |
+| created_at | TEXT / DATETIME | NOT NULL | 服务端写入时间 |
+
+索引：`idx_performance_events_created`、`idx_performance_events_client_created`、`idx_performance_events_metric_created`、`idx_performance_events_page_created`、`idx_performance_events_request_id`
+
+Repository：`performance_repository.py`；Service：`performance_service.py`
+
+数据保留：首期不新增自动清理任务。生产环境建议先保留 90 天，后续如需定时归档或清理，由新的 OpenSpec Change 明确保留周期、清理命令与审计记录。
+
+---
+
+## 5.8 task_traces（Sprint 011 / REQ-0069）
 
 可追踪业务任务摘要表。当前首批用于图片、视频、文件上传；REQ-0074 扩展覆盖 SKU 创建、更新、上架、下架等任务型管理操作；后续可扩展导入、导出、发布、同步等任务。
 
@@ -539,12 +569,15 @@ ORM：`src/backend/app/models/tile_spec.py`
 | remark | TEXT | NULL | 备注 |
 | status | TEXT | NOT NULL | `PUBLISHED` \| `DRAFT` \| `NEEDS_COMPLETION` \| `DISABLED` |
 | published_at | TEXT | NULL | 最近一次上架/恢复上架时间；下架时可保留历史值，列表响应仅已上架状态展示 |
+| recall_pin_sort_order | INTEGER | NOT NULL, DEFAULT 9999, CHECK > 0 | 召回置顶排序值；正整数，`1..9998` 可参与小程序普通商品列表 / 完整搜索 SKU 结果置顶，`9999` 为默认普通商品 |
+| recall_pin_starts_at | TEXT | NULL | 召回置顶生效开始时间；空值表示立即可生效 |
+| recall_pin_ends_at | TEXT | NULL | 召回置顶生效结束时间；空值表示长期有效 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 | updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
 ORM：`src/backend/app/models/tile.py`  
-迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`、`_ensure_tile_specs_support`；MySQL 兼容迁移见 `src/backend/app/db/mysql_migrations.py` → `_ensure_tiles_published_at_support`
-索引：`idx_tiles_published_at (published_at)` 用于发布时间查询 / 排序扩展；现有管理端 SKU 列表默认排序仍为 `updated_at DESC`。
+迁移：`src/backend/app/db/migrations.py` → `_ensure_tiles_sku_extended`、`_ensure_tile_specs_support`；MySQL 兼容迁移见 `src/backend/app/db/mysql_migrations.py` → `_ensure_tiles_published_at_support`，同时维护召回置顶字段兼容。
+索引：`idx_tiles_published_at (published_at)` 用于发布时间查询 / 排序扩展；`idx_tiles_recall_pin (recall_pin_sort_order, recall_pin_starts_at, recall_pin_ends_at)` 用于公开列表召回置顶排序候选筛选；现有管理端 SKU 列表默认排序仍为 `updated_at DESC`。
 
 ---
 
@@ -660,6 +693,7 @@ python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
 | banners | `/api/v1/admin/banners`、`/api/v1/miniapp/home` |
 | brand_certificates | `/api/v1/admin/brand-certificates`、`/api/v1/miniapp/search` 完整搜索证书分区、`/api/v1/miniapp/certificates` 公开证书列表、`/api/v1/miniapp/brands/{brand_id}/certificates` 品牌主页证书 Tab |
 | usage_events | `/api/v1/usage-events`；小程序热销推荐读取 `product_detail_view`、`product_share`、`product_contact_click` 聚合计数；REQ-0043 首页样式优化新增瀑布流、快捷入口、收藏视觉和证书 Tab 事件；REQ-0044 新增 SKU 详情、媒体、收藏、分享、品牌、推荐和加载失败事件；REQ-0046 新增搜索浏览、输入、联想、提交、结果、筛选、无结果和历史操作事件；REQ-0047 新增商品列表浏览、曝光、点击、筛选、排序、刷新、加载更多和失败事件 |
+| performance_events | `POST /api/v1/performance-events`、`GET /api/v1/admin/performance-events/summary` |
 
 Sprint 008/009 `add-miniapp-home`、`update-miniapp-home-style-optimization`、`add-miniapp-search-component`、`add-miniapp-product-list-component` 与 `add-miniapp-certificate-list-page` 未新增业务表。小程序首页、全部产品瀑布流、搜索、商品列表、品牌证书 Tab 和公开证书列表复用既有 `brands`、`tile_categories`、`tile_specs`、`tiles`、`tile_images`、`brand_certificates`、`banners` 和 `usage_events`：人工配置与发布时间字段优先，行为事件统计作为热销推荐、热门搜索和商品发现效率分析的辅助依据；REQ-0046、REQ-0047 与 REQ-0057 新增事件字典不改变 `usage_events` 表结构。若后续需要高性能搜索索引、排行榜缓存表、商品列表运营插槽、证书运营配置或后台搜索配置中心，必须另走 OpenSpec Change 并同步 SQLite/MySQL schema、迁移、文档和测试。
 

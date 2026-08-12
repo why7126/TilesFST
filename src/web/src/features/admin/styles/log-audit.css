@@ -54,6 +54,43 @@
   font-size: 11px;
 }
 
+.admin-shell .log-sample-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-shell .log-sample-header h2 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.admin-shell .log-sample-header p {
+  margin: 0;
+  color: var(--admin-weak);
+  font-size: 12px;
+}
+
+.admin-shell .performance-sample-context-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-shell .performance-sample-context-grid strong {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--admin-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-shell .log-audit-filter + .table-card {
   position: relative;
   z-index: 1;
@@ -61,6 +98,10 @@
 
 @media (max-width: 1279px) {
   .admin-shell .log-audit-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-shell .performance-sample-context-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -72,6 +113,10 @@
 
   .admin-shell .log-audit-filter .searchable-select-dropdown {
     max-width: 100%;
+  }
+
+  .admin-shell .performance-sample-context-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -128,6 +173,17 @@
 .admin-shell .log-summary small {
   color: var(--admin-weak);
   font-size: 11px;
+}
+
+.admin-shell .performance-page-key {
+  min-width: 176px;
+  max-width: 260px;
+}
+
+.admin-shell .performance-page-key span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-shell .log-summary-button:hover span {
@@ -266,6 +322,12 @@
 .admin-shell .request-copy-action:hover {
   border-color: var(--admin-gold-border);
   color: var(--admin-gold);
+}
+
+.admin-shell .performance-copy-notice {
+  margin: 0 0 12px;
+  color: var(--admin-gold);
+  font-size: 12px;
 }
 
 .admin-shell .icon-action {

@@ -27,6 +27,7 @@ class BannerAdminItem(BaseModel):
     external_url: str | None = None
     topic_id: int | None = None
     brand_id: int | None = None
+    jump_target_label: str | None = None
     sort_order: int
     valid_from: str | None = None
     valid_to: str | None = None
