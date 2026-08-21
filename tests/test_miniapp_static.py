@@ -3,6 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from helpers.miniapp_media_assertions import (
+    assert_image_media_binding,
+    assert_video_media_binding,
+    assert_wxml_uses_safe_media_bindings,
+)
 from path_helpers import resolve_change_file
 
 
@@ -13,6 +18,22 @@ SKILLS = ROOT / ".agents" / "skills"
 
 def _read(path: str) -> str:
     return (MINIAPP / path).read_text(encoding="utf-8")
+
+
+def _host_port_backend() -> str:
+    for env_path in [ROOT / ".env", ROOT / ".env.example"]:
+        if not env_path.exists():
+            continue
+        for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            name, value = line.split("=", 1)
+            if name.strip() == "HOST_PORT_BACKEND":
+                port = value.strip().strip("'\"")
+                if port.isdigit() and 1 <= int(port) <= 65535:
+                    return port
+    return "8000"
 
 
 def test_miniapp_routes_cover_home_search_detail_store_and_tabbar() -> None:
@@ -195,11 +216,12 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     env_ts = _read("utils/env.ts")
     project_config = json.loads(_read("project.config.json"))
     private_config = json.loads(_read("project.private.config.json"))
+    host_port_backend = _host_port_backend()
 
     for source in [env_js, env_ts]:
         assert "environment: 'development'" in source
-        assert "apiBaseUrl: 'http://127.0.0.1:8010'" in source
-        assert "apiFallbackBaseUrls: ['http://localhost:8010', 'http://localhost:8000']" in source
+        assert f"apiBaseUrl: 'http://127.0.0.1:{host_port_backend}'" in source
+        assert f"apiFallbackBaseUrls: ['http://localhost:{host_port_backend}']" in source
         assert "environment: 'production'" in source
         assert "apiBaseUrl: 'https://tilesfst.wjoyhappy.site'" in source
         assert any(
@@ -235,6 +257,33 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     assert private_config["setting"]["urlCheck"] is (True if is_prod_strategy else False)
 
 
+def test_miniapp_rum_uses_product_version_and_request_id_contract() -> None:
+    api_js = _read("services/api.js")
+    api_ts = _read("services/api.ts")
+    performance_js = _read("services/performance.js")
+    performance_ts = _read("services/performance.ts")
+    product_version_js = _read("utils/product-version.js")
+    product_version_ts = _read("utils/product-version.ts")
+    shared_product_version = (ROOT / "src" / "shared" / "product-version.ts").read_text(encoding="utf-8")
+
+    assert "export const PRODUCT_VERSION = 'v1.1.2'" in shared_product_version
+    assert "export const PRODUCT_VERSION = 'v1.1.2'" in product_version_ts
+    assert "const PRODUCT_VERSION = 'v1.1.2'" in product_version_js
+    for source in [performance_js, performance_ts]:
+        assert "PRODUCT_VERSION" in source
+        assert "miniappApiConfig.environment || 'dev'" not in source
+        assert "request_id: metric.request_id || createRumRequestId()" in source
+        assert "miniapp-rum:" in source
+        assert "function baseUrls" in source
+        assert "apiFallbackBaseUrls" in source
+        assert "cachedBaseUrl" in source
+        assert "tryReport(index + 1)" in source
+        assert "result.statusCode >= 500" in source or "result && result.statusCode >= 500" in source
+        assert "cachedBaseUrl = currentBaseUrl" in source
+    for source in [api_js, api_ts]:
+        assert "request_id: clientRequestId" in source
+
+
 def test_miniapp_environment_command_skills_exist() -> None:
     for command in [
         "miniapp-env",
@@ -257,6 +306,9 @@ def test_miniapp_env_script_manages_devtools_url_check() -> None:
     script = (ROOT / "scripts" / "miniapp-env.py").read_text(encoding="utf-8")
 
     assert "PROJECT_PRIVATE_CONFIG" in script
+    assert "HOST_PORT_BACKEND" in script
+    assert "_read_host_port_backend" in script
+    assert "http://127.0.0.1:{_read_host_port_backend()}" in script
     assert "_set_devtools_url_check(strategy == \"prod\")" in script
     assert "\"expected_urlCheck\": True if strategy == \"prod\" else False" in script
 
@@ -389,6 +441,11 @@ def test_miniapp_home_runtime_entry_loads_home_data_and_interactions() -> None:
     assert "openStoreInfo()" in home_js
     assert "openQuickEntry(event)" in home_js
     assert "openBanner(event)" in home_js
+    assert "hero-shade" not in home_wxml
+    assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in home_js
+    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in home_js
+    assert "if (banner.jump_type === 'none') {" in home_js
+    assert "wx.showToast({ title: '内容建设中', icon: 'none' });" in home_js
     assert "openProduct(event)" in home_js
     assert "retryAllProducts()" in home_js
     assert "mergeProducts(existing, incoming)" in home_js
@@ -1297,10 +1354,20 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "{{product.sku_code}}" not in detail_wxml[detail_wxml.index('<view class="summary">'):detail_wxml.index('<view class="brand-card-wrap">')]
     assert "SKU 编码" not in detail_wxml
     assert "<video" in detail_wxml
-    assert 'src="{{item.url || imageFallback}}"' in detail_wxml
-    assert 'data-url="{{item.preview_url || item.url}}"' in detail_wxml
-    assert 'src="{{item.url}}"' in detail_wxml
-    assert 'poster="{{item.cover_url || product.cover_image || imageFallback}}"' in detail_wxml
+    assert_image_media_binding(
+        detail_wxml,
+        src_expr="item.url || imageFallback",
+        preview_expr="item.preview_url || item.url",
+        fallback_expr="imageFallback",
+    )
+    assert_video_media_binding(
+        detail_wxml,
+        src_expr="item.url",
+        poster_expr="item.cover_url || product.cover_image || imageFallback",
+        play_handler="onVideoPlay",
+        error_handler="onMediaError",
+    )
+    assert_wxml_uses_safe_media_bindings(detail_wxml)
     assert "poster=\"{{item.cover_url || ''}}\"" not in detail_wxml
     assert 'bindplay="onVideoPlay"' in detail_wxml
     assert 'binderror="onMediaError"' in detail_wxml
@@ -1353,6 +1420,10 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "padding: 0" in detail_wxss
     assert "background: transparent" in detail_wxss
     assert "border-radius: 28rpx" in detail_wxss
+    assert "height: calc(100vw * 1.08)" in detail_wxss
+    assert "min-height: 720rpx" in detail_wxss
+    assert "max-height: 820rpx" in detail_wxss
+    assert "height: 680rpx" not in detail_wxss
     assert "env(safe-area-inset-bottom)" in detail_wxss
     assert "min-height: 88rpx" in detail_wxss
 
@@ -1505,6 +1576,10 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "leaf_categories" in brand_js
     assert "brand_list_page_view" in brand_js
     assert "brand_list_carousel_click" in brand_js
+    assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in brand_ts
+    assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in brand_js
+    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in brand_ts
+    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in brand_js
     assert "brand_list_card_click" in brand_js
     assert "brand_list_category_click" in brand_js
     assert "wx.navigateTo" in brand_js

@@ -8,7 +8,7 @@ owner: 项目文档负责人
 status: draft
 note: 企业初始化模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-12 00:25:00
+updated_at: 2026-08-21 14:51:53
 ---
 
 # 知识库
@@ -50,6 +50,8 @@ updated_at: 2026-08-12 00:25:00
 | sprint-020 | [`retrospectives/sprint-020-retrospective.md`](retrospectives/sprint-020-retrospective.md) | draft |
 | sprint-021 | [`retrospectives/sprint-021-retrospective.md`](retrospectives/sprint-021-retrospective.md) | draft |
 | sprint-022 | [`retrospectives/sprint-022-retrospective.md`](retrospectives/sprint-022-retrospective.md) | draft |
+| sprint-023 | [`retrospectives/sprint-023-retrospective.md`](retrospectives/sprint-023-retrospective.md) | draft |
+| sprint-024 | [`retrospectives/sprint-024-retrospective.md`](retrospectives/sprint-024-retrospective.md) | draft |
 
 ## 最佳实践索引
 
@@ -62,6 +64,8 @@ updated_at: 2026-08-12 00:25:00
 | Clipboard helper fallback | [`best-practices/clipboard-fallback.md`](best-practices/clipboard-fallback.md) | sprint-006 复盘 / REQ-0036 |
 | 小程序自定义导航 | [`best-practices/miniapp-custom-navigation.md`](best-practices/miniapp-custom-navigation.md) | sprint-008 复盘 / REQ-0053 |
 | 小程序商品列表排序 | [`best-practices/miniapp-product-list-sorting.md`](best-practices/miniapp-product-list-sorting.md) | BUG-0091 |
+| 小程序媒体四联验收 | [`best-practices/miniapp-media-four-part-acceptance-practice.md`](best-practices/miniapp-media-four-part-acceptance-practice.md) | BUG-0125 / BUG-0126 / REQ-0111 |
+| 防御性模式模板 | [`best-practices/defensive-pattern-template.md`](best-practices/defensive-pattern-template.md) | `/spec-study apply deepseek-harness` |
 
 ## 与 issues 的边界
 

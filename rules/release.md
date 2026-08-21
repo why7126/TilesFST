@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-03 19:10:00
+updated_at: 2026-08-21 22:09:09
 ---
 
 # 发布规范
@@ -111,6 +111,47 @@ releases/vX.Y.Z/usage-docs/
 `域名/docs` 是部署边界，不由 release 源文件单独完成。项目 MUST 记录采用 Mintlify base path、Cloudflare/Vercel/CDN rewrite、Nginx 反向代理或等价方案；若方案未确认，`/release-prepare` MUST 记录 blocker 或待确认项。公开产品使用文档 MUST 与内部运维、API、数据库、对象存储凭据、生产私有域名或敏感配置文档分离。
 
 ## 发布前门禁
+
+## 版本部署升级与回滚治理
+
+发布治理 MUST 区分“目标版本已发布”和“某条升级路径已验证”。`releases/<version>/release.json`、`image-build-plan.json`、`image-manifest.json` 表达目标版本事实；升级路径 MUST 额外表达 `from_version -> to_version` 的来源版本、支持级别、执行步骤、验证证据和回滚证据。
+
+升级路径计划默认放在：
+
+```text
+releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.json
+```
+
+`from_version=fresh` 表示首次部署。升级计划 MUST 至少包含：
+
+- `from_version`、`to_version`、`support_level`、`source_confidence`。
+- `version_facts`：目标 release、目标 image manifest、产品版本、Git ref、部署 `TILESFST_IMAGE_TAG` 摘要。
+- `impact_summary`：DB、env、Docker、API、对象存储和维护任务影响。
+- `env_diff`：只输出变量名、分类、说明和建议，不输出真实 env 值。
+- `required_checks`、`steps`、`rollback`、`blockers`、`warnings`、`evidence`。
+
+支持级别含义：
+
+| 支持级别 | 含义 |
+|---|---|
+| `fresh-install-supported` | 目标版本支持空环境首次部署。 |
+| `adjacent-upgrade-supported` | 支持从上一发布版本升级到目标版本。 |
+| `cross-version-upgrade-supported` | 支持从指定旧版本跨多个版本升级到目标版本，且已有完整演练与回滚证据。 |
+| `cross-version-upgrade-requires-manual-review` | 跨版本升级理论上可规划，但缺少完整演练、中间版本事实源或存在 DB/env/object storage 等人工复核项。 |
+| `unsupported` | 不支持直接升级，需要专项迁移、先升中间版本或人工方案。 |
+
+缺少中间版本 release 事实源、缺少跨版本演练、缺少 DB drift/smoke、缺少 env diff、缺少对象存储审计或缺少回滚证据时，MUST NOT 将跨版本升级标记为 `cross-version-upgrade-supported`。
+
+推荐命令：
+
+```text
+/upgrade-plan --from <fresh|version> --to <version>
+/upgrade-validate --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
+python scripts/validate-release-upgrade.py plan --from <fresh|version> --to <version>
+python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
+```
+
+upgrade 命令只生成计划和校验结果，MUST NOT 自动执行生产升级、自动修改真实生产 env、自动执行数据库写入迁移或对象存储写入维护任务。
 
 ## 发布决策摘要
 

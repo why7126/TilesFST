@@ -63,11 +63,23 @@ describe('PerformanceSamplesPage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: '性能样本' })).toHaveClass('page-title');
-    expect(screen.getByText('页面')).toHaveClass('field-label');
-    expect(screen.getByText('admin/performance')).toBeInTheDocument();
+    expect(screen.getAllByText('页面').some((item) => item.classList.contains('field-label'))).toBe(true);
+    expect(screen.getAllByText('admin/performance').length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText('版本号').some((item) => item.classList.contains('field-label'))).toBe(true);
     expect(screen.getAllByText('0.1.0').length).toBeGreaterThan(0);
     expect(screen.getByText('共 21 条样本')).toBeInTheDocument();
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      '页面',
+      '版本号',
+      '端类型',
+      '设备',
+      '网络',
+      '指标',
+      '耗时',
+      '事件时间',
+      '接收时间',
+      'request_id',
+    ]);
     expect(await screen.findByText('req-safe-1')).toBeInTheDocument();
     expect(screen.getByText('3200ms')).toHaveClass('danger');
     expect(screen.queryByRole('dialog', { name: '样本明细' })).not.toBeInTheDocument();
@@ -100,5 +112,42 @@ describe('PerformanceSamplesPage', () => {
       page: 2,
       page_size: 20,
     })));
+  });
+
+  it('shows miniapp metric labels in sample context and rows', async () => {
+    mocks.fetchPerformanceSamples.mockResolvedValue({
+      items: [
+        {
+          id: 'perf-miniapp-1',
+          client_type: 'wechat_miniapp',
+          page_key: 'app/launch',
+          metric_name: 'app_launch_ready',
+          duration_ms: 38,
+          app_version: 'v1.1.0',
+          network_type: 'wifi',
+          device_class: 'miniapp',
+          request_id: 'miniapp-rum:safe:abcd1234',
+          occurred_at: '2026-08-11T00:00:00Z',
+          server_received_at: '2026-08-11T00:00:01Z',
+        },
+      ],
+      total: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      filters: {},
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/performance/samples?client_type=wechat_miniapp&page_key=app%2Flaunch&metric_name=app_launch_ready&app_version=v1.1.0&network_type=wifi&device_class=miniapp']}>
+        <PerformanceSamplesPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('微信小程序')).toBeInTheDocument();
+    expect(screen.getAllByText('小程序启动就绪').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('wifi').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText('miniapp').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('miniapp...1234')).toBeInTheDocument();
   });
 });

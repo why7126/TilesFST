@@ -2,7 +2,7 @@
 title: 生产镜像包构建与云服务器部署手册
 purpose: 记录 tilesfst-release-v0.0.1 的 x86_64 镜像包构建、交付和云服务器部署流程
 created_at: 2026-06-30 21:52:26
-updated_at: 2026-08-04 00:27:20
+updated_at: 2026-08-21 22:09:09
 owner: 项目团队
 status: draft
 ---
@@ -144,6 +144,25 @@ releases/<version>/image-manifest.json
 ```
 
 `image-manifest.json` 留在仓库内作为可 Review 的发布证据；真实离线镜像包和 `.sha256` 默认放在仓库外 `../releases/<version>/images/`。manifest 校验必须确认 manifest 中的 tarball sha256、同目录 `.sha256` sidecar 和实际 tarball sha256 三者一致。
+
+## 4.1 升级路径中的镜像证据
+
+部署升级计划不重新定义镜像构建策略。首次部署、相邻升级和跨版本升级均引用目标版本同一份：
+
+```text
+releases/<version>/image-manifest.json
+```
+
+升级计划生成和校验时必须确认目标 manifest 存在、版本和 `image_tag` 与目标版本一致，并能追溯 backend image、web image、离线包和 sha256。若 manifest 缺失、版本不一致、tag 不一致或 input hash 已漂移，升级计划必须输出 blocker。
+
+样例命令：
+
+```bash
+python scripts/validate-release-upgrade.py plan --from v1.1.1 --to v1.1.2
+python scripts/validate-release-upgrade.py validate-plan --plan releases/v1.1.2/upgrade-plans/v1.1.1-to-v1.1.2.json
+```
+
+回滚时使用旧版本镜像 tag、旧离线包或旧 manifest 作为恢复依据；数据库和对象存储回滚必须另行依赖备份或明确人工方案。
 
 发布确认阶段会重新比对 manifest 中的版本、image tag、source plan、input hash、tarball 路径和 checksum；如果 Dockerfile、Compose、deploy Compose、deploy env 示例、deploy 脚本、构建脚本、schema、migration、公告或 release input 在 manifest 生成后发生变化，必须重新 prepare/build，或记录经批准的外部构建证据。
 

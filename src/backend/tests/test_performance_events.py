@@ -123,6 +123,74 @@ def test_performance_events_ingest_and_admin_summary(client: TestClient) -> None
     assert len(paged_sample_data["items"]) == 1
 
 
+def test_performance_filter_options_use_time_range_and_admin_auth(client: TestClient) -> None:
+    client.post(
+        "/api/v1/performance-events",
+        json={
+            "events": [
+                {
+                    "client_type": "web_admin",
+                    "page_key": "admin/performance",
+                    "app_version": "0.1.0",
+                    "network_type": "wifi",
+                    "device_class": "desktop",
+                    "metric_name": "full_load",
+                    "duration_ms": 1200,
+                    "sample_rate": 1,
+                    "occurred_at": "2026-08-10T15:00:00Z",
+                },
+                {
+                    "client_type": "web_admin",
+                    "page_key": "admin/users",
+                    "app_version": "0.2.0",
+                    "network_type": "4g",
+                    "device_class": "tablet",
+                    "metric_name": "first_content_ready",
+                    "duration_ms": 900,
+                    "sample_rate": 1,
+                    "occurred_at": "2026-08-10T15:00:01Z",
+                },
+            ]
+        },
+    )
+
+    unauthenticated = client.get("/api/v1/admin/performance-events/filter-options")
+    assert unauthenticated.status_code == 401
+
+    response = client.get(
+        "/api/v1/admin/performance-events/filter-options",
+        headers=_auth_headers(client),
+        params={"start_time": "2000-01-01T00:00:00Z"},
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["client_types"] == [
+        {"value": "web_admin", "label": "管理端 Web", "count": None},
+        {"value": "web_catalog", "label": "店主 Web", "count": None},
+        {"value": "wechat_miniapp", "label": "微信小程序", "count": None},
+    ]
+    assert {"value": "full_load", "label": "完整加载", "count": None} in data["metrics"]
+    assert data["app_versions"][0]["value"] in {"0.1.0", "0.2.0"}
+    assert {item["value"] for item in data["page_keys"]} >= {"admin/performance", "admin/users"}
+    assert {item["value"] for item in data["device_classes"]} >= {"desktop", "tablet"}
+    assert {item["value"] for item in data["network_types"]} >= {"wifi", "4g"}
+    assert all(item["count"] >= 1 for item in data["page_keys"])
+
+    empty_response = client.get(
+        "/api/v1/admin/performance-events/filter-options",
+        headers=_auth_headers(client),
+        params={"start_time": "2999-01-01T00:00:00Z"},
+    )
+    assert empty_response.status_code == 200
+    empty_data = empty_response.json()["data"]
+    assert empty_data["client_types"]
+    assert empty_data["metrics"]
+    assert empty_data["app_versions"] == []
+    assert empty_data["page_keys"] == []
+    assert empty_data["device_classes"] == []
+    assert empty_data["network_types"] == []
+
+
 def test_performance_events_reject_sensitive_payload(client: TestClient) -> None:
     response = client.post(
         "/api/v1/performance-events",

@@ -4,7 +4,7 @@ content: 规定 MinIO/S3兼容对象存储/腾讯 COS 桶、对象Key、目录�
 source: 人工编写 + AI辅助生成
 update_method: 对象存储策略变化时由技术负责人确认后更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 11:32:00
+updated_at: 2026-08-12 14:54:20
 note: V5 推荐一个项目一个 Bucket，桶内使用目录前缀区分业务资源；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -83,6 +83,8 @@ SKU 图片新建前 MAY 使用 `images/default/tiles/pending/<uuid>.<ext>` 作�
 - `render`：对象存储验收不能替代端侧验收；Web 管理端、店主 Web 或小程序受影响时，必须记录对应页面/组件的展示、占位、失败态、小程序合法域名或设备 evidence。
 
 涉及历史对象、缩略图、回填或审计脚本时，验收记录 MUST 包含 dry-run、apply、幂等性或统计摘要，并遵守敏感信息脱敏要求。涉及上传大小、Nginx 或 Docker Web 边界时，MUST 经 `http://localhost:3000` 或等价 Web 入口验证边界文件，或记录明确的 `n/a` 原因。
+
+小程序历史媒体对象审计 MUST 按 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md` 输出四联分类与脱敏摘要。审计 helper 默认 dry-run，只读输出 `missing_key`、`object_missing`、`thumbnail_missing`、`thumbnail_no_benefit`、`url_fallback_risk`、`closed` 等分类统计；默认 CLI 不得输出 raw object key 或业务 label。任何 apply / backfill 写入 MUST 显式参数触发，执行前确认数据库与 bucket/prefix 备份，执行后记录幂等复跑、失败重试和失败原因枚举。
 
 ## 4. AI必须遵守
 

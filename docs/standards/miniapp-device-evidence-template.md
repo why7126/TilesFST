@@ -4,7 +4,7 @@ content: 微信小程序 DevTools 预览、真机验收、自动化证据、N/A�
 source: REQ-0052-miniapp-device-evidence-template / add-miniapp-device-evidence-template
 update_method: 小程序设备验收字段、证据边界或 Sprint 验收口径变化时同步更新
 created_at: 2026-07-19 18:41:32
-updated_at: 2026-08-04 09:10:00
+updated_at: 2026-08-12 14:54:20
 ---
 
 # 小程序 DevTools/真机验收 evidence 模板
@@ -112,6 +112,16 @@ Network evidence 用于记录小程序发布前的真实请求链路。静态测
 | `failure_or_blocker` | `failed` / `blocked` / `follow_up` 时必填：失败表现、阻塞原因、剩余风险和下一步 |
 | `network_equivalence_note` | `network_devtools` 必须说明“不等同于体验版或真机网络验收” |
 
+媒体资源 Network evidence 还应补充以下字段，详见 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`：
+
+| 字段 | 要求 |
+|---|---|
+| `media_kind` | `image`、`video`、`poster`、`cover`、`thumbnail`、`certificate_image` 或 `static_asset` |
+| `media_url_type` | `controlled_media_url`、`static_asset`、`signed_url`、`fallback` 或明确 `n/a` |
+| `resource_bytes` | Network 面板可见资源大小摘要；不得记录完整 HAR 或敏感 header |
+| `duration_ms` | Network 面板可见耗时摘要 |
+| `render_result` | 图片展示、preview、视频播放、poster/cover、fallback、lazy-load 或失败态结论 |
+
 ## 7. 安全与证据记录规则
 
 允许记录：
@@ -196,6 +206,11 @@ miniapp_device_evidence:
       request_domain: "https://tilesfst.wjoyhappy.site"
       http_status: "待填写"
       business_status: "待填写"
+      media_kind: "image/video/poster/cover/thumbnail/static_asset 或 n/a"
+      media_url_type: "controlled_media_url/static_asset/signed_url/fallback 或 n/a"
+      resource_bytes: "待填写资源大小摘要"
+      duration_ms: "待填写耗时摘要"
+      render_result: "待填写展示、预览、播放、poster/cover、fallback 或失败态结论"
       resource_result: "首页聚合接口、Banner、推荐商品和静态资源待检查"
       result: "待人工执行 DevTools Network 检查"
       network_equivalence_note: "DevTools Network 不等同于体验版或真机网络验收"
@@ -209,6 +224,11 @@ miniapp_device_evidence:
       request_domain: "https://tilesfst.wjoyhappy.site"
       http_status: "待填写"
       business_status: "待填写"
+      media_kind: "image/video/poster/cover/thumbnail/static_asset 或 n/a"
+      media_url_type: "controlled_media_url/static_asset/signed_url/fallback 或 n/a"
+      resource_bytes: "待填写资源大小摘要"
+      duration_ms: "待填写耗时摘要"
+      render_result: "待填写展示、预览、播放、poster/cover、fallback 或失败态结论"
       resource_result: "首页、列表页、详情或媒体资源加载待检查"
       failure_or_blocker: "若无法执行，记录 blocked、follow_up 或明确 not_applicable 原因"
       remaining_risk: "待确认"

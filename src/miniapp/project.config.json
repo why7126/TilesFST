@@ -1,14 +1,14 @@
 {
   "description": "瓷砖信息管理平台微信小程序",
   "setting": {
-    "es6": false,
+    "es6": true,
     "postcss": false,
     "urlCheck": false,
     "compileWorklet": false,
     "minified": false,
     "uglifyFileName": false,
     "uploadWithSourceMap": true,
-    "enhance": false,
+    "enhance": true,
     "packNpmManually": false,
     "packNpmRelationList": [],
     "minifyWXSS": true,

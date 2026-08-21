@@ -61,6 +61,7 @@ Use this skill when the user asks to run the workflow command `explore`, or want
 - 问题复述：用一句话确认理解。
 - 现象与影响：影响范围、触发条件、严重程度倾向。
 - 根因判断：区分已确认根因、强推测、待验证假设。
+- 根因证据：遵守 `rules/root-cause-evidence.md`，使用 `confirmed`、`probable`、`hypothesis`、`unknown` 区分证据强度；证据不足时输出补证步骤，不把推测写成已确认。
 - 证据依据：引用只读调查到的代码、文档、配置、日志或用户描述。
 - 解决方案：给出至少一个可执行修复路线；复杂问题可拆临时 workaround 与正式 fix。
 - 验证建议：建议如何复现、如何验证修复、是否需要回归测试。
@@ -203,7 +204,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event explore 
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

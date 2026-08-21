@@ -142,6 +142,10 @@
   white-space: normal;
 }
 
+.admin-shell .banner-validity-cell .time-range {
+  min-width: 118px;
+}
+
 .admin-shell .banner-actions {
   display: flex;
   align-items: center;

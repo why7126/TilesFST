@@ -34,6 +34,12 @@ function defaultRenderCell<T extends { id: string | number }>(
   return String((row as Record<string, unknown>)[column.key] ?? '');
 }
 
+function columnDisplayMode<T extends { id: string | number }>(
+  column: AdminListColumn<T, ReactNode>,
+) {
+  return column.displayMode ?? (column.stickyAction ? 'nowrap' : 'truncate');
+}
+
 export function AdminListPage<T extends { id: string | number }>({
   content,
   onCreate,
@@ -168,7 +174,9 @@ export function AdminListPage<T extends { id: string | number }>({
                 {columns.map((column) => (
                   <th
                     key={column.key}
+                    data-admin-column-display={columnDisplayMode(column)}
                     className={cn(
+                      'admin-list-cell-nowrap',
                       column.stickyAction && 'admin-sticky-action-cell',
                       column.headerClassName,
                     )}
@@ -201,7 +209,12 @@ export function AdminListPage<T extends { id: string | number }>({
                     {columns.map((column) => (
                       <td
                         key={column.key}
+                        data-admin-column-display={columnDisplayMode(column)}
                         className={cn(
+                          columnDisplayMode(column) === 'multiLineException'
+                            ? 'admin-list-cell-multiline-exception'
+                            : 'admin-list-cell-nowrap',
+                          columnDisplayMode(column) === 'truncate' && 'admin-list-cell-truncate',
                           column.stickyAction && 'admin-sticky-action-cell',
                           column.className,
                         )}

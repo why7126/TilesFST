@@ -25,6 +25,7 @@ COMMAND_SKILL_PREFIXES = (
     "release-",
     "req-",
     "sprint-",
+    "upgrade-",
 )
 NEXT_GUIDANCE_TERMS = (
     "下一步",

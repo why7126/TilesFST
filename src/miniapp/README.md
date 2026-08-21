@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-08-04 09:27:59
+updated_at: 2026-08-21 13:52:48
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -58,6 +58,7 @@ note: AI新增文件前必须确认目录边界
 商品详情页位于 `pages/tile-detail/index.*`，通过 `GET /api/v1/miniapp/skus/{sku_id}` 获取公开 SKU 详情聚合数据，并在旧接口兼容场景降级请求 `GET /api/v1/miniapp/products/{product_id}`。
 
 - 页面展示大媒体区、商品摘要、品牌入口、商品参数、同系列推荐、同品牌推荐和底部收藏/分享操作。
+- 商品详情页顶部图片轮播使用详情接口 `media[].url` 作为首屏高清展示 URL，点击预览使用 `preview_url` 或等价高清 URL；商品列表、商品卡片、推荐位和 Banner 仍保留 `.thumb` 或等价轻量图片策略。轮播高度使用视口宽度约束的更高媒体区，首屏仍需露出商品名称或关键商品信息。
 - 商品备注说明来自后端 `remark` 公开字段；小程序需过滤空值、`null`、`undefined` 占位值，并作为 `商品参数` 模块内的 `备注说明` 参数行展示，不得单独渲染独立“备注说明”模块。
 - 商品详情页不得在摘要区展示 SKU 编码；SKU 编码、类目、规格、色系、表面工艺和备注说明等信息统一进入商品参数模块。
 - 商品详情埋点通过 `track()` 上报 `sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_favorite`、`sku_unfavorite`、`sku_recommend_click`、`sku_share_click` 和 `sku_load_error`；埋点失败不得阻断详情浏览、媒体预览、收藏、分享或推荐跳转。

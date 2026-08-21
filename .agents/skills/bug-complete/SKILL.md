@@ -44,13 +44,15 @@ Use this skill when the user asks to run the workflow command `bug-complete`.
 
 媒体类 BUG 的 acceptance MUST 引用 `docs/standards/media-bug-four-point-acceptance-template.md`，覆盖 key、object、URL、render 四联。品牌证书相关 BUG MUST 明确图片证书使用 `images/default/brand-certificates/`，PDF/文档证书使用 `files/default/brand-certificates/`，历史对象/缩略图/审计脚本需记录 dry-run、apply、幂等摘要。
 
+`root-cause.md` MUST 遵守 `rules/root-cause-evidence.md`：写入根因状态（`unknown`、`hypothesis`、`probable`、`confirmed`）、证据链、验证方式；confirmed 根因必须有可定位证据，证据不足时必须写人工补证步骤。
+
 ## Readiness
 
 Ready：bug + root-cause + acceptance + trace
 
 ## Next
 
-`/bug-review BUG-xxxx --approve`
+`/bug-review BUG-xxxx`
 
 ---
 
@@ -87,8 +89,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event bug.comp
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

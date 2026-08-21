@@ -3,10 +3,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  fetchPerformanceFilterOptions,
   fetchPerformanceSummary,
   type PerformanceAggregateItem,
+  type PerformanceFilterOption,
+  type PerformanceFilterOptionsData,
   type PerformanceSummaryData,
 } from '@/features/performance/performance-api';
+import { performanceMetricLabel } from '@/features/performance/metric-labels';
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import '@/features/admin/styles/user-management.css';
 import '@/features/admin/styles/log-audit.css';
@@ -16,18 +20,10 @@ import { MetricCard, MetricCardGrid } from '@/shared/ui/metric-card';
 
 const ALL_VALUE = 'all';
 
-const clientOptions = [
-  { value: ALL_VALUE, label: '全部端类型' },
+const defaultClientOptions: PerformanceFilterOption[] = [
   { value: 'web_admin', label: '管理端 Web' },
   { value: 'web_catalog', label: '店主 Web' },
   { value: 'wechat_miniapp', label: '微信小程序' },
-];
-
-const metricOptions = [
-  { value: ALL_VALUE, label: '全部指标' },
-  { value: 'first_content_ready', label: '首屏可用' },
-  { value: 'full_load', label: '完整加载' },
-  { value: 'first_api_done', label: '首个接口完成' },
 ];
 
 const timeOptions = [
@@ -41,25 +37,57 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 export function PerformanceRumPage() {
   const navigate = useNavigate();
   const [clientType, setClientType] = useState(ALL_VALUE);
+  const [appVersion, setAppVersion] = useState(ALL_VALUE);
+  const [pageKey, setPageKey] = useState(ALL_VALUE);
+  const [networkType, setNetworkType] = useState(ALL_VALUE);
   const [metricName, setMetricName] = useState(ALL_VALUE);
   const [timeRange, setTimeRange] = useState('1d');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [data, setData] = useState<PerformanceSummaryData | null>(null);
+  const [filterOptions, setFilterOptions] = useState<PerformanceFilterOptionsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [optionsError, setOptionsError] = useState('');
+
+  const startTime = useMemo(() => {
+    const minutes = timeOptions.find((option) => option.value === timeRange)?.minutes ?? 1440;
+    return new Date(Date.now() - minutes * 60 * 1000).toISOString();
+  }, [timeRange]);
 
   const params = useMemo(() => {
-    const minutes = timeOptions.find((option) => option.value === timeRange)?.minutes ?? 1440;
     return {
       client_type: clientType === ALL_VALUE ? undefined : clientType as 'web_admin' | 'web_catalog' | 'wechat_miniapp',
+      app_version: appVersion === ALL_VALUE ? undefined : appVersion,
+      page_key: pageKey === ALL_VALUE ? undefined : pageKey,
+      network_type: networkType === ALL_VALUE ? undefined : networkType,
       metric_name: metricName === ALL_VALUE ? undefined : metricName,
-      start_time: new Date(Date.now() - minutes * 60 * 1000).toISOString(),
+      start_time: startTime,
       min_samples: 20,
       page,
       page_size: pageSize,
     };
-  }, [clientType, metricName, page, pageSize, timeRange]);
+  }, [appVersion, clientType, metricName, networkType, page, pageKey, pageSize, startTime]);
+
+  useEffect(() => {
+    let active = true;
+    setOptionsError('');
+    fetchPerformanceFilterOptions({ start_time: startTime })
+      .then((next) => {
+        if (active) {
+          setFilterOptions(next);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setOptionsError(getErrorMessage(err, '性能筛选候选值加载失败'));
+          setFilterOptions(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [startTime]);
 
   useEffect(() => {
     let active = true;
@@ -89,6 +117,11 @@ export function PerformanceRumPage() {
   const first = data?.items[0];
   const total = data?.total ?? data?.slow_pages.length ?? 0;
   const totalPages = data?.total_pages ?? Math.max(1, Math.ceil(total / pageSize));
+  const clientTypeOptions = withAllOption('全部端类型', filterOptions?.client_types.length ? filterOptions.client_types : defaultClientOptions);
+  const metricOptions = withAllOption('全部指标', filterOptions?.metrics ?? []);
+  const appVersionOptions = withAllOption('全部版本号', filterOptions?.app_versions ?? []);
+  const pageKeyOptions = withAllOption('全部页面', filterOptions?.page_keys ?? []);
+  const networkTypeOptions = withAllOption('全部网络', filterOptions?.network_types ?? []);
 
   useEffect(() => {
     if (data && page > totalPages) {
@@ -119,15 +152,39 @@ export function PerformanceRumPage() {
             <span className="field-label">时间范围</span>
             <AdminFilterSelect value={timeRange} options={timeOptions} onChange={(value) => {
               setTimeRange(value);
+              setAppVersion(ALL_VALUE);
+              setPageKey(ALL_VALUE);
+              setNetworkType(ALL_VALUE);
               setPage(1);
             }} ariaLabel="选择时间范围" listLabel="时间范围筛选选项" />
           </div>
           <div>
             <span className="field-label">端类型</span>
-            <AdminFilterSelect value={clientType} options={clientOptions} onChange={(value) => {
+            <AdminFilterSelect value={clientType} options={clientTypeOptions} onChange={(value) => {
               setClientType(value);
               setPage(1);
             }} ariaLabel="选择端类型" listLabel="端类型筛选选项" />
+          </div>
+          <div>
+            <span className="field-label">版本号</span>
+            <AdminFilterSelect value={appVersion} options={appVersionOptions} onChange={(value) => {
+              setAppVersion(value);
+              setPage(1);
+            }} ariaLabel="选择版本号" listLabel="版本号筛选选项" />
+          </div>
+          <div>
+            <span className="field-label">页面</span>
+            <AdminFilterSelect value={pageKey} options={pageKeyOptions} onChange={(value) => {
+              setPageKey(value);
+              setPage(1);
+            }} ariaLabel="选择页面" listLabel="页面筛选选项" />
+          </div>
+          <div>
+            <span className="field-label">网络</span>
+            <AdminFilterSelect value={networkType} options={networkTypeOptions} onChange={(value) => {
+              setNetworkType(value);
+              setPage(1);
+            }} ariaLabel="选择网络" listLabel="网络筛选选项" />
           </div>
           <div>
             <span className="field-label">指标</span>
@@ -139,6 +196,9 @@ export function PerformanceRumPage() {
           <div className="log-audit-filter-actions">
             <button type="button" className="btn" onClick={() => {
               setClientType(ALL_VALUE);
+              setAppVersion(ALL_VALUE);
+              setPageKey(ALL_VALUE);
+              setNetworkType(ALL_VALUE);
               setMetricName(ALL_VALUE);
               setTimeRange('1d');
               setPage(1);
@@ -150,9 +210,10 @@ export function PerformanceRumPage() {
       </section>
 
       <section className="table-card" aria-label="慢页面排行">
+        {optionsError ? <div className="empty-state">{optionsError}</div> : null}
         {error ? <div className="empty-state">{error}</div> : null}
         {!error && !loading && !data?.items.length && total === 0 ? (
-          <div className="empty-state">暂无性能样本</div>
+          <div className="performance-table-empty">暂无性能样本</div>
         ) : (
           <div className="log-audit-table-wrap">
             <table className="log-audit-table">
@@ -161,6 +222,8 @@ export function PerformanceRumPage() {
                   <th>页面</th>
                   <th>版本号</th>
                   <th>端类型</th>
+                  <th>设备</th>
+                  <th>网络</th>
                   <th>指标</th>
                   <th>样本</th>
                   <th>P50</th>
@@ -176,7 +239,9 @@ export function PerformanceRumPage() {
                   <tr key={`${item.client_type}-${item.page_key}-${item.metric_name}-${item.app_version ?? ''}-${item.network_type ?? ''}-${item.device_class ?? ''}`}>
                     <td><span className="log-summary performance-page-key"><span>{item.page_key}</span></span></td>
                     <td>{item.app_version || '版本未知'}</td>
-                    <td>{clientLabel(item.client_type)}</td>
+                    <td>{clientLabel(item.client_type, filterOptions?.client_types)}</td>
+                    <td>{item.device_class || '设备未知'}</td>
+                    <td>{item.network_type || '网络未知'}</td>
                     <td>{metricLabel(item.metric_name)}</td>
                     <td>{item.sample_count}</td>
                     <td>{formatMs(item.p50_ms)}</td>
@@ -199,7 +264,7 @@ export function PerformanceRumPage() {
             </table>
           </div>
         )}
-        {loading ? <div className="empty-state"><Activity size={16} /> 加载中...</div> : null}
+        {loading ? <div className="performance-table-empty"><Activity size={16} /> 加载中...</div> : null}
         {!error && data && total > 0 ? (
           <div className="pagination">
             <div className="page-summary">共 {loading ? '…' : total} 条聚合</div>
@@ -250,12 +315,16 @@ function formatMs(value?: number | null) {
   return `${value}ms`;
 }
 
-function clientLabel(value: string) {
-  return clientOptions.find((option) => option.value === value)?.label ?? value;
+function withAllOption(label: string, options: readonly PerformanceFilterOption[]) {
+  return [{ value: ALL_VALUE, label }, ...options];
+}
+
+function clientLabel(value: string, options: readonly PerformanceFilterOption[] = defaultClientOptions) {
+  return options.find((option) => option.value === value)?.label ?? defaultClientOptions.find((option) => option.value === value)?.label ?? value;
 }
 
 function metricLabel(value: string) {
-  return metricOptions.find((option) => option.value === value)?.label ?? value;
+  return performanceMetricLabel(value);
 }
 
 function sampleLabel(value: string) {

@@ -104,6 +104,7 @@ export interface AdminListColumn<
   key: string;
   header: string;
   render?: (row: T) => Node;
+  displayMode?: 'nowrap' | 'truncate' | 'multiLineException';
   stickyAction?: boolean;
   className?: string;
   headerClassName?: string;

@@ -19,8 +19,9 @@ ENV_JS = MINIAPP / "utils" / "env.js"
 PROJECT_PRIVATE_CONFIG = MINIAPP / "project.private.config.json"
 README = MINIAPP / "README.md"
 PRODUCTION_BASE_URL = "https://tilesfst.wjoyhappy.site"
-DEVELOPMENT_BASE_URL = "http://127.0.0.1:8010"
-DEVELOPMENT_FALLBACKS = ["http://localhost:8010", "http://localhost:8000"]
+ROOT_ENV = ROOT / ".env"
+ENV_EXAMPLE = ROOT / ".env.example"
+DEFAULT_HOST_PORT_BACKEND = "8000"
 DEFAULT_STRATEGY = "auto"
 VALID_STRATEGIES = {"dev", "prod", "auto"}
 
@@ -70,8 +71,46 @@ def _strategy_template(strategy: str) -> StrategyTemplate:
     )
 
 
+def _read_host_port_backend() -> str:
+    for env_path in [ROOT_ENV, ENV_EXAMPLE]:
+        value = _read_env_value(env_path, "HOST_PORT_BACKEND")
+        if _is_valid_port(value):
+            return value
+    return DEFAULT_HOST_PORT_BACKEND
+
+
+def _read_env_value(env_path: Path, key: str) -> str | None:
+    if not env_path.exists():
+        return None
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        if name.strip() == key:
+            return value.strip().strip("'\"")
+    return None
+
+
+def _is_valid_port(value: str | None) -> bool:
+    if value is None or not value.isdigit():
+        return False
+    port = int(value)
+    return 1 <= port <= 65535
+
+
+def _development_base_url() -> str:
+    return f"http://127.0.0.1:{_read_host_port_backend()}"
+
+
+def _development_fallbacks() -> list[str]:
+    return [f"http://localhost:{_read_host_port_backend()}"]
+
+
 def _render_ts(resolver: str) -> str:
-    fallback_values = ", ".join(f"'{item}'" for item in DEVELOPMENT_FALLBACKS)
+    development_base_url = _development_base_url()
+    development_fallbacks = _development_fallbacks()
+    fallback_values = ", ".join(f"'{item}'" for item in development_fallbacks)
     return f"""export type MiniappEnvironment = 'development' | 'production';
 
 export type MiniappApiConfig = {{
@@ -83,7 +122,7 @@ export type MiniappApiConfig = {{
 export const MINIAPP_API_CONFIGS: Record<MiniappEnvironment, MiniappApiConfig> = {{
   development: {{
     environment: 'development',
-    apiBaseUrl: '{DEVELOPMENT_BASE_URL}',
+    apiBaseUrl: '{development_base_url}',
     apiFallbackBaseUrls: [{fallback_values}],
   }},
   production: {{
@@ -106,11 +145,13 @@ export const miniappApiConfig = resolveMiniappApiConfig();
 
 
 def _render_js(resolver: str) -> str:
-    fallback_values = ", ".join(f"'{item}'" for item in DEVELOPMENT_FALLBACKS)
+    development_base_url = _development_base_url()
+    development_fallbacks = _development_fallbacks()
+    fallback_values = ", ".join(f"'{item}'" for item in development_fallbacks)
     return f"""const MINIAPP_API_CONFIGS = {{
   development: {{
     environment: 'development',
-    apiBaseUrl: '{DEVELOPMENT_BASE_URL}',
+    apiBaseUrl: '{development_base_url}',
     apiFallbackBaseUrls: [{fallback_values}],
   }},
   production: {{
@@ -156,6 +197,9 @@ def check_state(*, smoke: bool = False) -> dict[str, Any]:
     js = ENV_JS.read_text(encoding="utf-8") if ENV_JS.exists() else ""
     strategy = detect_strategy()
     private_config = _read_project_private_config()
+    host_port_backend = _read_host_port_backend()
+    development_base_url = _development_base_url()
+    development_fallbacks = _development_fallbacks()
     result: dict[str, Any] = {
         "strategy": strategy,
         "files": {
@@ -170,10 +214,11 @@ def check_state(*, smoke: bool = False) -> dict[str, Any]:
             "urlCheck_matches_strategy": private_config.get("setting", {}).get("urlCheck") is (True if strategy == "prod" else False),
         },
         "development": {
-            "apiBaseUrl": DEVELOPMENT_BASE_URL,
-            "apiFallbackBaseUrls": DEVELOPMENT_FALLBACKS,
-            "present_in_ts": DEVELOPMENT_BASE_URL in ts,
-            "present_in_js": DEVELOPMENT_BASE_URL in js,
+            "hostPortBackend": host_port_backend,
+            "apiBaseUrl": development_base_url,
+            "apiFallbackBaseUrls": development_fallbacks,
+            "present_in_ts": development_base_url in ts,
+            "present_in_js": development_base_url in js,
         },
         "production": {
             "apiBaseUrl": PRODUCTION_BASE_URL,

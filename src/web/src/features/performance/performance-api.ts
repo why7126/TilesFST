@@ -67,6 +67,26 @@ export interface PerformanceSampleData {
   filters: Record<string, string | number | null>;
 }
 
+export interface PerformanceFilterOption {
+  value: string;
+  label: string;
+  count?: number | null;
+}
+
+export interface PerformanceFilterOptionsData {
+  client_types: PerformanceFilterOption[];
+  app_versions: PerformanceFilterOption[];
+  page_keys: PerformanceFilterOption[];
+  device_classes: PerformanceFilterOption[];
+  network_types: PerformanceFilterOption[];
+  metrics: PerformanceFilterOption[];
+}
+
+export interface PerformanceFilterOptionsQuery {
+  start_time?: string;
+  end_time?: string;
+}
+
 export interface PerformanceSummaryQuery {
   client_type?: PerformanceClientType;
   page_key?: string;
@@ -90,6 +110,16 @@ export async function fetchPerformanceSummary(params: PerformanceSummaryQuery): 
   const response = await apiClient.get('/api/v1/admin/performance-events/summary', { params });
   if (!response.data.data) {
     throw new Error(response.data.message || '性能观测数据为空');
+  }
+  return response.data.data;
+}
+
+export async function fetchPerformanceFilterOptions(
+  params: PerformanceFilterOptionsQuery,
+): Promise<PerformanceFilterOptionsData> {
+  const response = await apiClient.get('/api/v1/admin/performance-events/filter-options', { params });
+  if (!response.data.data) {
+    throw new Error(response.data.message || '性能筛选候选值为空');
   }
   return response.data.data;
 }

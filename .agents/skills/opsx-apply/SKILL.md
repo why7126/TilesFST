@@ -81,6 +81,8 @@ iterations/change|archive/<sprint>/sprint.md §横切预防清单
 docs/knowledge-base/best-practices/<matched>.md
 ```
 
+For BUG-sourced Changes or fixes that involve root-cause claims, MUST read `rules/root-cause-evidence.md` and verify that `root-cause.md` uses `unknown` / `hypothesis` / `probable` / `confirmed` semantics. A `confirmed` root cause without evidence is a blocker until the BUG document is completed or the implementation explicitly records the remaining evidence risk.
+
 ## Sprint Inclusion Gate（MUST before implementation）
 
 Before editing `src/`, running implementation checks, or marking any task complete, verify the target Change is eligible for `/opsx-apply`.
@@ -241,7 +243,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.app
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

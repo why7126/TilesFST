@@ -2,7 +2,7 @@
 name: "spec-study"
 description: "跨项目 Harness 学习应用 - 学习其他项目治理工程，并经用户确认后应用到本项目治理资产"
 created_at: 2026-08-07 09:06:21
-updated_at: 2026-08-07 10:41:52
+updated_at: 2026-08-21 08:36:38
 ---
 
 # spec-study
@@ -95,10 +95,11 @@ Phase 1 默认 MUST NOT 修改本项目文件；除非用户在同一命令中�
 2. 若变更属于新增命令、治理扩展、目录边界、脚本校验行为变化，MUST 有 active OpenSpec Change，并且该 Change MUST 已纳入 Sprint scope。
 3. 按本项目现有规范重写学习内容，不做原样大段复制。
 4. 更新必要的 `.agents/skills/`、`AGENTS.md`、`rules/`、`docs/`、`scripts/`、部署治理文件和 active Change 文档。
-5. 每完成一组 active Change task，立即把 `tasks.md` 对应 `- [ ]` 标记为 `- [x]`。
-6. 使用聚焦 diff 复核没有修改 `src/`。
-7. 使用学习对象的 `git status --short`、文件清单对比或等价方式复核学习对象未发生变更；若学习对象不是 Git 仓库，MUST 说明采用了只读命令且未对其路径执行写入操作。
-8. 输出学习报告。报告 MUST 统一写入 `docs/spec-logs/`，文件名 MUST 使用 `YYYYMMDDhhmmss-study-xxx.md` 格式，例如 `20260807103045-study-design-system.md`；同一次学习应用流程只生成一份正式 `study` 报告，不得同时生成内容重复的 `YYYYMMDDhhmmss-governance-xxx.md` 治理日志；若同一流程已有报告，MUST 更新该报告。不得写入 active Change 的 `implementation/` 或 `docs/knowledge-base/` 作为正式学习报告位置。
+5. 维护长期文档时，MUST 遵守事实唯一归属：详细规则写入最匹配的 `rules/`、`docs/standards/`、`.agents/skills/` 或 `docs/knowledge-base/`，入口文件只写摘要和链接；不得在多个长期文档复制完整规则正文。
+6. 每完成一组 active Change task，立即把 `tasks.md` 对应 `- [ ]` 标记为 `- [x]`。
+7. 使用聚焦 diff 复核没有修改 `src/`。
+8. 使用学习对象的 `git status --short`、文件清单对比或等价方式复核学习对象未发生变更；若学习对象不是 Git 仓库，MUST 说明采用了只读命令且未对其路径执行写入操作。
+9. 输出学习报告。报告 MUST 统一写入 `docs/spec-logs/`，文件名 MUST 使用 `YYYYMMDDhhmmss-study-xxx.md` 格式，例如 `20260807103045-study-design-system.md`；同一次学习应用流程只生成一份正式 `study` 报告，不得同时生成内容重复的 `YYYYMMDDhhmmss-governance-xxx.md` 治理日志；若同一流程已有报告，MUST 更新该报告。不得写入 active Change 的 `implementation/` 或 `docs/knowledge-base/` 作为正式学习报告位置。
 
 ## Learning Report（MUST）
 
@@ -108,6 +109,7 @@ Phase 1 默认 MUST NOT 修改本项目文件；除非用户在同一命令中�
 - 学习到的治理能力。
 - 已采纳内容和采纳原因。
 - 未采纳内容和未采纳原因。
+- 替代方案或取舍、验证责任和后续触发条件。
 - 更新文件清单和每个文件的修改原因。
 - API、数据库、Web、小程序、管理端、Orval、Docker Compose、测试影响。
 - 校验命令和结果。
@@ -123,6 +125,7 @@ Phase 1 默认 MUST NOT 修改本项目文件；除非用户在同一命令中�
 - `xxx` MUST 使用小写 kebab-case，表达学习对象或主题，例如 `pm-harness`、`design-system`、`api-governance`。
 - Markdown Frontmatter MUST 包含 `created_at` 与 `updated_at`，时间格式遵守 `rules/document-governance.md`。
 - 学习报告 MUST NOT 包含用户隐私数据、真实客户数据、密钥、访问令牌、本机绝对路径、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码；涉及隐私风险或本地路径时，只能使用仓库相对路径、脱敏占位符或聚合描述，例如 `<local-project>/rules/global.md`、`rules/global.md`、`<user-home>`。
+- 学习报告 SHOULD 遵守 `docs/standards/document-prose-hygiene.md`，不得写入会话推理、临时草稿、review 对话、不可解析引用或不必要历史叙事。
 - 同一次学习应用流程 MUST 只生成一份正式 `study` 报告。学习阶段候选内容 SHOULD 保留在最终回复、active Change 文档或同一报告的阶段章节中，不得另起第二份 `YYYYMMDDhhmmss-study-xxx.md`。
 - `/spec-study` 触发的治理资产应用结果 MUST 汇总到同一份 `study` 报告，不得再额外生成内容重复的 `YYYYMMDDhhmmss-governance-xxx.md`。若同一学习对象、学习主题和用户确认批次已存在本流程报告，后续应用结果、验证结果或修正 MUST 更新同一文件。
 
@@ -135,6 +138,12 @@ python scripts/validate-agent-context-budget.py
 python scripts/validate-openspec-language.py
 python scripts/validate-directory-structure.py
 openspec validate <change-id>
+```
+
+涉及长期文档、规则、技能说明或知识库时，SHOULD 按本次触达文件运行：
+
+```bash
+python scripts/validate-doc-prose-hygiene.py <focused-paths>
 ```
 
 如修改脚本，MUST 至少运行被修改脚本本身或对应测试；如仅修改 Markdown 规范，可说明业务测试不适用。

@@ -9,8 +9,9 @@ const rows = [
 ];
 
 const columns = [
-  { key: 'name', header: '名称' },
+  { key: 'name', header: '名称', displayMode: 'truncate' as const },
   { key: 'status', header: '状态' },
+  { key: 'validity', header: '有效期', displayMode: 'multiLineException' as const },
   {
     key: 'actions',
     header: '操作',
@@ -77,6 +78,13 @@ describe('AdminListPage', () => {
     expect(pagination?.querySelector('.page-btn.active')).toHaveTextContent('1');
     expect(container.querySelector('th.admin-sticky-action-cell')).toBeInTheDocument();
     expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
+    expect(container.querySelector('th')).toHaveClass('admin-list-cell-nowrap');
+    expect(container.querySelector('td[data-admin-column-display="truncate"]')).toHaveClass(
+      'admin-list-cell-truncate',
+    );
+    expect(
+      container.querySelector('td[data-admin-column-display="multiLineException"]'),
+    ).toHaveClass('admin-list-cell-multiline-exception');
   });
 
   it('resets pagination to page 1 when page size changes', () => {

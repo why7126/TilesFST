@@ -57,7 +57,6 @@
             binderror="onImageError"
             data-key="home.banners[{{index}}].image_url"
           ></image>
-          <view class="hero-shade"></view>
         </view>
       </swiper-item>
     </swiper>

@@ -2,7 +2,7 @@
 purpose: 缺陷（BUG）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-06 14:28:00
+updated_at: 2026-08-21 13:45:41
 ---
 
 # 缺陷管理规范
@@ -81,7 +81,7 @@ BUG-NNNN-slug/
 | `/bug-explore` | 默认无文件 |
 | `/bug-generate` | bug.md |
 | `/bug-complete` | root-cause、workaround、acceptance、trace |
-| `/bug-review` | review.md、status |
+| `/bug-review` | review.md、status；无 flag 默认 approved |
 | `/sprint-propose` | iterations/change/sprint-* |
 | `/bug-opsx` | openspec/changes/fix-* |
 
@@ -95,7 +95,9 @@ BUG-NNNN-slug/
 - 创建或回填修复 Change（Sprint 后：`/bug-opsx`）
 - `/sprint-apply`
 
-未评审 BUG **不得**写入 Sprint 四件套正式范围；仅可记入 `sprint.md`「延后项（待评审）」并提示 `/bug-review BUG-xxxx --approve`。
+`/bug-review BUG-xxxx` 无 flag 时默认评审通过并进入 `approved`；拒绝、延后或不修复必须显式使用 `--reject`、`--defer` 或 `--wont-fix`。
+
+未评审 BUG **不得**写入 Sprint 四件套正式范围；仅可记入 `sprint.md`「延后项（待评审）」并提示 `/bug-review BUG-xxxx`。
 
 ### 4.2 opsx-apply 迭代纳入门禁（统一，MUST）
 
@@ -143,6 +145,8 @@ Frontmatter **MUST** 含 `created_at`、`updated_at`；更新 trace 时刷新 `u
 状态变更后 MUST 运行 `python scripts/sync-workflow-status.py`（见 `rules/document-governance.md` §6.1 与 `.agents/skills/workflow-sync/SKILL.md`）。
 
 状态变化事件（`bug.generate`、`bug.review`、`bug.opsx`、`opsx.apply`、`opsx.archive`、`sprint.archive`）后，Workflow Sync MUST 检查 BUG 顶层子文档：`bug.md` 同步当前主状态；`acceptance.md` 回填 `acceptance_status`、source Change/Sprint、证据入口和失败项结构；`root-cause.md`、`workaround.md`、`review.md` 若状态字段语义不明，应报告 warning/blocker，归档前不得残留未解释的非闭环状态。
+
+BUG `root-cause.md` MUST 遵守 `rules/root-cause-evidence.md`：根因状态区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 必须记录可定位证据链，证据不足时必须写明人工补证步骤，不得把推测表述为已确认根因。
 
 ## 8. 参考命令
 

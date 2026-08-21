@@ -1,6 +1,8 @@
 ---
 name: spec-opt
 description: 规范优化 - 新增或修改项目治理规范、技能命令、文档索引与治理脚本
+created_at: 2026-08-07 09:06:21
+updated_at: 2026-08-21 08:36:38
 ---
 
 # spec-opt
@@ -75,6 +77,8 @@ Use this skill when the user asks to run `/spec-opt ...` or requests optimizatio
 
 同步文档时 MUST 更新 Markdown frontmatter `updated_at`，不得修改既有 `created_at`。
 
+治理文档同步时 MUST 遵守事实唯一归属和表达卫生：详细规则只写入最匹配的事实源，入口文件写摘要和链接；不得把会话推理、临时草稿、review 对话、不可解析引用、未脱敏本机路径或不必要历史叙事写入长期文档。涉及长期文档、规则、技能说明或知识库时，SHOULD 按本次触达文件运行 `python scripts/validate-doc-prose-hygiene.py <focused-paths>`。
+
 ## Spec Logs（MUST）
 
 `/spec-opt` 完成本项目规范、技能、脚本、目录边界或校验规则迭代后，MUST 在 `docs/spec-logs/` 写入治理迭代日志，并维护 `docs/spec-logs/CHANGELOG.md` 变更历史总账。
@@ -90,6 +94,8 @@ YYYYMMDDhhmmss-governance-xxx.md
 - `xxx` MUST 使用小写 kebab-case 表达治理主题，例如 `skill-output-contract`、`api-governance-rules`、`spec-logs`。
 
 治理迭代日志 MUST 包含：迭代目标、变更摘要、影响范围、更新文件、验证结果、API/DB/Web/小程序/管理端/Orval/Docker 影响和后续建议。
+
+治理迭代日志 SHOULD 包含关键决策字段：已采纳原因、未采纳原因、替代方案或取舍、验证责任和后续触发条件。
 
 治理迭代日志 MUST NOT 包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码。涉及隐私风险时，只能使用脱敏占位符或聚合描述。
 
@@ -119,6 +125,8 @@ python scripts/validate-openspec-language.py
 python scripts/validate-directory-structure.py
 openspec validate <change-id>
 ```
+
+涉及长期文档、规则、技能说明或知识库时，SHOULD 按本次触达文件运行 `python scripts/validate-doc-prose-hygiene.py <focused-paths>`。
 
 如修改脚本，MUST 至少运行被修改脚本本身或对应测试；如仅修改 Markdown 规范，可说明业务测试不适用。
 

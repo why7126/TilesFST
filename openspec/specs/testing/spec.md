@@ -300,38 +300,37 @@ The testing capability SHALL include OpenAPI/Orval regression checks when the ch
 
 ### Requirement: 管理端列表页一致性回归测试
 
-The testing capability SHALL include focused frontend regression coverage for BUG-0055 on Web admin list page layout order, filter/search behavior, sticky action columns, and pagination window behavior.
+测试治理 SHALL require focused regression coverage for admin list page consistency, including pagination DOM, table column display, sticky action column behavior, fixed toast feedback, Design System confirm modal usage, admin filter overlay behavior, and backend pagination contracts when a Change modifies admin list pages or shared admin list foundations.
 
-#### Scenario: Module order is covered
+#### Scenario: 分页 DOM 回归测试
+- **WHEN** a Change modifies an admin list page, shared admin list template, or pagination component
+- **THEN** Vitest, Testing Library, or equivalent frontend tests SHALL verify `page-summary` and `page-right` exist
+- **AND** tests SHALL verify the displayed total uses backend total count or a documented equivalent test double
+- **AND** tests SHALL verify page-size, search, filter, or sort changes reset to a valid page
 
-- **WHEN** frontend tests render affected Web admin list pages
-- **THEN** they SHALL verify the DOM order is title module, metrics module, filter/search module, then list module
-- **AND** they SHALL cover SKU, brand, category, spec, banner, user, log audit, and API docs pages where practical.
+#### Scenario: 列展示回归测试
+- **WHEN** a Change modifies admin table columns or shared column rendering
+- **THEN** tests SHALL verify table headers default to non-wrapping behavior through stable class, DOM contract, or equivalent assertion
+- **AND** tests SHALL verify normal text fields use single-line truncation or equivalent behavior
+- **AND** tests SHALL verify effective-period fields are the only documented two-line exception in the representative page unless the Change records another exception
 
-#### Scenario: Query buttons are removed
+#### Scenario: sticky 操作列回归测试
+- **WHEN** a Change modifies admin table action cells, table width, horizontal scrolling, or column count
+- **THEN** tests or documented visual evidence SHALL verify action entry points remain reachable
+- **AND** checks SHALL confirm sticky action cells do not cover pagination, filter overlays, dialogs, or toasts
+- **AND** disabled, loading, permission-denied, hover, and focus states SHALL remain stable where applicable
 
-- **WHEN** frontend tests render affected filter/search modules
-- **THEN** they SHALL verify no visible button named 「查询」 or 「搜索」 is rendered
-- **AND** they SHALL verify a reset button remains available.
+#### Scenario: 真实分页回归测试
+- **WHEN** a Change modifies admin list data loading, API pagination parameters, or API pagination responses
+- **THEN** backend tests, frontend API mocks, or integration tests SHALL verify page and page-size parameters are sent to the backend
+- **AND** tests SHALL verify the UI uses backend total count rather than client-side array length from full-data slicing
+- **AND** API contract changes SHALL update Pydantic Schema, OpenAPI, Orval generated types, API docs, and tests
 
-#### Scenario: Pagination window is covered
-
-- **WHEN** frontend tests exercise pagination helpers or page components
-- **THEN** they SHALL verify at most 5 clickable page number buttons are rendered
-- **AND** they SHALL cover total page counts of 1, 5, and 6 or more
-- **AND** they SHALL verify page size changes reset current page to 1.
-
-#### Scenario: Filter reset behavior is covered
-
-- **WHEN** frontend tests update filters or click reset
-- **THEN** they SHALL verify current page returns to 1
-- **AND** list result calculation or request parameters SHALL reflect the changed filters.
-
-#### Scenario: Sticky action column contract is covered
-
-- **WHEN** frontend tests render affected admin tables
-- **THEN** they SHALL verify the last header and body cells use the sticky action column contract
-- **AND** they SHALL verify existing action disabled states and confirmation flows remain test-covered where already present.
+#### Scenario: 横切交互不回退
+- **WHEN** a Change modifies admin list state actions, dangerous actions, or action feedback
+- **THEN** tests SHALL verify fixed toast feedback does not insert document-flow notices into the list layout
+- **AND** tests SHALL verify dangerous actions use Design System confirm modal
+- **AND** tests SHALL verify no new `window.confirm` usage is introduced in touched admin list code
 
 ### Requirement: Sprint Archive Tasks Gate
 
@@ -409,4 +408,29 @@ The BUG-0075 fix SHALL include focused regression coverage for admin brand-detai
 - **WHEN** 测试对同一已闭环 Issue 重复执行 residual reconcile
 - **THEN** 第二次执行 MUST 报告 no delta 或等价摘要
 - **AND** 测试 MUST 断言没有重复更新时间戳或产生无意义 diff
+
+### Requirement: 小程序媒体测试 helper
+
+测试治理能力 SHALL 提供或要求复用小程序媒体测试 helper，用于表达图片展示 URL、preview URL、视频 URL、poster / cover、fallback、lazy-load、页面模板绑定和受控 `/media` URL 语义。该 helper SHALL 服务自动化断言和验收摘要，不得替代对象存储审计、小程序 Network evidence 或端侧 render evidence。
+
+#### Scenario: 图片媒体 URL 语义断言
+
+- **WHEN** 后端接口或小程序页面测试检查图片媒体
+- **THEN** helper SHALL 支持断言展示 URL 优先使用缩略图
+- **AND** SHALL 支持断言 preview URL 保留原图或等价高清资源
+- **AND** SHALL 支持断言 fallback 和 lazy-load 绑定符合预期。
+
+#### Scenario: 视频媒体 URL 语义断言
+
+- **WHEN** 后端接口或小程序页面测试检查视频媒体
+- **THEN** helper SHALL 支持断言视频播放 URL 不被缩略图或 poster 替换
+- **AND** SHALL 支持断言视频 poster / cover URL 优先使用轻量图片
+- **AND** SHALL 支持记录不涉及视频时的 `n/a` 原因。
+
+#### Scenario: 受控媒体 URL 安全断言
+
+- **WHEN** 测试检查媒体 URL 输出
+- **THEN** helper SHALL 支持断言客户端使用后端受控 `/media/{object_key}` 或等价 URL
+- **AND** SHALL 支持断言输出不直连未授权对象存储
+- **AND** SHALL 支持断言测试摘要不暴露 raw object key、密钥、`.env`、Authorization header、Cookie 或本机绝对路径。
 

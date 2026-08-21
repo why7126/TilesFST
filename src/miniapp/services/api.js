@@ -82,6 +82,7 @@ function request(path, options = {}) {
             metric_name: 'api_duration',
             duration_ms: Date.now() - startedAt,
             device_class: 'miniapp',
+            request_id: clientRequestId,
           });
           if (res.statusCode >= 200 && res.statusCode < 300 && body && body.code === 0) {
             resolve(normalizeMediaUrls(body.data, currentBaseUrl));
@@ -106,6 +107,7 @@ function request(path, options = {}) {
             metric_name: 'api_failed_duration',
             duration_ms: Date.now() - startedAt,
             device_class: 'miniapp',
+            request_id: clientRequestId,
           });
           attempts.push({
             url,

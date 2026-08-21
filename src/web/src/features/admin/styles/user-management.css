@@ -334,6 +334,7 @@
   border-bottom: 0.5px solid var(--admin-line);
   font-size: 12px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .admin-shell .user-mgmt-table th {
@@ -359,6 +360,22 @@
   border-left: 0.5px solid var(--admin-line);
   box-shadow: -10px 0 16px color-mix(in srgb, var(--admin-deep) 70%, transparent);
   text-align: center;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-list-cell-nowrap {
+  white-space: nowrap;
+}
+
+.admin-shell .admin-list-cell-truncate {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-shell .admin-list-cell-multiline-exception {
+  white-space: normal;
 }
 
 .admin-shell th.admin-sticky-action-cell {

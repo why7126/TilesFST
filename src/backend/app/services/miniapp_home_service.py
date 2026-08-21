@@ -50,6 +50,9 @@ from app.schemas.miniapp_home import (
     MiniappStoreSummary,
 )
 
+_INTERNAL_BANNER_TITLE_PREFIXES = ("internal-", "internal_")
+_INTERNAL_BANNER_TITLE_TOKENS = ("MINIAPP_", "NO_JUMP")
+
 
 class MiniappHomeService:
     def __init__(
@@ -662,6 +665,7 @@ class MiniappHomeService:
         ]
 
     def _to_banner_item(self, record: MiniappBannerRecord) -> MiniappBannerItem:
+        public_title = self._public_banner_title(record.title)
         jump_type = "none"
         target_id = None
         search_keyword = None
@@ -671,20 +675,30 @@ class MiniappHomeService:
         elif record.jump_type in {"BRAND_DETAIL", "BRAND", "brand"} and record.brand_id:
             jump_type = "brand"
             target_id = record.brand_id
-        elif record.jump_type in {"TOPIC", "SEARCH", "search"}:
+        elif record.jump_type in {"TOPIC_PAGE", "TOPIC", "SEARCH", "search"}:
             jump_type = "search"
-            search_keyword = record.title
+            search_keyword = public_title or None
         elif record.jump_type in {"STORE", "store"}:
             jump_type = "store"
         return MiniappBannerItem(
             id=record.id,
-            title=record.title,
+            title=public_title,
             subtitle=None,
             image_url=self._card_media_url(record.image_object_key, prefer_thumbnail=True),
             jump_type=jump_type,
             target_id=target_id,
             search_keyword=search_keyword,
         )
+
+    @staticmethod
+    def _public_banner_title(title: str) -> str:
+        cleaned_title = title.strip()
+        normalized_title = cleaned_title.upper()
+        if cleaned_title.lower().startswith(_INTERNAL_BANNER_TITLE_PREFIXES) and any(
+            token in normalized_title for token in _INTERNAL_BANNER_TITLE_TOKENS
+        ):
+            return ""
+        return cleaned_title
 
     @staticmethod
     def _to_certificate_item(
@@ -787,7 +801,7 @@ class MiniappHomeService:
     def _media_items(self, record: MiniappProductRecord) -> list[MiniappSkuMediaItem]:
         media = self._repo.list_product_media(record.id)
         if not media and record.main_image_url:
-            url = self._card_media_url(record.main_image_url, prefer_thumbnail=True)
+            url = self._media_url(record.main_image_url)
             preview_url = self._media_url(record.main_image_url)
             return [
                 MiniappSkuMediaItem(
@@ -812,10 +826,7 @@ class MiniappHomeService:
         items: list[MiniappSkuMediaItem] = []
         for item in media:
             is_video = item.media_type == "video"
-            url = self._media_url(item.url) if is_video else self._card_media_url(
-                item.url,
-                prefer_thumbnail=True,
-            )
+            url = self._media_url(item.url)
             items.append(
                 MiniappSkuMediaItem(
                     media_id=item.id,

@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-08 21:03:00
+updated_at: 2026-08-21 08:36:38
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -19,6 +19,8 @@ note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通
 ## 2. docs 目录
 
 `docs/` 只沉淀长期产品、架构、部署、接口、数据库、兼容性和治理信息；需求、BUG、迭代不得放入 `docs/`。
+
+长期事实 MUST 只有一个事实源。`AGENTS.md`、`rules/`、`docs/standards/`、`.agents/skills/` 和 `docs/spec-logs/` 之间不得重复完整规则；入口文件只保留短摘要和相对链接，详细规则放在最匹配的归属文档中。新增或更新长期文档时 SHOULD 遵守 `docs/standards/document-prose-hygiene.md`，避免会话推理、临时草稿、review 对话、不可解析引用和不必要历史叙事进入长期文档。
 
 ```text
 docs/
@@ -45,6 +47,8 @@ docs/
 规则：保留 YAML Frontmatter；不确定内容标 `待确认`；产品范围、验收、架构边界、上线策略需人工确认。
 
 `docs/spec-logs/CHANGELOG.md` 是规范工程变更历史总账，MUST 按倒序记录 `/spec-opt` 和经确认应用的 `/spec-study` 对规范、脚本、技能、命令和治理文档的更新摘要。每条记录 SHOULD 包含时间、来源命令、关联 Change、类型、影响范围、更新文件、验证结果、详细日志链接和跨项目落地提示词。跨项目落地提示词 MUST 可复制、脱敏、项目无关，用于说明其他项目要落地同类规范时可直接给 AI 的 Prompt。该文件不得替代单次 `governance` 日志、`study` 报告、OpenSpec Change、Sprint 或 Issue 事实源。
+
+治理类 Change、`/spec-study` 学习报告和 `/spec-opt` 治理日志 SHOULD 记录关键决策字段：已采纳原因、未采纳原因、替代方案或取舍、验证责任和后续触发条件。不得把会话推理、用户原文、未脱敏路径或学习对象源码写入这些字段。
 
 ## 3. 时间与元数据（MUST）
 

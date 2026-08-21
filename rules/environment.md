@@ -4,7 +4,7 @@ content: .env.example维护、环境变量命名、安全边界、Docker Compose
 source: AI自动生成初稿，项目团队确认
 update_method: 新增服务、端口、密钥、第三方配置、对象存储、数据库或视频处理参数时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-04 11:32:00
+updated_at: 2026-08-21 18:58:37
 note: .env.example 可提交，.env 禁止提交
 ---
 
@@ -84,3 +84,28 @@ AI修改以下内容时，必须检查 `.env.example`：
 - 生产环境密钥应通过部署平台或密钥管理系统注入。
 - `image-build-plan.json` 与 `image-manifest.json` 只能记录构建 env 安全摘要和输入 hash，不得记录 raw env、数据库连接串、密钥、Authorization header、Cookie、本机绝对路径或真实客户数据。
 - `deploy/scripts/validate-env.py` 类校验脚本只能输出变量名、环境 ID、blocker 和修复建议，不得输出真实变量值。
+
+## 5. 版本升级 env diff
+
+版本部署升级计划 MUST 使用 env diff 识别来源版本和目标版本之间的环境变量差异。env diff 默认覆盖：
+
+```text
+.env.example
+src/backend/.env.example
+src/backend/.env.docker
+deploy/**/*.env.example
+scripts/build-images.env.example
+```
+
+输出分类 MUST 至少包含：
+
+| 分类 | 含义 |
+|---|---|
+| `added` | 目标版本新增变量。 |
+| `removed` | 目标版本删除变量。 |
+| `changed_default` | 示例默认值变化。 |
+| `required_in_production` | 生产必须显式配置。 |
+| `unsafe_example_value` | 生产不得使用示例值。 |
+| `manual_review` | 无法自动判断，需要人工复核。 |
+
+env diff 输出只能包含变量名、示例文件路径、分类、说明和修复建议；不得输出真实生产 `.env` 值。历史版本没有 env 示例快照时，跨版本计划 MUST 标记 `manual_review`，不得伪造完整 diff。

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +8,11 @@ import { fetchUsers } from '@/features/admin/api/users-api';
 import { trackUsageEvent } from '@/features/tracking/api/usage-tracking';
 import type { LogDetailData, LogListData, UserAdminListData } from '@/shared/api/generated';
 import { LogAuditPage } from './LogAuditPage';
+
+const logAuditCss = readFileSync(
+  resolve(process.cwd(), 'src/features/admin/styles/log-audit.css'),
+  'utf8',
+);
 
 vi.mock('@/features/admin/api/logs-api', () => ({
   fetchLogs: vi.fn(),
@@ -319,6 +326,9 @@ describe('LogAuditPage', () => {
     expect(container.querySelector('td.log-audit-action-cell')).toBeInTheDocument();
     expect(container.querySelector('td.log-audit-action-cell')).toHaveClass(
       'admin-sticky-action-cell',
+    );
+    expect(logAuditCss).toMatch(
+      /\.admin-shell \.log-audit-table th,\n\.admin-shell \.log-audit-table td \{[\s\S]*white-space: nowrap;/,
     );
     expect(screen.queryByRole('button', { name: '查询' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '重置' }).closest('.log-audit-filter-actions')).toBeInTheDocument();

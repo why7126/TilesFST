@@ -81,6 +81,8 @@ For `req.opsx` / `bug.opsx` with `--change`, if the focused issue is already in 
 
 This is required because `/opsx-apply --sprint auto` resolves by `changes[]`, not by issue membership alone.
 
+The same run MUST refresh the focused Issue derived state before writing `issues/requirements/CHANGELOG.md` or `issues/bugs/CHANGELOG.md`. If the newly linked Change is already persisted but the current-state board still recommends `/req-opsx` or `/bug-opsx`, treat it as next-step derivation drift and fix it before the parent command completes.
+
 When sprint sync is skipped, the script still updates the target issue `trace.md`, `_registry.yaml`, and parent requirement related-bug index when applicable.
 
 For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for all Changes, including non-REQ/BUG pure technical governance Changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, or repair a known Sprint scope with `scripts/add-sprint-scope-item.py --change <change-id> ...`.
@@ -108,6 +110,19 @@ python scripts/sync-workflow-status.py \
 Use `--bug <BUG-id>` for BUGs. Apply only safe focused changes with `--apply-issue-subdocuments`; do not bulk-edit historical archive files without a dry-run report and human confirmation.
 
 Successful Workflow Sync summaries MUST include subdocument checked/updated counts, acceptance result status and drift warning/blocker counts when an event touches REQ/BUG state.
+
+### Root-cause evidence gate
+
+BUG root-cause documents MUST follow `rules/root-cause-evidence.md`. Workflow Sync and parent commands SHOULD treat unclear root-cause status or `confirmed` without evidence as warning/blocker evidence, not as safe silent overwrite.
+
+### Command Execution Review Hook
+
+Every workflow command that runs Workflow Sync MUST end with an execution review:
+
+- 链路状态：基于校验、脚本、文件、日志、截图、验收记录、用户补证、Workflow Sync 或 AI Usage 的实际结果。
+- 问题证据：无问题写“未发现”；有问题列出证据入口或失败摘要，不粘贴长日志。
+- 规范优化建议：无明确沉淀写“无明显优化点”；有沉淀只输出建议命令或标准 capture 文案。
+- Follow-up 状态：默认写“未自动创建 Issue/Change”，除非用户明确授权并已按对应命令落盘。
 
 ### Issue subdocument residual status reconcile
 
@@ -196,7 +211,7 @@ Guardrails:
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

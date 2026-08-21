@@ -1,7 +1,35 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 111
+next_id: 115
 entries:
+  - id: REQ-0114-version-deployment-upgrade-rollback-governance
+    title: 版本部署升级与回滚治理能力
+    status: in_sprint
+    iteration: sprint-025
+    created: "2026-08-21 18:29:40"
+    parent_requirement:
+    related_change: add-version-deployment-upgrade-rollback-governance
+  - id: REQ-0113-admin-performance-observability-filter-options
+    title: 管理端性能观测提供筛选维度候选值接口
+    status: done
+    iteration: sprint-023
+    created: "2026-08-12 17:25:38"
+    parent_requirement: REQ-0107-real-user-page-load-rum
+    related_change: null
+  - id: REQ-0112-admin-list-column-pagination-consistency-contract
+    title: 建立管理端列表页列展示与分页一致性契约
+    status: done
+    iteration: sprint-023
+    created: "2026-08-12 14:22:52"
+    parent_requirement:
+    related_change: update-admin-list-column-pagination-consistency-contract
+  - id: REQ-0111-miniapp-media-four-part-acceptance-practice
+    title: 沉淀小程序媒体四联验收最佳实践
+    status: done
+    iteration: null
+    created: "2026-08-12 14:21:48"
+    parent_requirement:
+    related_change: null
   - id: REQ-0110-admin-user-contact-info-management
     title: 用户管理页支持维护用户联系邮箱和手机号码
     status: done

@@ -1,15 +1,33 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 130
+next_id: 132
 entries:
+  - id: BUG-0131-miniapp-sku-detail-carousel-original-image-height
+    title: 小程序商品详情页轮播图清晰度不足且高度偏小
+    status: done
+    severity: medium
+    created: "2026-08-21 13:00:43"
+    related_requirement: null
+    related_bug: BUG-0125-miniapp-sku-detail-media-original-load
+    related_change: fix-miniapp-sku-detail-carousel-original-image-height
+    iteration: sprint-024
+  - id: BUG-0130-miniapp-home-no-jump-banner-internal-title
+    title: 小程序首页无跳转轮播图显示内部标题
+    status: done
+    severity: medium
+    created: "2026-08-21 08:30:25"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-miniapp-home-no-jump-banner-internal-title
+    iteration: sprint-024
   - id: BUG-0129-miniapp-rum-app-version-production
     title: 小程序 RUM 与管理后台性能观测口径不一致
-    status: draft
+    status: done
     severity: medium
     created: "2026-08-12 09:21:24"
     related_requirement: null
     related_bug: null
     related_change: null
-    iteration: null
+    iteration: sprint-023
   - id: BUG-0128-admin-user-menu-email-subtitle
     title: 管理后台身份展示不应显示伪邮箱
     status: done

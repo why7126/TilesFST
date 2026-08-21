@@ -139,6 +139,7 @@
   color: var(--admin-muted);
   font-size: 12px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .admin-shell .log-audit-table th {
@@ -397,6 +398,18 @@
   height: 118px;
   text-align: center;
   color: var(--admin-weak);
+}
+
+.admin-shell .performance-table-empty {
+  min-height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--admin-weak);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .admin-shell .log-drawer-layer {

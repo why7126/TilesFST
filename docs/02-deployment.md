@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-06 00:00:00
+updated_at: 2026-08-21 22:09:09
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -36,6 +36,22 @@ SKU 图片上传会在后端生成同目录 `.thumb` 缩略图。后端运行依
 `tilesfst-release-v0.0.1` 的 `linux/amd64` 镜像构建、离线交付包、外部 MySQL / 外部对象存储云服务器部署与冒烟验证流程，见 [08-production-image-release.md](08-production-image-release.md)。
 
 正式发布涉及镜像交付或 Docker/Compose/数据库 schema/migration 等构建输入变化时，先执行 `/image-prepare <version>` 生成 `releases/<version>/image-build-plan.json`，再执行 `/image-build <version>` 复用下方脚本构建镜像并生成 `releases/<version>/image-manifest.json`。`/release-publish` 会使用 plan/manifest 校验版本、tag 和 input hash 是否仍一致。
+
+正式部署或升级前 SHOULD 生成版本升级计划：
+
+```bash
+python scripts/validate-release-upgrade.py plan --from fresh --to vX.Y.Z
+python scripts/validate-release-upgrade.py plan --from vA.B.C --to vX.Y.Z
+python scripts/validate-release-upgrade.py validate-plan --plan releases/vX.Y.Z/upgrade-plans/vA.B.C-to-vX.Y.Z.json
+```
+
+升级计划位于 `releases/<to-version>/upgrade-plans/`，用于区分：
+
+- 首次部署：`fresh -> <to-version>`，重点校验目标 release、目标镜像、生产 env、MySQL 空库初始化、对象存储配置、Compose config 和部署后 smoke。
+- 相邻升级：`<previous-version> -> <to-version>`，重点校验 env diff、`TILESFST_IMAGE_TAG` 切换、DB drift/smoke、备份、重启和升级后 smoke。
+- 跨版本升级：`<old-version> -> <to-version>`，必须聚合中间版本 DB、env、Docker、API、对象存储和维护任务影响；缺少演练或证据时标记为 `cross-version-upgrade-requires-manual-review` 或 `unsupported`。
+
+三类部署均复用同一目标版本 backend / web 镜像，不为首次部署、相邻升级或跨版本升级分别构建不同业务镜像。回滚前必须确认旧镜像、旧 env 摘要、DB 备份、对象存储影响和回滚后 smoke；DB 回滚不得脱离备份恢复或已验证反向迁移策略。
 
 推荐使用脚本 + env 的方式构建生产镜像：
 

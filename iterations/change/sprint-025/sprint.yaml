@@ -1,0 +1,33 @@
+sprint_id: sprint-025
+status: planning
+lifecycle_stage: change
+start_date: 2026-08-21 18:43:30
+end_date: 2026-09-04 18:00:00
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements:
+  - REQ-0114-version-deployment-upgrade-rollback-governance
+bugs: []
+changes:
+  - add-version-deployment-upgrade-rollback-governance
+scope_estimates:
+  - id: REQ-0114-version-deployment-upgrade-rollback-governance
+    requirement: REQ-0114-version-deployment-upgrade-rollback-governance
+    change: add-version-deployment-upgrade-rollback-governance
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 发布治理能力，覆盖版本事实源一致性、首次部署、相邻升级与回滚、跨版本升级与回滚、env diff、数据库升级验证、回滚证据模型和 upgrade 命令边界；不包含可视化平台，不自动执行生产升级，按 L=5 人天纳入。
+estimated_story_points: 5
+estimated_person_days: 5
+capacity_usage: 0.1667
+fix_buffer_person_days: 25
+fix_buffer_ratio: 0.8333
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 5
+  capacity_usage: 0.1667
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用历史 Sprint 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 1 个 P1 发布治理 REQ，估算 5 人天，占用 16.67%，保留 25 人天 fix 缓冲。

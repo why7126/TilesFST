@@ -1,0 +1,198 @@
+{
+  "version": "v1.1.1",
+  "release_time": "2026-08-12 22:12:00",
+  "owner": "product",
+  "summary": "sprint-023 发布计划：汇总发布流程治理优化、小程序 RUM 性能观测修复、媒体验收最佳实践、管理端列表一致性契约与性能观测筛选候选值能力。",
+  "formal_scope_only": true,
+  "version_change_rationale": "src/shared/product-version.ts 已在 /image-prepare v1.1.1 阶段同步更新为 v1.1.1。",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端管理端 API、OpenAPI/Orval、Web 管理端页面、小程序 RUM 行为与发布/治理脚本变更；按发布规范需要执行 /image-prepare 与 /image-build 形成镜像证据。",
+  "image_tag": "v1.1.1",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部构建证据；默认走本仓库 /image-prepare 与 /image-build。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-12 22:20:00",
+      "confirmed_by": "operator",
+      "rationale": "小补丁，本版本不需要生成或更新产品使用文档"
+    }
+  },
+  "announcement_decision": {
+    "status": "generated",
+    "confirmed_at": "2026-08-12 22:25:00",
+    "confirmed_by": "operator",
+    "rationale": "用户在 /release-prepare v1.1.1 中确认生成公开公告；announcement.mdx 已由本命令更新为发布准备稿。"
+  },
+  "sprints": [
+    "sprint-023"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0111-miniapp-media-four-part-acceptance-practice",
+      "title": "小程序媒体四联验收最佳实践",
+      "status": "done",
+      "scope": "formal",
+      "source": "issues/requirements/archive/REQ-0111-miniapp-media-four-part-acceptance-practice/trace.md"
+    },
+    {
+      "id": "REQ-0112-admin-list-column-pagination-consistency-contract",
+      "title": "管理端列表列展示与分页一致性契约",
+      "status": "done",
+      "scope": "formal",
+      "source": "issues/requirements/archive/REQ-0112-admin-list-column-pagination-consistency-contract/trace.md"
+    },
+    {
+      "id": "REQ-0113-admin-performance-observability-filter-options",
+      "title": "管理端性能观测筛选候选值接口",
+      "status": "done",
+      "scope": "formal",
+      "source": "issues/requirements/archive/REQ-0113-admin-performance-observability-filter-options/trace.md"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0129-miniapp-rum-app-version-production",
+      "title": "小程序 RUM app_version 与性能观测口径修复",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal",
+      "source": "issues/bugs/archive/BUG-0129-miniapp-rum-app-version-production/trace.md"
+    }
+  ],
+  "changes": [
+    {
+      "id": "optimize-release-workflow-ux",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-optimize-release-workflow-ux/"
+    },
+    {
+      "id": "strengthen-sprint-exps-ai-usage-fresh-gate",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-strengthen-sprint-exps-ai-usage-fresh-gate/"
+    },
+    {
+      "id": "fix-miniapp-rum-performance-observability",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-fix-miniapp-rum-performance-observability/"
+    },
+    {
+      "id": "update-miniapp-media-four-part-acceptance-practice",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-update-miniapp-media-four-part-acceptance-practice/"
+    },
+    {
+      "id": "update-admin-list-column-pagination-consistency-contract",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-update-admin-list-column-pagination-consistency-contract/"
+    },
+    {
+      "id": "add-admin-performance-observability-filter-options",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-12-add-admin-performance-observability-filter-options/"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "rationale": "sprint-023 acceptance-report 记录 6/6 Change 已 archive；release scope 中 6 个 Change 均存在 openspec/archive/2026-08-12-* 归档路径。",
+      "evidence": "iterations/archive/sprint-023/acceptance-report.md note: 6/6 Change 已 archive；归档路径：openspec/archive/2026-08-12-optimize-release-workflow-ux/、openspec/archive/2026-08-12-strengthen-sprint-exps-ai-usage-fresh-gate/、openspec/archive/2026-08-12-fix-miniapp-rum-performance-observability/、openspec/archive/2026-08-12-update-miniapp-media-four-part-acceptance-practice/、openspec/archive/2026-08-12-update-admin-list-column-pagination-consistency-contract/、openspec/archive/2026-08-12-add-admin-performance-observability-filter-options/"
+    },
+    "tests": {
+      "status": "na",
+      "rationale": "prepare 阶段复用 sprint-023 Change trace 与 acceptance-report 中的聚焦测试证据；本命令未重新执行全量 uv/pytest 与 Vitest，发布确认前可按风险补跑。"
+    },
+    "orval": {
+      "status": "na",
+      "rationale": "REQ-0113 涉及 API 与 Orval；openspec/archive/2026-08-12-add-admin-performance-observability-filter-options/trace.md 记录已运行 ./scripts/generate-openapi-client.sh、后端 pytest 与 Web Vitest。"
+    },
+    "docker_compose": {
+      "status": "na",
+      "rationale": "本次范围未直接修改 Compose；image_required=true，Compose 与构建输入由后续 /image-prepare v1.1.1 校验。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "impact_scope.database=none；sprint-023 范围未声明 DB 表结构、索引或迁移变更。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "BUG-0129 涉及小程序 dev API baseUrl 策略和 HOST_PORT_BACKEND 读取；该项属于本地开发端口策略，未新增发布环境变量。"
+    },
+    "product_version": {
+      "status": "pass",
+      "rationale": "src/shared/product-version.ts 的 PRODUCT_VERSION 已更新为 v1.1.1，与 release version 一致。",
+      "evidence": "2026-08-12 22:34:00 /image-prepare v1.1.1: src/shared/product-version.ts PRODUCT_VERSION='v1.1.1'；python scripts/validate-release.py --release-dir releases/v1.1.1 --stage prepare passed。"
+    },
+    "mintlify_preview": {
+      "status": "na",
+      "rationale": "已生成 announcement.mdx；本命令未运行 Mintlify build/preview，release validator 的公开安全扫描将覆盖基础敏感信息检查。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-12 22:20:00: usage docs skipped by operator; 小补丁，本版本不需要生成或更新产品使用文档"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "rationale": "image_required=true；镜像构建计划已生成并通过 validate-plan。",
+      "evidence": "2026-08-12 22:34:00: python scripts/validate-image-build.py prepare --release v1.1.1 passed；python scripts/validate-image-build.py validate-plan --release v1.1.1 passed；plan=releases/v1.1.1/image-build-plan.json。"
+    },
+    "image_build": {
+      "status": "pass",
+      "rationale": "image_required=true；镜像构建完成，manifest、tarball 和 sha256 sidecar 已通过校验。",
+      "evidence": "2026-08-12 22:45:00: python scripts/validate-image-build.py build --release v1.1.1 completed；python scripts/validate-image-build.py validate-manifest --release v1.1.1 passed；manifest=releases/v1.1.1/image-manifest.json；tarball=../releases/v1.1.1/images/tilesfst-v1.1.1-linux-amd64.tar.gz；sha256=5415d78e05613b2803c7f4b08686e5ce12a712b84f82f5bb77aed35db8dba85b。"
+    }
+  },
+  "known_issues": [],
+  "upgrade_steps": [
+    "产品使用文档已确认为跳过：小补丁，本版本不需要生成或更新产品使用文档。",
+    "公开公告已生成，发布确认前可进行人工 copy review。",
+    "镜像构建计划已生成并通过校验。",
+    "镜像 manifest 与离线包校验证据已生成。",
+    "完成 smoke 与回归验证后再执行 /release-publish v1.1.1。"
+  ],
+  "rollback": {
+    "conditions": [
+      "小程序 RUM 上报或管理端性能观测核心路径 smoke 失败",
+      "管理端列表页分页、列展示或筛选候选值出现阻断性回归",
+      "镜像构建、部署或发布公开安全校验失败"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "若后续确认存在数据影响，按数据库备份/回滚说明处理。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "涉及管理端性能观测筛选候选值、字段顺序、列表列展示与分页一致性契约。",
+    "owner_web": "不涉及店主 Web 展示端用户功能。",
+    "miniapp": "涉及小程序 RUM app_version、request_id、指标标签与 dev API baseUrl 策略修复。",
+    "backend": "涉及管理端性能事件候选值接口与发布/治理脚本。",
+    "database": "none",
+    "object_storage": "沉淀媒体验收与对象审计最佳实践；不新增对象存储运行时能力。",
+    "docker": "发布范围含后端/Web/小程序/治理脚本影响，镜像交付需后续 image prepare/build 证据。"
+  },
+  "announcement": "announcement.mdx"
+  ,
+  "publish_confirmation": {
+    "published_at": "2026-08-12 22:54:00",
+    "announcement_url": "releases/v1.1.1/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已完成。最终镜像 sha256 以 releases/v1.1.1/image-manifest.json 和离线包 .sha256 sidecar 为准；本字段为发布确认元数据，不参与镜像稳定输入 hash。"
+  }
+}

@@ -7,8 +7,12 @@ import math
 from app.core.exceptions import AuthInvalidRequestError
 from app.repositories.performance_repository import PerformanceAggregateRecord, PerformanceRepository
 from app.schemas.performance import (
+    ClientType,
     PerformanceAggregateItem,
     PerformanceEventBatchCreate,
+    PerformanceFilterOption,
+    PerformanceFilterOptionsData,
+    PerformanceFilterOptionsQueryParams,
     PerformanceEventIngestData,
     PerformanceSampleData,
     PerformanceSampleItem,
@@ -16,6 +20,22 @@ from app.schemas.performance import (
     PerformanceSummaryData,
     PerformanceSummaryQueryParams,
 )
+
+CLIENT_TYPE_OPTIONS: list[tuple[ClientType, str]] = [
+    ("web_admin", "管理端 Web"),
+    ("web_catalog", "店主 Web"),
+    ("wechat_miniapp", "微信小程序"),
+]
+
+METRIC_OPTIONS: list[tuple[str, str]] = [
+    ("first_content_ready", "首屏可用"),
+    ("full_load", "完整加载"),
+    ("first_api_done", "首个接口完成"),
+    ("dom_content_loaded", "DOM 加载完成"),
+    ("app_launch_ready", "小程序启动就绪"),
+    ("api_duration", "接口请求耗时"),
+    ("api_failed_duration", "接口失败耗时"),
+]
 
 FORBIDDEN_EVENT_WORDS = {
     "authorization",
@@ -100,6 +120,22 @@ class PerformanceService:
             total_pages=max(1, math.ceil(total / (params.limit or params.page_size))),
             filters=params.model_dump(),
         )
+
+    def filter_options(self, params: PerformanceFilterOptionsQueryParams) -> PerformanceFilterOptionsData:
+        return PerformanceFilterOptionsData(
+            client_types=[PerformanceFilterOption(value=value, label=label) for value, label in CLIENT_TYPE_OPTIONS],
+            app_versions=self._dynamic_options("app_version", params),
+            page_keys=self._dynamic_options("page_key", params),
+            device_classes=self._dynamic_options("device_class", params),
+            network_types=self._dynamic_options("network_type", params),
+            metrics=[PerformanceFilterOption(value=value, label=label) for value, label in METRIC_OPTIONS],
+        )
+
+    def _dynamic_options(self, field: str, params: PerformanceFilterOptionsQueryParams) -> list[PerformanceFilterOption]:
+        return [
+            PerformanceFilterOption(value=record.value, label=record.value, count=record.count)
+            for record in self._repository.list_filter_options(field, start_time=params.start_time, end_time=params.end_time)
+        ]
 
 
 def _to_item(record: PerformanceAggregateRecord, min_samples: int) -> PerformanceAggregateItem:

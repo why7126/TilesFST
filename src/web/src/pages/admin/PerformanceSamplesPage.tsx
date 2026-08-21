@@ -11,6 +11,7 @@ import {
   type PerformanceSampleData,
   type PerformanceSummaryQuery,
 } from '@/features/performance/performance-api';
+import { performanceMetricLabel } from '@/features/performance/metric-labels';
 import { trackUsageEvent } from '@/features/tracking/api/usage-tracking';
 import { copyTextToClipboard } from '@/shared/lib/clipboard';
 import { getPaginationWindow } from '@/shared/lib/pagination-window';
@@ -22,13 +23,6 @@ const clientLabels: Record<string, string> = {
   web_admin: '管理端 Web',
   web_catalog: '店主 Web',
   wechat_miniapp: '微信小程序',
-};
-
-const metricLabels: Record<string, string> = {
-  first_content_ready: '首屏可用',
-  full_load: '完整加载',
-  first_api_done: '首个接口完成',
-  dom_content_loaded: 'DOM 加载完成',
 };
 
 export function PerformanceSamplesPage() {
@@ -138,9 +132,9 @@ export function PerformanceSamplesPage() {
           <ContextItem label="页面" value={params.page_key ?? '未指定'} />
           <ContextItem label="版本号" value={params.app_version ?? '版本未知'} />
           <ContextItem label="端类型" value={clientLabel(params.client_type ?? '')} />
-          <ContextItem label="指标" value={metricLabel(params.metric_name ?? '')} />
-          <ContextItem label="网络" value={params.network_type ?? '网络未知'} />
           <ContextItem label="设备" value={params.device_class ?? '设备未知'} />
+          <ContextItem label="网络" value={params.network_type ?? '网络未知'} />
+          <ContextItem label="指标" value={metricLabel(params.metric_name ?? '')} />
         </div>
       </section>
 
@@ -154,28 +148,30 @@ export function PerformanceSamplesPage() {
             <table className="log-audit-table">
               <thead>
                 <tr>
-                  <th>接收时间</th>
-                  <th>事件时间</th>
-                  <th>耗时</th>
-                  <th>端类型</th>
-                  <th>指标</th>
+                  <th>页面</th>
                   <th>版本号</th>
-                  <th>网络</th>
+                  <th>端类型</th>
                   <th>设备</th>
+                  <th>网络</th>
+                  <th>指标</th>
+                  <th>耗时</th>
+                  <th>事件时间</th>
+                  <th>接收时间</th>
                   <th>request_id</th>
                 </tr>
               </thead>
               <tbody>
                 {data.items.map((item) => (
                   <tr key={item.id}>
-                    <td>{formatTimestamp(item.server_received_at)}</td>
-                    <td>{formatTimestamp(item.occurred_at)}</td>
-                    <td className={item.duration_ms >= 3000 ? 'duration danger' : 'duration'}>{formatMs(item.duration_ms)}</td>
-                    <td>{clientLabel(item.client_type)}</td>
-                    <td>{metricLabel(item.metric_name)}</td>
+                    <td><span className="log-summary performance-page-key"><span>{item.page_key}</span></span></td>
                     <td>{item.app_version || '版本未知'}</td>
-                    <td>{item.network_type || '未知'}</td>
-                    <td>{item.device_class || '未知'}</td>
+                    <td>{clientLabel(item.client_type)}</td>
+                    <td>{item.device_class || '设备未知'}</td>
+                    <td>{item.network_type || '网络未知'}</td>
+                    <td>{metricLabel(item.metric_name)}</td>
+                    <td className={item.duration_ms >= 3000 ? 'duration danger' : 'duration'}>{formatMs(item.duration_ms)}</td>
+                    <td>{formatTimestamp(item.occurred_at)}</td>
+                    <td>{formatTimestamp(item.server_received_at)}</td>
                     <td>
                       <div className="request-id-cell">
                         <code className="request-id" title={item.request_id?.trim() || undefined}>{shortRequestId(item.request_id?.trim())}</code>
@@ -272,5 +268,5 @@ function clientLabel(value: string) {
 }
 
 function metricLabel(value: string) {
-  return metricLabels[value] ?? value;
+  return performanceMetricLabel(value);
 }

@@ -39,6 +39,13 @@ class PerformanceSampleRecord:
     server_received_at: str
 
 
+@dataclass
+class PerformanceFilterOptionRecord:
+    value: str
+    count: int
+    last_seen_at: str
+
+
 class PerformanceRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
@@ -163,6 +170,40 @@ class PerformanceRepository:
     def count_samples(self, params: PerformanceSampleQueryParams) -> int:
         where, values = self._build_filters(params)
         return int(self._db.execute(text(f"SELECT COUNT(*) FROM performance_events {where}"), values).scalar_one() or 0)
+
+    def list_filter_options(self, field: str, *, start_time: str | None, end_time: str | None, limit: int = 100) -> list[PerformanceFilterOptionRecord]:
+        if field not in {"app_version", "page_key", "device_class", "network_type"}:
+            raise ValueError(f"Unsupported performance filter field: {field}")
+        clauses = [f"{field} IS NOT NULL", f"TRIM({field}) <> ''"]
+        values: dict[str, object] = {"limit": limit}
+        if start_time:
+            clauses.append("server_received_at >= :start_time")
+            values["start_time"] = start_time
+        if end_time:
+            clauses.append("server_received_at <= :end_time")
+            values["end_time"] = end_time
+        where = " AND ".join(clauses)
+        rows = self._db.execute(
+            text(
+                f"""
+                SELECT {field} AS value, COUNT(*) AS sample_count, MAX(server_received_at) AS last_seen_at
+                FROM performance_events
+                WHERE {where}
+                GROUP BY {field}
+                ORDER BY last_seen_at DESC, sample_count DESC, value ASC
+                LIMIT :limit
+                """
+            ),
+            values,
+        ).mappings().all()
+        return [
+            PerformanceFilterOptionRecord(
+                value=str(row["value"]),
+                count=int(row["sample_count"]),
+                last_seen_at=str(row["last_seen_at"]),
+            )
+            for row in rows
+        ]
 
     def _build_filters(self, params: PerformanceSummaryQueryParams | PerformanceSampleQueryParams) -> tuple[str, dict[str, object]]:
         clauses: list[str] = []

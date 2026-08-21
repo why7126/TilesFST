@@ -77,3 +77,20 @@ computed style 证据可以记录在 Change `trace.md`、验收日志或测试�
 ## 6. 归档门禁
 
 `/opsx-archive` 前 MUST 复核 linked REQ 与 Change 的 UI Contract、Skeleton、截图、computed style、Mock/API 边界和最终实现一致。缺证据、证据 stale、Mock/API 边界未声明或最终一致性 checklist 未完成时，归档应阻断。
+
+## 7. UI 返修截图逐项对照
+
+UI 型 `/opsx-modify` 若验收反馈包含附件截图、标注图、原型截图或实际截图，返修前 MUST 建立逐项视觉对照表，至少包含：
+
+| 字段 | 说明 |
+|---|---|
+| 截图编号 | 用户附件、原型截图、标注图或实际截图的编号 |
+| 页面 / 状态 | 页面入口、视口、弹窗、hover/open/collapsed 等状态 |
+| 期望表现 | 原型、验收反馈或用户标注中的目标表现 |
+| 实际表现 | 当前实现或截图中的表现 |
+| 偏差项 | 颜色、字号、间距、对齐、层级、溢出、图标、文案或交互差异 |
+| 检查方式 | 人工对照、Playwright、computed style、DevTools、微信开发者工具或等价证据 |
+| 处置结论 | 立即修复、补证后修复、范围外 capture、无需处理及原因 |
+| 证据入口 | Change trace、截图路径、测试输出或脱敏说明 |
+
+对照表证据不足时，必须先请求补证或说明补证步骤；完成返修后相关旧截图视为 stale，必须重新取证并更新验收记录。

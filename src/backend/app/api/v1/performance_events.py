@@ -14,6 +14,8 @@ from app.schemas.common import ApiResponse
 from app.schemas.performance import (
     ClientType,
     PerformanceEventBatchCreate,
+    PerformanceFilterOptionsData,
+    PerformanceFilterOptionsQueryParams,
     PerformanceEventIngestData,
     PerformanceSampleData,
     PerformanceSampleQueryParams,
@@ -52,6 +54,21 @@ def ingest_performance_events(
             ip_family=ip_family,
         )
     )
+
+
+@admin_router.get(
+    "/filter-options",
+    response_model=ApiResponse[PerformanceFilterOptionsData],
+    summary="真实用户页面性能筛选候选值",
+    description="系统管理员按时间范围查询 RUM 筛选维度候选值；候选值不随其他筛选项级联收敛。",
+)
+def list_performance_filter_options(
+    service: Annotated[PerformanceService, Depends(get_performance_service)],
+    start_time: str | None = Query(default=None, max_length=64),
+    end_time: str | None = Query(default=None, max_length=64),
+) -> ApiResponse[PerformanceFilterOptionsData]:
+    params = PerformanceFilterOptionsQueryParams(start_time=start_time, end_time=end_time)
+    return ApiResponse(data=service.filter_options(params))
 
 
 @admin_router.get(

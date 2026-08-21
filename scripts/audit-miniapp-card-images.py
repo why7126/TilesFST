@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import copy
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -90,6 +92,82 @@ def _regenerate_thumbnail(original_key: str, thumbnail_key: str) -> tuple[bool, 
     return True, None
 
 
+def _key_hash(object_key: str) -> str | None:
+    if not object_key:
+        return None
+    return hashlib.sha256(object_key.encode("utf-8")).hexdigest()[:12]
+
+
+def _key_prefix(object_key: str) -> str | None:
+    if not object_key:
+        return None
+    parts = object_key.split("/")
+    return "/".join(parts[: min(3, len(parts))])
+
+
+def _classify_media_item(
+    *,
+    object_key: str,
+    pending: bool,
+    original_exists: bool,
+    thumbnail_exists: bool,
+    needs_regeneration: bool,
+) -> str:
+    if not object_key:
+        return "missing_key"
+    if not original_exists:
+        return "object_missing"
+    if pending:
+        return "url_fallback_risk"
+    if not thumbnail_exists:
+        return "thumbnail_missing"
+    if needs_regeneration:
+        return "thumbnail_no_benefit"
+    return "closed"
+
+
+def _four_part_status(
+    *,
+    object_key: str,
+    pending: bool,
+    original_exists: bool,
+    thumbnail_exists: bool,
+    needs_regeneration: bool,
+) -> dict[str, str]:
+    return {
+        "key": "fail" if not object_key else ("blocked" if pending else "pass"),
+        "object": "pass" if original_exists and thumbnail_exists and not needs_regeneration else "fail",
+        "url": "blocked" if pending else ("pass" if original_exists else "fail"),
+        "render": "blocked" if pending or not original_exists else "requires_device_evidence",
+    }
+
+
+def deidentify_audit_result(result: dict[str, object]) -> dict[str, object]:
+    """Return a safe-to-share audit payload without raw object keys or labels."""
+    payload = copy.deepcopy(result)
+    safe_items = []
+    for item in payload.get("items", []):
+        if not isinstance(item, dict):
+            continue
+        safe_items.append(
+            {
+                "resource_type": item.get("resource_type"),
+                "resource_id": item.get("resource_id"),
+                "object_key_hash": item.get("object_key_hash"),
+                "object_key_prefix": item.get("object_key_prefix"),
+                "thumbnail_key_hash": item.get("thumbnail_key_hash"),
+                "thumbnail_key_prefix": item.get("thumbnail_key_prefix"),
+                "classification": item.get("classification"),
+                "four_part_status": item.get("four_part_status"),
+                "failure_reason": item.get("failure_reason"),
+                "backfill_status": item.get("backfill_status"),
+            }
+        )
+    payload["items"] = safe_items
+    payload["deidentified"] = True
+    return payload
+
+
 def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -> dict[str, object]:
     session = get_session_factory()()
     try:
@@ -154,6 +232,7 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
     backfill_success = 0
     backfill_failed = 0
     failure_reasons: dict[str, int] = {}
+    classification_summary: dict[str, int] = {}
     for row in rows:
         resource_type = str(row["resource_type"])
         object_key = str(row["object_key"] or "").strip()
@@ -191,6 +270,14 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
                     )
             else:
                 backfill_status = "dry_run"
+        classification = _classify_media_item(
+            object_key=object_key,
+            pending=is_pending,
+            original_exists=original_exists,
+            thumbnail_exists=thumbnail_exists,
+            needs_regeneration=row_needs_regeneration,
+        )
+        classification_summary[classification] = classification_summary.get(classification, 0) + 1
         items.append(
             {
                 "resource_type": resource_type,
@@ -200,21 +287,49 @@ def audit(limit: int | None, *, backfill: bool = False, execute: bool = False) -
                 "sku_code": str(row["label"]) if resource_type == "product_card" else None,
                 "main_object_key_present": bool(object_key),
                 "pending_main_image": is_pending,
+                "object_key_hash": _key_hash(object_key),
+                "object_key_prefix": _key_prefix(object_key),
                 "original_exists": original_exists,
                 "thumbnail_key": thumbnail_key or None,
+                "thumbnail_key_hash": _key_hash(thumbnail_key),
+                "thumbnail_key_prefix": _key_prefix(thumbnail_key),
                 "thumbnail_exists": thumbnail_exists,
                 "same_size_thumbnail": same_size,
                 "same_bytes_thumbnail": same_bytes,
                 "needs_thumbnail_regeneration": row_needs_regeneration,
+                "classification": classification,
+                "four_part_status": _four_part_status(
+                    object_key=object_key,
+                    pending=is_pending,
+                    original_exists=original_exists,
+                    thumbnail_exists=thumbnail_exists,
+                    needs_regeneration=row_needs_regeneration,
+                ),
                 "backfill_status": backfill_status,
                 "failure_reason": failure_reason,
             }
         )
 
     return {
+        "dry_run": not execute,
+        "writes_enabled": execute,
+        "security": {
+            "deidentified_cli_default": True,
+            "raw_items_require_flag": "--raw-items",
+            "forbidden_output": [
+                "access_key",
+                "secret_key",
+                "authorization_header",
+                "cookie",
+                "database_url",
+                "local_absolute_path",
+                "raw_object_key_in_default_cli",
+            ],
+        },
         "total_public_products": resources_by_type.get("product_card", 0),
         "total_resources": len(items),
         "resources_by_type": resources_by_type,
+        "classification_summary": classification_summary,
         "missing_main_image": missing_main,
         "pending_main_image": pending_main_image,
         "missing_original_object": missing_original,
@@ -244,10 +359,18 @@ def main() -> int:
         action="store_true",
         help="Write missing thumbnails; without this flag backfill is dry-run only",
     )
+    parser.add_argument(
+        "--raw-items",
+        action="store_true",
+        help="Print raw labels and object keys; default output is deidentified",
+    )
     args = parser.parse_args()
+    result = audit(args.limit, backfill=args.backfill, execute=args.execute)
+    if not args.raw_items:
+        result = deidentify_audit_result(result)
     print(
         json.dumps(
-            audit(args.limit, backfill=args.backfill, execute=args.execute),
+            result,
             ensure_ascii=False,
             indent=2,
         )

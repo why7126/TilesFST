@@ -4,7 +4,7 @@ content: key、object、URL、thumbnail benefit、miniapp render 五联验收记
 source: REQ-0090-media-five-point-acceptance-template / add-media-five-point-acceptance-template
 update_method: 媒体链路、对象存储、小程序渲染或发布验收口径变化时同步更新
 created_at: 2026-08-01 10:40:28
-updated_at: 2026-08-01 11:13:14
+updated_at: 2026-08-12 14:54:20
 ---
 
 # 媒体五联验收模板
@@ -16,6 +16,8 @@ updated_at: 2026-08-01 11:13:14
 适用对象包括图片、视频、Logo、品牌证书图片、SKU 主图、SKU 视频、缩略图、封面图、小程序媒体卡片，以及后续新增的媒体展示或上传链路。
 
 本模板只定义验收证据结构和记录口径，不新增上传接口、缩略图生成流水线、视频转码能力、对象存储架构、API、数据库、Orval、Web 管理端运行时、小程序运行时或 Docker Compose 行为。
+
+小程序媒体相关 REQ、BUG、Change 或发布检查应同时引用 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`。该最佳实践用于细化 DevTools/真机/体验版 Network evidence、测试 helper 和历史对象审计 helper 边界；不替代本模板的 `thumbnail benefit` 维度。
 
 ## 2. 状态与必填规则
 

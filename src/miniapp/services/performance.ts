@@ -1,8 +1,10 @@
 import { miniappApiConfig } from '../utils/env';
+import { PRODUCT_VERSION } from '../utils/product-version';
 
 const CLIENT_TYPE = 'wechat_miniapp';
 const SAMPLE_RATE = 1;
 let cachedNetworkType = '';
+let cachedBaseUrl = '';
 
 type PerformanceMetric = {
   page_key: string;
@@ -12,25 +14,39 @@ type PerformanceMetric = {
   network_type?: string;
   device_class?: string;
   occurred_at?: string;
+  request_id?: string;
 };
 
-function baseUrl(): string {
+function baseUrls(): string[] {
   try {
     const app = getApp<{
-      globalData?: { apiBaseUrl?: string };
+      globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[] };
     }>();
-    return app.globalData?.apiBaseUrl || miniappApiConfig.apiBaseUrl;
+    const fallbackUrls = app.globalData?.apiFallbackBaseUrls || miniappApiConfig.apiFallbackBaseUrls;
+    return [cachedBaseUrl, app.globalData?.apiBaseUrl || miniappApiConfig.apiBaseUrl, ...fallbackUrls].filter(
+      (url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index,
+    );
   } catch {
-    return miniappApiConfig.apiBaseUrl;
+    return [cachedBaseUrl, miniappApiConfig.apiBaseUrl, ...miniappApiConfig.apiFallbackBaseUrls].filter(
+      (url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index,
+    );
   }
 }
 
 function appVersion(): string {
   try {
     const account = wx.getAccountInfoSync();
-    return account.miniProgram.version || miniappApiConfig.environment || 'dev';
+    return account.miniProgram.version || PRODUCT_VERSION;
   } catch {
-    return miniappApiConfig.environment || 'dev';
+    return PRODUCT_VERSION;
+  }
+}
+
+function createRumRequestId(): string | undefined {
+  try {
+    return `miniapp-rum:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  } catch {
+    return undefined;
   }
 }
 
@@ -63,32 +79,49 @@ export function reportPerformanceMetric(metric: PerformanceMetric): void {
     return;
   }
   resolveNetworkType(metric.network_type, (networkType) => {
-    wx.request({
-      url: `${baseUrl()}/api/v1/performance-events`,
-      method: 'POST',
-      data: {
-        events: [
-          {
-            client_type: CLIENT_TYPE,
-            page_key: normalizePageKey(metric.page_key),
-            app_version: metric.app_version || appVersion(),
-            network_type: networkType,
-            device_class: metric.device_class || 'miniapp',
-            metric_name: metric.metric_name,
-            duration_ms: Math.round(metric.duration_ms),
-            sample_rate: SAMPLE_RATE,
-            occurred_at: metric.occurred_at || new Date().toISOString(),
-          },
-        ],
-      },
-      header: {
-        'content-type': 'application/json',
-        'x-client-type': CLIENT_TYPE,
-      },
-      fail: () => {
-        // RUM 上报失败不阻断小程序主流程。
-      },
-    });
+    const urls = baseUrls();
+    const event = {
+      client_type: CLIENT_TYPE,
+      page_key: normalizePageKey(metric.page_key),
+      app_version: metric.app_version || appVersion(),
+      network_type: networkType,
+      device_class: metric.device_class || 'miniapp',
+      metric_name: metric.metric_name,
+      duration_ms: Math.round(metric.duration_ms),
+      sample_rate: SAMPLE_RATE,
+      occurred_at: metric.occurred_at || new Date().toISOString(),
+      request_id: metric.request_id || createRumRequestId(),
+    };
+    const tryReport = (index: number): void => {
+      const currentBaseUrl = urls[index] || miniappApiConfig.apiBaseUrl;
+      wx.request({
+        url: `${currentBaseUrl}/api/v1/performance-events`,
+        method: 'POST',
+        data: {
+          events: [event],
+        },
+        header: {
+          'content-type': 'application/json',
+          'x-client-type': CLIENT_TYPE,
+        },
+        success: (result) => {
+          if (result.statusCode >= 500 && index + 1 < urls.length) {
+            tryReport(index + 1);
+            return;
+          }
+          if (result.statusCode >= 200 && result.statusCode < 300) {
+            cachedBaseUrl = currentBaseUrl;
+          }
+        },
+        fail: () => {
+          if (index + 1 < urls.length) {
+            tryReport(index + 1);
+          }
+          // RUM 上报失败不阻断小程序主流程。
+        },
+      });
+    };
+    tryReport(0);
   });
 }
 

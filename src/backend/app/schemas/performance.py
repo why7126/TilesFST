@@ -62,6 +62,34 @@ class PerformanceSummaryQueryParams(BaseModel):
         return stripped or None
 
 
+class PerformanceFilterOption(BaseModel):
+    value: str
+    label: str
+    count: int | None = None
+
+
+class PerformanceFilterOptionsQueryParams(BaseModel):
+    start_time: str | None = Field(default=None, max_length=64)
+    end_time: str | None = Field(default=None, max_length=64)
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def blank_query_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
+
+
+class PerformanceFilterOptionsData(BaseModel):
+    client_types: list[PerformanceFilterOption]
+    app_versions: list[PerformanceFilterOption]
+    page_keys: list[PerformanceFilterOption]
+    device_classes: list[PerformanceFilterOption]
+    network_types: list[PerformanceFilterOption]
+    metrics: list[PerformanceFilterOption]
+
+
 class PerformanceAggregateItem(BaseModel):
     client_type: str
     page_key: str

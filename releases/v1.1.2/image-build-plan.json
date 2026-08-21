@@ -1,0 +1,297 @@
+{
+  "version": "v1.1.2",
+  "generated_at": "2026-08-21 15:18:16",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端公开 Banner DTO 标题净化、小程序运行时代码、API 语义文档与治理脚本/规范资产影响；按发布规范需要后续执行 /image-prepare 与 /image-build 形成镜像证据。",
+  "image_tag": "v1.1.2",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-024"
+    ],
+    "requirements": [],
+    "bugs": [
+      {
+        "id": "BUG-0130-miniapp-home-no-jump-banner-internal-title",
+        "title": "小程序首页无跳转轮播图不应显示内部标题",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0130-miniapp-home-no-jump-banner-internal-title/trace.md"
+      },
+      {
+        "id": "BUG-0131-miniapp-sku-detail-carousel-original-image-height",
+        "title": "小程序商品详情页轮播图清晰度不足且高度偏小",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0131-miniapp-sku-detail-carousel-original-image-height/trace.md"
+      }
+    ],
+    "changes": [
+      {
+        "id": "apply-moonbox-governance-quality-learnings",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-21-apply-moonbox-governance-quality-learnings/"
+      },
+      {
+        "id": "apply-deepseek-harness-doc-governance-learnings",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-21-apply-deepseek-harness-doc-governance-learnings/"
+      },
+      {
+        "id": "fix-miniapp-home-no-jump-banner-internal-title",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-21-fix-miniapp-home-no-jump-banner-internal-title/"
+      },
+      {
+        "id": "default-review-approve-command",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-21-default-review-approve-command/"
+      },
+      {
+        "id": "fix-miniapp-sku-detail-carousel-original-image-height",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-21-fix-miniapp-sku-detail-carousel-original-image-height/"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "1c19090afea7b068ae93f5c62062841e513013d141105fdc84ef647eb1b5ba75",
+    "fields": {
+      "version": "v1.1.2",
+      "image_required": true,
+      "image_required_rationale": "本发布范围包含后端公开 Banner DTO 标题净化、小程序运行时代码、API 语义文档与治理脚本/规范资产影响；按发布规范需要后续执行 /image-prepare 与 /image-build 形成镜像证据。",
+      "image_tag": "v1.1.2",
+      "sprints": [
+        "sprint-024"
+      ],
+      "requirements": [],
+      "bugs": [
+        {
+          "id": "BUG-0130-miniapp-home-no-jump-banner-internal-title",
+          "title": "小程序首页无跳转轮播图不应显示内部标题",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0130-miniapp-home-no-jump-banner-internal-title/trace.md"
+        },
+        {
+          "id": "BUG-0131-miniapp-sku-detail-carousel-original-image-height",
+          "title": "小程序商品详情页轮播图清晰度不足且高度偏小",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0131-miniapp-sku-detail-carousel-original-image-height/trace.md"
+        }
+      ],
+      "changes": [
+        {
+          "id": "apply-moonbox-governance-quality-learnings",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-21-apply-moonbox-governance-quality-learnings/"
+        },
+        {
+          "id": "apply-deepseek-harness-doc-governance-learnings",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-21-apply-deepseek-harness-doc-governance-learnings/"
+        },
+        {
+          "id": "fix-miniapp-home-no-jump-banner-internal-title",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-21-fix-miniapp-home-no-jump-banner-internal-title/"
+        },
+        {
+          "id": "default-review-approve-command",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-21-default-review-approve-command/"
+        },
+        {
+          "id": "fix-miniapp-sku-detail-carousel-original-image-height",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-21-fix-miniapp-sku-detail-carousel-original-image-height/"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "不涉及管理端用户功能。",
+        "owner_web": "不涉及店主 Web 展示端用户功能。",
+        "miniapp": "涉及首页无跳转 Banner 标题展示、无跳转点击静默行为、SKU 详情页高清轮播 URL 与轮播高度。",
+        "backend": "涉及公开 Banner DTO 标题净化；未改变公开 API schema。",
+        "database": "none",
+        "object_storage": "涉及图片对象展示 URL 与缩略图/原图使用语义；未声明新增对象存储能力或桶策略变更。",
+        "docker": "发布范围含后端/小程序/治理脚本影响，镜像交付需后续 image prepare/build 证据。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v1.1.2",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    ".env.example",
+    "deploy/local/compose.yml",
+    "deploy/local/mysql-minio-external.env.example",
+    "deploy/local/mysql-minio-managed.env.example",
+    "deploy/local/mysql-tencent-cos.env.example",
+    "deploy/local/sqlite-minio-external.env.example",
+    "deploy/local/sqlite-minio-managed.env.example",
+    "deploy/local/sqlite-tencent-cos.env.example",
+    "deploy/prod/compose.tencent-cos.yml",
+    "deploy/prod/mysql-tencent-cos.env.example",
+    "deploy/scripts/down.sh",
+    "deploy/scripts/media-maintenance.sh",
+    "deploy/scripts/up.sh",
+    "deploy/scripts/validate-env.py",
+    "docker-compose.prod.external.yml",
+    "docker-compose.prod.yml",
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md",
+    "scripts/build-images.env.example",
+    "scripts/build-images.sh",
+    "src/backend/Dockerfile",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/schema.sql",
+    "src/shared/product-version.ts",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf"
+  ],
+  "input_hashes": {
+    ".env.example": "cbd3c2a6c85888ede93ee63f5c7b052e8733460ce0679a5b8c5ac05296450441",
+    "deploy/local/compose.yml": "bb92abd5c69507d32157b2f62a040eab4a937421850aa941624ca41f70fec89e",
+    "deploy/local/mysql-minio-external.env.example": "d18b36153dcbbafdeb91040ca08f8f6eb1eb1b750641a6437ef93df5fe926cbc",
+    "deploy/local/mysql-minio-managed.env.example": "329b800e73bcf3887a0bae37ceeaa6d5c61f77bdfa7d35e46d84fe75a26ded36",
+    "deploy/local/mysql-tencent-cos.env.example": "c7de8e093f6368560e35fd6bab0a87020dd6203c4a89d91a740fcf0ae06f9cb5",
+    "deploy/local/sqlite-minio-external.env.example": "01fc8c071fade5038793a136919cc5803e678473126f350066152dd5ecac45dc",
+    "deploy/local/sqlite-minio-managed.env.example": "47610e2f9d904eb5d3e7487570d1847a5db78a9ecba26371e8e7abbb00bed181",
+    "deploy/local/sqlite-tencent-cos.env.example": "efdc707202ff4620162f23c6df6a37ffdb19b99b1fc9139cd91b5f9a5a0b12a0",
+    "deploy/prod/compose.tencent-cos.yml": "ac58331284d79d7d6c9c727e9459aec440380466b64199549bc7a037796dab6b",
+    "deploy/prod/mysql-tencent-cos.env.example": "e6dc69f4aa5c79f3268871bd990aaa8faf39ccf47dc2a10e52c98111ccd00034",
+    "deploy/scripts/down.sh": "eeebd20cbc949ead0c3e8ba14749ecab0d5a8af4b945a802e803402bd6ab6db6",
+    "deploy/scripts/media-maintenance.sh": "f54f4409e6cdcc6a544c1bb754d51ee06c7d15492d550827cdf896e3f0cd3d4e",
+    "deploy/scripts/up.sh": "e0749eb9c4087e512207c683766ac9015eb7a2194bf778803fa051d41ef78bb5",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "f8dedb6b97875910ac313092d5329d7482448b0f499853285d8fc268e86f55d9",
+    "docker-compose.prod.yml": "242805e32dfdd2695d1159f015c4b9a4fde2ba38bbfa0ae876a5b4973f0b8287",
+    "docs/04-database-design.md": "262170a16c6d66710bfcf2ec7e2edaef82d33b387042986cf952397311a92cfa",
+    "docs/08-production-image-release.md": "e3ef1a00d174a8b871b4f342614a79210572fc0a4b9aaac110edd352ef7b13dc",
+    "scripts/build-images.env.example": "ae162c6b2d4156059a5c4eca0705536a9062284d5af2cad91c104cfbc1409ebd",
+    "scripts/build-images.sh": "64e00b32b3e19775fc70a1ff64ca88f66b385770ec69afcf4e1fec8ca6dae5d6",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "e0edb0ad5890f225973a75c95cdd1387c077ac6f6f2ec98bb6b68a59b1972891",
+    "src/backend/app/db/mysql_migrations.py": "10abe84b05351dac25c56befa3f080b55db94f198966563d2e0b5f8d38846f12",
+    "src/backend/app/db/schema.mysql.sql": "bf4ac8a12a9f7e078d86755bff968d9e1ed44b1622708f46b59df94c149e6aca",
+    "src/backend/app/db/schema.sql": "dc991d3cf5b169f1b70bbb557a35208b51486e4a886691291609861b03a65f40",
+    "src/shared/product-version.ts": "ae604bb9aa2294e00f2fee68a1740a3b4518969fdd1831007966e45679714d9f",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "941620907b9eb95a2c226253b5fdf5664f6b13b406297af1835a5b4d42044062"
+  },
+  "database_impact": {
+    "required": false,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v1.1.2"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v1.1.2"
+    }
+  ],
+  "auto_actions": [
+    {
+      "code": "image_tag_normalized",
+      "message": "Set IMAGE_BUILD_TAG to v1.1.2 in scripts/build-images.env."
+    }
+  ],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.1.2."
+    }
+  ],
+  "blockers": []
+}

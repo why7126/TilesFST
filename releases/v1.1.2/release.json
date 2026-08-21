@@ -1,0 +1,183 @@
+{
+  "version": "v1.1.2",
+  "release_time": "2026-08-21 15:04:07",
+  "owner": "product",
+  "summary": "sprint-024 发布计划：汇总治理资产质量更新、评审命令体验优化，以及小程序首页无跳转 Banner 标题净化和 SKU 详情页高清轮播展示修复。",
+  "formal_scope_only": true,
+  "version_change_rationale": "src/shared/product-version.ts、src/miniapp/utils/product-version.ts 与 src/miniapp/utils/product-version.js 已在 /release-prepare v1.1.2 阶段同步更新为 v1.1.2。",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端公开 Banner DTO 标题净化、小程序运行时代码、API 语义文档与治理脚本/规范资产影响；按发布规范需要后续执行 /image-prepare 与 /image-build 形成镜像证据。",
+  "image_tag": "v1.1.2",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部构建证据；默认走本仓库 /image-prepare 与 /image-build。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-21 15:07:28",
+      "confirmed_by": "operator",
+      "rationale": "用户确认 v1.1.2 为小补丁发布，本版本不需要生成或更新产品使用文档"
+    }
+  },
+  "announcement_decision": {
+    "status": "generated",
+    "confirmed_at": "2026-08-21 15:07:32",
+    "confirmed_by": "operator",
+    "rationale": "用户在 /release-prepare v1.1.2 中确认生成最终公开公告；announcement.mdx 已由占位稿更新为最终公告稿。"
+  },
+  "sprints": [
+    "sprint-024"
+  ],
+  "requirements": [],
+  "bugs": [
+    {
+      "id": "BUG-0130-miniapp-home-no-jump-banner-internal-title",
+      "title": "小程序首页无跳转轮播图不应显示内部标题",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal",
+      "source": "issues/bugs/archive/BUG-0130-miniapp-home-no-jump-banner-internal-title/trace.md"
+    },
+    {
+      "id": "BUG-0131-miniapp-sku-detail-carousel-original-image-height",
+      "title": "小程序商品详情页轮播图清晰度不足且高度偏小",
+      "status": "done",
+      "severity": "medium",
+      "scope": "formal",
+      "source": "issues/bugs/archive/BUG-0131-miniapp-sku-detail-carousel-original-image-height/trace.md"
+    }
+  ],
+  "changes": [
+    {
+      "id": "apply-moonbox-governance-quality-learnings",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-21-apply-moonbox-governance-quality-learnings/"
+    },
+    {
+      "id": "apply-deepseek-harness-doc-governance-learnings",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-21-apply-deepseek-harness-doc-governance-learnings/"
+    },
+    {
+      "id": "fix-miniapp-home-no-jump-banner-internal-title",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-21-fix-miniapp-home-no-jump-banner-internal-title/"
+    },
+    {
+      "id": "default-review-approve-command",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-21-default-review-approve-command/"
+    },
+    {
+      "id": "fix-miniapp-sku-detail-carousel-original-image-height",
+      "status": "archived",
+      "scope": "formal",
+      "archive": "openspec/archive/2026-08-21-fix-miniapp-sku-detail-carousel-original-image-height/"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "rationale": "sprint-024 acceptance-report 记录 5/5 Change 已 archive；release scope 中 5 个 Change 均存在 openspec/archive/2026-08-21-* 归档路径，且 release-prepare 已修正 3 个归档 trace frontmatter 状态一致性。",
+      "evidence": "iterations/archive/sprint-024/acceptance-report.md note: 5/5 Change 已 archive；归档路径：openspec/archive/2026-08-21-apply-moonbox-governance-quality-learnings/、openspec/archive/2026-08-21-apply-deepseek-harness-doc-governance-learnings/、openspec/archive/2026-08-21-fix-miniapp-home-no-jump-banner-internal-title/、openspec/archive/2026-08-21-default-review-approve-command/、openspec/archive/2026-08-21-fix-miniapp-sku-detail-carousel-original-image-height/。2026-08-21 15:07:32 /release-prepare v1.1.2：fix-miniapp-home-no-jump-banner-internal-title、default-review-approve-command、fix-miniapp-sku-detail-carousel-original-image-height trace 状态同步为 archived。"
+    },
+    "tests": {
+      "status": "pass",
+      "rationale": "已按 sprint-024 小程序展示修复范围重跑聚焦 pytest；初次失败为 fixture_schema_drift，版本断言同步后完整聚焦套件通过。",
+      "evidence": "2026-08-21 /release-prepare v1.1.2：初次 `uv run pytest tests/test_miniapp_home.py tests/test_miniapp_static.py tests/test_miniapp_media_assertions.py` 为 80 passed / 1 failed，失败分类 fixture_schema_drift，原因是测试和小程序版本常量仍硬编码 v1.1.1；同步 src/shared/product-version.ts、src/miniapp/utils/product-version.ts、src/miniapp/utils/product-version.js 与 tests/test_miniapp_static.py 后，`uv run pytest tests/test_miniapp_static.py::test_miniapp_rum_uses_product_version_and_request_id_contract` 1 passed，完整聚焦套件 `uv run pytest tests/test_miniapp_home.py tests/test_miniapp_static.py tests/test_miniapp_media_assertions.py` 81 passed, 3 warnings。"
+    },
+    "orval": {
+      "status": "na",
+      "rationale": "sprint-024 release-note 记录 BUG-0130 未改变公开 Banner API schema，不需要 Orval；发布准备阶段可复核 OpenAPI/Orval 是否无漂移。"
+    },
+    "docker_compose": {
+      "status": "na",
+      "rationale": "本次范围未直接声明 Compose 配置变更；/image-prepare v1.1.2 已校验 Compose 输入。生产 Compose fallback tag 仍为 v0.0.4，按规则记录 warning，部署 env 必须显式设置 TILESFST_IMAGE_TAG=v1.1.2。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "impact_scope.database=none；sprint-024 范围未声明 DB 表结构、索引或迁移变更。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "sprint-024 范围未声明新增或变更发布环境变量。"
+    },
+    "product_version": {
+      "status": "pass",
+      "rationale": "src/shared/product-version.ts 与小程序运行时版本常量已同步为 v1.1.2。",
+      "evidence": "2026-08-21 15:07:32 /release-prepare v1.1.2：src/shared/product-version.ts、src/miniapp/utils/product-version.ts、src/miniapp/utils/product-version.js 均更新为 v1.1.2；聚焦 pytest 中 test_miniapp_rum_uses_product_version_and_request_id_contract 已通过。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "rationale": "announcement.mdx 已由占位稿更新为最终公开公告稿；release validator 公开安全扫描未发现敏感模式，当前剩余 release readiness 失败仅为 image plan 缺失。",
+      "evidence": "2026-08-21 /release-prepare v1.1.2：releases/v1.1.2/announcement.mdx status=final，包含版本号、发布时间、Sprint、修复 BUG、发布注意事项、已知问题、升级步骤、回滚说明和影响范围；`python scripts/validate-release.py --release-dir releases/v1.1.2 --stage prepare` 执行后仅报告 missing image-build-plan.json。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-21 15:07:28: usage docs skipped by operator; 用户确认 v1.1.2 为小补丁发布，本版本不需要生成或更新产品使用文档。`python scripts/validate-usage-docs.py --release-dir releases/v1.1.2` 通过，且 releases/v1.1.2/usage-docs/ 不存在。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "rationale": "image_required=true；镜像构建计划已生成并通过 validate-plan。",
+      "evidence": "2026-08-21 15:18:37 /image-prepare v1.1.2：`python scripts/validate-image-build.py prepare --release v1.1.2` passed，plan=releases/v1.1.2/image-build-plan.json，image_required=True，auto_action_count=1，warning_count=4，blocker_count=0；`python scripts/validate-image-build.py validate-plan --release v1.1.2` passed。auto action: IMAGE_BUILD_TAG 已同步为 v1.1.2 in scripts/build-images.env。warnings: docker-compose.prod.yml 与 docker-compose.prod.external.yml 的 TILESFST_IMAGE_TAG fallback 为 v0.0.4，发布部署 env 必须显式设置 TILESFST_IMAGE_TAG=v1.1.2。"
+    },
+    "image_build": {
+      "status": "pass",
+      "rationale": "image_required=true；镜像构建完成，manifest、tarball 和 sha256 sidecar 已通过校验。",
+      "evidence": "2026-08-21 15:46:27 /image-build v1.1.2：`python scripts/validate-image-build.py validate-plan --release v1.1.2` passed；`python scripts/validate-image-build.py build --release v1.1.2` completed backend/web build, linux/amd64 platform validation, backend dependency validation, Web Nginx validation, tar export and sha256 sidecar generation；`python scripts/validate-image-build.py validate-manifest --release v1.1.2` passed。manifest=releases/v1.1.2/image-manifest.json；tarball=../releases/v1.1.2/images/tilesfst-v1.1.2-linux-amd64.tar.gz；sha256=c5d167e51c711b27fb1f1e0c54198bfa4ea0dbe2787c62e31b06e8ba15396336。"
+    }
+  },
+  "known_issues": [
+    "暂无已知阻断发布的问题。"
+  ],
+  "upgrade_steps": [
+    "产品使用文档已确认为跳过：用户确认 v1.1.2 为小补丁发布，本版本不需要生成或更新产品使用文档。",
+    "公开公告已生成，发布确认前可进行人工 copy review。",
+    "PRODUCT_VERSION 与小程序版本常量已同步为 v1.1.2。",
+    "镜像 manifest 与离线包校验证据已生成。",
+    "部署 env 已确认显式设置 TILESFST_IMAGE_TAG=v1.1.2。",
+    "小程序首页 Banner 与 SKU 详情页 DevTools、真机或体验版 render evidence 位置已确认。"
+  ],
+  "rollback": {
+    "conditions": [
+      "小程序首页 Banner 或 SKU 详情页核心展示 smoke 失败",
+      "后端 Banner DTO 标题净化或小程序媒体 URL 策略出现阻断性回归",
+      "镜像构建、部署或发布公开安全校验失败"
+    ],
+    "steps": [
+      "回退到上一 Git tag 或上一部署包。",
+      "恢复上一版本环境变量、Compose 配置和镜像 tag。",
+      "若后续确认存在数据影响，按数据库备份/回滚说明处理。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "不涉及管理端用户功能。",
+    "owner_web": "不涉及店主 Web 展示端用户功能。",
+    "miniapp": "涉及首页无跳转 Banner 标题展示、无跳转点击静默行为、SKU 详情页高清轮播 URL 与轮播高度。",
+    "backend": "涉及公开 Banner DTO 标题净化；未改变公开 API schema。",
+    "database": "none",
+    "object_storage": "涉及图片对象展示 URL 与缩略图/原图使用语义；未声明新增对象存储能力或桶策略变更。",
+    "docker": "发布范围含后端/小程序/治理脚本影响，镜像交付需后续 image prepare/build 证据。"
+  },
+  "announcement": "announcement.mdx",
+  "prepare_blockers": [],
+  "publish_confirmation": {
+    "published_at": "2026-08-21 15:49:57",
+    "announcement_url": "releases/v1.1.2/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已完成。部署 env 已确认显式设置 TILESFST_IMAGE_TAG=v1.1.2；小程序首页 Banner 与 SKU 详情页 DevTools、真机或体验版 render evidence 位置已确认。最终镜像 sha256 以 releases/v1.1.2/image-manifest.json 和离线包 .sha256 sidecar 为准；本字段为发布确认元数据，不参与镜像稳定输入 hash。"
+  }
+}

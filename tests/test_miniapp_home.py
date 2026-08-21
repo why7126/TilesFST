@@ -249,6 +249,65 @@ def test_miniapp_home_returns_public_data_and_hides_internal_fields(api_client: 
     assert all(item.get("action_value") is None for item in data["services"])
 
 
+def test_miniapp_public_banners_hide_internal_no_jump_titles(api_client: TestClient) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO banners (
+                  id, title, display_client, position, image_object_key, image_source,
+                  sku_gallery_asset_id, jump_type, sku_id, external_url, topic_id,
+                  brand_id, sort_order, valid_from, valid_to, status, remark, created_at, updated_at
+                ) VALUES
+                  (901, 'internal-MINIAPP_HOME_NO_JUMP-1786622496149', 'MINIAPP_HOME',
+                   'MINIAPP_HOME_CAROUSEL', 'banners/internal-home.webp', 'custom_upload',
+                   NULL, 'NO_JUMP', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'ONLINE',
+                   '内部标题不得公开', :now, :now),
+                  (902, 'internal-MINIAPP_BRAND_LIST_NO_JUMP-1786622496150', 'MINIAPP_HOME',
+                   'MINIAPP_BRAND_LIST_CAROUSEL', 'banners/internal-brand.webp', 'custom_upload',
+                   NULL, 'NO_JUMP', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'ONLINE',
+                   '内部标题不得公开', :now, :now),
+                  (903, 'internal-MINIAPP_HOME_SEARCH-1786622496151', 'MINIAPP_HOME',
+                   'MINIAPP_HOME_CAROUSEL', 'banners/internal-search.webp', 'custom_upload',
+                   NULL, 'TOPIC_PAGE', NULL, NULL, 1, NULL, 0, NULL, NULL, 'ONLINE',
+                   '内部标题不得作为搜索词', :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    home_response = api_client.get("/api/v1/miniapp/home")
+    brand_response = api_client.get("/api/v1/miniapp/brands?page=1&pageSize=10")
+
+    assert home_response.status_code == 200
+    assert brand_response.status_code == 200
+    home_banners = home_response.json()["data"]["banners"]
+    brand_banners = brand_response.json()["data"]["banners"]
+    internal_home_banner = next(item for item in home_banners if item["id"] == 901)
+    internal_search_banner = next(item for item in home_banners if item["id"] == 903)
+    internal_brand_banner = next(item for item in brand_banners if item["id"] == 902)
+
+    assert internal_home_banner["title"] == ""
+    assert internal_home_banner["jump_type"] == "none"
+    assert internal_home_banner["search_keyword"] is None
+    assert internal_search_banner["title"] == ""
+    assert internal_search_banner["jump_type"] == "search"
+    assert internal_search_banner["search_keyword"] is None
+    assert internal_brand_banner["title"] == ""
+    assert internal_brand_banner["jump_type"] == "none"
+    assert all("internal" not in item["title"].lower() for item in home_banners + brand_banners)
+    assert all("MINIAPP_" not in item["title"] for item in home_banners + brand_banners)
+    assert all("NO_JUMP" not in item["title"] for item in home_banners + brand_banners)
+
+
 def test_miniapp_home_ignores_legacy_contact_settings_for_privacy_contract(
     api_client: TestClient,
 ) -> None:
@@ -1517,7 +1576,7 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["image_count"] == 2
     assert data["video_count"] == 1
     assert data["media"][0]["media_type"] == "image"
-    assert data["media"][0]["url"] == "/media/tiles/1.thumb.webp"
+    assert data["media"][0]["url"] == "/media/tiles/1.webp"
     assert data["media"][0]["preview_url"] == "/media/tiles/1.webp"
     assert data["cover_image"] == "/media/tiles/1.thumb.webp"
     assert data["share"]["image_url"] == "/media/tiles/1.webp"

@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-11 22:11:27
+updated_at: 2026-08-21 13:52:48
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -104,7 +104,7 @@ Authorization: Bearer <access_token>
 | 管理端日志审计 | `/api/v1/admin/logs` | 是（仅 admin） | API 请求日志、产品行为事件、审计操作统一查询与详情 | ✓ Sprint 004 |
 | 产品行为事件 | `/api/v1/usage-events` | 可选登录 | 前端上报人为定义的产品使用埋点事件 | ✓ Sprint 004 |
 | 真实用户性能事件 | `/api/v1/performance-events` | 否 | Web 与微信小程序真实用户加载耗时 RUM 上报 | ✓ Sprint 022 |
-| 管理端性能观测 | `/api/v1/admin/performance-events` | 是（仅 admin） | RUM 样本聚合、慢页面排行与版本/端类型筛选 | ✓ Sprint 022 |
+| 管理端性能观测 | `/api/v1/admin/performance-events` | 是（仅 admin） | RUM 筛选候选值、样本聚合、慢页面排行与样本明细 | ✓ Sprint 022/023 |
 | 管理端品牌 | `/api/v1/admin/brands` | 是（admin/employee） | 品牌 CRUD、启停、条件删除 | ✓ Sprint 002 |
 | 管理端品牌证书 | `/api/v1/admin/brand-certificates` | 是（admin/employee） | 证书 CRUD、显示/隐藏、软删除、有效状态 summary | ✓ Sprint 007 |
 | 管理端 Banner | `/api/v1/admin/banners` | 是（admin/employee） | Banner CRUD、上下线、条件删除、summary | ✓ Sprint 003 |
@@ -349,6 +349,7 @@ OpenSpec：`openspec/changes/add-real-user-page-load-rum/`
 | 方法 | 路径 | 认证 |
 |---|---|---|
 | POST | `/api/v1/performance-events` | 否 |
+| GET | `/api/v1/admin/performance-events/filter-options` | Bearer（admin） |
 | GET | `/api/v1/admin/performance-events/summary` | Bearer（admin） |
 | GET | `/api/v1/admin/performance-events/samples` | Bearer（admin） |
 
@@ -375,6 +376,8 @@ OpenSpec：`openspec/changes/add-real-user-page-load-rum/`
 
 上报接口只接收页面、指标、耗时、版本、网络、设备类别和客户端生成 `request_id` 等安全摘要，不接收 Header、Cookie、Authorization、完整请求体、完整响应体、手机号、openid、token、签名 URL 或 raw payload；命中敏感字段返回 `400 / code=40001`。Web RUM 的 `app_version` 与管理端左上角产品版本徽标同源；`network_type` 优先取浏览器网络类型 API，浏览器不支持时允许为空并在管理端显示“未知”。小程序 RUM 使用 `wx.getNetworkType` 获取 `network_type`，仅获取失败时上报 `unknown`。上报失败不影响 Web 或小程序主流程。
 
+`GET /api/v1/admin/performance-events/filter-options` 查询参数仅接收 `start_time` / `end_time`。响应 `data` 固定返回 6 大筛选维度：`client_types`、`app_versions`、`page_keys`、`device_classes`、`network_types`、`metrics`；每个候选项包含 `value`、`label`，动态采样维度额外包含 `count`。`client_types` 与 `metrics` 来自后端枚举，`app_versions`、`page_keys`、`device_classes`、`network_types` 按时间范围从 RUM 样本聚合候选值；候选值不随端类型、版本、页面、设备、网络或指标筛选级联收敛。
+
 `GET /api/v1/admin/performance-events/summary` 查询参数：
 
 | 参数 | 说明 |
@@ -391,9 +394,9 @@ OpenSpec：`openspec/changes/add-real-user-page-load-rum/`
 | `page_size` | 每页聚合行数，1–100，默认 20 |
 | `limit` | 兼容旧调用的每页聚合行数；新页面使用 `page/page_size` |
 
-响应 `data.items[]` 按 `client_type + page_key + metric_name + app_version + network_type + device_class` 聚合返回 `sample_count`、`average_ms`、`max_ms`、`p50_ms`、`p75_ms`、`p95_ms`、`p99_ms`；响应同时返回 `total`、`page`、`page_size`、`total_pages` 和 `total_events`，用于管理端聚合列表后端真实分页。`data.slow_pages[]` 与当前页聚合行保持一致并按 P95 降序。管理端页面 `/admin/performance` 使用该接口展示端类型、页面、版本号、指标、时间范围筛选、摘要、慢页面排行、空态、错误态、样本不足态和分页。
+响应 `data.items[]` 按 `client_type + page_key + metric_name + app_version + network_type + device_class` 聚合返回 `sample_count`、`average_ms`、`max_ms`、`p50_ms`、`p75_ms`、`p95_ms`、`p99_ms`；响应同时返回 `total`、`page`、`page_size`、`total_pages` 和 `total_events`，用于管理端聚合列表后端真实分页。`data.slow_pages[]` 与当前页聚合行保持一致并按 P95 降序。管理端页面 `/admin/performance` 使用候选值接口展示“时间范围 > 端类型 > 版本号 > 页面 > 网络 > 指标”筛选区；候选值接口仍返回 `device_classes`，但设备不作为本期筛选控件展示。聚合接口展示“页面 > 版本号 > 端类型 > 设备 > 网络 > 指标 > 样本 > P50 > P75 > P95 > P99 > 状态 > 操作”字段顺序、摘要、慢页面排行、空态、错误态、样本不足态和分页。
 
-`GET /api/v1/admin/performance-events/samples` 使用同一组安全筛选参数（不含 `min_samples`），并支持 `page`、`page_size` 与兼容旧调用的 `limit`；响应返回 `total`、`page`、`page_size`、`total_pages` 和最近样本明细 `items[]`：`id`、`client_type`、`page_key`、`metric_name`、`duration_ms`、`app_version`、`network_type`、`device_class`、`request_id`、`occurred_at`、`server_received_at`。管理端性能观测页从聚合列表右侧冻结“操作”列点击“查看样本”，跳转到 `/admin/performance/samples` 独立样本页；样本页使用管理端列表页样式展示筛选上下文、样本表、后端真实分页控件，并允许复制 `request_id`。日志审计不承载 RUM 单次明细。该接口不得返回完整 URL、Header、Cookie、签名 URL、raw payload、用户隐私或内部鉴权字段。
+`GET /api/v1/admin/performance-events/samples` 使用同一组安全筛选参数（不含 `min_samples`），并支持 `page`、`page_size` 与兼容旧调用的 `limit`；响应返回 `total`、`page`、`page_size`、`total_pages` 和最近样本明细 `items[]`：`id`、`client_type`、`page_key`、`metric_name`、`duration_ms`、`app_version`、`network_type`、`device_class`、`request_id`、`occurred_at`、`server_received_at`。管理端性能观测页从聚合列表右侧冻结“操作”列点击“查看样本”，跳转到 `/admin/performance/samples` 独立样本页；样本页使用管理端列表页样式展示上下文“页面 > 版本号 > 端类型 > 设备 > 网络 > 指标”和样本表“页面 > 版本号 > 端类型 > 设备 > 网络 > 指标 > 耗时 > 事件时间 > 接收时间 > request_id”、后端真实分页控件，并允许复制 `request_id`。日志审计不承载 RUM 单次明细。该接口不得返回完整 URL、Header、Cookie、签名 URL、raw payload、用户隐私或内部鉴权字段。
 
 小程序事件要求：
 
@@ -507,9 +510,9 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 `GET /api/v1/miniapp/search` 响应 `data` 包含 `tabs[]`、`best_match`、`sections[]`、`facets`、`items`、`total`、`page`、`page_size`、`has_more` 与 `recommended_keywords`。`best_match` 可返回 `entity_type=sku|brand|certificate`：SKU 编码或 SKU 名称直接命中优先，其次品牌名精确命中，最后证书名称或证书编号精确命中；未满足上述直接命中时返回 `null`。小程序结果页按综合、品牌、SKU、证书展示 Tab，不展示类目 Tab；综合 Tab 按最佳匹配、品牌、SKU、证书顺序展示非 0 条分区，品牌/SKU/证书单独 Tab 直接展示卡片内容，不再展示分区标题和数量。完整搜索中的 SKU 结果会在公开过滤和关键词匹配后应用召回置顶排序，最多 4 个生效置顶 SKU 排在 SKU 结果前部；搜索实时联想、热门词、最近搜索、品牌结果和证书结果不受该配置影响，公开响应不返回召回状态或排序解释字段。完整搜索会二次过滤公开状态：只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格和可公开证书，不暴露后台内部字段、内部备注、raw object key 或敏感配置。v1 不新增管理端搜索配置中心、后台热门词维护、同义词维护、自然语言词典维护、搜索统计管理页或 `/api/admin/search/*`。
 
-首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（管理端文案显示“小程序”）、展示位置为 `MINIAPP_HOME_CAROUSEL`（首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序端使用 `image_url` 渲染轮播图；公开 `jump_type` 支持 `product`、`brand`、`search`、`store`、`none`，其中 `brand` 使用 `target_id` 跳转品牌详情页。若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
+首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（管理端文案显示“小程序”）、展示位置为 `MINIAPP_HOME_CAROUSEL`（首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序端使用 `image_url` 渲染轮播图；公开 `jump_type` 支持 `product`、`brand`、`search`、`store`、`none`，其中 `brand` 使用 `target_id` 跳转品牌详情页。接口会净化自动生成或兼容导入的内部 Banner 标题，例如 `internal-*MINIAPP*`、`*NO_JUMP*` 类标识不得作为公开 `title` 或 `search_keyword` 暴露；搜索型 Banner 只有存在安全公开标题时才返回 `search_keyword`。若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
 
-`GET /api/v1/miniapp/brands` 响应 `data` 包含 `banners[]`、`items[]`、`total`、`page`、`page_size` 和 `has_more`。`banners[]` 仅来自 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）安全字段，支持 `jump_type=brand` + `target_id` 跳转品牌详情页；品牌列表页无轮播数据时返回空数组，不使用首页轮播兜底。品牌列表页轮播 `image_url` 优先为同目录 `.thumb` 派生 URL。`items[]` 返回启用品牌的安全字段：`brand_id`、`brand_name`、`brand_short_name`、`brand_logo_url`、`brand_logo_thumbnail_url`、`brand_entry_path`、`product_count`、`leaf_category_names`、`leaf_categories`、`description`、`available`；`brand_logo_thumbnail_url` 为同目录 `.thumb` 派生 URL，列表/卡片优先使用，缺失时前端回退 `brand_logo_url`。`product_count`、`leaf_category_names` 与 `leaf_categories` 使用同一批小程序公开 SKU 过滤条件（`tiles.status=PUBLISHED`、品牌启用、类目启用、规格启用或为空），`leaf_categories[]` 返回去重后的所有上架/公开 SKU 绑定末级类目 ID 与名称并按类目排序，`leaf_category_names[]` 保留名称集合；品牌有公开商品时必然有商品关联类目，`product_count=0` 的启用品牌仍可展示且类目集合为空。接口不得返回品牌后台备注、raw object key、内部审计字段、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/brands` 响应 `data` 包含 `banners[]`、`items[]`、`total`、`page`、`page_size` 和 `has_more`。`banners[]` 仅来自 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）安全字段，支持 `jump_type=brand` + `target_id` 跳转品牌详情页；品牌列表页无轮播数据时返回空数组，不使用首页轮播兜底。品牌列表页轮播 `image_url` 优先为同目录 `.thumb` 派生 URL，公开 `title` 与 `search_keyword` 遵守首页 Banner 相同的内部标题净化规则。`items[]` 返回启用品牌的安全字段：`brand_id`、`brand_name`、`brand_short_name`、`brand_logo_url`、`brand_logo_thumbnail_url`、`brand_entry_path`、`product_count`、`leaf_category_names`、`leaf_categories`、`description`、`available`；`brand_logo_thumbnail_url` 为同目录 `.thumb` 派生 URL，列表/卡片优先使用，缺失时前端回退 `brand_logo_url`。`product_count`、`leaf_category_names` 与 `leaf_categories` 使用同一批小程序公开 SKU 过滤条件（`tiles.status=PUBLISHED`、品牌启用、类目启用、规格启用或为空），`leaf_categories[]` 返回去重后的所有上架/公开 SKU 绑定末级类目 ID 与名称并按类目排序，`leaf_category_names[]` 保留名称集合；品牌有公开商品时必然有商品关联类目，`product_count=0` 的启用品牌仍可展示且类目集合为空。接口不得返回品牌后台备注、raw object key、内部审计字段、Authorization header、Cookie 或敏感配置。
 
 `GET /api/v1/miniapp/brands/{brand_id}` 响应 `data` 包含单品牌主页公开信息，并返回 `product_path` 与 `certificate_count` 供小程序品牌主页展示。品牌不存在、停用、无公开 SKU 或不可公开时返回 `404 / code=30030`。
 
@@ -523,7 +526,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 公开商品卡片的 `cover_image` 来自 SKU 主图（`tile_images.is_main=1` 优先），返回后端受控读取 URL，不得暴露对象存储 raw object key。列表场景优先返回与原图同目录、文件名以 `.thumb` 区分的缩略图 URL，例如 `/media/images/default/tiles/pending/<uuid>.thumb.jpg`；若该缩略图对象缺失，后端 `/media/{object_key}` 读取会回退同目录原图，公开列表不得返回已知不可访问的 `/media/thumbnails/default/tiles/pending/<uuid>.jpg`。`price_display` 来自 SKU `reference_price` 格式化结果：正数显示为 `¥xx.xx`，缺失、空值或非正数显示为 `暂无参考价`。
 
-`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`remark`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`；小程序商品详情页将备注说明作为商品参数模块内的参数行展示，不单独渲染独立备注模块。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；图片 `media[]` 的 `url` 为首屏展示 URL，优先使用与原图同目录、文件名以 `.thumb` 区分的缩略图 URL，`preview_url` 保留原图用于点击预览；视频 `media[]` 的 `url` 保持原视频资源，`cover_url` 优先使用商品主图或首张图片的同目录 `.thumb` 缩略图作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
+`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`remark`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`；小程序商品详情页将备注说明作为商品参数模块内的参数行展示，不单独渲染独立备注模块。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；图片 `media[]` 的 `url` 为商品详情页首屏高清展示 URL，使用原图或详情级高清展示图，`preview_url` 保留原图用于点击预览；商品列表、商品卡片、推荐位和 Banner 仍优先使用与原图同目录、文件名以 `.thumb` 区分的缩略图 URL；视频 `media[]` 的 `url` 保持原视频资源，`cover_url` 优先使用商品主图或首张图片的同目录 `.thumb` 缩略图作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
 
 `PUT /api/v1/miniapp/skus/{sku_id}/favorite` 使用 `client_id` 与 `sku_id` 唯一约束实现幂等收藏/取消收藏；重复提交返回目标状态，不产生重复收藏记录。SKU 不存在、下架或不可公开时返回 `404 / code=30030`；请求体校验失败返回 `422 / code=40001`。
 

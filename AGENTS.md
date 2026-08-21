@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-08 20:57:09
+updated_at: 2026-08-21 22:09:09
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -47,7 +47,9 @@ rules/agent-context-budget.md
 | API 变更 | `rules/api.md`、`docs/README.md`、`docs/03-api-index.md` 相关段、`docs/standards/api-governance.md`、`docs/standards/error-codes.md`、`src/web/orval.config.ts`、`scripts/generate-openapi-client.sh` |
 | DB / 数据模型 | `rules/database.md`、`docs/04-database-design.md` 相关表段、schema / migration 文件 |
 | UI / Design System | `rules/ui-design.md` 相关章节、`src/web/README.md`、`src/web/src/styles/globals.css`、`src/shared/design-system/tokens/`、`src/web/src/pages/dev/DesignSystemPage.tsx` |
-| Docker / 发布部署 | `rules/environment.md`、`rules/release.md`、`docs/02-deployment.md`、`docs/08-production-image-release.md`、`docker-compose*.yml`、`deploy/README.md`、`deploy/local/README.md`、`deploy/prod/README.md`、`deploy/local/compose.yml`、`deploy/prod/compose.tencent-cos.yml`、`deploy/scripts/`、`src/backend/Dockerfile`、`src/web/Dockerfile`、`src/web/nginx.conf`、`scripts/build-images.sh`、`scripts/build-images.env.example`、`scripts/validate-image-build.py` |
+| 问题排查 / 根因 / 验收返修 | `rules/root-cause-evidence.md`、相关 BUG/Change trace、测试失败、日志或截图证据片段 |
+| 文档治理 / 表达卫生 | `rules/document-governance.md`、`docs/standards/document-prose-hygiene.md`、`docs/standards/command-execution-order.md` |
+| Docker / 发布部署 | `rules/environment.md`、`rules/release.md`、`docs/02-deployment.md`、`docs/08-production-image-release.md`、`docker-compose*.yml`、`deploy/README.md`、`deploy/local/README.md`、`deploy/prod/README.md`、`deploy/local/compose.yml`、`deploy/prod/compose.tencent-cos.yml`、`deploy/scripts/`、`src/backend/Dockerfile`、`src/web/Dockerfile`、`src/web/nginx.conf`、`scripts/build-images.sh`、`scripts/build-images.env.example`、`scripts/validate-image-build.py`、`scripts/validate-release-upgrade.py`、`releases/<version>/upgrade-plans/` |
 | data / media / object storage | `rules/data-management.md`、`rules/media.md`、`rules/object-storage.md`、`data/README.md`、`docs/06-video-asset-management.md`、`docs/07-object-storage-strategy.md` |
 | 端口 | `rules/port-management.md`、`.env.example` |
 
@@ -59,7 +61,7 @@ rules/agent-context-budget.md
 
 | 路径 | 说明 |
 |---|---|
-| `.agents/skills/{req,bug,opsx,sprint,release,image,build,miniapp,usage-docs}-*`、`.agents/skills/capture`、`.agents/skills/explore`、`.agents/skills/spec-opt`、`.agents/skills/spec-study`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / image / build / miniapp / usage-docs 工作流技能，以及通用 capture / explore / 规范优化 / 跨项目 Harness 学习应用 / 初始化入口 |
+| `.agents/skills/{req,bug,opsx,sprint,release,upgrade,image,build,miniapp,usage-docs}-*`、`.agents/skills/capture`、`.agents/skills/explore`、`.agents/skills/spec-opt`、`.agents/skills/spec-study`、`.agents/skills/initialize-project` | req / bug / opsx / sprint / release / upgrade / image / build / miniapp / usage-docs 工作流技能，以及通用 capture / explore / 规范优化 / 跨项目 Harness 学习应用 / 初始化入口 |
 | `.agents/skills/workflow-sync` | 状态同步技能 |
 | `.agents/skills/openspec-*` | OpenSpec 基础操作技能 |
 
@@ -83,11 +85,11 @@ rules/agent-context-budget.md
 | 域 | 命令链 |
 |---|---|
 | 智能收集 | `/capture` |
-| 需求 | `/req-capture` → `/req-generate` → `/req-complete` → `/req-review --approve` → `/sprint-propose` → `/req-opsx` |
-| 缺陷 | `/bug-capture` → `/bug-generate` → `/bug-complete` → `/bug-review --approve` → `/sprint-propose` → `/bug-opsx` |
+| 需求 | `/req-capture` → `/req-generate` → `/req-complete` → `/req-review` → `/sprint-propose` → `/req-opsx` |
+| 缺陷 | `/bug-capture` → `/bug-generate` → `/bug-complete` → `/bug-review` → `/sprint-propose` → `/bug-opsx` |
 | Change | `/opsx-propose`、`/opsx-explore`、`/opsx-apply`、`/opsx-archive` |
 | Sprint | `/sprint-propose`、`/sprint-explore`、`/sprint-apply`、`/sprint-archive`、`/sprint-exps` |
-| Release | `/release-propose <version>`、`/release-prepare <version>`、`/image-prepare <version>`、`/image-build <version>`、`/release-publish <version>` |
+| Release | `/release-propose <version>`、`/release-prepare <version>`、`/image-prepare <version>`、`/image-build <version>`、`/upgrade-plan --from <fresh\|version> --to <version>`、`/upgrade-validate --plan <path>`、`/release-publish <version>` |
 | 小程序发布 | `/miniapp-env`、`/miniapp-check`、`/miniapp-prepare`、`/miniapp-confirm`、`/miniapp-restore` |
 | 产品使用文档 | `/usage-docs-generate`、`/usage-docs-update`、`/usage-docs-validate` |
 | Bootstrap | `/initialize-project`、`/build-design-system`、`/build-api-standard`、`/build-test-framework` |
@@ -142,6 +144,9 @@ rules/agent-context-budget.md
 - DB 结构变更必须同步 schema、数据库文档和测试。
 - UI 变更必须遵守 Design System semantic token，禁止裸 Hex。
 - 带 `prototype/` 的 UI 页面必须先完成原型拆解、UI Contract、UI Skeleton 首轮确认、1440px 与关键交互视觉验收、computed style 证据、Mock/API 边界声明和最终一致性检查；不得缺少视觉证据、样式证据或文档回填即归档。
+- 问题排查、BUG 完善、BUG 来源实现、验收返修或效果不如预期时必须遵守证据化根因分析治理：根因状态区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 必须绑定证据链，证据不足时输出人工补证步骤。
+- 所有 workflow 命令完成后必须输出执行链路复盘，包含链路状态、问题证据、规范优化建议和 follow-up 自动创建状态；无明确优化点写“无明显优化点”，不得默认自动创建 follow-up Issue/Change。
+- 长期文档必须遵守事实唯一归属和表达卫生；不得写入会话推理、临时草稿、review 对话、不可解析引用、未脱敏本机路径或学习对象源码。
 
 ## 7. 文档与时间规范
 
@@ -169,6 +174,7 @@ rules/agent-context-budget.md
 | 发布对象 | `releases/vX.Y.Z/` |
 | Mintlify 文档站源目录 | `mintlify/`（公开站点配置、多版本投影、共享截图资产；不得替代 release 快照事实源） |
 | 镜像发布证据 | `releases/vX.Y.Z/image-build-plan.json`、`releases/vX.Y.Z/image-manifest.json` |
+| 部署升级计划 | `releases/vX.Y.Z/upgrade-plans/*.json` |
 | 部署矩阵 | `deploy/`（部署 README、Compose、env 示例、脚本和校验工具；禁止真实 env、密钥、运行时数据和镜像包） |
 | 本地数据 | `data/`（不得提交真实客户数据和运行时数据库） |
 

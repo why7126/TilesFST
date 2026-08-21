@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-06 14:28:00
+updated_at: 2026-08-21 13:45:41
 ---
 
 # 需求管理规范
@@ -80,7 +80,7 @@ REQ-NNNN-slug/
 | `/req-explore` | captured, exploring | 默认无文件 |
 | `/req-generate` | captured, exploring | requirement.md → draft |
 | `/req-complete` | draft, enriching | 六件套 → pending_review |
-| `/req-review` | pending_review | review.md → approved/rejected/deferred |
+| `/req-review` | pending_review | review.md → approved/rejected/deferred；无 flag 默认 approved |
 | `/sprint-propose` | **approved** | iterations/change/sprint-* |
 | `/req-opsx` | **in_sprint** 或已评审 approved 的兼容/追溯场景 | openspec/changes/* |
 
@@ -98,11 +98,13 @@ REQ-NNNN-slug/
 
 **未评审**（`draft`、`pending_review`、`captured`、`enriching`、`exploring` 等）时：
 
+`/req-review REQ-xxxx` 无 flag 时默认评审通过并进入 `approved`；拒绝或延后必须显式使用 `--reject` 或 `--defer`。
+
 - **不得**写入 `sprint.yaml` 的 `requirements[]` / `bugs[]`
 - **不得**写入 `sprint.md` 的 Sprint 目标编号列表、§Scope 表、里程碑、工作量合计
 - **不得**写入 `release-note.md` / `acceptance-report.md` 的「关联需求/BUG」正式范围
 - **不得**将 REQ `trace.md` 的 `iteration` 设为 sprint-xxx
-- **仅可**记入 `sprint.md`「延后项（待评审）」并提示 `/req-review REQ-xxxx --approve`
+- **仅可**记入 `sprint.md`「延后项（待评审）」并提示 `/req-review REQ-xxxx`
 - 用户显式要求纳入 Sprint 时也 **MUST** 先拒绝写入规划，完成评审后再 `/sprint-propose`
 
 `in_sprint` 表示已评审通过且已纳入迭代；**不得**用 `in_sprint` 绕过 `approved` 评审。

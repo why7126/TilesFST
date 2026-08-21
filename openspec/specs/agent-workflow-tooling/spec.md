@@ -1486,3 +1486,169 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 已交付能力偏差 SHOULD 走 `/bug-capture`
 - **AND** 新增期望 SHOULD 走 `/req-capture`
 
+### Requirement: Release workflow commands provide explicit operator decision summaries
+
+Release workflow commands SHALL preserve and echo operator decisions for usage documentation, public announcement generation, and image build requirements before moving to the next release stage.
+
+#### Scenario: Release proposal captures publication decisions
+- **GIVEN** an operator proposes a release
+- **WHEN** usage docs, announcement, or image build decisions are known
+- **THEN** the command SHALL record those decisions in the release artifact
+- **AND** the final response SHALL summarize each decision and any remaining missing decision.
+
+### Requirement: Release blockers include actionable remediation paths
+
+Release prepare and image commands SHALL distinguish resolved blockers, true release blockers, and warnings, and SHALL provide an actionable next command or remediation path when one is known.
+
+#### Scenario: Prepare finds target MySQL drift
+- **GIVEN** release preparation detects target MySQL schema drift
+- **WHEN** the command records the blocker
+- **THEN** the output SHALL identify the missing table or field category without exposing credentials
+- **AND** SHALL suggest a safe migration or drift-check rerun path.
+
+### Requirement: Publish confirmation avoids image evidence loops
+
+Release publish SHALL write publish confirmation only to non-stable publish metadata and SHALL NOT require image rebuild for status-only announcement generation after publish.
+
+#### Scenario: Operator requests public announcement after publish
+- **GIVEN** image manifest validation already passed
+- **WHEN** the operator asks to generate public announcement copy after publish
+- **THEN** the workflow MAY update announcement content and non-stable release metadata
+- **AND** SHALL re-run publish validation and image manifest validation
+- **AND** SHALL NOT require image rebuild unless stable release scope or image input files changed.
+
+### Requirement: Sprint retrospective AI usage matrices require a fresh gate pass
+
+`/sprint-exps` and its Sprint Fact Sheet tooling SHALL NOT output real AI usage cost matrices unless the AI usage snapshot passes the fresh gate.
+
+#### Scenario: Snapshot is stale before retrospective matrix rendering
+- **GIVEN** a Sprint Fact Sheet summary reports `ai_usage_snapshot.fresh_gate.status` as `blocker`
+- **WHEN** `/sprint-exps` prepares the model token usage analysis
+- **THEN** the command SHALL show the blocker reason, impact, freshness baseline, and recommended action
+- **AND** SHALL request or run the snapshot refresh path before rendering real matrices
+- **AND** SHALL rerun `generate-sprint-fact-sheet.py --summary` after refresh
+- **AND** SHALL NOT output real `total_tokens`, `input_tokens`, `output_tokens`, or `model_call_count` matrices until the rerun summary reports `fresh_gate.status=pass`.
+
+#### Scenario: Markdown rendering is requested with a blocked gate
+- **GIVEN** `generate-sprint-fact-sheet.py --ai-usage-markdown` is run for a Sprint whose snapshot is missing, stale, failed, estimated, coverage-incomplete, metrics-empty, or matrix-missing
+- **WHEN** the script renders the model token usage section
+- **THEN** it SHALL output a blocker-oriented Token Usage Fact Sheet with recommended refresh action
+- **AND** it SHALL NOT render any real matrix table.
+
+### Requirement: Workflow 命令完成复盘
+系统 MUST 在 workflow 命令完成输出中提供执行链路复盘，复盘内容 MUST 基于脚本、校验、文件、日志、截图、验收记录、用户补证、Workflow Sync 或 AI Usage 等证据，不得凭空猜测。
+
+#### Scenario: 命令成功完成
+- **WHEN** `/req-*`、`/bug-*`、`/opsx-*`、`/sprint-*`、`/release-*`、`/image-*`、`/usage-docs-*`、`/spec-opt` 或 `/spec-study apply` 完成
+- **THEN** 最终输出 MUST 包含链路状态、问题证据、规范优化建议和 follow-up 自动创建状态
+- **AND** 若没有明确可复用沉淀，规范优化建议 MUST 写为“无明显优化点”
+
+#### Scenario: 发现可沉淀问题
+- **WHEN** 命令执行发现可复用的流程、规则、脚本或文档优化点
+- **THEN** 输出 MUST 给出建议命令或标准 capture 文案
+- **AND** 系统 MUST NOT 自动创建 follow-up Issue 或 Change，除非用户在当前命令中明确授权
+
+### Requirement: 证据化根因分析
+系统 MUST 在问题排查、BUG 完善、BUG 来源实现、验收返修和效果不如预期场景中区分根因状态，并且 MUST 要求 confirmed 根因绑定证据链。
+
+#### Scenario: 根因证据充足
+- **WHEN** BUG 或返修文档声明根因状态为 `confirmed`
+- **THEN** 文档 MUST 记录可定位证据入口、证据类型、结论和验证方式
+- **AND** 证据 MUST 脱敏，不得包含密钥、真实客户数据、未脱敏日志或本机绝对路径
+
+#### Scenario: 根因证据不足
+- **WHEN** 现有信息不足以确认根因
+- **THEN** 系统 MUST 将根因状态标记为 `unknown`、`hypothesis` 或 `probable`
+- **AND** 输出 MUST 包含人工补证步骤、需要收集的证据类型和验收或复现要点
+
+### Requirement: UI 返修截图逐项对照
+系统 MUST 在 UI 型 `/opsx-modify` 中先处理验收反馈证据，再修改实现。若反馈包含附件截图、标注图、原型截图或实际截图，系统 MUST 建立逐项视觉对照表。
+
+#### Scenario: 附件截图反馈
+- **WHEN** `/opsx-modify` 的验收反馈包含附件截图、标注图、原型截图或实际截图
+- **THEN** 系统 MUST 在返修前记录截图编号、页面或状态、期望表现、实际表现、偏差项、检查方式、处置结论和证据入口
+- **AND** 若证据不足以定位偏差，系统 MUST 先请求补证或说明补证步骤，不得直接返修
+
+#### Scenario: UI 返修完成
+- **WHEN** UI 返修修改完成
+- **THEN** 系统 MUST 将相关旧截图视为 stale
+- **AND** 系统 MUST 重新取证或记录等价视觉验证，并更新 Change trace、验收记录或测试证据入口
+
+### Requirement: Workflow Sync next 推导复核
+Workflow Sync MUST 在 `req.opsx` / `bug.opsx` 创建或确认 Change 后刷新 Issue 当前态看板的下一步推导，避免派生态继续提示已完成的 `/req-opsx` 或 `/bug-opsx`。
+
+#### Scenario: REQ 或 BUG 回填 Change
+- **WHEN** Workflow Sync 处理 `req.opsx` 或 `bug.opsx`
+- **AND** 同轮已经将 Change 回填到 Issue trace、registry 或 Sprint scope
+- **THEN** `issues/requirements/CHANGELOG.md` 或 `issues/bugs/CHANGELOG.md` 的下一步 MUST 推导为后续 `/opsx-apply <REQ-id|BUG-id>` 或等价下一阶段命令
+- **AND** 若仍提示 `/req-opsx` 或 `/bug-opsx`，系统 MUST 报告派生态漂移并修复后再完成父命令
+
+### Requirement: 治理脚本门禁矩阵
+系统 MUST 维护命令阶段到最小相关治理脚本的门禁矩阵，帮助 Agent 在不全量运行无关测试的前提下选择必要验证。
+
+#### Scenario: 治理资产变更
+- **WHEN** 命令修改 `.agents/skills/`、`rules/`、`docs/`、`scripts/` 或 OpenSpec Change 文档
+- **THEN** 系统 MUST 按治理脚本门禁矩阵选择最小相关验证
+- **AND** 输出 MUST 说明未运行业务测试的原因（如不涉及 API、DB、Web、小程序、管理端或 Docker）
+
+### Requirement: 文档事实唯一归属
+系统 MUST 为长期治理事实维护唯一事实源；入口文档和命令技能可以摘要引用，但不得复制完整规则导致漂移。
+
+#### Scenario: 新增或更新长期治理规则
+- **WHEN** 命令修改 `AGENTS.md`、`rules/`、`docs/`、`.agents/skills/` 或 `scripts/`
+- **THEN** 系统 MUST 判断该事实的唯一归属位置
+- **AND** 其他位置 SHOULD 使用短摘要和相对链接指向事实源
+
+### Requirement: 治理决策记录字段
+系统 MUST 在治理类 Change、`/spec-study` 学习报告和 `/spec-opt` 治理日志中记录关键决策，而不是只记录文件清单。
+
+#### Scenario: 应用治理学习或规范优化
+- **WHEN** `/spec-study apply` 或 `/spec-opt` 完成治理资产更新
+- **THEN** 报告 MUST 包含采纳原因、未采纳原因、替代方案或取舍、验证责任和后续触发条件
+- **AND** 报告 MUST 不包含会话推理、未脱敏路径、密钥、用户隐私或学习对象源码
+
+### Requirement: 文档 slop 与 CoT 泄漏审计
+系统 MUST 提供长期文档卫生规则和轻量校验，帮助发现会话推理残留、临时草稿引用、review 对话、不可解析内部引用和不必要历史叙事。
+
+#### Scenario: 修改长期治理文档
+- **WHEN** 命令新增或修改 `docs/`、`rules/`、`AGENTS.md` 或 `.agents/skills/`
+- **THEN** 系统 SHOULD 运行文档卫生校验或说明不适用原因
+- **AND** 发现项 MUST 由人工或 Agent 语义判断后处理，不得由脚本自动删除事实性内容
+
+### Requirement: 最小相关验证选择
+系统 MUST 根据实际 diff scope 和影响面选择最小相关证据，同时不得跳过项目强制门禁。
+
+#### Scenario: 治理变更完成
+- **WHEN** 变更只触达治理文档、技能或校验脚本
+- **THEN** 系统 SHOULD 运行治理相关脚本、目标 Change 校验和脚本自身校验
+- **AND** 系统 SHOULD 明确业务测试不适用的原因
+- **AND** 系统 MUST NOT 仅因为提交、归档或输出报告而重复运行已通过且未被新改动影响的无关检查
+
+### Requirement: 防御性模式知识库模板
+系统 MUST 支持将已发生或险些发生的问题沉淀为防御性模式，记录缺陷类别、预防规则和验证方式。
+
+#### Scenario: 问题具备复用价值
+- **WHEN** BUG、返修、发布事故、验收失败或治理复盘发现可复用的预防规则
+- **THEN** 系统 SHOULD 建议写入 `docs/knowledge-base/best-practices/`
+- **AND** 条目 SHOULD 使用防御性模式模板，避免写成长篇事故叙事
+
+### Requirement: Review 命令默认通过
+系统 MUST 将 `/req-review <REQ-id>` 与 `/bug-review <BUG-id>` 的无 flag 调用解释为评审通过，并继续执行与显式 `--approve` 相同的状态更新、目录迁移、Workflow Sync 和 AI Usage hook。反向评审结果 MUST 使用显式 flag 表达，包括 `--reject`、`--defer`，以及 BUG 专属的 `--wont-fix`。
+
+#### Scenario: 需求评审无 flag 默认通过
+- **WHEN** 用户执行 `/req-review REQ-xxxx`
+- **THEN** 系统 MUST 将评审结果设置为 `approved`
+- **AND** 系统 MUST 执行与原 `/req-review REQ-xxxx --approve` 相同的 `plan/` 到 `review/` 目录迁移、状态同步和后续门禁提示
+- **AND** 后续正向命令示例 SHOULD 使用 `/req-review REQ-xxxx`
+
+#### Scenario: 缺陷评审无 flag 默认通过
+- **WHEN** 用户执行 `/bug-review BUG-xxxx`
+- **THEN** 系统 MUST 将评审结果设置为 `approved`
+- **AND** 系统 MUST 执行与原 `/bug-review BUG-xxxx --approve` 相同的 `plan/` 到 `review/` 目录迁移、状态同步和后续门禁提示
+- **AND** 后续正向命令示例 SHOULD 使用 `/bug-review BUG-xxxx`
+
+#### Scenario: 反向评审必须显式选择
+- **WHEN** 用户需要拒绝、延后或标记 BUG 不修复
+- **THEN** 用户 MUST 显式使用 `/req-review <REQ-id> --reject`、`/req-review <REQ-id> --defer`、`/bug-review <BUG-id> --reject`、`/bug-review <BUG-id> --defer` 或 `/bug-review <BUG-id> --wont-fix`
+- **AND** 无 flag 调用 MUST NOT 再触发评审检查清单追问
+

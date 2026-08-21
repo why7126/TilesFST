@@ -55,7 +55,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    ```bash
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown
    ```
-   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若当前命令已运行 post-command hook 或用户刚刷新 snapshot，MUST 重新运行 Fact Sheet summary 复核 fresh gate；不得沿用刷新前的 blocker 结论。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
+   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若 recommended_action 指向 `scripts/extract-ai-usage.py` 或当前命令可运行 post-command hook，MUST 先刷新 snapshot；刷新完成后 MUST 重新运行 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 复核 fresh gate，且只能以刷新后的 summary 判断是否可渲染矩阵。不得沿用刷新前的 blocker 结论，也不得在未重新 summary 时直接运行 `--ai-usage-markdown` 写入真实矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
 6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 8. 输出 Experience Analysis Report。
@@ -81,6 +81,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
   - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的 compact 真实统计摘要：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数，以及 `usage_matrices_summary` 的矩阵可用性和行列规模。
   - 若 `ai_usage_snapshot.fresh_gate.status != pass`、`ai_usage_snapshot.snapshot_status != present`、`ai_usage_snapshot.ai_usage_mode != actual` 或 `ai_usage_snapshot.usage_matrices_summary.available != true`，MUST 输出 fresh gate blocker、reason（如 missing/stale/failed/coverage-missing/usage-matrices-missing/required-metrics-empty）、impact、freshness_baseline、recommended_action；默认不得生成真实 token 成本矩阵，不得编造具体 token 数字，不得静默按真实统计展示。
+  - `usage_matrices_summary.raw_present=true` 只表示 snapshot 文件里存在原始矩阵，不代表可写入复盘；只有 `usage_matrices_summary.matrix_write_gate.status=pass` 且 `available=true` 才允许通过 `--ai-usage-markdown` 写入真实矩阵。
   - 若 snapshot 过期、覆盖不足、缺少矩阵或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot；覆盖不足或缺少矩阵 MAY 保持 `snapshot_status: present`，但 fresh gate MUST 为 blocker 且 `ai_usage_mode` MUST NOT 作为真实统计使用。仅当用户明确要求继续 fallback 复盘时，MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析，且 MUST 说明不能用于真实 token 成本量化。
   - 当 compact summary 显示 `usage_matrices_summary.available=true` 且确需写入矩阵表时，MUST 通过 `--ai-usage-markdown` 生成可直接写入复盘文档的表格章节；复盘文档 MUST 在 `## 模型 Token 使用分析` 中新增四张指标矩阵表，数据来源为 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet 渲染输出：
     - 第一张：总 Token 消耗数 `total_tokens`。
@@ -175,8 +176,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event sprint.e
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

@@ -1,0 +1,53 @@
+sprint_id: sprint-024
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-21 08:18:18
+end_date: 2026-08-21 18:00:00
+capacity:
+  developers: 1
+  testers: 1
+requirements: []
+bugs:
+  - BUG-0130-miniapp-home-no-jump-banner-internal-title
+  - BUG-0131-miniapp-sku-detail-carousel-original-image-height
+changes:
+  - apply-moonbox-governance-quality-learnings
+  - apply-deepseek-harness-doc-governance-learnings
+  - fix-miniapp-home-no-jump-banner-internal-title
+  - default-review-approve-command
+  - fix-miniapp-sku-detail-carousel-original-image-height
+scope_estimates:
+  - id: apply-moonbox-governance-quality-learnings
+    change: apply-moonbox-governance-quality-learnings
+    size: S
+    story_points: 1
+    estimated_person_days: 0.75
+    rationale: 纯治理跨项目学习应用，覆盖根因证据、命令复盘、UI 返修截图对照、Workflow Sync next 复核和治理脚本门禁矩阵；不修改业务 src。
+  - id: BUG-0130-miniapp-home-no-jump-banner-internal-title
+    change: fix-miniapp-home-no-jump-banner-internal-title
+    bug: BUG-0130-miniapp-home-no-jump-banner-internal-title
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 小程序首页公开展示缺陷，需净化无跳转 Banner 内部标题并覆盖首页/品牌列表页媒体四联回归；已评审通过，尚未创建修复 Change。
+  - id: apply-deepseek-harness-doc-governance-learnings
+    change: apply-deepseek-harness-doc-governance-learnings
+    size: S
+    story_points: 1
+    estimated_person_days: 0.75
+    rationale: 纯治理跨项目学习应用，覆盖文档事实唯一归属、治理决策记录、文档表达卫生、最小相关验证和防御性模式模板；不修改业务 src。
+  - id: BUG-0131-miniapp-sku-detail-carousel-original-image-height
+    change: fix-miniapp-sku-detail-carousel-original-image-height
+    bug: BUG-0131-miniapp-sku-detail-carousel-original-image-height
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 小程序商品详情页核心视觉缺陷，已评审通过；修复需调整详情页首屏展示 URL 语义与轮播高度，保留列表/卡片 .thumb 策略，并覆盖小程序媒体 key/object/URL/render 四联验收。
+  - id: default-review-approve-command
+    change: default-review-approve-command
+    size: S
+    story_points: 1
+    estimated_person_days: 0.5
+    rationale: 纯治理命令体验优化：将 req-review 与 bug-review 改为无 flag 默认 approve，并同步 AGENTS、rules、相关 skill 示例和治理日志；不修改业务 src。
+estimated_story_points: 5
+estimated_person_days: 4

@@ -27,23 +27,23 @@ Use this skill when the user asks to run the workflow command `bug-review`.
 
 **Input**：`BUG-xxxx`
 
-Flags：`--approve` | `--reject` | `--defer` | `--wont-fix`
+Default：无 flag 时等价于 `approve`。反向结果必须显式使用 `--reject`、`--defer` 或 `--wont-fix`；`--approve` 仅作为兼容别名保留。
 
 **Output**：`review.md`；status → `approved` | `rejected` | `deferred` | `wont_fix`
 
-## Step — 目录迁移（MUST，`--approve` 时）
+## Step — 目录迁移（MUST，默认 approve 或 `--approve` 时）
 
 Read `rules/issues-lifecycle.md`。
 
 | Flag | 迁移 |
 |------|------|
-| `--approve` | `plan/` → `review/` |
+| 无 flag / `--approve` | `plan/` → `review/` |
 | `--reject` / `--defer` / `--wont-fix` | **跳过**（保留 `plan/`） |
 
-`--approve` 时 **MUST** 在 Workflow Sync **之前**运行：
+默认 approve 或显式 `--approve` 时 **MUST** 在 Workflow Sync **之前**运行：
 
 ```bash
-python scripts/promote-issue-stage.py --bug <BUG-id> --to review --reason "/bug-review --approve"
+python scripts/promote-issue-stage.py --bug <BUG-id> --to review --reason "/bug-review"
 ```
 
 - Exit code **MUST** be `0`（已在 `review/` 时可 no-op）。
@@ -102,7 +102,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event bug.revi
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

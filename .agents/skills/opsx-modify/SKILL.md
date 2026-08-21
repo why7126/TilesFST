@@ -18,6 +18,12 @@ Use this skill when the user asks `/opsx-modify <change-id|REQ-id|BUG-id> <修�
 
 若验收反馈或目标 Change 涉及 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*`、UI Skeleton 或明确视觉参照，MUST 读取 `docs/standards/prototype-ui-acceptance.md`，并复核 UI Contract、Skeleton、1440px 视觉证据、computed style、Mock/API 边界和最终一致性。任何 UI 返修会使相关旧截图 stale，必须重新取证并更新 Change `trace.md` 或验收记录。
 
+若验收反馈包含附件截图、标注图、原型截图或实际截图，返修前 MUST 建立“附件截图逐项视觉对照表”，逐项记录截图编号、页面/状态、期望表现、实际表现、偏差项、检查方式、处置结论和证据入口；证据不足时先补证，不得直接返修。
+
+## Root-cause Evidence Gate（MUST）
+
+涉及 BUG、回归失败、效果不如预期或原因判断的返修 MUST 遵守 `rules/root-cause-evidence.md`。无证据不得确认根因；证据不足时输出人工补证步骤，并将根因状态保持为 `unknown`、`hypothesis` 或 `probable`。
+
 ### Force-proceed Follow-up Guardrails（MUST）
 
 - `force-proceed` 仅允许继续当前命令的非阻断部分，MUST NOT 默认自动创建 follow-up REQ/BUG；除非用户在当前命令中明确授权自动 capture，否则只输出标准 capture 文案，并明确“未自动创建 Issue”。
@@ -216,7 +222,7 @@ This event means “验收返修已同步”，not first implementation and not 
 - <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
 ```
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122 --approve`。
+- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

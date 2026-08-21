@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,6 +26,11 @@ vi.mock('@/features/admin/components/ResetPasswordDialog', () => ({
 }));
 
 import { UserManagementPage } from './UserManagementPage';
+
+const userManagementCss = readFileSync(
+  resolve(process.cwd(), 'src/features/admin/styles/user-management.css'),
+  'utf8',
+);
 
 const listPayload = {
   items: [
@@ -90,6 +97,12 @@ describe('UserManagementPage', () => {
       'admin-sticky-action-cell',
     );
     expect(container.querySelector('td.admin-sticky-action-cell')).toBeInTheDocument();
+    expect(userManagementCss).toMatch(
+      /\.admin-shell \.user-mgmt-table th,\n\.admin-shell \.user-mgmt-table td \{[\s\S]*white-space: nowrap;/,
+    );
+    expect(userManagementCss).toMatch(
+      /\.admin-shell \.admin-sticky-action-cell \{[\s\S]*white-space: nowrap;/,
+    );
 
     const hero = container.querySelector('.page-hero');
     const summary = container.querySelector('.summary-grid');
@@ -104,6 +117,33 @@ describe('UserManagementPage', () => {
     expect(
       (filter?.compareDocumentPosition(table as Element) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+  });
+
+  it('uses backend pagination total and resets to page 1 when page size changes', async () => {
+    fetchUsersMock.mockResolvedValue({
+      ...listPayload,
+      total: 42,
+      page: 2,
+      page_size: 10,
+    });
+
+    render(<UserManagementPage />);
+
+    await waitFor(() => {
+      expect(fetchUsersMock).toHaveBeenCalledWith(expect.objectContaining({ page: 1, page_size: 10 }));
+    });
+
+    expect(screen.getByText('共 42 个用户')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('combobox', { name: '每页显示条数' }), {
+      target: { value: '20' },
+    });
+
+    await waitFor(() => {
+      expect(fetchUsersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, page_size: 20 }),
+      );
+    });
   });
 
   it('renders avatar image when avatar_url is present', async () => {

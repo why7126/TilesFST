@@ -182,8 +182,13 @@ Page({
       return;
     }
     if (banner.jump_type === 'search') {
+      const keyword = (banner.search_keyword || banner.title || '').trim();
+      if (!keyword) {
+        wx.showToast({ title: '内容建设中', icon: 'none' });
+        return;
+      }
       wx.navigateTo({
-        url: `/pages/search/index?keyword=${encodeURIComponent(banner.search_keyword || banner.title)}`,
+        url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`,
       });
       return;
     }

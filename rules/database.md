@@ -4,7 +4,7 @@ content: SQLite表设计、迁移、索引、媒体元数据、软删除、审�
 source: AI自动生成初稿，项目团队确认
 update_method: 新增表、字段、索引、迁移或媒体元数据存储规则时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-21 10:35:42
+updated_at: 2026-08-21 18:58:37
 note: 当前项目本地/演示默认 SQLite，生产支持 MySQL 8.0+
 ---
 
@@ -86,3 +86,16 @@ data/README.md
 ```
 
 若变更会影响生产 MySQL，AI 还必须同步 release gate 证据要求，并补充 SQLite/MySQL 差异测试或目标 MySQL 校验证据。
+
+## 7. 版本升级数据库证据
+
+版本升级治理 MUST 区分“存在幂等 migration 代码”和“某条升级路径已验证”。当升级计划的数据库影响不是 `none`、`na`、`不涉及` 或等价无影响状态时，升级计划 MUST 要求：
+
+- SQLite schema 与 migration 输入摘要。
+- MySQL `schema.mysql.sql` 与 MySQL migration 输入摘要。
+- `schema_migrations` 或等价版本记录。
+- 目标 MySQL schema drift、目标 MySQL smoke 或等价生产目标路径验证。
+- DB 备份、恢复责任或回滚边界。
+- 升级后关键业务读写 smoke。
+
+不得仅凭本地 SQLite 测试通过宣称生产 DB 升级安全。DB 回滚默认只能依赖升级前备份恢复或已验证的反向迁移策略；缺少 DB 备份或恢复责任时，升级计划 MUST 标记为 blocked 或 requires manual review。

@@ -12,7 +12,7 @@
 
 .media-wrap {
   position: relative;
-  min-height: 680rpx;
+  min-height: 720rpx;
   background: #211E16;
 }
 
@@ -20,7 +20,9 @@
 .gallery-image,
 .image-empty {
   width: 100%;
-  height: 680rpx;
+  height: calc(100vw * 1.08);
+  min-height: 720rpx;
+  max-height: 820rpx;
 }
 
 .gallery-image {
@@ -31,7 +33,9 @@
 .video-layer {
   position: relative;
   width: 100%;
-  height: 680rpx;
+  height: calc(100vw * 1.08);
+  min-height: 720rpx;
+  max-height: 820rpx;
 }
 
 .image-empty {
@@ -336,7 +340,9 @@
 }
 
 .skeleton-media {
-  height: 680rpx;
+  height: calc(100vw * 1.08);
+  min-height: 720rpx;
+  max-height: 820rpx;
   margin: -32rpx -32rpx 32rpx;
   border-radius: 0;
 }

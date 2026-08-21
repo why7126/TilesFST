@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
-from io import BytesIO
 from pathlib import Path
 import sqlite3
 
-from PIL import Image
-
-from app.modules.media.storage import MediaObjectInfo, StoredMediaObject
+from app.modules.media.storage import ImageThumbnailResult, MediaObjectInfo, StoredMediaObject
 
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "audit-miniapp-card-images.py"
@@ -18,10 +15,8 @@ spec.loader.exec_module(audit_script)
 
 
 def _image_bytes(fmt: str = "JPEG", size: tuple[int, int] = (960, 640)) -> bytes:
-    image = Image.new("RGB", size, (120, 30, 200))
-    output = BytesIO()
-    image.save(output, format=fmt, quality=95)
-    return output.getvalue()
+    header = f"{fmt}:{size[0]}x{size[1]}:".encode("ascii")
+    return header + (b"x" * (size[0] * size[1] // 16))
 
 
 class _Session:
@@ -181,11 +176,28 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
     monkeypatch.setattr(audit_script, "get_media_storage_client", lambda: storage)
     monkeypatch.setattr(
         audit_script,
+        "generate_image_thumbnail",
+        lambda content, content_type: ImageThumbnailResult(
+            b"thumb",
+            content_type or "image/jpeg",
+            120,
+            80,
+            960,
+            640,
+            len(content),
+            5,
+            True,
+        ),
+    )
+    monkeypatch.setattr(
+        audit_script,
         "get_session_factory",
         lambda: lambda: _Session(sqlite3.connect(db_path)),
     )
 
     dry_run = audit_script.audit(limit=None, backfill=True, execute=False)
+    assert dry_run["dry_run"] is True
+    assert dry_run["writes_enabled"] is False
     assert dry_run["total_resources"] == 4
     assert dry_run["resources_by_type"] == {
         "product_card": 1,
@@ -196,8 +208,16 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
     assert dry_run["pending_main_image"] == 1
     assert dry_run["missing_thumbnail_object"] == 1
     assert dry_run["needs_thumbnail_regeneration"] == 1
+    assert dry_run["classification_summary"] == {
+        "url_fallback_risk": 1,
+        "closed": 3,
+    }
     assert dry_run["items"][0]["resource_type"] == "product_card"
     assert dry_run["items"][0]["thumbnail_key"] == "images/default/tiles/pending/abc.thumb.jpg"
+    assert dry_run["items"][0]["object_key_hash"]
+    assert dry_run["items"][0]["object_key_prefix"] == "images/default/tiles"
+    assert dry_run["items"][0]["classification"] == "url_fallback_risk"
+    assert dry_run["items"][0]["four_part_status"]["key"] == "blocked"
     assert dry_run["items"][0]["backfill_status"] == "dry_run"
     assert storage.puts == []
 
@@ -209,7 +229,7 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
 
     repeated = audit_script.audit(limit=None, backfill=True, execute=True)
     assert repeated["backfill"]["success"] == 0
-    assert repeated["skipped_valid_thumbnail"] == 1
+    assert repeated["skipped_valid_thumbnail"] == 4
 
 
 def test_audit_regenerates_same_bytes_thumbnail(tmp_path: Path, monkeypatch) -> None:
@@ -219,6 +239,21 @@ def test_audit_regenerates_same_bytes_thumbnail(tmp_path: Path, monkeypatch) -> 
     original = storage.objects["images/default/tiles/pending/abc.jpg"]
     storage.objects["images/default/tiles/pending/abc.thumb.jpg"] = original
     monkeypatch.setattr(audit_script, "get_media_storage_client", lambda: storage)
+    monkeypatch.setattr(
+        audit_script,
+        "generate_image_thumbnail",
+        lambda content, content_type: ImageThumbnailResult(
+            b"thumb",
+            content_type or "image/jpeg",
+            120,
+            80,
+            960,
+            640,
+            len(content),
+            5,
+            True,
+        ),
+    )
     monkeypatch.setattr(
         audit_script,
         "get_session_factory",
@@ -237,3 +272,25 @@ def test_audit_regenerates_same_bytes_thumbnail(tmp_path: Path, monkeypatch) -> 
     regenerated = storage.objects["images/default/tiles/pending/abc.thumb.jpg"]
     assert regenerated.content != original.content
     assert len(regenerated.content) < len(original.content)
+
+
+def test_audit_deidentified_result_removes_raw_keys_and_labels(tmp_path: Path, monkeypatch) -> None:
+    db_path = tmp_path / "catalog.db"
+    _prepare_db(db_path)
+    storage = _Storage()
+    monkeypatch.setattr(audit_script, "get_media_storage_client", lambda: storage)
+    monkeypatch.setattr(
+        audit_script,
+        "get_session_factory",
+        lambda: lambda: _Session(sqlite3.connect(db_path)),
+    )
+
+    result = audit_script.audit(limit=None, backfill=True, execute=False)
+    safe = audit_script.deidentify_audit_result(result)
+    serialized = str(safe)
+
+    assert safe["deidentified"] is True
+    assert "images/default/tiles/pending/abc.jpg" not in serialized
+    assert "菲尚特" not in serialized
+    assert safe["items"][0]["object_key_hash"] == result["items"][0]["object_key_hash"]
+    assert safe["items"][0]["four_part_status"]["render"] == "blocked"

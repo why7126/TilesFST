@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-08 20:57:09
+updated_at: 2026-08-21 08:36:38
 ---
 
 # 文档索引
@@ -44,12 +44,14 @@ updated_at: 2026-08-08 20:57:09
 | [standards/media-five-point-acceptance-template.md](standards/media-five-point-acceptance-template.md) | 媒体五联验收模板 |
 | [standards/production-media-maintenance-runbook.md](standards/production-media-maintenance-runbook.md) | 生产媒体维护作业 Runbook |
 | [standards/prototype-ui-acceptance.md](standards/prototype-ui-acceptance.md) | 带 prototype 的 UI Contract、Skeleton、截图和最终一致性验收 |
+| [standards/command-execution-order.md](standards/command-execution-order.md) | workflow 命令顺序与治理脚本门禁矩阵 |
+| [standards/document-prose-hygiene.md](standards/document-prose-hygiene.md) | 长期文档表达卫生、slop 与 CoT 泄漏审计 |
 
 细则文档 **不加** `00–` 序号；新增标准放入 `standards/`。
 
 ## 层 3：知识库（`docs/knowledge-base/`）
 
-故障与事故沉淀，按主题命名，见 [knowledge-base/README.md](knowledge-base/README.md)。
+故障、事故与防御性模式沉淀，按主题命名，见 [knowledge-base/README.md](knowledge-base/README.md)。可复用预防策略优先使用 [knowledge-base/best-practices/defensive-pattern-template.md](knowledge-base/best-practices/defensive-pattern-template.md)。
 
 ## 层 4：规范工程日志（`docs/spec-logs/`）
 
@@ -78,6 +80,10 @@ updated_at: 2026-08-08 20:57:09
 规范优化入口使用 `/spec-opt`。新增或修改 `.agents/skills` 命令、`rules/` 文档、`docs/` 文档规范或 `scripts/` 治理脚本时，以 `/spec-opt` 和对应 OpenSpec Change 为准；该命令只服务治理资产，不修改业务 `src/` 代码。
 
 推送前安全检测入口使用 `/git-check`，默认运行 `python scripts/git-check.py` 扫描 staged、modified tracked 和 untracked 文件中的真实 env、运行时数据、密钥、连接串、本机绝对路径和大文件风险。
+
+问题排查、BUG 完善和验收返修遵守 [../rules/root-cause-evidence.md](../rules/root-cause-evidence.md)，根因状态必须区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 根因必须绑定脱敏证据链。
+
+长期文档、规则、技能说明和知识库新增或更新时遵守 [standards/document-prose-hygiene.md](standards/document-prose-hygiene.md)：事实只放在唯一归属文档，正文不写会话推理、临时草稿、review 对话、不可解析引用或未脱敏本机路径；必要时运行 `python scripts/validate-doc-prose-hygiene.py <focused-paths>`。
 
 所有 OpenSpec Change 在 `/opsx-apply` 前都必须纳入 Sprint 正式范围。通过 `/opsx-propose` 或 `/spec-opt` 直接创建的非 REQ/BUG Change，也需要先进入 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`，不得因“纯治理”或“无 REQ/BUG 来源”跳过 Sprint。
 

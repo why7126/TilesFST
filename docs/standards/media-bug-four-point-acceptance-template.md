@@ -4,7 +4,7 @@ content: 媒体类缺陷修复后的原 BUG 场景、key、object、URL、render
 source: REQ-0091-media-bug-four-point-acceptance-template / add-media-bug-four-point-acceptance-template
 update_method: 媒体 BUG 验收口径、对象存储策略、小程序证据或上传链路治理变化时同步更新
 created_at: 2026-08-01 11:04:15
-updated_at: 2026-08-04 09:05:00
+updated_at: 2026-08-12 14:54:20
 ---
 
 # 媒体类 BUG 四联验收模板
@@ -22,6 +22,7 @@ updated_at: 2026-08-04 09:05:00
 - 媒体五联模板用于媒体相关 REQ、Change、发布验收和通用能力治理，额外覆盖 `thumbnail benefit`。
 - 媒体 BUG 四联模板用于缺陷修复闭环，先还原原 BUG 场景，再验证 `key`、`object`、`URL`、`render` 是否一起恢复。
 - 当原 BUG 涉及缩略图、封面图、历史回填或媒体性能收益时，缩略图收益必须写入 `object`、`URL` 或 `render` 证据；如需独立评估体积/尺寸收益，可同时引用五联模板。
+- 小程序媒体 BUG 还必须引用 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`，并明确 DevTools、真机或体验版 Network evidence 状态；测试 helper 与审计 helper 不能替代 render 证据。
 
 ## 2. 状态与证据规则
 

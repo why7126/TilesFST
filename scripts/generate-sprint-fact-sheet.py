@@ -283,12 +283,8 @@ def render_usage_matrix_table(usage_matrices: dict[str, Any], metric: str) -> li
     return lines
 
 
-def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
-    sprint_id = fact_sheet["sprint"]["sprint_id"]
-    ai_usage_snapshot_data = fact_sheet.get("ai_usage_snapshot") or {}
-    totals = ai_usage_snapshot_data.get("totals") or {}
+def ai_usage_matrix_gate(ai_usage_snapshot_data: dict[str, Any]) -> dict[str, Any]:
     fresh_gate = ai_usage_snapshot_data.get("fresh_gate") or {}
-    baseline = fact_sheet.get("ai_usage_freshness_baseline") or {}
     usage_matrices = ai_usage_snapshot_data.get("usage_matrices") or {}
     matrix_columns = [
         str(column.get("label"))
@@ -296,7 +292,41 @@ def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
         if column.get("label")
     ]
     matrix_rows = usage_matrices.get("rows") or []
-    matrix_available = bool(matrix_columns and matrix_rows)
+    blockers: list[str] = []
+    if fresh_gate.get("status") != "pass":
+        blockers.extend(str(item) for item in fresh_gate.get("blockers") or ["fresh-gate-blocker"])
+    if ai_usage_snapshot_data.get("snapshot_status") != "present":
+        blockers.append(f"snapshot-status-{ai_usage_snapshot_data.get('snapshot_status') or 'unknown'}")
+    if ai_usage_snapshot_data.get("ai_usage_mode") != "actual":
+        blockers.append(f"usage-mode-{ai_usage_snapshot_data.get('ai_usage_mode') or 'unknown'}")
+    if not matrix_columns or not matrix_rows:
+        blockers.append("usage-matrices-missing")
+    return {
+        "status": "pass" if not blockers else "blocker",
+        "available": not blockers,
+        "raw_present": bool(matrix_columns and matrix_rows),
+        "columns_count": len(matrix_columns),
+        "rows_count": len(matrix_rows),
+        "blockers": sorted(set(blockers)),
+        "recommended_action": None if not blockers else ai_usage_snapshot_data.get("recommended_action"),
+    }
+
+
+def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
+    sprint_id = fact_sheet["sprint"]["sprint_id"]
+    ai_usage_snapshot_data = fact_sheet.get("ai_usage_snapshot") or {}
+    totals = ai_usage_snapshot_data.get("totals") or {}
+    fresh_gate = ai_usage_snapshot_data.get("fresh_gate") or {}
+    baseline = fact_sheet.get("ai_usage_freshness_baseline") or {}
+    usage_matrices = ai_usage_snapshot_data.get("usage_matrices") or {}
+    matrix_gate = ai_usage_matrix_gate(ai_usage_snapshot_data)
+    matrix_columns = [
+        str(column.get("label"))
+        for column in usage_matrices.get("columns", [])
+        if column.get("label")
+    ]
+    matrix_rows = usage_matrices.get("rows") or []
+    matrix_available = bool(matrix_gate["available"])
     source_path = ai_usage_snapshot_data.get("path") or f"data/ai-usage/sprints/{sprint_id}.json"
     baseline_source = baseline.get("source") or ""
     skipped = baseline.get("skipped") or []
@@ -326,6 +356,7 @@ def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
         f"| AI usage mode | {ai_usage_snapshot_data.get('ai_usage_mode', 'estimated_fallback')} | Fact Sheet: `ai_usage_snapshot.ai_usage_mode` |",
         f"| Snapshot status | {ai_usage_snapshot_data.get('snapshot_status', 'missing')} | Fact Sheet: `ai_usage_snapshot.snapshot_status` |",
         f"| Fresh gate | {fresh_gate.get('status', 'blocker')} | Fact Sheet: `ai_usage_snapshot.fresh_gate.status` |",
+        f"| Matrix write gate | {matrix_gate['status']} | 必须 fresh gate pass、actual/present 且矩阵存在才可输出真实矩阵 |",
         f"| Freshness baseline | {baseline_value} | 来源：`{baseline_source}`{skipped_note} |",
         f"| Generated at | {ai_usage_snapshot_data.get('generated_at') or ''} | `{source_path}` |",
         f"| command_run_count | {format_int(totals.get('command_run_count', 0))} | snapshot totals |",
@@ -343,6 +374,8 @@ def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
         lines.append(f"| Fresh gate note | {ai_usage_snapshot_data['note']} | Fact Sheet blocker note |")
     if ai_usage_snapshot_data.get("recommended_action"):
         lines.append(f"| Recommended action | {ai_usage_snapshot_data['recommended_action']} | Fact Sheet recommendation |")
+    if matrix_gate.get("blockers"):
+        lines.append(f"| Matrix blockers | {', '.join(matrix_gate['blockers'])} | 未通过时不得输出真实矩阵 |")
 
     lines.extend(
         [
@@ -356,7 +389,7 @@ def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
             lines.extend(render_usage_matrix_table(usage_matrices, metric))
             lines.append("")
     else:
-        lines.append("> 完整矩阵缺失或 fresh gate 未通过；刷新 `data/ai-usage` snapshot 后再输出真实成本矩阵。")
+        lines.append("> AI usage fresh gate 未通过或矩阵不可用；先按 Recommended action 刷新 `data/ai-usage` snapshot，刷新后重新运行 `--summary`，确认 gate pass 后再输出真实成本矩阵。")
         lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
@@ -645,7 +678,11 @@ def warning_summary(warnings: list[dict[str, str]]) -> dict[str, Any]:
     }
 
 
-def usage_matrices_summary(usage_matrices: dict[str, Any]) -> dict[str, Any]:
+def usage_matrices_summary(
+    usage_matrices: dict[str, Any],
+    *,
+    matrix_gate: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     columns = usage_matrices.get("columns") or []
     rows = usage_matrices.get("rows") or []
     metrics = usage_matrices.get("metrics") or []
@@ -659,15 +696,18 @@ def usage_matrices_summary(usage_matrices: dict[str, Any]) -> dict[str, Any]:
         for key in ("by_issue", "by_change", "by_workflow_event", "by_model")
         if key in usage_matrices
     ]
+    matrix_gate = matrix_gate or {}
     return {
-        "available": bool(usage_matrices),
+        "available": bool(matrix_gate.get("available", bool(usage_matrices))),
+        "raw_present": bool(columns and rows),
         "omitted": bool(rows),
         "metrics": metrics,
         "columns_count": len(columns),
         "rows_count": len(rows),
         "legacy_views": legacy_views,
         "fields_path": "ai_usage_snapshot.usage_matrices",
-        "recommended_read": "Use --fields ai_usage_snapshot.usage_matrices only when a real matrix table is explicitly needed.",
+        "matrix_write_gate": matrix_gate,
+        "recommended_read": "Use --ai-usage-markdown only after matrix_write_gate.status=pass; use --fields ai_usage_snapshot.usage_matrices only for diagnostics.",
     }
 
 
@@ -676,6 +716,7 @@ def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
     baseline = fact_sheet.get("ai_usage_freshness_baseline") or {}
     residuals = fact_sheet.get("archived_path_residuals") or {}
     matrices = ai_usage.get("usage_matrices") or {}
+    matrix_gate = ai_usage_matrix_gate(ai_usage)
     return {
         "sprint": fact_sheet["sprint"],
         "scope": {
@@ -728,7 +769,7 @@ def build_summary(fact_sheet: dict[str, Any]) -> dict[str, Any]:
             "recommended_action": ai_usage.get("recommended_action"),
             "note": ai_usage.get("note"),
             "totals": ai_usage.get("totals") or {},
-            "usage_matrices_summary": usage_matrices_summary(matrices),
+            "usage_matrices_summary": usage_matrices_summary(matrices, matrix_gate=matrix_gate),
         },
         "token_risks": fact_sheet["token_risks"],
         "four_piece": fact_sheet["four_piece"],

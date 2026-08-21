@@ -1,0 +1,64 @@
+sprint_id: sprint-023
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-12 09:15:58
+end_date: 2026-08-12 18:00:00
+capacity:
+  developers: 1
+  testers: 1
+requirements:
+  - REQ-0111-miniapp-media-four-part-acceptance-practice
+  - REQ-0112-admin-list-column-pagination-consistency-contract
+  - REQ-0113-admin-performance-observability-filter-options
+changes:
+  - optimize-release-workflow-ux
+  - strengthen-sprint-exps-ai-usage-fresh-gate
+  - fix-miniapp-rum-performance-observability
+  - update-miniapp-media-four-part-acceptance-practice
+  - update-admin-list-column-pagination-consistency-contract
+  - add-admin-performance-observability-filter-options
+scope_estimates:
+  - id: optimize-release-workflow-ux
+    change: optimize-release-workflow-ux
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 纯治理命令体验优化，仅修改 release/image/usage-docs 技能、规则和治理日志。
+  - id: BUG-0129-miniapp-rum-app-version-production
+    change: fix-miniapp-rum-performance-observability
+    bug: BUG-0129-miniapp-rum-app-version-production
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 小程序 RUM 与管理后台性能观测口径修复，覆盖版本号、request_id、指标标签、空态样式和聚合分组展示；属于跨小程序与管理端的小型 fix。
+  - id: strengthen-sprint-exps-ai-usage-fresh-gate
+    change: strengthen-sprint-exps-ai-usage-fresh-gate
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.25
+    rationale: 纯治理命令与脚本 gate 优化，强化 sprint-exps AI usage snapshot 刷新和真实矩阵写入流程。
+  - id: REQ-0111-miniapp-media-four-part-acceptance-practice
+    change: update-miniapp-media-four-part-acceptance-practice
+    requirement: REQ-0111-miniapp-media-four-part-acceptance-practice
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序媒体四联验收最佳实践：覆盖 docs/knowledge-base、媒体与对象存储验收规范、小程序 Network evidence、测试 helper 与审计 helper；不新增上传、缩略图生成、CDN 或对象存储 provider，估算 1 人天。
+  - id: REQ-0112-admin-list-column-pagination-consistency-contract
+    change: update-admin-list-column-pagination-consistency-contract
+    requirement: REQ-0112-admin-list-column-pagination-consistency-contract
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 管理端列表列展示与分页一致性契约，覆盖 nowrap、有效期例外、冻结操作列、分页 DOM、后端真实分页与 knowledge-base gate；首轮按小型治理/前端契约需求估算，后续实现若扩展多页面改造再拆分。
+  - id: REQ-0113-admin-performance-observability-filter-options
+    change: add-admin-performance-observability-filter-options
+    requirement: REQ-0113-admin-performance-observability-filter-options
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 管理端性能观测候选值接口与筛选/字段顺序契约，覆盖后端管理端 API、OpenAPI/Orval、Web 管理端筛选区、聚合列表、样本页字段顺序和 admin-list 横切 AC；默认不改 DB 表结构，估算 1 人天。
+estimated_story_points: 5
+estimated_person_days: 4.5
+bugs:
+  - BUG-0129-miniapp-rum-app-version-production
