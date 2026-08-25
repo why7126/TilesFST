@@ -98,6 +98,7 @@ class MiniappCertificateResult:
     issuer: str | None
     type: str | None
     brand_name: str
+    brand_logo_object_key: str | None
     file_url: str
     file_name: str | None = None
     file_mime_type: str | None = None
@@ -111,6 +112,7 @@ class MiniappCertificateResult:
 class MiniappCertificateImageResult:
     id: int
     file_url: str
+    file_key: str | None
     file_name: str | None
     file_mime_type: str | None
     sort_order: int
@@ -319,11 +321,17 @@ class MiniappHomeRepository:
                 text(
                     """
                     SELECT bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-                           COALESCE(bci.file_url, bc.file_url) AS file_url,
+                           CASE
+                             WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
+                             THEN '/media/' || bci.file_key
+                             WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
+                             THEN '/media/' || bc.file_key
+                             ELSE COALESCE(bci.file_url, bc.file_url)
+                           END AS file_url,
                            COALESCE(bci.file_name, bc.file_name) AS file_name,
                            COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
                            bc.is_permanent, bc.effective_date, bc.expiry_date,
-                           b.name AS brand_name
+                           b.name AS brand_name, b.logo_object_key AS brand_logo_object_key
                     FROM brand_certificates bc
                     JOIN brands b ON b.id = bc.brand_id
                     LEFT JOIN brand_certificate_images bci
@@ -350,6 +358,7 @@ class MiniappHomeRepository:
                 issuer=row.get("issuer"),
                 type=row.get("type"),
                 brand_name=str(row["brand_name"]),
+                brand_logo_object_key=row.get("brand_logo_object_key"),
                 file_url=str(row["file_url"]),
                 file_name=row.get("file_name"),
                 file_mime_type=row.get("file_mime_type"),
@@ -431,7 +440,7 @@ class MiniappHomeRepository:
             self._db.execute(
                 text(
                     """
-                    SELECT id, file_url, file_name, file_mime_type, sort_order, is_main
+                    SELECT id, file_url, file_key, file_name, file_mime_type, sort_order, is_main
                     FROM brand_certificate_images
                     WHERE certificate_id = :certificate_id
                     ORDER BY is_main DESC, sort_order ASC, id ASC
@@ -446,6 +455,7 @@ class MiniappHomeRepository:
             MiniappCertificateImageResult(
                 id=int(row["id"]),
                 file_url=str(row["file_url"]),
+                file_key=row.get("file_key"),
                 file_name=row.get("file_name"),
                 file_mime_type=row.get("file_mime_type"),
                 sort_order=int(row["sort_order"] or 0),
@@ -781,6 +791,7 @@ class MiniappHomeRepository:
                 issuer=row.get("issuer"),
                 type=None,
                 brand_name=str(row["brand_name"]),
+                brand_logo_object_key=None,
                 file_url=str(row["file_url"]),
             )
             for row in rows
@@ -1294,11 +1305,18 @@ class MiniappHomeRepository:
         return """
             SELECT
               bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-              COALESCE(bci.file_url, bc.file_url) AS file_url,
+              CASE
+                WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
+                THEN '/media/' || bci.file_key
+                WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
+                THEN '/media/' || bc.file_key
+                ELSE COALESCE(bci.file_url, bc.file_url)
+              END AS file_url,
               COALESCE(bci.file_name, bc.file_name) AS file_name,
               COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
               bc.is_permanent,
-              bc.effective_date, bc.expiry_date, bc.remark, b.name AS brand_name
+              bc.effective_date, bc.expiry_date, bc.remark, b.name AS brand_name,
+              b.logo_object_key AS brand_logo_object_key
             FROM brand_certificates bc
             JOIN brands b ON b.id = bc.brand_id
             LEFT JOIN brand_certificate_images bci
@@ -1323,6 +1341,7 @@ class MiniappHomeRepository:
             issuer=row.get("issuer"),
             type=row.get("type"),
             brand_name=str(row["brand_name"]),
+            brand_logo_object_key=row.get("brand_logo_object_key"),
             file_url=str(row["file_url"]),
             file_name=row.get("file_name"),
             file_mime_type=row.get("file_mime_type"),

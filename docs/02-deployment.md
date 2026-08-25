@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 22:09:09
+updated_at: 2026-08-25 11:18:08
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -25,7 +25,7 @@ Web 镜像构建会将 `src/web/public/` 下的静态资源复制到前端站点
 
 `src/web/public/logos/` 属于前端静态资源，不经过对象存储；门店品牌 Logo、SKU 图片、视频封面等业务媒体仍必须通过后端授权上传并写入 `OBJECT_STORAGE_BUCKET`。
 
-SKU 图片上传会在后端生成同目录 `.thumb` 缩略图。后端运行依赖包含 Pillow，用于 JPG、PNG、WebP 解码、等比缩小和重编码；Docker 构建通过 `src/backend/uv.lock` 还原该依赖，部署环境无需额外手工安装系统外 Python 包。
+SKU 图片上传会在后端生成同目录 `.thumb` 缩略图和 `.display` 详情展示图。后端运行依赖包含 Pillow，用于 JPG、PNG、WebP 解码、等比缩小和重编码；Docker 构建通过 `src/backend/uv.lock` 还原该依赖，部署环境无需额外手工安装系统外 Python 包。默认媒体 URL 仍走 `/media/{object_key}` 受控读取；如启用 `OBJECT_STORAGE_DIRECT_READ_ENABLED=true`，后端只返回短期对象存储直出读取 URL，前端不得持有对象存储永久密钥。
 
 ## 环境变量
 
@@ -37,19 +37,19 @@ SKU 图片上传会在后端生成同目录 `.thumb` 缩略图。后端运行依
 
 正式发布涉及镜像交付或 Docker/Compose/数据库 schema/migration 等构建输入变化时，先执行 `/image-prepare <version>` 生成 `releases/<version>/image-build-plan.json`，再执行 `/image-build <version>` 复用下方脚本构建镜像并生成 `releases/<version>/image-manifest.json`。`/release-publish` 会使用 plan/manifest 校验版本、tag 和 input hash 是否仍一致。
 
-正式部署或升级前 SHOULD 生成版本升级计划：
+正式部署或升级前 SHOULD 生成版本升级计划。每次正常发布默认生成并校验 `fresh -> <to-version>` 与 `<previous-release-version> -> <to-version>` 两类计划；跨版本升级计划不默认生成，只有用户明确指定来源旧版本时才通过 `/upgrade-plan --from <old-version> --to <to-version>` 或等价脚本命令生成。
 
 ```bash
 python scripts/validate-release-upgrade.py plan --from fresh --to vX.Y.Z
-python scripts/validate-release-upgrade.py plan --from vA.B.C --to vX.Y.Z
-python scripts/validate-release-upgrade.py validate-plan --plan releases/vX.Y.Z/upgrade-plans/vA.B.C-to-vX.Y.Z.json
+python scripts/validate-release-upgrade.py plan --from <previous-release-version> --to vX.Y.Z
+python scripts/validate-release-upgrade.py validate-plan --plan releases/vX.Y.Z/upgrade-plans/<from>-to-vX.Y.Z.json
 ```
 
 升级计划位于 `releases/<to-version>/upgrade-plans/`，用于区分：
 
 - 首次部署：`fresh -> <to-version>`，重点校验目标 release、目标镜像、生产 env、MySQL 空库初始化、对象存储配置、Compose config 和部署后 smoke。
 - 相邻升级：`<previous-version> -> <to-version>`，重点校验 env diff、`TILESFST_IMAGE_TAG` 切换、DB drift/smoke、备份、重启和升级后 smoke。
-- 跨版本升级：`<old-version> -> <to-version>`，必须聚合中间版本 DB、env、Docker、API、对象存储和维护任务影响；缺少演练或证据时标记为 `cross-version-upgrade-requires-manual-review` 或 `unsupported`。
+- 跨版本升级：`<old-version> -> <to-version>`，由用户按需手工生成，必须聚合中间版本 DB、env、Docker、API、对象存储和维护任务影响；缺少演练或证据时标记为 `cross-version-upgrade-requires-manual-review` 或 `unsupported`。
 
 三类部署均复用同一目标版本 backend / web 镜像，不为首次部署、相邻升级或跨版本升级分别构建不同业务镜像。回滚前必须确认旧镜像、旧 env 摘要、DB 备份、对象存储影响和回滚后 smoke；DB 回滚不得脱离备份恢复或已验证反向迁移策略。
 
@@ -129,7 +129,7 @@ cp scripts/build-images.env.example scripts/build-images.env
 ./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos object-key-audit --limit 100
 ```
 
-维护入口支持 dry-run 优先的任务：`object-key-audit`、`backfill-brand-certificate-thumbnails`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 和 `bug-0116-media-drift`。写入数据库或对象存储时必须显式追加 `--apply --confirm-backup`，并在执行前完成 MySQL 与对象存储 bucket/prefix 备份。任务输出只允许记录统计摘要、对象 Key hash、标准前缀、任务状态和媒体验收摘要，不得输出数据库连接串、对象存储密钥、Authorization header、Cookie、真实 `.env` 内容或本机绝对路径。
+维护入口支持 dry-run 优先的任务：`object-key-audit`、`backfill-brand-certificate-thumbnails`、`backfill-image-variants`、`formalize-pending-tile-images`、`migrate-certificate-image-keys` 和 `media-drift-reconcile`。`bug-0116-media-drift` 仅作为历史兼容别名保留，不作为生产推荐命令。写入数据库或对象存储时必须显式追加 `--apply --confirm-backup`，并在执行前完成 MySQL 与对象存储 bucket/prefix 备份。任务输出只允许记录统计摘要、对象 Key hash、标准前缀、任务状态和媒体验收摘要，不得输出数据库连接串、对象存储密钥、Authorization header、Cookie、真实 `.env` 内容或本机绝对路径。
 
 ### 服务组成
 

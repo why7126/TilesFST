@@ -48,9 +48,9 @@ class _Storage:
                 b"image",
                 "image/jpeg",
             ),
-            "images/default/tiles/pending/abc.thumb.jpg": StoredMediaObject(
+            "images/default/tiles/pending/abc.thumb.webp": StoredMediaObject(
                 b"thumb",
-                "image/jpeg",
+                "image/webp",
             ),
         }
         self.puts: list[tuple[str, bytes, str | None]] = []
@@ -136,6 +136,8 @@ def test_migrate_pending_tile_images_dry_run_and_apply_are_idempotent(
     storage = _Storage()
     set_media_storage_client(storage)
     monkeypatch.setattr(migrate_script, "get_media_storage_client", lambda: storage)
+    monkeypatch.setattr(migrate_script.maintenance, "_effective_thumbnail_max_size_kb", lambda: 0)
+    monkeypatch.setattr(migrate_script.maintenance, "_effective_display_max_size_kb", lambda: 0)
     monkeypatch.setattr(
         migrate_script,
         "get_session_factory",
@@ -155,7 +157,7 @@ def test_migrate_pending_tile_images_dry_run_and_apply_are_idempotent(
         assert applied["success"] == 1
         assert storage.puts == [
             ("images/default/tiles/42/abc.jpg", b"image", "image/jpeg"),
-            ("images/default/tiles/42/abc.thumb.jpg", b"thumb", "image/jpeg"),
+            ("images/default/tiles/42/abc.thumb.webp", b"thumb", "image/webp"),
         ]
         assert _db_key(db_path) == "images/default/tiles/42/abc.jpg"
 

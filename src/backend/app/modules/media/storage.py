@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 import hashlib
 from io import BytesIO
 import logging
@@ -23,6 +24,16 @@ from app.modules.media.object_keys import build_object_key
 MEDIA_NOT_FOUND = 40404
 MEDIA_INVALID_OBJECT_KEY = 40040
 IMAGE_CACHE_CONTROL = "public, max-age=604800, stale-while-revalidate=86400"
+DISPLAY_IMAGE_MAX_WIDTH = 1600
+DISPLAY_IMAGE_MAX_HEIGHT = 1600
+DISPLAY_IMAGE_TARGET_MAX_SIZE_KB = 768
+DISPLAY_IMAGE_JPEG_QUALITY = 86
+DISPLAY_IMAGE_WEBP_QUALITY = 86
+WEBP_DERIVATIVE_CONTENT_TYPE = "image/webp"
+WEBP_DERIVATIVE_FORMAT = "WEBP"
+WEBP_DERIVATIVE_EXTENSION = "webp"
+WEBP_ORIGINAL_FALLBACK_EXTENSIONS = ("jpg", "jpeg", "png", "webp")
+OBJECT_MISSING_ERROR_CODES = {"NoSuchKey", "NoSuchObject", "NoSuchResource"}
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -60,6 +71,23 @@ def _detect_content_type(content: bytes) -> str | None:
     if content.startswith((b"GIF87a", b"GIF89a")):
         return "image/gif"
     return None
+
+
+def _object_storage_error_code(exc: BaseException) -> str:
+    for accessor_name in ("get_error_code", "get_code"):
+        accessor = getattr(exc, accessor_name, None)
+        if callable(accessor):
+            try:
+                code = accessor()
+            except Exception:
+                code = None
+            if code:
+                return str(code)
+    return str(getattr(exc, "code", "") or "")
+
+
+def _is_object_missing_error(exc: BaseException) -> bool:
+    return _object_storage_error_code(exc) in OBJECT_MISSING_ERROR_CODES
 
 
 @dataclass(frozen=True)
@@ -108,8 +136,9 @@ def generate_image_thumbnail(
     jpeg_quality: int = 82,
     webp_quality: int = 82,
     target_max_size_kb: int = 0,
+    output_format: str = WEBP_DERIVATIVE_FORMAT,
 ) -> ImageThumbnailResult:
-    """Generate a same-format thumbnail without upscaling small images."""
+    """Generate a WebP image variant without upscaling small images."""
 
     image_format = _image_format_for_content_type(content_type) or _image_format_for_content_type(
         _detect_content_type(content)
@@ -129,7 +158,11 @@ def generate_image_thumbnail(
             thumbnail = image.copy()
             thumbnail.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
             resized = thumbnail.size != (original_width, original_height)
-            output_format, output_content_type = image_format
+            _, source_content_type = image_format
+            output_format = output_format.upper()
+            output_content_type = (
+                WEBP_DERIVATIVE_CONTENT_TYPE if output_format == WEBP_DERIVATIVE_FORMAT else source_content_type
+            )
             target_size_bytes = max(0, int(target_max_size_kb or 0)) * 1024
             thumbnail, thumbnail_content = _encode_thumbnail_with_target(
                 thumbnail=thumbnail,
@@ -186,6 +219,8 @@ def _thumbnail_save_kwargs(
 def _save_thumbnail_bytes(thumbnail: Any, output_format: str, save_kwargs: dict[str, object]) -> bytes:
     if output_format == "JPEG" and thumbnail.mode not in {"RGB", "L"}:
         thumbnail = thumbnail.convert("RGB")
+    if output_format == "WEBP" and thumbnail.mode not in {"RGB", "RGBA"}:
+        thumbnail = thumbnail.convert("RGBA" if "A" in thumbnail.getbands() else "RGB")
     output = BytesIO()
     thumbnail.save(output, **save_kwargs)
     return output.getvalue()
@@ -258,6 +293,9 @@ class MediaStorageClient(Protocol):
     def get_object_range(self, object_key: str, offset: int, length: int) -> StoredMediaObject:
         """Return a byte range and total object size."""
 
+    def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
+        """Return an expiring object-storage read URL for controlled direct delivery."""
+
 
 class S3CompatibleMediaStorageClient:
     def __init__(self) -> None:
@@ -328,8 +366,7 @@ class S3CompatibleMediaStorageClient:
             response = client.get_object(settings.effective_object_storage_bucket(), object_key)
             content = response.read()
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -350,8 +387,7 @@ class S3CompatibleMediaStorageClient:
         try:
             stat = client.stat_object(settings.effective_object_storage_bucket(), object_key)
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -377,8 +413,7 @@ class S3CompatibleMediaStorageClient:
             )
             content = response.read(length)
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -393,6 +428,21 @@ class S3CompatibleMediaStorageClient:
         content_type = getattr(stat, "content_type", None) or mimetypes.guess_type(object_key)[0]
         total_size = getattr(stat, "size", None)
         return StoredMediaObject(content=content, content_type=content_type, total_size=total_size)
+
+    def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
+        validate_object_key(object_key)
+        try:
+            return self._get_client().presigned_get_object(
+                settings.effective_object_storage_bucket(),
+                object_key,
+                expires=timedelta(seconds=expires_seconds),
+            )
+        except Exception as exc:
+            raise AppError(
+                status_code=502,
+                code=STORAGE_UNAVAILABLE,
+                message="对象存储不可用",
+            ) from exc
 
 
 class TencentCOSMediaStorageClient:
@@ -442,8 +492,7 @@ class TencentCOSMediaStorageClient:
             )
             content = response["Body"].get_raw_stream().read()
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -462,8 +511,7 @@ class TencentCOSMediaStorageClient:
                 Key=object_key,
             )
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -492,8 +540,7 @@ class TencentCOSMediaStorageClient:
         except AppError:
             raise
         except Exception as exc:
-            code = getattr(exc, "code", "")
-            if code in {"NoSuchKey", "NoSuchObject"}:
+            if _is_object_missing_error(exc):
                 raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在") from exc
             raise AppError(
                 status_code=502,
@@ -506,6 +553,22 @@ class TencentCOSMediaStorageClient:
             content_type=info.content_type,
             total_size=info.total_size,
         )
+
+    def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
+        validate_object_key(object_key)
+        try:
+            return self._get_client().get_presigned_url(
+                Method="GET",
+                Bucket=settings.effective_object_storage_bucket(),
+                Key=object_key,
+                Expired=expires_seconds,
+            )
+        except Exception as exc:
+            raise AppError(
+                status_code=502,
+                code=STORAGE_UNAVAILABLE,
+                message="对象存储不可用",
+            ) from exc
 
 
 MinioMediaStorageClient = S3CompatibleMediaStorageClient
@@ -611,13 +674,52 @@ def thumbnail_object_key(object_key: str) -> str:
 def same_directory_thumbnail_object_key(object_key: str, suffix: str = ".thumb") -> str:
     key = str(resolve_media_path(object_key))
     path = PurePosixPath(key)
-    if path.name.endswith(f"{suffix}{path.suffix}"):
+    derivative_suffix = f"{suffix}.{WEBP_DERIVATIVE_EXTENSION}"
+    if path.name.endswith(derivative_suffix):
         return key
     if path.suffix:
-        thumbnail_name = f"{path.stem}{suffix}{path.suffix}"
+        thumbnail_name = f"{path.stem}{derivative_suffix}"
     else:
-        thumbnail_name = f"{path.name}{suffix}"
+        thumbnail_name = f"{path.name}{derivative_suffix}"
     return str(path.with_name(thumbnail_name))
+
+
+def same_directory_display_object_key(object_key: str) -> str:
+    return same_directory_thumbnail_object_key(object_key, suffix=".display")
+
+
+def media_variant_object_key(object_key: str, variant: str) -> str:
+    if variant == "original":
+        return str(resolve_media_path(object_key))
+    if variant == "thumbnail":
+        return same_directory_thumbnail_object_key(object_key)
+    if variant == "display":
+        return same_directory_display_object_key(object_key)
+    raise ValueError(f"unsupported media variant: {variant}")
+
+
+def media_url_for_object_key(object_key: str, *, direct: bool | None = None) -> str:
+    key = str(resolve_media_path(object_key))
+    should_direct = (
+        settings.effective_object_storage_direct_read_enabled() if direct is None else direct
+    )
+    if not should_direct:
+        return f"/media/{key}"
+    return get_media_storage_client().build_direct_read_url(
+        key,
+        settings.effective_object_storage_direct_read_expires_seconds(),
+    )
+
+
+def media_variant_urls(object_key: str, *, direct: bool | None = None) -> dict[str, str]:
+    original_key = str(resolve_media_path(object_key))
+    thumbnail_key = media_variant_object_key(original_key, "thumbnail")
+    display_key = media_variant_object_key(original_key, "display")
+    return {
+        "original_url": media_url_for_object_key(original_key, direct=direct),
+        "thumbnail_url": media_url_for_object_key(thumbnail_key, direct=direct),
+        "display_url": media_url_for_object_key(display_key, direct=direct),
+    }
 
 
 def _thumbnail_origin_candidates(object_key: str) -> list[str]:
@@ -630,21 +732,30 @@ def _thumbnail_origin_candidates(object_key: str) -> list[str]:
     return candidates
 
 
-def _same_directory_thumbnail_origin_candidates(object_key: str) -> list[str]:
+def _same_directory_variant_origin_candidates(object_key: str) -> list[str]:
     try:
         key = str(resolve_media_path(object_key))
     except AppError:
         return []
     path = PurePosixPath(key)
     suffix = path.suffix
-    if not suffix or not path.stem.endswith(".thumb"):
+    if not suffix:
         return []
-    return [str(path.with_name(f"{path.stem.removesuffix('.thumb')}{suffix}"))]
+    for marker in (".thumb", ".display"):
+        if path.stem.endswith(marker):
+            original_stem = path.stem.removesuffix(marker)
+            if suffix == f".{WEBP_DERIVATIVE_EXTENSION}":
+                return [
+                    str(path.with_name(f"{original_stem}.{extension}"))
+                    for extension in WEBP_ORIGINAL_FALLBACK_EXTENSIONS
+                ]
+            return [str(path.with_name(f"{original_stem}{suffix}"))]
+    return []
 
 
 def _resolve_candidate_keys(object_key: str) -> list[str]:
     candidate_keys = [object_key]
-    for thumbnail_fallback in _same_directory_thumbnail_origin_candidates(object_key):
+    for thumbnail_fallback in _same_directory_variant_origin_candidates(object_key):
         if thumbnail_fallback not in candidate_keys:
             candidate_keys.append(thumbnail_fallback)
     for thumbnail_fallback in _thumbnail_origin_candidates(object_key):
@@ -779,10 +890,14 @@ async def save_upload_file(
     timing: UploadTimingContext | None = None,
     thumbnail_key: str | None = None,
     thumbnail_max_size_kb: int = 0,
+    display_key: str | None = None,
+    display_max_size_kb: int = DISPLAY_IMAGE_TARGET_MAX_SIZE_KB,
 ) -> int:
     resolve_media_path(object_key)
     if thumbnail_key is not None:
         resolve_media_path(thumbnail_key)
+    if display_key is not None:
+        resolve_media_path(display_key)
     stage_started_at = perf_counter()
     _log_upload_stage(timing, "file_read_start", stage_started_at)
     content = await file.read()
@@ -799,36 +914,83 @@ async def save_upload_file(
     client.put_object(object_key, content, file.content_type)
     _log_upload_stage(timing, "storage_put_done", stage_started_at, size_bytes=len(content))
     if thumbnail_key:
-        stage_started_at = perf_counter()
-        _log_upload_stage(timing, "thumbnail_put_start", stage_started_at, size_bytes=len(content))
-        try:
-            thumbnail = generate_image_thumbnail(
-                content,
-                file.content_type,
-                target_max_size_kb=thumbnail_max_size_kb,
-            )
-        except (RuntimeError, ValueError, OSError) as exc:
-            logger.warning(
-                "media_thumbnail_generation_failed object_key=%s thumbnail_key=%s reason=%s",
-                object_key,
-                thumbnail_key,
-                exc.__class__.__name__,
-            )
-            _log_upload_stage(timing, "thumbnail_generation_skipped", stage_started_at, size_bytes=0)
-        else:
-            client.put_object(thumbnail_key, thumbnail.content, thumbnail.content_type)
-            _log_upload_stage(
-                timing,
-                "thumbnail_put_done",
-                stage_started_at,
-                size_bytes=thumbnail.size,
-                width=thumbnail.width,
-                height=thumbnail.height,
-                original_width=thumbnail.original_width,
-                original_height=thumbnail.original_height,
-                resized=thumbnail.resized,
-            )
+        _put_generated_image_variant(
+            client=client,
+            content=content,
+            content_type=file.content_type,
+            object_key=object_key,
+            variant_key=thumbnail_key,
+            variant="thumbnail",
+            timing=timing,
+            target_max_size_kb=thumbnail_max_size_kb,
+        )
+    if display_key:
+        _put_generated_image_variant(
+            client=client,
+            content=content,
+            content_type=file.content_type,
+            object_key=object_key,
+            variant_key=display_key,
+            variant="display",
+            timing=timing,
+            max_width=DISPLAY_IMAGE_MAX_WIDTH,
+            max_height=DISPLAY_IMAGE_MAX_HEIGHT,
+            jpeg_quality=DISPLAY_IMAGE_JPEG_QUALITY,
+            webp_quality=DISPLAY_IMAGE_WEBP_QUALITY,
+            target_max_size_kb=display_max_size_kb,
+        )
     return len(content)
+
+
+def _put_generated_image_variant(
+    *,
+    client: MediaStorageClient,
+    content: bytes,
+    content_type: str | None,
+    object_key: str,
+    variant_key: str,
+    variant: str,
+    timing: UploadTimingContext | None,
+    max_width: int = 480,
+    max_height: int = 480,
+    jpeg_quality: int = 82,
+    webp_quality: int = 82,
+    target_max_size_kb: int = 0,
+) -> None:
+    stage_started_at = perf_counter()
+    _log_upload_stage(timing, f"{variant}_put_start", stage_started_at, size_bytes=len(content))
+    try:
+        generated = generate_image_thumbnail(
+            content,
+            content_type,
+            max_width=max_width,
+            max_height=max_height,
+            jpeg_quality=jpeg_quality,
+            webp_quality=webp_quality,
+            target_max_size_kb=target_max_size_kb,
+        )
+    except (RuntimeError, ValueError, OSError) as exc:
+        logger.warning(
+            "media_image_variant_generation_failed object_key_hash=%s variant=%s variant_key_hash=%s reason=%s",
+            _media_key_fingerprint(object_key),
+            variant,
+            _media_key_fingerprint(variant_key),
+            exc.__class__.__name__,
+        )
+        _log_upload_stage(timing, f"{variant}_generation_skipped", stage_started_at, size_bytes=0)
+        return
+    client.put_object(variant_key, generated.content, generated.content_type)
+    _log_upload_stage(
+        timing,
+        f"{variant}_put_done",
+        stage_started_at,
+        size_bytes=generated.size,
+        width=generated.width,
+        height=generated.height,
+        original_width=generated.original_width,
+        original_height=generated.original_height,
+        resized=generated.resized,
+    )
 
 
 def _resolve_media_object(object_key: str) -> tuple[str, StoredMediaObject]:

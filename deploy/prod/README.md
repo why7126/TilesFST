@@ -3,7 +3,7 @@ purpose: 生产部署矩阵
 content: prod-mysql-tencent-cos 前置条件、启动方式和安全边界
 source: REQ-0093 standardize-deployment-environment-matrix
 created_at: 2026-08-03 19:10:00
-updated_at: 2026-08-06 00:00:00
+updated_at: 2026-08-25 11:18:08
 ---
 
 # 生产部署矩阵
@@ -53,13 +53,13 @@ cp deploy/prod/mysql-tencent-cos.env.example deploy/prod/mysql-tencent-cos.env
 ./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos object-key-audit --limit 100
 ```
 
-BUG-0116 聚合 dry-run 示例：
+媒体漂移聚合 dry-run 示例：
 
 ```bash
-./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos bug-0116-media-drift --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos media-drift-reconcile --limit 100
 ```
 
-写操作必须先完成 MySQL 快照和对象存储 bucket/prefix 快照，并显式传入 `--apply --confirm-backup`。部署脚本会阻断缺少 `--confirm-backup` 的 apply；维护 CLI 输出只包含统计、脱敏对象标识、错误码和失败原因摘要，不得输出真实密钥、数据库连接串、Authorization header、Cookie、生产 `.env` 原文、本机绝对路径或真实客户敏感数据。
+写操作必须先完成 MySQL 快照和对象存储 bucket/prefix 快照，并显式传入 `--apply --confirm-backup`。`media-drift-reconcile` 是生产推荐聚合入口；`bug-0116-media-drift` 仅作为历史兼容别名保留。部署脚本会阻断缺少 `--confirm-backup` 的 apply；维护 CLI 输出只包含统计、脱敏对象标识、错误码和失败原因摘要，不得输出真实密钥、数据库连接串、Authorization header、Cookie、生产 `.env` 原文、本机绝对路径或真实客户敏感数据。
 
 变更生产 Compose 文档或 env 示例后，至少校验：
 

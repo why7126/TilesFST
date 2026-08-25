@@ -90,6 +90,8 @@ const FILE_SIZE_OPTIONS = [10, 20, 25, 50, 100, 200].map((mb) => ({
 
 const THUMBNAIL_MAX_SIZE_MIN_KB = 0;
 const THUMBNAIL_MAX_SIZE_MAX_KB = 1024;
+const DISPLAY_MAX_SIZE_MIN_KB = 0;
+const DISPLAY_MAX_SIZE_MAX_KB = 2048;
 
 type ConfirmDialog =
   | { kind: 'reset' }
@@ -271,6 +273,14 @@ export function SystemSettingsPage() {
         ) {
           throw new Error('缩略图体积目标上限须为 0–1024 KB');
         }
+        const displayMaxSizeKb = Number(form.display_max_size_kb ?? 768);
+        if (
+          !Number.isInteger(displayMaxSizeKb) ||
+          displayMaxSizeKb < DISPLAY_MAX_SIZE_MIN_KB ||
+          displayMaxSizeKb > DISPLAY_MAX_SIZE_MAX_KB
+        ) {
+          throw new Error('详情展示图体积目标上限须为 0–2048 KB');
+        }
       }
       const patch: Record<string, unknown> = {};
       for (const key of Object.keys(form)) {
@@ -447,7 +457,7 @@ export function SystemSettingsPage() {
             </div>
             <span className="settings-status">已启用</span>
           </div>
-          <div className="settings-form-grid">
+          <div className="settings-form-grid" data-testid="media-upload-limits-grid">
             <div>
               <span className="settings-field-label">
                 图片最大尺寸 (MB)<span className="required">*</span>
@@ -474,16 +484,17 @@ export function SystemSettingsPage() {
             </div>
             <div>
               <span className="settings-field-label">
-                文档最大尺寸 (MB)<span className="required">*</span>
+                文件最大尺寸 (MB)<span className="required">*</span>
               </span>
               <AdminFilterSelect
-                ariaLabel="文档最大尺寸 (MB)"
-                listLabel="文档最大尺寸选项"
+                ariaLabel="文件最大尺寸 (MB)"
+                listLabel="文件最大尺寸选项"
                 value={String(form.max_file_size_mb ?? 25)}
                 options={FILE_SIZE_OPTIONS}
                 onChange={(value) => updateField('max_file_size_mb', Number(value))}
               />
             </div>
+            <div className="settings-form-spacer" aria-hidden="true" />
             <label>
               <span className="settings-field-label">
                 缩略图体积目标上限 (KB)<span className="required">*</span>
@@ -501,6 +512,25 @@ export function SystemSettingsPage() {
               />
               <span className="settings-form-help">
                 0 表示不限制；大于 0 时后续新生成缩略图尽量不超过目标上限。历史缩略图需通过维护任务重生成。
+              </span>
+            </label>
+            <label>
+              <span className="settings-field-label">
+                详情展示图体积目标上限 (KB)<span className="required">*</span>
+              </span>
+              <input
+                className="settings-input"
+                type="number"
+                min={DISPLAY_MAX_SIZE_MIN_KB}
+                max={DISPLAY_MAX_SIZE_MAX_KB}
+                step={1}
+                value={Number(form.display_max_size_kb ?? 768)}
+                onChange={(event) => {
+                  updateField('display_max_size_kb', Number(event.target.value));
+                }}
+              />
+              <span className="settings-form-help">
+                默认 768KB；仅影响后续新生成 display 图。历史详情展示图需通过维护任务重生成，且与缩略图目标独立。
               </span>
             </label>
             <div>

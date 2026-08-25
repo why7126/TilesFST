@@ -133,7 +133,7 @@ Page({
       specs: [] as FacetOption[],
       price_ranges: [] as FacetOption[],
     },
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
   },
 
   onLoad(query: Record<string, string>) {

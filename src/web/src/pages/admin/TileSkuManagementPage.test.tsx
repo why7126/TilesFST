@@ -243,7 +243,7 @@ describe('TileSkuManagementPage', () => {
         {
           ...listPayload.items[0],
           main_image_url: '/media/tiles/1/images/main.jpg',
-          main_image_thumbnail_url: '/media/tiles/1/images/main.thumb.jpg',
+          main_image_thumbnail_url: '/media/tiles/1/images/main.thumb.webp',
         },
       ],
     });
@@ -259,7 +259,7 @@ describe('TileSkuManagementPage', () => {
     });
 
     const image = container.querySelector('.sku-thumb img') as HTMLImageElement;
-    expect(image).toHaveAttribute('src', '/media/tiles/1/images/main.thumb.jpg');
+    expect(image).toHaveAttribute('src', '/media/tiles/1/images/main.thumb.webp');
 
     fireEvent.error(image);
 

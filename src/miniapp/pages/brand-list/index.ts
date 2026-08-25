@@ -5,6 +5,8 @@ type BrandBanner = {
   title: string;
   subtitle?: string;
   image_url: string;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
   jump_type: 'none' | 'product' | 'brand' | 'search' | 'store';
   target_id?: number;
   search_keyword?: string;
@@ -105,7 +107,7 @@ Page({
     loadMoreError: '',
     requestId: '',
     sourcePage: 'tabbar',
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     skeletons: [1, 2, 3, 4],
   },
 
@@ -295,14 +297,17 @@ Page({
 
   onImageError(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
-    this.setData({ [`banners[${index}].image_url`]: this.data.imageFallback });
+    const variant = event.currentTarget.dataset.variant === 'thumbnail_url' ? 'thumbnail_url' : 'display_url';
+    this.setData({
+      [`banners[${index}].${variant}`]: '',
+      [`banners[${index}].image_url`]: '',
+    });
   },
 
   onLogoError(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
     this.setData({
       [`items[${index}].brand_logo_thumbnail_url`]: '',
-      [`items[${index}].brand_logo_url`]: '',
     });
   },
 

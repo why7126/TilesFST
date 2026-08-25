@@ -4,9 +4,17 @@ import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
+from app.core.exceptions import AppError
+from app.modules.media.storage import (
+    MEDIA_NOT_FOUND,
+    MediaObjectInfo,
+    StoredMediaObject,
+    set_media_storage_client,
+)
 from app.services.log_service import EVENT_DEFINITIONS
 from app.repositories.miniapp_home_repository import MiniappHomeRepository
 
@@ -31,6 +39,47 @@ MINIAPP_DYNAMIC_USAGE_EVENT_SAMPLES = {
     "miniapp_home_waterfall_product_click",
     "miniapp_home_favorite_visual_click",
 }
+
+
+class _MemoryMediaStorageClient:
+    def __init__(self, objects: dict[str, StoredMediaObject] | None = None, *, use_default: bool = True) -> None:
+        self.objects = objects or {}
+        self.use_default = use_default
+
+    def put_object(self, object_key: str, content: bytes, content_type: str | None) -> None:
+        self.objects[object_key] = StoredMediaObject(content=content, content_type=content_type)
+
+    def get_object(self, object_key: str) -> StoredMediaObject:
+        if object_key in self.objects:
+            return self.objects[object_key]
+        if self.use_default:
+            return StoredMediaObject(content=b"image", content_type="image/webp")
+        raise AppError(status_code=404, code=MEDIA_NOT_FOUND, message="媒体文件不存在")
+
+    def get_object_info(self, object_key: str) -> MediaObjectInfo:
+        stored_object = self.get_object(object_key)
+        return MediaObjectInfo(
+            content_type=stored_object.content_type,
+            total_size=stored_object.total_size or len(stored_object.content),
+        )
+
+    def get_object_range(self, object_key: str, offset: int, length: int) -> StoredMediaObject:
+        stored_object = self.get_object(object_key)
+        return StoredMediaObject(
+            content=stored_object.content[offset : offset + length],
+            content_type=stored_object.content_type,
+            total_size=stored_object.total_size or len(stored_object.content),
+        )
+
+    def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
+        return f"https://storage.example.test/{object_key}?expires={expires_seconds}"
+
+
+@pytest.fixture(autouse=True)
+def miniapp_media_storage() -> None:
+    set_media_storage_client(_MemoryMediaStorageClient())
+    yield
+    set_media_storage_client(None)
 
 
 def test_miniapp_new_product_filter_uses_mysql_date_expression() -> None:
@@ -231,7 +280,9 @@ def test_miniapp_home_returns_public_data_and_hides_internal_fields(api_client: 
     assert data["store"]["name"] == "菲尚特瓷砖馆"
     assert data["banners"][0]["title"] == "小程序首页轮播"
     assert data["banners"][0]["jump_type"] == "product"
-    assert data["banners"][0]["image_url"] == "/media/banners/home.thumb.webp"
+    assert data["banners"][0]["image_url"] == "/media/banners/home.display.webp"
+    assert data["banners"][0]["thumbnail_url"] == "/media/banners/home.thumb.webp"
+    assert data["banners"][0]["display_url"] == "/media/banners/home.display.webp"
     assert [item["title"] for item in data["shortcuts"]] == ["选瓷砖", "品牌馆", "新品榜", "热销榜"]
     assert data["new_products"][0]["sku_code"] in {"FST-001", "FST-002", "FST-004"}
     assert data["new_products"][0]["cover_image"].startswith("/media/tiles/")
@@ -416,7 +467,7 @@ def test_miniapp_brand_list_returns_public_brands_and_brand_list_carousel(
     assert [item["title"] for item in data["banners"]] == ["品牌列表页轮播"]
     assert data["banners"][0]["jump_type"] == "brand"
     assert data["banners"][0]["target_id"] == 1
-    assert data["banners"][0]["image_url"] == "/media/banners/brand-list.thumb.webp"
+    assert data["banners"][0]["image_url"] == "/media/banners/brand-list.display.webp"
     assert data["items"][0] == {
         "brand_id": 1,
         "brand_name": "菲尚特",
@@ -924,6 +975,8 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     assert brand_list["items"][0]["brand_id"] == 1
     assert brand_list["items"][0]["brand_logo_url"] is None
     assert brand_list["items"][0]["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
+    assert "brand_hero_display_url" not in brand_list["items"][0]
+    assert "brand_hero_thumbnail_url" not in brand_list["items"][0]
     assert brand_list["items"][0]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
     assert brand_list["items"][0]["product_count"] == 3
     assert brand_list["items"][0]["leaf_category_names"] == ["客厅"]
@@ -936,8 +989,10 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     assert detail_response.status_code == 200
     detail = detail_response.json()["data"]
     assert detail["brand_name"] == "菲尚特"
-    assert detail["brand_logo_url"] == "/media/logos/fst.webp"
+    assert detail["brand_logo_url"] is None
     assert detail["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
+    assert detail["brand_hero_display_url"] == "/media/logos/fst.display.webp"
+    assert detail["brand_hero_thumbnail_url"] == "/media/logos/fst.thumb.webp"
     assert detail["leaf_category_names"] == ["客厅"]
     assert detail["leaf_categories"] == [{"category_id": 1, "category_name": "客厅"}]
     assert detail["product_path"] == "/pages/product-list/index?brandId=1&sourcePage=brand-detail"
@@ -951,6 +1006,8 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     assert empty_detail["product_count"] == 0
     assert empty_detail["leaf_category_names"] == []
     assert empty_detail["leaf_categories"] == []
+    assert empty_detail["brand_hero_display_url"] == "/media/logos/empty.display.webp"
+    assert empty_detail["brand_hero_thumbnail_url"] == "/media/logos/empty.thumb.webp"
     assert empty_detail["product_path"] == "/pages/product-list/index?brandId=3&sourcePage=brand-detail"
     assert empty_detail["certificate_count"] == 0
 
@@ -959,6 +1016,7 @@ def test_miniapp_brand_home_endpoints_return_public_detail_and_certificates(
     assert certificates["total"] == 1
     assert certificates["items"][0]["certificate_name"] == "绿色建材认证"
     assert certificates["items"][0]["file_url"] == "/media/certificates/green-main.webp"
+    assert certificates["items"][0]["thumbnail_url"] == "/media/certificates/green-main.thumb.webp"
     assert "file_key" not in certificate_response.text
     assert "green-main-key" not in certificate_response.text
     assert "内部证书备注" not in certificate_response.text
@@ -989,7 +1047,9 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
                   description, status, sku_count, created_at, updated_at
                 ) VALUES
                   (2, '停用品牌', 2, 'OFF', 'OffBrand', 'logos/off.webp',
-                   '内部品牌备注', 'DISABLED', 1, :now, :now)
+                   '内部品牌备注', 'DISABLED', 1, :now, :now),
+                  (3, '无 Logo 品牌', 3, 'NOLOGO', 'NoLogoBrand', NULL,
+                   '公开品牌备注', 'ENABLED', 1, :now, :now)
                 """
             ),
             {"now": now},
@@ -1133,7 +1193,11 @@ def test_miniapp_certificate_detail_returns_public_data_and_filters_private_reco
                   (24, 1, '软删除证书详情', 5, 'QUALITY', 'DEL-DTL', '内部机构',
                    '/media/certificates/deleted.webp', 'certificates/raw-deleted.webp',
                    'deleted.webp', 'image/webp', 2048, 1, NULL, NULL, 1,
-                   '删除备注', :now, :now, :now)
+                   '删除备注', :now, :now, :now),
+                  (25, 1, '无 Logo 品牌证书详情', 6, 'QUALITY', 'NOLOGO-DTL', '公开机构',
+                   '/media/certificates/no-logo.webp', 'certificates/raw-no-logo.webp',
+                   'no-logo.webp', 'image/webp', 2048, 1, NULL, NULL, 1,
+                   '公开备注', NULL, :now, :now)
                 """
             ),
             {"now": now, "future": future},
@@ -1167,22 +1231,48 @@ def test_miniapp_certificate_detail_returns_public_data_and_filters_private_reco
     assert data["certificate_name"] == "绿色建材详情证书"
     assert data["certificate_type_label"] == "绿色建材"
     assert data["brand"]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
+    assert data["brand"]["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
     assert data["share"]["path"] == "/pages/certificate-detail/index?certificateId=20&source=share"
-    assert data["media"][0]["url"] == "/media/certificates/detail-main.webp"
+    assert data["media"][0]["url"] == "/media/certificates/detail-main.display.webp"
+    assert data["media"][0]["display_url"] == "/media/certificates/detail-main.display.webp"
+    assert data["media"][0]["thumbnail_url"] == "/media/certificates/detail-main.thumb.webp"
+    assert data["media"][0]["preview_url"] == "/media/certificates/detail-main.webp"
+    assert data["media"][0]["original_url"] == "/media/certificates/detail-main.webp"
     assert data["media"][0]["is_main"] is True
-    assert data["media"][1]["url"] == "/media/certificates/detail-side.webp"
+    assert data["media"][1]["url"] == "/media/certificates/detail-side.display.webp"
+    assert data["media"][1]["display_url"] == "/media/certificates/detail-side.display.webp"
+    assert data["media"][1]["original_url"] == "/media/certificates/detail-side.webp"
     assert data["file_url"] == "/media/certificates/detail-main.webp"
+    assert data["main_media"]["url"] == "/media/certificates/detail-main.display.webp"
     assert data["validity_status"] == "VALID"
     assert data["remark"] == "适用于门店公开展示的绿色建材认证说明。"
     assert "file_key" not in response.text
     assert "raw-detail" not in response.text
+    assert "logo_object_key" not in response.text
 
     legacy_response = api_client.get("/api/v1/miniapp/certificates/21")
     assert legacy_response.status_code == 200
     legacy = legacy_response.json()["data"]
     assert legacy["media"][0]["media_type"] == "pdf"
     assert legacy["media"][0]["url"] == "/media/certificates/legacy.pdf"
+    assert legacy["media"][0]["display_url"] is None
+    assert legacy["media"][0]["thumbnail_url"] is None
+    assert legacy["media"][0]["preview_url"] is None
+    assert legacy["media"][0]["original_url"] is None
     assert legacy["main_media"]["file_name"] == "legacy.pdf"
+
+    db = get_session_factory()()
+    try:
+        db.execute(text("UPDATE brands SET logo_object_key = NULL WHERE id = 1"))
+        db.commit()
+    finally:
+        db.close()
+
+    no_logo_response = api_client.get("/api/v1/miniapp/certificates/25")
+    assert no_logo_response.status_code == 200
+    no_logo = no_logo_response.json()["data"]
+    assert no_logo["brand"]["brand_logo_thumbnail_url"] is None
+    assert no_logo["brand"]["available"] is True
 
     for certificate_id in [22, 23, 24, 9999]:
         hidden = api_client.get(f"/api/v1/miniapp/certificates/{certificate_id}")
@@ -1190,6 +1280,162 @@ def test_miniapp_certificate_detail_returns_public_data_and_filters_private_reco
         assert hidden.json()["code"] == 30030
         assert "内部" not in hidden.text
         assert "raw-" not in hidden.text
+
+
+def test_miniapp_certificate_detail_hides_missing_display_variants_and_avoids_original_cold_load(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    set_media_storage_client(
+        _MemoryMediaStorageClient(
+            {
+                "certificates/detail-main.webp": StoredMediaObject(
+                    content=b"original",
+                    content_type="image/webp",
+                ),
+                "certificates/detail-side.webp": StoredMediaObject(
+                    content=b"original",
+                    content_type="image/webp",
+                ),
+            },
+            use_default=False,
+        )
+    )
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificates (
+                  id, brand_id, name, sort_order, type, certificate_no, issuer,
+                  file_url, file_key, file_name, file_mime_type, file_size_bytes,
+                  is_permanent, effective_date, expiry_date, is_visible, remark,
+                  deleted_at, created_at, updated_at
+                ) VALUES (
+                  29, 1, '无展示图证书', 1, 'GREEN_BUILDING', 'GB-NO-DISPLAY', '认证机构',
+                  '/media/certificates/detail-main.webp', 'certificates/detail-main.webp',
+                  'detail-main.webp', 'image/webp', 2048, 1, NULL, NULL, 1,
+                  '公开备注', NULL, :now, :now
+                )
+                """
+            ),
+            {"now": now},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES (
+                  219, 29, '/media/certificates/detail-main.webp',
+                  'certificates/detail-main.webp', 'detail-main.webp',
+                  'image/webp', 3072, 1, 0, :now, :now
+                )
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/certificates/29")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["media"][0]["media_type"] == "image"
+    assert data["media"][0]["display_url"] is None
+    assert data["media"][0]["thumbnail_url"] is None
+    assert data["media"][0]["url"] == ""
+    assert data["media"][0]["preview_url"] == "/media/certificates/detail-main.webp"
+    assert data["media"][0]["original_url"] == "/media/certificates/detail-main.webp"
+    assert data["main_media"]["url"] == ""
+    assert "/media/certificates/detail-main.display.webp" not in response.text
+    assert data["main_media"]["thumbnail_url"] is None
+    assert data["main_media"]["display_url"] is None
+
+
+def test_miniapp_certificate_detail_uses_migrated_certificate_image_key_for_variants(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    set_media_storage_client(
+        _MemoryMediaStorageClient(
+            {
+                "images/default/brand-certificates/legacy-cert.jpg": StoredMediaObject(
+                    content=b"original",
+                    content_type="image/jpeg",
+                ),
+                "images/default/brand-certificates/legacy-cert.thumb.webp": StoredMediaObject(
+                    content=b"thumb",
+                    content_type="image/webp",
+                ),
+                "images/default/brand-certificates/legacy-cert.display.webp": StoredMediaObject(
+                    content=b"display",
+                    content_type="image/webp",
+                ),
+            },
+            use_default=False,
+        )
+    )
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificates (
+                  id, brand_id, name, sort_order, type, certificate_no, issuer,
+                  file_url, file_key, file_name, file_mime_type, file_size_bytes,
+                  is_permanent, effective_date, expiry_date, is_visible, remark,
+                  deleted_at, created_at, updated_at
+                ) VALUES (
+                  30, 1, '历史图片证书', 1, 'INSPECTION', 'INS-LEGACY', '检测中心',
+                  '/media/files/default/brand-certificates/legacy-cert.jpg',
+                  'images/default/brand-certificates/legacy-cert.jpg',
+                  'legacy-cert.jpg', 'image/jpeg', 4096, 1, NULL, NULL, 1,
+                  '公开备注', NULL, :now, :now
+                )
+                """
+            ),
+            {"now": now},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES (
+                  230, 30,
+                  '/media/files/default/brand-certificates/legacy-cert.jpg',
+                  'images/default/brand-certificates/legacy-cert.jpg',
+                  'legacy-cert.jpg', 'image/jpeg', 4096, 1, 0, :now, :now
+                )
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/certificates/30")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["media"][0]["url"] == "/media/images/default/brand-certificates/legacy-cert.display.webp"
+    assert data["media"][0]["display_url"] == "/media/images/default/brand-certificates/legacy-cert.display.webp"
+    assert data["media"][0]["thumbnail_url"] == "/media/images/default/brand-certificates/legacy-cert.thumb.webp"
+    assert data["media"][0]["original_url"] == "/media/images/default/brand-certificates/legacy-cert.jpg"
+    assert "files/default/brand-certificates/legacy-cert" not in response.text
+    assert "file_key" not in response.text
 
 
 def test_miniapp_product_list_primary_category_aggregates_self_and_enabled_children(api_client: TestClient) -> None:
@@ -1445,7 +1691,7 @@ def test_miniapp_home_only_uses_admin_miniapp_home_carousel_banners(
     assert response.status_code == 200
     banners = response.json()["data"]["banners"]
     assert [item["title"] for item in banners] == ["小程序首页轮播"]
-    assert banners[0]["image_url"] == "/media/banners/home.thumb.webp"
+    assert banners[0]["image_url"] == "/media/banners/home.display.webp"
 
 
 def test_miniapp_brand_list_does_not_fallback_to_home_carousel(
@@ -1572,14 +1818,21 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert data["product_id"] == 1
     assert data["brand"]["brand_id"] == 1
     assert data["brand"]["brand_logo_url"] == "/media/logos/fst.webp"
+    assert data["brand"]["brand_logo_thumbnail_url"] == "/media/logos/fst.thumb.webp"
     assert data["brand"]["brand_entry_path"] == "/pages/brand-detail/index?brandId=1"
     assert data["image_count"] == 2
     assert data["video_count"] == 1
     assert data["media"][0]["media_type"] == "image"
-    assert data["media"][0]["url"] == "/media/tiles/1.webp"
+    assert data["media"][0]["url"] == "/media/tiles/1.display.webp"
+    assert data["media"][0]["display_url"] == "/media/tiles/1.display.webp"
+    assert data["media"][0]["thumbnail_url"] == "/media/tiles/1.thumb.webp"
     assert data["media"][0]["preview_url"] == "/media/tiles/1.webp"
+    assert data["media"][0]["original_url"] == "/media/tiles/1.webp"
     assert data["cover_image"] == "/media/tiles/1.thumb.webp"
-    assert data["share"]["image_url"] == "/media/tiles/1.webp"
+    assert data["thumbnail_url"] == "/media/tiles/1.thumb.webp"
+    assert data["display_url"] == "/media/tiles/1.display.webp"
+    assert data["original_url"] == "/media/tiles/1.webp"
+    assert data["share"]["image_url"] == "/media/tiles/1.display.webp"
     assert data["media"][-1]["media_type"] == "video"
     assert data["media"][-1]["url"] == "/media/videos/1.mp4"
     assert data["media"][-1]["cover_url"] == "/media/tiles/1.thumb.webp"
@@ -1604,6 +1857,38 @@ def test_miniapp_sku_detail_returns_public_media_recommendations_and_share(
     assert "object_key" not in data
     assert "内部备注" not in response.text
     assert "库存" not in response.text
+
+
+def test_miniapp_sku_detail_hides_missing_display_variants_and_avoids_original_cold_load(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    set_media_storage_client(
+        _MemoryMediaStorageClient(
+            {
+                "tiles/1.webp": StoredMediaObject(content=b"original", content_type="image/webp"),
+                "tiles/1-detail.webp": StoredMediaObject(content=b"original", content_type="image/webp"),
+            },
+            use_default=False,
+        )
+    )
+
+    response = api_client.get("/api/v1/miniapp/skus/1?client_id=client-a")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    image_media = [item for item in data["media"] if item["media_type"] == "image"]
+    assert image_media
+    assert all(item["display_url"] is None for item in image_media)
+    assert all(item["thumbnail_url"] is None for item in image_media)
+    assert all(item["url"] == "" for item in image_media)
+    assert all(item["original_url"].endswith(".webp") for item in image_media)
+    assert "/media/tiles/1.display.webp" not in response.text
+    assert "/media/tiles/1.thumb.webp" not in response.text
+    assert data["display_url"] is None
+    assert data["thumbnail_url"] is None
+    assert data["cover_image"] is None
+    assert data["share"]["image_url"] is None
 
 
 def test_miniapp_sku_detail_omits_empty_or_placeholder_remark(api_client: TestClient) -> None:
@@ -2458,6 +2743,20 @@ def test_miniapp_contract_drift_usage_events_are_registered_and_persisted(
             },
         ),
         (
+            "brand_certificate_image_failed",
+            {
+                "page_path": "/pages/brand-detail/index",
+                "sourcePage": "sku-detail",
+                "sourceModule": "brand_detail",
+                "brandId": 1,
+                "tab": "certificates",
+                "certificateId": 2,
+                "index": 0,
+                "requestId": "brand-10",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
             "brand_detail_share_click",
             {
                 "page_path": "/pages/brand-detail/index",
@@ -2539,6 +2838,21 @@ def test_miniapp_contract_drift_usage_events_are_registered_and_persisted(
                 "listContext": "SKU 品牌入口",
                 "index": 0,
                 "requestId": "brand-card-1",
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
+            "brand_card_click",
+            {
+                "page_path": "/components/brand-card/index",
+                "brandId": 1,
+                "brandName": "菲尚特",
+                "sourcePage": "certificate_detail",
+                "sourceModule": "brand_entry",
+                "certificateId": 20,
+                "listContext": "证书详情品牌入口",
+                "index": 0,
+                "requestId": "certificate-detail-brand-card-1",
                 "client_type": "wechat_miniapp",
             },
         ),

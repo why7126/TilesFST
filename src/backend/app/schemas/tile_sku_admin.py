@@ -34,6 +34,9 @@ class TileSkuImageItem(BaseModel):
     id: int
     object_key: str
     url: str
+    thumbnail_url: str | None = None
+    display_url: str | None = None
+    original_url: str | None = None
     is_main: bool
     sort_order: int
 
@@ -68,6 +71,8 @@ class TileSkuAdminItem(BaseModel):
     status: TileSkuStatus
     main_image_url: str | None = None
     main_image_thumbnail_url: str | None = None
+    main_image_display_url: str | None = None
+    main_image_original_url: str | None = None
     image_count: int = 0
     video_count: int = 0
     has_main_image: bool = False

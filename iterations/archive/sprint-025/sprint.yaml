@@ -1,0 +1,182 @@
+sprint_id: sprint-025
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-21 18:43:30
+end_date: 2026-08-25 14:45:16
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements:
+  - REQ-0114-version-deployment-upgrade-rollback-governance
+  - REQ-0115-media-multi-variant-images
+  - REQ-0116-workflow-opsx-linked-change-backfill
+  - REQ-0117-media-maintenance-storage-unreachable-summary
+  - REQ-0118-unified-web-miniapp-image-variant-consumption-matrix
+  - REQ-0119-admin-display-image-size-limit-setting
+  - REQ-0120-webp-derived-image-variants
+  - REQ-0121-miniapp-certificate-detail-brand-card-entry
+  - REQ-0122-batch-image-processing-runbook
+bugs:
+  - BUG-0132-miniapp-sku-detail-large-image-cold-load
+  - BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url
+  - BUG-0134-miniapp-certificate-detail-display-url
+  - BUG-0135-miniapp-certificate-card-file-url-fallback
+  - BUG-0136-workflow-sync-bug-generate-captured-draft
+  - BUG-0137-miniapp-lightweight-image-variant-consumption
+  - BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml
+changes:
+  - add-version-deployment-upgrade-rollback-governance
+  - add-media-multi-variant-images
+  - tighten-sprint-propose-active-sprint-governance
+  - fix-miniapp-sku-detail-large-image-cold-load
+  - update-workflow-opsx-linked-change-backfill
+  - improve-media-maintenance-storage-unreachable-summary
+  - update-media-image-variant-consumption-matrix
+  - fix-miniapp-sku-detail-brand-logo-thumbnail-url
+  - fix-miniapp-certificate-detail-display-url
+  - fix-miniapp-certificate-card-file-url-fallback
+  - fix-workflow-sync-bug-generate-status-transition
+  - add-admin-display-image-size-limit-setting
+  - add-webp-derived-image-variants
+  - update-miniapp-certificate-detail-brand-card-entry
+  - tighten-bug-review-root-cause-confirmed-gate
+  - fix-miniapp-lightweight-image-variant-consumption
+  - add-batch-image-processing-runbook
+  - fix-workflow-sync-trace-frontmatter-invalid-yaml
+scope_estimates:
+  - id: REQ-0114-version-deployment-upgrade-rollback-governance
+    requirement: REQ-0114-version-deployment-upgrade-rollback-governance
+    change: add-version-deployment-upgrade-rollback-governance
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 发布治理能力，覆盖版本事实源一致性、首次部署、相邻升级与回滚、跨版本升级与回滚、env diff、数据库升级验证、回滚证据模型和 upgrade 命令边界；不包含可视化平台，不自动执行生产升级，按 L=5 人天纳入。
+  - id: REQ-0115-media-multi-variant-images
+    change: add-media-multi-variant-images
+    requirement: REQ-0115-media-multi-variant-images
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 媒体多规格展示图主能力，覆盖上传后 thumbnail/display/original 生成、商品/媒体 API 多规格 URL、小程序列表/详情/预览选择策略、存量图片批量生成 dry-run/apply、对象存储直出签名/缓存/权限边界与后续 CDN 预留；涉及后端 media、对象存储、小程序、Web 展示/管理端回显和测试验收，按 L=5 人天纳入。
+  - id: BUG-0132-miniapp-sku-detail-large-image-cold-load
+    change: fix-miniapp-sku-detail-large-image-cold-load
+    bug: BUG-0132-miniapp-sku-detail-large-image-cold-load
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1/high 小程序商品详情页媒体性能缺陷修复，聚焦冷加载大图限制、PNG 展示版替代、原图仅预览、首屏外 lazy-load 与媒体四联/小程序 Network evidence；不包含通用多规格图平台能力，按 M=3 人天纳入。
+  - id: tighten-sprint-propose-active-sprint-governance
+    change: tighten-sprint-propose-active-sprint-governance
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: XS 治理规则与轻量校验脚本调整，覆盖 sprint-propose active Sprint 默认选择、连续编号、容量硬阻断引导和归档冻结边界；不触碰业务 src，按 0.5 人天纳入。
+  - id: REQ-0116-workflow-opsx-linked-change-backfill
+    change: update-workflow-opsx-linked-change-backfill
+    requirement: REQ-0116-workflow-opsx-linked-change-backfill
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 Workflow Sync linked Change 回填治理增强，覆盖 req.opsx 与 bug.opsx 两条链路的 trace、主文档、registry、Sprint scope 幂等同步和聚焦测试；不涉及业务 API/DB/UI，按 S=1 人天纳入。
+  - id: REQ-0117-media-maintenance-storage-unreachable-summary
+    change: improve-media-maintenance-storage-unreachable-summary
+    requirement: REQ-0117-media-maintenance-storage-unreachable-summary
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P2 媒体维护 dry-run 对象存储不可达快速摘要增强，覆盖 STORAGE_UNAVAILABLE 与对象缺失分类区分、聚合任务 blocked 摘要、脱敏输出保护、runbook 解读和聚焦测试；不新增 UI/API/DB，按 S=1 人天纳入。
+  - id: REQ-0118-unified-web-miniapp-image-variant-consumption-matrix
+    change: update-media-image-variant-consumption-matrix
+    requirement: REQ-0118-unified-web-miniapp-image-variant-consumption-matrix
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 媒体治理补充需求，仅沉淀 Web 与小程序 thumbnail/display/original 三规格消费矩阵、店主 Web 预留规范、禁止原图 fallback 口径和后续验收基线；不直接修改 src/API/DB/对象存储，按 S=1 人天纳入。
+  - id: BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url
+    change: fix-miniapp-sku-detail-brand-logo-thumbnail-url
+    bug: BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 小程序商品详情页品牌卡媒体性能缺陷修复，聚焦商品详情接口补齐 brand_logo_thumbnail_url、小程序详情品牌数据保留缩略图字段、品牌卡普通展示不拉原图与媒体四联/Network evidence；不新增通用多规格媒体能力，按 S=1 人天纳入。
+  - id: BUG-0134-miniapp-certificate-detail-display-url
+    change: fix-miniapp-certificate-detail-display-url
+    bug: BUG-0134-miniapp-certificate-detail-display-url
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 小程序证书详情页媒体性能缺陷修复，聚焦证书详情接口补齐 display_url、小程序详情顶部普通展示不拉原图、图片/PDF 证书前缀分流与媒体四联/Network evidence；不新增通用多规格媒体能力，按 S=1 人天纳入。
+  - id: BUG-0135-miniapp-certificate-card-file-url-fallback
+    change: fix-miniapp-certificate-card-file-url-fallback
+    bug: BUG-0135-miniapp-certificate-card-file-url-fallback
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 小程序证书卡媒体性能缺陷修复，聚焦品牌详情证书卡缺缩略图时不 fallback 到 file_url 原文件、卡片占位策略、图片/PDF 证书前缀分流与媒体四联/Network evidence；不新增通用多规格媒体能力，按 S=1 人天纳入。
+  - id: BUG-0136-workflow-sync-bug-generate-captured-draft
+    change: fix-workflow-sync-bug-generate-status-transition
+    bug: BUG-0136-workflow-sync-bug-generate-captured-draft
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium Workflow Sync 状态推进缺陷修复，聚焦 bug.generate 对 captured BUG 生成 bug.md 后自动推进 draft、同步 trace/registry/CHANGELOG/bug.md frontmatter 与幂等回归；不涉及业务 API/DB/UI，按 S=1 人天纳入。
+  - id: REQ-0119-admin-display-image-size-limit-setting
+    change: add-admin-display-image-size-limit-setting
+    requirement: REQ-0119-admin-display-image-size-limit-setting
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 媒体治理增强，覆盖管理端系统设置新增 display 图体积目标字段、后端 effective settings/API schema、display 派生生成读取配置、维护任务读取策略、OpenAPI/Orval、文档与聚焦测试；不改变多规格 key/URL 模型、不自动重建历史对象，按 M=3 人天纳入。
+  - id: REQ-0120-webp-derived-image-variants
+    change: add-webp-derived-image-variants
+    requirement: REQ-0120-webp-derived-image-variants
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 媒体派生图格式策略增强，覆盖 JPEG/PNG/WebP 上传后生成 WebP thumbnail/display、WebP key/MIME 一致性、历史对象 dry-run/apply 补生成、端侧 Web/小程序优先消费派生图与 fallback 验收；涉及后端 media、对象存储、维护任务、多端消费规则、OpenAPI/Orval 条件同步和媒体五联/小程序四联证据，按 M=3 人天纳入。
+  - id: REQ-0121-miniapp-certificate-detail-brand-card-entry
+    change: update-miniapp-certificate-detail-brand-card-entry
+    requirement: REQ-0121-miniapp-certificate-detail-brand-card-entry
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 小程序证书详情页品牌入口收敛，复用 brand-card，补齐 brand_logo_thumbnail_url，统一 brand_card_click 埋点和缩略图消费策略；涉及小程序页面/组件、证书详情 brand 数据适配与媒体四联验收，不新增通用派生图能力，按 S=1 人天纳入。
+  - id: tighten-bug-review-root-cause-confirmed-gate
+    change: tighten-bug-review-root-cause-confirmed-gate
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: XS 治理规则与轻量校验脚本调整，覆盖 BUG review approve 前 root_cause_status confirmed 门禁、bug-review 技能调用、根因证据脚本参数和聚焦测试；不触碰业务 src，按 0.5 人天纳入。
+  - id: BUG-0137-miniapp-lightweight-image-variant-consumption
+    change: fix-miniapp-lightweight-image-variant-consumption
+    bug: BUG-0137-miniapp-lightweight-image-variant-consumption
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1/high 小程序媒体消费矩阵返修缺陷，覆盖首页/品牌 Banner 轻量字段、品牌 Logo 禁止 original fallback、商品/证书分享图字段优先级、静态测试与小程序 DevTools Network/render evidence 回填；涉及后端 miniapp schema/service 与小程序多入口，按 M=3 人天纳入。
+  - id: REQ-0122-batch-image-processing-runbook
+    change: add-batch-image-processing-runbook
+    requirement: REQ-0122-batch-image-processing-runbook
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 批量图片处理 Runbook 文档与投影治理，覆盖图片转换脚本说明、thumb/display 派生生成、缩略图专项重建、对象 key 迁移、生产执行步骤、安全门禁、验收证据模板，以及 docs 与 releases/vX.Y.Z/usage-docs 双投影；不直接改源码/API/DB/对象存储，不执行生产任务，按 M=3 人天纳入。
+  - id: BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml
+    change: fix-workflow-sync-trace-frontmatter-invalid-yaml
+    bug: BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium Workflow Sync trace frontmatter 非法 YAML 缺陷修复，覆盖 REQ/BUG trace frontmatter 结构化写入、标准 YAML parser 校验、顶层 Issue 状态不被 openspec_changes 状态污染、已知 REQ-0120 异常样本修正与聚焦回归测试；不涉及业务 API/DB/UI，按 S=1 人天纳入。
+estimated_story_points: 35
+estimated_person_days: 35
+capacity_usage: 1.1667
+fix_buffer_person_days: 0
+fix_buffer_ratio: 0
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 35
+  capacity_usage: 1.1667
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用历史 Sprint 已确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 追加 BUG-0138 后估算 35 人天，占用 116.67%，处于 100%~120% 风险通过区间；fix 缓冲为 0，后续不得继续追加非紧急范围，需优先归档已完成项或拆分到 sprint-026。

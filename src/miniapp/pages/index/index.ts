@@ -21,6 +21,8 @@ type HomeData = {
     title: string;
     subtitle?: string;
     image_url: string;
+    thumbnail_url?: string;
+    display_url?: string;
     jump_type: 'none' | 'product' | 'brand' | 'search' | 'store';
     target_id?: number;
     search_keyword?: string;
@@ -61,7 +63,7 @@ Page({
     loading: true,
     error: '',
     home: null as HomeData | null,
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     errorDetail: '',
     quickEntries: QUICK_ENTRIES,
     allProducts: [] as ProductCard[],
@@ -359,7 +361,7 @@ Page({
   onImageError(event: WechatMiniprogram.TouchEvent) {
     const key = event.currentTarget.dataset.key;
     if (key) {
-      this.setData({ [key]: this.data.imageFallback });
+      this.setData({ [key]: '' });
     }
   },
 });

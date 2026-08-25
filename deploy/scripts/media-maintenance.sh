@@ -15,12 +15,15 @@ usage() {
 
 示例：
   deploy/scripts/media-maintenance.sh prod mysql-tencent-cos object-key-audit --limit 100
+  deploy/scripts/media-maintenance.sh prod mysql-tencent-cos media-drift-reconcile --limit 100
+  deploy/scripts/media-maintenance.sh prod mysql-tencent-cos media-drift-reconcile --limit 100 --apply --confirm-backup
   deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-brand-certificate-thumbnails --limit 100
   deploy/scripts/media-maintenance.sh prod mysql-tencent-cos formalize-pending-tile-images --limit 100
   deploy/scripts/media-maintenance.sh prod mysql-tencent-cos formalize-pending-tile-images --limit 100 --apply --confirm-backup
 
 说明：
   - 默认 task 为 object-key-audit，只读 dry-run。
+  - media-drift-reconcile 为生产推荐聚合入口；bug-0116-media-drift 仅作为历史兼容别名。
   - 写入任务必须显式传入 --apply --confirm-backup。
   - 执行 apply 前必须先完成 MySQL 与对象存储 bucket/prefix 备份。
   - 脚本只解析 env 文件路径，不输出 env 内容、数据库连接串或对象存储密钥。

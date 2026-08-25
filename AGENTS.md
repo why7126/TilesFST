@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 22:09:09
+updated_at: 2026-08-24 16:35:51
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -145,6 +145,7 @@ rules/agent-context-budget.md
 - UI 变更必须遵守 Design System semantic token，禁止裸 Hex。
 - 带 `prototype/` 的 UI 页面必须先完成原型拆解、UI Contract、UI Skeleton 首轮确认、1440px 与关键交互视觉验收、computed style 证据、Mock/API 边界声明和最终一致性检查；不得缺少视觉证据、样式证据或文档回填即归档。
 - 问题排查、BUG 完善、BUG 来源实现、验收返修或效果不如预期时必须遵守证据化根因分析治理：根因状态区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 必须绑定证据链，证据不足时输出人工补证步骤。
+- BUG 默认 approve 或显式 `--approve` 评审前必须满足 `root_cause_status: confirmed` 且证据链可定位；`unknown`、`hypothesis`、`probable`、缺 `root-cause.md` 或缺根因状态均不得 `/bug-review` approve。
 - 所有 workflow 命令完成后必须输出执行链路复盘，包含链路状态、问题证据、规范优化建议和 follow-up 自动创建状态；无明确优化点写“无明显优化点”，不得默认自动创建 follow-up Issue/Change。
 - 长期文档必须遵守事实唯一归属和表达卫生；不得写入会话推理、临时草稿、review 对话、不可解析引用、未脱敏本机路径或学习对象源码。
 
@@ -180,7 +181,7 @@ rules/agent-context-budget.md
 
 目录迁移和校验详见 `rules/issues-lifecycle.md`、`rules/iterations-lifecycle.md`、`rules/directory-structure.md`。
 
-Sprint 命名必须使用 `sprint-xxx` 三位数字递增格式。当前没有 `iterations/change/sprint-xxx/` 进行中迭代且命令需要自动创建 Sprint 时，取 `iterations/archive/` 与 `iterations/change/` 中最大规范编号加一；例如最新归档为 `sprint-021` 时自动创建 `sprint-022`。
+Sprint 命名必须使用 `sprint-xxx` 三位数字递增格式。`/sprint-propose` 未指定 Sprint 时：无 active Sprint 自动创建最大规范编号加一；一个 active Sprint 默认使用当前 Sprint；两个及以上 active Sprint 必须失败并要求 `--sprint` 明确指定。显式新建 Sprint 也必须是最大编号加一，不允许跳号；已有两个 active Sprint 时不得创建第三个。Sprint 归档后关联 REQ、BUG、Change 与四件套默认冻结，普通研发命令不得反向改写；只读探索、复盘、发布、镜像与升级命令仅可消费归档事实。详细规则见 `rules/iterations-lifecycle.md`。
 
 ## 9. Design System 执行摘要
 

@@ -73,6 +73,26 @@ def test_cross_version_requires_manual_review_when_intermediate_manifest_missing
     assert any("missing_manifest" in warning for warning in plan["warnings"])
 
 
+def test_official_v112_upgrade_plans_only_include_confirmed_paths() -> None:
+    plans = {path.name for path in (ROOT / "releases" / "v1.1.2" / "upgrade-plans").glob("*.json")}
+
+    assert plans == {"fresh-to-v1.1.2.json", "v1.1.1-to-v1.1.2.json"}
+
+
+def test_default_release_from_versions_include_fresh_and_previous_only(tmp_path: Path) -> None:
+    write_release(tmp_path, "v1.0.0")
+    write_release(tmp_path, "v1.0.1")
+    write_release(tmp_path, "v1.1.2")
+
+    assert upgrade.default_release_from_versions("v1.1.2", tmp_path) == ["fresh", "v1.0.1"]
+
+
+def test_default_release_from_versions_for_first_release_is_fresh_only(tmp_path: Path) -> None:
+    write_release(tmp_path, "v1.0.0")
+
+    assert upgrade.default_release_from_versions("v1.0.0", tmp_path) == ["fresh"]
+
+
 def test_env_diff_reports_added_changed_required_and_unsafe(tmp_path: Path) -> None:
     before = {"a.env.example": {"APP_ENV": "development", "OLD_KEY": "1"}}
     after = {"a.env.example": {"APP_ENV": "production", "APP_SECRET_KEY": "change-me", "NEW_KEY": "2"}}

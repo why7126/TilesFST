@@ -26,63 +26,71 @@ TBD - created by archiving change add-prod-media-maintenance-jobs. Update Purpos
 
 ### Requirement: 生产媒体维护作业必须安全执行
 
-生产媒体维护作业 MUST 支持 dry-run/apply 两阶段、分批执行、幂等处理、失败原因统计和二次审计。任何写数据库或对象存储的任务 MUST 默认先 dry-run，apply MUST 由显式参数触发，并 MUST 在执行前要求 MySQL 快照和对象存储 bucket / prefix 快照。历史缩略图重生成任务 MUST 读取当前 effective `media.thumbnail_max_size_kb`，并 MUST 覆盖 SKU、品牌 Logo 和品牌证书图片三类对象；当该值为 `0` 时按当前不限制模式重生成，当该值为正整数时按全局体积目标尽量生成更轻量 `.thumb` 缩略图。系统设置保存 MUST NOT 自动触发该维护作业；历史重生成 MUST 由运维通过受控命令、生产 Compose 维护入口或后续明确的后台维护入口显式执行。
+生产媒体维护作业 MUST 支持 dry-run/apply 两阶段、分批执行、幂等处理、失败原因统计和二次审计。任何写数据库或对象存储的任务 MUST 默认先 dry-run，apply MUST 由显式参数触发，并 MUST 在执行前要求 MySQL 快照和对象存储 bucket / prefix 快照。历史图片多规格生成任务 MUST 支持批量生成或重生成 `thumbnail` 与 `display`，并 MUST 保留 `original` 归属关系。针对 JPEG、PNG、WebP 历史原图，重生成的 `thumbnail` 与 `display` MUST 使用 WebP 派生格式；SVG、PDF、GIF、HEIC、TIFF、BMP 或不支持对象 MUST 分类为跳过、拒绝或 fallback。系统设置保存 MUST NOT 自动触发该维护作业；历史重生成 MUST 由运维通过受控命令、生产 Compose 维护入口或后续明确的后台维护入口显式执行。
 
-#### Scenario: dry-run 不写入
+#### Scenario: 存量 WebP 多规格生成 dry-run
 
-- **WHEN** 运维执行任一生产媒体维护作业 dry-run
-- **THEN** 作业 MUST 输出受影响记录数量、对象数量、跳过原因、缺失对象、目标 key 冲突和风险提示
+- **WHEN** 运维执行存量图片 WebP 多规格生成 dry-run
+- **THEN** 作业 MUST 输出受影响记录数量、对象数量、已存在 WebP 派生数量、缺失规格、跳过原因、预计写入对象、失败分类和风险提示
 - **AND** dry-run MUST NOT 写数据库
 - **AND** dry-run MUST NOT 写对象存储
-- **AND** dry-run MUST NOT 删除对象。
+- **AND** dry-run MUST NOT 删除对象
+- **AND** 输出 MUST NOT 包含真实 bucket 名、access key、secret key、连接串、raw object key、本机绝对路径、Authorization header、Cookie、`.env` 原文、生产私有 URL 或完整 SDK 堆栈。
 
-#### Scenario: apply 显式触发并可审计
+#### Scenario: 存量 WebP 多规格生成 apply
 
 - **GIVEN** dry-run 已通过且备份前置条件已完成
-- **WHEN** 运维显式执行 apply
-- **THEN** 作业 MUST 记录镜像 tag、Compose 文件、命令参数、执行时间、任务类型和 dry-run 摘要
+- **WHEN** 运维显式执行存量图片 WebP 多规格生成 apply
+- **THEN** 作业 MUST 为支持格式生成缺失或不合格的 WebP `thumbnail` 与 WebP `display`
+- **AND** 作业 MUST 记录任务类型、执行时间、参数摘要和 dry-run 摘要
 - **AND** 输出 MUST 包含成功、失败、跳过、重试候选和失败原因统计
-- **AND** 重复执行 MUST 保持幂等，已完成项 MUST 被识别为 skipped、already_done 或等价状态。
-
-#### Scenario: 输出脱敏
-
-- **WHEN** 维护作业输出日志、JSON 摘要或验收证据
-- **THEN** 输出 MUST NOT 包含真实密钥、数据库连接串、Authorization header、Cookie、生产 `.env` 原文、本机绝对路径或真实客户敏感数据
-- **AND** 输出 SHOULD 使用变量名、脱敏对象标识、计数、错误码和失败原因摘要表达结果。
-
-#### Scenario: 历史缩略图按当前全局策略重生成
-
-- **GIVEN** `media.thumbnail_max_size_kb` effective 值为 `20`
-- **AND** 历史 SKU、品牌 Logo 或品牌证书图片存在同目录 `.thumb` 缩略图缺失、疑似无收益或超过当前体积目标的情况
-- **AND** 运维已完成 dry-run 和备份确认
-- **WHEN** 运维显式执行历史缩略图重生成 apply
-- **THEN** 作业 MUST 读取原图并按当前全局体积目标重生成同目录 `.thumb` 缩略图
-- **AND** dry-run MUST 将缺失缩略图、疑似复制原图的缩略图、疑似同尺寸缩略图以及已存在但超过当前体积目标上限的缩略图计入重试候选
-- **AND** 输出 MUST 统计成功、失败、跳过、已符合、超过目标上限、未达标和重试候选
-- **AND** 重复执行 MUST 保持幂等，不破坏已符合当前策略的缩略图。
-
-#### Scenario: 保存系统设置不触发历史重生成
-
-- **WHEN** `admin` 在系统设置 media 分组保存 `thumbnail_max_size_kb`
-- **THEN** 系统 MUST NOT 自动运行生产媒体维护作业
-- **AND** 系统 MUST NOT 自动批量读取原图、覆盖历史 `.thumb` 对象或写入对象存储
-- **AND** 历史缩略图如需应用新策略 MUST 通过 dry-run/apply 维护流程执行。
+- **AND** 重复执行 MUST 保持幂等
+- **AND** 作业 MUST NOT 改写原图对象格式或原图访问语义。
 
 ### Requirement: 生产媒体维护作业必须支持备份回滚和二次审计
 
-生产媒体维护作业 MUST 在 apply 前要求 MySQL 快照与对象存储 bucket / prefix 快照。回滚说明 MUST 以恢复快照为主；未验证反向脚本不得被描述为默认可靠回滚。作业执行后 MUST 支持二次审计并输出媒体四联或五联验收摘要。
+生产媒体维护作业 MUST 在 apply 前要求 MySQL 快照与对象存储 bucket / prefix 快照。回滚说明 MUST 以恢复快照为主；未验证反向脚本不得被描述为默认可靠回滚。作业执行后 MUST 支持二次审计并输出媒体四联或五联验收摘要。多规格图片生成二次审计 MUST 覆盖 `thumbnail`、`display`、`original` 的 key、object、URL、render 和规格收益；WebP 派生补生成二次审计 MUST 额外覆盖 WebP key、`image/webp` MIME、原图格式保留和体积收益。
 
-#### Scenario: apply 前置备份检查
+#### Scenario: WebP 多规格生成后二次审计
 
-- **WHEN** 运维准备执行生产媒体维护 apply
-- **THEN** 文档或命令输出 MUST 提示 MySQL 快照或可恢复备份为前置条件
-- **AND** MUST 提示对象存储 bucket、prefix 或受影响对象集合快照为前置条件
-- **AND** 若缺少备份确认，apply SHOULD 阻断或要求显式风险确认。
-
-#### Scenario: 二次审计输出媒体摘要
-
-- **WHEN** 生产媒体维护作业执行完成
+- **WHEN** 存量图片 WebP 多规格生成 apply 完成
 - **THEN** 系统 MUST 支持二次审计
-- **AND** 审计摘要 MUST 覆盖 key、object、URL、thumbnail benefit、render 或明确 N/A / blocked 原因
-- **AND** 任一 fail 项 MUST 包含足以支撑后续 `/bug-capture` 的失败现象、影响范围、期望结果和实际结果。
+- **AND** 审计摘要 MUST 覆盖 `thumbnail`、`display`、`original` 的 key、object、URL、render 和体积/像素收益
+- **AND** 审计摘要 MUST 标明 `thumbnail` 与 `display` 是否为 WebP、MIME 是否为 `image/webp`、原图格式是否保留
+- **AND** 任一 fail 项 MUST 包含足以支撑后续 `/bug-capture` 的失败现象、影响范围、期望结果和实际结果
+- **AND** 审计输出 MUST 脱敏。
+
+### Requirement: 媒体维护 dry-run 必须快速摘要对象存储不可达
+
+生产媒体维护作业在 dry-run 期间 MUST 区分对象真实不存在和对象存储不可达。当对象存储因 endpoint、region、bucket、权限、凭据、网络或服务状态导致不可达时，dry-run MUST 快速返回阻断摘要，MUST 将顶层状态或对象验收维度标记为 `blocked`，并 MUST NOT 输出可进入 apply 的结论。
+
+#### Scenario: 对象存储不可达时返回 blocked 摘要
+
+- **WHEN** 运维执行生产媒体维护 dry-run 且对象存储 endpoint、bucket、region、权限或网络不可用
+- **THEN** 作业 MUST 返回 `object_storage_unreachable` 或等价失败分类
+- **AND** 作业 MUST 将顶层 summary 或 acceptance summary 的对象维度标记为 `blocked`
+- **AND** 作业 MUST 列出受影响对象相关子任务或等价 `affected_tasks`
+- **AND** 作业 MUST 建议先检查 endpoint、region、bucket、权限、网络与 env 注入后重新 dry-run
+- **AND** 作业 MUST NOT 输出可进入备份确认或 apply 的结论。
+
+#### Scenario: 对象不存在仍归入 missing 统计
+
+- **WHEN** dry-run 访问单个媒体对象并收到 `MEDIA_NOT_FOUND`、`NoSuchKey`、`NoSuchObject` 或等价对象不存在结果
+- **THEN** 作业 MUST 将该对象归入 missing 类统计
+- **AND** 作业 MUST NOT 将单个对象不存在误报为 `object_storage_unreachable`
+- **AND** 作业 MUST 在对象存储整体可达时继续生成正常 dry-run 摘要。
+
+#### Scenario: 阻断摘要必须脱敏
+
+- **WHEN** dry-run 输出对象存储不可达摘要、日志或验收证据
+- **THEN** 输出 MAY 包含 provider、bucket hash、auto create bucket 策略、失败分类和建议动作
+- **AND** 输出 MUST NOT 包含真实 bucket 名、access key、secret key、连接串、raw object key、本机绝对路径、Authorization header、Cookie、`.env` 原文、生产私有 URL 或完整 SDK 堆栈。
+
+#### Scenario: 聚合维护任务传播对象维度 blocked
+
+- **WHEN** 聚合媒体维护任务中的任一对象相关子任务发现对象存储不可达
+- **THEN** 聚合任务 MUST 在顶层 summary 传播 `blocked` 状态
+- **AND** 聚合任务 MUST 标明受影响子任务和未完成对象检查范围
+- **AND** 聚合任务 MUST 将后续对象相关子任务标记为 skipped、blocked 或等价不可执行状态
+- **AND** 聚合任务 MUST 提示修复对象存储环境后重新 dry-run。
 

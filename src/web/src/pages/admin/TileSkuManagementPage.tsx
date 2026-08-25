@@ -484,6 +484,7 @@ export function TileSkuManagementPage() {
                       <div className="sku-thumb">
                         <FallbackListImage
                           thumbnailUrl={item.main_image_thumbnail_url}
+                          displayUrl={item.main_image_display_url}
                           originalUrl={item.main_image_url}
                         />
                       </div>

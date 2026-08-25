@@ -39,22 +39,25 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 
 ### Requirement: 证书卡片展示
 
-小程序 SHALL 使用移动端两列证书卡片展示公开证书摘要，并对图片、PDF 和缺失文件稳定降级。图片证书卡片 SHALL 优先使用后端受控真实缩略图；预览或详情入口 SHALL 使用原图、原文件或等价安全引用。
+小程序 SHALL 使用移动端两列证书卡片展示公开证书摘要，并对图片、PDF 和缺失文件稳定降级。图片证书卡片 SHALL 优先使用后端受控真实缩略图或等价卡片小图；预览或详情入口 SHALL 使用原图、原文件或等价安全引用。证书卡片缺少缩略图、缩略图不可读或图片加载失败时 SHALL 展示统一占位或受控失败态，SHALL NOT 在卡片图片 `src` 中 fallback 到 `file_url`、原图或原始文件 URL。
 
 #### Scenario: 展示证书文件占位
+
 - **WHEN** 证书文件为图片、PDF、缺失或未知类型
 - **THEN** 图片证书 SHALL 优先展示稳定比例真实缩略图
 - **AND** PDF 证书 SHALL 展示统一 PDF 占位
-- **AND** 文件缺失、类型未知、缩略图加载失败或图片加载失败时 SHALL 展示统一占位或回退原图
+- **AND** 文件缺失、类型未知、缩略图加载失败或图片加载失败时 SHALL 展示统一占位或受控失败态
+- **AND** 卡片展示 SHALL NOT 因缺少缩略图而请求 `file_url`、原图或原始文件 URL
 - **AND** 页面 SHALL NOT 出现浏览器破图、卡片高度跳动或文本遮挡
 - **AND** 证书详情页、图片预览或文件打开 SHALL NOT 被强制降级为卡片缩略图。
 
 #### Scenario: 证书卡片缩略图字段一致
+
 - **WHEN** 小程序公开证书列表响应提供缩略图 URL、文件类型和等价卡片媒体引用
 - **THEN** 证书列表卡片 SHALL 优先读取缩略图 URL 或等价小图引用
 - **AND** 证书列表接口 SHOULD NOT 为每个列表 item 下发未被列表卡片渲染使用的原文件 URL
 - **AND** 缩略图不可用时 SHALL 按统一策略展示 PDF 占位、缺失占位或其他稳定占位
-- **AND** 小程序 SHALL NOT 在缩略图可用时直接使用原图或原文件 URL 作为图片证书卡片首选展示图。
+- **AND** 小程序 SHALL NOT 在缩略图可用或缺失时直接使用原图或原文件 URL 作为图片证书卡片展示图。
 
 ### Requirement: 证书列表状态
 小程序证书列表页 SHALL 不提供搜索或筛选功能，并区分加载、空结果、网络失败和加载更多状态。
@@ -177,22 +180,26 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 - **AND** 详情响应 SHALL NOT 暴露 bucket 名称、内部 endpoint 或原始 object key。
 
 ### Requirement: 证书详情分享
-小程序证书详情页 SHALL 支持微信原生分享或等价分享能力，并保证分享路径可直达同一张证书详情。
+
+小程序证书详情页 SHALL 支持微信原生分享或等价分享能力，并保证分享路径可直达同一张证书详情。图片证书分享图 SHALL 优先使用 `display_url` 或等价展示图，缺失时使用 `thumbnail_url` 或安全占位；PDF/文档证书 SHALL 使用稳定占位或品牌兜底图，不得伪造图片展示图。
 
 #### Scenario: 分享证书详情
+
 - **WHEN** 用户通过微信原生分享能力分享证书详情页
 - **THEN** 小程序 SHALL 提供微信原生分享数据或等价分享能力
 - **AND** 分享标题 SHALL 包含证书名称和品牌名称
 - **AND** 分享路径 SHALL 携带 `certificateId` 和来源参数
-- **AND** 分享图 SHALL 优先使用证书主图，主图缺失时使用稳定占位或品牌兜底图
+- **AND** 图片证书分享图 SHALL 优先使用证书主图 `display_url`、`thumbnail_url` 或稳定占位
+- **AND** PDF 或文档证书分享图 SHALL 使用稳定占位或品牌兜底图
 - **AND** 页面 SHALL NOT 提供底部固定“分享证书”按钮
-- **AND** 分享内容 SHALL NOT 包含内部备注、后台状态或不可公开字段。
+- **AND** 分享内容 SHALL NOT 包含内部备注、后台状态、不可公开字段、原始 object key 或未授权素材地址。
 
-#### Scenario: 分享直达证书详情
-- **WHEN** 用户从微信分享卡片直达证书详情页
-- **THEN** 页面 SHALL 按同一公开详情契约加载证书
-- **AND** 无上一页页面栈时返回入口 SHALL 安全进入首页、证书列表或项目确认的安全入口
-- **AND** 分享直达失败 SHALL 展示可恢复错误状态。
+#### Scenario: 证书分享图四联证据
+
+- **WHEN** 团队验收证书详情分享图
+- **THEN** 验收 SHALL 记录图片证书 `display_url`、`thumbnail_url` 或占位图的 key、object、URL 和 render 四联证据
+- **AND** 小程序 DevTools、真机或体验版 evidence SHALL 覆盖 AppData 分享图字段、页面渲染、URL 类型、HTTP 状态或 N/A 原因
+- **AND** 证书详情分享图 SHALL NOT 退回原图作为默认普通展示通过证据。
 
 ### Requirement: 证书详情视觉、导航与设备验收
 小程序证书详情页 SHALL 延续用户侧深色高端展示体系，并满足自定义导航、移动端视口和设备 evidence 验收要求。

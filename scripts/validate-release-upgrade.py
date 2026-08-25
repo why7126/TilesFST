@@ -116,6 +116,15 @@ def previous_version(to_version: str, root: Path = ROOT) -> str | None:
     return versions[-1] if versions else None
 
 
+def default_release_from_versions(to_version: str, root: Path = ROOT) -> list[str]:
+    """Return the upgrade paths expected for every normal release."""
+    sources = ["fresh"]
+    previous = previous_version(to_version, root)
+    if previous:
+        sources.append(previous)
+    return sources
+
+
 def release_dir(version: str, root: Path = ROOT) -> Path:
     return root / "releases" / version
 

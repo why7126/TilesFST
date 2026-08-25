@@ -56,31 +56,46 @@ SKU 详情页 SHALL 完整展示用户选砖所需的品牌、商品名称、价
 
 ### Requirement: 图片与视频混合媒体浏览
 
-SKU 详情页 SHALL 支持图片和视频混合轮播，并提供图片全屏预览和视频播放控制。视频播放体验 SHALL 适配生产环境受控媒体读取链路，避免用户点击播放后长时间空白或无反馈。SKU 详情页首屏图片展示 SHALL 使用原图或详情级高清展示图以支持瓷砖纹理、花色、表面质感和规格细节查看，图片预览 SHALL 保留原图清晰度。
+SKU 详情页 SHALL 支持图片和视频混合轮播，并提供图片全屏预览和视频播放控制。视频播放体验 SHALL 适配生产环境受控媒体读取链路，避免用户点击播放后长时间空白或无反馈。SKU 详情页首屏图片展示 SHALL 使用详情级展示图或受控压缩图以支持瓷砖纹理、花色、表面质感和规格细节查看，且 SHALL NOT 在默认冷加载普通展示链路中加载 `>1 MB` 原图。图片预览 SHALL 使用 `original_url`、原图或等价高清预览 URL。商品列表、推荐卡和轻量卡片 SHALL 使用 `thumbnail_url` 或等价轻量图片 URL。
 
-#### Scenario: 详情页首屏图片使用高清展示图
+#### Scenario: 详情页冷加载限制大图资源
 
 - **WHEN** 小程序请求 `GET /api/v1/miniapp/skus/{sku_id}` 且 SKU 存在图片媒体
-- **THEN** 图片媒体用于详情页首屏展示的 URL SHALL 指向原图或详情级高清展示图
-- **AND** 图片媒体的 `preview_url` SHALL 指向原图或等价高清预览 URL
-- **AND** 小程序详情页首屏 `<image>` SHALL 使用高清展示 URL
-- **AND** 用户点击图片预览时 SHALL 使用 `preview_url` 或等价原图 URL
-- **AND** 响应 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称或未授权素材路径。
+- **THEN** 详情页普通展示 URL SHALL 优先使用 `display_url`、详情展示图、压缩图或等价安全展示 URL
+- **AND** 后端 SHALL only return `display_url` and `thumbnail_url` when the corresponding derived media object exists and is readable
+- **AND** 当 `.display.*` 或 `.thumb.*` 派生对象缺失或不可读时，响应 SHALL leave the corresponding display or thumbnail field empty and SHALL NOT synthesize a broken derived URL
+- **AND** 默认冷加载普通展示链路 SHALL NOT 加载 `>1 MB` 原图
+- **AND** 首屏关键图片目标体积 SHOULD 控制在 `100-300 kB`
+- **AND** 普通详情展示图片目标体积 SHOULD 控制在 `150-500 kB`
+- **AND** 图片媒体的 `preview_url`、`original_url` 或等价字段 SHALL 指向原图、高清图或等价高清预览 URL
+- **AND** 详情页普通展示 fallback SHALL use `thumbnail_url` or a local placeholder when `display_url` is empty and SHALL NOT use `original_url`、`preview_url` or original `media[].url`
+- **AND** 用户点击图片预览前 SHALL NOT 请求高清原图
+- **AND** 响应 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称、未授权素材路径或内部文件系统路径。
 
-#### Scenario: 视频封面使用缩略图且播放 URL 不变
+#### Scenario: PNG 大图提供展示版替代
 
-- **WHEN** SKU 详情页展示视频媒体项
-- **THEN** 视频媒体的 `src` SHALL 使用详情接口返回的安全可播放视频 URL
-- **AND** 视频媒体的 `cover_url` SHALL 优先使用主图或首张图片的同目录 `.thumb` 缩略图
-- **AND** 当 `cover_url` 缺失或不可用时 SHALL 使用商品主图、首张图片或安全兜底图作为等待态展示
-- **AND** 修复 SHALL NOT 将视频播放 URL 替换为图片缩略图 URL。
+- **WHEN** SKU 图片媒体原始文件为 PNG 且体积超过详情普通展示目标范围
+- **THEN** 系统 SHALL 提供展示版替代资源用于详情页普通展示
+- **AND** 非透明 PNG MAY 转换为 JPG、WebP 或等价压缩展示格式
+- **AND** 透明 PNG SHALL 保留透明语义或使用等价可接受的透明展示格式
+- **AND** 原始 PNG SHALL 仅在点击预览、下载或等价高清查看场景加载。
 
-#### Scenario: 详情高清图缺失回退不替代验收
+#### Scenario: 详情页首屏外图片 lazy-load
 
-- **WHEN** 详情页高清展示图、原图或受控媒体 URL 缺失
-- **THEN** 后端或小程序 MAY 使用安全 fallback 避免破图
-- **AND** 媒体验收 SHALL 记录该回退风险
-- **AND** 清晰度验收 SHALL 检查原图或详情级展示图的像素、bytes、URL 语义和小程序 render evidence，不能只以 URL 可访问作为通过依据。
+- **WHEN** SKU 详情页存在多张图片媒体
+- **THEN** 首屏外图片 SHALL 启用 `lazy-load` 或等价延迟加载策略
+- **AND** 首屏基础信息 SHALL 不被非关键图片请求阻塞
+- **AND** 小程序静态测试、DevTools、体验版或真机 evidence SHALL 覆盖该行为。
+
+#### Scenario: 冷加载大图修复验收 evidence
+
+- **WHEN** 团队验收 `BUG-0132` 修复结果
+- **THEN** 验收 SHALL 记录小程序商品详情页 Network evidence，至少包含首屏关键图、普通详情图和点击预览原图的 URL 类型、HTTP 状态、资源大小、耗时、Waterfall 和缓存状态
+- **AND** 首屏关键图 evidence SHOULD 满足 `100-300 kB` 目标范围
+- **AND** 普通详情展示图 evidence SHOULD 满足 `150-500 kB` 目标范围
+- **AND** 默认冷加载普通展示链路 SHALL NOT 出现 `>1 MB` 原图
+- **AND** media evidence SHALL 覆盖 key、object、URL、render 四点
+- **AND** 缺少体验版、真机或等价 DevTools evidence 时 SHALL 标记 `blocked` 或 `follow_up`，不得写作已通过。
 
 ### Requirement: SKU 收藏与分享
 
@@ -117,36 +132,30 @@ SKU 详情页 SHALL 支持 SKU 粒度收藏、取消收藏和微信原生分享�
 
 ### Requirement: 品牌入口与相关推荐
 
-SKU 详情页 SHALL 支持进入品牌主页、同系列商品和同品牌推荐，使用户可以继续浏览相关瓷砖；SKU 详情页品牌卡 SHALL 使用微信小程序品牌卡片组件承载单品牌展示、Logo fallback、入口提示和点击跳转。SKU 详情接口返回的品牌入口路径 SHALL 指向对应品牌详情页，品牌卡片不得在存在有效品牌详情页入口时误跳搜索页。
-
-#### Scenario: 品牌入口
-
-- **WHEN** 用户点击内容区品牌卡或“查看品牌主页”入口
-- **THEN** 小程序 SHALL 使用 `brandId` 进入对应品牌主页或可用品牌承接页
-- **AND** 可访问品牌的入口路径 SHALL 指向 `/pages/brand-detail/index?brandId=<brand_id>`
-- **AND** 目标不可用时 SHALL 安全降级到可返回提示或搜索筛选结果
-- **AND** 底部固定操作栏 SHALL NOT 显示品牌按钮或保留品牌按钮点击热区。
+SKU 详情页 SHALL 支持进入品牌主页、同系列商品和同品牌推荐，使用户可以继续浏览相关瓷砖；SKU 详情页品牌卡 SHALL 使用微信小程序品牌卡片组件承载单品牌展示、Logo fallback、入口提示和点击跳转。SKU 详情接口返回的品牌入口路径 SHALL 指向对应品牌详情页，品牌卡片不得在存在有效品牌详情页入口时误跳搜索页。SKU 详情接口返回的品牌对象 SHALL 包含 `brand_logo_thumbnail_url` 或等价轻量 Logo URL，使商品详情页品牌卡普通展示可以优先使用缩略图。
 
 #### Scenario: SKU 详情接口返回品牌详情页入口
 
 - **WHEN** 小程序请求 `GET /api/v1/miniapp/skus/{sku_id}` 且当前 SKU 关联启用品牌
 - **THEN** 后端 SHALL 在 `data.brand.brand_entry_path` 返回 `/pages/brand-detail/index?brandId=<brand_id>`
 - **AND** `brand_id` SHALL 与当前 SKU 关联品牌一致
-- **AND** 响应 SHALL NOT 将可访问品牌入口返回为 `/pages/search/index` 或搜索结果页路径。
+- **AND** 响应 SHALL NOT 将可访问品牌入口返回为 `/pages/search/index` 或搜索结果页路径
+- **AND** 后端 SHALL 在 `data.brand.brand_logo_thumbnail_url` 返回品牌 Logo 缩略图或等价轻量 URL，缺少可用缩略图时 SHALL 返回空值而不是伪造不可读 URL。
 
 #### Scenario: SKU 详情页使用品牌卡片组件
 
 - **WHEN** SKU 详情页展示品牌卡
 - **THEN** 页面 SHALL 使用微信小程序品牌卡片组件替换重复的内联品牌卡片结构
 - **AND** 页面 SHALL 从 SKU 详情数据中提取品牌展示对象、`skuId` 和来源上下文传入组件
+- **AND** 页面 SHALL 保留并传递 `brand_logo_thumbnail_url`
 - **AND** 组件 SHALL 负责 Logo 缺失/失败、长品牌名、入口不可用和点击防重复等卡片级行为。
 
-#### Scenario: 品牌入口 fallback
+#### Scenario: SKU 详情页品牌卡 Logo 缩略图优先
 
-- **WHEN** SKU 详情页品牌卡缺少 `brand_entry_path` 但品牌名称可用
-- **THEN** 小程序 SHALL fallback 到品牌关键词搜索页或等价品牌承接页
-- **AND** 小程序 SHALL 对品牌名称进行 URL 编码
-- **AND** 品牌名称不可用或入口不可用时 SHALL 提示“品牌内容暂不可查看”或等价文案并阻止无效跳转。
+- **WHEN** SKU 详情页品牌对象同时包含 `brand_logo_thumbnail_url` 与 `brand_logo_url`
+- **THEN** 品牌卡普通展示 SHALL 优先请求 `brand_logo_thumbnail_url`
+- **AND** `brand_logo_url` SHALL 仅作为兼容字段或高清语义引用，不得作为缩略图可用时的首选展示资源
+- **AND** 验收 SHALL 记录小程序 DevTools、真机或体验版 Network evidence，覆盖品牌 Logo URL 类型、HTTP 状态、资源大小、耗时和渲染结果。
 
 ### Requirement: SKU 详情页视觉与可用性
 
@@ -214,27 +223,26 @@ SKU 详情页 SHALL 支持从小程序商品列表页商品卡片进入，并保
 - **AND** 页面 SHALL 提供返回商品列表或返回上一页入口。
 
 ### Requirement: SKU 详情页微信分享
-SKU 详情页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前 SKU 参数、分享图兜底和分享直达异常态。
+
+SKU 详情页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前 SKU 参数、分享图兜底和分享直达异常态。分享图字段 SHALL 与详情普通展示字段解耦，默认 SHALL 优先使用明确分享轻量字段、`display_url`、`thumbnail_url` 或安全兜底图；不得因兼容旧字段而默认下发原图。
 
 #### Scenario: SKU 详情分享给微信朋友
+
 - **WHEN** 用户在 SKU 详情页触发微信朋友分享
 - **THEN** 小程序 SHALL 返回微信原生分享对象
 - **AND** 分享路径 SHALL 指向当前 SKU 详情页并携带有效 `skuId` 和 `source=share` 或等价来源参数
 - **AND** 分享标题 SHALL 优先使用商品分享标题，未配置时 SHALL 使用 SKU 名称与品牌名称组合
-- **AND** 分享图 SHALL 优先使用商品分享图或商品主图，缺失时 SHALL 使用安全兜底图。
+- **AND** 分享图 SHALL 优先使用明确分享轻量字段、商品主图 `display_url`、`thumbnail_url` 或安全兜底图
+- **AND** 分享图 SHALL NOT 默认回退到 `original_url`、`preview_url` 或原始 `media[].url`
+- **AND** 若平台限制要求高清分享图，验收 SHALL 将该行为记录为分享入口例外，并证明普通展示未受影响。
 
-#### Scenario: SKU 详情分享到朋友圈
-- **WHEN** 用户在 SKU 详情页触发分享到朋友圈
-- **THEN** 小程序 SHALL 返回朋友圈分享配置
-- **AND** 朋友圈入口 SHALL 保留当前 SKU 的必要参数
-- **AND** 被分享用户打开后 SHALL 进入对应 SKU 详情页
-- **AND** SKU 不存在、下架、不可公开或参数无效时 SHALL 展示可理解错误或空状态而不是白屏。
+#### Scenario: SKU 分享图原图 fallback 回归测试
 
-#### Scenario: SKU 分享埋点与安全
-- **WHEN** SKU 详情页记录分享行为
-- **THEN** 事件 SHOULD 包含页面路径、分享渠道和 `skuId`
-- **AND** 埋点失败 SHALL NOT 阻断分享
-- **AND** 分享路径、分享图和埋点 SHALL NOT 暴露原始 object key、Authorization header、Cookie、手机号或未授权素材地址。
+- **GIVEN** SKU 主图同时存在 `.jpg` 原图和 `.thumb.webp` 或 `.display.webp` 派生图
+- **WHEN** 小程序加载 SKU 详情并生成分享对象
+- **THEN** `share.image_url` SHALL 优先指向轻量分享图、`display_url`、`thumbnail_url` 或安全兜底图
+- **AND** `share.image_url` SHALL NOT 在默认路径中指向原图 `.jpg`
+- **AND** AppData、Network 或等价 evidence SHALL 记录分享图 URL 类型与页面渲染结果。
 
 ### Requirement: SKU 详情页视频全屏操作
 

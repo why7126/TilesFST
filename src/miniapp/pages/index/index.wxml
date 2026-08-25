@@ -51,12 +51,25 @@
       <swiper-item wx:for="{{home.banners}}" wx:key="id">
         <view class="hero-slide" bindtap="openBanner" data-banner="{{item}}">
           <image
+            wx:if="{{item.display_url}}"
             class="hero-image"
-            src="{{item.image_url}}"
+            src="{{item.display_url}}"
             mode="aspectFill"
             binderror="onImageError"
-            data-key="home.banners[{{index}}].image_url"
+            data-key="home.banners[{{index}}].display_url"
           ></image>
+          <image
+            wx:elif="{{item.thumbnail_url}}"
+            class="hero-image"
+            src="{{item.thumbnail_url}}"
+            mode="aspectFill"
+            binderror="onImageError"
+            data-key="home.banners[{{index}}].thumbnail_url"
+          ></image>
+          <view wx:else class="hero-copy">
+            <view class="hero-title">臻选好砖{{'\n'}}美好生活</view>
+            <view class="hero-subtitle">{{item.subtitle || item.title || home.store.description || '精选优质瓷砖 · 打造理想空间'}}</view>
+          </view>
         </view>
       </swiper-item>
     </swiper>

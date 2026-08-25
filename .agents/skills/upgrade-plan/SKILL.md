@@ -5,7 +5,7 @@ description: "生成版本首次部署、相邻升级或跨版本升级与回滚
 
 # upgrade-plan
 
-Use this skill when the user asks `/upgrade-plan --from <fresh|version> --to <version>` or wants to generate a deployment upgrade / rollback plan.
+Use this skill when the user asks `/upgrade-plan --from <fresh|version> --to <version>` or wants to generate a deployment upgrade / rollback plan. Normal release preparation should cover `fresh` and the previous release by default; cross-version plans are generated only when the user explicitly provides an older `--from` version.
 
 ## Context Budget Guardrails（MUST）
 

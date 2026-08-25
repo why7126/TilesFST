@@ -35,37 +35,50 @@
 
 ### Requirement: 媒体对象必须可受控读取
 
-系统 SHALL 通过后端受控接口读取媒体对象，保护对象存储访问边界，并 SHALL 支持图片缓存、列表缩略图、媒体观测和视频 Range 请求。商品列表缩略图、品牌图片缩略图、Banner 图片缩略图和图片类品牌证书缩略图 SHALL 与原图位于同一对象目录或等价可追溯对象路径，并 SHALL 通过文件名差异区分缩略图与原图；历史 `thumbnails/` 前缀 MAY 作为兼容读取或迁移来源，但新生成的列表缩略图 SHALL NOT 依赖 `thumbnails/default/tiles/pending/` 作为最终存储位置。系统 SHALL 生成真实轻量缩略图：对于尺寸大于缩略图目标尺寸的支持图片，缩略图 SHALL 经过后端图片处理生成，像素宽高 SHALL 小于或等于约定最大宽高，且 SHALL NOT 只是原图 bytes 的复制品。系统 SHALL 支持全局缩略图体积目标上限 effective 配置：当 `media.thumbnail_max_size_kb` 为 `0` 时 SHALL 保持当前不限制体积的生成模式；当该值为正整数时，SKU 图片、SKU 暂存图片正式化、品牌 Logo、Banner 图片、品牌证书图片和维护任务重生成的图片缩略图 SHALL 读取同一全局策略，并通过质量递减、必要时尺寸收缩等方式尽量不超过目标体积。无法达到目标体积时 SHALL NOT 阻断原图上传或业务保存，且 SHALL 记录 warning 或可复核失败原因。缩略图 Key / URL 规则 SHALL 保持同目录 `.thumb` 推导约定稳定，不得因体积上限配置要求新增业务表 `thumbnail_key` 字段或改变客户端受控 `/media/...` 读取方式。针对 `BUG-0116-prod-media-historical-object-drift`，系统 SHALL 支持对 SKU 商品图片、品牌 Logo 和品牌证书图片的历史缩略图漂移进行 dry-run 审计、受控回填、二次审计和幂等重复执行；独立历史缩略图重生成任务 SHALL 覆盖 SKU、品牌 Logo 和品牌证书图片三类对象。针对 `BUG-0126-miniapp-brand-media-slow-load`，系统 SHALL 将品牌列表 Banner、品牌 Logo、品牌分类商品卡片主图和图片类品牌证书纳入品牌链路媒体性能审计。
+系统 SHALL 通过后端受控接口读取媒体对象，保护对象存储访问边界，并 SHALL 支持图片缓存、列表缩略图、详情展示图、媒体观测、对象存储直出和视频 Range 请求。商品列表缩略图、品牌图片缩略图、Banner 图片缩略图、图片类品牌证书缩略图和图片 `display` 派生图 SHALL 与原图位于同一对象目录或等价可追溯对象路径，并 SHALL 通过文件名差异、规格目录或等价稳定规则区分 `thumbnail`、`display` 与 `original`。
 
-#### Scenario: BUG-0126 品牌链路媒体审计覆盖
+系统 SHALL 生成真实轻量缩略图与详情展示图：对于尺寸大于目标尺寸的支持图片，派生图 SHALL 经过后端图片处理生成，像素宽高 SHALL 小于或等于对应规格约定最大宽高，且 SHALL NOT 只是原图 bytes 的复制品。无法达到目标体积时 SHALL NOT 默认阻断原图上传或业务保存，且 SHALL 记录 warning 或可复核失败原因。
 
-- **GIVEN** 生产等价数据库与对象存储配置可用
-- **WHEN** 运维执行 BUG-0126 品牌链路媒体性能 dry-run 审计
-- **THEN** 输出 SHALL 覆盖品牌列表 Banner、品牌 Logo、品牌分类商品卡片主图和图片类品牌证书
-- **AND** 输出 SHALL 分别统计原图存在、缩略图存在、缩略图 bytes、原图 bytes、疑似复制原图、疑似体积无收益、需要生成或重生成、跳过、失败原因和重试候选摘要
-- **AND** dry-run SHALL NOT 写数据库或对象存储
-- **AND** 输出 SHALL NOT 包含生产密钥、数据库 DSN、Authorization header、Cookie、`.env` 内容、本机绝对路径或真实客户数据。
+新生成的图片 `thumbnail` 与 `display` 派生对象 SHALL 使用 WebP 内容格式和 `image/webp` MIME。派生对象 key SHALL 与内容格式一致，推荐使用同目录 `.thumb.webp` 与 `.display.webp` 或等价稳定 WebP key。系统 SHALL NOT 新生成 `.thumb.jpg`、`.thumb.png`、`.display.jpg` 或 `.display.png` 但对象内容为 WebP 的不一致状态。历史同格式派生 key MAY 作为读取 fallback 候选保留。
 
-#### Scenario: BUG-0126 历史缩略图回填和二次审计
+对象存储直出 SHALL 作为受控媒体读取形态之一，仅能由后端媒体服务或对象存储适配层生成。系统 SHALL 明确签名 URL、公开 URL、后端 `/media` 代理 URL 的选择条件、过期策略、缓存策略和 fallback。客户端 SHALL NOT 直连未授权对象存储，响应 SHALL NOT 暴露对象存储密钥、bucket 权限细节或内部 endpoint 白名单。
 
-- **GIVEN** BUG-0126 dry-run 已确认需要回填或重生成的品牌链路图片
-- **WHEN** 运维在完成备份后执行受控 apply
-- **THEN** 系统 SHALL 仅为需要处理且原图可读的图片生成或重生成同目录 `.thumb` 缩略图
-- **AND** 缩略图 SHALL 由后端图片处理逻辑生成，SHALL NOT 只是原图 bytes 复制品
-- **AND** 重复执行 SHALL 保持幂等，不破坏已合格缩略图
-- **AND** 二次审计 SHALL 输出剩余缺失、失败、blocked 和已达标摘要。
+#### Scenario: 多规格图片读取 URL 可追溯
 
-#### Scenario: /media 图片读取缓存与回退可观测
+- **WHEN** 客户端请求图片媒体 URL
+- **THEN** 系统 SHALL 能返回或派生 `thumbnail`、`display`、`original` 三类 URL 语义
+- **AND** 新生成的 `thumbnail` 与 `display` URL SHALL 指向 WebP 派生对象或明确为空并触发受控 fallback
+- **AND** 每类 URL SHALL 可追溯到同一媒体记录或业务对象
+- **AND** 响应 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称、access key、secret key 或未授权素材路径。
 
-- **WHEN** 小程序通过 `/media/{object_key}` 请求品牌链路图片或 `.thumb` 缩略图
-- **THEN** 后端或网关 SHALL 返回适合图片资源的缓存头、网关缓存或 CDN 策略证据
-- **AND** 媒体读取日志或等价观测 SHALL 能区分请求 key、实际 resolved key、content length、MIME 和耗时
-- **AND** 当 `.thumb` 缺失并回退原图时 SHALL 记录回退事件
-- **AND** 验收 SHALL NOT 将回退原图视为缩略图性能通过。
+#### Scenario: WebP 派生 key 与 MIME 一致
+
+- **WHEN** 系统为 JPEG、PNG 或 WebP 原图生成 `thumbnail` 或 `display`
+- **THEN** 派生对象 key SHALL 使用 `.webp` 扩展名或等价明确 WebP 标识
+- **AND** 对象存储 Content-Type SHALL 为 `image/webp`
+- **AND** 后端受控读取响应 SHALL 返回与对象内容一致的 WebP MIME
+- **AND** 验收 SHALL 同时记录脱敏 key、扩展名、MIME、对象大小和图片尺寸。
+
+#### Scenario: 对象存储直出失败可回退
+
+- **GIVEN** 当前媒体使用对象存储直出 URL
+- **WHEN** 直出 URL 过期、对象不可读或权限校验失败
+- **THEN** 客户端或后端 SHALL 按明确策略回退到受控 `/media` 代理 URL 或安全占位
+- **AND** 回退事件 SHALL 可观测
+- **AND** 验收 SHALL 记录 URL 类型、HTTP 状态、业务状态和用户可见表现。
+
+#### Scenario: 派生图不是原图复制
+
+- **WHEN** 系统生成 WebP `thumbnail` 或 WebP `display`
+- **THEN** 派生图 SHALL 经过后端图片处理
+- **AND** 对大于目标尺寸的支持图片，派生图像素或 bytes SHALL 体现对应规格收益
+- **AND** 验收 SHALL NOT 将与原图同 bytes 或无收益的派生图写作性能通过。
 
 ### Requirement: 对象 Key 必须使用标准前缀
 
 系统 MUST 使用 `rules/object-storage.md` 定义的单桶标准前缀生成对象 Key。图片类上传 MUST 使用 `images/`，原始视频 MUST 使用 `videos/`，视频封面 MUST 使用 `videos/covers/`，文件类资源 MUST 使用 `files/`，处理后资源 MUST 使用 `processed/` 或更具体标准前缀。系统 MUST NOT 使用用户原始文件名作为对象 Key。`original/` 仅允许作为存量兼容前缀，新上传 MUST NOT 使用。**Banner 运营图** MUST 使用 `images/default/banners/{uuid}.{ext}`（当 `update-object-storage-key-layout` 已生效时 MUST 使用 `images/` 语义前缀；未生效前实现 MUST 与 `build_upload_object_key()` 当前项目约定一致并在 apply 时对齐）。SKU 图片在新建前 MAY 使用 `images/default/tiles/pending/{uuid}.{ext}` 作为暂存 key；一旦绑定到 SKU 或进入公开展示，系统 MUST 使用可追溯到 SKU 的正式商品图片 key。品牌证书图片类对象 MUST 使用 `images/default/brand-certificates/{uuid}.{ext}` 或等价标准图片前缀；品牌证书 PDF 或其他文档类附件 MUST 使用 `files/` 前缀。针对 BUG-0116，系统 MUST 支持对历史公开 SKU pending 主图和历史图片类证书 files 前缀进行受控 dry-run、apply、二次审计和幂等修复。
+
+新生成的图片派生 key MUST 在原图所在目录或等价可追溯目录中表达规格与 WebP 格式，例如 `{base}.thumb.webp` 与 `{base}.display.webp`。原图 key MUST 保留上传扩展名和 MIME；派生 key 不得使用用户原始文件名，也不得暴露真实 object key 全量值到用户可见错误或维护任务摘要。
 
 #### Scenario: BUG-0116 公开 SKU pending 主图正式化
 
@@ -83,8 +96,16 @@
 - **THEN** JPG、JPEG、PNG、WebP 图片类证书 MUST 迁移到 `images/default/brand-certificates/` 或等价标准图片前缀
 - **AND** `brand_certificates.file_key` 与 `brand_certificate_images.file_key` 中的可迁移图片引用 MUST 同步更新
 - **AND** PDF 或其他文档类证书 MUST 继续保留在 `files/default/brand-certificates/`
-- **AND** 原图与同目录 `.thumb` 缩略图引用 MUST 保持同一图片资源归属
+- **AND** 原图与同目录 WebP `.thumb` 缩略图引用 MUST 保持同一图片资源归属
 - **AND** 重复执行 MUST 幂等跳过已迁移或不适用记录。
+
+#### Scenario: 新上传图片派生 key 保留原图归属
+
+- **WHEN** 系统写入新上传 JPEG、PNG 或 WebP 图片及其派生图
+- **THEN** 原图 key MUST 保留上传扩展名
+- **AND** `thumbnail` 派生 key MUST 使用 `.thumb.webp` 或等价 WebP 缩略图标识
+- **AND** `display` 派生 key MUST 使用 `.display.webp` 或等价 WebP 展示图标识
+- **AND** 三个 key MUST 能追溯到同一业务对象、租户或资源目录。
 
 ### Requirement: 生产 MinIO 必须持久化并保持单桶策略
 
@@ -230,4 +251,17 @@
 - **THEN** 系统 SHALL 要求显式 apply 参数、MySQL 与对象存储 bucket / prefix 备份确认、幂等验证、成功数量、失败数量、跳过数量和失败原因
 - **AND** 重复执行 SHALL 保持幂等
 - **AND** 任一失败项 SHALL 记录实际结果、期望结果、影响范围和重试条件。
+
+### Requirement: 对象存储影响必须纳入跨版本升级和回滚
+对象存储能力 SHALL 为跨版本升级计划提供媒体对象、bucket、prefix、object key、缩略图和维护任务影响证据。
+
+#### Scenario: 跨版本对象存储影响聚合
+- **WHEN** 系统生成跨版本升级计划
+- **THEN** 计划 SHALL 聚合中间版本涉及对象存储 provider、bucket、prefix、object key、缩略图、历史媒体维护任务和受控读取策略的影响
+- **AND** 写入型维护任务 SHALL 要求 dry-run、备份确认和人工授权。
+
+#### Scenario: 对象存储回滚边界明确
+- **WHEN** 升级或维护任务可能写入、复制、删除或重生成对象
+- **THEN** 回滚计划 SHALL 记录对象存储备份、只读确认或不可逆风险
+- **AND** 缺少对象存储恢复证据 SHALL 使升级计划 blocked 或 requires manual review。
 

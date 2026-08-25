@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 22:09:09
+updated_at: 2026-08-22 09:14:33
 ---
 
 # 发布规范
@@ -129,6 +129,15 @@ releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.json
 - `impact_summary`：DB、env、Docker、API、对象存储和维护任务影响。
 - `env_diff`：只输出变量名、分类、说明和建议，不输出真实 env 值。
 - `required_checks`、`steps`、`rollback`、`blockers`、`warnings`、`evidence`。
+
+`releases/<to-version>/upgrade-plans/` 只允许存放项目团队确认需要支持或评估的真实部署升级路径。为解释能力、覆盖单测或演示支持级别而构造的示例版本，MUST 放在测试临时数据、测试 fixture 或文档示例中，不得作为正式 release 事实源写入目标版本目录。
+
+每次正常发布默认应生成并校验两类升级计划：
+
+- `fresh -> <to-version>` 首次部署计划。
+- `<previous-release-version> -> <to-version>` 上一正式版本到当前版本的相邻升级计划；若当前版本是首个正式 release，则该项记为 N/A。
+
+跨版本升级计划（例如 `<old-version> -> <to-version>` 且 `old-version` 不是上一正式版本）MUST NOT 在每次发布时默认生成。只有用户明确指定来源版本并执行 `/upgrade-plan --from <old-version> --to <to-version>` 或等价脚本命令时，才可写入目标版本 `upgrade-plans/`，并按证据情况标记为 `cross-version-upgrade-supported`、`cross-version-upgrade-requires-manual-review` 或 `unsupported`。
 
 支持级别含义：
 

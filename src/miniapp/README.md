@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-08-21 13:52:48
+updated_at: 2026-08-25 08:53:42
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -22,8 +22,8 @@ note: AI新增文件前必须确认目录边界
 
 首页通过 `GET /api/v1/miniapp/home` 获取门店摘要、Banner、快捷入口、服务区、新品推荐和热门推荐。
 
-- Banner 使用后台管理端 Banner 管理数据；后端仅聚合已上线、展示端为 `MINIAPP_HOME`（管理端显示“小程序”）、且在有效期内的 Banner。小程序首页只读取 `MINIAPP_HOME_CAROUSEL`（首页轮播），品牌列表页只读取 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播），品牌列表页无轮播数据时不使用首页轮播兜底。小程序首页与品牌列表页均通过 `swiper` 使用 Banner `image_url` 渲染轮播图，有图 Banner 不渲染后台内部标题遮罩，并支持 `product`、`brand`、`search`、`store`、`none` 跳转类型；`brand` 使用 `target_id` 跳转 `pages/brand-detail/index?brandId=...`。没有可用 Banner 时首页降级展示本地黑金品牌 Hero。
-- 新品推荐、热门推荐卡片使用 SKU 主图字段 `cover_image`；缺少主图时降级为 `/assets/tile-placeholder.png`。两者在首页均使用横向滑动列表和 `components/product-card/` 的 `compact` 密度，保持一致的卡片点击、详情跳转和来源上下文传参。
+- Banner 使用后台管理端 Banner 管理数据；后端仅聚合已上线、展示端为 `MINIAPP_HOME`（管理端显示“小程序”）、且在有效期内的 Banner。小程序首页只读取 `MINIAPP_HOME_CAROUSEL`（首页轮播），品牌列表页只读取 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播），品牌列表页无轮播数据时不使用首页轮播兜底。小程序 Banner 轮播图属于首屏大图展示位，目标规格为 `display`；首页与品牌列表页均通过 `swiper` 优先使用 Banner `display_url`，缺失或不可读时降级到 `thumbnail_url`，再降级到安全视图占位；不得请求原图、preview、旧 `url`、语义不明 `image_url` 或不存在的本地静态占位图，并支持 `product`、`brand`、`search`、`store`、`none` 跳转类型；`brand` 使用 `target_id` 跳转 `pages/brand-detail/index?brandId=...`。没有可用 Banner 时首页降级展示本地黑金品牌 Hero。
+- 新品推荐、热门推荐卡片使用 SKU 主图字段 `cover_image`；缺少主图时由 `components/product-card/` 展示内置文字占位，不请求本地占位图片或原图。两者在首页均使用横向滑动列表和 `components/product-card/` 的 `compact` 密度，保持一致的卡片点击、详情跳转和来源上下文传参。
 - 商品价格展示使用后端格式化字段 `price_display`；已维护价格显示为 `¥xx.xx`，未维护、非正或旧无价文案显示为 `暂无`，不再展示旧咨询类文案。
 - 首页左上角产品 Logo 使用 `src/miniapp/assets/logos/product-logo.png`，来源于 Web 公共 Logo 资源 `src/web/public/logos/64x64.png`。
 
@@ -58,7 +58,7 @@ note: AI新增文件前必须确认目录边界
 商品详情页位于 `pages/tile-detail/index.*`，通过 `GET /api/v1/miniapp/skus/{sku_id}` 获取公开 SKU 详情聚合数据，并在旧接口兼容场景降级请求 `GET /api/v1/miniapp/products/{product_id}`。
 
 - 页面展示大媒体区、商品摘要、品牌入口、商品参数、同系列推荐、同品牌推荐和底部收藏/分享操作。
-- 商品详情页顶部图片轮播使用详情接口 `media[].url` 作为首屏高清展示 URL，点击预览使用 `preview_url` 或等价高清 URL；商品列表、商品卡片、推荐位和 Banner 仍保留 `.thumb` 或等价轻量图片策略。轮播高度使用视口宽度约束的更高媒体区，首屏仍需露出商品名称或关键商品信息。
+- 商品详情页顶部图片轮播普通展示使用详情接口 `media[].display_url`，缺少展示图时仅可降级到 `thumbnail_url` 或本地占位图 `/assets/logos/product-logo.png`，不得把 `media[].url` 原图作为冷加载展示兜底；后端应只返回已存在且可读的 `display_url` / `thumbnail_url`，派生展示图缺失时由端侧占位图兜底。点击预览使用 `original_url`、`preview_url` 或等价高清 URL。商品列表、商品卡片和推荐位仍保留 `.thumb` 或等价轻量图片策略；Banner 作为首屏大图展示位优先消费 `.display`。轮播高度使用视口宽度约束的更高媒体区，首屏仍需露出商品名称或关键商品信息。
 - 商品备注说明来自后端 `remark` 公开字段；小程序需过滤空值、`null`、`undefined` 占位值，并作为 `商品参数` 模块内的 `备注说明` 参数行展示，不得单独渲染独立“备注说明”模块。
 - 商品详情页不得在摘要区展示 SKU 编码；SKU 编码、类目、规格、色系、表面工艺和备注说明等信息统一进入商品参数模块。
 - 商品详情埋点通过 `track()` 上报 `sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_favorite`、`sku_unfavorite`、`sku_recommend_click`、`sku_share_click` 和 `sku_load_error`；埋点失败不得阻断详情浏览、媒体预览、收藏、分享或推荐跳转。
@@ -67,7 +67,7 @@ note: AI新增文件前必须确认目录边界
 
 品牌入口页位于 `pages/brand-list/index.*`，通过 `GET /api/v1/miniapp/brands` 获取品牌列表页轮播和启用品牌列表。顶部 Hero 保持品牌列表页 Banner 数据、指示器、自动播放和点击行为不变；无 Banner 时展示黑金品牌画廊兜底。轮播下方使用“品牌矩阵”单列卡片：卡片上半区作为品牌入口，展示圆形 Logo、品牌名称、`x 款商品` 和进入箭头；卡片下半区直接展示该品牌所有上架商品绑定的末级类目名称，不额外展示“按类目快速识别”或“全部类目 · 点击查看该品牌下的类目商品”等说明文案。类目来自响应 `leaf_categories`，小程序端按类目名称去重后全部折行展示，不使用 `+N` 折叠；类目胶囊区采用两列固定布局，左右列分别左对齐，类目名称超出胶囊宽度时单行省略，不换行、不撑破边框；类目胶囊字号比品牌名称小 2rpx，避免在移动端过弱；无类目时仅在类目区展示轻量 `暂无类目`。点击品牌卡片上半区进入 `pages/brand-detail/index?brandId=...`；点击类目标签进入 `pages/product-list/index?brandId=...&categoryId=...&categoryLevel=secondary&categoryName=...&sourcePage=brand-list-category`，不展示“公开”字样。
 
-品牌主页位于 `pages/brand-detail/index.*`，通过 `GET /api/v1/miniapp/brands/{brand_id}` 获取品牌图片、品牌名称、英文名、简介、商品数和证书数；导航栏标题必须使用品牌名称 `brand_name`，不得使用品牌简称。顶部品牌文案以浮层形式覆盖在品牌图片上，不展示“x 个商品 / x 个证书”数量行。商品 Tab 复用 `GET /api/v1/miniapp/products?brandId=...` 和 `components/product-card/`，接口默认按 `published_at ASC, id ASC` 返回当前品牌公开 SKU，历史 `published_at` 空值由后端使用 `created_at` 兜底；小程序端只按接口返回顺序首屏展示和加载更多，不做端侧重排。证书 Tab 通过 `GET /api/v1/miniapp/brands/{brand_id}/certificates` 获取当前品牌可公开证书，卡片样式保持与证书列表页一致，卡片主点击进入 `pages/certificate-detail/index?certificateId=...`，文件预览能力下沉到证书详情页。
+品牌主页位于 `pages/brand-detail/index.*`，通过 `GET /api/v1/miniapp/brands/{brand_id}` 获取品牌图片、品牌名称、英文名、简介、商品数和证书数；导航栏标题必须使用品牌名称 `brand_name`，不得使用品牌简称。顶部品牌文案以浮层形式覆盖在品牌 Hero 图片上，不展示“x 个商品 / x 个证书”数量行；顶部品牌图位属于首屏 Hero 大图展示位，普通展示优先使用 `brand_hero_display_url`，缺失或不可读时降级到 `brand_hero_thumbnail_url`，再降级到安全视图占位或品牌名占位，不请求 `brand_logo_url` 原图、preview、旧 `url`、语义不明 `image_url` 或不存在的本地静态占位图。品牌列表、品牌卡和详情页品牌入口等小 Logo 场景仍只消费 `brand_logo_thumbnail_url`。商品 Tab 复用 `GET /api/v1/miniapp/products?brandId=...` 和 `components/product-card/`，接口默认按 `published_at ASC, id ASC` 返回当前品牌公开 SKU，历史 `published_at` 空值由后端使用 `created_at` 兜底；小程序端只按接口返回顺序首屏展示和加载更多，不做端侧重排。证书 Tab 通过 `GET /api/v1/miniapp/brands/{brand_id}/certificates` 获取当前品牌可公开证书，卡片样式保持与证书列表页一致，卡片主点击进入 `pages/certificate-detail/index?certificateId=...`，文件预览能力下沉到证书详情页。
 
 - 后端只返回启用品牌、公开 SKU 和可见证书，不暴露后台备注、审计字段、对象存储原始 key、Authorization header、Cookie 或敏感配置。启用品牌即使商品数为 0，也必须允许进入品牌主页；品牌详情接口返回 `product_count=0`，商品 Tab 展示空态，不得将 0 商品品牌误判为“暂不可查看”。
 - 品牌入口页和品牌主页均使用 `custom-navigation`，需要按 `docs/knowledge-base/best-practices/miniapp-custom-navigation.md` 记录 DevTools 320/375/390/430 pt evidence；真机不可用时标记 blocked 或 follow_up。
@@ -92,9 +92,9 @@ note: AI新增文件前必须确认目录边界
 - PDF 或未知文件使用稳定文件占位，通过 `wx.downloadFile` + `wx.openDocument` 打开；失败时展示稳定错误提示，不复制文件链接。
 - 页面标题固定为“证书详情”；证书名称面板只展示证书类型和证书名称，不重复展示品牌名称。
 - 证书信息模块展示证书类型、证书编号、发证机构、有效状态和备注说明，不展示有效期；备注说明来自后端 `remark` 公开字段，空值或占位值以安全占位处理。
-- 品牌入口使用后端返回的 `brand_entry_path`，在独立品牌面板中展示所属品牌；分享路径携带 `certificateId` 与 `source=share`；分享直达无页面栈时由 `custom-navigation` 返回兜底到首页。
+- 品牌入口复用 `components/brand-card/`，使用后端返回的 `brand_entry_path` 和 `brand_logo_thumbnail_url` 展示所属品牌；证书详情页传入 `sourcePage=certificate_detail`、`sourceModule=brand_entry`、`certificateId` 和 `requestId`，普通展示不得 fallback 到品牌 Logo 原图。分享路径携带 `certificateId` 与 `source=share`；分享直达无页面栈时由 `custom-navigation` 返回兜底到首页。
 - 页面不提供底部固定“预览文件”或“分享证书”交互按钮；图片/PDF 预览通过媒体区域触发，分享保留微信原生分享生命周期。
-- 详情页埋点通过 `track()` 上报 `certificate_detail_view`、`certificate_detail_media_switch`、`certificate_detail_image_preview`、`certificate_detail_file_open`、`certificate_detail_brand_click`、`certificate_detail_share_click` 和 `certificate_detail_load_failed`；不得记录原始对象 key、内部备注、Authorization header、Cookie、`.env` 内容、本机路径或个人隐私。
+- 详情页埋点通过 `track()` 上报 `certificate_detail_view`、`certificate_detail_media_switch`、`certificate_detail_image_preview`、`certificate_detail_file_open`、`brand_card_click`、`certificate_detail_share_click` 和 `certificate_detail_load_failed`；不得记录原始对象 key、内部备注、Authorization header、Cookie、`.env` 内容、本机路径或个人隐私。
 
 ## 自定义 TabBar
 

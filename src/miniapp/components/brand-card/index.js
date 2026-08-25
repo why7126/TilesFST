@@ -24,11 +24,12 @@ function firstBrandLetter(name) {
   return compact ? compact.slice(0, 2).toUpperCase() : '品牌';
 }
 
-function normalizeBrand(brand, hint) {
+function normalizeBrand(brand, hint, allowOriginalLogoFallback = false) {
   const rawBrandName = safeText(brand.brand_name || brand.brand_short_name, '');
   const brandName = rawBrandName || '品牌信息待完善';
   const entryPath = safeText(brand.brand_entry_path, '');
-  const logoSrc = safeText(brand.brand_logo_thumbnail_url || brand.brand_logo_url, '');
+  const originalLogo = allowOriginalLogoFallback ? brand.brand_logo_url : '';
+  const logoSrc = safeText(brand.brand_logo_thumbnail_url || originalLogo, '');
   const available = Boolean(rawBrandName) && (Boolean(entryPath) || brand.available !== false);
   return {
     brandId: brand.brand_id || '',
@@ -55,9 +56,11 @@ Component({
     sourceModule: { type: String, value: 'brand-card' },
     density: { type: String, value: 'default' },
     skuId: { type: null, value: '' },
+    certificateId: { type: null, value: '' },
     listContext: { type: String, value: '' },
     index: { type: Number, value: 0 },
     requestId: { type: String, value: '' },
+    allowOriginalLogoFallback: { type: Boolean, value: false },
   },
 
   data: {
@@ -68,9 +71,9 @@ Component({
   },
 
   observers: {
-    'brand, hint': function observeBrand(brand, hint) {
+    'brand, hint, allowOriginalLogoFallback': function observeBrand(brand, hint, allowOriginalLogoFallback) {
       this.setData({
-        normalized: normalizeBrand(brand || {}, hint),
+        normalized: normalizeBrand(brand || {}, hint, allowOriginalLogoFallback),
         imageFailed: false,
         navigating: false,
       });
@@ -126,6 +129,7 @@ Component({
         sourcePage: this.properties.sourcePage,
         sourceModule: this.properties.sourceModule,
         skuId: this.properties.skuId || undefined,
+        certificateId: this.properties.certificateId || undefined,
         listContext: this.properties.listContext || this.properties.sourceModule || 'brand-card',
         index: this.properties.index,
         requestId: this.resolveTelemetryRequestId(),

@@ -2,7 +2,7 @@
 purpose: 缺陷（BUG）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-21 13:45:41
+updated_at: 2026-08-24 16:35:51
 ---
 
 # 缺陷管理规范
@@ -96,6 +96,8 @@ BUG-NNNN-slug/
 - `/sprint-apply`
 
 `/bug-review BUG-xxxx` 无 flag 时默认评审通过并进入 `approved`；拒绝、延后或不修复必须显式使用 `--reject`、`--defer` 或 `--wont-fix`。
+
+默认 approve 或显式 `--approve` 前，目标 BUG `root-cause.md` MUST 满足 `root_cause_status: confirmed` 且 confirmed 根因具备可定位证据链。若 `root_cause_status` 为 `unknown`、`hypothesis`、`probable`，或缺少 `root-cause.md` / `root_cause_status`，`/bug-review` MUST 阻断 approve，并提示先 `/bug-complete <BUG-id>` 补齐证据或改用 `--defer`、`--reject`、`--wont-fix`。
 
 未评审 BUG **不得**写入 Sprint 四件套正式范围；仅可记入 `sprint.md`「延后项（待评审）」并提示 `/bug-review BUG-xxxx`。
 

@@ -4,7 +4,7 @@ content: 瓷砖图片、视频、封面、转码、上传、对象存储、前�
 source: AI自动生成初稿，项目团队确认
 update_method: 新增媒体类型、视频转码、封面生成、上传限制、对象存储策略时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-12 14:54:20
+updated_at: 2026-08-22 22:25:05
 note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 ---
 
@@ -46,7 +46,9 @@ thumbnails/            缩略图
 original/              Deprecated，仅存量兼容
 ```
 
-品牌证书必须按媒体类型分流：JPG、PNG、WebP 证书图片使用 `images/default/brand-certificates/` 或等价标准图片前缀，PDF 等证书文档继续使用 `files/default/brand-certificates/`。图片证书缩略图必须与原图保持同一图片资源归属，优先使用同目录 `.thumb` key。
+品牌证书必须按媒体类型分流：JPG、PNG、WebP 证书图片使用 `images/default/brand-certificates/` 或等价标准图片前缀，PDF 等证书文档继续使用 `files/default/brand-certificates/`。图片证书缩略图和详情展示图必须与原图保持同一图片资源归属，优先使用同目录 `.thumb.webp` / `.display.webp` key；PDF 不生成 `thumbnail_url` 或 `display_url`。
+
+图片上传的原图 MUST 保留上传格式、原始 MIME 与原图 key。首期仅对 JPEG/JPG、PNG、WebP 输入生成 WebP 派生图：列表/卡片缩略图使用 `.thumb.webp`，详情普通展示图使用 `.display.webp`，对象 Content-Type MUST 为 `image/webp`。SVG/PDF 跳过 WebP 派生；GIF、HEIC、TIFF、BMP 首期不转码，上传入口按现有允许类型拒绝或跳过。派生图生成失败不得阻断原图上传，必须记录脱敏 warning、任务 span 或维护任务失败原因。
 
 ## 3. 视频规范
 
@@ -85,7 +87,7 @@ original/              Deprecated，仅存量兼容
 
 每个维度必须记录 `pass`、`fail`、`n/a` 或 `blocked` 状态、证据和失败/阻塞处理。`n/a` 必须说明不适用原因；`blocked` 不得视为通过；任一 `fail` 必须包含实际结果、期望结果、复现步骤、影响范围和排查线索。
 
-涉及上传链路时，四联验收还必须覆盖上传状态机、同会话即时回显、Docker Web `http://localhost:3000` 边界文件、`object_key` 与受控媒体 URL 一致性。涉及历史对象、缩略图、回填或审计脚本时，必须记录 dry-run、apply、幂等性或统计摘要，且不得泄露敏感信息。
+涉及上传链路时，四联验收还必须覆盖上传状态机、同会话即时回显、Docker Web `http://localhost:3000` 边界文件、`object_key` 与受控媒体 URL 一致性。涉及历史对象、缩略图、展示图、WebP 派生图回填或审计脚本时，必须记录 dry-run、apply、幂等性或统计摘要，且不得泄露敏感信息。
 
 小程序媒体相关需求、BUG、Sprint 验收和发布前检查必须优先引用 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`。除静态测试外，还应记录 DevTools、真机或体验版 Network evidence，覆盖图片展示 URL、preview URL、视频 URL、poster/cover、fallback、lazy-load 和受控 `/media` URL。测试 helper 只能证明模板绑定与 URL 安全边界；审计 helper 只能证明历史对象和缩略图状态，二者均不得替代小程序 render evidence。
 

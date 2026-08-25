@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     object_storage_region: str | None = Field(default=None, alias="OBJECT_STORAGE_REGION")
     object_storage_path_style: bool | None = Field(default=None, alias="OBJECT_STORAGE_PATH_STYLE")
     object_storage_auto_create_bucket: bool | None = Field(default=None, alias="OBJECT_STORAGE_AUTO_CREATE_BUCKET")
+    object_storage_direct_read_enabled: bool = Field(default=False, alias="OBJECT_STORAGE_DIRECT_READ_ENABLED")
+    object_storage_direct_read_expires_seconds: int = Field(
+        default=300,
+        alias="OBJECT_STORAGE_DIRECT_READ_EXPIRES_SECONDS",
+    )
 
     object_storage_prefix_images: str = Field(default="images/", alias="OBJECT_STORAGE_PREFIX_IMAGES")
     object_storage_prefix_original: str = Field(
@@ -126,6 +131,12 @@ class Settings(BaseSettings):
             return self.object_storage_auto_create_bucket
         return self.effective_object_storage_provider() in {"minio", "self-hosted-minio"}
 
+    def effective_object_storage_direct_read_enabled(self) -> bool:
+        return self.object_storage_direct_read_enabled
+
+    def effective_object_storage_direct_read_expires_seconds(self) -> int:
+        return max(60, min(self.object_storage_direct_read_expires_seconds, 3600))
+
     def object_storage_public_summary(self) -> dict[str, str | bool | None]:
         return {
             "provider": self.effective_object_storage_provider(),
@@ -135,6 +146,10 @@ class Settings(BaseSettings):
             "region": self.effective_object_storage_region(),
             "path_style": self.effective_object_storage_path_style(),
             "auto_create_bucket": self.effective_object_storage_auto_create_bucket(),
+            "direct_read_enabled": self.effective_object_storage_direct_read_enabled(),
+            "direct_read_expires_seconds": str(
+                self.effective_object_storage_direct_read_expires_seconds()
+            ),
         }
 
 

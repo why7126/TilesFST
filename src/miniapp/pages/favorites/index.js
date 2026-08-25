@@ -79,7 +79,7 @@ Page({
     requestId: '',
     navigating: false,
     removingId: 0,
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     skeletons: [1, 2, 3],
   },
 
@@ -268,6 +268,6 @@ Page({
 
   onImageError(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
-    this.setData({ [`visibleItems[${index}].cover_image`]: this.data.imageFallback });
+    this.setData({ [`visibleItems[${index}].cover_image`]: '' });
   },
 });

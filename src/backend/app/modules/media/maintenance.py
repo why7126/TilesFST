@@ -19,11 +19,19 @@ from typing import Any
 from sqlalchemy import text
 
 from app.core.config import settings
+from app.core.error_codes import STORAGE_UNAVAILABLE
 from app.core.exceptions import AppError
 from app.db.session import get_session_factory
 from app.modules.media.storage import (
+    DISPLAY_IMAGE_JPEG_QUALITY,
+    DISPLAY_IMAGE_MAX_HEIGHT,
+    DISPLAY_IMAGE_MAX_WIDTH,
+    DISPLAY_IMAGE_TARGET_MAX_SIZE_KB,
+    DISPLAY_IMAGE_WEBP_QUALITY,
+    MEDIA_NOT_FOUND,
     generate_image_thumbnail,
     get_media_storage_client,
+    same_directory_display_object_key,
     same_directory_thumbnail_object_key,
 )
 from app.modules.media.tile_images import (
@@ -37,6 +45,12 @@ from app.services.effective_settings_service import EffectiveSettingsService
 IMAGE_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 CERTIFICATE_FILE_PREFIX = "files/default/brand-certificates/"
 CERTIFICATE_IMAGE_PREFIX = "images/default/brand-certificates/"
+OBJECT_STORAGE_UNREACHABLE = "object_storage_unreachable"
+OBJECT_MISSING = "object_missing"
+OBJECT_CHECK_FAILED = "object_check_failed"
+OBJECT_STORAGE_RECOMMENDED_ACTION = (
+    "检查 endpoint、region、bucket、权限、网络与 env 注入，修复后重新 dry-run"
+)
 SENSITIVE_KEYS = (
     "authorization",
     "cookie",
@@ -56,6 +70,13 @@ class MaintenanceTask:
     description: str
     runner: Callable[[argparse.Namespace], dict[str, Any]]
     supports_apply: bool = False
+
+
+@dataclass(frozen=True)
+class ObjectStorageBlockedError(Exception):
+    category: str
+    error_code: str
+    operation: str
 
 
 def _fingerprint(value: str) -> str:
@@ -103,6 +124,139 @@ def _base_summary(*, task: str, apply: bool, limit: int | None) -> dict[str, Any
     }
 
 
+def _classify_storage_error(exc: BaseException) -> str:
+    if isinstance(exc, AppError):
+        if exc.code == MEDIA_NOT_FOUND:
+            return OBJECT_MISSING
+        if exc.code == STORAGE_UNAVAILABLE or exc.status_code >= 500:
+            return OBJECT_STORAGE_UNREACHABLE
+        return OBJECT_CHECK_FAILED
+    if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+        return OBJECT_STORAGE_UNREACHABLE
+    return OBJECT_CHECK_FAILED
+
+
+def _raise_if_storage_blocked(exc: BaseException, *, operation: str) -> None:
+    category = _classify_storage_error(exc)
+    if category == OBJECT_STORAGE_UNREACHABLE:
+        error_code = str(getattr(exc, "code", exc.__class__.__name__))
+        raise ObjectStorageBlockedError(
+            category=OBJECT_STORAGE_UNREACHABLE,
+            error_code=error_code,
+            operation=operation,
+        ) from exc
+
+
+def _storage_blocked_summary(
+    *,
+    task: str,
+    affected_tasks: list[str],
+    checked_items: int,
+    error: ObjectStorageBlockedError,
+) -> dict[str, Any]:
+    return {
+        "status": "blocked",
+        "failure_category": OBJECT_STORAGE_UNREACHABLE,
+        "failure_reason": OBJECT_STORAGE_UNREACHABLE,
+        "error_code": error.error_code,
+        "operation": error.operation,
+        "checked_items": checked_items,
+        "affected_tasks": affected_tasks,
+        "failed": 0,
+        "retry_candidates": 0,
+        "can_apply": False,
+        "recommended_action": OBJECT_STORAGE_RECOMMENDED_ACTION,
+        "task": task,
+    }
+
+
+def _storage_blocked_acceptance_summary(
+    *,
+    task: str,
+    total: int,
+    thumbnail_applicable: bool,
+    render_applicable: bool,
+) -> dict[str, Any]:
+    summary = _media_acceptance_summary(
+        task=task,
+        total=total,
+        failed=0,
+        thumbnail_applicable=thumbnail_applicable,
+        render_applicable=render_applicable,
+    )
+    summary["object"] = {
+        "status": "blocked",
+        "samples": total,
+        "reason": OBJECT_STORAGE_UNREACHABLE,
+    }
+    if thumbnail_applicable:
+        summary["thumbnail_benefit"] = {
+            "status": "blocked",
+            "reason": OBJECT_STORAGE_UNREACHABLE,
+        }
+    return summary
+
+
+def _apply_storage_blocked_result(
+    result: dict[str, Any],
+    *,
+    task: str,
+    affected_tasks: list[str],
+    checked_items: int,
+    error: ObjectStorageBlockedError,
+    thumbnail_applicable: bool,
+    render_applicable: bool,
+) -> dict[str, Any]:
+    result["status"] = "blocked"
+    result["summary"] = _storage_blocked_summary(
+        task=task,
+        affected_tasks=affected_tasks,
+        checked_items=checked_items,
+        error=error,
+    )
+    result["acceptance_summary"] = _storage_blocked_acceptance_summary(
+        task=task,
+        total=checked_items,
+        thumbnail_applicable=thumbnail_applicable,
+        render_applicable=render_applicable,
+    )
+    return result
+
+
+def _is_storage_blocked(result: dict[str, Any]) -> bool:
+    summary = result.get("summary")
+    return isinstance(summary, dict) and summary.get("failure_category") == OBJECT_STORAGE_UNREACHABLE
+
+
+def _skipped_after_storage_block(
+    *,
+    task: str,
+    limit: int | None,
+    thumbnail_applicable: bool,
+    render_applicable: bool,
+) -> dict[str, Any]:
+    result = _base_summary(task=task, apply=False, limit=limit)
+    result["status"] = "blocked"
+    result["summary"] = {
+        "status": "blocked",
+        "failure_category": OBJECT_STORAGE_UNREACHABLE,
+        "failure_reason": "skipped_after_object_storage_unreachable",
+        "failed": 0,
+        "retry_candidates": 0,
+        "can_apply": False,
+        "recommended_action": OBJECT_STORAGE_RECOMMENDED_ACTION,
+        "task": task,
+    }
+    result["items"] = []
+    result["acceptance_summary"] = _storage_blocked_acceptance_summary(
+        task=task,
+        total=0,
+        thumbnail_applicable=thumbnail_applicable,
+        render_applicable=render_applicable,
+    )
+    return result
+
+
 def _database_backend_summary() -> str:
     database_url = settings.database_url or ""
     if database_url.startswith("sqlite"):
@@ -115,7 +269,10 @@ def _database_backend_summary() -> str:
 def _object_exists(object_key: str) -> bool:
     try:
         get_media_storage_client().get_object_info(object_key)
-    except AppError:
+    except AppError as exc:
+        if _classify_storage_error(exc) == OBJECT_MISSING:
+            return False
+        _raise_if_storage_blocked(exc, operation="object_info")
         return False
     return True
 
@@ -129,11 +286,17 @@ def _needs_regeneration(
     try:
         original_info = get_media_storage_client().get_object_info(original_key)
     except AppError as exc:
+        _raise_if_storage_blocked(exc, operation="original_info")
         return False, f"original_missing:{exc.code}"
     try:
         thumbnail_info = get_media_storage_client().get_object_info(thumbnail_key)
-    except AppError:
+    except AppError as exc:
+        _raise_if_storage_blocked(exc, operation="variant_info")
         return True, "thumbnail_missing"
+
+    normalized_variant_type = (thumbnail_info.content_type or "").lower().split(";", 1)[0].strip()
+    if normalized_variant_type != "image/webp":
+        return True, "variant_not_webp"
 
     target_bytes = max(0, int(thumbnail_max_size_kb or 0)) * 1024
     if target_bytes and thumbnail_info.total_size > target_bytes:
@@ -145,6 +308,7 @@ def _needs_regeneration(
         original = get_media_storage_client().get_object(original_key)
         thumbnail = get_media_storage_client().get_object(thumbnail_key)
     except AppError as exc:
+        _raise_if_storage_blocked(exc, operation="variant_read")
         return True, f"read_failed:{exc.code}"
     if original.content == thumbnail.content:
         return True, "thumbnail_copied_original"
@@ -155,6 +319,14 @@ def _effective_thumbnail_max_size_kb() -> int:
     session = get_session_factory()()
     try:
         return EffectiveSettingsService(SystemSettingsRepository(session)).thumbnail_max_size_kb()
+    finally:
+        session.close()
+
+
+def _effective_display_max_size_kb() -> int:
+    session = get_session_factory()()
+    try:
+        return EffectiveSettingsService(SystemSettingsRepository(session)).display_max_size_kb()
     finally:
         session.close()
 
@@ -177,6 +349,30 @@ def _regenerate_thumbnail(
         return False, str(getattr(exc, "code", exc.__class__.__name__)), False
     target_bytes = max(0, thumbnail_max_size_kb) * 1024
     return True, None, bool(target_bytes and thumbnail.size > target_bytes)
+
+
+def _regenerate_display(
+    original_key: str,
+    display_key: str,
+    *,
+    display_max_size_kb: int = DISPLAY_IMAGE_TARGET_MAX_SIZE_KB,
+) -> tuple[bool, str | None, bool]:
+    try:
+        original = get_media_storage_client().get_object(original_key)
+        display = generate_image_thumbnail(
+            original.content,
+            original.content_type,
+            max_width=DISPLAY_IMAGE_MAX_WIDTH,
+            max_height=DISPLAY_IMAGE_MAX_HEIGHT,
+            jpeg_quality=DISPLAY_IMAGE_JPEG_QUALITY,
+            webp_quality=DISPLAY_IMAGE_WEBP_QUALITY,
+            target_max_size_kb=display_max_size_kb,
+        )
+        get_media_storage_client().put_object(display_key, display.content, display.content_type)
+    except (AppError, RuntimeError, ValueError, OSError) as exc:
+        return False, str(getattr(exc, "code", exc.__class__.__name__)), False
+    target_bytes = max(0, display_max_size_kb) * 1024
+    return True, None, bool(target_bytes and display.size > target_bytes)
 
 
 def _image_content_type_for_key(object_key: str, content_type: str | None) -> str | None:
@@ -272,11 +468,23 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
             continue
         seen.add(object_key)
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
-        needs_regeneration, reason = _needs_regeneration(
-            object_key,
-            thumbnail_key,
-            thumbnail_max_size_kb=thumbnail_max_size_kb,
-        )
+        try:
+            needs_regeneration, reason = _needs_regeneration(
+                object_key,
+                thumbnail_key,
+                thumbnail_max_size_kb=thumbnail_max_size_kb,
+            )
+            thumbnail_exists = _object_exists(thumbnail_key)
+        except ObjectStorageBlockedError as exc:
+            return _apply_storage_blocked_result(
+                result,
+                task="backfill-brand-certificate-thumbnails",
+                affected_tasks=["backfill-brand-certificate-thumbnails"],
+                checked_items=len(items),
+                error=exc,
+                thumbnail_applicable=True,
+                render_applicable=False,
+            )
         status = "dry_run" if needs_regeneration and not execute else "skipped"
         if needs_regeneration:
             summary["retry_candidates"] += 1
@@ -316,7 +524,7 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 "source_id": row["source_id"],
                 **_safe_object_ref(object_key),
                 "thumbnail": _safe_object_ref(thumbnail_key),
-                "thumbnail_exists": _object_exists(thumbnail_key),
+                "thumbnail_exists": thumbnail_exists,
                 "needs_regeneration": needs_regeneration,
                 "status": status,
                 "reason": reason,
@@ -332,6 +540,148 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
         failed=summary["failed"],
         thumbnail_applicable=True,
         render_applicable=False,
+    )
+    return result
+
+
+def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
+    execute = bool(args.apply)
+    limit = args.limit
+    thumbnail_max_size_kb = _effective_thumbnail_max_size_kb()
+    display_max_size_kb = _effective_display_max_size_kb()
+    result: dict[str, Any] = _base_summary(
+        task="backfill-image-variants",
+        apply=execute,
+        limit=limit,
+    )
+    summary: dict[str, Any] = {
+        "total": 0,
+        "success": 0,
+        "failed": 0,
+        "skipped": 0,
+        "thumbnail_missing": 0,
+        "display_missing": 0,
+        "thumbnail_no_benefit": 0,
+        "display_no_benefit": 0,
+        "estimated_writes": 0,
+        "not_within_target": 0,
+        "retry_candidates": 0,
+        "failure_reasons": {},
+        "thumbnail_max_size_kb": thumbnail_max_size_kb,
+        "display_max_width": DISPLAY_IMAGE_MAX_WIDTH,
+        "display_max_height": DISPLAY_IMAGE_MAX_HEIGHT,
+        "display_max_size_kb": display_max_size_kb,
+    }
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for row in _thumbnail_source_rows(limit):
+        object_key = str(row["object_key"] or "").strip()
+        if not object_key or object_key in seen:
+            continue
+        seen.add(object_key)
+        thumbnail_key = same_directory_thumbnail_object_key(object_key)
+        display_key = same_directory_display_object_key(object_key)
+        try:
+            thumbnail_needs, thumbnail_reason = _needs_regeneration(
+                object_key,
+                thumbnail_key,
+                thumbnail_max_size_kb=thumbnail_max_size_kb,
+            )
+            display_needs, display_reason = _needs_regeneration(
+                object_key,
+                display_key,
+                thumbnail_max_size_kb=display_max_size_kb,
+            )
+            thumbnail_exists = _object_exists(thumbnail_key)
+            display_exists = _object_exists(display_key)
+        except ObjectStorageBlockedError as exc:
+            return _apply_storage_blocked_result(
+                result,
+                task="backfill-image-variants",
+                affected_tasks=["backfill-image-variants"],
+                checked_items=len(items),
+                error=exc,
+                thumbnail_applicable=True,
+                render_applicable=True,
+            )
+        required_writes = int(thumbnail_needs) + int(display_needs)
+        status = "dry_run" if required_writes and not execute else "skipped"
+        summary["estimated_writes"] += required_writes
+        summary["retry_candidates"] += 1 if required_writes else 0
+        if thumbnail_reason == "thumbnail_missing":
+            summary["thumbnail_missing"] += 1
+        if display_reason == "thumbnail_missing":
+            summary["display_missing"] += 1
+        if thumbnail_reason in {"thumbnail_same_size", "thumbnail_copied_original"}:
+            summary["thumbnail_no_benefit"] += 1
+        if display_reason in {"thumbnail_same_size", "thumbnail_copied_original"}:
+            summary["display_no_benefit"] += 1
+
+        variant_results: dict[str, str] = {}
+        if execute and required_writes:
+            status = "generated"
+            for variant, needs, key in (
+                ("thumbnail", thumbnail_needs, thumbnail_key),
+                ("display", display_needs, display_key),
+            ):
+                if not needs:
+                    variant_results[variant] = "skipped"
+                    continue
+                if variant == "thumbnail":
+                    ok, failure, not_within_target = _regenerate_thumbnail(
+                        object_key,
+                        key,
+                        thumbnail_max_size_kb=thumbnail_max_size_kb,
+                    )
+                else:
+                    ok, failure, not_within_target = _regenerate_display(
+                        object_key,
+                        key,
+                        display_max_size_kb=display_max_size_kb,
+                    )
+                if ok:
+                    summary["success"] += 1
+                    summary["not_within_target"] += 1 if not_within_target else 0
+                    variant_results[variant] = "generated"
+                else:
+                    status = "failed"
+                    summary["failed"] += 1
+                    variant_results[variant] = "failed"
+                    reasons = summary["failure_reasons"]
+                    reasons[failure or "unknown"] = reasons.get(failure or "unknown", 0) + 1
+        elif not required_writes:
+            summary["skipped"] += 1
+        items.append(
+            {
+                "source_type": row["source_type"],
+                "source_id": row["source_id"],
+                "original": _safe_object_ref(object_key),
+                "thumbnail": _safe_object_ref(thumbnail_key),
+                "display": _safe_object_ref(display_key),
+                "thumbnail_exists": thumbnail_exists,
+                "display_exists": display_exists,
+                "needs": {
+                    "thumbnail": thumbnail_needs,
+                    "display": display_needs,
+                },
+                "reasons": {
+                    "thumbnail": thumbnail_reason,
+                    "display": display_reason,
+                },
+                "variant_results": variant_results,
+                "status": status,
+                "display_max_size_kb": display_max_size_kb,
+            }
+        )
+    summary["total"] = len(items)
+    result["summary"] = summary
+    result["items"] = items
+    result["acceptance_summary"] = _media_acceptance_summary(
+        task="backfill-image-variants",
+        total=summary["total"],
+        failed=summary["failed"],
+        thumbnail_applicable=True,
+        render_applicable=True,
     )
     return result
 
@@ -392,6 +742,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
     limit = args.limit
     rows = _pending_tile_rows(limit)
     thumbnail_max_size_kb = _effective_thumbnail_max_size_kb()
+    display_max_size_kb = _effective_display_max_size_kb()
     result: dict[str, Any] = _base_summary(
         task="formalize-pending-tile-images",
         apply=execute,
@@ -405,6 +756,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
         "missing_thumbnail": 0,
         "target_exists": 0,
         "thumbnail_max_size_kb": thumbnail_max_size_kb,
+        "display_max_size_kb": display_max_size_kb,
         "failure_reasons": {},
     }
     items: list[dict[str, Any]] = []
@@ -415,9 +767,20 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
         target_key = deterministic_formal_tile_image_key(tile_id, object_key)
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
         target_thumbnail_key = same_directory_thumbnail_object_key(target_key)
-        original_exists = _object_exists(object_key)
-        thumbnail_exists = _object_exists(thumbnail_key)
-        destination_exists = _object_exists(target_key)
+        try:
+            original_exists = _object_exists(object_key)
+            thumbnail_exists = _object_exists(thumbnail_key)
+            destination_exists = _object_exists(target_key)
+        except ObjectStorageBlockedError as exc:
+            return _apply_storage_blocked_result(
+                result,
+                task="formalize-pending-tile-images",
+                affected_tasks=["formalize-pending-tile-images"],
+                checked_items=len(items),
+                error=exc,
+                thumbnail_applicable=True,
+                render_applicable=True,
+            )
         summary["missing_original"] += 0 if original_exists else 1
         summary["missing_thumbnail"] += 0 if thumbnail_exists else 1
         summary["target_exists"] += 1 if destination_exists else 0
@@ -435,6 +798,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                         object_key=object_key,
                         target_key=target_key,
                         thumbnail_max_size_kb=thumbnail_max_size_kb,
+                        display_max_size_kb=display_max_size_kb,
                     )
                     _update_image_reference(image_id=image_id, target_key=target_key)
                     status = "migrated"
@@ -563,8 +927,19 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
             continue
 
         target_key = _certificate_target_key(source_key)
-        original_exists = _object_exists(source_key)
-        target_exists = _object_exists(target_key)
+        try:
+            original_exists = _object_exists(source_key)
+            target_exists = _object_exists(target_key)
+        except ObjectStorageBlockedError as exc:
+            return _apply_storage_blocked_result(
+                result,
+                task="migrate-certificate-image-keys",
+                affected_tasks=["migrate-certificate-image-keys"],
+                checked_items=len(items),
+                error=exc,
+                thumbnail_applicable=False,
+                render_applicable=True,
+            )
         summary["image_candidates"] += 1
         summary["missing_original"] += 0 if original_exists else 1
         summary["target_exists"] += 1 if target_exists else 0
@@ -622,13 +997,29 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
 
 
 def run_bug_0116_media_drift(args: argparse.Namespace) -> dict[str, Any]:
-    result = _base_summary(task="bug-0116-media-drift", apply=bool(args.apply), limit=args.limit)
-    tasks = {
-        "sku_pending_formalization": run_pending_tile_formalization(args),
-        "certificate_image_key_migration": run_certificate_image_key_migration(args),
-        "brand_logo_and_certificate_thumbnail_backfill": run_thumbnail_backfill(args),
-        "object_key_audit": run_object_key_audit(argparse.Namespace(apply=False, limit=args.limit)),
-    }
+    task_name = getattr(args, "task", "media-drift-reconcile")
+    result = _base_summary(task=task_name, apply=bool(args.apply), limit=args.limit)
+    task_plan: list[tuple[str, Callable[[argparse.Namespace], dict[str, Any]], argparse.Namespace]] = [
+        ("sku_pending_formalization", run_pending_tile_formalization, args),
+        ("certificate_image_key_migration", run_certificate_image_key_migration, args),
+        ("brand_logo_and_certificate_thumbnail_backfill", run_thumbnail_backfill, args),
+        ("object_key_audit", run_object_key_audit, argparse.Namespace(apply=False, limit=args.limit)),
+    ]
+    tasks: dict[str, dict[str, Any]] = {}
+    blocked_affected_tasks: list[str] = []
+    for index, (name, runner, runner_args) in enumerate(task_plan):
+        tasks[name] = runner(runner_args)
+        if _is_storage_blocked(tasks[name]):
+            blocked_affected_tasks = [task_name for task_name, _, _ in task_plan[index:]]
+            for skipped_name, _, _ in task_plan[index + 1 :]:
+                tasks[skipped_name] = _skipped_after_storage_block(
+                    task=skipped_name,
+                    limit=args.limit,
+                    thumbnail_applicable=skipped_name
+                    == "brand_logo_and_certificate_thumbnail_backfill",
+                    render_applicable=skipped_name != "object_key_audit",
+                )
+            break
     failed = sum(int(task["summary"].get("failed", 0)) for task in tasks.values())
     retry_candidates = sum(
         int(task["summary"].get("retry_candidates", 0))
@@ -636,6 +1027,30 @@ def run_bug_0116_media_drift(args: argparse.Namespace) -> dict[str, Any]:
         if isinstance(task.get("summary"), dict)
     )
     result["tasks"] = tasks
+    if blocked_affected_tasks:
+        first_blocked = next(task for task in tasks.values() if _is_storage_blocked(task))
+        first_summary = first_blocked["summary"]
+        result["status"] = "blocked"
+        result["summary"] = {
+            "task_count": len(tasks),
+            "status": "blocked",
+            "failure_category": OBJECT_STORAGE_UNREACHABLE,
+            "failure_reason": OBJECT_STORAGE_UNREACHABLE,
+            "failed": failed,
+            "retry_candidates": retry_candidates,
+            "affected_tasks": blocked_affected_tasks,
+            "can_apply": False,
+            "recommended_action": OBJECT_STORAGE_RECOMMENDED_ACTION,
+            "blocked_at_task": first_summary.get("task"),
+            "checked_items": first_summary.get("checked_items", 0),
+        }
+        result["acceptance_summary"] = _storage_blocked_acceptance_summary(
+            task=task_name,
+            total=sum(int(task["summary"].get("checked_items", 0)) for task in tasks.values()),
+            thumbnail_applicable=True,
+            render_applicable=True,
+        )
+        return result
     result["summary"] = {
         "task_count": len(tasks),
         "failed": failed,
@@ -652,7 +1067,7 @@ def run_bug_0116_media_drift(args: argparse.Namespace) -> dict[str, Any]:
         ),
     }
     result["acceptance_summary"] = _media_acceptance_summary(
-        task="bug-0116-media-drift",
+        task=task_name,
         total=sum(int(task["summary"].get("total", 0)) for task in tasks.values()),
         failed=failed,
         thumbnail_applicable=True,
@@ -692,13 +1107,25 @@ def run_object_key_audit(args: argparse.Namespace) -> dict[str, Any]:
                 break
             object_key = str(row["object_key"] or "")
             issue = _object_key_issue(source_type=str(row["source_type"]), object_key=object_key)
+            try:
+                object_exists = _object_exists(object_key)
+            except ObjectStorageBlockedError as exc:
+                return _apply_storage_blocked_result(
+                    result,
+                    task="object-key-audit",
+                    affected_tasks=["object-key-audit"],
+                    checked_items=len(items),
+                    error=exc,
+                    thumbnail_applicable=False,
+                    render_applicable=False,
+                )
             items.append(
                 {
                     "source_type": row["source_type"],
                     "source_id": row["source_id"],
                     **_safe_object_ref(object_key),
                     "issue": issue,
-                    "object_exists": _object_exists(object_key),
+                    "object_exists": object_exists,
                 }
             )
     finally:
@@ -769,6 +1196,12 @@ TASKS: dict[str, MaintenanceTask] = {
         runner=run_thumbnail_backfill,
         supports_apply=True,
     ),
+    "backfill-image-variants": MaintenanceTask(
+        name="backfill-image-variants",
+        description="Audit or generate thumbnail and display variants for historical image media.",
+        runner=run_image_variant_backfill,
+        supports_apply=True,
+    ),
     "formalize-pending-tile-images": MaintenanceTask(
         name="formalize-pending-tile-images",
         description="Move public SKU main images out of pending object key paths.",
@@ -783,7 +1216,13 @@ TASKS: dict[str, MaintenanceTask] = {
     ),
     "bug-0116-media-drift": MaintenanceTask(
         name="bug-0116-media-drift",
-        description="Audit or repair SKU, brand Logo and certificate image drift for BUG-0116.",
+        description="Historical alias for media-drift-reconcile.",
+        runner=run_bug_0116_media_drift,
+        supports_apply=True,
+    ),
+    "media-drift-reconcile": MaintenanceTask(
+        name="media-drift-reconcile",
+        description="Audit or reconcile SKU, brand Logo and certificate image drift.",
         runner=run_bug_0116_media_drift,
         supports_apply=True,
     ),

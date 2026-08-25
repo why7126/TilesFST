@@ -1,6 +1,6 @@
 const { track } = require('../../services/api');
 
-const FALLBACK_IMAGE = '/assets/tile-placeholder.png';
+const FALLBACK_IMAGE = '';
 const NAV_LOCK_MS = 800;
 const MAX_PARAM_LENGTH = 80;
 
@@ -58,7 +58,7 @@ function normalizeProduct(product) {
     skuCode: safeText(product.sku_code, 'SKU 待补充'),
     specification: safeText(product.specification, '规格待补充'),
     priceText: priceText(product.price_display),
-    imageSrc: safeText(product.cover_image, ''),
+    imageSrc: safeText(product.thumbnail_url || product.cover_image, ''),
     badge,
     available,
   };

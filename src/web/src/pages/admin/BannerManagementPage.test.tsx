@@ -262,7 +262,7 @@ describe('BannerManagementPage', () => {
         {
           ...listWithItem.items[0],
           image_url: '/media/images/default/banners/list.jpg',
-          image_thumbnail_url: '/media/images/default/banners/list.thumb.jpg',
+          image_thumbnail_url: '/media/images/default/banners/list.thumb.webp',
         },
       ],
     });
@@ -278,7 +278,7 @@ describe('BannerManagementPage', () => {
     });
 
     const image = container.querySelector('.banner-thumb img') as HTMLImageElement;
-    expect(image).toHaveAttribute('src', '/media/images/default/banners/list.thumb.jpg');
+    expect(image).toHaveAttribute('src', '/media/images/default/banners/list.thumb.webp');
 
     fireEvent.error(image);
 

@@ -642,7 +642,7 @@ def test_admin_list_tile_skus_includes_main_image_thumbnail_url(client: TestClie
         item for item in list_response.json()["data"]["items"] if item["id"] == response.json()["data"]["id"]
     )
     assert item["main_image_url"] == "/media/tiles/1/images/main.jpg"
-    assert item["main_image_thumbnail_url"] == "/media/tiles/1/images/main.thumb.jpg"
+    assert item["main_image_thumbnail_url"] == "/media/tiles/1/images/main.thumb.webp"
 
 
 def test_admin_list_tile_skus_includes_published_at(client: TestClient) -> None:

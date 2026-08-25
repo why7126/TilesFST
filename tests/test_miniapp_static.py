@@ -130,6 +130,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "sku_favorite" in detail_ts
     assert "sku_unfavorite" in detail_ts
     assert 'source-module="sku-detail-brand"' in _read("pages/tile-detail/index.wxml")
+    assert "brand_logo_thumbnail_url?: string" in detail_ts
+    assert 'allow-original-logo-fallback="{{false}}"' in _read("pages/tile-detail/index.wxml")
     assert "sku_recommend_click" in detail_ts
     assert "sku_load_error" in detail_ts
     assert "brand_list_page_view" in brand_list_ts
@@ -140,7 +142,8 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "logo_display_url" not in brand_list_wxml
     assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_ts
     assert "`items[${index}].brand_logo_thumbnail_url`" in brand_list_js
-    assert 'src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"' in brand_list_wxml
+    assert 'src="{{item.brand_logo_thumbnail_url}}"' in brand_list_wxml
+    assert "item.brand_logo_thumbnail_url || item.brand_logo_url" not in brand_list_wxml
     assert 'lazy-load="{{index > 0}}"' in brand_list_wxml
     assert 'lazy-load="{{brandIndex > 1}}"' in brand_list_wxml
     assert "brand_detail_view" in brand_detail_ts
@@ -152,9 +155,28 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "brand?.brand_short_name || brand?.brand_name" not in brand_detail_ts
     assert 'class="brand-overlay"' in brand_detail_wxml
     assert brand_detail_wxml.index('class="brand-logo-frame') < brand_detail_wxml.index('class="brand-overlay"')
-    assert "brand.brand_logo_thumbnail_url || brand.brand_logo_url" in brand_detail_wxml
+    assert "brand.brand_logo_thumbnail_url || brand.brand_logo_url" not in brand_detail_wxml
+    assert "brand.brand_hero_display_url && !heroDisplayFailed" in brand_detail_wxml
+    assert 'src="{{brand.brand_hero_display_url}}"' in brand_detail_wxml
+    assert 'src="{{brand.brand_hero_thumbnail_url}}"' in brand_detail_wxml
+    assert 'data-variant="display"' in brand_detail_wxml
+    assert 'data-variant="thumbnail"' in brand_detail_wxml
+    assert "brand.brand_hero_display_url || brand.brand_logo_url" not in brand_detail_wxml
+    assert "brand.brand_hero_thumbnail_url || brand.brand_logo_url" not in brand_detail_wxml
     assert 'lazy-load="{{false}}"' in brand_detail_wxml
+    assert "brand_hero_display_url?: string" in brand_detail_ts
+    assert "brand_hero_thumbnail_url?: string" in brand_detail_ts
+    assert "onBrandHeroImageError" in brand_detail_ts
+    assert "'brand.brand_hero_display_url': ''" in brand_detail_ts
+    assert "'brand.brand_hero_thumbnail_url': ''" in brand_detail_ts
     assert 'lazy-load="{{index > 1}}"' in brand_detail_wxml
+    assert 'src="{{item.thumbnail_url}}"' in brand_detail_wxml
+    assert 'src="{{item.thumbnail_url || item.file_url}}"' not in brand_detail_wxml
+    assert 'wx:if="{{item.file_kind === \'image\' && item.thumbnail_url && !item.image_failed}}"' in brand_detail_wxml
+    assert 'binderror="onCertificateImageError"' in brand_detail_wxml
+    assert "onCertificateImageError" in brand_detail_ts
+    assert "`certificates[${index}].image_failed`" in brand_detail_ts
+    assert "brand_certificate_image_failed" in brand_detail_ts
     assert "height: 380rpx" in brand_detail_wxss
     assert ".brand-hero {\n  margin-top: 12rpx;\n  padding: 0;" in brand_detail_wxss
     assert "brand-meta" not in brand_detail_wxml
@@ -170,7 +192,9 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "certificate_detail_media_switch" in certificate_detail_ts
     assert "certificate_detail_image_preview" in certificate_detail_ts
     assert "certificate_detail_file_open" in certificate_detail_ts
-    assert "certificate_detail_brand_click" in certificate_detail_ts
+    assert "certificate_detail_brand_click" not in certificate_detail_ts
+    assert "certificate_detail_brand_click" not in certificate_detail_js
+    assert '"brand-card": "../../components/brand-card/index"' in _read("pages/certificate-detail/index.json")
     assert "certificate_detail_share_click" in certificate_detail_ts
     assert "certificate_detail_load_failed" in certificate_detail_ts
     assert "title: '证书详情'" in certificate_detail_ts
@@ -180,6 +204,19 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "wx.previewImage" in certificate_detail_js
     assert "wx.downloadFile" in certificate_detail_js
     assert "wx.openDocument" in certificate_detail_js
+    assert_image_media_binding(
+        certificate_detail_wxml,
+        src_expr="item.display_url || item.thumbnail_url",
+        preview_expr="item.original_url || item.preview_url || item.url",
+    )
+    assert "item.thumbnail_url || item.url" not in certificate_detail_wxml
+    assert "display_url?: string | null" in certificate_detail_ts
+    assert "original_url?: string | null" in certificate_detail_ts
+    assert "function previewUrlForMedia(item: CertificateMediaItem): string" in certificate_detail_ts
+    assert "return item.original_url || item.preview_url || item.url || ''" in certificate_detail_ts
+    assert "function previewUrlForMedia(item)" in certificate_detail_js
+    assert ".map((item) => previewUrlForMedia(item))" in certificate_detail_ts
+    assert "const current = previewUrlForMedia(media) || urls[0]" in certificate_detail_ts
     assert "wx.setClipboardData" not in certificate_detail_js
     assert "文件链接已复制" not in certificate_detail_js
     assert "wx.switchTab" in certificate_detail_js
@@ -192,8 +229,13 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "brand-line" not in certificate_detail_wxml
     assert ".brand-line" not in certificate_detail_wxss
     assert "{{detail.brand_name}}" not in certificate_detail_wxml
-    assert "{{detail.brand.brand_name}}" in certificate_detail_wxml
-    assert "bindtap=\"openBrand\"" in certificate_detail_wxml
+    assert 'brand="{{detail.brand}}"' in certificate_detail_wxml
+    assert 'source-page="certificate_detail"' in certificate_detail_wxml
+    assert 'source-module="brand_entry"' in certificate_detail_wxml
+    assert 'certificate-id="{{certificateId}}"' in certificate_detail_wxml
+    assert 'allow-original-logo-fallback="{{false}}"' in certificate_detail_wxml
+    assert "bindtap=\"openBrand\"" not in certificate_detail_wxml
+    assert "brand-card-section" in certificate_detail_wxss
     assert "价格" not in certificate_detail_wxml
     assert "收藏" not in certificate_detail_wxml
     assert "推荐" not in certificate_detail_wxml
@@ -1263,6 +1305,7 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "value === 0" in card_js
     assert "is_recall_pinned?: boolean" in card_ts
     assert "product.is_recall_pinned" in card_ts
+    assert "product.thumbnail_url || product.cover_image" in card_ts
     assert "product.is_recall_pinned" in card_js
     assert "'置顶'" in card_ts
     assert "'置顶'" in card_js
@@ -1314,16 +1357,24 @@ def test_miniapp_home_images_have_runtime_fallback_handlers() -> None:
     assert 'binderror="onImageError"' in home_wxml
     assert "<swiper" in home_wxml
     assert 'wx:for="{{home.banners}}"' in home_wxml
-    assert 'src="{{item.image_url}}"' in home_wxml
-    assert 'data-key="home.banners[{{index}}].image_url"' in home_wxml
+    assert 'wx:if="{{item.display_url}}"' in home_wxml
+    assert 'src="{{item.display_url}}"' in home_wxml
+    assert 'wx:elif="{{item.thumbnail_url}}"' in home_wxml
+    assert 'src="{{item.thumbnail_url}}"' in home_wxml
+    assert 'data-key="home.banners[{{index}}].display_url"' in home_wxml
+    assert 'data-key="home.banners[{{index}}].thumbnail_url"' in home_wxml
     banner_block = home_wxml[
         home_wxml.index('wx:for="{{home.banners}}"'):home_wxml.index('<view wx:else class="hero"')
     ]
-    assert "{{item.title" not in banner_block
-    assert "hero-copy" not in banner_block
+    assert "hero-copy" in banner_block
     assert 'image-fallback="{{imageFallback}}"' in home_wxml
-    assert "imageFallback: '/assets/tile-placeholder.png'" in home_js
-    assert "this.setData({ [key]: this.data.imageFallback })" in home_js
+    assert "tile-placeholder.png" not in home_js
+    assert "this.setData({ [key]: '' })" in home_js
+    assert "tile-placeholder.png" not in _read("components/product-card/index.js")
+    assert "tile-placeholder.png" not in _read("pages/brand-list/index.js")
+    assert "tile-placeholder.png" not in _read("pages/product-list/index.js")
+    assert "tile-placeholder.png" not in _read("pages/search/index.js")
+    assert "tile-placeholder.png" not in _read("pages/favorites/index.js")
 
 
 def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() -> None:
@@ -1356,10 +1407,30 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "<video" in detail_wxml
     assert_image_media_binding(
         detail_wxml,
-        src_expr="item.url || imageFallback",
-        preview_expr="item.preview_url || item.url",
+        src_expr="item.display_url || item.thumbnail_url || imageFallback",
+        preview_expr="item.original_url || item.preview_url || item.url || item.display_url",
         fallback_expr="imageFallback",
     )
+    assert 'lazy-load="{{index > 0}}"' in detail_wxml
+    assert 'data-media-index="{{index}}"' in detail_wxml
+    assert "display_url: item.display_url || item.thumbnail_url" in detail_ts
+    assert "url: item.display_url || item.url" not in detail_ts
+    assert "preview_url: item.original_url || item.preview_url || item.url" in detail_ts
+    assert "function previewUrlForMedia(item: MediaItem): string" in detail_ts
+    assert "return item.original_url || item.preview_url || item.url" in detail_ts
+    assert "const datasetMediaIndex = event.currentTarget.dataset.mediaIndex" in detail_ts
+    assert "? datasetMediaIndex" in detail_ts
+    assert ": this.data.mediaIndex || 0" in detail_ts
+    assert ".map((item, index) => ({ item, index, url: previewUrlForMedia(item) }))" in detail_ts
+    assert "entry.index === mediaIndex" in detail_ts
+    assert "const current = matched?.url || urls[0]" in detail_ts
+    assert "wx.getImageInfo({" in detail_ts
+    assert "src: current" in detail_ts
+    assert "complete: () => {" in detail_ts
+    assert "wx.previewImage({ urls, current })" in detail_ts
+    assert "function previewUrlForMedia(item)" in detail_js
+    assert "const current = (matched && matched.url) || urls[0]" in detail_js
+    assert "wx.getImageInfo({" in detail_js
     assert_video_media_binding(
         detail_wxml,
         src_expr="item.url",
@@ -1597,8 +1668,16 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     carousel_block = brand_wxml[
         brand_wxml.index('wx:for="{{banners}}"'):brand_wxml.index('<view wx:else class="brand-hero fallback"')
     ]
-    assert "{{item.title" not in carousel_block
+    assert 'wx:if="{{item.display_url}}"' in carousel_block
+    assert 'src="{{item.display_url}}"' in carousel_block
+    assert 'wx:elif="{{item.thumbnail_url}}"' in carousel_block
+    assert 'src="{{item.thumbnail_url}}"' in carousel_block
+    assert 'data-variant="display_url"' in carousel_block
+    assert 'data-variant="thumbnail_url"' in carousel_block
+    assert "brand-hero-copy" in carousel_block
     assert 'wx:if="{{item.subtitle}}"' not in carousel_block
+    assert "tile-placeholder.png" not in brand_wxml
+    assert "tile-placeholder.png" not in brand_js
     assert "全球严选瓷砖品牌" in brand_wxml
     assert "品牌矩阵" in brand_wxml
     assert "按类目快速识别" not in brand_wxml
@@ -1688,6 +1767,9 @@ def test_miniapp_brand_card_component_contract_and_states() -> None:
         assert "skuId" in source
         assert "listContext" in source
         assert "requestId" in source
+        assert "allowOriginalLogoFallback" in source
+        assert "allowOriginalLogoFallback = false" in source
+        assert "brand_logo_thumbnail_url || originalLogo" in source
         assert "resolveTelemetryRequestId" in source
         assert "NAV_LOCK_MS = 800" in source
         assert "暂无内容" in source

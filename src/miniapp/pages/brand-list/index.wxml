@@ -45,13 +45,29 @@
       <swiper-item wx:for="{{banners}}" wx:key="id">
         <view class="brand-slide" bindtap="openBanner" data-banner="{{item}}" data-index="{{index}}">
           <image
+            wx:if="{{item.display_url}}"
             class="brand-hero-image"
-            src="{{item.image_url}}"
+            src="{{item.display_url}}"
             mode="aspectFill"
             lazy-load="{{index > 0}}"
             binderror="onImageError"
             data-index="{{index}}"
+            data-variant="display_url"
           ></image>
+          <image
+            wx:elif="{{item.thumbnail_url}}"
+            class="brand-hero-image"
+            src="{{item.thumbnail_url}}"
+            mode="aspectFill"
+            lazy-load="{{index > 0}}"
+            binderror="onImageError"
+            data-index="{{index}}"
+            data-variant="thumbnail_url"
+          ></image>
+          <view wx:else class="brand-hero-copy">
+            <view class="brand-hero-title">{{item.title || '全球严选瓷砖品牌'}}</view>
+            <view class="brand-hero-subtitle">{{item.subtitle || '认证品牌 · 真实产品 · 品质可追溯'}}</view>
+          </view>
           <view class="brand-hero-shade"></view>
         </view>
       </swiper-item>
@@ -78,9 +94,9 @@
         <view class="brand-entry" data-index="{{brandIndex}}" catchtap="onBrandInfoTap" hover-class="brand-entry-press">
           <view class="brand-logo">
             <image
-              wx:if="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"
+              wx:if="{{item.brand_logo_thumbnail_url}}"
               class="brand-logo-image"
-              src="{{item.brand_logo_thumbnail_url || item.brand_logo_url}}"
+              src="{{item.brand_logo_thumbnail_url}}"
               mode="aspectFit"
               lazy-load="{{brandIndex > 1}}"
               binderror="onLogoError"

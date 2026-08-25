@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-10 00:00:00
+updated_at: 2026-08-22 14:33:52
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -628,7 +628,7 @@ MySQL baseline：`src/backend/app/db/schema.mysql.sql` 中同名表，`client_id
 
 ## 12. 媒体资产（规划）
 
-`tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，未持久化到 SQLite。
+`tile_media` 统一图片/视频/文档表尚未落地，见历史建议。当前上传桩返回 `object_key` + `url`，图片类额外返回 `thumbnail_url`、`display_url`、`original_url` 等派生 URL；三规格图不新增 SQLite/MySQL 表字段，事实源仍为业务表中的原图 `object_key` / `url`，后端媒体服务按同目录 `.thumb` / `.display` key 规则派生并在缺失时回退原图。若后续改为显式媒体派生关系表，必须通过新的 OpenSpec Change 同步 schema、迁移、API 和测试。
 
 参考：`rules/media.md`、`docs/06-video-asset-management.md`
 

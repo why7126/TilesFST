@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .collect import IssueRecord, SprintRecord, parse_frontmatter, read_text
+import yaml
+
+from .collect import IssueRecord, SprintRecord, parse_frontmatter, parse_simple_yaml, parse_yaml_block, read_text
 from .constants import ROOT, SCOPE_MARKERS
 from .derive import DerivedChange, DerivedIssue
 from .timefmt import normalize_datetime, normalize_milestone_datetime, now_shanghai, touch_frontmatter
@@ -758,6 +760,98 @@ def update_yaml_scalar(block: str, key: str, value: str) -> str:
     return block.rstrip() + f"\n{key}: {value}\n"
 
 
+def _yaml_section_bounds(lines: list[str], key: str) -> tuple[int, int] | None:
+    start: int | None = None
+    for index, line in enumerate(lines):
+        if re.match(rf"^{re.escape(key)}:\s*(?:\[\])?\s*$", line):
+            start = index
+            break
+    if start is None:
+        return None
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        line = lines[index]
+        if line and not line.startswith(" ") and re.match(r"^[A-Za-z0-9_]+:", line):
+            end = index
+            break
+    return start, end
+
+
+def remove_orphan_openspec_change_entries(block: str) -> str:
+    lines = block.splitlines()
+    if _yaml_section_bounds(lines, "openspec_changes") is not None:
+        return block
+    out: list[str] = []
+    skipping = False
+    for line in lines:
+        if re.match(r"^\s+- change_id:\s*", line):
+            skipping = True
+            continue
+        if skipping:
+            if re.match(r"^\s+(type|status):\s*", line):
+                continue
+            skipping = False
+        out.append(line)
+    return "\n".join(out) + ("\n" if block.endswith("\n") else "")
+
+
+def validate_yaml_mapping(block: str, *, label: str) -> None:
+    try:
+        parsed = yaml.safe_load(block) if block.strip() else {}
+    except Exception as exc:  # pragma: no cover - exact parser exception is dependency-specific
+        raise ValueError(f"{label} is not valid YAML: {exc}") from exc
+    if parsed is not None and not isinstance(parsed, dict):
+        raise ValueError(f"{label} must be a YAML mapping")
+
+
+def validate_trace_yaml(text: str, rel_path: str) -> None:
+    frontmatter_match = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    if frontmatter_match:
+        validate_yaml_mapping(frontmatter_match.group(1), label=f"{rel_path} frontmatter")
+    yaml_match = re.search(r"```yaml\n(.*?)```", text, re.DOTALL)
+    if yaml_match:
+        validate_yaml_mapping(yaml_match.group(1), label=f"{rel_path} fenced yaml")
+
+
+def ensure_yaml_scalar(block: str, key: str, value: str) -> str:
+    return update_yaml_scalar(block, key, value)
+
+
+def ensure_yaml_list_value(block: str, key: str, value: str) -> str:
+    lines = block.splitlines()
+    bounds = _yaml_section_bounds(lines, key)
+    if bounds is None:
+        base = block.rstrip()
+        prefix = f"{base}\n" if base else ""
+        return f"{prefix}{key}:\n  - {value}\n"
+    start, end = bounds
+    if lines[start].strip() == f"{key}: []":
+        lines[start : start + 1] = [f"{key}:", f"  - {value}"]
+        return "\n".join(lines) + ("\n" if block.endswith("\n") else "")
+    item_line = f"  - {value}"
+    if item_line in lines[start + 1 : end]:
+        return block
+    lines.insert(end, item_line)
+    return "\n".join(lines) + ("\n" if block.endswith("\n") else "")
+
+
+def ensure_nested_yaml_scalar(block: str, parent: str, key: str, value: str) -> str:
+    lines = block.splitlines()
+    bounds = _yaml_section_bounds(lines, parent)
+    child_line = f"  {key}: {value}"
+    if bounds is None:
+        base = block.rstrip()
+        prefix = f"{base}\n" if base else ""
+        return f"{prefix}{parent}:\n{child_line}\n"
+
+    start, end = bounds
+    for index in range(start + 1, end):
+        if re.match(rf"^\s+{re.escape(key)}:\s*", lines[index]):
+            return block
+    lines.insert(end, child_line)
+    return "\n".join(lines) + ("\n" if block.endswith("\n") else "")
+
+
 def update_openspec_changes_in_block(block: str, change_id: str, status: str) -> str:
     lines = block.splitlines()
     out: list[str] = []
@@ -776,6 +870,45 @@ def update_openspec_changes_in_block(block: str, change_id: str, status: str) ->
             in_target = False
         out.append(line)
     return "\n".join(out)
+
+
+def ensure_openspec_change_in_block(block: str, change_id: str, status: str) -> str:
+    lines = block.splitlines()
+    bounds = _yaml_section_bounds(lines, "openspec_changes")
+    if bounds is not None and re.search(rf"^\s*- change_id:\s*{re.escape(change_id)}\s*$", block, re.MULTILINE):
+        updated = update_openspec_changes_in_block(block, change_id, status)
+        if re.search(
+            rf"^\s*- change_id:\s*{re.escape(change_id)}\s*\n(?:(?!^\s*- change_id:).)*?^\s*status:",
+            updated,
+            re.MULTILINE | re.DOTALL,
+        ):
+            return updated
+        lines = updated.splitlines()
+        for index, line in enumerate(lines):
+            if re.match(rf"^\s*- change_id:\s*{re.escape(change_id)}\s*$", line):
+                indent = line[: len(line) - len(line.lstrip(" "))]
+                lines.insert(index + 1, f"{indent}  status: {status}")
+                return "\n".join(lines) + ("\n" if block.endswith("\n") else "")
+        return updated
+
+    block = remove_orphan_openspec_change_entries(block)
+    lines = block.splitlines()
+    bounds = _yaml_section_bounds(lines, "openspec_changes")
+    entry = [
+        f"  - change_id: {change_id}",
+        "    type: update",
+        f"    status: {status}",
+    ]
+    if bounds is None:
+        base = block.rstrip()
+        prefix = f"{base}\n" if base else ""
+        return f"{prefix}openspec_changes:\n" + "\n".join(entry) + "\n"
+    start, end = bounds
+    if lines[start].strip() == "openspec_changes: []":
+        lines[start : start + 1] = ["openspec_changes:", *entry]
+    else:
+        lines[end:end] = entry
+    return "\n".join(lines) + ("\n" if block.endswith("\n") else "")
 
 
 def append_workflow_event_record(
@@ -874,6 +1007,74 @@ def update_current_status_section(text: str, issue: IssueRecord, derived: Derive
     )
 
 
+def next_bug_changelog_command(
+    issue_id: str,
+    display_status: str,
+    linked_change: str | None,
+    event: str | None = None,
+) -> str:
+    if event in {"opsx.apply", "opsx.modify"} and linked_change:
+        return f"`/opsx-archive {issue_id}`"
+    if display_status == "captured":
+        return f"`/bug-generate {issue_id}`"
+    if display_status == "draft":
+        return f"`/bug-complete {issue_id}`"
+    if display_status == "pending_review":
+        return f"`/bug-review {issue_id}`"
+    if display_status in {"approved", "in_sprint"} and linked_change:
+        return f"`/opsx-apply {issue_id}`"
+    if display_status in {"approved", "in_sprint"}:
+        return f"`/bug-opsx {issue_id}`"
+    if display_status == "done":
+        return "暂无可推进下一步"
+    return "后续命令按需更新对应行"
+
+
+def patch_bug_changelog(
+    issue: IssueRecord,
+    derived: DerivedIssue,
+    event: str | None = None,
+    write: bool = True,
+) -> PatchResult:
+    path = ROOT / "issues/bugs/CHANGELOG.md"
+    if not path.exists():
+        return PatchResult(str(path.relative_to(ROOT)), False, "missing changelog")
+
+    text = read_text(path)
+    original = text
+    lines = text.splitlines()
+    row_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.startswith(f"| {issue.issue_id} |")
+        ),
+        None,
+    )
+    if row_index is None:
+        return PatchResult(str(path.relative_to(ROOT)), False, "entry not found")
+
+    stage = issue.path.parent.name if issue.path.parent.name in {"plan", "review", "archive"} else "plan"
+    trace_path = issue.path / "trace.md"
+    trace_text = read_text(trace_path) if trace_path.exists() else ""
+    trace_data = parse_frontmatter(trace_text)
+    yaml_data = parse_yaml_block(trace_text) or {}
+    raw_sprint = trace_data.get("iteration") or yaml_data.get("iteration")
+    sprint = "—" if raw_sprint in {None, "", "null", "~"} else str(raw_sprint)
+    linked_change = derived.linked_change or issue.related_change
+    row = (
+        f"| {issue.issue_id} | {issue_display_name(issue)} | {derived.display_status} | "
+        f"{stage} | {sprint or '—'} | {linked_change or '—'} | {now_shanghai()} | "
+        f"{next_bug_changelog_command(issue.issue_id, derived.display_status, linked_change, event)} | "
+        f"`{trace_path.relative_to(ROOT)}` |"
+    )
+    lines[row_index] = row
+    text = "\n".join(lines) + ("\n" if original.endswith("\n") else "")
+
+    changed = persist_markdown(path, text, original, write)
+    return PatchResult(str(path.relative_to(ROOT)), changed, issue.issue_id)
+
+
 def patch_issue_trace(
     issue: IssueRecord,
     derived: DerivedIssue,
@@ -888,6 +1089,11 @@ def patch_issue_trace(
     text = read_text(trace_path)
     original = text
     previous_status = issue.trace_status or parse_frontmatter(text).get("status")
+    generated_at = (
+        now_shanghai()
+        if event in {"req.generate", "bug.generate"} and derived.display_status == "draft"
+        else None
+    )
 
     if (parse_frontmatter(text).get("status") or "") == derived.display_status:
         pass
@@ -904,8 +1110,17 @@ def patch_issue_trace(
     if frontmatter_match:
         block = frontmatter_match.group(1).rstrip("\n") + "\n"
         current_block = block
+        if generated_at:
+            block = ensure_nested_yaml_scalar(block, "lifecycle", "generated", generated_at)
         for change_id, status in change_status_map.items():
-            block = update_openspec_changes_in_block(block, change_id, status)
+            block = ensure_openspec_change_in_block(block, change_id, status)
+        if focus_change and derived.linked_change == focus_change:
+            focus_status = change_status_map.get(focus_change, "proposed")
+            block = ensure_openspec_change_in_block(block, focus_change, focus_status)
+            if issue.kind == "req":
+                block = ensure_yaml_list_value(block, "related_changes", focus_change)
+            else:
+                block = ensure_yaml_scalar(block, "related_change", focus_change)
         if not block.endswith("\n"):
             block += "\n"
         if block != current_block:
@@ -916,8 +1131,17 @@ def patch_issue_trace(
         block = yaml_match.group(1).rstrip("\n") + "\n"
         current_block = block
         block = update_yaml_scalar(block, "status", derived.display_status)
+        if generated_at:
+            block = ensure_nested_yaml_scalar(block, "lifecycle", "generated", generated_at)
         for change_id, status in change_status_map.items():
-            block = update_openspec_changes_in_block(block, change_id, status)
+            block = ensure_openspec_change_in_block(block, change_id, status)
+        if focus_change and derived.linked_change == focus_change:
+            focus_status = change_status_map.get(focus_change, "proposed")
+            block = ensure_openspec_change_in_block(block, focus_change, focus_status)
+            if issue.kind == "req":
+                block = ensure_yaml_list_value(block, "related_changes", focus_change)
+            else:
+                block = ensure_yaml_scalar(block, "related_change", focus_change)
         if not block.endswith("\n"):
             block += "\n"
         if derived.display_status == "done" and re.search(r"^\s*archived:\s*null\s*$", block, re.MULTILINE):
@@ -951,6 +1175,7 @@ def patch_issue_trace(
     )
     text = update_current_status_section(text, issue, derived)
 
+    validate_trace_yaml(text, str(trace_path.relative_to(ROOT)))
     changed = persist_markdown(trace_path, text, original, write)
     return PatchResult(str(trace_path.relative_to(ROOT)), changed, derived.display_status)
 
@@ -959,6 +1184,7 @@ def patch_registry_entry(
     registry_path: Path,
     issue_id: str,
     display_status: str,
+    linked_change: str | None = None,
     write: bool = True,
 ) -> PatchResult:
     if not registry_path.exists():
@@ -971,6 +1197,33 @@ def patch_registry_entry(
     if not pattern.search(text):
         return PatchResult(str(registry_path.relative_to(ROOT)), False, "entry not found")
     text = pattern.sub(rf"\1{display_status}", text, count=1)
+    if linked_change:
+        lines = text.splitlines()
+        entry_start: int | None = None
+        for index, line in enumerate(lines):
+            if re.match(rf"^\s*- id:\s*{re.escape(issue_id)}\s*$", line):
+                entry_start = index
+                break
+        if entry_start is not None:
+            entry_end = len(lines)
+            for index in range(entry_start + 1, len(lines)):
+                if re.match(r"^\s*- id:\s*", lines[index]):
+                    entry_end = index
+                    break
+            related_index = next(
+                (
+                    index
+                    for index in range(entry_start + 1, entry_end)
+                    if re.match(r"^\s+related_change:\s*", lines[index])
+                ),
+                None,
+            )
+            if related_index is not None:
+                indent = lines[related_index][: len(lines[related_index]) - len(lines[related_index].lstrip(" "))]
+                lines[related_index] = f"{indent}related_change: {linked_change}"
+            else:
+                lines.insert(entry_end, f"    related_change: {linked_change}")
+            text = "\n".join(lines) + ("\n" if original.endswith("\n") else "")
     changed = text != original
     if changed and write:
         registry_path.write_text(text, encoding="utf-8")

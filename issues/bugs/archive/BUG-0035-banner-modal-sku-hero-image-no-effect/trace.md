@@ -36,7 +36,7 @@ openspec_changes:
   - change_id: fix-banner-admin-ui
     type: fix
     status: archived
-  opsx: 2026-06-28 16:20:00```
+```
 
 ## 2. Readiness
 

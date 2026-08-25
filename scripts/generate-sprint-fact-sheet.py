@@ -1000,14 +1000,14 @@ def main(argv: list[str] | None = None) -> int:
         print(render_ai_usage_retrospective_section(fact_sheet), end="")
     elif args.fields:
         try:
-            print(json.dumps(select_fields(fact_sheet, args.fields), ensure_ascii=False, indent=2))
+            print(json.dumps(select_fields(fact_sheet, args.fields), ensure_ascii=False, indent=2, default=str))
         except KeyError as exc:
             print(f"ERROR: unknown field path: {exc.args[0]}", file=sys.stderr)
             return 3
     elif args.summary:
-        print(json.dumps(build_summary(fact_sheet), ensure_ascii=False, indent=2))
+        print(json.dumps(build_summary(fact_sheet), ensure_ascii=False, indent=2, default=str))
     elif args.json:
-        print(json.dumps(fact_sheet, ensure_ascii=False, indent=2))
+        print(json.dumps(fact_sheet, ensure_ascii=False, indent=2, default=str))
     else:
         print(render_markdown(fact_sheet), end="")
     return 0

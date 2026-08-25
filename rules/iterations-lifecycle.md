@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-08-07 09:20:34
+updated_at: 2026-08-22 14:12:50
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -40,11 +40,17 @@ iterations/
 
 ### 2.1 Sprint 自动编号（MUST）
 
-- 当当前没有 `iterations/change/sprint-xxx/` 进行中迭代，且命令需要为 active Change 自动创建 Sprint 时，系统 MAY 自动创建下一个 Sprint。
+- `/sprint-propose` 未指定 `--sprint` 时，当前 Sprint 解析 MUST 遵守 active Sprint 数量：
+  - 当前没有 `iterations/change/sprint-xxx/` active Sprint 时，系统 MAY 自动创建下一个连续编号 Sprint。
+  - 当前仅有一个 `iterations/change/sprint-xxx/` active Sprint 时，系统 MUST 默认使用该 Sprint 作为当前 Sprint，不得默认另建并行 Sprint。
+  - 当前存在两个或以上 `iterations/change/sprint-xxx/` active Sprint 时，系统 MUST 阻断命令，并引导用户使用 `/sprint-propose --sprint <sprint-id>` 指定当前 Sprint。
 - 自动创建时 MUST 扫描 `iterations/archive/` 与 `iterations/change/` 下符合 `sprint-[0-9]{3}` 的目录和 `sprint.yaml:sprint_id`，取最大编号加一；例如最新归档为 `sprint-021` 且无进行中迭代时，新建 Sprint MUST 为 `sprint-022`。
+- 用户显式指定一个尚不存在的 Sprint 时，该 Sprint ID MUST 等于上述最大编号加一；不得跳号创建，例如当前最大编号为 `sprint-025` 时只能新建 `sprint-026`。
 - 自动创建 Sprint MUST 落在 `iterations/change/sprint-xxx/`，四件套中的 `sprint_id`、标题、路径引用、Workflow Sync、AI Usage 和校验命令 MUST 使用同一个规范编号。
-- 如果已存在 `iterations/change/sprint-xxx/` 进行中迭代，MUST 优先复用或要求用户明确选择；不得默认另建并行 Sprint。
+- 如果已存在一个 `iterations/change/sprint-xxx/` active Sprint，只有当前 Sprint 容量硬阻断或用户明确拆分范围时，才允许通过 `--sprint <next-sprint>` 创建下一个连续编号 Sprint。
+- 如果已存在两个 `iterations/change/sprint-xxx/` active Sprint，MUST 禁止创建第三个 active Sprint；用户只能指定其中一个现有 active Sprint 继续。
 - 若发现新建 Sprint 使用了非规范名称，MUST 立即重命名为自动编号结果，并同步所有引用与校验记录。
+- `/sprint-propose` SHOULD 在选择或创建 Sprint 前运行 `python scripts/validate-sprint-selection.py [--sprint <sprint-id>]`，并在失败时按脚本报告输出下一步引导。
 
 ### 2.2 遗留扁平路径（兼容）
 
@@ -77,6 +83,7 @@ capacity_usage = estimated_person_days / capacity_person_days
 - 当 `estimated_person_days > capacity_person_days * 1.2` 时，MUST 硬阻断正式规划：不得创建 `iterations/change/<sprint>/` 四件套，不得更新 `trace.md` 的 `iteration` 或 Change trace，并提示拆分 Sprint、移出低优先级项或替换范围后重新运行 `/sprint-propose`。
 - 当 `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时，MAY 继续生成 Sprint，但 MUST 在 `sprint.md` 记录容量风险、fix 缓冲影响和延后项建议。
 - 当 `estimated_person_days <= capacity_person_days` 时，按既有 Review Gate、Readiness Gate 和 Scope 规则继续。
+- 当已有当前 Sprint 且追加范围导致 `estimated_person_days > capacity_person_days * 1.2` 时，命令 MUST 失败，并引导用户拆分范围、移出低优先级项，或使用 `/sprint-propose --sprint <next-sprint>` 创建下一个连续编号 Sprint；`<next-sprint>` MUST 通过 Sprint 自动编号门禁。
 - 已存在 Sprint 追加或修正正式范围时，MUST 先用 `python scripts/add-sprint-scope-item.py --sprint <sprint-id> [--req <REQ-id>|--bug <BUG-id>] [--change <change-id>] ...` 更新 `sprint.yaml` 机器事实源，再运行 Workflow Sync 派生刷新人读文档；不得只手工编辑 `sprint.md`、Issue trace 或 Change trace。
 - 已评审但尚未创建 Change 的 REQ/BUG MAY 先通过 `/sprint-propose` 纳入正式 Sprint 范围；此时 `sprint.yaml` MUST 记录对应 `requirements[]` 或 `bugs[]`，并在输出中提示后续 `/req-opsx` 或 `/bug-opsx`。创建 Change 后，Workflow Sync MUST 将 Change 回填到同一 Sprint 的 `changes[]` 与 `scope_estimates[].change`。
 - 多个范围项写入同一 `sprint.yaml` 时，MUST 串行执行 `scripts/add-sprint-scope-item.py`。禁止通过并行工具同时追加多个 REQ/BUG/Change 到同一个 Sprint；并发写入可能导致 YAML 旧内容覆盖、重复键或无效 UTF-8 残留。
@@ -154,13 +161,23 @@ lifecycle_stage: change | archive
 Sprint 归档 **MUST** 在 `/sprint-archive` 时同步：Change → `openspec/archive/`，关联 REQ/BUG → `issues/*/archive/`（若尚未迁入）。
 `/sprint-archive` 完成前 MUST 通过 `python scripts/validate-directory-structure.py`，确保没有真实 `openspec/changes/archive/` 目录残留。
 
+Sprint 归档后，对应 REQ、BUG、Change 与 Sprint 四件套默认冻结：
+
+- 普通研发链路命令不得继续修改归档 Sprint 关联的 REQ、BUG、Change 或四件套，包括 `req-*`、`bug-*`、`opsx-*`、`sprint-propose`、`sprint-apply` 与普通开发命令；新偏差按新生命周期输入处理。
+- 允许命令仅可读取、引用或消费归档事实：`explore`、`*-explore`、`sprint-exps`、`release-*`、`image-*`、`upgrade-*`。
+- 上述允许命令不得反向改写已归档 REQ、BUG、Change 或 Sprint 四件套的交付语义。
+- 敏感信息清理、归档路径残留、状态漂移、公开发布所需的非内容性治理修复等例外，MUST 通过明确授权的治理命令执行，并先 dry-run 或输出聚焦报告，记录修复原因、范围和验证结果。
+
 Sprint close / `/sprint-archive` 前 MUST 通过 `python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>`。该 readiness gate 会同时执行 Sprint close stale scan，阻断四件套中与真实 Issue/Change 生命周期冲突的中间态文案和旧归档路径 `openspec/changes/archive/` canonical 引用。单独排查 stale 文案时 MAY 运行 `python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>`。
 
 ## 8. AI 检查清单
 
 ```text
 □ 新建 Sprint 是否落在 change/ ？
+□ 未指定 Sprint 时是否按 active Sprint 数量默认选择或阻断？
+□ 指定新 Sprint 是否为最大规范编号加一，且未创建第三个 active Sprint？
 □ sprint-archive 后是否迁入 archive/ ？
+□ 归档 Sprint 关联 REQ/BUG/Change 是否未被普通研发命令改写？
 □ sprint.yaml 是否更新 lifecycle_stage ？
 □ 路径引用是否使用 change/ 或 archive/ 前缀？
 □ 是否确认没有 openspec/changes/archive/ 真实目录？

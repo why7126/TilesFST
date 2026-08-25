@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from .constants import ROOT
 
 # issues/requirements 与 issues/bugs 下的生命周期阶段子目录（见 rules/issues-lifecycle.md）
@@ -112,6 +114,8 @@ def parse_frontmatter(text: str) -> dict[str, str]:
         return {}
     result: dict[str, str] = {}
     for line in match.group(1).splitlines():
+        if line.startswith((" ", "\t")):
+            continue
         if ":" not in line:
             continue
         key, value = line.split(":", 1)
@@ -136,7 +140,21 @@ def parse_yaml_block(text: str) -> dict[str, Any] | None:
 
 
 def parse_simple_yaml(raw: str) -> dict[str, Any]:
-    """Minimal YAML parser for trace.md blocks (no external deps)."""
+    """Parse a small YAML mapping, falling back for legacy malformed trace blocks."""
+
+    try:
+        parsed = yaml.safe_load(raw) if raw.strip() else {}
+    except yaml.YAMLError:
+        return parse_simple_yaml_legacy(raw)
+    if parsed is None:
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return parsed
+
+
+def parse_simple_yaml_legacy(raw: str) -> dict[str, Any]:
+    """Legacy minimal YAML parser kept for reference in focused tests."""
 
     root: dict[str, Any] = {}
     stack: list[tuple[int, Any]] = [(-1, root)]

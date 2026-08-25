@@ -1,0 +1,122 @@
+## MODIFIED Requirements
+
+### Requirement: 媒体图片必须支持多规格展示图
+
+系统 MUST 支持 `thumbnail`、`display`、`original` 三类媒体图片规格。`thumbnail` MUST 用于列表、卡片和轻量预览；`display` MUST 用于详情普通展示和图册浏览；`original` MUST 保留上传原图或等价高清资源，用于高清预览、下载或需要保真的场景。三类规格 MUST 可追溯到同一媒体记录或业务对象，并 MUST 明确 key、MIME、尺寸、质量、体积上限、生成状态和失败原因的记录方式。
+
+系统 MUST 在支持的图片上传链路中保留 `original` 上传格式，并将新生成的 `thumbnail` 与 `display` 派生图编码为 WebP。首期支持 JPEG、PNG、WebP 输入生成 WebP 派生图；SVG、PDF MUST 跳过 WebP 派生；GIF、HEIC、TIFF、BMP 首期 MUST NOT 自动转码，且 MUST 记录跳过、拒绝或 fallback 策略。PNG 透明图的透明度处理 MUST 在实现与验收记录中明确。
+
+系统 MUST 沉淀 Web 与微信小程序统一的图片三规格消费矩阵。矩阵字段 MUST 至少包括：页面、位置、图对象、是否缩略图、是否 display 图、是否原图、优化方案。矩阵 MUST 覆盖微信小程序真实页面、Web 管理端真实媒体展示位置，并为店主 Web 展示端提供明确的预留规范。矩阵中的每个页面位置 MUST 只表达一个主消费规格；普通展示、高清预览、下载或原文件查看使用不同规格时，MUST 拆成独立行。
+
+非原图目标场景 MUST NOT fallback 到 `original` 并写作性能通过。当列表、卡片、推荐位、小 Logo 等 `thumbnail` 目标场景，或详情普通展示、图册浏览、表单大预览等 `display` 目标场景缺少目标规格时，系统 MUST 使用安全占位、补齐 WebP 派生图或在矩阵优化方案中标记后续修正；验收 MUST 区分 WebP 派生通过、fallback、blocked 和 no-benefit。
+
+#### Scenario: 新上传图片生成 WebP 三规格资源
+
+- **WHEN** 管理端用户上传合法 JPEG、PNG 或 WebP 图片
+- **THEN** 系统 MUST 保留 `original` 的上传格式、MIME 和高清预览语义
+- **AND** 系统 MUST 生成或调度生成 WebP `thumbnail` 与 WebP `display`
+- **AND** `thumbnail` 与 `display` 的 key、扩展名、Content-Type 和实际 bytes MUST 表达 WebP
+- **AND** 三规格资源 MUST 能追溯到同一媒体记录或业务对象
+- **AND** 生成失败 MUST 有可观测记录和明确降级策略
+- **AND** 错误响应或日志摘要 MUST NOT 暴露对象存储密钥、Authorization header、Cookie、真实 `.env`、本机绝对路径或真实客户数据。
+
+#### Scenario: 特殊格式按首期策略跳过或降级
+
+- **WHEN** 用户上传 SVG、PDF、GIF、HEIC、TIFF、BMP 或其他首期不支持转码格式
+- **THEN** 系统 MUST NOT 静默生成错误的 WebP 派生图
+- **AND** SVG 和 PDF MUST 跳过 WebP 图片派生
+- **AND** GIF、HEIC、TIFF、BMP MUST 按现有上传策略拒绝、跳过或仅提供受控 fallback
+- **AND** 上传、维护任务或验收记录 MUST 能定位跳过原因、拒绝原因或 fallback 策略。
+
+#### Scenario: 派生规格缺失时可安全回退
+
+- **GIVEN** 目标 WebP 规格 URL 缺失、生成失败或对象不可读
+- **WHEN** 客户端请求列表、详情或预览媒体
+- **THEN** 系统 MUST 按明确 fallback 顺序返回可用 URL 或安全占位
+- **AND** fallback 事件 MUST 可观测
+- **AND** 验收记录 MUST NOT 将 fallback 原图视为 WebP 轻量规格性能通过。
+
+#### Scenario: 统一消费矩阵覆盖小程序页面
+
+- **WHEN** 团队维护图片三规格消费矩阵
+- **THEN** 矩阵 MUST 覆盖微信小程序首页、商品列表页、搜索页、商品详情页、品牌列表页、品牌详情页、证书列表页、证书详情页和收藏页
+- **AND** 首页 Banner、商品卡片、搜索结果、推荐商品、品牌 Logo、证书缩略图和收藏商品卡片 MUST 以 WebP `thumbnail` 为目标规格
+- **AND** 商品详情 Banner 普通展示和证书详情普通展示 MUST 以 WebP `display` 为目标规格
+- **AND** 商品图片预览、证书图片预览、下载或原文件查看 MUST 以 `original` 为目标规格
+- **AND** 不使用业务媒体的页面 MAY 标注“不涉及业务图片”。
+
+#### Scenario: 统一消费矩阵覆盖 Web 管理端真实媒体位置
+
+- **WHEN** 团队维护图片三规格消费矩阵
+- **THEN** 矩阵 MUST 覆盖 Web 管理端 SKU 管理、Banner 管理、品牌管理、品牌证书管理、用户或个人资料中的真实媒体展示位置
+- **AND** SKU 列表主图、Banner 列表图、品牌列表 Logo、证书列表缩略图、头像列表或菜单 MUST 以 WebP `thumbnail` 为目标规格
+- **AND** SKU 表单图片网格或大预览、Banner 表单选择或回显预览、证书表单图片普通预览 MUST 以 WebP `display` 为目标规格
+- **AND** SKU 图片高清预览、Banner 原图审核或放大查看、证书下载或原文件查看 MUST 以 `original` 为目标规格
+- **AND** 当前只存在原图 fallback 或单一 URL 字段的位置 MUST 在优化方案中标记为移除原图 fallback、补齐目标规格字段或使用安全占位。
+
+#### Scenario: 店主 Web 展示端按预留规范处理
+
+- **GIVEN** 店主 Web 展示端真实业务页面尚未作为本 Change 验收对象
+- **WHEN** 团队维护图片三规格消费矩阵
+- **THEN** 店主 Web 条目 MUST 标注为预留规范
+- **AND** 商品列表、商品卡片、推荐商品、品牌列表 Logo、品牌卡片和证书列表 SHOULD 以 WebP `thumbnail` 为目标规格
+- **AND** 商品详情普通展示、图册浏览、品牌详情头图普通展示和证书详情普通展示 SHOULD 以 WebP `display` 为目标规格
+- **AND** 点击放大、高清预览、下载和原文件查看 SHOULD 以 `original` 为目标规格
+- **AND** 预留规范 MUST NOT 被写作当前实现已满足或当前页面已验收。
+
+#### Scenario: 矩阵优化方案记录已知偏离点
+
+- **WHEN** 当前实现与目标消费规格不一致
+- **THEN** 矩阵 MUST 在优化方案列记录偏离处理建议
+- **AND** 优化方案 SHOULD 区分补齐目标规格字段、改用目标规格、移除原图 fallback、使用安全占位、拆分普通展示与预览场景
+- **AND** 本规范 Change MUST NOT 直接修复 Web、小程序、后端、API、数据库或对象存储实现偏离
+- **AND** 需要实现修正时 MUST 通过后续独立 REQ、BUG 或 OpenSpec Change 处理。
+
+### Requirement: 媒体 API 必须提供多规格 URL 语义
+
+商品、SKU 或媒体相关 API MUST 提供 `thumbnail_url`、`display_url`、`original_url` 或等价语义字段，使小程序、店主 Web 和管理端可以按场景选择图片规格。证书详情和品牌证书摘要等品牌证书媒体 API 也 MUST 遵守同一语义：图片证书卡片 MUST 使用 `thumbnail_url`、卡片专用小图 URL 或占位；详情普通展示 MUST 使用 `display_url` 或等价展示图；图片预览、文件打开或下载 MUST 使用 `original_url`、`preview_url`、`file_url` 或等价高清/文件 URL。API MUST 明确 URL 类型、签名、缓存、权限、过期、fallback 和 WebP 派生格式策略，并 MUST 同步 OpenAPI、Orval、API 文档和测试。
+
+#### Scenario: 商品媒体响应包含多规格 URL
+
+- **WHEN** 客户端请求包含图片媒体的商品、SKU 或媒体详情
+- **THEN** 响应 MUST 提供轻量列表图、详情展示图和高清预览图的 URL 语义
+- **AND** 新生成的轻量列表图和详情展示图 URL SHOULD 指向 WebP 派生对象
+- **AND** 响应 MUST NOT 暴露原始 object key、对象存储 endpoint、bucket 名称、access key、secret key 或未授权素材路径
+- **AND** 老客户端兼容策略 MUST 有文档和测试覆盖。
+
+#### Scenario: 证书卡片不得使用原文件 fallback
+
+- **WHEN** 小程序请求品牌证书摘要、证书列表或其他证书卡片数据
+- **THEN** 图片证书卡片展示 MUST 优先使用 `thumbnail_url`、卡片专用小图 URL 或等价 WebP 轻量图片 URL
+- **AND** 缩略图缺失、不可读、为空或图片加载失败时 MUST 展示统一占位或受控失败态
+- **AND** 卡片图片 `src` MUST NOT 使用 `file_url`、`original_url`、`preview_url` 或等价原文件 URL 作为默认 fallback
+- **AND** 原文件 URL MAY 继续用于详情、预览、打开或下载动作，但 MUST 与卡片展示字段语义分离。
+
+#### Scenario: API 字段变更同步
+
+- **WHEN** 多规格 URL 字段、响应结构、Content-Type 示例或 fallback 规则发生变化
+- **THEN** OpenAPI MUST 更新
+- **AND** Orval 生成物 MUST 更新
+- **AND** API 文档 MUST 说明字段语义、WebP 派生格式、fallback 和缓存边界
+- **AND** 后端测试 MUST 覆盖响应字段与缺失规格回退。
+
+### Requirement: 存量图片必须支持批量生成多规格资源
+
+系统 MUST 支持对存量图片批量生成 `thumbnail` 与 `display`。批量生成 MUST 采用 dry-run / apply 两阶段，MUST 默认只读，apply MUST 显式触发，并 MUST 提供幂等性、失败统计、重试建议、二次审计和脱敏输出。针对 JPEG、PNG、WebP 原图，批量生成的 `thumbnail` 与 `display` MUST 使用 WebP 派生格式；SVG、PDF、GIF、HEIC、TIFF、BMP 或不支持对象 MUST 记录跳过、拒绝或 fallback 分类。
+
+#### Scenario: 存量图片 WebP dry-run 不写入
+
+- **WHEN** 运维执行存量图片 WebP 多规格生成 dry-run
+- **THEN** 输出 MUST 包含待处理数量、已存在 WebP 派生数量、缺失规格、跳过原因、失败分类、预计写入对象和风险摘要
+- **AND** dry-run MUST NOT 写数据库
+- **AND** dry-run MUST NOT 写对象存储
+- **AND** 输出 MUST NOT 包含真实密钥、数据库连接串、Authorization header、Cookie、真实 `.env`、本机绝对路径、未脱敏 object key 全量值或真实客户数据。
+
+#### Scenario: 存量图片 WebP apply 显式受控
+
+- **GIVEN** dry-run 已完成且备份或风险确认已记录
+- **WHEN** 运维显式执行 WebP 派生 apply
+- **THEN** 系统 MUST 为支持格式生成缺失或不合格的 WebP `thumbnail` 与 WebP `display`
+- **AND** 输出 MUST 包含成功、失败、跳过、重试候选和失败原因统计
+- **AND** 重复执行 MUST 保持幂等
+- **AND** apply 后 MUST 支持二次审计验证 key、object、URL、render 和规格收益。

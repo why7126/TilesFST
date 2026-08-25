@@ -1,6 +1,7 @@
 ---
 name: "bug-review"
 description: "缺陷评审 - 确认是否修复；仅 approved 可 bug-opsx 与进 Sprint"
+updated_at: 2026-08-24 16:35:51
 ---
 
 ## Context Budget Guardrails（MUST）
@@ -31,6 +32,21 @@ Default：无 flag 时等价于 `approve`。反向结果必须显式使用 `--re
 
 **Output**：`review.md`；status → `approved` | `rejected` | `deferred` | `wont_fix`
 
+## Step — 根因 confirmed 门禁（MUST，默认 approve 或 `--approve` 时）
+
+Read `rules/root-cause-evidence.md`。
+
+默认 approve 或显式 `--approve` 时，MUST 在写入 `review.md`、状态变更和目录迁移前运行：
+
+```bash
+python scripts/validate-root-cause-evidence.py --bug <BUG-id> --require-confirmed
+```
+
+- Exit code MUST be `0`；若失败，MUST 停止 approve。
+- `root_cause_status` MUST 为 `confirmed`；`unknown`、`hypothesis`、`probable`、缺少 `root-cause.md` 或缺少 `root_cause_status` 均为 blocker。
+- confirmed 根因必须包含可定位证据链；缺证据时先 `/bug-complete <BUG-id>` 补齐，或显式选择 `--defer`、`--reject`、`--wont-fix`。
+- `--reject`、`--defer`、`--wont-fix` 不要求通过 confirmed 门禁，但评审记录 MUST 说明非 approve 依据。
+
 ## Step — 目录迁移（MUST，默认 approve 或 `--approve` 时）
 
 Read `rules/issues-lifecycle.md`。
@@ -51,7 +67,7 @@ python scripts/promote-issue-stage.py --bug <BUG-id> --to review --reason "/bug-
 
 ## 评审清单
 
-- [ ] 可复现或根因充分
+- [ ] `root_cause_status: confirmed` 且证据链可定位
 - [ ] 严重等级合理
 - [ ] 回归验收明确
 - [ ] 是否需 hotfix 路径
@@ -106,4 +122,3 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event bug.revi
 - 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
 - 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

@@ -67,6 +67,7 @@ SETTING_GROUPS: dict[str, list[str]] = {
         "media.allowed_image_types",
         "media.allowed_video_types",
         "media.thumbnail_max_size_kb",
+        "media.display_max_size_kb",
     ],
     "notification": [
         "notification.account_freeze_notify",
@@ -136,6 +137,7 @@ CODE_DEFAULTS: dict[str, Any] = {
     "notification.storage_capacity_warn": True,
     "notification.storage_capacity_threshold_pct": 80,
     "media.thumbnail_max_size_kb": 0,
+    "media.display_max_size_kb": 768,
     "audit.retention_days": 365,
     "audit.allow_export": True,
     "audit.force_sensitive_audit": True,
@@ -204,6 +206,9 @@ class EffectiveSettingsService:
 
     def thumbnail_max_size_kb(self) -> int:
         return int(self.get_effective("media.thumbnail_max_size_kb") or 0)
+
+    def display_max_size_kb(self) -> int:
+        return int(self.get_effective("media.display_max_size_kb") or 0)
 
     @staticmethod
     def serialize_value(value: Any) -> str:

@@ -4,7 +4,7 @@ content: 记录媒体漂移聚合任务、缩略图重新生成任务的执行�
 source: REQ-0099-global-thumbnail-size-limit / BUG-0116-prod-media-historical-object-drift 运维沉淀
 update_method: 媒体维护任务、生产 Compose 入口或对象存储验收口径变化时更新
 created_at: 2026-08-05 23:16:00
-updated_at: 2026-08-06 09:54:23
+updated_at: 2026-08-25 11:18:08
 ---
 
 # 生产媒体维护作业 Runbook
@@ -13,11 +13,11 @@ updated_at: 2026-08-06 09:54:23
 
 本文档用于生产或生产等价环境中的媒体历史维护任务，覆盖：
 
-- BUG-0116 媒体漂移聚合任务：SKU 主图暂存路径正式化、证书图片 key 迁移、SKU / 品牌 Logo / 证书图片缩略图回填和对象 key 二次审计。
-- 历史缩略图重新生成任务：让历史 SKU、品牌 Logo 与品牌证书图片 `.thumb` 读取当前 `media.thumbnail_max_size_kb` effective 策略。
+- 媒体漂移聚合任务：SKU 主图暂存路径正式化、证书图片 key 迁移、SKU / 品牌 Logo / 证书图片缩略图回填和对象 key 二次审计；能力来源包含 BUG-0116 运维沉淀。
+- 历史缩略图和详情展示图重新生成任务：让历史 SKU、品牌 Logo 与品牌证书图片 `.thumb` 读取当前 `media.thumbnail_max_size_kb` effective 策略，`.display` 读取当前 `media.display_max_size_kb` effective 策略。
 - 运维 dry-run、备份确认、apply、二次审计和结果解读。
 
-保存系统设置中的“缩略图体积目标上限 (KB)”只影响后续新生成缩略图，不会自动扫描或覆盖历史 `.thumb` 对象。历史资源要应用新策略，必须显式执行本文档中的维护任务。
+保存系统设置中的“缩略图体积目标上限 (KB)”和“详情展示图体积目标上限 (KB)”只影响后续新生成派生图，不会自动扫描或覆盖历史 `.thumb` / `.display` 对象。历史资源要应用新策略，必须显式执行本文档中的维护任务。
 
 ## 2. 执行前检查
 
@@ -27,7 +27,7 @@ updated_at: 2026-08-06 09:54:23
 - 对象存储 bucket / prefix 快照，至少覆盖 `images/`、`files/` 和相关 `.thumb` 对象。
 - 确认生产 `.env` 指向预期数据库与对象存储。
 - 先跑 dry-run，并确认输出中 `environment.database_backend`、`environment.object_storage_provider` 和 `environment.object_storage_bucket_hash` 符合预期。
-- 确认 `thumbnail_max_size_kb` 为预期值；`0` 表示不限制，正整数表示尽量不超过目标 KB。
+- 确认 `thumbnail_max_size_kb` 和 `display_max_size_kb` 为预期值；`0` 表示不限制，正整数表示尽量不超过目标 KB，`display_max_size_kb` 默认值为 `768`。
 
 ## 3. 生产命令
 
@@ -40,7 +40,7 @@ docker-compose --project-name tilesfst \
   --env-file .env \
   -f docker-compose.prod.external.yml \
   exec -T tilesfst-backend \
-  uv run --no-sync python -m app.modules.media.maintenance bug-0116-media-drift --limit 100
+  uv run --no-sync python -m app.modules.media.maintenance media-drift-reconcile --limit 100
 ```
 
 ### 3.2 媒体漂移聚合任务 apply
@@ -52,7 +52,7 @@ docker-compose --project-name tilesfst \
   --env-file .env \
   -f docker-compose.prod.external.yml \
   exec -T tilesfst-backend \
-  uv run --no-sync python -m app.modules.media.maintenance bug-0116-media-drift --limit 100 --apply --confirm-backup
+  uv run --no-sync python -m app.modules.media.maintenance media-drift-reconcile --limit 100 --apply --confirm-backup
 ```
 
 ### 3.3 缩略图重新生成任务 dry-run
@@ -82,15 +82,15 @@ docker-compose --project-name tilesfst \
 若生产环境已使用 `deploy/` 入口，优先使用包装脚本：
 
 ```bash
-./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos bug-0116-media-drift --limit 100
-./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos bug-0116-media-drift --limit 100 --apply --confirm-backup
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos media-drift-reconcile --limit 100
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos media-drift-reconcile --limit 100 --apply --confirm-backup
 ./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-brand-certificate-thumbnails --limit 100
 ./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-brand-certificate-thumbnails --limit 100 --apply --confirm-backup
 ```
 
 ## 4. 聚合任务处理过程
 
-`bug-0116-media-drift` 是聚合入口，单次执行会运行 4 个子任务：
+`media-drift-reconcile` 是生产推荐聚合入口，单次执行会运行 4 个子任务。`bug-0116-media-drift` 仅作为历史兼容别名保留，用于兼容旧脚本、日志或已归档证据：
 
 | 子任务 | 作用 | 是否写入 |
 |---|---|---|
@@ -109,7 +109,7 @@ docker-compose --project-name tilesfst \
 
 | 字段 | 结果解读 |
 |---|---|
-| `task` | 当前输出所属任务名。`bug-0116-media-drift` 表示聚合任务；`backfill-brand-certificate-thumbnails` 表示独立缩略图任务。 |
+| `task` | 当前输出所属任务名。`media-drift-reconcile` 表示生产推荐聚合任务；`bug-0116-media-drift` 仅表示历史兼容别名；`backfill-brand-certificate-thumbnails` 表示独立缩略图任务。 |
 | `mode` | 执行模式。`dry_run` 只审计和预估，不写数据库或对象存储；`apply` 才会执行写入。 |
 | `dry_run` | 布尔值形式的写入开关。`true` 与 `mode: dry_run` 一致，表示本次结果只能作为计划和风险判断，不能当作已经修复完成。 |
 | `limit` | 本次单任务或每个聚合子任务的处理上限。聚合任务里不是全局上限，因此多个子任务样本相加可能超过该值。 |
@@ -133,7 +133,7 @@ docker-compose --project-name tilesfst \
 
 | 字段 | 本次两份数据的值 | 结果解读 |
 |---|---|---|
-| `acceptance_summary.task` | `bug-0116-media-drift` / `backfill-brand-certificate-thumbnails` | 标识这份验收摘要对应的任务，归档证据时要和 JSON 文件名、执行命令对应。 |
+| `acceptance_summary.task` | `media-drift-reconcile` / `backfill-brand-certificate-thumbnails` | 标识这份验收摘要对应的任务，归档证据时要和 JSON 文件名、执行命令对应；历史证据中可能出现兼容别名 `bug-0116-media-drift`。 |
 | `acceptance_summary.key.status` | `pass` | 抽样对象 key 前缀符合任务预期，没有发现 key 格式阻断。 |
 | `acceptance_summary.key.samples` | 聚合任务 `243`，独立缩略图任务 `299` | 表示参与 key 验收的样本数。聚合任务样本来自多个子任务，独立任务样本来自缩略图审计集合。 |
 | `acceptance_summary.object.status` | `pass` | 抽样对象存在性检查通过，没有发现对象缺失阻断。 |
@@ -166,11 +166,40 @@ failed = 0 且 retry_candidates > 0
 failed > 0
 → 不要 apply，先看 tasks.*.summary.failure_reasons 与 items。
 
+summary.status = blocked 且 failure_category = object_storage_unreachable
+→ 不要进入备份确认或 apply；先修复对象存储环境，再重新 dry-run。
+
 pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_candidates = 0 且 non_standard_keys_after_audit = 0
 → 本批次没有发现需要处理的历史漂移。
 ```
 
-本次 `bug-0116-media-drift` 的结论是：无失败、无 SKU 主图暂存漂移、无证书图片 key 迁移候选、对象 key 审计通过，但仍有 55 个缩略图候选需要在备份后 apply。
+示例 `media-drift-reconcile` 的结论是：无失败、无 SKU 主图暂存漂移、无证书图片 key 迁移候选、对象 key 审计通过，但仍有 55 个缩略图候选需要在备份后 apply。
+
+### 5.5 对象存储不可达 blocked 摘要
+
+当 dry-run 输出 `failure_category: object_storage_unreachable` 时，表示维护任务无法可靠验证对象维度。该状态与单个对象不存在不同，不应解释为 `missing_original`、`missing_thumbnail` 或普通 `object_exists=false`。
+
+blocked 摘要通常包含：
+
+| 字段 | 结果解读 |
+|---|---|
+| `summary.status` | `blocked` 表示对象维度被环境阻断。 |
+| `summary.failure_category` | `object_storage_unreachable` 表示 endpoint、region、bucket、权限、凭据、网络或对象存储服务状态不可用。 |
+| `summary.affected_tasks` | 受影响对象相关子任务；聚合任务会把后续对象相关子任务标记为 blocked 或 skipped。 |
+| `summary.can_apply` | `false` 时不得进入 apply 判断。 |
+| `summary.recommended_action` | 按 endpoint、region、bucket、权限、网络和 env 注入顺序排查，修复后重新 dry-run。 |
+| `acceptance_summary.object.status` | `blocked` 表示对象存在性无法验收。 |
+| `acceptance_summary.thumbnail_benefit.status` | 对需要读取原图或缩略图的任务，blocked 表示缩略图收益无法验收。 |
+
+排查顺序：
+
+1. 确认生产 env 指向预期 `OBJECT_STORAGE_PROVIDER`、endpoint、region 和 bucket。
+2. 确认对象存储 bucket / prefix 快照存在，且凭据具备最小读写权限。
+3. 确认后端容器网络能访问对象存储 endpoint。
+4. 确认 access key / secret key 或云厂商临时凭据仍有效。
+5. 修复后重新执行 dry-run，再判断是否进入备份确认和 apply。
+
+blocked 摘要只允许输出 provider、bucket hash、auto create bucket 策略、失败分类和建议动作；不得输出真实 bucket 名、raw object key、密钥、连接串、生产 `.env`、私有 URL、完整 SDK 堆栈或本机绝对路径。
 
 ## 6. 缩略图任务结果解读
 
@@ -193,7 +222,8 @@ pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_
 | `not_within_target` | 0 | 0 | dry-run 未出现“生成后仍不达标”的记录；apply 后如果大于 0，需要按图片复杂度或目标过低解释。 |
 | `retry_candidates` | 79 | 55 | 当前仍需处理的缩略图候选数。独立任务还有 79 个，聚合任务当前批次有 55 个。 |
 | `failure_reasons` | `{}` | `{}` | 没有失败原因聚合；如果非空，应按原因分组处理后再继续。 |
-| `thumbnail_max_size_kb` | 0 | 0 | 当前生效策略是不限制目标 KB；本次候选来自 copied-original，而不是超过 KB 上限。 |
+| `thumbnail_max_size_kb` | 0 | 0 | 当前生效缩略图策略是不限制目标 KB；本次候选来自 copied-original，而不是超过 KB 上限。 |
+| `display_max_size_kb` | 768 | 768 | 当前生效详情展示图策略为 768KB；`backfill-image-variants`、聚合任务中的多规格回填和 pending 正式化会按该值生成 `.display`。 |
 
 ### 6.2 items 每字段结果解读
 
@@ -210,6 +240,7 @@ pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_
 | `items[].status` | 明细状态。`dry_run` 表示计划写入但本次未写；`skipped` 表示本条已符合策略或无需处理。 |
 | `items[].reason` | 进入当前状态的原因。`thumbnail_copied_original` 表示缩略图是原图复制；`null` 通常表示跳过项没有异常原因。 |
 | `items[].thumbnail_max_size_kb` | 该条审计使用的缩略图 KB 目标。本次为 `0`，表示不限制体积上限。 |
+| `items[].display_max_size_kb` | 该条审计或重生成使用的详情展示图 KB 目标；默认 `768`，与缩略图目标独立。 |
 
 当 `thumbnail_max_size_kb` 为正整数时，以下情况都会进入 `retry_candidates`：
 
@@ -218,7 +249,7 @@ pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_
 - `.thumb` 与原图 bytes 一致。
 - `.thumb` 已存在但超过当前体积目标上限。
 
-如果 `thumbnail_max_size_kb` 不是预期值，先停止执行，检查管理后台系统设置、数据库连接和运行容器是否指向同一环境。
+如果 `thumbnail_max_size_kb` 或 `display_max_size_kb` 不是预期值，先停止执行，检查管理后台系统设置、数据库连接和运行容器是否指向同一环境。
 
 本次两份数据的缩略图结论是：`thumbnail_max_size_kb = 0`，所以并非按 KB 上限筛选；候选全部来自 `.thumb` 与原图同 size / 同 bytes。独立任务仍有 79 个待重生成候选，聚合任务当前批次有 55 个待重生成候选。
 
@@ -299,7 +330,7 @@ pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_
 
 ```text
 1. 后台确认 thumbnail_max_size_kb。
-2. 跑 bug-0116-media-drift dry-run。
+2. 跑 `media-drift-reconcile` dry-run。
 3. 读取顶层 summary 和各子任务 failure_reasons。
 4. failed = 0 后确认 MySQL 与对象存储备份。
 5. 按 --limit 100 分批 apply。
@@ -327,6 +358,7 @@ pending_main_images = 0 且 certificate_file_image_candidates = 0 且 thumbnail_
 - `failed > 0` 且原因不是已知可忽略项。
 - `thumbnail_max_size_kb` 与后台配置不一致。
 - `environment.database_backend` 或 `object_storage_provider` 与预期生产环境不一致。
+- dry-run 输出 `summary.status=blocked` 或 `failure_category=object_storage_unreachable`。
 - apply 后 `non_standard_keys_after_audit` 或 `missing_objects` 异常增加。
 - 对象存储写入、图片解码或数据库更新出现持续失败。
 

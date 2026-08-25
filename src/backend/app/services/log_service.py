@@ -286,19 +286,6 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
             "phone",
         },
     },
-    "certificate_detail_brand_click": {
-        "category": "miniapp_certificate_detail",
-        "required": {"page_path", "certificateId", "brandId", "client_type"},
-        "forbidden": {
-            "authorization",
-            "cookie",
-            "raw_payload",
-            "raw_object_key",
-            "object_key",
-            "internal_remark",
-            "phone",
-        },
-    },
     "certificate_detail_share_click": {
         "category": "miniapp_certificate_detail",
         "required": {"page_path", "certificateId", "client_type"},
@@ -759,6 +746,20 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "category": "miniapp_brand_detail",
         "required": {"page_path", "sourcePage", "sourceModule", "brandId", "tab", "certificateId", "index", "requestId", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone"},
+    },
+    "brand_certificate_image_failed": {
+        "category": "miniapp_brand_detail",
+        "required": {"page_path", "sourcePage", "sourceModule", "brandId", "tab", "certificateId", "index", "requestId", "client_type"},
+        "forbidden": {
+            "authorization",
+            "cookie",
+            "raw_payload",
+            "raw_object_key",
+            "object_key",
+            "raw_response",
+            "internal_remark",
+            "phone",
+        },
     },
     "product_card_exposure": {
         "category": "miniapp_product_card",

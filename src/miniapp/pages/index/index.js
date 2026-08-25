@@ -18,7 +18,7 @@ Page({
     loading: true,
     error: '',
     home: null,
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     errorDetail: '',
     quickEntries: QUICK_ENTRIES,
     allProducts: [],
@@ -312,7 +312,7 @@ Page({
   onImageError(event) {
     const key = event.currentTarget.dataset.key;
     if (key) {
-      this.setData({ [key]: this.data.imageFallback });
+      this.setData({ [key]: '' });
     }
   },
 });

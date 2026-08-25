@@ -46,6 +46,7 @@ const mediaPayload = {
   max_video_size_mb: 500,
   max_file_size_mb: 25,
   thumbnail_max_size_kb: 0,
+  display_max_size_kb: 768,
   allowed_image_types: 'image/jpeg,image/png,image/webp',
   allowed_video_types: 'video/mp4',
   minio_bucket: 'tilesfst',
@@ -180,14 +181,28 @@ describe('SystemSettingsPage', () => {
       expect(screen.getByText('对象存储策略')).toBeInTheDocument();
     });
     expect(fetchSettingsGroupMock).toHaveBeenCalledWith('media');
-    expect(screen.getByText('文档最大尺寸 (MB)')).toBeInTheDocument();
+    expect(screen.getByText('文件最大尺寸 (MB)')).toBeInTheDocument();
     expect(screen.getByText('缩略图体积目标上限 (KB)')).toBeInTheDocument();
+    expect(screen.getByText('详情展示图体积目标上限 (KB)')).toBeInTheDocument();
     expect(screen.getByDisplayValue('0')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('768')).toBeInTheDocument();
     expect(screen.getByText(/0 表示不限制/)).toBeInTheDocument();
-    for (const label of ['图片最大尺寸 (MB)', '视频最大尺寸 (MB)', '文档最大尺寸 (MB)']) {
+    expect(screen.getByText(/默认 768KB/)).toBeInTheDocument();
+    for (const label of ['图片最大尺寸 (MB)', '视频最大尺寸 (MB)', '文件最大尺寸 (MB)']) {
       expect(screen.getByLabelText(label)).toHaveClass('select');
       expect(screen.getByLabelText(label)).toHaveClass('admin-filter-dropdown-trigger');
     }
+    const uploadLimitsGrid = screen.getByTestId('media-upload-limits-grid');
+    const gridCells = Array.from(uploadLimitsGrid.children);
+    expect(gridCells).toHaveLength(8);
+    expect(gridCells[0]).toHaveTextContent('图片最大尺寸 (MB)');
+    expect(gridCells[1]).toHaveTextContent('视频最大尺寸 (MB)');
+    expect(gridCells[2]).toHaveTextContent('文件最大尺寸 (MB)');
+    expect(gridCells[3]).toHaveClass('settings-form-spacer');
+    expect(gridCells[4]).toHaveTextContent('缩略图体积目标上限 (KB)');
+    expect(gridCells[5]).toHaveTextContent('详情展示图体积目标上限 (KB)');
+    expect(gridCells[6]).toHaveTextContent('支持图片格式');
+    expect(gridCells[7]).toHaveTextContent('支持视频格式');
     for (const label of ['JPG', 'PNG', 'WebP', 'GIF', 'SVG', 'BMP', 'TIFF', 'HEIC']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }
@@ -203,7 +218,7 @@ describe('SystemSettingsPage', () => {
       expect(screen.getByText('对象存储策略')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByRole('spinbutton'), {
+    fireEvent.change(screen.getByLabelText(/缩略图体积目标上限 \(KB\)/), {
       target: { value: '20' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
@@ -217,6 +232,27 @@ describe('SystemSettingsPage', () => {
     expect(document.querySelector('.settings-save-tip')).toBeNull();
   });
 
+  it('saves display max size independently from thumbnail settings', async () => {
+    renderPage('/admin/settings/media');
+
+    await waitFor(() => {
+      expect(screen.getByText('对象存储策略')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/详情展示图体积目标上限 \(KB\)/), {
+      target: { value: '512' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
+
+    await waitFor(() => {
+      expect(patchSettingsGroupMock).toHaveBeenCalledWith('media', {
+        display_max_size_kb: 512,
+      });
+    });
+    expect(screen.getAllByRole('button', { name: '保存设置' })).toHaveLength(1);
+    expect(document.querySelector('.settings-save-tip')).toBeNull();
+  });
+
   it('rejects invalid thumbnail max size before save', async () => {
     renderPage('/admin/settings/media');
 
@@ -224,8 +260,25 @@ describe('SystemSettingsPage', () => {
       expect(screen.getByText('对象存储策略')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByRole('spinbutton'), {
+    fireEvent.change(screen.getByLabelText(/缩略图体积目标上限 \(KB\)/), {
       target: { value: '1025' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
+
+    expect(patchSettingsGroupMock).not.toHaveBeenCalled();
+    expect(await screen.findByText('保存失败')).toBeInTheDocument();
+    expect(window.confirm).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid display max size before save', async () => {
+    renderPage('/admin/settings/media');
+
+    await waitFor(() => {
+      expect(screen.getByText('对象存储策略')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/详情展示图体积目标上限 \(KB\)/), {
+      target: { value: '2049' },
     });
     fireEvent.click(screen.getByRole('button', { name: '保存设置' }));
 

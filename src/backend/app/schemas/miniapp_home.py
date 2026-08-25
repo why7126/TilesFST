@@ -19,6 +19,8 @@ class MiniappBannerItem(BaseModel):
     title: str
     subtitle: str | None = None
     image_url: str
+    thumbnail_url: str | None = None
+    display_url: str | None = None
     jump_type: Literal["none", "product", "brand", "search", "store"]
     target_id: int | None = None
     search_keyword: str | None = None
@@ -44,6 +46,9 @@ class MiniappProductCard(BaseModel):
     product_name: str
     sku_code: str
     cover_image: str | None = None
+    thumbnail_url: str | None = None
+    display_url: str | None = None
+    original_url: str | None = None
     specification: str
     category_name: str | None = None
     brand_name: str | None = None
@@ -118,6 +123,8 @@ class MiniappBrandListData(BaseModel):
 
 
 class MiniappBrandDetailData(MiniappBrandCard):
+    brand_hero_display_url: str | None = None
+    brand_hero_thumbnail_url: str | None = None
     product_path: str
     certificate_count: int = 0
 
@@ -172,6 +179,8 @@ class MiniappCertificateMediaItem(BaseModel):
     url: str
     preview_url: str | None = None
     thumbnail_url: str | None = None
+    display_url: str | None = None
+    original_url: str | None = None
     file_name: str | None = None
     file_mime_type: str | None = None
     sort_order: int = 0
@@ -181,6 +190,7 @@ class MiniappCertificateMediaItem(BaseModel):
 class MiniappCertificateBrandInfo(BaseModel):
     brand_id: int
     brand_name: str
+    brand_logo_thumbnail_url: str | None = None
     brand_entry_path: str
     available: bool = True
 
@@ -279,6 +289,9 @@ class MiniappSkuMediaItem(BaseModel):
     media_type: Literal["image", "video"]
     url: str
     preview_url: str | None = None
+    thumbnail_url: str | None = None
+    display_url: str | None = None
+    original_url: str | None = None
     cover_url: str | None = None
     sort_order: int
     is_main: bool = False
@@ -290,6 +303,7 @@ class MiniappSkuBrandInfo(BaseModel):
     brand_name: str
     brand_short_name: str | None = None
     brand_logo_url: str | None = None
+    brand_logo_thumbnail_url: str | None = None
     brand_entry_path: str | None = None
     available: bool = True
 

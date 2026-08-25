@@ -23,6 +23,9 @@ from app.modules.media.storage import (
     build_brand_certificate_upload_object_key,
     build_image_upload_object_key,
     build_video_upload_object_key,
+    media_url_for_object_key,
+    media_variant_urls,
+    same_directory_display_object_key,
     save_upload_file,
     same_directory_thumbnail_object_key,
 )
@@ -121,10 +124,20 @@ def _upload_result(
     )
 
 
-def _thumbnail_result_fields(thumbnail_key: str | None) -> dict[str, str | None]:
-    if not thumbnail_key:
-        return {"thumbnail_key": None, "thumbnail_url": None}
-    return {"thumbnail_key": thumbnail_key, "thumbnail_url": f"/media/{thumbnail_key}"}
+def _variant_result_fields(
+    *,
+    object_key: str,
+    thumbnail_key: str | None,
+    display_key: str | None,
+) -> dict[str, str | None]:
+    urls = media_variant_urls(object_key)
+    return {
+        "thumbnail_key": thumbnail_key,
+        "thumbnail_url": media_url_for_object_key(thumbnail_key) if thumbnail_key else None,
+        "display_key": display_key,
+        "display_url": media_url_for_object_key(display_key) if display_key else None,
+        "original_url": urls["original_url"],
+    }
 
 
 def _begin_upload_trace(
@@ -295,6 +308,8 @@ async def _save_traced_upload(
     object_key: str,
     thumbnail_key: str | None = None,
     thumbnail_max_size_kb: int = 0,
+    display_key: str | None = None,
+    display_max_size_kb: int = 768,
 ) -> UploadResult:
     trace_service, task_trace_id, trace_started = _begin_upload_trace(
         request=request,
@@ -328,6 +343,8 @@ async def _save_traced_upload(
             max_size_mb,
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=thumbnail_max_size_kb,
+            display_key=display_key,
+            display_max_size_kb=display_max_size_kb,
         )
     except AppError as exc:
         _finish_upload_trace(
@@ -381,8 +398,7 @@ async def _save_traced_upload(
         actor_user_id=current_user.id,
         resource_type=resource_type,
         resource_id=resource_id,
-        status="skipped",
-        summary="本次上传无后处理节点",
+        summary="图片派生规格生成完成或已按降级策略跳过",
     )
     _finish_upload_trace(
         db=db,
@@ -399,7 +415,11 @@ async def _save_traced_upload(
     return UploadResult(
         object_key=object_key,
         url=f"/media/{object_key}",
-        **_thumbnail_result_fields(thumbnail_key),
+        **_variant_result_fields(
+            object_key=object_key,
+            thumbnail_key=thumbnail_key,
+            display_key=display_key,
+        ),
         task_trace_id=task_trace_id,
         task_type=task_type,
         file_key=object_key,
@@ -452,7 +472,17 @@ async def upload_image(
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
         object_key = build_image_upload_object_key("user/avatars", file.content_type)
-        size = await save_upload_file(file, object_key, max_size_mb)
+        thumbnail_key = same_directory_thumbnail_object_key(object_key)
+        display_key = same_directory_display_object_key(object_key)
+        size = await save_upload_file(
+            file,
+            object_key,
+            max_size_mb,
+            thumbnail_key=thumbnail_key,
+            thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
+            display_key=display_key,
+            display_max_size_kb=effective.display_max_size_kb(),
+        )
     except AppError as exc:
         _finish_upload_trace(
             db=db,
@@ -505,8 +535,7 @@ async def upload_image(
         actor_user_id=current_user.id,
         resource_type="user_avatar",
         resource_id=current_user.id,
-        status="skipped",
-        summary="本次头像上传无后处理节点",
+        summary="头像图片派生规格生成完成或已按降级策略跳过",
     )
     _finish_upload_trace(
         db=db,
@@ -524,6 +553,11 @@ async def upload_image(
         data=UploadResult(
             object_key=object_key,
             url=f"/media/{object_key}",
+            **_variant_result_fields(
+                object_key=object_key,
+                thumbnail_key=thumbnail_key,
+                display_key=display_key,
+            ),
             task_trace_id=task_trace_id,
             task_type="upload_image",
         ),
@@ -558,7 +592,9 @@ async def upload_brand_logo(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            display_key=same_directory_display_object_key(object_key),
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
+            display_max_size_kb=effective.display_max_size_kb(),
         ),
     )
 
@@ -591,7 +627,9 @@ async def upload_banner_image(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            display_key=same_directory_display_object_key(object_key),
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
+            display_max_size_kb=effective.display_max_size_kb(),
         ),
     )
 
@@ -626,7 +664,9 @@ async def upload_tile_image(
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
             thumbnail_key=same_directory_thumbnail_object_key(object_key),
+            display_key=same_directory_display_object_key(object_key),
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
+            display_max_size_kb=effective.display_max_size_kb(),
         ),
     )
 
@@ -870,12 +910,19 @@ async def upload_brand_certificate(
             if file.content_type and file.content_type.startswith("image/")
             else None
         )
+        display_key = (
+            same_directory_display_object_key(object_key)
+            if file.content_type and file.content_type.startswith("image/")
+            else None
+        )
         size = await save_upload_file(
             file,
             object_key,
             max_size_mb,
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb() if thumbnail_key else 0,
+            display_key=display_key,
+            display_max_size_kb=effective.display_max_size_kb() if display_key else 0,
         )
     except AppError as exc:
         error_code = CERTIFICATE_FILE_TOO_LARGE if exc.code == FILE_SIZE_EXCEEDED else exc.code
@@ -936,8 +983,8 @@ async def upload_brand_certificate(
         actor_user_id=current_user.id,
         resource_type="brand_certificate",
         resource_id=None,
-        status="skipped",
-        summary="本次文件上传无后处理节点",
+        status="success" if file.content_type and file.content_type.startswith("image/") else "skipped",
+        summary="证书图片派生规格生成完成或文件类证书无需派生",
     )
     _finish_upload_trace(
         db=db,
@@ -955,7 +1002,11 @@ async def upload_brand_certificate(
         data=UploadResult(
             object_key=object_key,
             url=f"/media/{object_key}",
-            **_thumbnail_result_fields(thumbnail_key),
+            **_variant_result_fields(
+                object_key=object_key,
+                thumbnail_key=thumbnail_key,
+                display_key=display_key,
+            ),
             task_trace_id=task_trace_id,
             task_type="upload_file",
             file_key=object_key,

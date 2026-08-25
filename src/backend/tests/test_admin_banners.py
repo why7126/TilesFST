@@ -206,7 +206,7 @@ def test_list_banners_includes_image_thumbnail_url(client: TestClient) -> None:
     assert response.status_code == 200
     item = next(item for item in response.json()["data"]["items"] if item["id"] == banner_id)
     assert item["image_url"] == "/media/images/default/banners/list-thumb.jpg"
-    assert item["image_thumbnail_url"] == "/media/images/default/banners/list-thumb.thumb.jpg"
+    assert item["image_thumbnail_url"] == "/media/images/default/banners/list-thumb.thumb.webp"
     assert item["jump_target_label"] == "-"
 
 
@@ -717,18 +717,19 @@ def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch
         b"\x0d\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
     )
 
-    captured_target: dict[str, int] = {}
+    captured_targets: list[int] = []
 
     def fake_thumbnail(
         content: bytes,
         content_type: str | None,
         *,
         target_max_size_kb: int = 0,
+        **_: object,
     ) -> ImageThumbnailResult:
-        captured_target["value"] = target_max_size_kb
+        captured_targets.append(target_max_size_kb)
         return ImageThumbnailResult(
             content=b"banner-thumbnail",
-            content_type=content_type or "image/png",
+            content_type="image/webp",
             width=1,
             height=1,
             original_width=1,
@@ -758,7 +759,7 @@ def test_banner_image_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch
     assert data["thumbnail_key"] == thumbnail_key
     assert data["thumbnail_url"] == f"/media/{thumbnail_key}"
     assert thumbnail_key in get_media_storage_client().objects
-    assert captured_target["value"] == 20
+    assert 20 in captured_targets
 
 
 def test_banner_image_upload_rejects_invalid_type(client: TestClient) -> None:

@@ -27,9 +27,19 @@ function normalizeSkuDetail(product) {
   const parameters = (product.parameters || []).filter((item) => item.label !== '备注说明');
   return {
     ...product,
+    cover_image: product.thumbnail_url || product.cover_image,
+    media: (product.media || []).map((item) => item.media_type === 'image' ? {
+      ...item,
+      display_url: item.display_url || item.thumbnail_url,
+      preview_url: item.original_url || item.preview_url || item.url,
+    } : item),
     remark,
     parameters: remark ? [...parameters, { label: '备注说明', value: remark }] : parameters,
   };
+}
+
+function previewUrlForMedia(item) {
+  return item.original_url || item.preview_url || item.url;
 }
 
 function skuShareTitle(product) {
@@ -45,9 +55,10 @@ function skuShareImage(product, fallback) {
   if (!product) return fallback;
   const mainImage = product.media.find((item) => item.media_type === 'image');
   return safeText(product.share && product.share.image_url)
-    || safeText(product.cover_image)
-    || safeText(mainImage && mainImage.preview_url)
-    || safeText(mainImage && mainImage.url)
+    || safeText(product.display_url)
+    || safeText(product.thumbnail_url)
+    || safeText(mainImage && mainImage.display_url)
+    || safeText(mainImage && mainImage.thumbnail_url)
     || fallback;
 }
 
@@ -91,7 +102,7 @@ function favoriteItemFromProduct(product) {
     sku_id: product.product_id,
     product_name: product.product_name,
     sku_code: product.sku_code,
-    cover_image: product.cover_image || (mediaCover && (mediaCover.preview_url || mediaCover.url)) || '',
+    cover_image: product.thumbnail_url || product.display_url || (mediaCover && (mediaCover.thumbnail_url || mediaCover.display_url)) || '',
     specification: product.specification || '',
     brand_name: brand.brand_name || '',
     category_name: categoryPath.join(' / '),
@@ -127,6 +138,9 @@ function legacyToSkuDetail(product) {
   });
   const detail = {
     ...product,
+    thumbnail_url: product.cover_image,
+    display_url: product.cover_image,
+    original_url: product.cover_image,
     brand: {
       brand_id: 0,
       brand_name: product.brand_name || '菲尚特',
@@ -182,7 +196,7 @@ Page({
     error: '',
     errorDetail: '',
     product: null,
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '/assets/logos/product-logo.png',
   },
 
   onLoad(query) {
@@ -319,18 +333,34 @@ Page({
   },
 
   previewImage(event) {
-    const current = String(event.currentTarget.dataset.url || '');
     const product = this.data.product;
-    if (!product || !current) {
+    if (!product) {
       return;
     }
-    const urls = product.media
-      .filter((item) => item.media_type === 'image')
-      .map((item) => item.preview_url || item.url);
-    wx.previewImage({ urls, current });
-    track('sku_image_preview', {
-      sku_id: product.product_id,
-      page_path: pagePath(product.product_id, this.data.source),
+    const datasetMediaIndex = event.currentTarget.dataset.mediaIndex;
+    const mediaIndex = Number(
+      datasetMediaIndex !== undefined && datasetMediaIndex !== null
+        ? datasetMediaIndex
+        : this.data.mediaIndex || 0,
+    );
+    const imageMedia = product.media
+      .map((item, index) => ({ item, index, url: previewUrlForMedia(item) }))
+      .filter((entry) => entry.item.media_type === 'image' && entry.url);
+    const urls = imageMedia.map((entry) => entry.url);
+    const matched = imageMedia.find((entry) => entry.index === mediaIndex);
+    const current = (matched && matched.url) || urls[0];
+    if (!current || !urls.length) {
+      return;
+    }
+    wx.getImageInfo({
+      src: current,
+      complete: () => {
+        wx.previewImage({ urls, current });
+        track('sku_image_preview', {
+          sku_id: product.product_id,
+          page_path: pagePath(product.product_id, this.data.source),
+        });
+      },
     });
   },
 

@@ -4,7 +4,7 @@ content: 每个 REQ 一行的当前状态、阶段、Sprint、Change、下一步
 source: /spec-study apply ProjectMoonBox 治理学习改写
 update_method: REQ capture、生成、补齐、评审、纳入 Sprint、创建 Change、apply、archive 或状态同步后按需更新对应行
 created_at: 2026-08-10 23:28:57
-updated_at: 2026-08-10 23:28:57
+updated_at: 2026-08-25 10:12:48
 ---
 
 # 需求当前态看板索引
@@ -13,4 +13,8 @@ updated_at: 2026-08-10 23:28:57
 
 | REQ | 标题 | 状态 | 阶段 | Sprint | Change | 最近更新时间 | 下一步 | 事实源 |
 |---|---|---|---|---|---|---|---|---|
+| REQ-0122-batch-image-processing-runbook | 批量图片处理 Runbook | in_sprint | review | sprint-025 | add-batch-image-processing-runbook | 2026-08-25 10:12:48 | `/opsx-archive REQ-0122-batch-image-processing-runbook` | `issues/requirements/archive/REQ-0122-batch-image-processing-runbook/trace.md` |
+| REQ-0121-miniapp-certificate-detail-brand-card-entry | 小程序证书详情页品牌入口复用 brand-card | done | archive | sprint-025 | update-miniapp-certificate-detail-brand-card-entry | 2026-08-24 17:10:23 | 暂无可推进下一步 | `issues/requirements/archive/REQ-0121-miniapp-certificate-detail-brand-card-entry/trace.md` |
+| REQ-0120-webp-derived-image-variants | 图片上传生成 WebP 展示图和缩略图 | in_sprint | review | sprint-025 | add-webp-derived-image-variants | 2026-08-22 22:09:00 | `/opsx-apply REQ-0120-webp-derived-image-variants` | `issues/requirements/archive/REQ-0120-webp-derived-image-variants/trace.md` |
+| REQ-0119-admin-display-image-size-limit-setting | 管理端媒体与存储新增 display 图体积目标上限配置 | in_sprint | review | sprint-025 | add-admin-display-image-size-limit-setting | 2026-08-22 21:45:57 | `/opsx-apply REQ-0119` | `issues/requirements/archive/REQ-0119-admin-display-image-size-limit-setting/trace.md` |
 | 待同步 | 待同步 | 待同步 | 待同步 | 待同步 | 待同步 | 2026-08-10 23:28:57 | 后续命令按需更新对应行 | `_registry.yaml` |

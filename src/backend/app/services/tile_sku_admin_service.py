@@ -10,7 +10,7 @@ from app.core.exceptions import (
     TileSkuNotFoundError,
     TileSkuPublishForbiddenError,
 )
-from app.modules.media.storage import same_directory_thumbnail_object_key
+from app.modules.media.storage import media_variant_urls, same_directory_thumbnail_object_key
 from app.modules.media.tile_images import formalize_tile_image_object, is_pending_tile_image_key
 from app.repositories.tile_sku_repository import TileSkuRecord, TileSkuRepository
 from app.repositories.tile_spec_repository import TileSpecRepository
@@ -45,6 +45,24 @@ def _thumbnail_url(image_url: str | None) -> str | None:
     if raw_key.startswith("/"):
         return image_url
     return f"{media_prefix}{same_directory_thumbnail_object_key(raw_key)}"
+
+
+def _variant_urls_from_url(image_url: str | None) -> dict[str, str | None]:
+    if not image_url or image_url.startswith(("http://", "https://")):
+        return {
+            "thumbnail_url": image_url,
+            "display_url": image_url,
+            "original_url": image_url,
+        }
+    media_prefix = "/media/"
+    raw_key = image_url.removeprefix(media_prefix) if image_url.startswith(media_prefix) else image_url
+    if raw_key.startswith("/"):
+        return {
+            "thumbnail_url": image_url,
+            "display_url": image_url,
+            "original_url": image_url,
+        }
+    return media_variant_urls(raw_key)
 
 
 class TileSkuAdminService:
@@ -114,6 +132,11 @@ class TileSkuAdminService:
             return 0
         return self._effective_settings.thumbnail_max_size_kb()
 
+    def _display_max_size_kb(self) -> int:
+        if self._effective_settings is None:
+            return 768
+        return self._effective_settings.display_max_size_kb()
+
     def _formalize_images(self, tile_id: int, images: list[dict]) -> list[dict]:
         if not images:
             return []
@@ -126,6 +149,7 @@ class TileSkuAdminService:
                     tile_id=tile_id,
                     object_key=object_key,
                     thumbnail_max_size_kb=self._thumbnail_max_size_kb(),
+                    display_max_size_kb=self._display_max_size_kb(),
                 )
                 item["object_key"] = result.object_key
                 item["url"] = f"/media/{result.object_key}"
@@ -236,6 +260,7 @@ class TileSkuAdminService:
                     id=img.id,
                     object_key=img.object_key,
                     url=img.url,
+                    **_variant_urls_from_url(img.url),
                     is_main=bool(img.is_main),
                     sort_order=img.sort_order,
                 )
@@ -273,6 +298,8 @@ class TileSkuAdminService:
             status=record.status,  # type: ignore[arg-type]
             main_image_url=record.main_image_url,
             main_image_thumbnail_url=_thumbnail_url(record.main_image_url),
+            main_image_display_url=_variant_urls_from_url(record.main_image_url)["display_url"],
+            main_image_original_url=_variant_urls_from_url(record.main_image_url)["original_url"],
             image_count=record.image_count,
             video_count=record.video_count,
             has_main_image=record.has_main_image,

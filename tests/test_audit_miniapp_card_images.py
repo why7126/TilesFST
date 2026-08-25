@@ -53,22 +53,22 @@ class _Storage:
                 "image/jpeg",
             ),
             "images/default/brands/logos/fst.jpg": StoredMediaObject(image, "image/jpeg"),
-            "images/default/brands/logos/fst.thumb.jpg": StoredMediaObject(
+            "images/default/brands/logos/fst.thumb.webp": StoredMediaObject(
                 thumbnail,
-                "image/jpeg",
+                "image/webp",
             ),
             "images/default/banners/brand.jpg": StoredMediaObject(image, "image/jpeg"),
-            "images/default/banners/brand.thumb.jpg": StoredMediaObject(
+            "images/default/banners/brand.thumb.webp": StoredMediaObject(
                 thumbnail,
-                "image/jpeg",
+                "image/webp",
             ),
             "images/default/brand-certificates/cert.jpg": StoredMediaObject(
                 image,
                 "image/jpeg",
             ),
-            "images/default/brand-certificates/cert.thumb.jpg": StoredMediaObject(
+            "images/default/brand-certificates/cert.thumb.webp": StoredMediaObject(
                 thumbnail,
-                "image/jpeg",
+                "image/webp",
             ),
         }
         self.puts: list[tuple[str, bytes, str | None]] = []
@@ -179,7 +179,7 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
         "generate_image_thumbnail",
         lambda content, content_type: ImageThumbnailResult(
             b"thumb",
-            content_type or "image/jpeg",
+            "image/webp",
             120,
             80,
             960,
@@ -213,7 +213,7 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
         "closed": 3,
     }
     assert dry_run["items"][0]["resource_type"] == "product_card"
-    assert dry_run["items"][0]["thumbnail_key"] == "images/default/tiles/pending/abc.thumb.jpg"
+    assert dry_run["items"][0]["thumbnail_key"] == "images/default/tiles/pending/abc.thumb.webp"
     assert dry_run["items"][0]["object_key_hash"]
     assert dry_run["items"][0]["object_key_prefix"] == "images/default/tiles"
     assert dry_run["items"][0]["classification"] == "url_fallback_risk"
@@ -223,9 +223,9 @@ def test_audit_reports_pending_same_directory_thumbnail_and_backfills(
 
     executed = audit_script.audit(limit=None, backfill=True, execute=True)
     assert executed["backfill"]["success"] == 1
-    assert storage.puts[0][0] == "images/default/tiles/pending/abc.thumb.jpg"
+    assert storage.puts[0][0] == "images/default/tiles/pending/abc.thumb.webp"
     assert storage.puts[0][1] != storage.objects["images/default/tiles/pending/abc.jpg"].content
-    assert storage.puts[0][2] == "image/jpeg"
+    assert storage.puts[0][2] == "image/webp"
 
     repeated = audit_script.audit(limit=None, backfill=True, execute=True)
     assert repeated["backfill"]["success"] == 0
@@ -237,14 +237,14 @@ def test_audit_regenerates_same_bytes_thumbnail(tmp_path: Path, monkeypatch) -> 
     _prepare_db(db_path)
     storage = _Storage()
     original = storage.objects["images/default/tiles/pending/abc.jpg"]
-    storage.objects["images/default/tiles/pending/abc.thumb.jpg"] = original
+    storage.objects["images/default/tiles/pending/abc.thumb.webp"] = original
     monkeypatch.setattr(audit_script, "get_media_storage_client", lambda: storage)
     monkeypatch.setattr(
         audit_script,
         "generate_image_thumbnail",
         lambda content, content_type: ImageThumbnailResult(
             b"thumb",
-            content_type or "image/jpeg",
+            "image/webp",
             120,
             80,
             960,
@@ -269,7 +269,7 @@ def test_audit_regenerates_same_bytes_thumbnail(tmp_path: Path, monkeypatch) -> 
 
     executed = audit_script.audit(limit=None, backfill=True, execute=True)
     assert executed["backfill"]["success"] == 1
-    regenerated = storage.objects["images/default/tiles/pending/abc.thumb.jpg"]
+    regenerated = storage.objects["images/default/tiles/pending/abc.thumb.webp"]
     assert regenerated.content != original.content
     assert len(regenerated.content) < len(original.content)
 

@@ -259,6 +259,10 @@
   grid-template-columns: 1fr;
 }
 
+.admin-shell .settings-form-spacer {
+  min-height: 1px;
+}
+
 .admin-shell .settings-field-label {
   display: block;
   margin-bottom: 7px;
@@ -554,6 +558,10 @@
   .admin-shell .settings-summary-grid,
   .admin-shell .settings-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-shell .settings-form-spacer {
+    display: none;
   }
 
   .admin-shell .settings-page-hero {

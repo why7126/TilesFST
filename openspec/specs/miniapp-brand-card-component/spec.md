@@ -25,19 +25,22 @@
 
 ### Requirement: 品牌 Logo 与异常状态
 
-品牌卡片组件 SHALL 使用稳定尺寸 Logo 容器，并在 Logo 缺失、加载失败、品牌名称缺失或入口不可用时提供统一可理解的降级状态。品牌卡片组件用于小图展示时 SHALL 优先使用后端受控缩略图或等价轻量 Logo URL；详情、预览或后续高清展示 SHALL 使用原图或等价安全引用。
-
-#### Scenario: Logo 容器稳定
-- **WHEN** 品牌 Logo 正在加载、加载完成或加载失败
-- **THEN** Logo 区域 SHALL 保持稳定尺寸
-- **AND** 卡片高度 SHALL NOT 因图片加载状态变化发生明显跳动
-- **AND** Logo 可用缩略图存在时 SHALL 优先使用缩略图或等价轻量 URL。
+品牌卡片组件 SHALL 使用稳定尺寸 Logo 容器，并在 Logo 缺失、加载失败、品牌名称缺失或入口不可用时提供统一可理解的降级状态。品牌卡片组件用于小图展示时 SHALL 优先使用后端受控缩略图或等价轻量 Logo URL；详情、预览或后续高清展示 SHALL 使用原图或等价安全引用。品牌卡片普通展示 SHALL NOT 以 `brand_logo_url` 原图作为默认 fallback；来自 SKU 详情页、证书详情页、品牌详情页或品牌列表页的品牌卡展示均 SHALL 遵守同一约束。
 
 #### Scenario: Logo 缺失或加载失败
+
 - **WHEN** 品牌 Logo 缩略图缺失、为空、不可访问或图片加载失败
-- **THEN** 品牌卡片 SHALL 按原图、品牌首字、默认图片或统一深色占位的顺序安全降级
+- **THEN** 品牌卡片 SHALL 按安全占位、品牌首字或默认图片的顺序降级
+- **AND** 小图展示场景 SHALL NOT 直接请求大体积 Logo 原图作为性能通过 fallback
 - **AND** 卡片 SHALL NOT 展示破图
 - **AND** 图片异常 SHALL NOT 影响品牌名称、入口提示和卡片点击能力。
+
+#### Scenario: 品牌卡默认禁止原图 Logo fallback
+
+- **WHEN** 页面未显式声明高清预览、下载或原图查看入口
+- **THEN** 品牌卡片组件默认 SHALL 禁止使用 `brand_logo_url` 作为普通展示图片源
+- **AND** 组件收到 `brand_logo_thumbnail_url` 为空时 SHALL 展示安全占位、品牌首字或默认图
+- **AND** 静态测试 SHALL 覆盖默认配置不会产生 `brand_logo_thumbnail_url || brand_logo_url` 等原图 fallback 表达式。
 
 ### Requirement: 品牌卡片点击与跳转
 品牌卡片组件 SHALL 提供整卡点击能力，并按配置入口、品牌名称搜索 fallback 和不可用提示的顺序处理跳转。
@@ -89,4 +92,36 @@
 - **WHEN** 新增品牌卡片组件并在微信开发者工具或真机验收
 - **THEN** 实际加载的 `.js` 逻辑 SHALL 与源 `.ts` 逻辑一致
 - **AND** 若项目采用构建同步机制，任务输出 SHALL 说明同步命令或项目认可的同步方式。
+
+### Requirement: 证书详情页品牌入口复用品牌卡片
+
+小程序证书详情页 SHALL 使用既有品牌卡片组件展示所属品牌入口。证书详情页 SHALL 将证书详情响应中的品牌数据、来源上下文和证书上下文传入品牌卡片组件；品牌卡片组件 SHALL 继续负责 Logo 展示、名称展示、入口提示、不可用态、点击跳转和埋点触发。
+
+#### Scenario: 证书详情页传入品牌卡片数据
+
+- **WHEN** 小程序证书详情页渲染所属品牌入口
+- **THEN** 页面 SHALL 使用品牌卡片组件
+- **AND** 页面 SHALL 向组件传入 `brandId`、`brandName`、`brand_logo_thumbnail_url`、品牌入口参数和来源上下文
+- **AND** 页面 SHALL NOT 保留页面私有品牌入口 DOM、模板结构或独立点击逻辑。
+
+#### Scenario: 证书详情页品牌入口点击跳转
+
+- **WHEN** 用户点击证书详情页可用品牌卡片
+- **THEN** 小程序 SHALL 跳转到对应品牌详情页或既定品牌入口
+- **AND** 跳转上下文 SHALL 包含可用的品牌标识和 `sourcePage=certificate_detail` 或等价来源参数
+- **AND** 埋点失败 SHALL NOT 阻断品牌跳转。
+
+#### Scenario: 证书详情页品牌入口不可用
+
+- **WHEN** 证书详情页品牌数据缺失、品牌不可公开或品牌入口参数不可用
+- **THEN** 品牌卡片 SHALL 使用统一不可用态或页面 SHALL 不展示品牌入口
+- **AND** 小程序 SHALL 阻止无效跳转
+- **AND** 证书详情页主体信息 SHALL 继续可浏览。
+
+#### Scenario: 证书详情页品牌卡片移动端验收
+
+- **WHEN** 团队验收证书详情页品牌入口
+- **THEN** 验收 SHALL 覆盖 320 pt、375 pt 和 430 pt 逻辑宽度
+- **AND** 正常态、缩略图缺失态、图片失败态、长品牌名态和不可用态 SHALL 确认无重叠、无遮挡、无横向溢出
+- **AND** 证据 SHALL 说明证书详情页与其他品牌卡片调用方的一致性结论。
 

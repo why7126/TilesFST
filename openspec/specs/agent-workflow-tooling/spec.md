@@ -297,7 +297,7 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 摘要 MUST 至少覆盖验证命令与结果、验收结论、关联 Issue 或 Sprint 状态、归档路径或归档时间
 
 ### Requirement: Workflow Sync 支持摘要输出模式
-系统 MUST 为 Workflow Sync 报告提供摘要输出模式，用聚合计数和关键上下文替代成功路径中的长文件明细。摘要输出 MUST 覆盖 Issue 子文档同步结果，包括检查数量、更新数量、验收结果状态或不适用原因、drift warning 数量。
+系统 MUST 为 Workflow Sync 报告提供摘要输出模式，用聚合计数和关键上下文替代成功路径中的长文件明细。摘要输出 MUST 覆盖 Issue 子文档同步结果，包括检查数量、更新数量、验收结果状态或不适用原因、drift warning 数量。系统 MUST 在 `bug.generate` 事件中将已生成 `bug.md` 的目标 BUG 主状态从 `captured` 或等价生成前状态推进为 `draft`，并在摘要中体现状态同步结果。系统 MUST 保证写入后的 Issue `trace.md` frontmatter 是标准 YAML parser 可解析的合法 YAML，且 frontmatter 顶层 Issue 状态不得被 `openspec_changes[].status` 或其他嵌套字段污染。
 
 #### Scenario: 成功同步输出摘要
 - **WHEN** 用户或 source-command 执行 `scripts/sync-workflow-status.py` 且同步成功
@@ -306,10 +306,42 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **AND** 当事件关联 REQ 或 BUG 时，摘要 MUST 包含子文档检查数量、子文档更新数量、验收结果状态或不适用原因、drift warning 数量
 - **AND** 系统 MUST NOT 默认逐条输出完整 `Skipped (no delta)` 文件列表
 
-#### Scenario: 无变化文件较多
-- **WHEN** Workflow Sync 产生多个 skipped no-delta 结果且没有错误
-- **THEN** 摘要 MUST 仅展示 skipped 聚合数量或等价短提示
-- **AND** 输出 MUST 提供查看详细模式的提示或保留可发现的详细模式参数
+#### Scenario: bug.generate 推进 BUG 主状态
+- **GIVEN** 一个 BUG 的 `trace.md` 主状态为 `captured` 或等价生成前状态
+- **AND** 该 BUG 包含已生成的 `bug.md`
+- **WHEN** 用户或 source-command 执行 `scripts/sync-workflow-status.py --event bug.generate --bug <BUG-id> --sprint auto`
+- **THEN** 系统 MUST 将该 BUG 主状态推进为 `draft`
+- **AND** 系统 MUST 同步 `trace.md` frontmatter 与 fenced YAML 中的 `status`、`updated_at` 和 `lifecycle.generated`
+- **AND** 系统 MUST 同步 `issues/bugs/_registry.yaml` 中该 BUG 的 `status`
+- **AND** 系统 SHOULD 同步 `issues/bugs/CHANGELOG.md` 当前态行，使下一步指向 `/bug-complete <BUG-id>`
+- **AND** 系统 MUST 保持 `bug.md` frontmatter 的 `status: draft`，不得被旧 trace 主状态反向覆盖为 `captured`
+
+#### Scenario: bug.generate 重复运行保持幂等
+- **GIVEN** 一个 BUG 已完成 `/bug-generate` 且主状态为 `draft`
+- **WHEN** 用户或 source-command 重复执行 `scripts/sync-workflow-status.py --event bug.generate --bug <BUG-id> --sprint auto`
+- **THEN** 系统 MUST 保持 trace、registry、CHANGELOG 和 `bug.md` frontmatter 状态一致
+- **AND** 系统 MUST NOT 重复追加异常或重复的 `## 变更记录`
+
+#### Scenario: bug.generate 缺少 bug.md 时不误推进
+- **GIVEN** 一个 BUG 的 `trace.md` 主状态为 `captured`
+- **AND** 该 BUG 缺少 `bug.md`
+- **WHEN** 用户或 source-command 执行 `scripts/sync-workflow-status.py --event bug.generate --bug <BUG-id> --sprint auto`
+- **THEN** 系统 MUST NOT 将该 BUG 主状态推进为 `draft`
+- **AND** 系统 MUST 输出 warning、no-op 摘要或等价诊断，提示缺少 `bug.md`
+
+#### Scenario: Issue trace frontmatter 写入后必须合法
+- **WHEN** Workflow Sync 写入 REQ 或 BUG `trace.md` frontmatter
+- **THEN** 写入后的 frontmatter MUST 能被标准 YAML parser 解析
+- **AND** `lifecycle.generated` MUST 位于 `lifecycle` 父键下
+- **AND** `openspec_changes[]` MUST 保留 `openspec_changes:` 父键和合法列表结构
+- **AND** 若校验失败，系统 MUST 阻止非法 frontmatter 落盘或报告 blocker，不得静默继续。
+
+#### Scenario: 顶层 Issue 状态不被 Change 状态污染
+- **GIVEN** 一个 Issue trace 同时包含顶层 `status` 和 `openspec_changes[].status`
+- **WHEN** Workflow Sync 解析或更新该 trace
+- **THEN** 顶层 `status` MUST 只表达 Issue 主状态
+- **AND** `openspec_changes[].status` MUST 只表达 Change 状态
+- **AND** 系统 MUST NOT 将嵌套 Change 状态提升或覆盖为 Issue 主状态。
 
 ### Requirement: Workflow Sync 保留详细输出模式
 系统 MUST 保留详细输出模式，用于需要逐文件 updated/skipped 结果的调试、兼容或人工核查场景。
@@ -1551,15 +1583,13 @@ Release publish SHALL write publish confirmation only to non-stable publish meta
 ### Requirement: 证据化根因分析
 系统 MUST 在问题排查、BUG 完善、BUG 来源实现、验收返修和效果不如预期场景中区分根因状态，并且 MUST 要求 confirmed 根因绑定证据链。
 
-#### Scenario: 根因证据充足
-- **WHEN** BUG 或返修文档声明根因状态为 `confirmed`
-- **THEN** 文档 MUST 记录可定位证据入口、证据类型、结论和验证方式
-- **AND** 证据 MUST 脱敏，不得包含密钥、真实客户数据、未脱敏日志或本机绝对路径
-
-#### Scenario: 根因证据不足
-- **WHEN** 现有信息不足以确认根因
-- **THEN** 系统 MUST 将根因状态标记为 `unknown`、`hypothesis` 或 `probable`
-- **AND** 输出 MUST 包含人工补证步骤、需要收集的证据类型和验收或复现要点
+#### Scenario: BUG 评审通过要求 confirmed 根因
+- **WHEN** 用户执行 `/bug-review <BUG-id>` 默认 approve 或显式执行 `/bug-review <BUG-id> --approve`
+- **THEN** 系统 MUST 在写入评审结果、状态变更、目录迁移和 Workflow Sync 前校验目标 BUG 的 `root_cause_status`
+- **AND** `root_cause_status` MUST 为 `confirmed`
+- **AND** confirmed 根因 MUST 包含可定位证据链
+- **AND** 若 `root_cause_status` 为 `unknown`、`hypothesis`、`probable`，或缺少 `root-cause.md`、缺少根因状态、confirmed 缺少证据链，系统 MUST 阻断 approve
+- **AND** 阻断输出 MUST 提示先补齐根因证据或显式选择 `--defer`、`--reject`、`--wont-fix`
 
 ### Requirement: UI 返修截图逐项对照
 系统 MUST 在 UI 型 `/opsx-modify` 中先处理验收反馈证据，再修改实现。若反馈包含附件截图、标注图、原型截图或实际截图，系统 MUST 建立逐项视觉对照表。
@@ -1635,20 +1665,61 @@ Workflow Sync MUST 在 `req.opsx` / `bug.opsx` 创建或确认 Change 后刷新 
 ### Requirement: Review 命令默认通过
 系统 MUST 将 `/req-review <REQ-id>` 与 `/bug-review <BUG-id>` 的无 flag 调用解释为评审通过，并继续执行与显式 `--approve` 相同的状态更新、目录迁移、Workflow Sync 和 AI Usage hook。反向评审结果 MUST 使用显式 flag 表达，包括 `--reject`、`--defer`，以及 BUG 专属的 `--wont-fix`。
 
-#### Scenario: 需求评审无 flag 默认通过
-- **WHEN** 用户执行 `/req-review REQ-xxxx`
-- **THEN** 系统 MUST 将评审结果设置为 `approved`
-- **AND** 系统 MUST 执行与原 `/req-review REQ-xxxx --approve` 相同的 `plan/` 到 `review/` 目录迁移、状态同步和后续门禁提示
-- **AND** 后续正向命令示例 SHOULD 使用 `/req-review REQ-xxxx`
-
 #### Scenario: 缺陷评审无 flag 默认通过
 - **WHEN** 用户执行 `/bug-review BUG-xxxx`
 - **THEN** 系统 MUST 将评审结果设置为 `approved`
+- **AND** 系统 MUST 先通过 BUG 根因 confirmed 门禁
 - **AND** 系统 MUST 执行与原 `/bug-review BUG-xxxx --approve` 相同的 `plan/` 到 `review/` 目录迁移、状态同步和后续门禁提示
 - **AND** 后续正向命令示例 SHOULD 使用 `/bug-review BUG-xxxx`
 
-#### Scenario: 反向评审必须显式选择
-- **WHEN** 用户需要拒绝、延后或标记 BUG 不修复
-- **THEN** 用户 MUST 显式使用 `/req-review <REQ-id> --reject`、`/req-review <REQ-id> --defer`、`/bug-review <BUG-id> --reject`、`/bug-review <BUG-id> --defer` 或 `/bug-review <BUG-id> --wont-fix`
-- **AND** 无 flag 调用 MUST NOT 再触发评审检查清单追问
+### Requirement: opsx linked Change 多入口自动回填
+系统 MUST 在 `req.opsx` / `bug.opsx` 创建或确认 linked Change 后，幂等同步 Issue trace、主文档、registry 与 Sprint scope 中的 linked Change 信息，避免后续命令解析、当前态看板和人工入口出现漂移。同步后的 Issue trace frontmatter MUST 是标准 YAML parser 可解析的合法 YAML，并 MUST 保持顶层 Issue 状态与 `openspec_changes[].status` 语义隔离。
+
+#### Scenario: REQ linked Change 回填完整
+- **WHEN** Workflow Sync 处理 `req.opsx`
+- **AND** 输入包含 `--req <REQ-id>` 与 `--change <change-id>`
+- **THEN** 系统 MUST 确保目标 REQ `trace.md` 的 frontmatter 与 fenced yaml 中 `openspec_changes[]` 包含该 Change
+- **AND** 系统 MUST 确保目标 REQ 的 `related_changes[]` 或等价索引包含该 Change
+- **AND** 系统 MUST 确保 `requirement.md` 的人类入口字段引用该 Change
+- **AND** 系统 MUST 确保 `issues/requirements/_registry.yaml` 对应条目的 `related_change` 引用该 Change。
+
+#### Scenario: BUG linked Change 回填完整
+- **WHEN** Workflow Sync 处理 `bug.opsx`
+- **AND** 输入包含 `--bug <BUG-id>` 与 `--change <change-id>`
+- **THEN** 系统 MUST 确保目标 BUG `trace.md` 的 frontmatter 与 fenced yaml 中 `openspec_changes[]` 包含该 Change
+- **AND** 系统 MUST 确保目标 BUG 的 `related_change` 或等价索引引用该 Change
+- **AND** 系统 MUST 确保 `bug.md` 的人类入口字段引用该 Change
+- **AND** 系统 MUST 确保 `issues/bugs/_registry.yaml` 对应条目的 `related_change` 引用该 Change。
+
+#### Scenario: Sprint scope 回填一致
+- **WHEN** 目标 REQ 或 BUG 已正式纳入某个 `sprint-xxx`
+- **AND** Workflow Sync 处理同一 Issue 的 `req.opsx` 或 `bug.opsx`
+- **THEN** 系统 MUST 将 `<change-id>` 写入同一 Sprint 的 `sprint.yaml.changes[]`
+- **AND** 系统 MUST 更新匹配的 `scope_estimates[].change`
+- **AND** 系统 MUST 刷新 Sprint Scope 派生块
+- **AND** `/opsx-apply --sprint auto --change <change-id>` 或等价 dry-run MUST 能解析到该 Sprint。
+
+#### Scenario: linked Change 回填后的 frontmatter 合法
+- **WHEN** Workflow Sync 处理 `req.opsx` 或 `bug.opsx` 并写入 linked Change
+- **THEN** 目标 Issue `trace.md` frontmatter MUST 能被标准 YAML parser 解析
+- **AND** `openspec_changes:` 父键 MUST 存在
+- **AND** 重复运行 MUST NOT 产生缺父键缩进列表项或重复 linked Change 条目。
+
+### Requirement: upgrade 命令必须遵守工作流输出契约
+Agent workflow tooling SHALL support upgrade planning and validation commands with Workflow Sync, AI Usage, context budget, and safe output contracts.
+
+#### Scenario: upgrade 命令成功输出摘要
+- **WHEN** `/upgrade-plan`、`/upgrade-validate` 或等价命令成功完成
+- **THEN** 命令输出 SHALL 包含目标版本、来源版本、支持级别、blocker 数、warning 数、证据摘要、计划路径和下一步
+- **AND** 命令 SHALL 默认输出 compact summary，不输出完整 manifest、完整 env、完整日志或大体积历史归档内容。
+
+#### Scenario: upgrade 命令接入审计钩子
+- **WHEN** upgrade 命令完成并且主校验成功
+- **THEN** 命令 SHALL 运行 Workflow Sync 或等价状态同步
+- **AND** 命令 SHALL 运行 AI Usage post-command hook，并按 release version、from version、to version 或 upgrade plan 归因。
+
+#### Scenario: upgrade 命令保持生产安全边界
+- **WHEN** upgrade 命令生成计划、校验计划或提示人工步骤
+- **THEN** 命令 SHALL NOT 自动修改真实生产 env、自动执行生产升级、自动执行数据库写入迁移或对象存储写入维护任务
+- **AND** 需要人工确认时 SHALL 输出结构化选项、推荐项、阻塞项和风险说明。
 

@@ -88,11 +88,59 @@ def test_read_only_audit_rejects_apply_even_with_backup_confirmation():
         maintenance.run(args)
 
 
-def test_bug_0116_aggregate_apply_requires_confirm_backup():
+def test_media_drift_reconcile_apply_requires_confirm_backup():
+    args = maintenance.build_parser().parse_args(["media-drift-reconcile", "--apply"])
+
+    with pytest.raises(ValueError, match="--apply requires --confirm-backup"):
+        maintenance.run(args)
+
+
+def test_bug_0116_aggregate_alias_remains_supported():
     args = maintenance.build_parser().parse_args(["bug-0116-media-drift", "--apply"])
 
     with pytest.raises(ValueError, match="--apply requires --confirm-backup"):
         maintenance.run(args)
+
+
+def test_media_drift_reconcile_reports_semantic_task_name(monkeypatch):
+    args = maintenance.build_parser().parse_args(["media-drift-reconcile", "--limit", "5"])
+    monkeypatch.setattr(
+        maintenance,
+        "run_pending_tile_formalization",
+        lambda _args: {
+            "summary": {"total": 0, "failed": 0, "retry_candidates": 0},
+            "acceptance_summary": {},
+        },
+    )
+    monkeypatch.setattr(
+        maintenance,
+        "run_certificate_image_key_migration",
+        lambda _args: {
+            "summary": {"image_candidates": 0, "failed": 0, "retry_candidates": 0},
+            "acceptance_summary": {},
+        },
+    )
+    monkeypatch.setattr(
+        maintenance,
+        "run_thumbnail_backfill",
+        lambda _args: {
+            "summary": {"retry_candidates": 0, "failed": 0},
+            "acceptance_summary": {},
+        },
+    )
+    monkeypatch.setattr(
+        maintenance,
+        "run_object_key_audit",
+        lambda _args: {
+            "summary": {"non_standard": 0, "failed": 0, "retry_candidates": 0},
+            "acceptance_summary": {},
+        },
+    )
+
+    result = maintenance.run(args)
+
+    assert result["task"] == "media-drift-reconcile"
+    assert result["acceptance_summary"]["task"] == "media-drift-reconcile"
 
 
 def test_sensitive_output_guard_blocks_secret_keys():
@@ -124,6 +172,7 @@ def test_safe_object_ref_hides_raw_object_key():
 def test_pending_tile_formalization_dry_run_uses_acceptance_summary(monkeypatch):
     args = argparse.Namespace(apply=False, limit=1, confirm_backup=False)
     monkeypatch.setattr(maintenance, "_effective_thumbnail_max_size_kb", lambda: 20)
+    monkeypatch.setattr(maintenance, "_effective_display_max_size_kb", lambda: 512)
     monkeypatch.setattr(
         maintenance,
         "_pending_tile_rows",
@@ -143,6 +192,7 @@ def test_pending_tile_formalization_dry_run_uses_acceptance_summary(monkeypatch)
     assert result["mode"] == "dry_run"
     assert result["summary"]["total"] == 1
     assert result["summary"]["thumbnail_max_size_kb"] == 20
+    assert result["summary"]["display_max_size_kb"] == 512
     assert result["items"][0]["source"]["object_key_prefix"] == (
         "images/default/tiles/pending"
     )
@@ -155,9 +205,9 @@ def test_thumbnail_backfill_counts_same_size_and_same_bytes(monkeypatch):
     storage = _Storage()
     storage.objects = {
         "images/default/brands/logos/logo.jpg": StoredMediaObject(b"same", "image/jpeg"),
-        "images/default/brands/logos/logo.thumb.jpg": StoredMediaObject(
+        "images/default/brands/logos/logo.thumb.webp": StoredMediaObject(
             b"same",
-            "image/jpeg",
+            "image/webp",
         ),
     }
     monkeypatch.setattr(maintenance, "get_media_storage_client", lambda: storage)
@@ -193,9 +243,9 @@ def test_thumbnail_backfill_counts_existing_thumbnail_above_target(monkeypatch):
             b"original-content" * 4096,
             "image/jpeg",
         ),
-        "images/default/brands/logos/logo.thumb.jpg": StoredMediaObject(
+        "images/default/brands/logos/logo.thumb.webp": StoredMediaObject(
             b"thumb-content" * 2048,
-            "image/jpeg",
+            "image/webp",
         ),
     }
     monkeypatch.setattr(maintenance, "get_media_storage_client", lambda: storage)
@@ -219,6 +269,46 @@ def test_thumbnail_backfill_counts_existing_thumbnail_above_target(monkeypatch):
     assert result["summary"]["exceeds_target_size"] == 1
     assert result["summary"]["already_conformant"] == 0
     assert result["items"][0]["reason"] == "thumbnail_exceeds_target_size"
+
+
+def test_image_variant_backfill_uses_display_target(monkeypatch):
+    args = argparse.Namespace(apply=False, limit=None, confirm_backup=False)
+    monkeypatch.setattr(maintenance, "_effective_thumbnail_max_size_kb", lambda: 20)
+    monkeypatch.setattr(maintenance, "_effective_display_max_size_kb", lambda: 512)
+    storage = _Storage()
+    storage.objects = {
+        "images/default/brands/logos/logo.jpg": StoredMediaObject(
+            b"original-content" * 4096,
+            "image/jpeg",
+        ),
+        "images/default/brands/logos/logo.thumb.webp": StoredMediaObject(
+            b"thumb-content",
+            "image/webp",
+        ),
+        "images/default/brands/logos/logo.display.webp": StoredMediaObject(
+            b"display-content" * 1024,
+            "image/webp",
+        ),
+    }
+    monkeypatch.setattr(maintenance, "get_media_storage_client", lambda: storage)
+    monkeypatch.setattr(
+        maintenance,
+        "_thumbnail_source_rows",
+        lambda limit: [
+            {
+                "source_type": "brand_logo",
+                "source_id": 1,
+                "object_key": "images/default/brands/logos/logo.jpg",
+                "mime_type": "image/jpeg",
+            }
+        ],
+    )
+
+    result = maintenance.run_image_variant_backfill(args)
+
+    assert result["summary"]["display_max_size_kb"] == 512
+    assert result["summary"]["display_no_benefit"] == 0
+    assert result["items"][0]["display_max_size_kb"] == 512
 
 
 def test_thumbnail_source_rows_include_sku_brand_and_certificate_images(

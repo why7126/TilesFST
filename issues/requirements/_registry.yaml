@@ -1,10 +1,66 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 115
+next_id: 123
 entries:
+  - id: REQ-0122-batch-image-processing-runbook
+    title: 批量图片处理 Runbook
+    status: done
+    iteration: sprint-025
+    created: "2026-08-25 09:17:47"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: add-batch-image-processing-runbook
+  - id: REQ-0121-miniapp-certificate-detail-brand-card-entry
+    title: 小程序证书详情页品牌入口复用 brand-card
+    status: done
+    iteration: sprint-025
+    created: "2026-08-24 14:58:45"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: update-miniapp-certificate-detail-brand-card-entry
+  - id: REQ-0120-webp-derived-image-variants
+    title: 图片上传生成 WebP 展示图和缩略图
+    status: done
+    iteration: sprint-025
+    created: "2026-08-22 21:32:10"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: add-webp-derived-image-variants
+  - id: REQ-0119-admin-display-image-size-limit-setting
+    title: 管理端媒体与存储新增 display 图体积目标上限配置
+    status: done
+    iteration: null
+    created: "2026-08-22 21:12:30"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: add-admin-display-image-size-limit-setting
+  - id: REQ-0118-unified-web-miniapp-image-variant-consumption-matrix
+    title: 统一 Web 与小程序图片三规格消费矩阵
+    status: done
+    iteration: null
+    created: "2026-08-22 20:32:30"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: update-media-image-variant-consumption-matrix
+  - id: REQ-0117-media-maintenance-storage-unreachable-summary
+    title: 媒体维护 dry-run 增加对象存储不可达快速摘要
+    status: done
+    iteration: sprint-025
+    created: "2026-08-22 16:57:17"
+    parent_requirement: REQ-0097-prod-compose-media-maintenance-job
+    related_change: improve-media-maintenance-storage-unreachable-summary
+  - id: REQ-0116-workflow-opsx-linked-change-backfill
+    title: 增强 opsx linked Change 自动回填
+    status: done
+    iteration: sprint-025
+    created: "2026-08-22 14:18:08"
+    parent_requirement:
+    related_change: update-workflow-opsx-linked-change-backfill
+  - id: REQ-0115-media-multi-variant-images
+    title: 媒体图片支持多规格展示图能力
+    status: done
+    iteration: sprint-025
+    created: "2026-08-22 10:40:11"
+    parent_requirement: REQ-0012-object-storage-key-layout
+    related_change: add-media-multi-variant-images
   - id: REQ-0114-version-deployment-upgrade-rollback-governance
     title: 版本部署升级与回滚治理能力
-    status: in_sprint
+    status: done
     iteration: sprint-025
     created: "2026-08-21 18:29:40"
     parent_requirement:
@@ -459,6 +515,7 @@ entries:
     iteration: sprint-008
     created: "2026-07-18 18:48:34"
     parent_requirement: REQ-0006-tile-sku-management
+    related_change: add-miniapp-sku-detail-page
   - id: REQ-0043-miniapp-home-style-optimization
     title: 微信小程序首页样式与信息架构优化
     status: done

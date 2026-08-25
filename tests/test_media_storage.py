@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from io import BytesIO
+import asyncio
 
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import UploadFile
 from PIL import Image
 
 from app.core.config import settings
@@ -19,7 +21,10 @@ from app.modules.media.storage import (
     get_media_file_response,
     get_media_head_response,
     get_media_storage_client,
+    media_variant_urls,
+    same_directory_display_object_key,
     same_directory_thumbnail_object_key,
+    save_upload_file,
     set_media_storage_client,
 )
 
@@ -53,7 +58,9 @@ def test_generate_image_thumbnail_resizes_large_image_and_changes_bytes() -> Non
     assert thumbnail.height < thumbnail.original_height
     assert thumbnail.content != original
     assert thumbnail.size < len(original)
-    assert thumbnail.content_type == "image/jpeg"
+    assert thumbnail.content_type == "image/webp"
+    with Image.open(BytesIO(thumbnail.content)) as image:
+        assert image.format == "WEBP"
 
 
 @pytest.mark.parametrize(
@@ -76,7 +83,9 @@ def test_generate_image_thumbnail_supports_common_formats(
     assert thumbnail.width <= 360
     assert thumbnail.height <= 360
     assert thumbnail.content != original
-    assert thumbnail.content_type == content_type
+    assert thumbnail.content_type == "image/webp"
+    with Image.open(BytesIO(thumbnail.content)) as image:
+        assert image.format == "WEBP"
 
 
 def test_generate_image_thumbnail_does_not_upscale_small_images() -> None:
@@ -94,6 +103,7 @@ def test_generate_image_thumbnail_preserves_transparent_png_alpha() -> None:
     thumbnail = generate_image_thumbnail(original, "image/png", max_width=320, max_height=320)
 
     with Image.open(BytesIO(thumbnail.content)) as image:
+        assert image.format == "WEBP"
         assert image.mode in {"LA", "RGBA", "P"}
         assert image.getpixel((0, 0))[-1] == 0
 
@@ -148,6 +158,9 @@ class _MemoryMediaStorageClient:
             content_type=stored_object.content_type,
             total_size=len(stored_object.content),
         )
+
+    def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
+        return f"https://storage.example.test/{object_key}?expires={expires_seconds}"
 
 
 class _FakeObjectStorageBackend:
@@ -237,11 +250,40 @@ def test_media_file_response_falls_back_from_thumbnail_to_original_key() -> None
 def test_same_directory_thumbnail_key_uses_filename_suffix() -> None:
     assert (
         same_directory_thumbnail_object_key("images/default/tiles/pending/abc.jpg")
-        == "images/default/tiles/pending/abc.thumb.jpg"
+        == "images/default/tiles/pending/abc.thumb.webp"
     )
     assert (
         same_directory_thumbnail_object_key("images/default/tiles/42/abc.webp")
         == "images/default/tiles/42/abc.thumb.webp"
+    )
+
+
+def test_media_variant_urls_use_stable_same_directory_keys() -> None:
+    urls = media_variant_urls("images/default/tiles/42/abc.webp")
+
+    assert urls == {
+        "original_url": "/media/images/default/tiles/42/abc.webp",
+        "thumbnail_url": "/media/images/default/tiles/42/abc.thumb.webp",
+        "display_url": "/media/images/default/tiles/42/abc.display.webp",
+    }
+
+
+def test_media_variant_urls_can_use_controlled_direct_object_storage_urls(monkeypatch) -> None:
+    set_media_storage_client(_MemoryMediaStorageClient.from_objects({}))
+    monkeypatch.setattr(settings, "object_storage_direct_read_expires_seconds", 180)
+    try:
+        urls = media_variant_urls("images/default/tiles/42/abc.webp", direct=True)
+    finally:
+        set_media_storage_client(None)
+
+    assert urls == {
+        "original_url": "https://storage.example.test/images/default/tiles/42/abc.webp?expires=180",
+        "thumbnail_url": "https://storage.example.test/images/default/tiles/42/abc.thumb.webp?expires=180",
+        "display_url": "https://storage.example.test/images/default/tiles/42/abc.display.webp?expires=180",
+    }
+    assert (
+        same_directory_display_object_key("images/default/tiles/42/abc.webp")
+        == "images/default/tiles/42/abc.display.webp"
     )
 
 
@@ -268,6 +310,85 @@ def test_media_file_response_falls_back_from_same_directory_thumbnail_to_origina
         "images/default/tiles/pending/abc.thumb.jpg",
         "images/default/tiles/pending/abc.jpg",
     ]
+
+
+def test_media_file_response_falls_back_from_webp_thumbnail_to_jpg_original() -> None:
+    jpg_bytes = b"\xff\xd8\xff" + b"\x00" * 16
+    storage = _MemoryMediaStorageClient.from_objects(
+        {
+            "images/default/tiles/pending/abc.jpg": StoredMediaObject(
+                jpg_bytes,
+                "image/jpeg",
+            )
+        }
+    )
+    set_media_storage_client(storage)
+    try:
+        response = get_media_file_response("images/default/tiles/pending/abc.thumb.webp")
+    finally:
+        set_media_storage_client(None)
+
+    assert response.media_type == "image/jpeg"
+    assert response.headers["x-media-fallback"] == "1"
+    assert storage.requested_keys == [
+        "images/default/tiles/pending/abc.thumb.webp",
+        "images/default/tiles/pending/abc.jpg",
+    ]
+
+
+def test_media_file_response_falls_back_from_same_directory_display_to_original() -> None:
+    jpg_bytes = b"\xff\xd8\xff" + b"\x00" * 16
+    storage = _MemoryMediaStorageClient.from_objects(
+        {
+            "images/default/tiles/pending/abc.jpg": StoredMediaObject(
+                jpg_bytes,
+                "image/jpeg",
+            )
+        }
+    )
+    set_media_storage_client(storage)
+    try:
+        response = get_media_file_response("images/default/tiles/pending/abc.display.jpg")
+    finally:
+        set_media_storage_client(None)
+
+    assert response.media_type == "image/jpeg"
+    assert response.headers["x-media-fallback"] == "1"
+    assert storage.requested_keys == [
+        "images/default/tiles/pending/abc.display.jpg",
+        "images/default/tiles/pending/abc.jpg",
+    ]
+
+
+def test_save_upload_file_generates_thumbnail_and_display_variants() -> None:
+    original = _image_bytes("JPEG", (2200, 1600), color=(120, 30, 200))
+    storage = _MemoryMediaStorageClient.from_objects({})
+    file = UploadFile(filename="demo.jpg", file=BytesIO(original))
+    file.headers = {"content-type": "image/jpeg"}
+    set_media_storage_client(storage)
+    try:
+        size = asyncio.run(
+            save_upload_file(
+                file,
+                "images/default/tiles/pending/demo.jpg",
+                5,
+                thumbnail_key="images/default/tiles/pending/demo.thumb.webp",
+                display_key="images/default/tiles/pending/demo.display.webp",
+            )
+        )
+    finally:
+        set_media_storage_client(None)
+
+    assert size == len(original)
+    assert set(storage.objects) == {
+        "images/default/tiles/pending/demo.jpg",
+        "images/default/tiles/pending/demo.thumb.webp",
+        "images/default/tiles/pending/demo.display.webp",
+    }
+    assert storage.objects["images/default/tiles/pending/demo.thumb.webp"].content_type == "image/webp"
+    assert storage.objects["images/default/tiles/pending/demo.display.webp"].content_type == "image/webp"
+    assert len(storage.objects["images/default/tiles/pending/demo.thumb.webp"].content) < len(original)
+    assert len(storage.objects["images/default/tiles/pending/demo.display.webp"].content) < len(original)
 
 
 def test_media_head_response_returns_image_cache_headers() -> None:
@@ -495,6 +616,25 @@ def test_tencent_cos_storage_put_object_uses_official_sdk() -> None:
             "EnableMD5": False,
         }
     ]
+
+
+def test_tencent_cos_storage_head_no_such_resource_is_media_not_found() -> None:
+    class _FakeTencentCOSMissingResource(Exception):
+        def get_error_code(self) -> str:
+            return "NoSuchResource"
+
+    class _FakeTencentCOSClient:
+        def head_object(self, **kwargs):
+            raise _FakeTencentCOSMissingResource("The Resource You Head Not Exist")
+
+    client = TencentCOSMediaStorageClient()
+    client._client = _FakeTencentCOSClient()
+
+    with pytest.raises(AppError) as exc_info:
+        client.get_object_info("images/default/brands/logos/demo.thumb.webp")
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.code == MEDIA_NOT_FOUND
 
 
 def test_s3_compatible_storage_keeps_provider_endpoint_for_virtual_host_style() -> None:

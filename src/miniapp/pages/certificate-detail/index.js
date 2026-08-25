@@ -15,6 +15,10 @@ function buildSharePath(certificateId) {
   return `/pages/certificate-detail/index?certificateId=${encodeURIComponent(String(certificateId || 0))}&source=share`;
 }
 
+function previewUrlForMedia(item) {
+  return item.original_url || item.preview_url || item.url || '';
+}
+
 Page({
   lastActionAt: 0,
   data: {
@@ -97,7 +101,14 @@ Page({
   normalizeDetail(detail) {
     return {
       ...detail,
-      media: (detail.media || []).map((item) => ({ ...item, image_failed: false })),
+      media: (detail.media || []).map((item) => ({
+        ...item,
+        display_url: item.display_url || null,
+        thumbnail_url: item.thumbnail_url || null,
+        original_url: item.original_url || item.preview_url || null,
+        preview_url: item.preview_url || item.original_url || null,
+        image_failed: false,
+      })),
     };
   },
 
@@ -139,18 +150,20 @@ Page({
 
   previewImage(media) {
     const urls = ((this.data.detail && this.data.detail.media) || [])
-      .filter((item) => item.media_type === 'image' && item.url)
-      .map((item) => item.preview_url || item.url);
+      .filter((item) => item.media_type === 'image')
+      .map((item) => previewUrlForMedia(item))
+      .filter((url) => !!url);
     if (!urls.length) {
       wx.showToast({ title: '图片暂不可预览', icon: 'none' });
       return;
     }
+    const current = previewUrlForMedia(media) || urls[0];
     this.trackDetailEvent('certificate_detail_image_preview', {
       mediaId: media.media_id,
       mediaIndex: this.data.mediaIndex,
     });
     wx.previewImage({
-      current: media.preview_url || media.url,
+      current,
       urls,
       fail: () => {
         this.setData({ mediaError: '图片预览失败，请稍后重试' });
@@ -188,22 +201,6 @@ Page({
 
   showDocumentOpenFailed() {
     wx.showToast({ title: '文件暂不可打开', icon: 'none' });
-  },
-
-  openBrand() {
-    const brand = this.data.detail && this.data.detail.brand;
-    if (!brand || !brand.brand_id || !brand.available) {
-      wx.showToast({ title: '品牌暂不可查看', icon: 'none' });
-      return;
-    }
-    const now = Date.now();
-    if (now - this.lastActionAt < ACTION_LOCK_MS) return;
-    this.lastActionAt = now;
-    this.trackDetailEvent('certificate_detail_brand_click', { brandId: brand.brand_id });
-    wx.navigateTo({
-      url: brand.brand_entry_path,
-      fail: () => wx.showToast({ title: '品牌主页暂不可打开', icon: 'none' }),
-    });
   },
 
   onMediaError(event) {

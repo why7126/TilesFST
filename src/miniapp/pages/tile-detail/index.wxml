@@ -32,9 +32,11 @@
           <image
             wx:if="{{item.media_type == 'image'}}"
             class="gallery-image"
-            src="{{item.url || imageFallback}}"
+            src="{{item.display_url || item.thumbnail_url || imageFallback}}"
             mode="aspectFill"
-            data-url="{{item.preview_url || item.url}}"
+            lazy-load="{{index > 0}}"
+            data-url="{{item.original_url || item.preview_url || item.url || item.display_url}}"
+            data-media-index="{{index}}"
             data-type="image"
             bindtap="previewImage"
             binderror="onMediaError"
@@ -87,6 +89,7 @@
         source-module="sku-detail-brand"
         sku-id="{{product.product_id}}"
         list-context="sku-detail"
+        allow-original-logo-fallback="{{false}}"
       />
     </view>
 
@@ -111,7 +114,7 @@
           data-type="same_series"
           bindtap="openRecommend"
         >
-          <image class="recommend-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
+          <image class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></image>
           <view class="recommend-name">{{item.product_name}}</view>
           <view class="recommend-price">{{item.price_display}}</view>
         </view>
@@ -129,7 +132,7 @@
           data-type="same_brand"
           bindtap="openRecommend"
         >
-          <image class="recommend-image" src="{{item.cover_image || imageFallback}}" mode="aspectFill"></image>
+          <image class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></image>
           <view class="recommend-name">{{item.product_name}}</view>
           <view class="recommend-price">{{item.price_display}}</view>
         </view>

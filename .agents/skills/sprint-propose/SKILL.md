@@ -33,9 +33,19 @@ Use this skill when the user asks to run `/sprint-propose` or create/update a Sp
 ## Sprint ID Rules（MUST）
 
 - Sprint ID MUST 使用 `sprint-xxx` 三位数字递增格式，例如 `sprint-022`。
-- 当用户未指定 Sprint ID 且当前没有 `iterations/change/sprint-xxx/` 进行中迭代时，MAY 自动创建下一个 Sprint。
+- 命令在选择或创建 Sprint 前 MUST 运行：
+
+```bash
+python scripts/validate-sprint-selection.py [--sprint <sprint-id>]
+```
+
+- 当用户未指定 Sprint ID 且当前没有 `iterations/change/sprint-xxx/` active Sprint 时，MAY 自动创建下一个 Sprint。
+- 当用户未指定 Sprint ID 且当前仅有一个 `iterations/change/sprint-xxx/` active Sprint 时，MUST 默认使用该 Sprint 作为当前 Sprint。
+- 当用户未指定 Sprint ID 且当前存在两个或以上 active Sprint 时，MUST 阻断命令，并引导用户使用 `/sprint-propose --sprint <sprint-id>` 指定当前 Sprint。
 - 自动编号 MUST 同时扫描 `iterations/archive/` 与 `iterations/change/` 下符合 `sprint-[0-9]{3}` 的目录和 `sprint.yaml:sprint_id`，取最大编号加一；例如最新归档为 `sprint-021` 且无进行中迭代时，自动创建 `sprint-022`。
-- 如果已存在 `iterations/change/sprint-xxx/` 进行中迭代，MUST 优先复用或要求用户明确选择，不得默认另建并行 Sprint。
+- 用户显式指定一个尚不存在的 Sprint 时，该 Sprint ID MUST 等于最大规范编号加一；不得跳号创建。
+- 如果已存在一个 active Sprint，只有当前 Sprint 容量硬阻断或用户明确拆分范围时，才允许通过 `--sprint <next-sprint>` 创建下一个连续编号 Sprint。
+- 如果已存在两个 active Sprint，MUST 禁止创建第三个 active Sprint；用户只能指定其中一个现有 active Sprint。
 - 不得使用日期、主题词或混合命名创建 Sprint，例如 `sprint-2026-08-07-spec-sync`。
 
 ## Must Read
@@ -98,9 +108,16 @@ docs/knowledge-base/best-practices/<matched>.md（按标签）
 - `estimated_person_days > capacity_person_days * 1.2` 时 MUST 硬阻断正式规划：
   - 不得生成 `iterations/change/<sprint>/` 四件套。
   - 不得更新 `trace.md` 的 `iteration` 或 Change trace。
-  - 输出硬提示：必须拆分 Sprint、移出低优先级项或替换范围后重新运行 `/sprint-propose`。
+  - 输出硬提示：必须拆分 Sprint、移出低优先级项、替换范围，或使用 `/sprint-propose --sprint <next-sprint>` 创建下一个连续编号 Sprint 后重新规划。
+  - `<next-sprint>` MUST 通过 `scripts/validate-sprint-selection.py --sprint <next-sprint>`，不得跳号。
 - `capacity_person_days < estimated_person_days <= capacity_person_days * 1.2` 时 MAY 继续，但 MUST 写入容量风险、fix 缓冲影响和延后项建议。
 - `estimated_person_days <= capacity_person_days` 时按既有 Review Gate、Readiness Gate 和 Capacity Gate 继续。
+
+### Archived Sprint Freeze Gate（MUST）
+
+- `/sprint-propose` MUST NOT 修改 `iterations/archive/<sprint-id>/` 或其关联 REQ/BUG/Change 的交付语义。
+- 若用户指定已归档 Sprint 或目标 Issue/Change 已随所属 Sprint 归档，MUST 阻断普通规划写入，并引导将偏差作为新生命周期输入处理。
+- 归档事实只允许由 `explore`、`*-explore`、`sprint-exps`、`release-*`、`image-*`、`upgrade-*` 读取或消费；敏感信息清理、归档路径残留或状态漂移修复必须走明确授权的治理命令。
 
 ## Knowledge Intake
 

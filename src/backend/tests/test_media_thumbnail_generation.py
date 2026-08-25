@@ -54,4 +54,4 @@ def test_thumbnail_tiny_target_returns_best_effort_without_failing() -> None:
     thumbnail = generate_image_thumbnail(content, "image/jpeg", target_max_size_kb=1)
 
     assert thumbnail.size > 0
-    assert thumbnail.content_type == "image/jpeg"
+    assert thumbnail.content_type == "image/webp"

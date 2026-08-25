@@ -59,20 +59,24 @@ def has_evidence(text: str) -> bool:
     return any(word.lower() in text.lower() for word in EVIDENCE_WORDS)
 
 
-def validate_root_cause_file(path: Path) -> list[Finding]:
+def validate_root_cause_file(path: Path, *, require_confirmed: bool = False) -> list[Finding]:
     findings: list[Finding] = []
     if not path.exists():
-        findings.append(Finding("warning", relative(path), "root-cause.md 不存在，无法校验根因证据。"))
+        level = "blocker" if require_confirmed else "warning"
+        findings.append(Finding(level, relative(path), "root-cause.md 不存在，无法校验根因证据。"))
         return findings
 
     text = read_text(path)
     status = extract_status(text)
     if not status:
-        findings.append(Finding("warning", relative(path), "缺少 root_cause_status 或“根因状态”。"))
+        level = "blocker" if require_confirmed else "warning"
+        findings.append(Finding(level, relative(path), "缺少 root_cause_status 或“根因状态”。"))
         return findings
     if status not in VALID_STATUSES:
         findings.append(Finding("blocker", relative(path), f"根因状态 `{status}` 不在允许集合中。"))
         return findings
+    if require_confirmed and status != "confirmed":
+        findings.append(Finding("blocker", relative(path), f"BUG review approve 要求 root_cause_status 为 `confirmed`，当前为 `{status}`。"))
     if status == "confirmed" and not has_evidence(text):
         findings.append(Finding("blocker", relative(path), "confirmed 根因缺少可定位证据链。"))
     if status in {"unknown", "hypothesis", "probable"} and "补证" not in text and "验证" not in text:
@@ -80,11 +84,11 @@ def validate_root_cause_file(path: Path) -> list[Finding]:
     return findings
 
 
-def validate_bug(bug_id: str) -> list[Finding]:
+def validate_bug(bug_id: str, *, require_confirmed: bool = False) -> list[Finding]:
     bug_dir = find_bug_dir(bug_id)
     if bug_dir is None:
         return [Finding("blocker", bug_id, "未找到 BUG 目录。")]
-    return validate_root_cause_file(bug_dir / "root-cause.md")
+    return validate_root_cause_file(bug_dir / "root-cause.md", require_confirmed=require_confirmed)
 
 
 def bugs_linked_from_change(change_id: str) -> list[str]:
@@ -116,22 +120,27 @@ def main() -> int:
     parser.add_argument("--bug")
     parser.add_argument("--change")
     parser.add_argument("--all-active", action="store_true")
+    parser.add_argument(
+        "--require-confirmed",
+        action="store_true",
+        help="Require root_cause_status: confirmed; intended for /bug-review approve gate.",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     findings: list[Finding] = []
     if args.bug:
-        findings.extend(validate_bug(args.bug))
+        findings.extend(validate_bug(args.bug, require_confirmed=args.require_confirmed))
     if args.change:
         linked = bugs_linked_from_change(args.change)
         if linked:
             for bug_id in linked:
-                findings.extend(validate_bug(bug_id))
+                findings.extend(validate_bug(bug_id, require_confirmed=args.require_confirmed))
         else:
             findings.append(Finding("info", f"openspec/changes/{args.change}", "未发现 linked BUG，根因证据校验不适用。"))
     if args.all_active:
         for bug_id in active_bug_ids():
-            findings.extend(validate_bug(bug_id))
+            findings.extend(validate_bug(bug_id, require_confirmed=args.require_confirmed))
     if not (args.bug or args.change or args.all_active):
         parser.error("one of --bug, --change, or --all-active is required")
 

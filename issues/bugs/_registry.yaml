@@ -1,6 +1,96 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 132
+next_id: 142
 entries:
+  - id: BUG-0141-ai-usage-token-count-jsonl
+    title: AI usage extractor 未识别新版 token_count JSONL 导致 Sprint snapshot 缺失
+    status: draft
+    severity: medium
+    created: "2026-08-25 15:01:59"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0140-admin-current-user-avatar-missing-object
+    title: 当前登录用户头像对象缺失导致媒体资源 404
+    status: captured
+    severity: high
+    created: "2026-08-25 14:36:24"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0139-admin-avatar-upload-nginx-redirect-cors
+    title: 管理后台头像上传被 Nginx 301 重定向丢端口导致 CORS 拦截
+    status: captured
+    severity: high
+    created: "2026-08-25 14:36:24"
+    related_requirement: null
+    related_bug: null
+    related_change: null
+    iteration: null
+  - id: BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml
+    title: Workflow Sync 写入 REQ trace frontmatter 时可能生成非法 YAML 结构
+    status: done
+    severity: medium
+    created: "2026-08-25 09:28:29"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-workflow-sync-trace-frontmatter-invalid-yaml
+    iteration: sprint-025
+  - id: BUG-0137-miniapp-lightweight-image-variant-consumption
+    title: 小程序 Banner、品牌 Logo、分享图普通展示未统一消费轻量图字段
+    status: done
+    severity: high
+    created: "2026-08-24 14:54:45"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0126-miniapp-brand-media-slow-load
+    related_change: fix-miniapp-lightweight-image-variant-consumption
+    iteration: null
+  - id: BUG-0136-workflow-sync-bug-generate-captured-draft
+    title: Workflow Sync 对 bug.generate 未主动从 captured 推进 draft
+    status: done
+    severity: medium
+    created: "2026-08-22 21:13:43"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-workflow-sync-bug-generate-status-transition
+    iteration: sprint-025
+  - id: BUG-0135-miniapp-certificate-card-file-url-fallback
+    title: 小程序证书卡缺缩略图时不应 fallback 到 file_url 原文件
+    status: done
+    severity: high
+    created: "2026-08-22 20:38:13"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0112-certificate-image-object-key-prefix
+    related_change: fix-miniapp-certificate-card-file-url-fallback
+    iteration: sprint-025
+  - id: BUG-0134-miniapp-certificate-detail-display-url
+    title: 小程序证书详情页顶部展示缺少 display_url 导致退回原图
+    status: done
+    severity: high
+    created: "2026-08-22 20:38:13"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0112-certificate-image-object-key-prefix
+    related_change: fix-miniapp-certificate-detail-display-url
+    iteration: sprint-025
+  - id: BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url
+    title: 小程序商品详情页品牌卡缺少 brand_logo_thumbnail_url 导致加载原图
+    status: done
+    severity: high
+    created: "2026-08-22 20:38:13"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0126-miniapp-brand-media-slow-load
+    related_change: fix-miniapp-sku-detail-brand-logo-thumbnail-url
+    iteration: sprint-025
+  - id: BUG-0132-miniapp-sku-detail-large-image-cold-load
+    title: 小程序商品详情页冷加载存在大图资源导致图片加载耗时过长
+    status: done
+    severity: high
+    created: "2026-08-22 10:40:11"
+    related_requirement: REQ-0044-miniapp-sku-detail-page
+    related_bug: BUG-0125-miniapp-sku-detail-media-original-load
+    related_change: fix-miniapp-sku-detail-large-image-cold-load
+    iteration: null
   - id: BUG-0131-miniapp-sku-detail-carousel-original-image-height
     title: 小程序商品详情页轮播图清晰度不足且高度偏小
     status: done

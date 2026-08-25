@@ -71,126 +71,48 @@ SKU 管理页视觉对齐 MUST 通过 **HTML 原型**并排验收 gate。`protot
 
 ### Requirement: 管理端 SKU 列表与筛选 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页（默认 `page_size=20`，可选 10/20/50/100）、关键词模糊搜索（商品名称 `name`、系统内部编码 `sku_code`）、`brand_id`、`category_id`、`status`、`material_completeness`（`complete` | `missing_main_image` | `missing_images` | `missing_videos`）筛选。`category_id` 在管理端 SKU 列表中 MUST 表示类目子树筛选：当传入父类目 ID 时，结果 MUST 包含该父类目自身及所有子孙类目的 SKU；当传入叶子类目 ID 时，结果 MUST 返回该叶子类目范围内 SKU。管理端 SKU 页类目筛选 UI MUST 使用单个级联下拉控件展示完整类目树，不得在筛选区并排生成多个类目筛选框；点击有下级的当前类目时，控件 MUST 在同一下拉层右侧展开下级类目面板，并支持选择任意层级类目；当前选择 MUST 展示在下拉触发框内，筛选项下方 MUST NOT 额外展示“当前：xxx”类辅助文案；下拉层 MUST 位于筛选控件下方并浮于 SKU 列表之上，不得被列表遮挡；品牌、类目、状态三个筛选下拉 MUST 使用一致的触发框、下拉层位置、层级、选项样式和选中态。响应 MUST 包含 `items`、`pagination` 与 `summary`（SKU 总数、已上架、待完善、草稿）。
+系统 MUST 提供 `GET /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。接口 MUST 支持分页、关键词、品牌、类目、状态和素材完整度筛选，并保持既有排序、权限、错误响应、加载态、空态、失败态和行操作行为。管理端 SKU 列表项存在主图时，响应 MUST 提供 `main_image_thumbnail_url`、`main_image_display_url`、`main_image_original_url` 或等价多规格字段，并保留 `main_image_url` 兼容语义。管理端 SKU 列表图片展示 MUST 优先使用 `thumbnail` 规格，详情、编辑、上传预览和放大预览场景 SHOULD 使用 `display` 或 `original` 规格。
 
-列表 MUST 默认按上架状态与业务时间排序：未上架 SKU MUST 优先于已上架 SKU；未上架 SKU（`status != PUBLISHED`）MUST 按 `created_at` 降序；已上架 SKU（`status = PUBLISHED`）MUST 按 `published_at` 降序；主排序时间为空或重复时 MUST 使用稳定兜底排序，避免分页、刷新或重复请求后顺序跳动。该排序 MUST 在分页前对完整结果集生效，不能只对当前页排序。搜索、品牌筛选、类目筛选、状态筛选、素材完整度筛选和分页后，列表 MUST 继续遵循该排序契约。
-
-管理端列表 MUST 以商品名称作为主标题，SKU 编码仅作为内部辅助信息或检索依据，视觉层级 MUST 弱于商品名称。管理端 SKU 列表 MUST 展示“发布时间”列，位置 MUST 位于“更新时间”列之前；“发布时间” MUST 使用与“更新时间”完全一致的日期时间格式、空值占位和视觉层级。系统 MUST 使用 `published_at` 表示最近一次发布成功时间，不得直接以 `updated_at` 或 `created_at` 冒充发布时间；后端 MUST 补充管理端列表响应契约并同步 OpenAPI、Orval、接口文档和测试。SKU 列表筛选区 MUST 参照其他管理端列表页铺满 filter-card 可用宽度，不得因预留多余网格列导致右侧出现空白；筛选项与重置按钮 MUST 按实际控件数量分配列宽。管理端 SKU 列表表头字段 MUST 保持单行显示；列数较多或窗口宽度不足时，列表 MUST 通过横向滚动、合理最小列宽或等价布局策略完整查看全部列，且表头与正文列 MUST 保持对齐。排序优化和表头修复 MUST NOT 新增显式排序控件、创建时间筛选或发布时间筛选，MUST NOT 改变现有分页、筛选、鉴权、错误响应、加载态、空态、失败态和行操作行为。
-
-管理端 SKU 列表项存在主图时，响应 MUST 新增 `main_image_thumbnail_url` 或等价主图缩略图字段，并保留 `main_image_url` 原图字段语义。`main_image_thumbnail_url` MUST 基于后端受控媒体路径派生，不得要求前端直连未授权对象存储。管理端 SKU 列表图片展示 MUST 优先使用 `main_image_thumbnail_url`，当缩略图字段为空、加载失败或不可读时 MUST 回退 `main_image_url` 或既有无图占位。详情、编辑、上传预览和放大预览场景 SHALL 继续使用原图或原文件。新增字段 MUST 同步 OpenAPI、Orval、接口文档和测试。
-
-#### Scenario: SKU 列表表头单行显示
-
-- **WHEN** 管理员在常用桌面宽度打开管理后台 SKU 列表
-- **THEN** 表头字段 MUST 保持单行显示
-
-#### Scenario: SKU 列表列数较多时完整查看
-
-- **WHEN** SKU 列表列数较多或窗口宽度不足
-- **THEN** 用户 MUST 能通过横向滚动或等价布局完整查看所有列
-- **AND** 表头与正文列 MUST 保持对齐
-
-#### Scenario: SKU 列表主图缩略图优先
+#### Scenario: SKU 列表返回主图多规格 URL
 
 - **GIVEN** SKU 列表项存在主图对象
 - **WHEN** 管理端请求 `GET /api/v1/admin/tile-skus`
-- **THEN** 响应项 MUST 包含 `main_image_thumbnail_url`
-- **AND** 响应项 MUST 保留 `main_image_url`
-- **AND** Web 管理端列表 MUST 优先加载 `main_image_thumbnail_url`
+- **THEN** 响应项 MUST 包含主图 `thumbnail` URL
+- **AND** 响应项 SHOULD 包含主图 `display` URL 与 `original` URL 或等价语义字段
+- **AND** 响应项 MUST 保留旧字段兼容或说明替代关系
+- **AND** 响应 MUST NOT 暴露未授权对象存储地址、bucket 名称、access key、secret key 或原始 object key。
 
-#### Scenario: SKU 列表缩略图回退
+#### Scenario: SKU 列表主图规格 fallback
 
-- **GIVEN** SKU 列表项存在 `main_image_url` 但 `main_image_thumbnail_url` 为空、404 或加载失败
+- **GIVEN** SKU 列表项存在原图但 `thumbnail` 不可用
 - **WHEN** 管理端渲染 SKU 列表图片
-- **THEN** 页面 MUST 回退原图或既有无图占位
+- **THEN** 页面 MUST 按统一 fallback 顺序回退到 `display`、原图或无图占位
 - **AND** 页面 MUST NOT 显示浏览器默认破图
-- **AND** 表格行高、分页、筛选和操作列布局 MUST 保持稳定
+- **AND** 表格行高、分页、筛选和操作列布局 MUST 保持稳定。
 
 ### Requirement: 管理端 SKU 创建 API
 
-系统 MUST 提供 `POST /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。请求 MUST 接受 SKU 基础字段（含商品名称 `name`、`spec_id`）、图片列表（含 `is_main`）、视频列表，以及 `save_mode`（`draft` | `create`）。请求 MUST NOT 要求前端传入 `sku_code`；系统 MUST 在创建时生成唯一、稳定的 SKU 编码。`save_mode=draft` 时 MUST 仅校验商品名称必填；`save_mode=create` 时 MUST 校验商品名称、品牌、类目、**spec_id**（所选规格 MUST 存在且 `ENABLED`）、**参考价格（含 0）** 必填；**表面工艺 MUST 为可选**（留空时业务层 MAY 存 `"-"`）。新 SKU `status` MUST 默认为 `DRAFT`；缺主图时 MAY 设为 `NEEDS_COMPLETION`。
+系统 MUST 提供 `POST /api/v1/admin/tile-skus`，`admin` 与 `employee` 可调用。请求 MUST 接受 SKU 基础字段、图片列表、视频列表和 `save_mode`。当请求包含图片时，系统 MUST 通过媒体服务或对象存储适配层保留 `original`，并生成或调度生成 `thumbnail` 与 `display`。创建响应 SHOULD 返回图片多规格 URL 或可在后续 GET 中稳定获得多规格 URL。
 
-#### Scenario: 保存草稿成功
+#### Scenario: 创建 SKU 图片生成多规格资源
 
-- **WHEN** 提交 `save_mode=draft` 且商品名称非空
-- **THEN** 系统返回 HTTP 200 与 SKU 对象
-- **AND** `status` MUST 为 `DRAFT`
-- **AND** 响应 MUST 包含系统生成的唯一 `sku_code`
-
-#### Scenario: 创建 SKU 成功
-
-- **WHEN** 提交 `save_mode=create` 且全部必填项合法（含商品名称、`spec_id` 指向 ENABLED 规格、`reference_price=0`、表面工艺可空）
-- **THEN** 系统返回 HTTP 200
-- **AND** 系统 MUST 自动生成唯一 `sku_code`
-- **AND** `status` MUST 为 `DRAFT` 或 `NEEDS_COMPLETION`（缺主图时）
-- **AND** `size` MUST 等于所选规格 display_name
-
-#### Scenario: 创建 SKU 选择停用规格被拒绝
-
-- **WHEN** 提交 `save_mode=create` 且 `spec_id` 指向 `DISABLED` 规格
-- **THEN** 系统 MUST 返回 HTTP 409，错误码 `TILE_SPEC_DISABLED`
-
-#### Scenario: 创建 SKU 缺少参考价格被拒绝
-
-- **WHEN** 提交 `save_mode=create` 且 `reference_price` 为 null 或未提供
-- **THEN** 系统 MUST 返回 HTTP 400
-
-#### Scenario: SKU 编码生成冲突
-
-- **WHEN** 系统生成的 `sku_code` 已存在
-- **THEN** 系统 MUST 重试生成或拒绝并返回 `TILE_SKU_CODE_DUPLICATED`
-- **AND** 系统 MUST NOT 要求运营手工处理编码冲突
+- **WHEN** 管理端创建 SKU 并提交合法图片
+- **THEN** 系统 MUST 保留图片 `original`
+- **AND** 系统 MUST 生成或调度生成 `thumbnail` 与 `display`
+- **AND** 创建或后续详情响应 SHOULD 返回多规格 URL 语义
+- **AND** 生成失败 MUST 有可诊断错误摘要或 warning，不得暴露内部路径或存储凭据。
 
 ### Requirement: 管理端 SKU 更新 API
 
-系统 MUST 提供 `GET /api/v1/admin/tile-skus/{id}` 与 `PUT /api/v1/admin/tile-skus/{id}`，`admin` 与 `employee` 可调用。PUT MUST 允许更新基础字段与图片/视频关联；MUST NOT 通过 PUT 直接修改 `status`（使用 publish/unpublish）。PUT MUST 要求 `reference_price` 非 null（含 `0.0`）；**MUST NOT** 因 surface_finish 留空而拒绝更新。若 PUT 变更 `spec_id` 至新规格，新规格 MUST 为 `ENABLED`；若保留原 `spec_id` 且该规格已 DISABLED，MAY 允许更新非规格字段。PUT 接收图片列表时 MUST 将提交的 images 视为该 SKU 的完整图片关联事实源；被移除图片不应继续关联到该 SKU。系统 MUST 保证同一 SKU 至多一张图片为主图，并按提交后的 `sort_order` 回填图片顺序。管理端 SKU 表单在创建、保存草稿或编辑成功后 MUST 直接关闭并刷新列表，MUST NOT 在弹窗内额外展示任务追踪反馈。
+系统 MUST 提供 `GET /api/v1/admin/tile-skus/{id}` 与 `PUT /api/v1/admin/tile-skus/{id}`，`admin` 与 `employee` 可调用。PUT MUST 允许更新基础字段与图片/视频关联；提交图片列表时，系统 MUST 保持图片多规格资源与 SKU 关联一致。管理端 SKU 表单在上传、编辑或保存后 MUST 能同会话回显媒体入口，并 SHOULD 展示可理解的派生生成状态或 fallback。
 
-#### Scenario: 更新 SKU 资料
+#### Scenario: 更新 SKU 图片保持多规格关联
 
-- **WHEN** PUT 合法字段且 `sku_code` 不与他人冲突
-- **THEN** 系统返回 HTTP 200 与更新后 SKU 对象
-- **AND** `updated_at` MUST 已更新
-- **AND** 若含 `spec_id`，`size` MUST 同步
-
-#### Scenario: 编辑弹窗保存成功直接关闭
-
-- **WHEN** 管理端 SKU 编辑弹窗提交合法修改且更新接口返回成功
-- **THEN** 弹窗 MUST 直接关闭
-- **AND** 管理端 MUST 刷新 SKU 列表
-- **AND** 弹窗内 MUST NOT 显示“SKU 已更新”任务追踪 feedback 或复制追踪 ID 入口
-
-#### Scenario: 新增弹窗创建成功直接关闭
-
-- **WHEN** 管理端 SKU 新增弹窗提交合法创建或保存草稿且接口返回成功
-- **THEN** 弹窗 MUST 直接关闭
-- **AND** 管理端 MUST 刷新 SKU 列表
-- **AND** 弹窗内 MUST NOT 显示任务追踪 feedback 或复制追踪 ID 入口
-
-#### Scenario: 更新缺少参考价格被拒绝
-
-- **WHEN** PUT 请求将 `reference_price` 置为 null 或未提供合法数值
-- **THEN** 系统 MUST 返回 HTTP 400
-
-#### Scenario: 更新 SKU 图片移除关联
-
-- **WHEN** PUT 请求提交的 images 列表不包含某张原已关联图片
-- **THEN** 系统 MUST 在保存后解除该 SKU 与该图片的关联
-- **AND** 再次 GET SKU 详情时 MUST NOT 返回该图片
-- **AND** 系统 MUST NOT 因解除关联而物理删除 MinIO 对象文件
-
-#### Scenario: 更新 SKU 图片主图唯一与顺序
-
-- **WHEN** PUT 请求提交多张图片且其中一张 `is_main=true`
-- **THEN** 保存后同一 SKU MUST 至多一张图片 `is_main=1`
-- **AND** 再次 GET SKU 详情时主图 MUST 位于图片列表第一位
-- **AND** 图片 `sort_order` MUST 可按提交后的顺序回填
-
-#### Scenario: 更新 SKU 移除全部图片
-
-- **WHEN** PUT 请求提交空 images 列表
-- **THEN** 系统 MUST 保存该 SKU 为无图片关联状态
-- **AND** 再次 GET SKU 详情时 images MUST 为空
-- **AND** 素材完整度 MUST 沿用缺图片/缺主图规则
+- **WHEN** PUT 请求提交图片列表
+- **THEN** 保存后同一 SKU 的图片关联 MUST 能追溯到对应 `thumbnail`、`display`、`original`
+- **AND** 被移除图片不应继续关联到该 SKU
+- **AND** 系统 MUST NOT 因解除关联而物理删除 MinIO / 对象存储对象
+- **AND** 再次 GET SKU 详情时 MUST 返回稳定的多规格 URL 或明确 fallback。
 
 ### Requirement: 管理端 SKU 上下架 API
 

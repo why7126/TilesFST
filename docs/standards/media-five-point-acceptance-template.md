@@ -4,14 +4,14 @@ content: key、object、URL、thumbnail benefit、miniapp render 五联验收记
 source: REQ-0090-media-five-point-acceptance-template / add-media-five-point-acceptance-template
 update_method: 媒体链路、对象存储、小程序渲染或发布验收口径变化时同步更新
 created_at: 2026-08-01 10:40:28
-updated_at: 2026-08-12 14:54:20
+updated_at: 2026-08-22 14:33:52
 ---
 
 # 媒体五联验收模板
 
 ## 1. 适用范围
 
-本文档用于媒体相关 REQ、BUG、OpenSpec Change、Sprint 验收报告和发布前检查，统一记录 `key`、`object`、`URL`、`thumbnail benefit`、`miniapp render` 五个维度的验收事实。
+本文档用于媒体相关 REQ、BUG、OpenSpec Change、Sprint 验收报告和发布前检查，统一记录 `key`、`object`、`URL`、`thumbnail/display benefit`、`miniapp render` 五个维度的验收事实。
 
 适用对象包括图片、视频、Logo、品牌证书图片、SKU 主图、SKU 视频、缩略图、封面图、小程序媒体卡片，以及后续新增的媒体展示或上传链路。
 
@@ -41,7 +41,7 @@ updated_at: 2026-08-12 14:54:20
 | `key` | 媒体对象标识与业务资源关系 | `object_key` 或等价脱敏标识符合 MinIO 单桶 + 前缀策略，不使用用户原始文件名 | 媒体类型、业务资源、脱敏 key、前缀、关联记录 | 旧 key / 新 key、命名偏差、业务记录不一致、影响资源 |
 | `object` | 对象存储事实 | object 存在，MIME、大小、扩展名、安全校验和权限边界符合预期 | 对象存在性、MIME、size、权限结论、对象来源 | object 缺失、0 字节、类型不符、权限错误、排查入口 |
 | `URL` | 受控访问结果 | 相对 URL、公开 URL、签名 URL、代理 URL 或等价受控方式可访问，前端和小程序不直连未授权对象存储 | URL 类型、HTTP 状态、错误码、入口页面或接口、用户可见表现 | 403、404、签名过期、域名错误、代理错误、端上表现 |
-| `thumbnail benefit` | 缩略图、封面图或轻量媒体的真实收益 | 说明列表首屏、卡片渲染、弱网体验、带宽节省、后台预览或视频封面识别收益；无缩略图时记录 `n/a` 原因 | 原图与缩略图关系、尺寸或体积摘要、收益说明、适用页面 | 仅生成无收益、体积未降、尺寸异常、封面不匹配 |
+| `thumbnail/display benefit` | 缩略图、详情展示图、封面图或轻量媒体的真实收益 | 说明列表首屏、卡片渲染、详情普通展示、弱网体验、带宽节省、后台预览或视频封面识别收益；无轻量规格时记录 `n/a` 原因 | 原图与轻量规格关系、尺寸或体积摘要、收益说明、适用页面 | 仅生成无收益、体积未降、尺寸异常、封面不匹配 |
 | `miniapp render` | 微信小程序端渲染 | 真机或等价预览环境可加载、预览、播放或展示失败态；不涉及小程序时记录 `n/a` 原因 | 页面路径、组件、环境、加载/播放/占位/失败态结论 | 域名限制、组件限制、加载失败、播放失败、占位缺失 |
 
 ## 4. 媒体上传横切 Gate

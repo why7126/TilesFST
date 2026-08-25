@@ -7,6 +7,7 @@ from io import BytesIO
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
+from app.api.v1 import uploads
 from app.db.session import get_session_factory
 from app.repositories.user_repository import UserRepository
 from tests.test_auth import _login, client  # noqa: F401
@@ -69,6 +70,7 @@ def test_patch_and_reset_media_group(client: TestClient) -> None:
     assert reset.json()["data"]["data"]["max_image_size_mb"] == settings.max_image_size_mb
     assert reset.json()["data"]["data"]["max_file_size_mb"] == settings.max_file_size_mb
     assert reset.json()["data"]["data"]["thumbnail_max_size_kb"] == 0
+    assert reset.json()["data"]["data"]["display_max_size_kb"] == 768
 
 
 def test_patch_media_thumbnail_max_size_kb(client: TestClient) -> None:
@@ -84,6 +86,33 @@ def test_patch_media_thumbnail_max_size_kb(client: TestClient) -> None:
     reset = client.post("/api/v1/admin/system-settings/media/reset", headers=headers)
     assert reset.status_code == 200
     assert reset.json()["data"]["data"]["thumbnail_max_size_kb"] == 0
+
+
+def test_patch_media_display_max_size_kb_independent_from_thumbnail(client: TestClient) -> None:
+    headers = _auth_headers(client, settings.admin_username, settings.admin_initial_password)
+    patch = client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"display_max_size_kb": 512},
+    )
+    assert patch.status_code == 200
+    data = patch.json()["data"]["data"]
+    assert data["display_max_size_kb"] == 512
+    assert data["thumbnail_max_size_kb"] == 0
+
+    thumbnail_patch = client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"thumbnail_max_size_kb": 20},
+    )
+    assert thumbnail_patch.status_code == 200
+    data = thumbnail_patch.json()["data"]["data"]
+    assert data["thumbnail_max_size_kb"] == 20
+    assert data["display_max_size_kb"] == 512
+
+    reset = client.post("/api/v1/admin/system-settings/media/reset", headers=headers)
+    assert reset.status_code == 200
+    assert reset.json()["data"]["data"]["display_max_size_kb"] == 768
 
 
 def test_patch_media_group_updates_document_file_limit(client: TestClient) -> None:
@@ -120,6 +149,13 @@ def test_patch_media_validation_rejects_invalid_size(client: TestClient) -> None
     )
     assert thumbnail_response.status_code == 400
 
+    display_response = client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"display_max_size_kb": 2049},
+    )
+    assert display_response.status_code == 400
+
 
 def test_upload_uses_effective_media_limit(client: TestClient) -> None:
     headers = _auth_headers(client, settings.admin_username, settings.admin_initial_password)
@@ -138,6 +174,33 @@ def test_upload_uses_effective_media_limit(client: TestClient) -> None:
     )
     assert response.status_code == 400
     assert response.json()["code"] != 0
+
+
+def test_image_upload_passes_effective_display_target(client: TestClient, monkeypatch) -> None:
+    headers = _auth_headers(client, settings.admin_username, settings.admin_initial_password)
+    client.patch(
+        "/api/v1/admin/system-settings/media",
+        headers=headers,
+        json={"display_max_size_kb": 512},
+    )
+    captured: dict[str, int] = {}
+
+    async def fake_save_upload_file(*args, **kwargs) -> int:
+        captured["display_max_size_kb"] = kwargs["display_max_size_kb"]
+        captured["thumbnail_max_size_kb"] = kwargs["thumbnail_max_size_kb"]
+        return 128
+
+    monkeypatch.setattr(uploads, "save_upload_file", fake_save_upload_file)
+
+    response = client.post(
+        "/api/v1/admin/uploads/brand-logos",
+        headers=headers,
+        files={"file": ("logo.jpg", BytesIO(b"fake-jpeg"), "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    assert captured["display_max_size_kb"] == 512
+    assert captured["thumbnail_max_size_kb"] == 0
 
 
 def test_security_patch_and_jwt_expire(client: TestClient) -> None:

@@ -47,15 +47,15 @@ TBD - created by archiving change add-miniapp-brand-detail-home-page. Update Pur
 - **AND** 连续点击 SHALL NOT 重复打开多个品牌主页。
 
 ### Requirement: 微信小程序品牌主页信息区
-系统 SHALL 提供单品牌主页/详情页，并在页面上半部分展示可公开品牌图片和品牌基础信息。品牌主页信息区的小图展示 SHOULD 优先使用后端受控真实缩略图；大图预览、分享图或需要高清资源的入口 MAY 使用原图或等价安全引用。品牌主页信息区 SHALL 区分小图展示 URL 与高清预览或分享 URL，避免首屏直接加载大图。
+系统 SHALL 提供单品牌主页/详情页，并在页面上半部分展示可公开品牌图片和品牌基础信息。品牌主页顶部品牌图位 SHALL 作为首屏 Hero 大图展示位，普通展示 SHALL 优先使用后端受控 `display` 规格；品牌列表、品牌卡、商品详情品牌入口和证书详情品牌入口等小 Logo 场景 SHALL 继续优先使用后端受控真实缩略图。品牌主页信息区 SHALL 区分 Hero 展示 URL、小 Logo 展示 URL、高清预览或分享 URL，避免首屏直接加载原图。
 
-#### Scenario: 品牌详情 Logo 展示使用轻量缩略图
+#### Scenario: 品牌详情顶部 Hero 展示使用 display 规格
 
 - **WHEN** 用户进入品牌主页/详情页且品牌存在 Logo 或品牌图片
-- **THEN** 页面上半部分展示的小图 SHALL 优先使用后端受控真实轻量缩略图
-- **AND** 分享图、预览图或高清查看入口 MAY 使用原图或等价安全高清 URL
-- **AND** 缩略图缺失、为空、0 字节、体积无收益或加载失败时 SHALL 安全回退并记录性能风险
-- **AND** 响应和页面 SHALL NOT 暴露原始 object key、对象存储 endpoint、bucket 名称、Authorization header、Cookie 或未授权素材路径。
+- **THEN** 页面上半部分顶部 Hero SHALL 优先请求 `brand_hero_display_url` 或等价 `display` 规格 URL
+- **AND** `display` 规格缺失、为空或加载失败时 SHALL 降级请求 `brand_hero_thumbnail_url` 或等价轻量缩略图
+- **AND** `display` 与 `thumbnail` 均不可用时 SHALL 展示安全视图占位、品牌名占位或可理解失败态
+- **AND** 品牌主页顶部 Hero SHALL NOT 通过 `brand_logo_url`、`original_url`、`preview_url`、旧 `url`、语义不明 `image_url` 或不存在的本地静态资源冷加载原图或失败占位。
 
 ### Requirement: 微信小程序品牌主页 Tab 内容
 品牌主页/详情页 SHALL 在品牌信息区下方通过 Tab 展示当前品牌关联内容，首期包含商品和证书。
@@ -86,15 +86,17 @@ TBD - created by archiving change add-miniapp-brand-detail-home-page. Update Pur
 - **AND** 缩略图缺失回退原图时 SHALL 记录为性能风险。
 
 ### Requirement: 品牌主页证书 Tab
-证书 Tab SHALL 展示当前品牌关联且可公开的证书列表，并过滤不可展示证书和内部字段。证书 Tab 图片小图 SHOULD 优先使用后端受控真实缩略图；图片预览或证书详情 SHALL 使用原图、原文件或等价安全引用。证书 Tab SHALL 对非首屏图片类证书启用懒加载或等价延迟加载策略。
+
+证书 Tab SHALL 展示当前品牌关联且可公开的证书列表，并过滤不可展示证书和内部字段。证书 Tab 图片小图 SHALL 优先使用后端受控真实缩略图、卡片专用小图或等价轻量图片 URL；图片预览、证书详情或文件打开 SHALL 使用原图、原文件或等价安全引用。证书 Tab SHALL 对非首屏图片类证书启用懒加载或等价延迟加载策略，并在缩略图缺失、不可读或加载失败时展示统一占位或受控失败态，SHALL NOT 在卡片图片 `src` 中 fallback 到 `file_url`、原图或原始文件 URL。
 
 #### Scenario: 证书图片使用缩略图且预览保留原图
 
 - **WHEN** 用户查看品牌详情页证书 Tab 且证书为图片类资源
 - **THEN** 证书列表小图 SHALL 优先使用同目录 `.thumb` 缩略图或等价轻量图片 URL
+- **AND** 缩略图缺失、不可读、为空或图片加载失败时 SHALL 展示统一证书占位或受控失败态
+- **AND** 卡片图片 SHALL NOT 使用 `file_url`、原图或原始文件 URL 作为默认 fallback
 - **AND** 图片预览或证书详情 SHALL 使用原图、原文件或等价受控高清 URL
-- **AND** 非首屏证书图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略
-- **AND** `.thumb` 缺失、体积无收益或实际回退原图时 SHALL 在媒体四联验收中记录。
+- **AND** 非首屏证书图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略。
 
 ### Requirement: 品牌主页导航、设备验收与埋点
 品牌入口页和品牌主页/详情页 SHALL 遵守小程序导航、设备视口、运行入口和埋点质量门禁。

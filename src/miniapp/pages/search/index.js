@@ -75,7 +75,7 @@ Page({
       specs: [],
       price_ranges: [],
     },
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
   },
 
   onLoad(query) {

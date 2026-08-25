@@ -27,6 +27,7 @@ function normalizeCertificate(item) {
     ...item,
     certificate_type_label: item.certificate_type_label || item.certificate_type || '证书',
     file_kind: item.file_kind || fileKindFromUrl(item.file_url),
+    image_failed: false,
   };
 }
 
@@ -41,6 +42,8 @@ Page({
     error: '',
     requestId: '',
     imageFailed: false,
+    heroDisplayFailed: false,
+    heroThumbnailFailed: false,
     productPage: 1,
     productPageSize: PRODUCT_PAGE_SIZE,
     productTotal: 0,
@@ -53,7 +56,7 @@ Page({
     certificatesLoading: false,
     certificatesLoaded: false,
     certificatesError: '',
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     skeletons: [1, 2, 3, 4],
   },
 
@@ -84,8 +87,7 @@ Page({
       title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
       path: brandSharePath(this.data.brandId),
       imageUrl:
-        (this.data.brand &&
-          (this.data.brand.brand_logo_thumbnail_url || this.data.brand.brand_logo_url)) ||
+        (this.data.brand && this.data.brand.brand_logo_thumbnail_url) ||
         this.data.imageFallback,
     };
   },
@@ -96,8 +98,7 @@ Page({
       title: (this.data.brand && this.data.brand.brand_name) || '品牌主页',
       query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
       imageUrl:
-        (this.data.brand &&
-          (this.data.brand.brand_logo_thumbnail_url || this.data.brand.brand_logo_url)) ||
+        (this.data.brand && this.data.brand.brand_logo_thumbnail_url) ||
         this.data.imageFallback,
     };
   },
@@ -107,7 +108,13 @@ Page({
       this.setData({ loading: false, error: '品牌参数无效，可返回品牌馆重新进入' });
       return;
     }
-    this.setData({ loading: true, error: '', imageFailed: false });
+    this.setData({
+      loading: true,
+      error: '',
+      imageFailed: false,
+      heroDisplayFailed: false,
+      heroThumbnailFailed: false,
+    });
     request(`/api/v1/miniapp/brands/${this.data.brandId}`)
       .then((brand) => {
         this.setData({
@@ -222,8 +229,27 @@ Page({
     this.loadCertificates();
   },
 
-  onBrandImageError() {
-    this.setData({ imageFailed: true });
+  onBrandHeroImageError(event) {
+    const variant = event.currentTarget.dataset.variant === 'thumbnail' ? 'thumbnail' : 'display';
+    if (variant === 'display') {
+      this.setData({ heroDisplayFailed: true, 'brand.brand_hero_display_url': '' });
+      return;
+    }
+    this.setData({ imageFailed: true, heroThumbnailFailed: true, 'brand.brand_hero_thumbnail_url': '' });
+  },
+
+  onCertificateImageError(event) {
+    const index = Number(event.currentTarget.dataset.index || 0);
+    this.setData({ [`certificates[${index}].image_failed`]: true });
+    const item = this.data.certificates[index];
+    if (item) {
+      this.trackDetailEvent('brand_certificate_image_failed', {
+        tab: 'certificates',
+        certificateId: item.certificate_id,
+        index,
+        errorCode: 'image_failed',
+      });
+    }
   },
 
   openCertificateDetail(event) {

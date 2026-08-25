@@ -4,7 +4,7 @@ content: 约束AI读取范围、搜索排除、Harness/模板工程噪音、生�
 source: BUG-0061会话token复盘后由AI生成，项目团队Review
 update_method: Agent工作流、Harness模板、技能命令或上下文预算策略变化时更新
 created_at: 2026-07-08 09:26:36
-updated_at: 2026-08-07 11:54:47
+updated_at: 2026-08-24 16:35:51
 note: 所有命令技能与普通开发任务均应遵守，优先级高于单个技能中的宽泛读取建议
 ---
 
@@ -131,6 +131,7 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 - 对 `/opsx-apply` 命令，MUST 明确所有 Change 都必须先纳入 Sprint，禁止恢复“无 REQ/BUG 来源或纯治理 Change 可跳过 Sprint Inclusion Gate”的豁免。
 - 对下一步命令输出，MUST 明确 REQ 来源链路使用原始 `REQ-*`，BUG 来源链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 不得回退为真实 `<change-id>`，非 REQ/BUG Change 才使用 `<change-id>`。
 - 对 `/spec-opt` 规范优化命令，MUST 明确只修改治理资产，覆盖 `.agents/skills`、`rules/`、`docs/`、`scripts/`、`AGENTS.md` 和 active OpenSpec Change 的同步矩阵，并禁止修改业务 `src/`。
+- 对 `/bug-review` 命令，MUST 明确默认 approve 或显式 `--approve` 前运行根因 confirmed 门禁；`root_cause_status` 非 `confirmed`、缺少 `root-cause.md` 或缺少根因状态时不得 approve。
 - 对 `/spec-study` 跨项目 Harness 学习应用命令，MUST 明确先学习并输出候选内容、等待用户确认后再应用；学习范围 MUST 横向覆盖项目入口、`rules/`、`docs/`、多 Agent 目录、`scripts/`、部署与环境示例；学习对象 MUST 全程只读且绝不允许被改动；应用阶段 MUST 遵守 active OpenSpec Change 与 Sprint Inclusion Gate，并禁止修改业务 `src/`；同一次学习应用流程只生成一份正式学习报告，学习报告 MUST 统一写入 `docs/spec-logs/YYYYMMDDhhmmss-study-xxx.md`，并承载本次学习触发的治理资产应用结果；不得额外生成内容重复的 `YYYYMMDDhhmmss-governance-xxx.md`，且不得包含用户隐私数据、真实客户数据、密钥、访问令牌、本机绝对路径、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码；涉及路径证据时 MUST 使用仓库相对路径或 `<local-project>`、`<user-home>` 等脱敏占位符。
 - 对 `/spec-study` 跨项目 Harness 学习，若学习对象存在 `docs/spec-logs/CHANGELOG.md`，MUST 日志优先：先读治理变更历史总账，再按主题读取相关单次 `study` / `governance` 日志，再横向校验真实治理资产，最后仅在证据不足时补读脚本或配置片段；日志只作为入口地图，不替代当前资产事实源。
 - 对新增或高频命令技能，MUST 明确引导式反馈契约；需要用户决策时优先使用原生交互卡片，无法支持时降级为文本结构化选项。

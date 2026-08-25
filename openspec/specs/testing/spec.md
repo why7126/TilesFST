@@ -45,7 +45,7 @@ Each REQ-0000 infrastructure requirement MUST map to at least one automated test
 - **AND** each entry MUST list at least one test path or validation script
 
 ### Requirement: Change 测试
-New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, user-facing UI, workflow automation, governance scripts, form validation contracts, workflow snapshot contracts, archive path contracts, or generated backend-owned fields MUST include focused regression tests for the modified behavior. Shared test fixtures and helpers MUST be updated in the same change when request payloads, validation rules, generated fields, archive path roots, or snapshot schemas change.
+New Services and Routers introduced in OpenSpec Changes MUST include corresponding automated tests before archive. Changes that modify existing Services, Routers, API schemas, user-facing UI, workflow automation, governance scripts, form validation contracts, workflow snapshot contracts, archive path contracts, or generated backend-owned fields MUST include focused regression tests for the modified behavior. Shared test fixtures and helpers MUST be updated in the same change when request payloads, validation rules, generated fields, archive path roots, or snapshot schemas change. Workflow automation tests that update Issue `trace.md` frontmatter MUST assert the frontmatter can be parsed by a standard YAML parser and that nested workflow status fields do not overwrite top-level Issue status.
 
 #### Scenario: 测试夹具跟随契约变更
 - **WHEN** an API, form validation, generated-field, workflow snapshot, archive path, or release-governance contract changes
@@ -63,6 +63,13 @@ New Services and Routers introduced in OpenSpec Changes MUST include correspondi
 - **WHEN** workflow scripts, archive commands, release generation, Fact Sheet, AI usage, or readiness reports create or update Change archive facts
 - **THEN** focused regression tests MUST assert generated paths use `openspec/archive/`
 - **AND** tests MUST fail if newly generated facts use `openspec/changes/archive/` as the canonical archive path.
+
+#### Scenario: Workflow Sync trace frontmatter 合法性回归
+- **WHEN** workflow automation tests exercise `req.generate`、`bug.generate`、`req.opsx`、`bug.opsx` 或 `opsx.apply`
+- **THEN** tests MUST parse the resulting Issue `trace.md` frontmatter with a standard YAML parser
+- **AND** tests MUST assert `openspec_changes[]` remains nested under `openspec_changes`
+- **AND** tests MUST assert top-level Issue `status` remains separate from nested Change status
+- **AND** tests MUST fail if generated frontmatter contains orphan indented list items such as `- change_id` without a parent key.
 
 ### Requirement: 测试框架校验脚本
 

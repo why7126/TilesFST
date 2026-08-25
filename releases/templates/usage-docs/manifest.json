@@ -6,9 +6,22 @@
     "path": "release.json",
     "sha256": ""
   },
-  "input_files": [],
-  "pages": [],
-  "coverage": {},
+  "input_files": [
+    "../../../docs/standards/batch-image-processing-runbook.md"
+  ],
+  "pages": [
+    "operations/batch-image-processing-runbook.mdx"
+  ],
+  "coverage": {
+    "batch_image_processing_runbook": {
+      "source_doc": "docs/standards/batch-image-processing-runbook.md",
+      "template_page": "operations/batch-image-processing-runbook.mdx",
+      "target_projection": "releases/{{VERSION}}/usage-docs/operations/batch-image-processing-runbook.mdx",
+      "source_change": "add-batch-image-processing-runbook",
+      "applies_to": "versions that explicitly generate usage docs after REQ-0122",
+      "maintenance_boundary": "docs/standards is the long-term fact source; release usage-docs is the version snapshot projection"
+    }
+  },
   "manual_overrides": [],
   "automation_policy": {
     "current_version": "generated files may be updated by automation after explicit generation decision",

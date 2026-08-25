@@ -1,0 +1,73 @@
+---
+title: "批量图片处理 Runbook"
+created_at: {{GENERATED_AT}}
+updated_at: {{GENERATED_AT}}
+source_doc: "docs/standards/batch-image-processing-runbook.md"
+source_change: "add-batch-image-processing-runbook"
+---
+
+# 批量图片处理 Runbook
+
+本页是版本使用文档投影模板，来源为 `docs/standards/batch-image-processing-runbook.md`。生成具体版本文档时，必须把本文档投影到 `releases/{{VERSION}}/usage-docs/operations/batch-image-processing-runbook.mdx` 或等价路径，并在 manifest 中记录源路径、快照路径、生成时间、适用版本和维护边界。
+
+## 覆盖范围
+
+- 图片转换脚本和待实现状态标注。
+- `thumbnail` / `display` 派生生成。
+- 缩略图专项重建。
+- 对象 key 迁移。
+- 生产执行步骤。
+- 安全门禁。
+- 验收证据模板。
+
+## 脚本状态
+
+| 入口 | 状态 | dry-run | apply | 说明 |
+|---|---|---|---|---|
+| `backfill-image-variants` | 现有可用 | 默认支持 | `--apply --confirm-backup` | 历史图片 `thumbnail` / `display` 派生生成。 |
+| `backfill-brand-certificate-thumbnails` | 现有可用 | 默认支持 | `--apply --confirm-backup` | SKU、品牌 Logo、证书图片缩略图专项重建。 |
+| `formalize-pending-tile-images` | 现有可用 | 默认支持 | `--apply --confirm-backup` | 公开 SKU pending 主图正式化。 |
+| `migrate-certificate-image-keys` | 现有可用 | 默认支持 | `--apply --confirm-backup` | 图片类证书从 `files/` 迁移到 `images/`。 |
+| `media-drift-reconcile` | 现有可用 | 默认支持 | `--apply --confirm-backup` | 生产推荐聚合媒体漂移处理。 |
+| `bug-0116-media-drift` | 历史兼容别名 | 默认支持 | `--apply --confirm-backup` | 仅兼容历史脚本、日志或旧文档引用。 |
+| `object-key-audit` | 现有可用 | 只读支持 | 不支持 | 对象 key 标准前缀审计。 |
+| 独立通用图片格式转换脚本 | 待实现 | 不适用 | 不适用 | 当前不得写作生产可执行入口。 |
+
+## 生产执行
+
+dry-run 示例：
+
+```bash
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-image-variants --limit 100
+```
+
+apply 示例：
+
+```bash
+./deploy/scripts/media-maintenance.sh prod mysql-tencent-cos backfill-image-variants --limit 100 --apply --confirm-backup
+```
+
+apply 前必须确认：
+
+- 已完成 MySQL 快照。
+- 已完成对象存储 bucket / prefix 快照。
+- dry-run 无 unexplained failure，且对象存储未 blocked。
+- 执行窗口、影响范围、回滚负责人和中止条件已记录。
+- 输出和归档材料不含真实 `.env`、密钥、连接串、Authorization header、Cookie、本机绝对路径、生产私有 URL、真实客户数据或未脱敏 object key。
+
+## 验收模板
+
+| 维度 | 状态 | 证据 |
+|---|---|---|
+| dry-run | pass/fail/blocked | 任务名、候选数量、预计写入、跳过原因、失败分类、风险摘要。 |
+| key | pass/fail/blocked/n/a | 脱敏旧 key、新 key、标准前缀和业务资源类型。 |
+| object | pass/fail/blocked/n/a | 对象存在性、MIME、bytes、权限和派生关系。 |
+| URL | pass/fail/blocked/n/a | `/media/{object_key}`、签名 URL、直出 URL 或 CDN URL 类型、HTTP 状态和 fallback。 |
+| render | pass/fail/blocked/n/a | 管理端、店主 Web、小程序截图或 Network evidence；缺证写 blocked。 |
+| benefit | pass/fail/blocked/n/a | `thumbnail` / `display` 相对原图的 bytes、像素、加载耗时或等价收益。 |
+| idempotency | pass/fail/blocked/n/a | 同参数复跑结果和候选数量变化。 |
+| rollback | pass/fail/blocked/n/a | 数据库快照、bucket / prefix 快照、回滚判断和负责人。 |
+
+## 维护边界
+
+旧版本 usage docs 快照默认冻结；内容性更正必须记录更正原因、确认来源、时间、文件范围和变更说明。`mintlify/` 只能承载公开站点源文件和公开截图资产，不替代 `releases/vX.Y.Z/usage-docs/` 事实源。

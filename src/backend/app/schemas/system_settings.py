@@ -26,6 +26,7 @@ class MediaSettingsPatch(BaseModel):
     allowed_image_types: str | None = None
     allowed_video_types: str | None = None
     thumbnail_max_size_kb: int | None = None
+    display_max_size_kb: int | None = None
 
 
 class SecuritySettingsPatch(BaseModel):
@@ -85,6 +86,7 @@ class MediaSettingsData(BaseModel):
     allowed_image_types: str
     allowed_video_types: str
     thumbnail_max_size_kb: int
+    display_max_size_kb: int
     minio_bucket: str
     object_key_rule: str
 
@@ -138,6 +140,16 @@ class SystemSettingsAuditRecentData(BaseModel):
     items: list[SystemSettingsAuditItem]
 
 
+SystemSettingsGroupData = (
+    BasicSettingsData
+    | MediaSettingsData
+    | SecuritySettingsData
+    | NotificationSettingsData
+    | AuditSettingsData
+    | dict[str, Any]
+)
+
+
 class SystemSettingsGroupResponse(BaseModel):
     group: str
-    data: dict[str, Any] = Field(default_factory=dict)
+    data: SystemSettingsGroupData = Field(default_factory=dict)

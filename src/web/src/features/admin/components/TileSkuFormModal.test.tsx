@@ -151,6 +151,14 @@ function getVideoInput(container: HTMLElement): HTMLInputElement {
   return input!;
 }
 
+function getImageInput(container: HTMLElement): HTMLInputElement {
+  const input = container.querySelector(
+    'input[accept="image/jpeg,image/png,image/webp,image/gif"]',
+  ) as HTMLInputElement | null;
+  expect(input).toBeTruthy();
+  return input!;
+}
+
 describe('TileSkuFormModal', () => {
   beforeEach(() => {
     fetchBrandsMock.mockResolvedValue({ items: [{ id: 1, name: '测试品牌' }] });
@@ -710,25 +718,61 @@ describe('TileSkuFormModal', () => {
       expect(screen.getByRole('heading', { name: /新增 SKU/i })).toBeInTheDocument();
     });
 
-    let input: HTMLInputElement | null = null;
     await waitFor(() => {
-      input = container.querySelector(
-        'input[accept="image/jpeg,image/png,image/webp,image/gif"]',
-      ) as HTMLInputElement | null;
-      expect(input).toBeTruthy();
+      expect(getImageInput(container)).toBeTruthy();
     });
-    fireEvent.change(input!, {
+    fireEvent.change(getImageInput(container), {
       target: { files: [new File(['image'], 'new.webp', { type: 'image/webp' })] },
     });
 
     await waitFor(() => {
       expect(imageSources(container)).toEqual(['/media/img-new.webp']);
     });
+    expect(screen.getByText('图片已添加')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '移除图片 1' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '移除图片 1' }));
     expect(container.querySelector('.sku-image-tile')).toBeNull();
     expect(screen.getByRole('button', { name: /继续添加图片/ })).toBeInTheDocument();
+  });
+
+  it('shows image uploading state, blocks save, and keeps existing images after failure', async () => {
+    let rejectUpload: ((reason?: unknown) => void) | undefined;
+    uploadTileImageMock.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          rejectUpload = reject;
+        }),
+    );
+
+    const { container } = renderModal({
+      mode: 'edit',
+      sku: editableSku([
+        { object_key: 'img-a', url: '/media/img-a.webp', is_main: true, sort_order: 0 },
+      ]),
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '编辑 SKU' })).toBeInTheDocument();
+    });
+
+    fireEvent.change(getImageInput(container), {
+      target: { files: [new File(['image'], 'slow.webp', { type: 'image/webp' })] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('图片上传中，请稍候')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /上传中/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '保存' })).toBeDisabled();
+
+    rejectUpload?.(new Error('network'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('图片上传失败');
+    });
+    expect(imageSources(container)).toEqual(['/media/img-a.webp']);
+    expect(screen.getByRole('button', { name: /继续添加图片/ })).not.toBeDisabled();
   });
 
   it('shows form-help hint when editing historical SKU without spec_id', async () => {

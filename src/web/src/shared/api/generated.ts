@@ -634,6 +634,8 @@ export interface MiniappBrandDetailData {
   leaf_categories?: MiniappBrandLeafCategory[];
   description?: string | null;
   available?: boolean;
+  brand_hero_display_url?: string | null;
+  brand_hero_thumbnail_url?: string | null;
   product_path: string;
   certificate_count?: number;
 }
@@ -660,6 +662,8 @@ export interface MiniappBannerItem {
   title: string;
   subtitle?: string | null;
   image_url: string;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
   jump_type: MiniappBannerItemJumpType;
   target_id?: number | null;
   search_keyword?: string | null;
@@ -743,6 +747,7 @@ export const MiniappCertificateDetailDataValidityStatus = {
 export interface MiniappCertificateBrandInfo {
   brand_id: number;
   brand_name: string;
+  brand_logo_thumbnail_url?: string | null;
   brand_entry_path: string;
   available?: boolean;
 }
@@ -762,6 +767,8 @@ export interface MiniappCertificateMediaItem {
   url: string;
   preview_url?: string | null;
   thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   file_name?: string | null;
   file_mime_type?: string | null;
   sort_order?: number;
@@ -898,6 +905,9 @@ export interface MiniappProductCard {
   product_name: string;
   sku_code: string;
   cover_image?: string | null;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   specification: string;
   category_name?: string | null;
   brand_name?: string | null;
@@ -930,6 +940,9 @@ export interface MiniappProductDetail {
   product_name: string;
   sku_code: string;
   cover_image?: string | null;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   specification: string;
   category_name?: string | null;
   brand_name?: string | null;
@@ -1085,6 +1098,7 @@ export interface MiniappSkuBrandInfo {
   brand_name: string;
   brand_short_name?: string | null;
   brand_logo_url?: string | null;
+  brand_logo_thumbnail_url?: string | null;
   brand_entry_path?: string | null;
   available?: boolean;
 }
@@ -1102,6 +1116,9 @@ export interface MiniappSkuMediaItem {
   media_type: MiniappSkuMediaItemMediaType;
   url: string;
   preview_url?: string | null;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   cover_url?: string | null;
   sort_order: number;
   is_main?: boolean;
@@ -1122,6 +1139,9 @@ export interface MiniappSkuDetailData {
   product_name: string;
   sku_code: string;
   cover_image?: string | null;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   specification: string;
   category_name?: string | null;
   brand_name?: string | null;
@@ -1330,7 +1350,72 @@ export interface ApiResponseSystemSettingsAuditRecentData {
   data?: SystemSettingsAuditRecentData | null;
 }
 
-export type SystemSettingsGroupResponseData = { [key: string]: unknown };
+export interface BasicSettingsData {
+  platform_name: string;
+  default_language: string;
+  default_timezone: string;
+  data_refresh_minutes: number;
+  support_email: string;
+  maintenance_window: string;
+  system_announcement: string;
+  show_dashboard_metrics: boolean;
+  show_maintenance_notice: boolean;
+  [key: string]: unknown;
+ }
+
+export interface MediaSettingsData {
+  max_image_size_mb: number;
+  max_video_size_mb: number;
+  max_file_size_mb: number;
+  allowed_image_types: string;
+  allowed_video_types: string;
+  thumbnail_max_size_kb: number;
+  display_max_size_kb: number;
+  minio_bucket: string;
+  object_key_rule: string;
+  [key: string]: unknown;
+ }
+
+export interface SecuritySettingsData {
+  password_min_length: number;
+  password_expiry_days: number;
+  require_uppercase: boolean;
+  require_lowercase: boolean;
+  require_digit: boolean;
+  require_special: boolean;
+  must_change_password_on_first_login: boolean;
+  login_lock_enabled: boolean;
+  login_failure_threshold: number;
+  login_lock_minutes: number;
+  jwt_access_token_expire_minutes: number;
+  [key: string]: unknown;
+ }
+
+export interface NotificationTemplateItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface NotificationSettingsData {
+  account_freeze_notify: boolean;
+  sku_pending_notify: boolean;
+  storage_capacity_warn: boolean;
+  storage_capacity_threshold_pct: number;
+  templates: NotificationTemplateItem[];
+  [key: string]: unknown;
+ }
+
+export interface AuditSettingsData {
+  retention_days: number;
+  allow_export: boolean;
+  force_sensitive_audit: boolean;
+  mask_sensitive_fields: boolean;
+  scope_description: string;
+  [key: string]: unknown;
+ }
+
+export type SystemSettingsGroupResponseData = BasicSettingsData | MediaSettingsData | SecuritySettingsData | NotificationSettingsData | AuditSettingsData | { [key: string]: unknown };
 
 export interface SystemSettingsGroupResponse {
   group: string;
@@ -1409,6 +1494,9 @@ export interface TileSkuImageItem {
   id: number;
   object_key: string;
   url: string;
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   is_main: boolean;
   sort_order: number;
 }
@@ -1443,6 +1531,8 @@ export interface TileSkuAdminItem {
   status: TileSkuAdminItemStatus;
   main_image_url?: string | null;
   main_image_thumbnail_url?: string | null;
+  main_image_display_url?: string | null;
+  main_image_original_url?: string | null;
   image_count?: number;
   video_count?: number;
   has_main_image?: boolean;
@@ -1550,6 +1640,9 @@ export interface UploadResult {
   url: string;
   thumbnail_key?: string | null;
   thumbnail_url?: string | null;
+  display_key?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
   task_trace_id?: string | null;
   task_type?: string | null;
   file_key?: string | null;

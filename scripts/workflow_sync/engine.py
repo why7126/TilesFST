@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from .collect import (
     load_all_issues,
@@ -12,6 +12,7 @@ from .collect import (
     run_openspec_list,
 )
 from .derive import (
+    DerivedIssue,
     derive_change_state,
     derive_issue,
     openspec_change_status,
@@ -29,6 +30,7 @@ from .issue_subdocuments import (
 from .patch import (
     PatchResult,
     patch_acceptance_report,
+    patch_bug_changelog,
     patch_issue_trace,
     patch_parent_requirement_bug_index,
     patch_registry_entry,
@@ -37,6 +39,22 @@ from .patch import (
     patch_sprint_yaml_scope,
 )
 from .constants import ROOT
+
+
+def apply_event_issue_status_override(
+    issue,
+    derived: DerivedIssue,
+    *,
+    event: str | None,
+    focus_issue_id: str | None,
+) -> DerivedIssue:
+    if event != "bug.generate" or issue.kind != "bug" or issue.issue_id != focus_issue_id:
+        return derived
+    if issue.trace_status not in {None, "captured"}:
+        return derived
+    if not (issue.path / "bug.md").exists():
+        return derived
+    return replace(derived, display_status="draft", note="status `draft`")
 
 
 @dataclass
@@ -262,6 +280,13 @@ class SyncEngine:
             for iid in issue_ids
             if iid in issues
         }
+        for iid, derived in list(derived_issues.items()):
+            derived_issues[iid] = apply_event_issue_status_override(
+                issues[iid],
+                derived,
+                event=event,
+                focus_issue_id=bug_id,
+            )
 
         if reconcile_issue_status_residuals_flag:
             if not (req_id or bug_id):
@@ -305,6 +330,16 @@ class SyncEngine:
                         issue.openspec_changes.append(
                             {"change_id": change_id, "status": "proposed"}
                         )
+                    if issue.kind == "req" and change_id not in issue.related_changes:
+                        issue.related_changes.append(change_id)
+                    if issue.kind == "bug":
+                        issue.related_change = change_id
+                    derived_issues[focus_issue_id] = apply_event_issue_status_override(
+                        issue,
+                        derive_issue(issue, derived_changes, sprint),
+                        event=event,
+                        focus_issue_id=bug_id,
+                    )
 
         if sprint:
             summary = sprint_summary_note(sprint, derived_changes)
@@ -375,9 +410,19 @@ class SyncEngine:
             )
             planned.append(
                 patch_registry_entry(
-                    registry, issue.issue_id, derived.display_status, write=write
+                    registry,
+                    issue.issue_id,
+                    derived.display_status,
+                    linked_change=derived.linked_change,
+                    write=write,
                 )
             )
+            should_sync_bug_changelog = issue.kind == "bug" and (
+                iid == bug_id
+                or bool(event in {"opsx.apply", "opsx.modify", "opsx.archive"} and change_id and derived.linked_change == change_id)
+            )
+            if should_sync_bug_changelog:
+                planned.append(patch_bug_changelog(issue, derived, event=event, write=write))
             if issue.kind == "bug" and issue.related_requirement:
                 parent_requirement_ids.add(issue.related_requirement)
 

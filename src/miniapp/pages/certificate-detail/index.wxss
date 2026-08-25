@@ -82,9 +82,13 @@
 }
 
 .summary,
-.brand-entry,
+.brand-card-section,
 .panel {
   margin: 22rpx 26rpx 0;
+}
+
+.summary,
+.panel {
   border: 1rpx solid rgba(200,160,85,0.2);
   border-radius: 16rpx;
   background: #211E16;
@@ -116,37 +120,6 @@
   font-weight: 700;
   line-height: 1.24;
   word-break: break-all;
-}
-
-.brand-entry {
-  min-height: 120rpx;
-  padding: 24rpx 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24rpx;
-  box-sizing: border-box;
-}
-
-.entry-label {
-  color: #8D836F;
-  font-size: 22rpx;
-}
-
-.entry-name {
-  margin-top: 8rpx;
-  color: #EDE8DF;
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1.35;
-  word-break: break-all;
-}
-
-.entry-arrow {
-  flex: 0 0 44rpx;
-  color: #C8A055;
-  font-size: 48rpx;
-  text-align: right;
 }
 
 .panel {

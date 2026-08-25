@@ -29,11 +29,12 @@
       >
         <swiper-item wx:for="{{detail.media}}" wx:key="media_id">
           <image
-            wx:if="{{item.media_type == 'image' && !item.image_failed}}"
+            wx:if="{{item.media_type == 'image' && !item.image_failed && (item.display_url || item.thumbnail_url)}}"
             class="gallery-image"
-            src="{{item.thumbnail_url || item.url}}"
+            src="{{item.display_url || item.thumbnail_url}}"
             mode="aspectFit"
             data-index="{{index}}"
+            data-url="{{item.original_url || item.preview_url || item.url}}"
             bindtap="previewCurrentMedia"
             binderror="onMediaError"
           ></image>
@@ -62,12 +63,17 @@
       <view class="certificate-name">{{detail.certificate_name}}</view>
     </view>
 
-    <view class="brand-entry" bindtap="openBrand" hover-class="card-press">
-      <view>
-        <view class="entry-label">所属品牌</view>
-        <view class="entry-name">{{detail.brand.brand_name}}</view>
-      </view>
-      <view class="entry-arrow">›</view>
+    <view class="brand-card-section">
+      <brand-card
+        brand="{{detail.brand}}"
+        hint="查看品牌主页与品牌资质"
+        source-page="certificate_detail"
+        source-module="brand_entry"
+        certificate-id="{{certificateId}}"
+        list-context="证书详情品牌入口"
+        request-id="{{requestId}}"
+        allow-original-logo-fallback="{{false}}"
+      />
     </view>
 
     <view class="panel">

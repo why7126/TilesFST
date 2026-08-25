@@ -4,7 +4,7 @@ content: 根因状态、证据链、人工补证、BUG 与返修门禁
 source: /spec-study apply MoonBox 治理质量学习项
 update_method: BUG、返修、测试或证据门禁变化时更新
 created_at: 2026-08-21 08:18:18
-updated_at: 2026-08-21 08:18:18
+updated_at: 2026-08-24 16:35:51
 ---
 
 # 证据化根因分析治理
@@ -48,6 +48,7 @@ updated_at: 2026-08-21 08:18:18
 
 - `/explore`：只读分析时区分 confirmed、probable、hypothesis、unknown。
 - `/bug-complete`：`root-cause.md` MUST 写入根因状态和证据链；证据不足则写补证步骤。
+- `/bug-review`：默认 approve 或显式 `--approve` 前 MUST 要求目标 BUG `root_cause_status: confirmed` 且 confirmed 证据链可定位；`unknown`、`hypothesis`、`probable`、缺少 `root-cause.md` 或缺少根因状态均为 approve blocker。拒绝、延后或不修复可继续使用 `--reject`、`--defer` 或 `--wont-fix`。
 - `/opsx-apply`：BUG 来源实现前 SHOULD 复核根因状态；confirmed 缺证据时先补 BUG 文档或说明风险。
 - `/opsx-modify`：验收返修若涉及“不如预期”或回归失败，先确认是根因证据不足、当前 Change 内偏差还是范围外新问题。
 - Workflow Sync：扫描 `root-cause.md` 状态字段时，语义不明或 confirmed 无证据应报告 warning/blocker。
@@ -65,4 +66,10 @@ python scripts/validate-root-cause-evidence.py --all-active
 ```bash
 python scripts/validate-root-cause-evidence.py --bug BUG-xxxx-slug
 python scripts/validate-root-cause-evidence.py --change <change-id>
+```
+
+BUG 评审通过门禁：
+
+```bash
+python scripts/validate-root-cause-evidence.py --bug BUG-xxxx-slug --require-confirmed
 ```

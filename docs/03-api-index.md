@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 13:52:48
+updated_at: 2026-08-25 08:53:42
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -222,7 +222,7 @@ OpenSpec：`openspec/changes/add-system-settings/`
 | POST | `/api/v1/admin/system-settings/{group}/reset` | Bearer（admin） |
 | GET | `/api/v1/admin/system-settings/audit/recent` | Bearer（admin） |
 
-`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组可写 `max_image_size_mb`、`max_video_size_mb`、`max_file_size_mb`、`allowed_image_types`、`allowed_video_types`、`thumbnail_max_size_kb`，并含只读 `minio_bucket`、`object_key_rule`。`thumbnail_max_size_kb=0` 表示不限制；正整数表示后续新生成图片缩略图尽量不超过该 KB 目标，保存设置不自动重建历史 `.thumb` 对象。
+`group` ∈ `basic` \| `security` \| `media` \| `notification` \| `audit`。响应 `data` 为 `{ group, data: { ...effective fields } }`；媒体分组可写 `max_image_size_mb`、`max_video_size_mb`、`max_file_size_mb`、`allowed_image_types`、`allowed_video_types`、`thumbnail_max_size_kb`、`display_max_size_kb`，并含只读 `minio_bucket`、`object_key_rule`。`thumbnail_max_size_kb=0` 表示不限制；正整数表示后续新生成图片缩略图尽量不超过该 KB 目标，保存设置不自动重建历史 `.thumb` 对象。`display_max_size_kb` 默认 `768`，与缩略图目标独立，只影响后续新生成 `.display` 详情展示图；历史 `.display` 需通过媒体维护任务显式重生成。
 
 ### 3.4.2 管理端接口文档（Sprint 004）
 
@@ -478,7 +478,7 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 | GET | `/api/v1/miniapp/search/suggestions` | 否 | 搜索实时联想，支持 `keyword`、`scope`、`limit`、`request_id`；仅返回品牌与 SKU 联想 |
 | GET | `/api/v1/miniapp/search` | 否 | 完整搜索，支持 `keyword`、`tab`、分页、品牌/类目/规格/价格筛选和 `request_id`；小程序结果页仅展示综合、品牌、SKU、证书 Tab |
 | GET | `/api/v1/miniapp/products/{product_id}` | 否 | 公开商品详情 |
-| GET | `/api/v1/miniapp/skus/{sku_id}` | 否 | SKU 详情聚合数据：主体、媒体、品牌、收藏状态、分享数据、同系列和同品牌推荐 |
+| GET | `/api/v1/miniapp/skus/{sku_id}` | 否 | SKU 详情聚合数据：主体、媒体、品牌、收藏状态、分享数据、同系列和同品牌推荐；`brand.brand_logo_thumbnail_url` 供详情品牌卡优先展示 |
 | PUT | `/api/v1/miniapp/skus/{sku_id}/favorite` | 否 | SKU 粒度幂等设置收藏状态，body: `{ client_id, favorite }` |
 
 `GET /api/v1/miniapp/home` 响应 `data`：
@@ -490,7 +490,9 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
     {
       "id": 1,
       "title": "质感空间，由砖而生",
-      "image_url": "/media/banners/home.webp",
+      "image_url": "/media/banners/home.display.webp",
+      "thumbnail_url": "/media/banners/home.thumb.webp",
+      "display_url": "/media/banners/home.display.webp",
       "jump_type": "product",
       "target_id": 1
     }
@@ -510,23 +512,23 @@ OpenSpec：`openspec/specs/miniapp-home/`、`openspec/specs/miniapp-search/`、`
 
 `GET /api/v1/miniapp/search` 响应 `data` 包含 `tabs[]`、`best_match`、`sections[]`、`facets`、`items`、`total`、`page`、`page_size`、`has_more` 与 `recommended_keywords`。`best_match` 可返回 `entity_type=sku|brand|certificate`：SKU 编码或 SKU 名称直接命中优先，其次品牌名精确命中，最后证书名称或证书编号精确命中；未满足上述直接命中时返回 `null`。小程序结果页按综合、品牌、SKU、证书展示 Tab，不展示类目 Tab；综合 Tab 按最佳匹配、品牌、SKU、证书顺序展示非 0 条分区，品牌/SKU/证书单独 Tab 直接展示卡片内容，不再展示分区标题和数量。完整搜索中的 SKU 结果会在公开过滤和关键词匹配后应用召回置顶排序，最多 4 个生效置顶 SKU 排在 SKU 结果前部；搜索实时联想、热门词、最近搜索、品牌结果和证书结果不受该配置影响，公开响应不返回召回状态或排序解释字段。完整搜索会二次过滤公开状态：只返回 `tiles.status=PUBLISHED`、`brands.status=ENABLED`、`tile_categories.status=ENABLED`、启用规格和可公开证书，不暴露后台内部字段、内部备注、raw object key 或敏感配置。v1 不新增管理端搜索配置中心、后台热门词维护、同义词维护、自然语言词典维护、搜索统计管理页或 `/api/admin/search/*`。
 
-首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（管理端文案显示“小程序”）、展示位置为 `MINIAPP_HOME_CAROUSEL`（首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序端使用 `image_url` 渲染轮播图；公开 `jump_type` 支持 `product`、`brand`、`search`、`store`、`none`，其中 `brand` 使用 `target_id` 跳转品牌详情页。接口会净化自动生成或兼容导入的内部 Banner 标题，例如 `internal-*MINIAPP*`、`*NO_JUMP*` 类标识不得作为公开 `title` 或 `search_keyword` 暴露；搜索型 Banner 只有存在安全公开标题时才返回 `search_keyword`。若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
+首页 Banner 数据来自管理端 Banner 管理能力：仅返回 `status=ONLINE`、展示端为 `MINIAPP_HOME`（管理端文案显示“小程序”）、展示位置为 `MINIAPP_HOME_CAROUSEL`（首页轮播）、且满足有效期的记录，并按 `sort_order`、`updated_at` 排序。小程序 Banner 轮播图属于首屏大图展示位，目标规格为 `display`；小程序端普通展示优先使用 `display_url`，其次 `thumbnail_url`，两者缺失时使用安全视图占位；`image_url` 保留兼容并承载同一轻量 URL，优先与 `display_url` 对齐，不作为原图 fallback。公开 `jump_type` 支持 `product`、`brand`、`search`、`store`、`none`，其中 `brand` 使用 `target_id` 跳转品牌详情页。接口会净化自动生成或兼容导入的内部 Banner 标题，例如 `internal-*MINIAPP*`、`*NO_JUMP*` 类标识不得作为公开 `title` 或 `search_keyword` 暴露；搜索型 Banner 只有存在安全公开标题时才返回 `search_keyword`。若没有可用 Banner，接口可返回空数组，小程序端降级到本地默认 Hero。
 
-`GET /api/v1/miniapp/brands` 响应 `data` 包含 `banners[]`、`items[]`、`total`、`page`、`page_size` 和 `has_more`。`banners[]` 仅来自 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）安全字段，支持 `jump_type=brand` + `target_id` 跳转品牌详情页；品牌列表页无轮播数据时返回空数组，不使用首页轮播兜底。品牌列表页轮播 `image_url` 优先为同目录 `.thumb` 派生 URL，公开 `title` 与 `search_keyword` 遵守首页 Banner 相同的内部标题净化规则。`items[]` 返回启用品牌的安全字段：`brand_id`、`brand_name`、`brand_short_name`、`brand_logo_url`、`brand_logo_thumbnail_url`、`brand_entry_path`、`product_count`、`leaf_category_names`、`leaf_categories`、`description`、`available`；`brand_logo_thumbnail_url` 为同目录 `.thumb` 派生 URL，列表/卡片优先使用，缺失时前端回退 `brand_logo_url`。`product_count`、`leaf_category_names` 与 `leaf_categories` 使用同一批小程序公开 SKU 过滤条件（`tiles.status=PUBLISHED`、品牌启用、类目启用、规格启用或为空），`leaf_categories[]` 返回去重后的所有上架/公开 SKU 绑定末级类目 ID 与名称并按类目排序，`leaf_category_names[]` 保留名称集合；品牌有公开商品时必然有商品关联类目，`product_count=0` 的启用品牌仍可展示且类目集合为空。接口不得返回品牌后台备注、raw object key、内部审计字段、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/brands` 响应 `data` 包含 `banners[]`、`items[]`、`total`、`page`、`page_size` 和 `has_more`。`banners[]` 仅来自 `MINIAPP_BRAND_LIST_CAROUSEL`（品牌列表页轮播）安全字段，支持 `jump_type=brand` + `target_id` 跳转品牌详情页；品牌列表页无轮播数据时返回空数组，不使用首页轮播兜底。品牌列表页轮播返回 `thumbnail_url`、`display_url` 和兼容 `image_url`，普通展示优先消费 `display_url`，缺失或不可读时降级到 `thumbnail_url`，不得回退原图或不存在的本地静态占位图。`items[]` 返回启用品牌的安全字段：`brand_id`、`brand_name`、`brand_short_name`、`brand_logo_url`、`brand_logo_thumbnail_url`、`brand_entry_path`、`product_count`、`leaf_category_names`、`leaf_categories`、`description`、`available`；`brand_logo_thumbnail_url` 为同目录 `.thumb` 派生 URL，列表/卡片普通展示只使用该缩略图，缺失、不可读或加载失败时展示占位，不回退 `brand_logo_url` 原图；小程序公开列表和详情接口默认不下发原图 Logo。`product_count`、`leaf_category_names` 与 `leaf_categories` 使用同一批小程序公开 SKU 过滤条件（`tiles.status=PUBLISHED`、品牌启用、类目启用、规格启用或为空），`leaf_categories[]` 返回去重后的所有上架/公开 SKU 绑定末级类目 ID 与名称并按类目排序，`leaf_category_names[]` 保留名称集合；品牌有公开商品时必然有商品关联类目，`product_count=0` 的启用品牌仍可展示且类目集合为空。接口不得返回品牌后台备注、raw object key、内部审计字段、Authorization header、Cookie 或敏感配置。
 
-`GET /api/v1/miniapp/brands/{brand_id}` 响应 `data` 包含单品牌主页公开信息，并返回 `product_path` 与 `certificate_count` 供小程序品牌主页展示。品牌不存在、停用、无公开 SKU 或不可公开时返回 `404 / code=30030`。
+`GET /api/v1/miniapp/brands/{brand_id}` 响应 `data` 包含单品牌主页公开信息，并返回 `product_path` 与 `certificate_count` 供小程序品牌主页展示。品牌主页顶部品牌图位为 Hero 大图展示位，响应提供独立 `brand_hero_display_url` 与 `brand_hero_thumbnail_url`，小程序端普通展示优先消费 `brand_hero_display_url`，缺失或加载失败时降级到 `brand_hero_thumbnail_url`，再降级到安全视图占位或品牌名占位；不得回退 `brand_logo_url` 原图、`preview_url`、旧 `url`、语义不明 `image_url` 或不存在的本地静态占位图。品牌列表、品牌卡、详情页品牌入口等小 Logo 场景仍只消费 `brand_logo_thumbnail_url`，缺失时展示占位，不回退 `brand_logo_url` 原图。品牌不存在、停用、无公开 SKU 或不可公开时返回 `404 / code=30030`。
 
-`GET /api/v1/miniapp/brands/{brand_id}/certificates` 响应 `data.items[]` 只包含当前品牌可公开证书，字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_no`、`issuer`、`brand_name`、`file_url`、`thumbnail_url`。当证书存在 `main_image` 时，`file_url` 优先返回主图原图 URL；无主图时回退 legacy 证书文件 URL；图片类证书同步返回同目录 `.thumb` 派生 `thumbnail_url`，PDF 返回 `null`。隐藏、删除、停用品牌证书不会返回；响应不得暴露 `file_key`、后台备注、审计字段、raw object key、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/brands/{brand_id}/certificates` 响应 `data.items[]` 只包含当前品牌可公开证书，字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_no`、`issuer`、`brand_name`、`file_url`、`thumbnail_url`。当证书存在 `main_image` 时，`file_url` 优先返回主图原图 URL；无主图时回退 legacy 证书文件 URL；该字段仅供证书详情、预览或打开动作使用，不作为卡片图片兜底。图片类证书同步返回同目录 `.thumb` 派生 `thumbnail_url`，PDF 返回 `null`；品牌详情证书 Tab 等卡片入口仅可使用 `thumbnail_url` 或占位，缺缩略图或图片加载失败时不得请求 `file_url`。隐藏、删除、停用品牌证书不会返回；响应不得暴露 `file_key`、后台备注、审计字段、raw object key、Authorization header、Cookie 或敏感配置。
 
-`GET /api/v1/miniapp/certificates` 响应 `data` 包含 `items[]`、`total`、`page`、`page_size` 和 `has_more`，请求仅支持分页参数 `page`、`pageSize`。`items[]` 字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_type_label`、`brand_id`、`brand_name`、`file_url`、`thumbnail_url`、`file_name`、`file_mime_type`、`file_kind`、`effective_date`、`expiry_date`、`validity_status`、`validity_status_label`；当证书存在 `main_image` 时，`file_url`、`file_name`、`file_mime_type` 优先返回主图信息，无主图时回退 legacy 证书文件字段。小程序证书卡片仅展示证书名称、品牌名称和证书类型，并在 `file_kind=image` 时优先使用 `thumbnail_url` 渲染主图，缺失时回退 `file_url`。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书，排序为 `sort_order ASC, updated_at DESC, id DESC`；响应不得暴露 `file_key`、后台备注、审计字段、内部用户字段、raw object key、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/certificates` 响应 `data` 包含 `items[]`、`total`、`page`、`page_size` 和 `has_more`，请求仅支持分页参数 `page`、`pageSize`。`items[]` 字段为 `certificate_id`、`certificate_name`、`certificate_type`、`certificate_type_label`、`brand_id`、`brand_name`、`file_url`、`thumbnail_url`、`file_name`、`file_mime_type`、`file_kind`、`effective_date`、`expiry_date`、`validity_status`、`validity_status_label`；聚合列表为了避免卡片误拉原文件，`file_url` 返回 `null`，`thumbnail_url` 仅在图片证书存在同目录 `.thumb` 派生图时返回。小程序证书卡片仅展示证书名称、品牌名称和证书类型，并在 `file_kind=image` 时优先使用 `thumbnail_url` 渲染主图，缩略图缺失、不可读或加载失败时展示占位，不得回退 `file_url`、原图或原文件 URL。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书，排序为 `sort_order ASC, updated_at DESC, id DESC`；响应不得暴露 `file_key`、后台备注、审计字段、内部用户字段、raw object key、Authorization header、Cookie 或敏感配置。
 
-`GET /api/v1/miniapp/certificates/{certificate_id}` 响应 `data` 包含单张公开证书详情：列表安全字段、`brand`、`media[]`、`main_media`、`description`、`remark` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`。`media[]` 字段为 `media_id`、`media_type=image|pdf|unknown`、`url`、`preview_url`、`thumbnail_url`、`file_name`、`file_mime_type`、`sort_order`、`is_main`；多图证书按主图优先、其余图片按 `sort_order ASC, id ASC` 排序，旧单文件证书回退到 legacy `file_url`。图片展示优先使用 `thumbnail_url`，点击预览继续使用 `preview_url` 或 `url` 原图；PDF 的 `thumbnail_url` 返回 `null` 并由小程序本地占位展示。`brand` 返回 `brand_id`、`brand_name`、`brand_entry_path` 和 `available`；`share` 返回分享标题、分享路径、分享图和摘要。小程序证书详情页标题固定为“证书详情”，证书名称面板不重复展示品牌名称，品牌名称只在所属品牌入口面板展示；证书信息展示备注说明但不展示有效期，底部不提供固定“预览文件”或“分享证书”按钮。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书；不存在、隐藏、软删除或所属品牌停用时返回 `404 / code=30030`。响应不得暴露审计字段、内部用户字段、`file_key`、raw object key、本机路径、bucket 内部信息、Authorization header、Cookie 或敏感配置。
+`GET /api/v1/miniapp/certificates/{certificate_id}` 响应 `data` 包含单张公开证书详情：列表安全字段、`brand`、`media[]`、`main_media`、`description`、`remark` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`。`media[]` 字段为 `media_id`、`media_type=image|pdf|unknown`、`url`、`preview_url`、`thumbnail_url`、`display_url`、`original_url`、`file_name`、`file_mime_type`、`sort_order`、`is_main`；多图证书按主图优先、其余图片按 `sort_order ASC, id ASC` 排序，旧单文件证书回退到 legacy `file_url`。图片证书的 `display_url` 用于详情顶部普通展示，`url` 保留兼容且只承载 `display_url` 或 `thumbnail_url` 等安全展示 URL，缺少展示图和缩略图时返回空字符串并由小程序占位或失败态兜底；图片预览使用 `original_url` 或 `preview_url`。PDF/文档证书不生成图片 `display_url`、`thumbnail_url` 或 `original_url`，继续通过文件打开、占位或失败态展示。`brand` 返回 `brand_id`、`brand_name`、`brand_logo_thumbnail_url`、`brand_entry_path` 和 `available`；`brand_logo_thumbnail_url` 为品牌 Logo 同目录缩略图 URL，供证书详情页复用 `brand-card` 普通展示优先消费，缺失时小程序使用品牌卡统一占位，不得 fallback 到品牌 Logo 原图。`share` 返回分享标题、分享路径、分享图和摘要。小程序证书详情页标题固定为“证书详情”，证书名称面板不重复展示品牌名称，所属品牌入口复用 `brand-card` 展示和跳转；证书信息展示备注说明但不展示有效期，底部不提供固定“预览文件”或“分享证书”按钮。接口只返回未删除、`is_visible=true` 且所属品牌 `status=ENABLED` 的证书；不存在、隐藏、软删除或所属品牌停用时返回 `404 / code=30030`。响应不得暴露审计字段、内部用户字段、`file_key`、raw object key、本机路径、bucket 内部信息、Authorization header、Cookie 或敏感配置。
 
 `GET /api/v1/miniapp/categories/tree?depth=2` 响应 `data` 包含 `version` 与 `items[]`。`items[]` 只返回 `status=ENABLED` 且 `level<=2` 的类目，一级和二级分别按 `sort_order ASC, created_at ASC, id ASC` 排序；一级节点字段为 `id`、`name`、`sort`、`children`，二级节点字段为 `id`、`name`、`coverUrl`、`sort`。`coverUrl` 为兼容字段，当前小程序分类列表页不渲染二级类目图片；后端返回统一安全占位 URL `/media/miniapp/category-placeholder.webp`，不自动取 SKU 商品主图，不暴露 `description`、`sku_count`、`path`、raw object key、Authorization header、Cookie 或后台内部备注。
 
 公开商品卡片的 `cover_image` 来自 SKU 主图（`tile_images.is_main=1` 优先），返回后端受控读取 URL，不得暴露对象存储 raw object key。列表场景优先返回与原图同目录、文件名以 `.thumb` 区分的缩略图 URL，例如 `/media/images/default/tiles/pending/<uuid>.thumb.jpg`；若该缩略图对象缺失，后端 `/media/{object_key}` 读取会回退同目录原图，公开列表不得返回已知不可访问的 `/media/thumbnails/default/tiles/pending/<uuid>.jpg`。`price_display` 来自 SKU `reference_price` 格式化结果：正数显示为 `¥xx.xx`，缺失、空值或非正数显示为 `暂无参考价`。
 
-`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`remark`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`；小程序商品详情页将备注说明作为商品参数模块内的参数行展示，不单独渲染独立备注模块。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；图片 `media[]` 的 `url` 为商品详情页首屏高清展示 URL，使用原图或详情级高清展示图，`preview_url` 保留原图用于点击预览；商品列表、商品卡片、推荐位和 Banner 仍优先使用与原图同目录、文件名以 `.thumb` 区分的缩略图 URL；视频 `media[]` 的 `url` 保持原视频资源，`cover_url` 优先使用商品主图或首张图片的同目录 `.thumb` 缩略图作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
+`GET /api/v1/miniapp/skus/{sku_id}` 只返回公开 SKU（`tiles.status=PUBLISHED`）字段，响应包含 `brand`、`media[]`、`image_count`、`video_count`、`category_path`、`parameters`、`remark`、`favorite`、`same_series_recommendations`、`same_brand_recommendations` 和 `share`。`remark` 为公开备注说明，空值或 `null` / `undefined` 占位值返回 `null`；小程序商品详情页将备注说明作为商品参数模块内的参数行展示，不单独渲染独立备注模块。图片、视频、品牌 Logo 与分享图 URL 必须是后端返回的安全访问 URL；图片 `media[]` 的 `url` 为商品详情页首屏普通展示 URL，只承载 `display_url` 或 `thumbnail_url`，`preview_url` 保留原图用于点击预览；商品列表、商品卡片和推荐位优先使用与原图同目录的 `.thumb` 派生 URL，Banner 和 `share.image_url` 优先使用 `.display` 或等价展示图并可降级到 `.thumb`，缺轻量图时返回空值或由小程序占位，不默认下发原图；视频 `media[]` 的 `url` 保持原视频资源，`cover_url` 优先使用商品主图或首张图片的同目录 `.thumb` 缩略图作为播放前封面兜底，不新增 raw object key。响应不得包含 raw object key、库存管理字段、后台内部备注、Authorization header、Cookie 或敏感配置。SKU 不存在、下架或不可公开时返回 `404 / code=30030`。
 
 `PUT /api/v1/miniapp/skus/{sku_id}/favorite` 使用 `client_id` 与 `sku_id` 唯一约束实现幂等收藏/取消收藏；重复提交返回目标状态，不产生重复收藏记录。SKU 不存在、下架或不可公开时返回 `404 / code=30030`；请求体校验失败返回 `422 / code=40001`。
 
@@ -631,7 +633,7 @@ OpenSpec：`openspec/changes/add-tile-sku-management/`
 
 列表参数：`page`、`page_size`（10/20/50/100）、`keyword`、`brand_id`、`category_id`、`status`、`material_completeness`；`category_id` 按类目子树筛选，传父类目时包含自身及所有子孙类目的 SKU。
 响应 `data.summary`：`total`、`published_count`、`needs_completion_count`、`draft_count`。
-列表项返回 `main_image_url` 原图 URL 与 `main_image_thumbnail_url` 同目录 `.thumb` 缩略图 URL；管理端 SKU 列表优先使用缩略图，缺失或加载失败时回退原图，详情/编辑/上传预览继续使用原图或原文件。列表项返回 `published_at`，表示最近一次上架/恢复上架时间；从未发布、发布时间为空或历史数据缺失时返回 `null`。已下架等非 `PUBLISHED` 状态若存在历史 `published_at`，管理端列表、详情与下架响应仍返回该历史发布时间，便于运营继续查看最近一次发布成功时间。REQ-0103 起，创建、更新、详情和列表项返回召回置顶运营配置字段：`recall_pin_sort_order`、`recall_pin_starts_at`、`recall_pin_ends_at`；请求体可提交同名字段，`recall_pin_sort_order` 只能为正整数，未填或传 `null` 时按 `9999` 保存，低于 `9999` 且处于有效期内才参与小程序普通商品列表和完整搜索 SKU 结果置顶。`recall_pin_starts_at=null` 表示立即可生效，`recall_pin_ends_at=null` 表示长期有效；开始时间晚于结束时间返回 `422 / code=40001`。管理端 SKU 列表排序不因召回字段改变。
+列表项返回 `main_image_url`、`main_image_thumbnail_url`、`main_image_display_url`、`main_image_original_url`。管理端 SKU 列表优先使用缩略图，缺失或加载失败时按 `display -> original/main_image_url` 回退；详情、编辑与上传预览优先使用 `display_url`，高清预览或下载语义保留 `original_url`。SKU 图片详情项同步返回 `thumbnail_url`、`display_url`、`original_url`，请求体仍只保存 `object_key`、`url`、`is_main`、`sort_order`，多规格 URL 由后端媒体服务按对象 key 派生或按直出配置生成。列表项返回 `published_at`，表示最近一次上架/恢复上架时间；从未发布、发布时间为空或历史数据缺失时返回 `null`。已下架等非 `PUBLISHED` 状态若存在历史 `published_at`，管理端列表、详情与下架响应仍返回该历史发布时间，便于运营继续查看最近一次发布成功时间。REQ-0103 起，创建、更新、详情和列表项返回召回置顶运营配置字段：`recall_pin_sort_order`、`recall_pin_starts_at`、`recall_pin_ends_at`；请求体可提交同名字段，`recall_pin_sort_order` 只能为正整数，未填或传 `null` 时按 `9999` 保存，低于 `9999` 且处于有效期内才参与小程序普通商品列表和完整搜索 SKU 结果置顶。`recall_pin_starts_at=null` 表示立即可生效，`recall_pin_ends_at=null` 表示长期有效；开始时间晚于结束时间返回 `422 / code=40001`。管理端 SKU 列表排序不因召回字段改变。
 
 创建请求 `save_mode`：`draft`（仅名称必填）| `create`（全必填）。  
 错误码：`30031` 编码重复、`30032` 删除禁止、`30033` 上架禁止。
@@ -842,7 +844,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 
 ## 6. 上传接口
 
-上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 至少保持 `{ object_key, url, thumbnail_key, thumbnail_url, task_trace_id, task_type }`；非图片或不生成缩略图的上传返回 `thumbnail_key=null`、`thumbnail_url=null`。证书文件额外返回 `file_key`、`file_url`、`file_name`、`mime_type`、`size`。图片上传、视频上传、文件上传首批写入 Task Trace span，覆盖 `frontend_upload_start`、`frontend_upload_body_done`、`api_receive`、`validate_file`、`storage_put_object`、`db_create_media`、`post_process`、`api_response`、`frontend_done/failed`。
+上传接口均使用 `multipart/form-data`，字段名为 `file`，成功响应 `data` 至少保持 `{ object_key, url, thumbnail_key, thumbnail_url, display_key, display_url, original_url, task_trace_id, task_type }`；非图片或不生成多规格图的上传返回对应字段 `null`。证书文件额外返回 `file_key`、`file_url`、`file_name`、`mime_type`、`size`。图片上传、视频上传、文件上传首批写入 Task Trace span，覆盖 `frontend_upload_start`、`frontend_upload_body_done`、`api_receive`、`validate_file`、`storage_put_object`、`db_create_media`、`post_process`、`api_response`、`frontend_done/failed`。
 
 | 方法 | 路径 | 认证 | 对象前缀 | 说明 |
 |---|---|---|---|---|
@@ -852,7 +854,7 @@ OpenSpec：`openspec/changes/add-admin-password-change/`
 | POST | `/api/v1/admin/uploads/tile-videos` | admin/employee | `videos/default/tiles/{tile_id|pending}/` | SKU 视频上传 |
 | POST | `/api/v1/admin/uploads/brand-certificates` | admin | `files/default/brand-certificates/` | 品牌证书 JPG/PNG/WebP/PDF 上传 |
 
-媒体读取保持 `/media/{object_key}` URL 语义，由后端从 MinIO 受控读取。视频读取支持 `Range` 请求并返回 `206 Partial Content`、`Content-Type: video/*`、`Accept-Ranges: bytes` 与 `Content-Range`；`HEAD /media/{object_key}` 返回媒体元信息头但不返回文件内容，用于微信小程序原生视频预览、保存和转发前的资源探测。该路由不进入 OpenAPI，不生成 Orval 方法。
+媒体读取默认保持 `/media/{object_key}` URL 语义，由后端从对象存储受控读取；图片 `.thumb` 或 `.display` 缺失时可回退同目录原图。`OBJECT_STORAGE_DIRECT_READ_ENABLED=true` 时，后端媒体适配层可返回短期对象存储直出读取 URL，过期时间由 `OBJECT_STORAGE_DIRECT_READ_EXPIRES_SECONDS` 控制且限制在 60-3600 秒；前端和小程序仍只能消费后端返回的 URL，不得拼接 endpoint、bucket 或持有永久密钥。视频读取支持 `Range` 请求并返回 `206 Partial Content`、`Content-Type: video/*`、`Accept-Ranges: bytes` 与 `Content-Range`；`HEAD /media/{object_key}` 返回媒体元信息头但不返回文件内容，用于微信小程序原生视频预览、保存和转发前的资源探测。该路由不进入 OpenAPI，不生成 Orval 方法。
 
 上传错误：
 

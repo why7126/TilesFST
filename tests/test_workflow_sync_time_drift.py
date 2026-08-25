@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
+
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -18,6 +21,16 @@ from scripts.workflow_sync.patch import (
     patch_issue_trace,
     persist_markdown,
 )
+
+
+def load_frontmatter_yaml(text: str) -> dict:
+    return yaml.safe_load(text.split("---", 2)[1])
+
+
+def load_first_fenced_yaml(text: str) -> dict:
+    match = re.search(r"```yaml\n(.*?)```", text, re.S)
+    assert match is not None
+    return yaml.safe_load(match.group(1))
 
 
 def test_workflow_sync_summary_hides_skipped_file_list() -> None:
@@ -375,6 +388,67 @@ openspec_changes:
     assert "status: applied" in text
     assert "| /opsx-apply | Change `add-example` apply 完成，待 archive。 |" in text
     assert text.count("/opsx-apply") == 1
+    frontmatter = load_frontmatter_yaml(text)
+    assert frontmatter["status"] == "in_sprint"
+    assert frontmatter["openspec_changes"] == [
+        {"change_id": "add-example", "type": "add", "status": "applied"}
+    ]
+
+
+def test_patch_issue_trace_repairs_orphan_frontmatter_change_entries(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    req_dir = tmp_path / "issues/requirements/review/REQ-0002-example"
+    req_dir.mkdir(parents=True)
+    (req_dir / "trace.md").write_text(
+        """---
+requirement_id: REQ-0002-example
+status: in_sprint
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+  - change_id: add-example
+    type: add
+    status: proposed
+---
+
+# Trace
+""",
+        encoding="utf-8",
+    )
+    issue = IssueRecord(
+        issue_id="REQ-0002-example",
+        kind="req",
+        path=req_dir,
+        trace_status="in_sprint",
+        openspec_changes=[{"change_id": "add-example", "status": "proposed"}],
+    )
+    derived = DerivedIssue(
+        issue_id="REQ-0002-example",
+        kind="req",
+        display_status="in_sprint",
+        linked_change="add-example",
+        note="apply 完成；待 archive `add-example`",
+    )
+
+    result = patch_issue_trace(
+        issue,
+        derived,
+        {"add-example": "applied"},
+        event="opsx.apply",
+        focus_change="add-example",
+        write=True,
+    )
+
+    text = (req_dir / "trace.md").read_text(encoding="utf-8")
+    frontmatter = load_frontmatter_yaml(text)
+    assert result.changed is True
+    assert frontmatter["status"] == "in_sprint"
+    assert frontmatter["openspec_changes"] == [
+        {"change_id": "add-example", "type": "update", "status": "applied"}
+    ]
+    assert "updated_at: 2026-07-03 10:00:00\n  - change_id:" not in text
 
 
 def test_patch_acceptance_report_updates_layered_scope_table(tmp_path: Path, monkeypatch) -> None:
@@ -1064,11 +1138,15 @@ status: in_sprint
 iteration: sprint-999
 created_at: 2026-07-03 10:00:00
 updated_at: 2026-07-03 10:00:00
-openspec_changes:
-  - change_id: add-demo
-    type: add
-    status: proposed
+openspec_changes: []
 ---
+
+```yaml
+status: in_sprint
+iteration: sprint-999
+openspec_changes: []
+related_changes: []
+```
 
 # Trace
 """,
@@ -1119,6 +1197,23 @@ updated_at: 2026-07-03 10:00:00
     assert "changes:\n  - add-demo" in sprint_yaml
     assert "    change: add-demo" in sprint_yaml
     assert "REQ-9999-open-change" not in sprint_yaml
+    trace_text = (req_dir / "trace.md").read_text(encoding="utf-8")
+    assert trace_text.count("change_id: add-demo") == 2
+    assert trace_text.count("  - add-demo") == 2
+    trace_frontmatter = load_frontmatter_yaml(trace_text)
+    trace_fenced = load_first_fenced_yaml(trace_text)
+    assert trace_frontmatter["status"] == "in_sprint"
+    assert trace_frontmatter["openspec_changes"] == [
+        {"change_id": "add-demo", "type": "update", "status": "proposed"}
+    ]
+    assert trace_fenced["openspec_changes"] == [
+        {"change_id": "add-demo", "type": "update", "status": "proposed"}
+    ]
+    req_text = (req_dir / "requirement.md").read_text(encoding="utf-8")
+    assert "related_change: add-demo" in req_text
+    assert "openspec_changes:\n  - change_id: add-demo" in req_text
+    registry_text = (tmp_path / "issues/requirements/_registry.yaml").read_text(encoding="utf-8")
+    assert "related_change: add-demo" in registry_text
 
     apply_gate_report = SyncEngine(dry_run=True).run(
         sprint_id="auto",
@@ -1129,3 +1224,293 @@ updated_at: 2026-07-03 10:00:00
     assert apply_gate_report.ok
     assert apply_gate_report.sprint_id == "sprint-999"
     assert apply_gate_report.sprint_skip_reason is None
+
+    second_report = SyncEngine().run(
+        sprint_id="auto",
+        event="req.opsx",
+        req_id="REQ-9999-demo",
+        change_id="add-demo",
+    )
+    assert second_report.ok
+    assert (req_dir / "trace.md").read_text(encoding="utf-8").count("change_id: add-demo") == 2
+
+    third_report = SyncEngine().run(
+        sprint_id="auto",
+        event="req.opsx",
+        req_id="REQ-9999-demo",
+        change_id="add-demo",
+    )
+    assert third_report.ok
+    assert not third_report.updated
+
+
+def test_bug_opsx_sync_backfills_bug_doc_trace_registry_and_sprint_scope(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(collect, "ROOT", tmp_path)
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "run_openspec_list", lambda: {"changes": []})
+
+    sprint_dir = tmp_path / "iterations/change/sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        """sprint_id: sprint-999
+status: planning
+requirements: []
+bugs:
+  - BUG-9999-demo
+changes: []
+
+scope_estimates:
+  - id: BUG-9999-demo
+    change:
+    size: S
+    story_points: 1
+    estimated_person_days: 1.0
+    rationale: "demo"
+""",
+        encoding="utf-8",
+    )
+    (sprint_dir / "sprint.md").write_text("# Sprint\n", encoding="utf-8")
+    (sprint_dir / "release-note.md").write_text("# Release\n", encoding="utf-8")
+    (sprint_dir / "acceptance-report.md").write_text("# Acceptance\n", encoding="utf-8")
+
+    bug_dir = tmp_path / "issues/bugs/review/BUG-9999-demo"
+    bug_dir.mkdir(parents=True)
+    (bug_dir / "bug.md").write_text(
+        """---
+title: Demo bug
+severity: high
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# Bug
+""",
+        encoding="utf-8",
+    )
+    (bug_dir / "trace.md").write_text(
+        """---
+bug_id: BUG-9999-demo
+status: in_sprint
+iteration: sprint-999
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+openspec_changes: []
+---
+
+```yaml
+status: in_sprint
+iteration: sprint-999
+openspec_changes: []
+related_change: null
+```
+
+# Trace
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "issues/bugs").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "issues/bugs/_registry.yaml").write_text(
+        """entries:
+  - id: BUG-9999-demo
+    status: in_sprint
+    iteration: sprint-999
+    related_change: null
+""",
+        encoding="utf-8",
+    )
+    change_dir = tmp_path / "openspec/changes/fix-demo"
+    change_dir.mkdir(parents=True)
+    (change_dir / "proposal.md").write_text("## Why\n\nBUG-9999-demo\n", encoding="utf-8")
+    (change_dir / "tasks.md").write_text("- [ ] 1.1 Demo\n", encoding="utf-8")
+
+    report = SyncEngine().run(
+        sprint_id="auto",
+        event="bug.opsx",
+        bug_id="BUG-9999-demo",
+        change_id="fix-demo",
+    )
+
+    assert report.ok
+    sprint_yaml = (sprint_dir / "sprint.yaml").read_text(encoding="utf-8")
+    assert "changes:\n  - fix-demo" in sprint_yaml
+    assert "    change: fix-demo" in sprint_yaml
+    trace_text = (bug_dir / "trace.md").read_text(encoding="utf-8")
+    assert trace_text.count("change_id: fix-demo") == 2
+    assert "related_change: fix-demo" in trace_text
+    bug_text = (bug_dir / "bug.md").read_text(encoding="utf-8")
+    assert "related_change: fix-demo" in bug_text
+    assert "openspec_changes:\n  - change_id: fix-demo" in bug_text
+    registry_text = (tmp_path / "issues/bugs/_registry.yaml").read_text(encoding="utf-8")
+    assert "related_change: fix-demo" in registry_text
+
+    apply_gate_report = SyncEngine(dry_run=True).run(
+        sprint_id="auto",
+        event="opsx.apply",
+        change_id="fix-demo",
+    )
+    assert apply_gate_report.ok
+    assert apply_gate_report.sprint_id == "sprint-999"
+
+
+def write_bug_generate_fixture(tmp_path: Path, *, with_bug_doc: bool = True) -> Path:
+    bug_dir = tmp_path / "issues/bugs/plan/BUG-9998-generate-demo"
+    bug_dir.mkdir(parents=True)
+    (bug_dir / "capture.md").write_text(
+        """---
+bug_id: BUG-9998-generate-demo
+title: Generate demo
+status: captured
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# Capture
+""",
+        encoding="utf-8",
+    )
+    if with_bug_doc:
+        (bug_dir / "bug.md").write_text(
+            """---
+bug_id: BUG-9998-generate-demo
+title: Generate demo
+status: draft
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# Bug
+""",
+            encoding="utf-8",
+        )
+    (bug_dir / "trace.md").write_text(
+        """---
+bug_id: BUG-9998-generate-demo
+status: captured
+severity: medium
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+lifecycle:
+  captured: 2026-07-03 10:00:00
+iteration: null
+openspec_changes: []
+related_change: null
+---
+
+# BUG Trace
+
+```yaml
+bug_id: BUG-9998-generate-demo
+status: captured
+severity: medium
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+lifecycle:
+  captured: 2026-07-03 10:00:00
+iteration: null
+openspec_changes: []
+related_change: null
+```
+
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+| 2026-07-03 10:00:00 | `/capture` | 记录问题。 |
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "issues/bugs/_registry.yaml").write_text(
+        """entries:
+  - id: BUG-9998-generate-demo
+    title: Generate demo
+    status: captured
+    iteration: null
+    related_change: null
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "issues/bugs/CHANGELOG.md").write_text(
+        """---
+created_at: 2026-07-03 10:00:00
+updated_at: 2026-07-03 10:00:00
+---
+
+# 缺陷当前态看板索引
+
+| BUG | 标题 | 状态 | 阶段 | Sprint | Change | 最近更新时间 | 下一步 | 事实源 |
+|---|---|---|---|---|---|---|---|---|
+| BUG-9998-generate-demo | Generate demo | captured | plan | — | — | 2026-07-03 10:00:00 | `/bug-generate BUG-9998-generate-demo` | `issues/bugs/plan/BUG-9998-generate-demo/trace.md` |
+""",
+        encoding="utf-8",
+    )
+    return bug_dir
+
+
+def test_bug_generate_sync_advances_captured_bug_to_draft(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(collect, "ROOT", tmp_path)
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "run_openspec_list", lambda: {"changes": []})
+    bug_dir = write_bug_generate_fixture(tmp_path)
+
+    report = SyncEngine().run(
+        sprint_id="auto",
+        event="bug.generate",
+        bug_id="BUG-9998-generate-demo",
+    )
+
+    assert report.ok
+    trace_text = (bug_dir / "trace.md").read_text(encoding="utf-8")
+    assert "status: draft" in trace_text
+    assert "generated:" in trace_text
+    trace_frontmatter = load_frontmatter_yaml(trace_text)
+    trace_fenced = load_first_fenced_yaml(trace_text)
+    assert trace_frontmatter["status"] == "draft"
+    assert "generated" in trace_frontmatter["lifecycle"]
+    assert "generated" in trace_fenced["lifecycle"]
+    assert (bug_dir / "bug.md").read_text(encoding="utf-8").count("status: draft") == 1
+    assert "status: draft" in (tmp_path / "issues/bugs/_registry.yaml").read_text(encoding="utf-8")
+    changelog = (tmp_path / "issues/bugs/CHANGELOG.md").read_text(encoding="utf-8")
+    assert "| BUG-9998-generate-demo | Generate demo | draft | plan | — | — |" in changelog
+    assert "`/bug-complete BUG-9998-generate-demo`" in changelog
+
+    second_report = SyncEngine().run(
+        sprint_id="auto",
+        event="bug.generate",
+        bug_id="BUG-9998-generate-demo",
+    )
+    assert second_report.ok
+    assert (bug_dir / "trace.md").read_text(encoding="utf-8").count("generated:") == 2
+
+
+def test_bug_generate_sync_does_not_advance_without_bug_doc(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(collect, "ROOT", tmp_path)
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "ROOT", tmp_path)
+    monkeypatch.setattr(engine, "run_openspec_list", lambda: {"changes": []})
+    bug_dir = write_bug_generate_fixture(tmp_path, with_bug_doc=False)
+
+    report = SyncEngine().run(
+        sprint_id="auto",
+        event="bug.generate",
+        bug_id="BUG-9998-generate-demo",
+    )
+
+    assert report.ok
+    trace_text = (bug_dir / "trace.md").read_text(encoding="utf-8")
+    assert "status: captured" in trace_text
+    assert "generated:" not in trace_text
+    assert "status: captured" in (tmp_path / "issues/bugs/_registry.yaml").read_text(encoding="utf-8")
+    changelog = (tmp_path / "issues/bugs/CHANGELOG.md").read_text(encoding="utf-8")
+    assert "| BUG-9998-generate-demo | Generate demo | captured | plan | — | — |" in changelog
+    assert "`/bug-generate BUG-9998-generate-demo`" in changelog

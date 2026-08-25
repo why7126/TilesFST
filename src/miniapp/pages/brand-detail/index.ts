@@ -7,6 +7,8 @@ type BrandDetail = {
   english_name?: string | null;
   brand_logo_url?: string | null;
   brand_logo_thumbnail_url?: string | null;
+  brand_hero_display_url?: string | null;
+  brand_hero_thumbnail_url?: string | null;
   description?: string | null;
   product_count: number;
   certificate_count: number;
@@ -42,6 +44,7 @@ type CertificateItem = {
   file_url: string;
   thumbnail_url?: string | null;
   file_kind?: 'image' | 'pdf' | 'unknown';
+  image_failed?: boolean;
 };
 
 type CertificateListResponse = {
@@ -76,6 +79,7 @@ function normalizeCertificate(item: CertificateItem): CertificateItem {
     ...item,
     certificate_type_label: item.certificate_type_label || item.certificate_type || '证书',
     file_kind: item.file_kind || fileKindFromUrl(item.file_url),
+    image_failed: false,
   };
 }
 
@@ -90,6 +94,8 @@ Page({
     error: '',
     requestId: '',
     imageFailed: false,
+    heroDisplayFailed: false,
+    heroThumbnailFailed: false,
     productPage: 1,
     productPageSize: PRODUCT_PAGE_SIZE,
     productTotal: 0,
@@ -102,7 +108,7 @@ Page({
     certificatesLoading: false,
     certificatesLoaded: false,
     certificatesError: '',
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
     skeletons: [1, 2, 3, 4],
   },
 
@@ -132,7 +138,7 @@ Page({
     return {
       title: this.data.brand?.brand_name || '品牌主页',
       path: brandSharePath(this.data.brandId),
-      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.brand?.brand_logo_url || this.data.imageFallback,
+      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.imageFallback,
     };
   },
 
@@ -141,7 +147,7 @@ Page({
     return {
       title: this.data.brand?.brand_name || '品牌主页',
       query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
-      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.brand?.brand_logo_url || this.data.imageFallback,
+      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.imageFallback,
     };
   },
 
@@ -150,7 +156,13 @@ Page({
       this.setData({ loading: false, error: '品牌参数无效，可返回品牌馆重新进入' });
       return;
     }
-    this.setData({ loading: true, error: '', imageFailed: false });
+    this.setData({
+      loading: true,
+      error: '',
+      imageFailed: false,
+      heroDisplayFailed: false,
+      heroThumbnailFailed: false,
+    });
     request<BrandDetail>(`/api/v1/miniapp/brands/${this.data.brandId}`)
       .then((brand) => {
         this.setData({
@@ -267,8 +279,27 @@ Page({
     this.loadCertificates();
   },
 
-  onBrandImageError() {
-    this.setData({ imageFailed: true });
+  onBrandHeroImageError(event: WechatMiniprogram.TouchEvent) {
+    const variant = event.currentTarget.dataset.variant === 'thumbnail' ? 'thumbnail' : 'display';
+    if (variant === 'display') {
+      this.setData({ heroDisplayFailed: true, 'brand.brand_hero_display_url': '' });
+      return;
+    }
+    this.setData({ imageFailed: true, heroThumbnailFailed: true, 'brand.brand_hero_thumbnail_url': '' });
+  },
+
+  onCertificateImageError(event: WechatMiniprogram.TouchEvent) {
+    const index = Number(event.currentTarget.dataset.index || 0);
+    this.setData({ [`certificates[${index}].image_failed`]: true });
+    const item = this.data.certificates[index];
+    if (item) {
+      this.trackDetailEvent('brand_certificate_image_failed', {
+        tab: 'certificates',
+        certificateId: item.certificate_id,
+        index,
+        errorCode: 'image_failed',
+      });
+    }
   },
 
   openCertificateDetail(event: WechatMiniprogram.TouchEvent) {

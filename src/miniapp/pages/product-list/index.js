@@ -43,7 +43,7 @@ Page({
     requestId: '',
     skeletons: [1, 2, 3, 4],
     items: [],
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '',
   },
 
   onLoad(query) {
@@ -233,7 +233,7 @@ Page({
 
   onImageError(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
-    this.setData({ [`items[${index}].cover_image`]: this.data.imageFallback });
+    this.setData({ [`items[${index}].cover_image`]: '' });
   },
 
   emptyText() {

@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-07-18 18:48:34
-updated_at: 2026-07-29 07:54:54
+updated_at: 2026-08-22 19:59:19
 lifecycle:
   captured: 2026-07-18 18:48:34
   generated: 2026-07-18 18:55:47
@@ -141,4 +141,5 @@ kb_cross_cutting_report:
 | BUG-0078-prod-miniapp-sku-detail-brand-card-routes-search | medium | done | fix-miniapp-sku-detail-brand-card-route | 生产环境小程序商品详情页品牌卡片误跳搜索页 |
 | BUG-0082-prod-miniapp-sku-video-slow-start | high | done | — | 生产环境小程序商品详情页视频播放启动很慢 |
 | BUG-0084-miniapp-sku-video-fullscreen-reloads-slow | medium | done | — | 小程序 SKU 详情页视频内嵌可播放但进入全屏后重新加载很久 |
-| BUG-0086-miniapp-sku-detail-remark-not-shown | medium | done | fix-miniapp-sku-detail-remark-display | 小程序商品详情页备注说明信息没有显示 |
+| BUG-0086-miniapp-sku-detail-remark-not-shown | medium | done | — | 小程序商品详情页备注说明信息没有显示 |
+| BUG-0132-miniapp-sku-detail-large-image-cold-load | high | done | fix-miniapp-sku-detail-large-image-cold-load | 小程序商品详情页冷加载存在大图资源导致图片加载耗时过长 |

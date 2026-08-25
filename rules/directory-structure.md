@@ -4,7 +4,7 @@ content: 约束AI与开发人员遵循当前项目目录边界、文件归属和
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 22:09:09
+updated_at: 2026-08-22 08:13:49
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -74,7 +74,7 @@ releases/
 - `releases/vX.Y.Z/usage-docs/` 只允许在该版本确认需要生成或更新产品使用文档时创建；确认不需要时 MUST NOT 创建空目录。
 - `usage-docs/` MUST 只存放该版本公开产品使用文档源文件、`manifest.json` 和必要的 Mintlify 页面源文件，不得替代 `docs/`、`issues/`、`iterations/` 或 `openspec/`。
 - `releases/vX.Y.Z/image-build-plan.json` 与 `image-manifest.json` 属于发布校验材料，MUST NOT 包含真实 `.env`、密钥、数据库连接串、Authorization header、Cookie、本机绝对路径或真实客户数据。
-- `releases/vX.Y.Z/upgrade-plans/` 用于存放 `from_version -> to_version` 部署升级与回滚计划，MUST 只记录脱敏事实、变量名、hash、证据摘要、步骤、blocker/warning 和人工复核项；不得存放真实 `.env`、密钥、连接串、生产私有域名、本机绝对路径、数据库备份文件、对象存储备份包或真实客户数据。
+- `releases/vX.Y.Z/upgrade-plans/` 用于存放项目团队确认需要支持或评估的真实 `from_version -> to_version` 部署升级与回滚计划，MUST 只记录脱敏事实、变量名、hash、证据摘要、步骤、blocker/warning 和人工复核项；不得存放仅用于解释能力或测试覆盖的示例版本路径；不得存放真实 `.env`、密钥、连接串、生产私有域名、本机绝对路径、数据库备份文件、对象存储备份包或真实客户数据。
 - 镜像 tar 包、`.sha256` 与其他大体积交付物 MUST 放在仓库外 `../releases/vX.Y.Z/images/`；仓库内 manifest 只记录相对路径、hash 与验证结论。
 - `releases/` MUST NOT 替代 `iterations/` 四件套、`issues/` 需求/BUG 文档、`openspec/changes/` 变更事实源或 `docs/` 长期技术文档。
 - `releases/` MUST NOT 存放运行时生成站点、构建产物、真实客户数据、密钥、数据库连接串或不可公开运维信息。

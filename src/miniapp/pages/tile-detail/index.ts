@@ -5,6 +5,9 @@ type MediaItem = {
   media_type: 'image' | 'video';
   url: string;
   preview_url?: string;
+  thumbnail_url?: string;
+  display_url?: string;
+  original_url?: string;
   cover_url?: string;
   sort_order: number;
   is_main: boolean;
@@ -15,6 +18,9 @@ type ProductCard = {
   product_name: string;
   sku_code: string;
   cover_image?: string;
+  thumbnail_url?: string;
+  display_url?: string;
+  original_url?: string;
   specification: string;
   category_name?: string;
   brand_name?: string;
@@ -36,6 +42,7 @@ type SkuDetail = ProductCard & {
     brand_name: string;
     brand_short_name?: string;
     brand_logo_url?: string;
+    brand_logo_thumbnail_url?: string;
     brand_entry_path?: string;
     available: boolean;
   };
@@ -98,11 +105,21 @@ function normalizeRemark(value: unknown): string | undefined {
 function normalizeSkuDetail(product: SkuDetail): SkuDetail {
   const remark = normalizeRemark(product.remark);
   const parameters = (product.parameters || []).filter((item) => item.label !== '备注说明');
-  const detail = {
+  return {
     ...product,
+    cover_image: product.thumbnail_url || product.cover_image,
+    media: (product.media || []).map((item) => item.media_type === 'image' ? {
+      ...item,
+      display_url: item.display_url || item.thumbnail_url,
+      preview_url: item.original_url || item.preview_url || item.url,
+    } : item),
     remark,
     parameters: remark ? [...parameters, { label: '备注说明', value: remark }] : parameters,
   };
+}
+
+function previewUrlForMedia(item: MediaItem): string {
+  return item.original_url || item.preview_url || item.url;
 }
 
 function skuShareTitle(product: SkuDetail | null): string {
@@ -116,9 +133,10 @@ function skuShareImage(product: SkuDetail | null, fallback: string): string {
   if (!product) return fallback;
   const mainImage = product.media.find((item) => item.media_type === 'image');
   return safeText(product.share?.image_url)
-    || safeText(product.cover_image)
-    || safeText(mainImage?.preview_url)
-    || safeText(mainImage?.url)
+    || safeText(product.display_url)
+    || safeText(product.thumbnail_url)
+    || safeText(mainImage?.display_url)
+    || safeText(mainImage?.thumbnail_url)
     || fallback;
 }
 
@@ -159,7 +177,7 @@ function favoriteItemFromProduct(product: SkuDetail): FavoriteSnapshot {
     sku_id: product.product_id,
     product_name: product.product_name,
     sku_code: product.sku_code,
-    cover_image: product.cover_image || mediaCover?.preview_url || mediaCover?.url || '',
+    cover_image: product.thumbnail_url || product.display_url || mediaCover?.thumbnail_url || mediaCover?.display_url || '',
     specification: product.specification || '',
     brand_name: product.brand?.brand_name || '',
     category_name: product.category_path.join(' / '),
@@ -193,8 +211,11 @@ function legacyToSkuDetail(product: LegacyProductDetail): SkuDetail {
       is_main: false,
     });
   });
-  return {
+  const detail: SkuDetail = {
     ...product,
+    thumbnail_url: product.cover_image,
+    display_url: product.cover_image,
+    original_url: product.cover_image,
     brand: {
       brand_id: 0,
       brand_name: product.brand_name || '菲尚特',
@@ -250,7 +271,7 @@ Page({
     error: '',
     errorDetail: '',
     product: null as SkuDetail | null,
-    imageFallback: '/assets/tile-placeholder.png',
+    imageFallback: '/assets/logos/product-logo.png',
   },
 
   onLoad(query: Record<string, string>) {
@@ -387,18 +408,34 @@ Page({
   },
 
   previewImage(event: WechatMiniprogram.BaseEvent) {
-    const current = String(event.currentTarget.dataset.url || '');
     const product = this.data.product;
-    if (!product || !current) {
+    if (!product) {
       return;
     }
-    const urls = product.media
-      .filter((item) => item.media_type === 'image')
-      .map((item) => item.preview_url || item.url);
-    wx.previewImage({ urls, current });
-    track('sku_image_preview', {
-      sku_id: product.product_id,
-      page_path: pagePath(product.product_id, this.data.source),
+    const datasetMediaIndex = event.currentTarget.dataset.mediaIndex;
+    const mediaIndex = Number(
+      datasetMediaIndex !== undefined && datasetMediaIndex !== null
+        ? datasetMediaIndex
+        : this.data.mediaIndex || 0,
+    );
+    const imageMedia = product.media
+      .map((item, index) => ({ item, index, url: previewUrlForMedia(item) }))
+      .filter((entry) => entry.item.media_type === 'image' && entry.url);
+    const urls = imageMedia.map((entry) => entry.url);
+    const matched = imageMedia.find((entry) => entry.index === mediaIndex);
+    const current = matched?.url || urls[0];
+    if (!current || !urls.length) {
+      return;
+    }
+    wx.getImageInfo({
+      src: current,
+      complete: () => {
+        wx.previewImage({ urls, current });
+        track('sku_image_preview', {
+          sku_id: product.product_id,
+          page_path: pagePath(product.product_id, this.data.source),
+        });
+      },
     });
   },
 

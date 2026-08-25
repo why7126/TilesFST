@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 08:36:38
+updated_at: 2026-08-25 10:02:47
 ---
 
 # 文档索引
@@ -43,6 +43,7 @@ updated_at: 2026-08-21 08:36:38
 | [standards/miniapp-device-evidence-template.md](standards/miniapp-device-evidence-template.md) | 小程序 DevTools/真机验收 evidence 模板 |
 | [standards/media-five-point-acceptance-template.md](standards/media-five-point-acceptance-template.md) | 媒体五联验收模板 |
 | [standards/production-media-maintenance-runbook.md](standards/production-media-maintenance-runbook.md) | 生产媒体维护作业 Runbook |
+| [standards/batch-image-processing-runbook.md](standards/batch-image-processing-runbook.md) | 批量图片处理 Runbook |
 | [standards/prototype-ui-acceptance.md](standards/prototype-ui-acceptance.md) | 带 prototype 的 UI Contract、Skeleton、截图和最终一致性验收 |
 | [standards/command-execution-order.md](standards/command-execution-order.md) | workflow 命令顺序与治理脚本门禁矩阵 |
 | [standards/document-prose-hygiene.md](standards/document-prose-hygiene.md) | 长期文档表达卫生、slop 与 CoT 泄漏审计 |
@@ -81,7 +82,7 @@ updated_at: 2026-08-21 08:36:38
 
 推送前安全检测入口使用 `/git-check`，默认运行 `python scripts/git-check.py` 扫描 staged、modified tracked 和 untracked 文件中的真实 env、运行时数据、密钥、连接串、本机绝对路径和大文件风险。
 
-问题排查、BUG 完善和验收返修遵守 [../rules/root-cause-evidence.md](../rules/root-cause-evidence.md)，根因状态必须区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 根因必须绑定脱敏证据链。
+问题排查、BUG 完善、BUG 评审通过和验收返修遵守 [../rules/root-cause-evidence.md](../rules/root-cause-evidence.md)，根因状态必须区分 `unknown`、`hypothesis`、`probable`、`confirmed`；`/bug-review` 默认 approve 或显式 `--approve` 前必须满足 `root_cause_status: confirmed` 且 confirmed 根因绑定脱敏证据链。
 
 长期文档、规则、技能说明和知识库新增或更新时遵守 [standards/document-prose-hygiene.md](standards/document-prose-hygiene.md)：事实只放在唯一归属文档，正文不写会话推理、临时草稿、review 对话、不可解析引用或未脱敏本机路径；必要时运行 `python scripts/validate-doc-prose-hygiene.py <focused-paths>`。
 

@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "custom-navigation": "../../components/custom-navigation/index"
+    "custom-navigation": "../../components/custom-navigation/index",
+    "brand-card": "../../components/brand-card/index"
   }
 }
