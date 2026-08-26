@@ -38,7 +38,7 @@ note: AI新增文件前必须确认目录边界
 - 综合 Tab 只在有结果时展示分区：最多 1 条最佳匹配，其后按品牌、SKU、证书顺序展示非 0 条分区；品牌/SKU/证书单独 Tab 内直接展示卡片内容，不再显示“品牌/SKU/证书 x 条”的分区标题。
 - SKU 结果复用 `components/product-card/`；品牌与证书结果使用与 SKU 卡片一致的一行卡片式视觉，但保留品牌/证书自身跳转行为。
 - `best_match` 可返回 SKU、品牌或证书：SKU 编码或名称直接命中优先，其次品牌名精确命中，最后证书名称或证书编号精确命中；都不满足时为空。
-- 搜索埋点通过 `track()` 上报 `search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_submit`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`；埋点失败不得阻断搜索主流程。
+- 搜索埋点通过 `track()` 上报 `search_page_view`、受防抖控制的 `search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_submit`、集合语义的 `search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`；埋点失败不得阻断搜索主流程。
 - 本期不包含管理端搜索配置中心、后台热门词维护、同义词维护、自然语言词典维护、搜索统计管理页或 `/api/admin/search/*`。
 
 ## 商品列表页
@@ -50,7 +50,7 @@ note: AI新增文件前必须确认目录边界
 - 品牌、分类和普通关键词入口在 `sort=default` 时由后端按 `COALESCE(published_at, created_at) ASC, id ASC` 返回，保持与品牌主页商品 Tab 一致；首页全部产品、新品榜、热销榜、价格排序和搜索页显式相关性排序保持各自策略。
 - 底部筛选抽屉支持品牌、分类、规格和价格区间，排序支持默认、最新、价格升序和价格降序；筛选或排序变更后重置分页并重新请求第一页。
 - 商品列表支持微信朋友分享和朋友圈分享，分享路径只保留 `categoryId`、`categoryLevel`、`categoryName`、`brandId`、`keyword`、`section`、`sourcePage` 白名单参数，中文参数必须编码，缺少可选参数时降级为可浏览列表。
-- 商品列表埋点通过 `track()` 上报 `product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`product_list_share_click`；埋点失败不得阻断列表加载、筛选、排序、刷新、加载更多、详情跳转或分享。
+- 商品列表埋点通过 `track()` 上报 `product_list_page_view`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`product_list_share_click`；SKU 级曝光以 `product-card` 的 `product_card_exposure` 为主口径，并按页面、模块、列表上下文、关键词、`requestId` 和 SKU 去重；埋点失败不得阻断列表加载、筛选、排序、刷新、加载更多、详情跳转或分享。
 - 本期不包含 Web 管理端商品列表组件、店主 Web 商品列表、后台商品管理列表、购物车、询价、在线下单或收藏能力。
 
 ## 商品详情页

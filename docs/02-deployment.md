@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 11:18:08
+updated_at: 2026-08-25 18:25:00
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -245,7 +245,7 @@ ADMIN_RESET_PASSWORD_ON_STARTUP=false
 - `TILESFST_BACKEND_IMAGE_REPOSITORY` / `TILESFST_WEB_IMAGE_REPOSITORY` 仅用于覆盖镜像仓库名；发版只改版本时无需修改。
 - 生产环境必须更换密钥，并使用安全的配置管理方式。
 - 本地开发与演示默认 SQLite；生产环境必须使用外部 MySQL `DATABASE_URL`。
-- **大文件上传（图片/视频/文档）**：后端通过 `MAX_IMAGE_SIZE_MB`、`MAX_VIDEO_SIZE_MB`、`MAX_FILE_SIZE_MB` 与 `ALLOWED_*_TYPES` 限制（见根目录 `.env.example`）。Web 容器 Nginx 使用 `src/web/nginx.conf.template` 渲染运行时配置，并在 `/api/v1/admin/uploads/` 上单独设置 `UPLOAD_CLIENT_MAX_BODY_SIZE`（默认 `512m`）、`UPLOAD_PROXY_SEND_TIMEOUT_SECONDS` / `UPLOAD_PROXY_READ_TIMEOUT_SECONDS` / `UPLOAD_SEND_TIMEOUT_SECONDS`（默认 `600` 秒）和 `UPLOAD_PROXY_REQUEST_BUFFERING`（默认 `off`）。修改模板、默认配置或上传反代变量后 MUST **重建并重启 Web 镜像**（`docker compose build tilesfst-web && docker compose up -d tilesfst-web`），仅重启 tilesfst-backend 不会更新 Nginx 配置。详见 `docs/standards/file-upload.md`。
+- **大文件上传（图片/视频/文档）**：后端通过 `MAX_IMAGE_SIZE_MB`、`MAX_VIDEO_SIZE_MB`、`MAX_FILE_SIZE_MB` 与 `ALLOWED_*_TYPES` 限制（见根目录 `.env.example`）。Web 容器 Nginx 使用 `src/web/nginx.conf.template` 渲染运行时配置，并在 `/api/v1/admin/uploads` 无尾斜杠精确路径和 `/api/v1/admin/uploads/` 子路径上单独设置 `UPLOAD_CLIENT_MAX_BODY_SIZE`（默认 `512m`）、`UPLOAD_PROXY_SEND_TIMEOUT_SECONDS` / `UPLOAD_PROXY_READ_TIMEOUT_SECONDS` / `UPLOAD_SEND_TIMEOUT_SECONDS`（默认 `600` 秒）和 `UPLOAD_PROXY_REQUEST_BUFFERING`（默认 `off`）。无尾斜杠入口必须直接反代到后端同路径，不得返回 301/302/307/308 或生成丢失宿主机端口的重定向。修改模板、默认配置或上传反代变量后 MUST **重建并重启 Web 镜像**（`docker compose build tilesfst-web && docker compose up -d tilesfst-web`），仅重启 tilesfst-backend 不会更新 Nginx 配置。详见 `docs/standards/file-upload.md`。
 - 修改任一 Compose 文件、deploy env 示例、Dockerfile 或上传代理变量后，必须至少执行对应的 `docker compose config` 校验；涉及根目录本地基线时同时校验 `docker compose config --quiet`。
 
 ## VPS 生产部署（外部 MySQL + 自建 MinIO）
@@ -408,7 +408,7 @@ UPLOAD_PROXY_REQUEST_BUFFERING=off
 
 ### 外层 HTTPS Nginx 上传反代
 
-生产域名外层 HTTPS 反代也必须对上传路径单独加长超时，并放在通用 `location /` 前。否则 COS 中已写入对象后，浏览器仍可能在 60 秒默认网关窗口收到 `504`。
+生产域名外层 HTTPS 反代也必须对上传路径单独加长超时，并放在通用 `location /` 前。外层代理必须同时覆盖 `/api/v1/admin/uploads` 无尾斜杠精确路径和 `/api/v1/admin/uploads/` 子路径；无尾斜杠头像上传入口不得被 301 到丢失端口的地址。否则 COS 中已写入对象后，浏览器仍可能在 60 秒默认网关窗口收到 `504`。
 
 ```nginx
 server {
@@ -422,6 +422,23 @@ server {
     ssl_ciphers HIGH:!aNULL:!MD5;
 
     client_max_body_size 512m;
+
+    location = /api/v1/admin/uploads {
+        proxy_pass http://127.0.0.1:3000;
+        client_max_body_size 512m;
+        client_body_timeout 600s;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 600s;
+        proxy_read_timeout 600s;
+        send_timeout 600s;
+        proxy_request_buffering off;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $host;
+    }
 
     location /api/v1/admin/uploads/ {
         proxy_pass http://127.0.0.1:3000;

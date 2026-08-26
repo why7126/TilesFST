@@ -227,6 +227,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   actor_role TEXT,
                   client_type TEXT NOT NULL DEFAULT 'backend',
                   client_request_id TEXT,
+                  behavior_trace_id TEXT,
+                  parent_behavior_event_id TEXT,
                   method TEXT NOT NULL,
                   path TEXT NOT NULL,
                   status_code INTEGER NOT NULL,
@@ -252,6 +254,10 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
             connection.execute(text("ALTER TABLE request_logs ADD COLUMN task_type TEXT"))
         if "client_request_id" not in columns:
             connection.execute(text("ALTER TABLE request_logs ADD COLUMN client_request_id TEXT"))
+        if "behavior_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE request_logs ADD COLUMN behavior_trace_id TEXT"))
+        if "parent_behavior_event_id" not in columns:
+            connection.execute(text("ALTER TABLE request_logs ADD COLUMN parent_behavior_event_id TEXT"))
 
     request_indexes = {
         "idx_request_logs_created": "CREATE INDEX idx_request_logs_created ON request_logs(created_at DESC)",
@@ -263,6 +269,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         "idx_request_logs_path_created": "CREATE INDEX idx_request_logs_path_created ON request_logs(path, created_at DESC)",
         "idx_request_logs_task_trace": "CREATE INDEX idx_request_logs_task_trace ON request_logs(task_trace_id, created_at DESC)",
         "idx_request_logs_client_request_id": "CREATE INDEX idx_request_logs_client_request_id ON request_logs(client_request_id)",
+        "idx_request_logs_behavior_trace": "CREATE INDEX idx_request_logs_behavior_trace ON request_logs(behavior_trace_id, created_at DESC)",
+        "idx_request_logs_parent_behavior_event": "CREATE INDEX idx_request_logs_parent_behavior_event ON request_logs(parent_behavior_event_id, created_at DESC)",
     }
     for name, sql in request_indexes.items():
         if not _index_exists(connection, name):
@@ -278,6 +286,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   actor_user_id TEXT NULL REFERENCES users(id),
                   actor_role TEXT,
                   client_type TEXT NOT NULL DEFAULT 'web_admin',
+                  behavior_trace_id TEXT,
+                  behavior_event_id TEXT,
                   event_name TEXT NOT NULL,
                   event_category TEXT NOT NULL,
                   page_path TEXT,
@@ -303,6 +313,10 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
             connection.execute(text("ALTER TABLE usage_events ADD COLUMN task_trace_id TEXT"))
         if "task_type" not in columns:
             connection.execute(text("ALTER TABLE usage_events ADD COLUMN task_type TEXT"))
+        if "behavior_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE usage_events ADD COLUMN behavior_trace_id TEXT"))
+        if "behavior_event_id" not in columns:
+            connection.execute(text("ALTER TABLE usage_events ADD COLUMN behavior_event_id TEXT"))
 
     usage_indexes = {
         "idx_usage_events_created": "CREATE INDEX idx_usage_events_created ON usage_events(created_at DESC)",
@@ -312,6 +326,8 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         "idx_usage_events_client_created": "CREATE INDEX idx_usage_events_client_created ON usage_events(client_type, created_at DESC)",
         "idx_usage_events_result_created": "CREATE INDEX idx_usage_events_result_created ON usage_events(result, created_at DESC)",
         "idx_usage_events_task_trace": "CREATE INDEX idx_usage_events_task_trace ON usage_events(task_trace_id, created_at DESC)",
+        "idx_usage_events_behavior_trace": "CREATE INDEX idx_usage_events_behavior_trace ON usage_events(behavior_trace_id, created_at DESC)",
+        "idx_usage_events_behavior_event": "CREATE INDEX idx_usage_events_behavior_event ON usage_events(behavior_event_id)",
     }
     for name, sql in usage_indexes.items():
         if not _index_exists(connection, name):
@@ -342,6 +358,7 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   actor_user_id TEXT NULL REFERENCES users(id),
                   client_type TEXT,
                   parent_request_id TEXT,
+                  behavior_trace_id TEXT,
                   resource_type TEXT,
                   resource_id TEXT,
                   started_at TEXT NOT NULL,
@@ -361,10 +378,13 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
         columns = _column_names(connection, "task_traces")
         if "parent_request_id" not in columns:
             connection.execute(text("ALTER TABLE task_traces ADD COLUMN parent_request_id TEXT"))
+        if "behavior_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE task_traces ADD COLUMN behavior_trace_id TEXT"))
 
     trace_indexes = {
         "idx_task_traces_task_trace_id": "CREATE INDEX idx_task_traces_task_trace_id ON task_traces(task_trace_id)",
         "idx_task_traces_parent_request_id": "CREATE INDEX idx_task_traces_parent_request_id ON task_traces(parent_request_id, created_at DESC)",
+        "idx_task_traces_behavior_trace": "CREATE INDEX idx_task_traces_behavior_trace ON task_traces(behavior_trace_id, created_at DESC)",
         "idx_task_traces_type_created": "CREATE INDEX idx_task_traces_type_created ON task_traces(task_type, created_at DESC)",
         "idx_task_traces_status_created": "CREATE INDEX idx_task_traces_status_created ON task_traces(status, created_at DESC)",
     }
@@ -387,6 +407,7 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                   duration_ms INTEGER,
                   sequence INTEGER NOT NULL DEFAULT 0,
                   request_id TEXT,
+                  behavior_trace_id TEXT,
                   actor_user_id TEXT NULL REFERENCES users(id),
                   client_type TEXT,
                   resource_type TEXT,
@@ -399,10 +420,15 @@ def _ensure_product_usage_logging_support(connection: Connection) -> None:
                 """
             )
         )
+    else:
+        columns = _column_names(connection, "task_trace_spans")
+        if "behavior_trace_id" not in columns:
+            connection.execute(text("ALTER TABLE task_trace_spans ADD COLUMN behavior_trace_id TEXT"))
 
     span_indexes = {
         "idx_task_trace_spans_trace_sequence": "CREATE INDEX idx_task_trace_spans_trace_sequence ON task_trace_spans(task_trace_id, sequence, started_at)",
         "idx_task_trace_spans_request_id": "CREATE INDEX idx_task_trace_spans_request_id ON task_trace_spans(request_id)",
+        "idx_task_trace_spans_behavior_trace": "CREATE INDEX idx_task_trace_spans_behavior_trace ON task_trace_spans(behavior_trace_id, created_at DESC)",
         "idx_task_trace_spans_type_created": "CREATE INDEX idx_task_trace_spans_type_created ON task_trace_spans(task_type, created_at DESC)",
     }
     for name, sql in span_indexes.items():

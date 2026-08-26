@@ -5,7 +5,7 @@
 ## Requirements
 ### Requirement: 管理端用户列表与筛选 API
 
-系统 MUST 提供 `GET /api/v1/admin/users`，仅 `role=admin` 的用户可调用。接口 MUST 支持分页（默认 `page_size=10`，可选 10/20/50）、关键词模糊搜索（username、display_name、email、phone）、角色筛选、状态筛选（`active`/`disabled`/`deleted`）与登录情况筛选（从未登录、最近 7 天登录、超过 30 天未登录）。响应 MUST 包含用户列表与 summary（用户总数、当前筛选数、正常用户数、已冻结用户数）。每条用户记录 MUST 同时返回 `avatar_object_key` 与可访问的 `avatar_url`（当 `avatar_object_key` 非空时，`avatar_url` MUST 为 `/media/{object_key}` 形式且浏览器可加载），并 MUST 返回联系邮箱 `email` 与手机号码 `phone`。
+系统 MUST 提供 `GET /api/v1/admin/users`，仅 `role=admin` 的用户可调用。接口 MUST 支持分页（默认 `page_size=10`，可选 10/20/50）、关键词模糊搜索（username、display_name、email、phone）、角色筛选、状态筛选（`active`/`disabled`/`deleted`）与登录情况筛选（从未登录、最近 7 天登录、超过 30 天未登录）。响应 MUST 包含用户列表与 summary（用户总数、当前筛选数、正常用户数、已冻结用户数）。每条用户记录 MUST 同时返回 `avatar_object_key` 与可访问的 `avatar_url`。当 `avatar_object_key` 非空时，`avatar_url` MUST 为 `/media/{object_key}` 或等价受控媒体 URL，且 SHOULD 对应可加载对象；若历史数据漂移导致对象缺失，系统 MUST 通过数据修复或安全 fallback 避免用户可见破损头像。
 
 系统 MUST 以 `settings.admin_username` / `ADMIN_USERNAME` 作为唯一事实源识别受保护系统账号。用户列表中每条用户记录 MUST 返回 `is_protected` 与 `protected_reason` 字段；受保护账号 MUST 返回 `is_protected=true` 与明确中文原因，普通用户 MUST 返回 `is_protected=false` 且 `protected_reason=null`。
 
@@ -14,33 +14,7 @@
 - **WHEN** `admin` 携带有效 token 请求 `GET /api/v1/admin/users`
 - **THEN** 系统返回 HTTP 200，`data` 包含 `items`、`pagination` 与 `summary`
 - **AND** 每条用户记录 MUST 包含 id、username、display_name、role、status、avatar_object_key、avatar_url、email、phone、last_login_at、created_at、is_protected、protected_reason
-- **AND** 当 `avatar_object_key` 非空时 `avatar_url` MUST 非空且可加载
-
-#### Scenario: 关键词搜索匹配联系信息
-
-- **GIVEN** 数据库存在联系邮箱或手机号码非空的用户
-- **WHEN** `admin` 使用邮箱或手机号码片段请求 `GET /api/v1/admin/users?keyword=...`
-- **THEN** 系统 MUST 返回匹配 `email` 或 `phone` 的用户
-- **AND** 角色、状态、登录情况筛选与分页语义 MUST 保持不变
-
-#### Scenario: 受保护账号在列表中带保护标识
-
-- **GIVEN** `ADMIN_USERNAME=admin`
-- **AND** 数据库存在 username 为 `admin` 的用户
-- **WHEN** `admin` 请求 `GET /api/v1/admin/users`
-- **THEN** 该用户记录 MUST 返回 `is_protected=true`
-- **AND** `protected_reason` MUST 为明确中文说明
-- **AND** 其他普通 `role=admin` 用户 MUST 返回 `is_protected=false`
-
-#### Scenario: 非管理员被拒绝
-
-- **WHEN** `employee` 或 `store_owner` 请求 `GET /api/v1/admin/users`
-- **THEN** 系统 MUST 返回 HTTP 403
-
-#### Scenario: 分页默认值
-
-- **WHEN** 请求未指定 `page_size`
-- **THEN** 系统 MUST 默认每页 10 条
+- **AND** 当 `avatar_object_key` 非空时 `avatar_url` MUST 非空且使用受控媒体 URL
 
 ### Requirement: 管理端用户创建 API
 
@@ -85,7 +59,7 @@
 
 ### Requirement: 管理端用户更新 API
 
-系统 MUST 提供 `GET /api/v1/admin/users/{id}` 与 `PATCH /api/v1/admin/users/{id}`，仅 `admin` 可调用。GET 返回的用户对象 MUST 包含 `is_protected`、`protected_reason`、`email`、`phone`。PATCH MUST 允许更新 display_name、role、avatar_object_key、email、phone；username MUST NOT 可修改。当目标用户为受保护账号时，PATCH MUST 返回 HTTP 403 与已登记错误码，且 MUST NOT 修改 display_name、role、avatar_object_key、email、phone 或其他用户资料字段。
+系统 MUST 提供 `GET /api/v1/admin/users/{id}` 与 `PATCH /api/v1/admin/users/{id}`，仅 `admin` 可调用。GET 返回的用户对象 MUST 包含 `is_protected`、`protected_reason`、`email`、`phone`。PATCH MUST 允许更新 display_name、role、avatar_object_key、email、phone；username MUST NOT 可修改。当目标用户为受保护账号时，PATCH MUST 返回 HTTP 403 与已登记错误码，且 MUST NOT 修改 display_name、role、avatar_object_key、email、phone 或其他用户资料字段。写入非空 `avatar_object_key` 时 SHOULD 与 profile self-service API 保持一致的对象存在性校验；若本次实现范围不修改管理员代改接口，MUST 在验收记录中说明差异和后续处理方式。
 
 `email` 与 `phone` 字段缺省时 MUST 保持原值；显式传入 `null` 或空白字符串时 MUST 清空对应字段。
 
@@ -94,26 +68,6 @@
 - **WHEN** `admin` PATCH 合法 display_name、role、email、phone
 - **THEN** 系统返回 HTTP 200 与更新后用户对象
 - **AND** 响应用户对象 MUST 包含更新后的 `email` 与 `phone`
-
-#### Scenario: 清空联系信息
-
-- **GIVEN** 目标用户已有 `email` 与 `phone`
-- **WHEN** `admin` PATCH `email=null` 与 `phone=null`
-- **THEN** 系统 MUST 清空对应字段
-- **AND** 再次 GET 详情时 `email` 与 `phone` MUST 为 `null`
-
-#### Scenario: 联系信息不参与权限判断
-
-- **WHEN** `admin` 更新目标用户 `email` 或 `phone`
-- **THEN** 目标用户的 role、status、password_hash、token_version MUST NOT 因联系信息变化而改变
-
-#### Scenario: 受保护账号禁止编辑联系信息
-
-- **GIVEN** 目标用户 username 等于 `ADMIN_USERNAME`
-- **WHEN** `admin` 请求 `PATCH /api/v1/admin/users/{id}` 修改 email 或 phone
-- **THEN** 系统 MUST 返回 HTTP 403
-- **AND** 错误响应 `code` MUST 为已登记的受保护账号错误码
-- **AND** 数据库中的 email 与 phone MUST 保持不变
 
 ### Requirement: 管理端重置密码 API
 
@@ -166,31 +120,13 @@
 
 Web 客户端 MUST 提供 `/admin/users` 页面，视觉 MUST 高保真对齐 `user-management-list.html` / `user-management-list.png` 的 CSS Port 策略。页面 MUST 继承 `AdminLayout`（264px Sidebar、右侧独立滚动、主内容宽度跟随全局 Admin Shell `content-inner` 策略，MUST NOT 重新锁定为 1080px）。当前路由为用户管理时 SYSTEM「用户管理」导航 MUST 为 active。用户列表「用户」列 MUST 在有 `avatar_url` 时展示头像图片，无头像时 MUST 展示 initials 占位；图片加载失败 MUST 稳定回退 initials 且不引起布局跳动。
 
-用户表格 MUST 按以下列顺序展示：用户、角色、状态、联系邮箱、手机号码、最后登录、创建时间、操作。联系邮箱和手机号码 MUST 作为「状态」列后的独立列展示；为空时单元格 MUST 显示 `-`。创建时间 MUST 按 `yyyy-mm-dd hh:MM` 分钟级格式展示。搜索 placeholder 或帮助文案 MUST 表达可搜索用户名、昵称、邮箱、手机。
+#### Scenario: 用户列表头像加载失败兜底
 
-#### Scenario: 管理员访问用户管理页
-
-- **WHEN** `role=admin` 用户访问 `/admin/users`
-- **THEN** MUST 展示页面标题「用户管理」、筛选区、4 指标卡、用户表格与分页
-- **AND** 样式 MUST 主要来自 port CSS（`user-management.css`）
-- **AND** 页面内容宽度 MUST 跟随全局 Admin Shell 策略，不得通过页面级 max-width 退回 1080px。
-
-#### Scenario: 列表展示联系信息独立列
-
-- **WHEN** 用户查看表格
-- **THEN** MUST 展示用户、角色、状态、联系邮箱、手机号码、最后登录、创建时间、操作列
-- **AND** 联系邮箱列 MUST 位于状态列之后
-- **AND** 手机号码列 MUST 位于联系邮箱列之后
-- **AND** 联系邮箱或手机号码为空时 MUST 显示 `-`
-- **AND** 创建时间 MUST 显示为 `yyyy-mm-dd hh:MM` 格式
-- **AND** 新增两列不得遮挡操作列；窄屏 MUST 沿用既有横向滚动策略
-
-#### Scenario: 筛选与搜索交互
-
-- **WHEN** 用户输入用户名、昵称、邮箱或手机号关键词并点击搜索或按回车
-- **THEN** 系统 MUST 带 query 重新请求列表并重置到第 1 页
-- **WHEN** 用户点击「重置」
-- **THEN** MUST 清空筛选并重新加载默认列表。
+- **GIVEN** 用户列表记录包含非空 `avatar_url`
+- **WHEN** 头像图片加载失败
+- **THEN** 用户列表 MUST 显示 initials fallback
+- **AND** MUST NOT 展示破损图片
+- **AND** 表格行高与布局 MUST 保持稳定
 
 ### Requirement: 管理端用户表单弹窗
 

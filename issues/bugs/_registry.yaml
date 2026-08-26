@@ -1,32 +1,59 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 142
+next_id: 145
 entries:
+  - id: BUG-0144-miniapp-usage-events-overreporting
+    title: 小程序商品列表页与搜索页 usage-events 仍可能偏多
+    status: in_sprint
+    severity: medium
+    created: "2026-08-26 08:29:04"
+    related_requirement: null
+    related_bug: BUG-0143-miniapp-telemetry-request-amplification
+    related_change: fix-miniapp-usage-events-overreporting
+    iteration: sprint-026
+  - id: BUG-0143-miniapp-telemetry-request-amplification
+    title: 微信小程序启动阶段埋点请求数量异常偏高
+    status: in_sprint
+    severity: medium
+    created: "2026-08-25 22:34:46"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-miniapp-telemetry-request-amplification
+    iteration: sprint-026
+  - id: BUG-0142-admin-avatar-upload-storage-put-slow
+    title: 管理端头像上传小文件对象存储写入耗时 30 秒以上
+    status: in_sprint
+    severity: high
+    created: "2026-08-25 17:40:13"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-avatar-webp-thumbnail-timeout
+    iteration: sprint-026
   - id: BUG-0141-ai-usage-token-count-jsonl
     title: AI usage extractor 未识别新版 token_count JSONL 导致 Sprint snapshot 缺失
-    status: draft
+    status: in_sprint
     severity: medium
     created: "2026-08-25 15:01:59"
     related_requirement: null
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-ai-usage-message-content-token-count
+    iteration: sprint-026
   - id: BUG-0140-admin-current-user-avatar-missing-object
     title: 当前登录用户头像对象缺失导致媒体资源 404
-    status: captured
+    status: done
     severity: high
     created: "2026-08-25 14:36:24"
     related_requirement: null
     related_bug: null
-    related_change: null
-    iteration: null
+    related_change: fix-admin-current-user-avatar-object-consistency
+    iteration: sprint-026
   - id: BUG-0139-admin-avatar-upload-nginx-redirect-cors
     title: 管理后台头像上传被 Nginx 301 重定向丢端口导致 CORS 拦截
-    status: captured
+    status: done
     severity: high
     created: "2026-08-25 14:36:24"
     related_requirement: null
     related_bug: null
-    related_change: null
+    related_change: fix-admin-avatar-upload-nginx-redirect-cors
     iteration: null
   - id: BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml
     title: Workflow Sync 写入 REQ trace frontmatter 时可能生成非法 YAML 结构

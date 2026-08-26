@@ -56,7 +56,15 @@ function cleanProperties(properties) {
   return next;
 }
 
+function isTelemetryPath(path) {
+  return path.indexOf('/api/v1/usage-events') === 0 || path.indexOf('/api/v1/performance-events') === 0;
+}
+
 function request(path, options = {}) {
+  const skipPerformanceTracking = Boolean(options.skipPerformanceTracking);
+  const requestOptions = { ...options };
+  delete requestOptions.skipPerformanceTracking;
+  const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
   const attempts = [];
@@ -67,23 +75,25 @@ function request(path, options = {}) {
     const startedAt = Date.now();
     return new Promise((resolve, reject) => {
       wx.request({
-        ...options,
+        ...requestOptions,
         url,
         header: {
           'content-type': 'application/json',
-          ...(options.header || {}),
+          ...(requestOptions.header || {}),
           'x-client-type': CLIENT_TYPE,
           ...(clientRequestId ? { 'x-client-request-id': clientRequestId } : {}),
         },
         success: (res) => {
           const body = res.data;
-          reportPerformanceMetric({
-            page_key: path,
-            metric_name: 'api_duration',
-            duration_ms: Date.now() - startedAt,
-            device_class: 'miniapp',
-            request_id: clientRequestId,
-          });
+          if (shouldReportPerformance) {
+            reportPerformanceMetric({
+              page_key: path,
+              metric_name: 'api_duration',
+              duration_ms: Date.now() - startedAt,
+              device_class: 'miniapp',
+              request_id: clientRequestId,
+            });
+          }
           if (res.statusCode >= 200 && res.statusCode < 300 && body && body.code === 0) {
             resolve(normalizeMediaUrls(body.data, currentBaseUrl));
             return;
@@ -102,13 +112,15 @@ function request(path, options = {}) {
           reject(error);
         },
         fail: (error) => {
-          reportPerformanceMetric({
-            page_key: path,
-            metric_name: 'api_failed_duration',
-            duration_ms: Date.now() - startedAt,
-            device_class: 'miniapp',
-            request_id: clientRequestId,
-          });
+          if (shouldReportPerformance) {
+            reportPerformanceMetric({
+              page_key: path,
+              metric_name: 'api_failed_duration',
+              duration_ms: Date.now() - startedAt,
+              device_class: 'miniapp',
+              request_id: clientRequestId,
+            });
+          }
           attempts.push({
             url,
             errMsg: error && error.errMsg,
@@ -133,6 +145,7 @@ function track(eventName, properties) {
   const cleanedProperties = cleanProperties(properties);
   request('/api/v1/usage-events', {
     method: 'POST',
+    skipPerformanceTracking: true,
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,

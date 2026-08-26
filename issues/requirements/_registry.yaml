@@ -1,7 +1,42 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 123
+next_id: 128
 entries:
+  - id: REQ-0127-product-data-collection-observability-hard-gate
+    title: 产品数据采集与链路观测规范硬门禁
+    status: in_sprint
+    iteration: sprint-026
+    created: "2026-08-26 19:48:35"
+    parent_requirement: REQ-0126-product-data-collection-observability-standard
+    related_change: add-product-data-collection-observability-hard-gate
+  - id: REQ-0126-product-data-collection-observability-standard
+    title: 建立通用产品数据采集与链路观测规范
+    status: in_sprint
+    iteration: null
+    created: "2026-08-26 09:56:28"
+    parent_requirement: REQ-0124-log-audit-behavior-trace-model
+    related_change: add-product-data-collection-observability-standard
+  - id: REQ-0125-miniapp-certificate-detail-home-floating-button
+    title: 小程序证书详情页新增返回首页悬浮按钮
+    status: in_sprint
+    iteration: sprint-026
+    created: "2026-08-25 22:30:50"
+    parent_requirement: REQ-0085-miniapp-global-home-floating-button
+    related_change: update-miniapp-certificate-detail-home-floating-button
+  - id: REQ-0124-log-audit-behavior-trace-model
+    title: 日志审计补齐行为链路与任务链路采集模型
+    status: in_sprint
+    iteration: sprint-026
+    created: "2026-08-25 22:20:40"
+    parent_requirement: REQ-0024-product-usage-logging
+    related_change: add-log-audit-behavior-trace-model
+  - id: REQ-0123-upload-stage-trace-spans
+    title: 上传链路阶段级耗时写入 trace spans
+    status: in_sprint
+    iteration: null
+    created: "2026-08-25 18:37:29"
+    parent_requirement: REQ-0115-media-multi-variant-images
+    related_change: add-upload-stage-trace-spans
   - id: REQ-0122-batch-image-processing-runbook
     title: 批量图片处理 Runbook
     status: done

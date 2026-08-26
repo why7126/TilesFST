@@ -830,6 +830,8 @@ class RequestLogContext:
     duration_ms: int
     ip_address: str | None
     user_agent: str | None
+    behavior_trace_id: str | None = None
+    parent_behavior_event_id: str | None = None
     error_code: str | None = None
     metadata: dict[str, Any] | None = None
     task_trace_id: str | None = None
@@ -850,6 +852,8 @@ class LogService:
             actor_role=context.actor_role,
             client_type=context.client_type,
             client_request_id=context.client_request_id,
+            behavior_trace_id=context.behavior_trace_id,
+            parent_behavior_event_id=context.parent_behavior_event_id,
             method=context.method,
             path=context.path,
             status_code=context.status_code,
@@ -893,6 +897,12 @@ class LogService:
         effective_client_request_id = truncate_text(payload.client_request_id or client_request_id, 128)
         if effective_client_request_id:
             sanitized["client_request_id"] = effective_client_request_id
+        behavior_trace_id = validate_behavior_id(payload.behavior_trace_id or sanitized.get("behavior_trace_id"))
+        behavior_event_id = validate_behavior_id(payload.behavior_event_id or sanitized.get("behavior_event_id"))
+        if behavior_trace_id:
+            sanitized["behavior_trace_id"] = behavior_trace_id
+        if behavior_event_id:
+            sanitized["behavior_event_id"] = behavior_event_id
         actor_user_id = current_user.id if current_user else None
         actor_role = current_user.role if current_user else "anonymous"
         client_type = payload.client_type or "web_admin"
@@ -902,6 +912,8 @@ class LogService:
             actor_user_id=actor_user_id,
             actor_role=actor_role,
             client_type=client_type,
+            behavior_trace_id=behavior_trace_id,
+            behavior_event_id=behavior_event_id,
             event_name=payload.event_name,
             event_category=str(definition["category"]),
             page_path=payload.page_path or str(sanitized.get("page_path") or ""),
@@ -915,7 +927,7 @@ class LogService:
             task_type=truncate_text(payload.task_type, 64),
             metadata=safe_json_dumps(sanitized),
         )
-        return UsageEventData(id=event_id, accepted=True)
+        return UsageEventData(id=event_id, accepted=True, behavior_trace_id=behavior_trace_id, behavior_event_id=behavior_event_id)
 
     def list_logs(self, params: LogQueryParams) -> LogListData:
         result = self._repo.list_logs(
@@ -929,6 +941,7 @@ class LogService:
             result=params.result,
             resource_id=params.resource_id,
             path_or_request_id=params.path_or_request_id,
+            behavior_trace_id=params.behavior_trace_id,
             task_trace_id=params.task_trace_id,
             start_time=params.start_time,
             end_time=params.end_time,
@@ -997,6 +1010,8 @@ class LogService:
                     "状态 / 结果": format_result(record),
                     "request_id": record.request_id or "-",
                     "client_request_id": record.client_request_id or metadata.get("client_request_id", "-") or "-",
+                    "behavior_trace_id": record.behavior_trace_id or "无界面行为来源",
+                    "parent_behavior_event_id": record.parent_behavior_event_id or "未采集",
                     "task_trace_id": record.task_trace_id or "-",
                     "发生时间": record.created_at,
                 },
@@ -1029,6 +1044,7 @@ class LogService:
                     "操作摘要": record.summary,
                     "结果": record.result,
                     "路径 / 资源": record.path or "-",
+                    "行为链路": record.behavior_trace_id or "无界面行为来源",
                     "Task Trace": record.task_trace_id or "-",
                 },
             ),
@@ -1058,6 +1074,7 @@ class LogService:
             task_type=timeline.trace.task_type,
             status=timeline.trace.status,
             parent_request_id=timeline.trace.parent_request_id,
+            behavior_trace_id=timeline.trace.behavior_trace_id,
             duration_ms=timeline.trace.duration_ms,
             resource_type=timeline.trace.resource_type,
             resource_id=timeline.trace.resource_id,
@@ -1072,6 +1089,7 @@ class LogService:
                     ended_at=span.ended_at,
                     duration_ms=span.duration_ms,
                     request_id=span.request_id,
+                    behavior_trace_id=span.behavior_trace_id,
                     error_code=span.error_code,
                     summary=span.summary,
                     is_slowest=span.span_name == slowest_span_name,
@@ -1103,6 +1121,7 @@ class LogService:
                     task_type=timeline.trace.task_type,
                     status=timeline.trace.status,
                     parent_request_id=timeline.trace.parent_request_id,
+                    behavior_trace_id=timeline.trace.behavior_trace_id,
                     duration_ms=timeline.trace.duration_ms,
                     resource_type=timeline.trace.resource_type,
                     resource_id=timeline.trace.resource_id,
@@ -1117,6 +1136,7 @@ class LogService:
                             ended_at=span.ended_at,
                             duration_ms=span.duration_ms,
                             request_id=span.request_id,
+                            behavior_trace_id=span.behavior_trace_id,
                             error_code=span.error_code,
                             summary=span.summary,
                             is_slowest=span.span_name == slowest_span_name,
@@ -1143,6 +1163,8 @@ def to_list_item(record: LogRecord) -> LogListItem:
         duration_ms=record.duration_ms,
         request_id=record.request_id,
         client_request_id=record.client_request_id,
+        behavior_trace_id=record.behavior_trace_id,
+        parent_behavior_event_id=record.parent_behavior_event_id,
         task_trace_id=record.task_trace_id,
         task_type=record.task_type,
         task_status=record.task_status,
@@ -1241,6 +1263,8 @@ def build_request_snapshot(record: LogRecord, metadata: dict[str, Any]) -> Reque
             "route_match_status": "unknown",
             "request_id": record.request_id,
             "client_request_id": record.client_request_id,
+            "behavior_trace_id": record.behavior_trace_id,
+            "parent_behavior_event_id": record.parent_behavior_event_id,
         },
         "input": {
             "query": {},
@@ -1300,6 +1324,18 @@ def truncate_text(value: str | None, limit: int) -> str | None:
     if len(text_value) <= limit:
         return text_value
     return text_value[: limit - 3] + "..."
+
+
+def validate_behavior_id(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    stripped = value.strip()
+    if not stripped or len(stripped) > 128:
+        return None
+    allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-")
+    if any(char not in allowed for char in stripped):
+        return None
+    return stripped
 
 
 def today_start_utc() -> str:

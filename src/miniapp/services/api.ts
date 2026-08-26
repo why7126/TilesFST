@@ -11,6 +11,10 @@ type ApiResponse<T> = {
   data: T;
 };
 
+type MiniappRequestOption = WechatMiniprogram.RequestOption & {
+  skipPerformanceTracking?: boolean;
+};
+
 function baseUrl(): string {
   const app = getApp<{
     globalData?: { apiBaseUrl?: string; apiFallbackBaseUrls?: string[]; environment?: string };
@@ -68,7 +72,13 @@ function cleanProperties(properties: Record<string, unknown>): Record<string, un
   return next;
 }
 
-export function request<T>(path: string, options: WechatMiniprogram.RequestOption = {}): Promise<T> {
+function isTelemetryPath(path: string): boolean {
+  return path.indexOf('/api/v1/usage-events') === 0 || path.indexOf('/api/v1/performance-events') === 0;
+}
+
+export function request<T>(path: string, options: MiniappRequestOption = {}): Promise<T> {
+  const { skipPerformanceTracking, ...requestOptions } = options;
+  const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
   const attempts: Array<{
@@ -84,23 +94,25 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
     const startedAt = Date.now();
     return new Promise((resolve, reject) => {
       wx.request<ApiResponse<T>>({
-        ...options,
+        ...requestOptions,
         url,
         header: {
           'content-type': 'application/json',
-          ...(options.header || {}),
+          ...(requestOptions.header || {}),
           'x-client-type': CLIENT_TYPE,
           ...(clientRequestId ? { 'x-client-request-id': clientRequestId } : {}),
         },
         success: (res) => {
           const body = res.data;
-          reportPerformanceMetric({
-            page_key: path,
-            metric_name: 'api_duration',
-            duration_ms: Date.now() - startedAt,
-            device_class: 'miniapp',
-            request_id: clientRequestId,
-          });
+          if (shouldReportPerformance) {
+            reportPerformanceMetric({
+              page_key: path,
+              metric_name: 'api_duration',
+              duration_ms: Date.now() - startedAt,
+              device_class: 'miniapp',
+              request_id: clientRequestId,
+            });
+          }
           if (res.statusCode >= 200 && res.statusCode < 300 && body?.code === 0) {
             resolve(normalizeMediaUrls(body.data, currentBaseUrl) as T);
             return;
@@ -121,13 +133,15 @@ export function request<T>(path: string, options: WechatMiniprogram.RequestOptio
           reject(error);
         },
         fail: (error) => {
-          reportPerformanceMetric({
-            page_key: path,
-            metric_name: 'api_failed_duration',
-            duration_ms: Date.now() - startedAt,
-            device_class: 'miniapp',
-            request_id: clientRequestId,
-          });
+          if (shouldReportPerformance) {
+            reportPerformanceMetric({
+              page_key: path,
+              metric_name: 'api_failed_duration',
+              duration_ms: Date.now() - startedAt,
+              device_class: 'miniapp',
+              request_id: clientRequestId,
+            });
+          }
           attempts.push({
             url,
             errMsg: error.errMsg,
@@ -151,6 +165,7 @@ export function track(eventName: string, properties: Record<string, unknown>): v
   const cleanedProperties = cleanProperties(properties);
   request('/api/v1/usage-events', {
     method: 'POST',
+    skipPerformanceTracking: true,
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,

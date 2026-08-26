@@ -54,6 +54,11 @@ function normalizePageKey(value: string): string {
   return value.replace(/^\//, '').split('?')[0] || 'miniapp/unknown';
 }
 
+function isTelemetryPageKey(value: string): boolean {
+  const normalized = normalizePageKey(value);
+  return normalized === 'api/v1/usage-events' || normalized === 'api/v1/performance-events';
+}
+
 function resolveNetworkType(input: string | undefined, callback: (networkType: string) => void): void {
   if (input) {
     callback(input);
@@ -76,6 +81,9 @@ function resolveNetworkType(input: string | undefined, callback: (networkType: s
 
 export function reportPerformanceMetric(metric: PerformanceMetric): void {
   if (!Number.isFinite(metric.duration_ms) || metric.duration_ms < 0) {
+    return;
+  }
+  if (isTelemetryPageKey(metric.page_key)) {
     return;
   }
   resolveNetworkType(metric.network_type, (networkType) => {

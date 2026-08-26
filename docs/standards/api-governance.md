@@ -4,7 +4,7 @@ content: REST 设计原则、URL/Method/版本、统一返回与 OpenAPI First
 source: rules/api.md / build-api-standard
 update_method: API 规范变更时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-26 15:44:14
+updated_at: 2026-08-26 10:58:47
 ---
 
 # API 治理体系
@@ -104,6 +104,8 @@ updated_at: 2026-07-26 15:44:14
 4. 前端禁止手写接口类型
 
 ## 跨端请求身份
+
+通用产品数据采集、行为链路、直接 API 调用、Task Trace 分级覆盖、默认保留周期和脱敏边界见 `docs/standards/product-data-collection-observability.md`。本节只保留 API 请求身份字段和 OpenAPI / Orval 治理要求。
 
 普通 API 请求 SHOULD 携带以下请求身份字段：
 

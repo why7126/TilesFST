@@ -4,7 +4,7 @@ content: change / archive 两阶段目录职责、准入条件、迁移时机与
 source: 项目团队确认
 update_method: Sprint 流程或目录边界变化时同步更新
 created_at: 2026-06-27 23:45:00
-updated_at: 2026-08-22 14:12:50
+updated_at: 2026-08-26 20:26:00
 note: 与 issues plan/review/archive 互补；机器索引仍为 sprint.yaml
 ---
 
@@ -184,3 +184,9 @@ Sprint close / `/sprint-archive` 前 MUST 通过 `python scripts/validate-sprint
 □ 是否运行 Sprint close stale scan / archive readiness，确认四件套无过期中间态文案？
 □ 是否运行 sync-workflow-status.py --check ？
 ```
+
+## 9. 产品数据采集与链路观测门禁
+
+Sprint 纳入、执行或归档涉及 API、DB、日志审计、行为埋点、Task Trace、Web 请求封装、小程序请求封装或 App 请求封装的 REQ、BUG 或 Change 时，MUST 读取 `docs/standards/product-data-collection-observability.md` 并摘要报告门禁状态。
+
+Sprint 文档只记录 `product_data_collection_observability` 适用性、`affected_layers` 适用层级、N/A 原因、`validation` 验证摘要或缺失项，不得复制完整规范正文。`/sprint-archive` 前若相关范围缺少声明或验收结果，MUST 返回对应 REQ / Change 修复。

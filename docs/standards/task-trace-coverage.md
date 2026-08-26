@@ -3,10 +3,12 @@ purpose: Task Trace 覆盖清单
 content: REQ-0074 首批任务型接口候选清单、接入优先级、span 策略与后续排期
 source: /opsx-apply update-task-trace-coverage-expansion
 created_at: 2026-07-26 15:34:18
-updated_at: 2026-07-26 15:34:18
+updated_at: 2026-08-26 10:58:47
 ---
 
 # Task Trace 覆盖清单
+
+通用产品数据采集、请求日志、Task Trace 分级覆盖、默认保留周期和脱敏边界见 `docs/standards/product-data-collection-observability.md`。本文保留本项目 Task Trace 候选接口清单与首批接入策略，避免重复完整通用规范。
 
 ## 1. 判定标准
 

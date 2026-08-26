@@ -3,6 +3,10 @@ const { track } = require('../../services/api');
 const FALLBACK_IMAGE = '';
 const NAV_LOCK_MS = 800;
 const MAX_PARAM_LENGTH = 80;
+const EXPOSURE_FLUSH_DELAY_MS = 120;
+
+const trackedExposureKeys = {};
+const pendingExposureBatches = {};
 
 function telemetryId() {
   return `product-card-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
@@ -37,6 +41,64 @@ function cleanParam(value) {
 function queryPair(key, value) {
   const cleaned = cleanParam(value);
   return cleaned ? `${key}=${encodeURIComponent(cleaned)}` : '';
+}
+
+function exposureKey(properties) {
+  return [
+    properties.page_path,
+    properties.sourcePage,
+    properties.sourceModule,
+    properties.listContext,
+    properties.keyword || 'no-keyword',
+    properties.requestId || 'no-request',
+    properties.skuId || 'missing-sku',
+  ].join('|');
+}
+
+function batchKey(properties) {
+  return [
+    properties.page_path,
+    properties.sourcePage,
+    properties.sourceModule,
+    properties.listContext,
+    properties.keyword || 'no-keyword',
+    properties.requestId || 'no-request',
+  ].join('|');
+}
+
+function queueProductCardExposure(properties) {
+  if (!properties.skuId) return;
+  const uniqueKey = exposureKey(properties);
+  if (trackedExposureKeys[uniqueKey]) return;
+  trackedExposureKeys[uniqueKey] = true;
+
+  const key = batchKey(properties);
+  const batch = pendingExposureBatches[key] || { items: [] };
+  batch.items.push(properties);
+  pendingExposureBatches[key] = batch;
+  if (batch.timer) return;
+
+  batch.timer = setTimeout(() => {
+    flushProductCardExposureBatch(key);
+  }, EXPOSURE_FLUSH_DELAY_MS);
+}
+
+function flushProductCardExposureBatch(key) {
+  const batch = pendingExposureBatches[key];
+  if (!batch || batch.items.length === 0) return;
+  delete pendingExposureBatches[key];
+
+  const first = batch.items[0];
+  track('product_card_exposure', {
+    ...first,
+    exposureCount: batch.items.length,
+    exposureItems: batch.items.map((item) => ({
+      skuId: item.skuId,
+      skuCode: item.skuCode,
+      index: item.index,
+      requestId: item.requestId,
+    })),
+  });
 }
 
 function normalizeProduct(product) {
@@ -94,7 +156,7 @@ Component({
         normalized,
         imageFailed: false,
       });
-      this.trackCard('product_card_exposure', normalized);
+      this.trackCardExposure(normalized);
     },
   },
 
@@ -148,8 +210,8 @@ Component({
       return requestId;
     },
 
-    trackCard(eventName, normalized) {
-      track(eventName, {
+    cardTelemetryProperties(normalized) {
+      return {
         page_path: '/components/product-card/index',
         skuId: normalized.skuId || undefined,
         skuCode: normalized.skuCode,
@@ -161,7 +223,15 @@ Component({
         brandId: this.properties.brandId || undefined,
         keyword: this.properties.keyword || undefined,
         requestId: this.resolveTelemetryRequestId(),
-      });
+      };
+    },
+
+    trackCardExposure(normalized) {
+      queueProductCardExposure(this.cardTelemetryProperties(normalized));
+    },
+
+    trackCard(eventName, normalized) {
+      track(eventName, this.cardTelemetryProperties(normalized));
     },
   },
 });

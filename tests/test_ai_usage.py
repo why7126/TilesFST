@@ -103,6 +103,60 @@ def test_parse_token_count_supports_payload_info_last_token_usage(tmp_path: Path
     assert records[0]["total_tokens"] == 120
 
 
+def test_parse_new_message_content_list_groups_payload_info_token_count(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(
+        session,
+        [
+            {
+                "timestamp": "2026-08-25T07:30:00Z",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "[$opsx-apply](/repo/.agents/skills/opsx-apply/SKILL.md) `BUG-0141` sprint-026 fix-ai-usage-message-content-token-count",
+                        }
+                    ],
+                },
+            },
+            {
+                "timestamp": "2026-08-25T07:30:10Z",
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "last_token_usage": {
+                            "input_tokens": 31,
+                            "cached_input_tokens": 11,
+                            "output_tokens": 7,
+                            "reasoning_output_tokens": 5,
+                            "total_tokens": 43,
+                        }
+                    },
+                },
+            },
+        ],
+    )
+
+    records, warnings = ai_usage.parse_session_jsonl(session)
+
+    assert warnings == []
+    assert len(records) == 1
+    record = records[0]
+    assert record["workflow_event"] == "opsx.apply"
+    assert record["bugs"] == ["BUG-0141-ai-usage-token-count-jsonl"]
+    assert record["changes"] == ["fix-ai-usage-message-content-token-count"]
+    assert record["sprint_id"] == "sprint-026"
+    assert record["attribution_confidence"] == "high"
+    assert record["model_call_count"] == 1
+    assert record["input_tokens"] == 31
+    assert record["cached_input_tokens"] == 11
+    assert record["output_tokens"] == 7
+    assert record["reasoning_output_tokens"] == 5
+    assert record["total_tokens"] == 43
+
+
 def test_parse_session_attaches_model_metadata_to_command_run(tmp_path: Path) -> None:
     session = tmp_path / "session.jsonl"
     write_jsonl(
@@ -312,6 +366,11 @@ def test_aggregate_sprint_includes_scope_records_without_sprint_id(tmp_path: Pat
     assert matrix_rows["Total"]["metrics"]["total_tokens"]["Opsx-Apply"] == 17
     assert matrix_rows["REQ-0999-scope-only"]["metrics"]["total_tokens"]["REQ-Capture"] == 11
     assert matrix_rows["BUG-0999-scope-only"]["metrics"]["total_tokens"]["BUG-Capture"] == 13
+    columns = {column["label"]: column for column in snapshot["usage_matrices"]["columns"]}
+    assert columns["REQ-Capture"]["status"] == "observed"
+    assert columns["BUG-Capture"]["status"] == "observed"
+    assert columns["Opsx-Apply"]["status"] == "observed"
+    assert columns["Sprint-Archive"]["status"] == "unknown"
 
 
 def test_aggregate_sprint_merges_short_issue_alias_with_unique_snapshot_alias(
@@ -364,6 +423,49 @@ def test_aggregate_sprint_merges_short_issue_alias_with_unique_snapshot_alias(
     assert "BUG-0999" not in matrix_rows
     assert matrix_rows["BUG-0999-canonical"]["metrics"]["total_tokens"]["BUG-Generate"] == 7
     assert matrix_rows["BUG-0999-canonical"]["metrics"]["total_tokens"]["BUG-Complete"] == 11
+
+
+def test_aggregate_sprint_trims_related_issue_rows_to_scope(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    sprint_dir.mkdir(parents=True)
+    (sprint_dir / "sprint.yaml").write_text(
+        "\n".join(
+            [
+                "sprint_id: sprint-999",
+                "requirements:",
+                "  - REQ-0999-scope-only",
+                "bugs:",
+                "  - BUG-0999-scope-only",
+                "changes:",
+                "  - fix-scope-only",
+            ]
+        )
+        + "\n"
+    )
+    monkeypatch.chdir(tmp_path)
+
+    snapshot = ai_usage.aggregate_sprint(
+        [
+            {
+                "turn_hash": "mixed",
+                "sprint_id": "sprint-999",
+                "workflow_event": "opsx.apply",
+                "requirements": ["REQ-0999-scope-only", "REQ-0001-related-history"],
+                "bugs": ["BUG-0999-scope-only", "BUG-0001-related-history"],
+                "changes": ["fix-scope-only", "fix-related-history"],
+                "total_tokens": 19,
+                "model_call_count": 1,
+            },
+        ],
+        "sprint-999",
+    )
+
+    assert snapshot["coverage"]["requirements"] == ["REQ-0999-scope-only"]
+    assert snapshot["coverage"]["bugs"] == ["BUG-0999-scope-only"]
+    assert snapshot["coverage"]["changes"] == ["fix-scope-only"]
+    matrix_rows = {row["object_id"]: row for row in snapshot["usage_matrices"]["rows"]}
+    assert "REQ-0001-related-history" not in matrix_rows
+    assert "BUG-0001-related-history" not in matrix_rows
 
 
 def test_aggregate_sprint_groups_model_metadata() -> None:
@@ -520,6 +622,33 @@ def test_manual_mapping_can_mark_post_command_target(tmp_path: Path) -> None:
     )
 
     assert target == mapped[0]
+
+
+def test_select_workflow_context_record_prefers_token_run_when_scores_tie() -> None:
+    records = [
+        {
+            "turn_hash": "zero",
+            "workflow_event": "sprint.archive",
+            "sprint_id": "sprint-025",
+            "total_tokens": 0,
+            "model_call_count": 0,
+        },
+        {
+            "turn_hash": "actual",
+            "workflow_event": "sprint.archive",
+            "sprint_id": "sprint-025",
+            "total_tokens": 42,
+            "model_call_count": 1,
+        },
+    ]
+
+    target = ai_usage.select_workflow_context_record(
+        records,
+        workflow_event="sprint.archive",
+        sprint_id="sprint-025",
+    )
+
+    assert target["turn_hash"] == "actual"
 
 
 def test_redaction_blocks_prompts_paths_secrets_and_tool_output_bodies(tmp_path: Path) -> None:

@@ -42,6 +42,30 @@ type NormalizedProductCard = {
 const FALLBACK_IMAGE = '';
 const NAV_LOCK_MS = 800;
 const MAX_PARAM_LENGTH = 80;
+const EXPOSURE_FLUSH_DELAY_MS = 120;
+
+type ProductCardExposureProperties = {
+  page_path: string;
+  skuId?: number;
+  skuCode: string;
+  sourcePage: string;
+  sourceModule: string;
+  listContext: string;
+  index: number;
+  categoryId?: string;
+  brandId?: string;
+  keyword?: string;
+  requestId: string;
+  client_type?: string;
+};
+
+type ProductCardExposureBatch = {
+  timer?: ReturnType<typeof setTimeout>;
+  items: ProductCardExposureProperties[];
+};
+
+const trackedExposureKeys: Record<string, true> = {};
+const pendingExposureBatches: Record<string, ProductCardExposureBatch> = {};
 
 function telemetryId(): string {
   return `product-card-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
@@ -76,6 +100,64 @@ function cleanParam(value: unknown): string {
 function queryPair(key: string, value: unknown): string {
   const cleaned = cleanParam(value);
   return cleaned ? `${key}=${encodeURIComponent(cleaned)}` : '';
+}
+
+function exposureKey(properties: ProductCardExposureProperties): string {
+  return [
+    properties.page_path,
+    properties.sourcePage,
+    properties.sourceModule,
+    properties.listContext,
+    properties.keyword || 'no-keyword',
+    properties.requestId || 'no-request',
+    properties.skuId || 'missing-sku',
+  ].join('|');
+}
+
+function batchKey(properties: ProductCardExposureProperties): string {
+  return [
+    properties.page_path,
+    properties.sourcePage,
+    properties.sourceModule,
+    properties.listContext,
+    properties.keyword || 'no-keyword',
+    properties.requestId || 'no-request',
+  ].join('|');
+}
+
+function queueProductCardExposure(properties: ProductCardExposureProperties): void {
+  if (!properties.skuId) return;
+  const uniqueKey = exposureKey(properties);
+  if (trackedExposureKeys[uniqueKey]) return;
+  trackedExposureKeys[uniqueKey] = true;
+
+  const key = batchKey(properties);
+  const batch = pendingExposureBatches[key] || { items: [] };
+  batch.items.push(properties);
+  pendingExposureBatches[key] = batch;
+  if (batch.timer) return;
+
+  batch.timer = setTimeout(() => {
+    flushProductCardExposureBatch(key);
+  }, EXPOSURE_FLUSH_DELAY_MS);
+}
+
+function flushProductCardExposureBatch(key: string): void {
+  const batch = pendingExposureBatches[key];
+  if (!batch || batch.items.length === 0) return;
+  delete pendingExposureBatches[key];
+
+  const first = batch.items[0];
+  track('product_card_exposure', {
+    ...first,
+    exposureCount: batch.items.length,
+    exposureItems: batch.items.map((item) => ({
+      skuId: item.skuId,
+      skuCode: item.skuCode,
+      index: item.index,
+      requestId: item.requestId,
+    })),
+  });
 }
 
 function normalizeProduct(product: ProductCardInput): NormalizedProductCard {
@@ -133,7 +215,7 @@ Component({
         normalized,
         imageFailed: false,
       });
-      this.trackCard('product_card_exposure', normalized);
+      this.trackCardExposure(normalized);
     },
   },
 
@@ -187,8 +269,8 @@ Component({
       return requestId;
     },
 
-    trackCard(eventName: string, normalized: NormalizedProductCard) {
-      track(eventName, {
+    cardTelemetryProperties(normalized: NormalizedProductCard): ProductCardExposureProperties {
+      return {
         page_path: '/components/product-card/index',
         skuId: normalized.skuId || undefined,
         skuCode: normalized.skuCode,
@@ -200,7 +282,15 @@ Component({
         brandId: this.properties.brandId || undefined,
         keyword: this.properties.keyword || undefined,
         requestId: this.resolveTelemetryRequestId(),
-      });
+      };
+    },
+
+    trackCardExposure(normalized: NormalizedProductCard) {
+      queueProductCardExposure(this.cardTelemetryProperties(normalized));
+    },
+
+    trackCard(eventName: string, normalized: NormalizedProductCard) {
+      track(eventName, this.cardTelemetryProperties(normalized));
     },
   },
 });

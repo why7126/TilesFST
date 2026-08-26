@@ -333,24 +333,27 @@ def test_render_ai_usage_retrospective_section_outputs_sprint_015_style_tables(t
                 },
                 "usage_matrices": {
                     "metrics": ["total_tokens", "input_tokens", "output_tokens", "model_call_count"],
-                    "columns": [{"key": "opsx.apply", "label": "Opsx-Apply"}],
+                    "columns": [
+                        {"key": "opsx.apply", "label": "Opsx-Apply", "status": "observed"},
+                        {"key": "sprint.archive", "label": "Sprint-Archive", "status": "unknown"},
+                    ],
                     "rows": [
                         {
                             "object_id": "Total",
                             "metrics": {
-                                "total_tokens": {"Opsx-Apply": 1055},
-                                "input_tokens": {"Opsx-Apply": 1000},
-                                "output_tokens": {"Opsx-Apply": 50},
-                                "model_call_count": {"Opsx-Apply": 3},
+                                "total_tokens": {"Opsx-Apply": 1055, "Sprint-Archive": 0},
+                                "input_tokens": {"Opsx-Apply": 1000, "Sprint-Archive": 0},
+                                "output_tokens": {"Opsx-Apply": 50, "Sprint-Archive": 0},
+                                "model_call_count": {"Opsx-Apply": 3, "Sprint-Archive": 0},
                             },
                         },
                         {
                             "object_id": "sprint-999",
                             "metrics": {
-                                "total_tokens": {"Opsx-Apply": 1055},
-                                "input_tokens": {"Opsx-Apply": 1000},
-                                "output_tokens": {"Opsx-Apply": 50},
-                                "model_call_count": {"Opsx-Apply": 3},
+                                "total_tokens": {"Opsx-Apply": 1055, "Sprint-Archive": 0},
+                                "input_tokens": {"Opsx-Apply": 1000, "Sprint-Archive": 0},
+                                "output_tokens": {"Opsx-Apply": 50, "Sprint-Archive": 0},
+                                "model_call_count": {"Opsx-Apply": 3, "Sprint-Archive": 0},
                             },
                         },
                     ],
@@ -372,8 +375,8 @@ def test_render_ai_usage_retrospective_section_outputs_sprint_015_style_tables(t
     assert "### input_tokens 矩阵" in markdown
     assert "### output_tokens 矩阵" in markdown
     assert "### model_call_count 矩阵" in markdown
-    assert "| 对象 | Opsx-Apply |" in markdown
-    assert "| Total | 1055 |" in markdown
+    assert "| 对象 | Opsx-Apply | Sprint-Archive |" in markdown
+    assert "| Total | 1055 | - |" in markdown
     assert "矩阵口径" in markdown
 
 
@@ -437,6 +440,12 @@ def test_fact_sheet_marks_missing_ai_usage_as_estimated_fallback(tmp_path: Path)
 
 def test_fact_sheet_does_not_treat_stale_snapshot_as_actual(tmp_path: Path) -> None:
     seed_project(tmp_path)
+    sprint_dir = tmp_path / "iterations" / "archive" / "sprint-999"
+    for name in ("sprint.md", "release-note.md", "acceptance-report.md"):
+        (sprint_dir / name).write_text(
+            "---\nupdated_at: 2026-07-03 09:00:00\n---\n# Doc\n",
+            encoding="utf-8",
+        )
     snapshot_dir = tmp_path / "data" / "ai-usage" / "sprints"
     snapshot_dir.mkdir(parents=True)
     (snapshot_dir / "sprint-999.json").write_text(
@@ -509,7 +518,7 @@ def test_fact_sheet_ignores_future_planned_end_date_for_ai_usage_freshness(tmp_p
                 "status: completed",
                 "lifecycle_stage: archive",
                 "start_date: 2026-07-01 09:00:00",
-                "end_date: 2026-08-18 18:00:00",
+                "end_date: 2099-08-18 18:00:00",
                 "requirements:",
                 "  - REQ-9999-demo",
                 "bugs:",
@@ -567,7 +576,7 @@ def test_fact_sheet_ignores_future_planned_end_date_for_ai_usage_freshness(tmp_p
     assert baseline["skipped"] == [
         {
             "source": "sprint.yaml:end_date",
-            "value": "2026-08-18 18:00:00",
+            "value": "2099-08-18 18:00:00",
             "reason": "future-planned-time",
         }
     ]
@@ -582,8 +591,8 @@ def test_fact_sheet_ignores_future_planned_start_date_for_ai_usage_freshness(tmp
                 "sprint_id: sprint-999",
                 "status: completed",
                 "lifecycle_stage: archive",
-                "start_date: 2026-08-19 09:00:00",
-                "end_date: 2026-08-20 18:00:00",
+                "start_date: 2099-08-19 09:00:00",
+                "end_date: 2099-08-20 18:00:00",
                 "requirements:",
                 "  - REQ-9999-demo",
                 "bugs:",
@@ -634,12 +643,12 @@ def test_fact_sheet_ignores_future_planned_start_date_for_ai_usage_freshness(tmp
     assert baseline["skipped"] == [
         {
             "source": "sprint.yaml:start_date",
-            "value": "2026-08-19 09:00:00",
+            "value": "2099-08-19 09:00:00",
             "reason": "future-planned-time",
         },
         {
             "source": "sprint.yaml:end_date",
-            "value": "2026-08-20 18:00:00",
+            "value": "2099-08-20 18:00:00",
             "reason": "future-planned-time",
         },
     ]
@@ -832,7 +841,7 @@ def test_cli_ai_usage_markdown_outputs_retrospective_section() -> None:
 
     assert result.stdout.startswith("## 模型 Token 使用分析")
     assert "### Token Usage Fact Sheet" in result.stdout
-    assert "### total_tokens 矩阵" in result.stdout or "完整矩阵缺失" in result.stdout
+    assert "### total_tokens 矩阵" in result.stdout or "矩阵不可用" in result.stdout
 
 
 def test_cli_fields_unknown_path_returns_nonzero() -> None:

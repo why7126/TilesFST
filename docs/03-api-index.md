@@ -4,7 +4,7 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 08:53:42
+updated_at: 2026-08-25 23:20:00
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
@@ -300,21 +300,22 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 |---|---|
 | `page` / `page_size` | 分页，`page_size` 1–100，默认 20 |
 | `log_type` | `request` / `usage_event` / `audit` |
-| `keyword` | 匹配摘要、路径、request_id、client_request_id、事件名、操作人 |
+| `keyword` | 匹配摘要、路径、request_id、client_request_id、behavior_trace_id、事件名、操作人 |
 | `actor_user_id` | 操作人 ID |
 | `client_type` | 客户端类型，当前统一为 `web_admin`、`web_catalog`、`wechat_miniapp`，未知请求头记录为 `unknown` |
 | `status_code` | HTTP 状态码 100–599 |
 | `result` | `success` / `failed` |
 | `resource_id` | 资源 ID，匹配 metadata |
-| `path_or_request_id` | API path、request_id、client_request_id 或 task_trace_id 模糊匹配 |
+| `path_or_request_id` | API path、request_id、client_request_id、behavior_trace_id、parent_behavior_event_id 或 task_trace_id 模糊匹配 |
+| `behavior_trace_id` | 精确匹配一次界面行为链路 ID；直接 API 调用无界面行为来源时为空 |
 | `task_trace_id` | 精确匹配 Task Trace 任务链路 ID |
 | `start_time` / `end_time` | ISO8601 时间字符串 |
 
-列表响应 `data.metrics` 返回当日摘要：`today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`；`data.items` 同时包含请求日志、行为事件、既有 `audit_logs` 的统一列表行。列表行返回 `actor_name` 与 `actor_username`，管理端列表和详情抽屉的「操作者」均使用 `actor_username` 单行展示账号，避免显示名和账号混淆。请求日志行额外返回 `client_request_id`，该字段来自 `x-client-request-id` 或请求体 `client_request_id`，只用于辅助排障，不覆盖服务端可信 `request_id`。若日志关联任务链路，列表行额外返回 `task_trace_id`、`task_type`、`task_status`、`task_duration_ms`、`task_slowest_span_name`，用于上传等长耗时任务排障。管理端日志审计页默认按最近1天查询，时间范围筛选固定为最近5分钟、10分钟、30分钟、1小时、3小时、6小时、12小时、1天、2天、3天和7天，不提供全部时间。日志列表表头单行展示，追踪字段列顺序为 `request_id`、`client_request_id`、`task_trace_id`。BUG-0127 后，接口响应契约保持兼容；后端在指定 `log_type` 时优先使用对应日志表查询，混合日志查询将时间范围、操作者、客户端、状态或结果、request_id 和 Task Trace ID 等条件下推到各日志表子查询，摘要指标使用独立低成本聚合，避免首屏被无条件三表 UNION、全量计数排序或同步统一源指标聚合阻塞。
+列表响应 `data.metrics` 返回当日摘要：`today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`；`data.items` 同时包含请求日志、行为事件、既有 `audit_logs` 的统一列表行。列表行返回 `actor_name` 与 `actor_username`，管理端列表和详情抽屉的「操作者」均使用 `actor_username` 单行展示账号，避免显示名和账号混淆。请求日志行额外返回 `client_request_id`，该字段来自 `x-client-request-id` 或请求体 `client_request_id`，只用于辅助排障，不覆盖服务端可信 `request_id`。界面触发的日志行额外返回 `behavior_trace_id` 与 `parent_behavior_event_id`，用于串联同一次页面访问、点击或表单提交触发的一个或多个 API 请求；直接 API 调用这两个字段为空。若日志关联任务链路，列表行额外返回 `task_trace_id`、`task_type`、`task_status`、`task_duration_ms`、`task_slowest_span_name`，用于上传等长耗时任务排障。管理端日志审计页默认按最近1天查询，时间范围筛选固定为最近5分钟、10分钟、30分钟、1小时、3小时、6小时、12小时、1天、2天、3天和7天，不提供全部时间。日志列表表头单行展示，追踪字段列顺序为 `request_id`、`client_request_id`、`behavior_trace_id`、`task_trace_id`。BUG-0127 后，接口响应契约保持兼容；后端在指定 `log_type` 时优先使用对应日志表查询，混合日志查询将时间范围、操作者、客户端、状态或结果、behavior_trace_id、request_id 和 Task Trace ID 等条件下推到各日志表子查询，摘要指标使用独立低成本聚合，避免首屏被无条件三表 UNION、全量计数排序或同步统一源指标聚合阻塞。
 
-`GET /api/v1/admin/logs/observability` 与日志列表共用筛选口径，额外支持 `request_id` 精确定位；响应 `data` 包含 `summary`、`distributions`、`endpoint_errors`、`rankings`、`trace_results` 和 `thresholds`。当前慢请求与慢任务阈值均为 1000ms；该接口仅返回聚合指标和已脱敏摘要，不返回原始 metadata、请求体或内部路径。未命中追踪 ID 时 `trace_results.reason=not_found`，接口本身仍返回 `200 / code=0`。截至 2026-07-26，管理端 `/admin/logs` 已按产品调整移除链路观测页面模块，前端不展示该聚合接口入口；日志列表、筛选、详情抽屉和 Task Trace 时间线仍保留。
+`GET /api/v1/admin/logs/observability` 与日志列表共用筛选口径，额外支持 `behavior_trace_id`、`request_id`、`task_trace_id` 精确定位；响应 `data` 包含 `summary`、`distributions`、`endpoint_errors`、`rankings`、`trace_results` 和 `thresholds`。`trace_results` 会返回命中的 `behavior_trace_id`、请求日志 ID / `request_id`、任务链路 ID 集合，用于展示“界面行为 -> 请求 -> 任务 -> 节点”的链路；直接 API 调用可从 `request_id` 进入 `task_traces.parent_request_id -> task_trace_spans`。当前慢请求与慢任务阈值均为 1000ms；该接口仅返回聚合指标和已脱敏摘要，不返回原始 metadata、请求体或内部路径。未命中追踪 ID 时 `trace_results.reason=not_found`，接口本身仍返回 `200 / code=0`。截至 2026-07-26，管理端 `/admin/logs` 已按产品调整移除链路观测页面模块，前端不展示该聚合接口入口；日志列表、筛选、详情抽屉和 Task Trace 时间线仍保留。
 
-`GET /api/v1/admin/logs/{log_id}` 返回详情抽屉数据，按 `basic`、`request`、`actor`、`operation`、`tracking`、`metadata` 分组展示，并保留 `request_id` 用于链路排查。请求日志详情额外返回 `request_snapshot`，结构包含 `request`、`input`、`resource`、`response`、`actor`、`timing` 与 `raw_json`：`request` 记录 method、path、route_template、route_match_status、request_id、client_request_id、trusted_request_id_header、client_request_id_header；`input` 记录 query 白名单摘要、body schema 摘要和 redaction_summary；`resource` 记录 resource_type、resource_id、id_source；`response` 记录 status_code、error_code、duration_ms、result、error_summary；`actor` 记录 actor_user_id、actor_username、actor_role、client_type、ip_summary、user_agent_summary；`timing` 记录 environment、started_at、finished_at。历史日志、metadata 为空或 metadata JSON 解析失败时，`request_snapshot` 使用空值 / 未采集 / `parse_error` 表达，不影响核心日志详情展示。详情抽屉字段标签旁展示说明图标，hover 或键盘 focus 时使用 fixed tooltip 显示字段含义，避免被右侧抽屉边界裁切。若存在 `task_trace_id` 或请求 `request_id` 触发过 Task Trace，响应额外包含 `task_trace` 和 `related_task_traces[]`；任务摘要包含 `task_trace_id`、`parent_request_id`、任务类型、状态、耗时、资源、错误码和摘要，`related_task_traces[]` 支持一个主请求触发多个任务摘要；每个 span 包含 `span_name`、`status`、`started_at`、`ended_at`、`duration_ms`、`request_id`、`error_code`、`summary`、`is_slowest`。未找到返回 `404 / code=30070`。
+`GET /api/v1/admin/logs/{log_id}` 返回详情抽屉数据，按 `basic`、`request`、`actor`、`operation`、`tracking`、`metadata` 分组展示，并保留 `request_id`、`behavior_trace_id` 与 `parent_behavior_event_id` 用于链路排查。请求日志详情额外返回 `request_snapshot`，结构包含 `request`、`input`、`resource`、`response`、`actor`、`timing` 与 `raw_json`：`request` 记录 method、path、route_template、route_match_status、request_id、client_request_id、behavior_trace_id、parent_behavior_event_id、trusted_request_id_header、client_request_id_header、behavior_trace_id_header、behavior_event_id_header；`input` 记录 query 白名单摘要、body schema 摘要和 redaction_summary；`resource` 记录 resource_type、resource_id、id_source；`response` 记录 status_code、error_code、duration_ms、result、error_summary；`actor` 记录 actor_user_id、actor_username、actor_role、client_type、ip_summary、user_agent_summary；`timing` 记录 environment、started_at、finished_at。历史日志、metadata 为空或 metadata JSON 解析失败时，`request_snapshot` 使用空值 / 未采集 / `parse_error` 表达，不影响核心日志详情展示。详情抽屉字段标签旁展示说明图标，hover 或键盘 focus 时使用 fixed tooltip 显示字段含义，避免被右侧抽屉边界裁切。若存在 `task_trace_id`、请求 `request_id` 或 `behavior_trace_id` 触发过 Task Trace，响应额外包含 `task_trace` 和 `related_task_traces[]`；任务摘要包含 `task_trace_id`、`parent_request_id`、`behavior_trace_id`、任务类型、状态、耗时、资源、错误码和摘要，`related_task_traces[]` 支持一个主请求触发多个任务摘要；每个 span 包含 `span_name`、`status`、`started_at`、`ended_at`、`duration_ms`、`request_id`、`behavior_trace_id`、`error_code`、`summary`、`is_slowest`。未找到返回 `404 / code=30070`。
 
 `POST /api/v1/usage-events` 请求体：
 
@@ -325,6 +326,8 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
   "session_id": "sess_abc",
   "request_id": "req_79f1c2b4a8d04e31",
   "client_request_id": "web:client-request-abc123",
+  "behavior_trace_id": "bt:8c0186d2-9c5f-4f0f-9ad2-b5f623060f21",
+  "behavior_event_id": "be:cc4b9185-d375-45fd-8d3d-851e77f95f31",
   "task_trace_id": "task_upload_video_abcdef1234567890",
   "task_type": "upload_video",
   "duration_ms": 1280,
@@ -337,7 +340,7 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 }
 ```
 
-`duration_ms` 为行为本身耗时毫秒数，适用于页面加载、查询、详情加载、上传、保存等有过程耗时的行为；瞬时行为可省略，列表显示 `-`。
+`behavior_trace_id` 表示一次界面行为链路，`behavior_event_id` 表示单条行为事件。Web 前端生成这两个 ID 后，在短时间窗口内通过 `x-behavior-trace-id` 与 `x-behavior-event-id` 透传给该行为触发的后续 API 请求；后端请求日志保存为 `request_logs.behavior_trace_id` 与 `request_logs.parent_behavior_event_id`。直接 API 调用无需伪造行为事件，保持 `behavior_trace_id` 为空并使用后端可信 `request_id` 进入任务链路。`duration_ms` 为行为本身耗时毫秒数，适用于页面加载、查询、详情加载、上传、保存等有过程耗时的行为；瞬时行为可省略，列表显示 `-`。
 
 行为事件由产品/研发人为定义 `event_name` 与属性。当前后端白名单包含：`page_view`、`search_submit`、`filter_change`、`detail_view`、`copy_request_id`、`entity_create`、`entity_update`、`entity_delete`、`status_change`、`media_upload`、`login_success`、`login_failed`、`api_error`、`product_detail_view`、`home_share`、`product_share`、`home_contact_click`、`product_contact_click`、`miniapp_home_search_click`、`miniapp_home_quick_entry_click`、`miniapp_home_new_product_click`、`miniapp_home_hot_product_click`、`miniapp_home_waterfall_product_click`、`miniapp_home_favorite_visual_click`、`miniapp_certificate_tab_click`、`certificate_list_page_view`、`certificate_list_load`、`certificate_list_refresh`、`certificate_list_load_more`、`certificate_list_retry`、`certificate_click`、`certificate_preview_click`、`certificate_load_failed`、`miniapp_home_waterfall_load`、`miniapp_home_waterfall_load_failed`、`miniapp_home_waterfall_end_reached`、`sku_detail_view`、`sku_media_swipe`、`sku_image_preview`、`sku_video_play`、`sku_video_fullscreen_click`、`sku_video_fullscreen_enter`、`sku_video_fullscreen_exit`、`sku_video_fullscreen_failed`、`sku_video_action_menu_open`、`sku_video_action_cancel`、`sku_video_action_share`、`sku_video_action_save`、`sku_video_save_success`、`sku_video_save_failed`、`sku_favorite`、`sku_unfavorite`、`sku_share_click`、`sku_brand_click`、`sku_recommend_click`、`sku_load_error`、`category_page_view`、`primary_category_click`、`secondary_category_click`、`category_load_failed`、`product_list_page_view`、`product_list_item_exposure`、`product_list_item_click`、`product_list_filter_open`、`product_list_filter_apply`、`product_list_sort_change`、`product_list_refresh`、`product_list_load_more`、`product_list_load_failed`、`search_page_view`、`search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`。后端会拒绝未定义事件、缺少必填属性或包含敏感字段（如 password、token、secret、authorization、cookie、raw_payload、raw_filename、raw_object_key、object_key、raw_response、internal_path）的上报，返回 `400 / code=40001`。
 

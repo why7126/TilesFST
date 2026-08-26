@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '@/features/auth/api/auth-api';
+import { getActiveBehaviorContext } from '@/features/tracking/behavior-context';
 import {
   getUsageTrackingSessionId,
   sanitizeTrackingProperties,
@@ -40,10 +41,18 @@ describe('usage tracking', () => {
       expect.objectContaining({
         event_name: 'page_view',
         page_path: '/admin/logs?log_type=request',
+        behavior_trace_id: expect.stringMatching(/^bt:/),
+        behavior_event_id: expect.stringMatching(/^be:/),
         properties: {
           module: 'log_audit',
           page_path: '/admin/logs?log_type=request',
         },
+      }),
+    );
+    expect(getActiveBehaviorContext()).toEqual(
+      expect.objectContaining({
+        behaviorTraceId: expect.stringMatching(/^bt:/),
+        behaviorEventId: expect.stringMatching(/^be:/),
       }),
     );
   });

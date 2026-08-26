@@ -4,7 +4,7 @@ content: 说明 MinIO/S3兼容对象存储/腾讯 COS 单桶策略、目录前�
 source: AI自动生成，人工确认
 update_method: 对象存储策略或媒体资源类型变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 11:18:08
+updated_at: 2026-08-25 18:25:00
 note: V5 从多桶策略调整为单桶 + 前缀策略；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -117,7 +117,7 @@ python scripts/clean_legacy_uploads.py --check-only
 
 腾讯云 COS、火山云 TOS 或外部 S3 兼容存储中已经出现 `videos/default/tiles/...` 对象，但浏览器仍收到 `504` 时，通常表示对象写入完成后响应链路被外层或容器内 Nginx 超时截断。此时不得直接判定为 COS 写入失败，应同时检查：
 
-- `/api/v1/admin/uploads/` 外层 HTTPS 反代与 Web 容器 Nginx 的 `proxy_send_timeout`、`proxy_read_timeout`、`send_timeout` 是否不低于生产上传建议值
+- `/api/v1/admin/uploads` 无尾斜杠精确路径和 `/api/v1/admin/uploads/` 子路径在外层 HTTPS 反代与 Web 容器 Nginx 中的 `proxy_send_timeout`、`proxy_read_timeout`、`send_timeout` 是否不低于生产上传建议值；无尾斜杠入口不得返回 301/302/307/308
 - Web 容器上传路径是否关闭或正确评估 `proxy_request_buffering`
 - COS 中已写入但业务表未引用的对象，按 `videos/default/tiles/{tile_id|pending}/` 前缀、上传时间窗口和管理端保存记录进行人工核对，必要时纳入后续受控清理脚本
 - 用户重试后可能产生多个同名业务含义的不同 UUID 对象，验收时以 API 返回并被业务表保存的 `object_key` 为准

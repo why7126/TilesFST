@@ -4,7 +4,7 @@ content: 约束AI读取范围、搜索排除、Harness/模板工程噪音、生�
 source: BUG-0061会话token复盘后由AI生成，项目团队Review
 update_method: Agent工作流、Harness模板、技能命令或上下文预算策略变化时更新
 created_at: 2026-07-08 09:26:36
-updated_at: 2026-08-24 16:35:51
+updated_at: 2026-08-26 20:58:03
 note: 所有命令技能与普通开发任务均应遵守，优先级高于单个技能中的宽泛读取建议
 ---
 
@@ -129,7 +129,7 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 - 保留命令特定的 Must Read 与业务门禁，但不得要求默认宽泛读取整目录。
 - 对 apply/archive/sprint 类高消耗命令，明确要求先读取 OpenSpec CLI `contextFiles`、任务文件、trace/status 片段，再按需扩展。
 - 对 `/opsx-apply` 命令，MUST 明确所有 Change 都必须先纳入 Sprint，禁止恢复“无 REQ/BUG 来源或纯治理 Change 可跳过 Sprint Inclusion Gate”的豁免。
-- 对下一步命令输出，MUST 明确 REQ 来源链路使用原始 `REQ-*`，BUG 来源链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 不得回退为真实 `<change-id>`，非 REQ/BUG Change 才使用 `<change-id>`。
+- 对下一步命令输出，MUST 明确 REQ 来源链路使用原始 `REQ-*`，BUG 来源链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 不得回退为真实 Change ID，非 REQ/BUG Change 才使用真实 Change ID。
 - 对 `/spec-opt` 规范优化命令，MUST 明确只修改治理资产，覆盖 `.agents/skills`、`rules/`、`docs/`、`scripts/`、`AGENTS.md` 和 active OpenSpec Change 的同步矩阵，并禁止修改业务 `src/`。
 - 对 `/bug-review` 命令，MUST 明确默认 approve 或显式 `--approve` 前运行根因 confirmed 门禁；`root_cause_status` 非 `confirmed`、缺少 `root-cause.md` 或缺少根因状态时不得 approve。
 - 对 `/spec-study` 跨项目 Harness 学习应用命令，MUST 明确先学习并输出候选内容、等待用户确认后再应用；学习范围 MUST 横向覆盖项目入口、`rules/`、`docs/`、多 Agent 目录、`scripts/`、部署与环境示例；学习对象 MUST 全程只读且绝不允许被改动；应用阶段 MUST 遵守 active OpenSpec Change 与 Sprint Inclusion Gate，并禁止修改业务 `src/`；同一次学习应用流程只生成一份正式学习报告，学习报告 MUST 统一写入 `docs/spec-logs/YYYYMMDDhhmmss-study-xxx.md`，并承载本次学习触发的治理资产应用结果；不得额外生成内容重复的 `YYYYMMDDhhmmss-governance-xxx.md`，且不得包含用户隐私数据、真实客户数据、密钥、访问令牌、本机绝对路径、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码；涉及路径证据时 MUST 使用仓库相对路径或 `<local-project>`、`<user-home>` 等脱敏占位符。
@@ -138,7 +138,7 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 - 对发布命令族，MUST 从 `releases/<version>/release.json`、`announcement.mdx`、`image-build-plan.json`、`image-manifest.json` 和 validator 摘要定位当前状态；不得为了确认 usage docs、公告或镜像状态全量展开历史 Sprint、Issue、Change 或 `releases/**`。命令输出 MUST 回显 usage docs、公开公告和镜像构建三类发布决策摘要，并将阻塞项写成可执行修复路径。
 - 对 `/git-check` 推送前安全检测命令，MUST 默认扫描 staged、modified tracked 和 untracked 文件，检测真实环境文件、运行时数据、数据库、大文件、密钥/Token/连接串、本机绝对路径和不应进入 Git 的本地数据；`--all` 可用于深度扫描全仓当前文件；输出必须脱敏，且不得自动删除文件、修改 `.gitignore` 或 unstage。
 - 对 `/spec-opt` 规范优化命令，MUST 在完成本项目规范、技能、脚本、目录边界或校验规则迭代后写入 `docs/spec-logs/YYYYMMDDhhmmss-governance-xxx.md` 治理迭代日志，且不得包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码。
-- 在最终输出契约中区分「下一步」与「待用户决策/处理」：已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」；后者只列缺失输入、范围/策略选择、证据补充、验收/发布确认、阻塞项或人工处理事项，没有则写“无”。
+- 在最终输出契约中区分「下一步」与「待用户决策/处理」：技能文件不得提供可被原样输出的尖括号占位模板或与当前命令无关的通用示例；已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」；后者只列缺失输入、范围/策略选择、证据补充、验收/发布确认、生产实施确认、阻塞项或人工处理事项，没有则写“无”。
 
 ## 8. 校验
 
@@ -148,4 +148,4 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 python scripts/validate-agent-context-budget.py
 ```
 
-该脚本用于检查命令技能是否引用本规则，并阻止常见宽泛读取模式回退。
+该脚本用于检查命令技能是否引用本规则，并阻止常见宽泛读取、最终输出占位模板、通用示例、重复诱因和规范语气泄漏风险回退。

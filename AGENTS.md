@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-24 16:35:51
+updated_at: 2026-08-26 20:58:03
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -44,11 +44,12 @@ rules/agent-context-budget.md
 | REQ / BUG 流程 | `rules/requirement-management.md`、`rules/bug-management.md`、`rules/issues-lifecycle.md`、`.agents/skills/workflow-sync/SKILL.md` |
 | Sprint 流程 | `rules/iterations-lifecycle.md`、相关 `iterations/change|archive/<sprint>/` 片段 |
 | OpenSpec Change | 当前 `openspec/changes/<change-id>/` 或归档目标片段 |
-| API 变更 | `rules/api.md`、`docs/README.md`、`docs/03-api-index.md` 相关段、`docs/standards/api-governance.md`、`docs/standards/error-codes.md`、`src/web/orval.config.ts`、`scripts/generate-openapi-client.sh` |
-| DB / 数据模型 | `rules/database.md`、`docs/04-database-design.md` 相关表段、schema / migration 文件 |
+| API 变更 | `rules/api.md`、`docs/README.md`、`docs/03-api-index.md` 相关段、`docs/standards/api-governance.md`、`docs/standards/error-codes.md`、`docs/standards/product-data-collection-observability.md`（请求头、请求日志、链路字段、行为埋点或 Task Trace 相关时）、`src/web/orval.config.ts`、`scripts/generate-openapi-client.sh` |
+| DB / 数据模型 | `rules/database.md`、`docs/04-database-design.md` 相关表段、`docs/standards/product-data-collection-observability.md`（`usage_events`、`request_logs`、`task_traces`、`task_trace_spans`、索引、迁移或保留周期相关时）、schema / migration 文件 |
 | UI / Design System | `rules/ui-design.md` 相关章节、`src/web/README.md`、`src/web/src/styles/globals.css`、`src/shared/design-system/tokens/`、`src/web/src/pages/dev/DesignSystemPage.tsx` |
 | 问题排查 / 根因 / 验收返修 | `rules/root-cause-evidence.md`、相关 BUG/Change trace、测试失败、日志或截图证据片段 |
 | 文档治理 / 表达卫生 | `rules/document-governance.md`、`docs/standards/document-prose-hygiene.md`、`docs/standards/command-execution-order.md` |
+| 日志审计 / 行为埋点 / Task Trace / 端请求封装 | `docs/standards/product-data-collection-observability.md`、`docs/standards/task-trace-coverage.md`；涉及 Web、小程序或 App 请求封装、链路 ID 透传、离线重试、错误摘要、行为事件或请求日志时必须声明适用层级或 N/A 原因 |
 | Docker / 发布部署 | `rules/environment.md`、`rules/release.md`、`docs/02-deployment.md`、`docs/08-production-image-release.md`、`docker-compose*.yml`、`deploy/README.md`、`deploy/local/README.md`、`deploy/prod/README.md`、`deploy/local/compose.yml`、`deploy/prod/compose.tencent-cos.yml`、`deploy/scripts/`、`src/backend/Dockerfile`、`src/web/Dockerfile`、`src/web/nginx.conf`、`scripts/build-images.sh`、`scripts/build-images.env.example`、`scripts/validate-image-build.py`、`scripts/validate-release-upgrade.py`、`releases/<version>/upgrade-plans/` |
 | data / media / object storage | `rules/data-management.md`、`rules/media.md`、`rules/object-storage.md`、`data/README.md`、`docs/06-video-asset-management.md`、`docs/07-object-storage-strategy.md` |
 | 端口 | `rules/port-management.md`、`.env.example` |
@@ -101,20 +102,16 @@ rules/agent-context-budget.md
 
 ## 5.1 命令完成输出契约
 
-`.agents/skills/*/SKILL.md` 下所有命令技能完成时，最终回复必须包含：
-
-```text
-下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
-待用户决策/处理：
-- <仍需用户选择、确认、补充或处理的事项；若没有则写“无”>
-```
+`.agents/skills/*/SKILL.md` 下所有命令技能完成时，最终回复必须包含「下一步」与「待用户决策/处理」两项真实结果，不得把契约规则、尖括号占位符、通用示例或 `MUST/SHOULD` 规范语气原样输出给用户。
 
 要求：
 
 - 「下一步」承载可复制执行的命令或明确动作，例如 `/bug-opsx BUG-0121`。
-- 「下一步」命令参数必须保持来源对象一致：REQ 链路使用原始 `REQ-*`，BUG 链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 也使用原始 REQ/BUG ID。非 REQ/BUG 的直接 Change 才使用 `<change-id>`。
+- 若当前没有可推进动作，「下一步」写“暂无可推进下一步”。
+- 「下一步」命令参数必须保持来源对象一致：REQ 链路使用原始 `REQ-*`，BUG 链路使用原始 `BUG-*`；REQ/BUG 来源的后续 `/opsx-apply`、`/opsx-archive` 也使用原始 REQ/BUG ID。非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 「待用户决策/处理」只列额外缺失输入、范围/策略选择、证据补充、验收/发布确认、阻塞项或人工处理事项。
 - 已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」。
+- 若「下一步」已经给出唯一可执行命令且无额外人工事项，「待用户决策/处理」写“无”；不得再要求用户确认是否执行同一个命令。
 - 不得因为输出下一步引导而自动执行下一命令，除非用户明确授权。
 
 示例：
@@ -142,6 +139,7 @@ rules/agent-context-budget.md
 - 管理端与店主端必须区分权限边界。
 - API 变更必须同步 OpenAPI / Orval / docs / tests。
 - DB 结构变更必须同步 schema、数据库文档和测试。
+- API、DB、日志审计、行为埋点、Task Trace、Web / 小程序 / App 请求封装相关变更必须读取 `docs/standards/product-data-collection-observability.md`，并在 REQ、Change、Sprint 或验收材料中声明 `product_data_collection_observability` 适用层级、N/A 原因和验证结果。
 - UI 变更必须遵守 Design System semantic token，禁止裸 Hex。
 - 带 `prototype/` 的 UI 页面必须先完成原型拆解、UI Contract、UI Skeleton 首轮确认、1440px 与关键交互视觉验收、computed style 证据、Mock/API 边界声明和最终一致性检查；不得缺少视觉证据、样式证据或文档回填即归档。
 - 问题排查、BUG 完善、BUG 来源实现、验收返修或效果不如预期时必须遵守证据化根因分析治理：根因状态区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 必须绑定证据链，证据不足时输出人工补证步骤。
@@ -228,6 +226,7 @@ Web 端采用“工业石材 · 暗色旗舰风”。UI 任务必须：
 □ 是否运行 Workflow Sync（状态变化时）
 □ 是否补充或更新 tests
 □ 是否同步 API / DB / Orval / .env.example（按需）
+□ 是否触发产品数据采集与链路观测规范门禁，且已声明 `product_data_collection_observability` 适用性、affected_layers、N/A 原因和 validation 摘要
 □ 是否遵守目录结构与禁止目录
 □ 是否遵守 MinIO 单桶策略
 □ UI 是否使用 semantic token 且复用 DS 组件

@@ -10,7 +10,7 @@
 
 .admin-shell .log-audit-filter-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1.35fr 1.35fr auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr 1.2fr 1.35fr auto;
   gap: 10px;
   align-items: end;
 }
@@ -126,7 +126,7 @@
 
 .admin-shell .log-audit-table {
   width: 100%;
-  min-width: 1360px;
+  min-width: 1520px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -292,6 +292,14 @@
 .admin-shell .task-trace-cell > code,
 .admin-shell .request-id-cell > code {
   min-width: 0;
+}
+
+.admin-shell .log-audit-muted {
+  overflow: hidden;
+  color: var(--admin-weak);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-shell .task-trace-id {

@@ -51,6 +51,7 @@ class TaskTraceContext:
     task_type: str
     request_id: str | None = None
     parent_request_id: str | None = None
+    behavior_trace_id: str | None = None
     actor_user_id: str | None = None
     client_type: str | None = "web_admin"
     resource_type: str | None = None
@@ -82,6 +83,7 @@ class TaskTraceService:
         task_type: str,
         task_trace_id: str | None = None,
         request_id: str | None = None,
+        behavior_trace_id: str | None = None,
         actor_user_id: str | None = None,
         client_type: str | None = "web_admin",
         resource_type: str | None = None,
@@ -93,6 +95,7 @@ class TaskTraceService:
             task_type=task_type,
             request_id=request_id or self.default_request_id,
             parent_request_id=request_id or self.default_request_id,
+            behavior_trace_id=behavior_trace_id,
             actor_user_id=actor_user_id,
             client_type=client_type,
             resource_type=resource_type,
@@ -107,6 +110,8 @@ class TaskTraceService:
         }
         if context.parent_request_id:
             payload["parent_request_id"] = context.parent_request_id
+        if context.behavior_trace_id:
+            payload["behavior_trace_id"] = context.behavior_trace_id
         if context.actor_user_id:
             payload["actor_user_id"] = context.actor_user_id
         if context.client_type:
@@ -145,6 +150,7 @@ class TaskTraceService:
             duration_ms=duration_ms,
             request_id=context.request_id,
             parent_request_id=context.parent_request_id,
+            behavior_trace_id=context.behavior_trace_id,
             actor_user_id=context.actor_user_id,
             client_type=context.client_type,
             resource_type=resource_type or context.resource_type,
@@ -205,6 +211,7 @@ class TaskTraceService:
         duration_ms: int | None = None,
         request_id: str | None = None,
         parent_request_id: str | None = None,
+        behavior_trace_id: str | None = None,
         actor_user_id: str | None = None,
         client_type: str | None = "web_admin",
         resource_type: str | None = None,
@@ -230,6 +237,7 @@ class TaskTraceService:
             duration_ms=duration_ms,
             sequence=sequence,
             request_id=effective_request_id,
+            behavior_trace_id=behavior_trace_id,
             actor_user_id=actor_user_id,
             client_type=client_type,
             resource_type=resource_type,
@@ -246,6 +254,7 @@ class TaskTraceService:
             resource_type=resource_type,
             resource_id=resource_id,
             parent_request_id=effective_parent_request_id,
+            behavior_trace_id=behavior_trace_id,
             metadata=safe_metadata,
         )
         if commit:
@@ -261,6 +270,7 @@ class TaskTraceService:
         resource_type: str | None,
         resource_id: str | None,
         parent_request_id: str | None = None,
+        behavior_trace_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
         spans = self._repo.list_spans(task_trace_id)
@@ -287,6 +297,7 @@ class TaskTraceService:
             actor_user_id=actor_user_id,
             client_type=client_type,
             parent_request_id=effective_parent_request_id,
+            behavior_trace_id=behavior_trace_id or (existing.behavior_trace_id if existing else None) or next((span.behavior_trace_id for span in spans if span.behavior_trace_id), None),
             resource_type=resource_type,
             resource_id=resource_id,
             started_at=started_at,

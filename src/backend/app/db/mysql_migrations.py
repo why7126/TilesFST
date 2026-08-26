@@ -22,6 +22,7 @@ MYSQL_COMPAT_BANNER_WRITE_FIELDS_VERSION = "mysql_compat_banners_write_fields_v2
 MYSQL_COMPAT_BANNER_CHECKS_VERSION = "mysql_compat_banners_checks_v3"
 MYSQL_COMPAT_TASK_TRACE_VERSION = "mysql_compat_task_trace_v1"
 MYSQL_COMPAT_CLIENT_REQUEST_ID_VERSION = "mysql_compat_client_request_id_v1"
+MYSQL_COMPAT_BEHAVIOR_TRACE_VERSION = "mysql_compat_behavior_trace_v1"
 MYSQL_COMPAT_BRAND_CERTIFICATE_IMAGES_VERSION = "mysql_compat_brand_certificate_images_v1"
 MYSQL_COMPAT_TILES_PUBLISHED_AT_VERSION = "mysql_compat_tiles_published_at_v1"
 MYSQL_COMPAT_USERS_THEME_MODE_VERSION = "mysql_compat_users_theme_mode_v1"
@@ -211,12 +212,20 @@ def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMig
         (MYSQL_COMPAT_TASK_TRACE_VERSION,),
     )
     _ensure_client_request_id_support(connection)
+    _ensure_behavior_trace_support(connection)
     connection.exec_driver_sql(
         """
         INSERT IGNORE INTO schema_migrations (version, applied_at)
         VALUES (%s, UTC_TIMESTAMP(3))
         """,
         (MYSQL_COMPAT_CLIENT_REQUEST_ID_VERSION,),
+    )
+    connection.exec_driver_sql(
+        """
+        INSERT IGNORE INTO schema_migrations (version, applied_at)
+        VALUES (%s, UTC_TIMESTAMP(3))
+        """,
+        (MYSQL_COMPAT_BEHAVIOR_TRACE_VERSION,),
     )
     connection.exec_driver_sql(
         """
@@ -355,6 +364,50 @@ def _ensure_client_request_id_support(connection: Connection) -> None:
         connection.exec_driver_sql(
             "CREATE INDEX idx_request_logs_client_request_id ON request_logs (client_request_id)"
         )
+
+
+def _ensure_behavior_trace_support(connection: Connection) -> None:
+    columns = {
+        "request_logs": {
+            "behavior_trace_id": "VARCHAR(128) NULL",
+            "parent_behavior_event_id": "VARCHAR(128) NULL",
+        },
+        "usage_events": {
+            "behavior_trace_id": "VARCHAR(128) NULL",
+            "behavior_event_id": "VARCHAR(128) NULL",
+        },
+        "task_traces": {
+            "behavior_trace_id": "VARCHAR(128) NULL",
+        },
+        "task_trace_spans": {
+            "behavior_trace_id": "VARCHAR(128) NULL",
+        },
+    }
+    indexes = {
+        "request_logs": {
+            "idx_request_logs_behavior_trace": "(behavior_trace_id, created_at)",
+            "idx_request_logs_parent_behavior_event": "(parent_behavior_event_id, created_at)",
+        },
+        "usage_events": {
+            "idx_usage_events_behavior_trace": "(behavior_trace_id, created_at)",
+            "idx_usage_events_behavior_event": "(behavior_event_id)",
+        },
+        "task_traces": {
+            "idx_task_traces_behavior_trace": "(behavior_trace_id, created_at)",
+        },
+        "task_trace_spans": {
+            "idx_task_trace_spans_behavior_trace": "(behavior_trace_id, created_at)",
+        },
+    }
+    for table_name, table_columns in columns.items():
+        if not _has_table(connection, table_name):
+            continue
+        for column_name, column_definition in table_columns.items():
+            if not _has_column(connection, table_name, column_name):
+                connection.exec_driver_sql(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
+        for index_name, column_spec in indexes.get(table_name, {}).items():
+            if not _has_index(connection, table_name, index_name):
+                connection.exec_driver_sql(f"CREATE INDEX {index_name} ON {table_name} {column_spec}")
 
 
 def _ensure_log_query_indexes(connection: Connection) -> None:

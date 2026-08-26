@@ -177,3 +177,59 @@ def test_employee_can_upload_avatar(client: TestClient) -> None:
     )
     assert patch.status_code == 200
     assert patch.json()["data"]["avatar_object_key"] == object_key
+    media = client.get(f"/media/{object_key}")
+    assert media.status_code == 200
+
+
+def test_patch_profile_rejects_missing_avatar_object_key(client: TestClient) -> None:
+    _create_employee()
+    headers = _auth_headers(client, "operator01", "Operator123!")
+    response = client.patch(
+        "/api/v1/profile/me",
+        headers=headers,
+        json={"avatar_object_key": "images/default/user/avatars/missing.png"},
+    )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["code"] == 40013
+    assert body["message"] == "头像媒体对象不存在或不可读"
+
+    session = get_session_factory()()
+    try:
+        user = UserRepository(session).get_by_username("operator01")
+    finally:
+        session.close()
+    assert user is not None
+    assert user.avatar_object_key is None
+
+
+def test_patch_profile_allows_clearing_avatar_object_key(client: TestClient) -> None:
+    _create_employee()
+    session = get_session_factory()()
+    try:
+        repo = UserRepository(session)
+        user = repo.get_by_username("operator01")
+        assert user is not None
+        repo.update_profile(
+            user.id,
+            display_name=user.display_name or user.username,
+            email=user.email,
+            phone=user.phone,
+            remark=user.remark,
+            avatar_object_key="images/default/user/avatars/legacy.png",
+        )
+    finally:
+        session.close()
+
+    headers = _auth_headers(client, "operator01", "Operator123!")
+    response = client.patch(
+        "/api/v1/profile/me",
+        headers=headers,
+        json={"avatar_object_key": None},
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["avatar_object_key"] is None
+    assert data["avatar_url"] is None

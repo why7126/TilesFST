@@ -220,6 +220,8 @@ def _record_upload_span(
     resource_id: str | None,
     status: str = "success",
     duration_ms: int | None = None,
+    started_at: str | None = None,
+    ended_at: str | None = None,
     error_code: str | None = None,
     summary: str | None = None,
     metadata: dict | None = None,
@@ -231,6 +233,8 @@ def _record_upload_span(
             span_name=span_name,
             status=status,
             sequence=sequence,
+            started_at=started_at,
+            ended_at=ended_at,
             duration_ms=duration_ms,
             actor_user_id=actor_user_id,
             client_type="web_admin",
@@ -242,6 +246,56 @@ def _record_upload_span(
         )
     except Exception:
         db.rollback()
+
+
+def _upload_stage_recorder(
+    *,
+    db: Session,
+    service: TaskTraceService,
+    task_trace_id: str,
+    task_type: str,
+    actor_user_id: str | None,
+    resource_type: str | None,
+    resource_id: str | None,
+) -> Callable[[str, str, int, str, str, str | None, dict | None], None]:
+    sequence_by_span = {
+        "file_read": 45,
+        "original_put_object": 50,
+        "thumbnail_generate": 55,
+        "thumbnail_put_object": 56,
+        "display_generate": 65,
+        "display_put_object": 66,
+    }
+
+    def record(
+        span_name: str,
+        status: str,
+        duration_ms: int,
+        started_at: str,
+        ended_at: str,
+        error_code: str | None,
+        metadata: dict | None,
+    ) -> None:
+        _record_upload_span(
+            db=db,
+            service=service,
+            task_trace_id=task_trace_id,
+            task_type=task_type,
+            span_name=span_name,
+            sequence=sequence_by_span.get(span_name, 59),
+            actor_user_id=actor_user_id,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            status=status,
+            duration_ms=duration_ms,
+            started_at=started_at,
+            ended_at=ended_at,
+            error_code=error_code,
+            summary=f"上传阶段 {span_name} {status}",
+            metadata=metadata,
+        )
+
+    return record
 
 
 def _finish_upload_trace(
@@ -341,6 +395,15 @@ async def _save_traced_upload(
             file,
             object_key,
             max_size_mb,
+            stage_recorder=_upload_stage_recorder(
+                db=db,
+                service=trace_service,
+                task_trace_id=task_trace_id,
+                task_type=task_type,
+                actor_user_id=current_user.id,
+                resource_type=resource_type,
+                resource_id=resource_id,
+            ),
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=thumbnail_max_size_kb,
             display_key=display_key,
@@ -478,6 +541,15 @@ async def upload_image(
             file,
             object_key,
             max_size_mb,
+            stage_recorder=_upload_stage_recorder(
+                db=db,
+                service=trace_service,
+                task_trace_id=task_trace_id,
+                task_type="upload_image",
+                actor_user_id=current_user.id,
+                resource_type="user_avatar",
+                resource_id=current_user.id,
+            ),
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb(),
             display_key=display_key,
@@ -919,6 +991,15 @@ async def upload_brand_certificate(
             file,
             object_key,
             max_size_mb,
+            stage_recorder=_upload_stage_recorder(
+                db=db,
+                service=trace_service,
+                task_trace_id=task_trace_id,
+                task_type="upload_file",
+                actor_user_id=current_user.id,
+                resource_type="brand_certificate",
+                resource_id=None,
+            ),
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb() if thumbnail_key else 0,
             display_key=display_key,

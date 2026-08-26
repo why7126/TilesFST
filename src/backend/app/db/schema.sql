@@ -294,6 +294,8 @@ CREATE TABLE IF NOT EXISTS request_logs (
   actor_role TEXT,
   client_type TEXT NOT NULL DEFAULT 'backend',
   client_request_id TEXT,
+  behavior_trace_id TEXT,
+  parent_behavior_event_id TEXT,
   method TEXT NOT NULL,
   path TEXT NOT NULL,
   status_code INTEGER NOT NULL,
@@ -319,6 +321,10 @@ CREATE INDEX IF NOT EXISTS idx_request_logs_status_created
   ON request_logs(status_code, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_request_logs_client_created
   ON request_logs(client_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_behavior_trace
+  ON request_logs(behavior_trace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_request_logs_parent_behavior_event
+  ON request_logs(parent_behavior_event_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_request_logs_result_created
   ON request_logs(result, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_request_logs_path_created
@@ -330,6 +336,8 @@ CREATE TABLE IF NOT EXISTS usage_events (
   actor_user_id TEXT NULL REFERENCES users(id),
   actor_role TEXT,
   client_type TEXT NOT NULL DEFAULT 'web_admin',
+  behavior_trace_id TEXT,
+  behavior_event_id TEXT,
   event_name TEXT NOT NULL,
   event_category TEXT NOT NULL,
   page_path TEXT,
@@ -351,6 +359,10 @@ CREATE INDEX IF NOT EXISTS idx_usage_events_event_created
   ON usage_events(event_name, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_usage_events_request_id
   ON usage_events(request_id);
+CREATE INDEX IF NOT EXISTS idx_usage_events_behavior_trace
+  ON usage_events(behavior_trace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_usage_events_behavior_event
+  ON usage_events(behavior_event_id);
 CREATE INDEX IF NOT EXISTS idx_usage_events_actor_created
   ON usage_events(actor_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_usage_events_client_created
@@ -391,6 +403,7 @@ CREATE TABLE IF NOT EXISTS task_traces (
   actor_user_id TEXT NULL REFERENCES users(id),
   client_type TEXT,
   parent_request_id TEXT,
+  behavior_trace_id TEXT,
   resource_type TEXT,
   resource_id TEXT,
   started_at TEXT NOT NULL,
@@ -408,6 +421,8 @@ CREATE INDEX IF NOT EXISTS idx_task_traces_task_trace_id
   ON task_traces(task_trace_id);
 CREATE INDEX IF NOT EXISTS idx_task_traces_parent_request_id
   ON task_traces(parent_request_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_task_traces_behavior_trace
+  ON task_traces(behavior_trace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_task_traces_type_created
   ON task_traces(task_type, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_task_traces_status_created
@@ -424,6 +439,7 @@ CREATE TABLE IF NOT EXISTS task_trace_spans (
   duration_ms INTEGER,
   sequence INTEGER NOT NULL DEFAULT 0,
   request_id TEXT,
+  behavior_trace_id TEXT,
   actor_user_id TEXT NULL REFERENCES users(id),
   client_type TEXT,
   resource_type TEXT,
@@ -438,5 +454,7 @@ CREATE INDEX IF NOT EXISTS idx_task_trace_spans_trace_sequence
   ON task_trace_spans(task_trace_id, sequence, started_at);
 CREATE INDEX IF NOT EXISTS idx_task_trace_spans_request_id
   ON task_trace_spans(request_id);
+CREATE INDEX IF NOT EXISTS idx_task_trace_spans_behavior_trace
+  ON task_trace_spans(behavior_trace_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_task_trace_spans_type_created
   ON task_trace_spans(task_type, created_at DESC);

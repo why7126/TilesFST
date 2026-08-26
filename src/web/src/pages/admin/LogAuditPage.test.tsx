@@ -48,6 +48,8 @@ const logListData: LogListData = {
       duration_ms: 84,
       request_id: 'req_1234567890abcdef',
       client_request_id: 'web:client-request-abcdef1234567890',
+      behavior_trace_id: 'bt:log-audit-behavior-001',
+      parent_behavior_event_id: 'be:log-audit-event-001',
       task_trace_id: 'task_upload_video_abcdef1234567890',
       task_type: 'upload_video',
       task_status: 'success',
@@ -75,6 +77,8 @@ const detailData: LogDetailData = {
     fields: {
       '日志 ID': 'log_1',
       request_id: 'req_1234567890abcdef',
+      behavior_trace_id: 'bt:log-audit-behavior-001',
+      parent_behavior_event_id: 'be:log-audit-event-001',
     },
   },
   request: {
@@ -114,8 +118,12 @@ const detailData: LogDetailData = {
       route_match_status: 'matched',
       request_id: 'req_1234567890abcdef',
       client_request_id: 'web:client-request-abcdef1234567890',
+      behavior_trace_id: 'bt:log-audit-behavior-001',
+      parent_behavior_event_id: 'be:log-audit-event-001',
       trusted_request_id_header: 'x-request-id',
       client_request_id_header: 'x-client-request-id',
+      behavior_trace_id_header: 'x-behavior-trace-id',
+      behavior_event_id_header: 'x-behavior-event-id',
     },
     input: {
       query: {
@@ -169,6 +177,7 @@ const detailData: LogDetailData = {
     task_type: 'upload_video',
     status: 'success',
     parent_request_id: 'req_1234567890abcdef',
+    behavior_trace_id: 'bt:log-audit-behavior-001',
     duration_ms: 2345,
     resource_type: 'media',
     resource_id: 'media_1',
@@ -183,6 +192,7 @@ const detailData: LogDetailData = {
         ended_at: '2026-07-02T14:26:18+00:00',
         duration_ms: 0,
         request_id: 'req_1234567890abcdef',
+        behavior_trace_id: 'bt:log-audit-behavior-001',
         error_code: null,
         summary: '请求体已到达后端，前端 99% 阶段开始',
         is_slowest: false,
@@ -194,6 +204,7 @@ const detailData: LogDetailData = {
         ended_at: '2026-07-02T14:26:21+00:00',
         duration_ms: 1800,
         request_id: 'req_1234567890abcdef',
+        behavior_trace_id: 'bt:log-audit-behavior-001',
         error_code: null,
         summary: '对象存储写入完成',
         is_slowest: true,
@@ -206,6 +217,7 @@ const detailData: LogDetailData = {
       task_type: 'upload_video',
       status: 'success',
       parent_request_id: 'req_1234567890abcdef',
+      behavior_trace_id: 'bt:log-audit-behavior-001',
       duration_ms: 2345,
       resource_type: 'media',
       resource_id: 'media_1',
@@ -220,6 +232,7 @@ const detailData: LogDetailData = {
           ended_at: '2026-07-02T14:26:18+00:00',
           duration_ms: 0,
           request_id: 'req_1234567890abcdef',
+          behavior_trace_id: 'bt:log-audit-behavior-001',
           error_code: null,
           summary: '请求体已到达后端，前端 99% 阶段开始',
           is_slowest: false,
@@ -231,6 +244,7 @@ const detailData: LogDetailData = {
           ended_at: '2026-07-02T14:26:21+00:00',
           duration_ms: 1800,
           request_id: 'req_1234567890abcdef',
+          behavior_trace_id: 'bt:log-audit-behavior-001',
           error_code: null,
           summary: '对象存储写入完成',
           is_slowest: true,
@@ -355,6 +369,7 @@ describe('LogAuditPage', () => {
     expect(screen.getByLabelText('状态 / 结果')).toHaveClass('select');
     expect(screen.getByLabelText('路径 / Request ID')).toHaveAttribute('placeholder', '接口路径或 request_id');
     expect(screen.getByLabelText('Task Trace ID')).toHaveAttribute('placeholder', 'task_upload_video_xxx');
+    expect(screen.getByLabelText('Behavior Trace ID')).toHaveAttribute('placeholder', 'bt:...');
     expect(screen.getByRole('option', { name: '422 参数校验错误' })).toBeInTheDocument();
     expect(screen.getByLabelText('操作者')).toHaveAttribute('role', 'combobox');
     expect(screen.getByLabelText('操作者')).toHaveAttribute('placeholder', '搜索用户名称或账号');
@@ -364,6 +379,7 @@ describe('LogAuditPage', () => {
       '时间范围',
       '状态 / 结果',
       '操作者',
+      'Behavior Trace ID',
       'Task Trace ID',
       '路径 / Request ID',
     ]);
@@ -382,16 +398,20 @@ describe('LogAuditPage', () => {
       '耗时',
       'request_id',
       'client_request_id',
+      'behavior_trace_id',
       'task_trace_id',
       '操作',
     ]);
     expect(screen.queryByRole('columnheader', { name: 'Task Trace' })).not.toBeInTheDocument();
     expect(container.querySelector('.request-id-cell')?.querySelector('.request-copy-action')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'client_request_id' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'behavior_trace_id' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'task_trace_id' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '复制 client_request_id' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '复制 behavior_trace_id' })).toBeInTheDocument();
     expect(screen.getByText(/web:client/)).toBeInTheDocument();
-    const taskTraceCell = container.querySelector('.task-trace-cell');
+    expect(screen.getByText(/bt:log-audit/)).toBeInTheDocument();
+    const taskTraceCell = screen.getByRole('button', { name: '复制 task_trace_id' }).closest('.task-trace-cell');
     const tableRow = taskTraceCell?.closest('tr');
     expect(taskTraceCell?.querySelector('.task-trace-id')).toHaveTextContent(/task_upload/);
     expect(taskTraceCell?.querySelector('.request-copy-action')).toHaveAccessibleName('复制 task_trace_id');
@@ -449,6 +469,18 @@ describe('LogAuditPage', () => {
       expect(fetchLogs).toHaveBeenLastCalledWith(
         expect.objectContaining({
           task_trace_id: 'task_upload_video_abcdef1234567890',
+          page: 1,
+        }),
+      );
+    });
+
+    fireEvent.change(screen.getByLabelText('Behavior Trace ID'), {
+      target: { value: 'bt:log-audit-behavior-001' },
+    });
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          behavior_trace_id: 'bt:log-audit-behavior-001',
           page: 1,
         }),
       );
@@ -547,6 +579,7 @@ describe('LogAuditPage', () => {
           result: undefined,
           status_code: undefined,
           task_trace_id: undefined,
+          behavior_trace_id: undefined,
           page: 1,
         }),
       );
@@ -636,6 +669,22 @@ describe('LogAuditPage', () => {
       task_trace_id: 'task_upload_video_abcdef1234567890',
     }));
     expect(await screen.findByRole('status')).toHaveTextContent('task_trace_id 已复制');
+  });
+
+  it('copies behavior_trace_id with fixed toast feedback', async () => {
+    render(<LogAuditPage />);
+    await screen.findByText('GET /api/v1/admin/logs · 200');
+
+    fireEvent.click(screen.getByRole('button', { name: '复制 behavior_trace_id' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard?.writeText).toHaveBeenCalledWith('bt:log-audit-behavior-001');
+    });
+    expect(trackUsageEvent).toHaveBeenCalledWith('copy_request_id', expect.objectContaining({
+      entity_type: 'behavior_trace',
+      behavior_trace_id: 'bt:log-audit-behavior-001',
+    }));
+    expect(await screen.findByRole('status')).toHaveTextContent('behavior_trace_id 已复制');
   });
 
   it('copies parent_request_id with fixed toast feedback', async () => {
@@ -732,6 +781,8 @@ describe('LogAuditPage', () => {
     expect(within(drawer).getByText('Route Template')).toBeInTheDocument();
     expect(within(drawer).getByText('Trusted Request ID')).toBeInTheDocument();
     expect(within(drawer).getByText('Client Request ID')).toBeInTheDocument();
+    expect(within(drawer).getAllByText('behavior_trace_id').length).toBeGreaterThan(0);
+    expect(within(drawer).getByText('Behavior Trace Header')).toBeInTheDocument();
     expect(within(drawer).getByText('Trusted Response Header')).toBeInTheDocument();
     expect(within(drawer).getAllByLabelText('字段说明：Method')[0]).toHaveAttribute(
       'data-tooltip',
@@ -752,6 +803,9 @@ describe('LogAuditPage', () => {
     expect(within(drawer).getByText('x-request-id')).toBeInTheDocument();
     expect(within(drawer).getByText('x-client-request-id')).toBeInTheDocument();
     expect(within(drawer).getAllByText('web:client-request-abcdef1234567890').length).toBeGreaterThan(0);
+    expect(within(drawer).getAllByText('bt:log-audit-behavior-001').length).toBeGreaterThan(0);
+    expect(within(drawer).getByText('x-behavior-trace-id')).toBeInTheDocument();
+    expect(within(drawer).getByText('x-behavior-event-id')).toBeInTheDocument();
     expect(within(drawer).getAllByText('/api/v1/admin/logs').length).toBeGreaterThan(0);
     expect(within(drawer).getByText('Query Allowlist')).toBeInTheDocument();
     expect(within(drawer).getByText(/"page": "1"/)).toBeInTheDocument();

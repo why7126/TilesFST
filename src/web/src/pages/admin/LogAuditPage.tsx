@@ -34,6 +34,7 @@ type Filters = {
   timeRange: string;
   actor: string;
   status: string;
+  behaviorTraceId: string;
   pathOrRequestId: string;
   taskTraceId: string;
 };
@@ -43,6 +44,7 @@ const defaultFilters: Filters = {
   timeRange: '1d',
   actor: '',
   status: '',
+  behaviorTraceId: '',
   pathOrRequestId: '',
   taskTraceId: '',
 };
@@ -100,6 +102,7 @@ const timeRangeOptions = [
 function buildQuery(filters: Filters, page: number, pageSize: number): LogQuery {
   const statusFilter = parseStatusFilter(filters.status);
   const pathOrRequestId = filters.pathOrRequestId.trim();
+  const behaviorTraceId = filters.behaviorTraceId.trim();
   const taskTraceId = filters.taskTraceId.trim();
   return {
     page,
@@ -109,6 +112,7 @@ function buildQuery(filters: Filters, page: number, pageSize: number): LogQuery 
     status_code: statusFilter.status_code,
     result: statusFilter.result,
     path_or_request_id: pathOrRequestId || undefined,
+    behavior_trace_id: behaviorTraceId || undefined,
     task_trace_id: taskTraceId || undefined,
     ...timeRangeToParams(filters.timeRange),
   };
@@ -204,6 +208,16 @@ function shortClientRequestId(value?: string | null) {
   return `${value.slice(0, 12)}…${value.slice(-5)}`;
 }
 
+function shortBehaviorTraceId(value?: string | null) {
+  if (!value) {
+    return '-';
+  }
+  if (value.length <= 22) {
+    return value;
+  }
+  return `${value.slice(0, 13)}…${value.slice(-6)}`;
+}
+
 function shortTaskTraceId(value?: string | null) {
   if (!value) {
     return '-';
@@ -289,6 +303,8 @@ const FIELD_DESCRIPTIONS: Record<string, string> = {
   '状态 / 结果': '本次请求、行为或审计操作的最终结果。',
   request_id: '后端生成的可信请求 ID，可用于串联请求日志、Task Trace 和排障上下文。',
   client_request_id: '前端或小程序生成的客户端请求 ID，仅用于辅助排障，不能替代后端可信 request_id。',
+  behavior_trace_id: '一次界面行为链路 ID，可关联同一次页面访问、点击或表单提交触发的多个 API 请求。',
+  parent_behavior_event_id: '请求来源行为事件 ID，用于从请求日志回指触发请求的单条 usage event。',
   task_trace_id: '任务链路 ID，用于串联上传、保存等多节点任务的摘要和 span 时间线。',
   '发生时间': '日志记录落库时间。',
   Method: 'HTTP 请求方法，例如 GET、POST、PATCH 或 DELETE。',
@@ -447,8 +463,12 @@ function RequestSnapshotSection({ snapshot }: { snapshot?: RequestSnapshotData |
           ['Route Match', snapshot.request?.route_match_status],
           ['Trusted Request ID', snapshot.request?.request_id],
           ['Client Request ID', snapshot.request?.client_request_id],
+          ['behavior_trace_id', snapshot.request?.behavior_trace_id],
+          ['parent_behavior_event_id', snapshot.request?.parent_behavior_event_id],
           ['Trusted Response Header', snapshot.request?.trusted_request_id_header],
           ['Client Request Header', snapshot.request?.client_request_id_header],
+          ['Behavior Trace Header', snapshot.request?.behavior_trace_id_header],
+          ['Behavior Event Header', snapshot.request?.behavior_event_id_header],
         ]} />
       </div>
       <div className="snapshot-block">
@@ -803,6 +823,30 @@ export function LogAuditPage() {
     setNotice('自动复制失败，请打开日志详情选中文本手动复制');
   };
 
+  const copyBehaviorTraceId = async (value?: string | null) => {
+    const result = await copyTextToClipboard(value);
+    if (result.status === 'empty') {
+      setNotice('当前日志没有 behavior_trace_id');
+      return;
+    }
+    if (result.status === 'unavailable') {
+      setNotice('无法自动复制 behavior_trace_id，请打开日志详情选中文本手动复制');
+      return;
+    }
+    if (result.status === 'success') {
+      setNotice('behavior_trace_id 已复制');
+      void trackUsageEvent('copy_request_id', {
+        module: TRACKING_MODULE,
+        entity_type: 'behavior_trace',
+        entity_id: result.text ?? 'unknown',
+        request_id: detail?.log.request_id ?? undefined,
+        behavior_trace_id: result.text ?? 'unknown',
+      });
+      return;
+    }
+    setNotice('自动复制失败，请打开日志详情选中文本手动复制');
+  };
+
   const copyParentRequestId = async (value?: string | null) => {
     const result = await copyTextToClipboard(value);
     if (result.status === 'empty') {
@@ -941,6 +985,10 @@ export function LogAuditPage() {
             />
           </label>
           <label>
+            <span className="field-label">Behavior Trace ID</span>
+            <input className="input" value={filters.behaviorTraceId} onChange={(event) => updateFilter('behaviorTraceId', event.target.value)} placeholder="bt:..." />
+          </label>
+          <label>
             <span className="field-label">Task Trace ID</span>
             <input className="input" value={filters.taskTraceId} onChange={(event) => updateFilter('taskTraceId', event.target.value)} placeholder="task_upload_video_xxx" />
           </label>
@@ -955,7 +1003,7 @@ export function LogAuditPage() {
             </button>
           </div>
         </div>
-        <p className="filter-hint">默认展示最近1天；路径、request_id 与 task_trace_id 均走后端分页筛选。</p>
+        <p className="filter-hint">默认展示最近1天；behavior_trace_id、request_id 与 task_trace_id 均走后端分页筛选。</p>
       </section>
 
       <section className="table-card" aria-label="日志列表">
@@ -972,13 +1020,14 @@ export function LogAuditPage() {
                 <th>耗时</th>
                 <th>request_id</th>
                 <th>client_request_id</th>
+                <th>behavior_trace_id</th>
                 <th>task_trace_id</th>
                 <th className="log-audit-action-cell admin-sticky-action-cell">操作</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={11} className="log-audit-empty">加载日志中...</td></tr>
+                <tr><td colSpan={12} className="log-audit-empty">加载日志中...</td></tr>
               ) : (data?.items.length ?? 0) > 0 ? (
                 data!.items.map((item) => (
                   <tr key={item.id}>
@@ -1021,6 +1070,18 @@ export function LogAuditPage() {
                     </td>
                     <td>
                       <div className="task-trace-cell">
+                        <code className="task-trace-id" title={item.behavior_trace_id?.trim() || undefined}>{shortBehaviorTraceId(item.behavior_trace_id?.trim())}</code>
+                        {item.behavior_trace_id?.trim() ? (
+                          <button className="request-copy-action" type="button" aria-label="复制 behavior_trace_id" onClick={() => void copyBehaviorTraceId(item.behavior_trace_id)}>
+                            <Copy size={13} aria-hidden />
+                          </button>
+                        ) : (
+                          <span className="log-audit-muted">无界面行为来源</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="task-trace-cell">
                         <code className="task-trace-id" title={item.task_trace_id?.trim() || undefined}>{shortTaskTraceId(item.task_trace_id?.trim())}</code>
                         {item.task_trace_id?.trim() ? (
                           <button className="request-copy-action" type="button" aria-label="复制 task_trace_id" onClick={() => void copyTaskTraceId(item.task_trace_id)}>
@@ -1033,7 +1094,7 @@ export function LogAuditPage() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={11} className="log-audit-empty">暂无匹配日志</td></tr>
+                <tr><td colSpan={12} className="log-audit-empty">暂无匹配日志</td></tr>
               )}
             </tbody>
           </table>

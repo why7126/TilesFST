@@ -18,11 +18,12 @@ class LogQueryParams(BaseModel):
     result: Literal["success", "failed"] | None = None
     resource_id: str | None = Field(default=None, max_length=128)
     path_or_request_id: str | None = Field(default=None, max_length=180)
+    behavior_trace_id: str | None = Field(default=None, max_length=128)
     task_trace_id: str | None = Field(default=None, max_length=96)
     start_time: str | None = Field(default=None, max_length=64)
     end_time: str | None = Field(default=None, max_length=64)
 
-    @field_validator("keyword", "actor_user_id", "client_type", "resource_id", "path_or_request_id", "task_trace_id")
+    @field_validator("keyword", "actor_user_id", "client_type", "resource_id", "path_or_request_id", "behavior_trace_id", "task_trace_id")
     @classmethod
     def blank_to_none(cls, value: str | None) -> str | None:
         if value is None:
@@ -45,6 +46,8 @@ class LogListItem(BaseModel):
     duration_ms: int | None = None
     request_id: str | None = None
     client_request_id: str | None = None
+    behavior_trace_id: str | None = None
+    parent_behavior_event_id: str | None = None
     task_trace_id: str | None = None
     task_type: str | None = None
     task_status: str | None = None
@@ -78,11 +81,12 @@ class LogObservabilityQueryParams(BaseModel):
     status_code: int | None = Field(default=None, ge=100, le=599)
     result: Literal["success", "failed"] | None = None
     request_id: str | None = Field(default=None, max_length=128)
+    behavior_trace_id: str | None = Field(default=None, max_length=128)
     task_trace_id: str | None = Field(default=None, max_length=96)
     start_time: str | None = Field(default=None, max_length=64)
     end_time: str | None = Field(default=None, max_length=64)
 
-    @field_validator("client_type", "task_type", "path_or_request_id", "request_id", "task_trace_id")
+    @field_validator("client_type", "task_type", "path_or_request_id", "request_id", "behavior_trace_id", "task_trace_id")
     @classmethod
     def blank_to_none(cls, value: str | None) -> str | None:
         if value is None:
@@ -125,6 +129,7 @@ class ObservabilitySlowRequestItem(BaseModel):
     duration_ms: int
     client_type: str
     request_id: str | None = None
+    behavior_trace_id: str | None = None
 
 
 class ObservabilityTaskItem(BaseModel):
@@ -145,11 +150,13 @@ class ObservabilitySpanItem(BaseModel):
     status: str
     duration_ms: int | None = None
     request_id: str | None = None
+    behavior_trace_id: str | None = None
     error_code: str | None = None
     summary: str
 
 
 class ObservabilityTraceResultsData(BaseModel):
+    behavior_trace_id: str | None = None
     request_id: str | None = None
     task_trace_id: str | None = None
     log_ids: list[str] = Field(default_factory=list)
@@ -179,6 +186,7 @@ class TaskTraceSpanData(BaseModel):
     ended_at: str | None = None
     duration_ms: int | None = None
     request_id: str | None = None
+    behavior_trace_id: str | None = None
     error_code: str | None = None
     summary: str
     is_slowest: bool = False
@@ -189,6 +197,7 @@ class TaskTraceData(BaseModel):
     task_type: str
     status: str
     parent_request_id: str | None = None
+    behavior_trace_id: str | None = None
     duration_ms: int | None = None
     resource_type: str | None = None
     resource_id: str | None = None
@@ -205,8 +214,12 @@ class RequestSnapshotRequestData(BaseModel):
     route_match_status: Literal["matched", "unmatched", "unknown"] = "unknown"
     request_id: str | None = None
     client_request_id: str | None = None
+    behavior_trace_id: str | None = None
+    parent_behavior_event_id: str | None = None
     trusted_request_id_header: str | None = None
     client_request_id_header: str | None = None
+    behavior_trace_id_header: str | None = None
+    behavior_event_id_header: str | None = None
 
 
 class RequestSnapshotInputData(BaseModel):
@@ -275,6 +288,8 @@ class UsageEventCreate(BaseModel):
     page_path: str | None = Field(default=None, max_length=768)
     request_id: str | None = Field(default=None, max_length=128)
     client_request_id: str | None = Field(default=None, max_length=128)
+    behavior_trace_id: str | None = Field(default=None, max_length=128)
+    behavior_event_id: str | None = Field(default=None, max_length=128)
     task_trace_id: str | None = Field(default=None, max_length=96)
     task_type: str | None = Field(default=None, max_length=64)
     session_id: str | None = Field(default=None, max_length=128)
@@ -285,3 +300,5 @@ class UsageEventCreate(BaseModel):
 class UsageEventData(BaseModel):
     id: str
     accepted: bool
+    behavior_trace_id: str | None = None
+    behavior_event_id: str | None = None

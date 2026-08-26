@@ -22,6 +22,8 @@ class LogRecord:
     actor_username: str | None
     client_type: str | None
     client_request_id: str | None
+    behavior_trace_id: str | None
+    parent_behavior_event_id: str | None
     event_name: str | None
     method: str | None
     path: str | None
@@ -67,6 +69,8 @@ class LogRepository:
         actor_role: str | None,
         client_type: str,
         client_request_id: str | None,
+        behavior_trace_id: str | None = None,
+        parent_behavior_event_id: str | None = None,
         method: str,
         path: str,
         status_code: int,
@@ -86,11 +90,13 @@ class LogRepository:
                 """
                 INSERT INTO request_logs (
                   id, request_id, actor_user_id, actor_role, client_type, client_request_id,
+                  behavior_trace_id, parent_behavior_event_id,
                   method, path, status_code, duration_ms, ip_address_masked,
                   user_agent_summary, summary, error_code, result, task_trace_id, task_type,
                   metadata, created_at
                 ) VALUES (
                   :id, :request_id, :actor_user_id, :actor_role, :client_type, :client_request_id,
+                  :behavior_trace_id, :parent_behavior_event_id,
                   :method, :path, :status_code, :duration_ms, :ip_address_masked,
                   :user_agent_summary, :summary, :error_code, :result, :task_trace_id, :task_type,
                   :metadata, :created_at
@@ -104,6 +110,8 @@ class LogRepository:
                 "actor_role": actor_role,
                 "client_type": client_type,
                 "client_request_id": client_request_id,
+                "behavior_trace_id": behavior_trace_id,
+                "parent_behavior_event_id": parent_behavior_event_id,
                 "method": method,
                 "path": path,
                 "status_code": status_code,
@@ -129,6 +137,8 @@ class LogRepository:
         actor_user_id: str | None,
         actor_role: str | None,
         client_type: str,
+        behavior_trace_id: str | None = None,
+        behavior_event_id: str | None = None,
         event_name: str,
         event_category: str,
         page_path: str | None,
@@ -148,11 +158,13 @@ class LogRepository:
                 """
                 INSERT INTO usage_events (
                   id, request_id, actor_user_id, actor_role, client_type,
+                  behavior_trace_id, behavior_event_id,
                   event_name, event_category, page_path, session_id,
                   ip_address_masked, user_agent_summary, summary, duration_ms, result,
                   task_trace_id, task_type, metadata, created_at
                 ) VALUES (
                   :id, :request_id, :actor_user_id, :actor_role, :client_type,
+                  :behavior_trace_id, :behavior_event_id,
                   :event_name, :event_category, :page_path, :session_id,
                   :ip_address_masked, :user_agent_summary, :summary, :duration_ms, :result,
                   :task_trace_id, :task_type, :metadata, :created_at
@@ -165,6 +177,8 @@ class LogRepository:
                 "actor_user_id": actor_user_id,
                 "actor_role": actor_role,
                 "client_type": client_type,
+                "behavior_trace_id": behavior_trace_id,
+                "behavior_event_id": behavior_event_id,
                 "event_name": event_name,
                 "event_category": event_category,
                 "page_path": page_path,
@@ -196,6 +210,7 @@ class LogRepository:
         result: str | None = None,
         resource_id: str | None = None,
         path_or_request_id: str | None = None,
+        behavior_trace_id: str | None = None,
         task_trace_id: str | None = None,
         start_time: str | None = None,
         end_time: str | None = None,
@@ -209,6 +224,7 @@ class LogRepository:
             result=result,
             resource_id=resource_id,
             path_or_request_id=path_or_request_id,
+            behavior_trace_id=behavior_trace_id,
             task_trace_id=task_trace_id,
             start_time=start_time,
             end_time=end_time,
@@ -471,7 +487,7 @@ class LogRepository:
         rows = self._db.execute(
             text(
                 f"""
-                SELECT id, path, method, status_code, duration_ms, client_type, request_id
+                SELECT id, path, method, status_code, duration_ms, client_type, request_id, behavior_trace_id
                 FROM ({source}) logs
                 {where}
                 {'AND' if where else 'WHERE'} log_type = 'request' AND duration_ms >= :slow_request_threshold_ms
@@ -490,6 +506,7 @@ class LogRepository:
                 "duration_ms": int(row["duration_ms"] or 0),
                 "client_type": str(row["client_type"] or "unknown"),
                 "request_id": row.get("request_id"),
+                "behavior_trace_id": row.get("behavior_trace_id"),
             }
             for row in rows
         ]
@@ -528,7 +545,7 @@ class LogRepository:
         rows = self._db.execute(
             text(
                 f"""
-                SELECT task_trace_id, task_type, span_name, status, duration_ms, request_id, error_code, summary
+                SELECT task_trace_id, task_type, span_name, status, duration_ms, request_id, behavior_trace_id, error_code, summary
                 FROM task_trace_spans s
                 {where}
                 {'AND' if where else 'WHERE'} duration_ms IS NOT NULL
@@ -546,6 +563,7 @@ class LogRepository:
                 "status": str(row["status"]),
                 "duration_ms": int(row["duration_ms"]) if row["duration_ms"] is not None else None,
                 "request_id": row.get("request_id"),
+                "behavior_trace_id": row.get("behavior_trace_id"),
                 "error_code": row.get("error_code"),
                 "summary": str(row["summary"]),
             }
@@ -556,9 +574,16 @@ class LogRepository:
         request_id = (filters.get("request_id") or "").strip()
         task_trace_id = (filters.get("task_trace_id") or "").strip()
         if not request_id and not task_trace_id:
-            return {"request_id": None, "task_trace_id": None, "log_ids": [], "request_ids": [], "task_trace_ids": [], "reason": None}
+            behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
+            if not behavior_trace_id:
+                return {"behavior_trace_id": None, "request_id": None, "task_trace_id": None, "log_ids": [], "request_ids": [], "task_trace_ids": [], "reason": None}
+        else:
+            behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
         clauses: list[str] = []
         params: dict[str, Any] = {}
+        if behavior_trace_id:
+            clauses.append("behavior_trace_id = :behavior_trace_id")
+            params["behavior_trace_id"] = behavior_trace_id
         if request_id:
             clauses.append("(request_id = :request_id OR client_request_id = :request_id)")
             params["request_id"] = request_id
@@ -600,7 +625,28 @@ class LogRepository:
                 {task_trace_id for task_trace_id in task_trace_ids}
                 | {str(row["task_trace_id"]) for row in task_rows if row.get("task_trace_id")}
             )
+        if behavior_trace_id:
+            task_rows = self._db.execute(
+                text(
+                    """
+                    SELECT task_trace_id
+                    FROM task_traces
+                    WHERE behavior_trace_id = :behavior_trace_id
+                    UNION
+                    SELECT task_trace_id
+                    FROM task_trace_spans
+                    WHERE behavior_trace_id = :behavior_trace_id
+                    LIMIT 20
+                    """
+                ),
+                {"behavior_trace_id": behavior_trace_id},
+            ).mappings().all()
+            task_trace_ids = sorted(
+                {task_trace_id for task_trace_id in task_trace_ids}
+                | {str(row["task_trace_id"]) for row in task_rows if row.get("task_trace_id")}
+            )
         return {
+            "behavior_trace_id": behavior_trace_id or None,
             "request_id": request_id or None,
             "task_trace_id": task_trace_id or None,
             "log_ids": log_ids,
@@ -617,6 +663,7 @@ class LogRepository:
             status_code=filters.get("status_code"),
             result=filters.get("result"),
             path_or_request_id=filters.get("path_or_request_id"),
+            behavior_trace_id=filters.get("behavior_trace_id"),
             task_trace_id=filters.get("task_trace_id"),
             start_time=filters.get("start_time"),
             end_time=filters.get("end_time"),
@@ -632,6 +679,10 @@ class LogRepository:
         if request_id:
             clauses.append("(request_id = :obs_request_id OR client_request_id = :obs_request_id)")
             params["obs_request_id"] = request_id
+        behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
+        if behavior_trace_id:
+            clauses.append("behavior_trace_id = :obs_behavior_trace_id")
+            params["obs_behavior_trace_id"] = behavior_trace_id
         return ("WHERE " + " AND ".join(clauses), params) if clauses else ("", params)
 
     @staticmethod
@@ -659,6 +710,10 @@ class LogRepository:
         if request_id and prefix == "t":
             clauses.append(f"{column('parent_request_id')} = :task_request_id")
             params["task_request_id"] = request_id
+        behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
+        if behavior_trace_id:
+            clauses.append(f"{column('behavior_trace_id')} = :task_behavior_trace_id")
+            params["task_behavior_trace_id"] = behavior_trace_id
         start_time = filters.get("start_time")
         if start_time:
             clauses.append(f"{column('created_at')} >= :task_start_time")
@@ -706,9 +761,14 @@ class LogRepository:
         path_or_request_id = (filters.get("path_or_request_id") or "").strip()
         if path_or_request_id:
             clauses.append(
-                "(path LIKE :path_or_request_id OR request_id LIKE :path_or_request_id OR client_request_id LIKE :path_or_request_id OR task_trace_id LIKE :path_or_request_id)"
+                "(path LIKE :path_or_request_id OR request_id LIKE :path_or_request_id OR client_request_id LIKE :path_or_request_id OR behavior_trace_id LIKE :path_or_request_id OR parent_behavior_event_id LIKE :path_or_request_id OR task_trace_id LIKE :path_or_request_id)"
             )
             params["path_or_request_id"] = f"%{path_or_request_id}%"
+
+        behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
+        if behavior_trace_id:
+            clauses.append("behavior_trace_id = :behavior_trace_id")
+            params["behavior_trace_id"] = behavior_trace_id
 
         task_trace_id = (filters.get("task_trace_id") or "").strip()
         if task_trace_id:
@@ -752,6 +812,7 @@ class LogRepository:
                     "status_code": "status_code",
                     "result": "result",
                     "created_at": "created_at",
+                    "behavior_trace_id": "behavior_trace_id",
                     "task_trace_id": "task_trace_id",
                     "metadata": "metadata",
                 },
@@ -767,6 +828,8 @@ class LogRepository:
               u.username AS actor_username,
               r.client_type AS client_type,
               r.client_request_id AS client_request_id,
+              r.behavior_trace_id AS behavior_trace_id,
+              r.parent_behavior_event_id AS parent_behavior_event_id,
               NULL AS event_name,
               r.method AS method,
               r.path AS path,
@@ -800,6 +863,7 @@ class LogRepository:
                     "client_type": "client_type",
                     "result": "result",
                     "created_at": "created_at",
+                    "behavior_trace_id": "behavior_trace_id",
                     "task_trace_id": "task_trace_id",
                     "metadata": "metadata",
                 },
@@ -815,6 +879,8 @@ class LogRepository:
               u.username AS actor_username,
               e.client_type AS client_type,
               NULL AS client_request_id,
+              e.behavior_trace_id AS behavior_trace_id,
+              e.behavior_event_id AS parent_behavior_event_id,
               e.event_name AS event_name,
               NULL AS method,
               e.page_path AS path,
@@ -861,6 +927,8 @@ class LogRepository:
               u.username AS actor_username,
               'backend' AS client_type,
               NULL AS client_request_id,
+              NULL AS behavior_trace_id,
+              NULL AS parent_behavior_event_id,
               a.action_type AS event_name,
               NULL AS method,
               a.domain AS path,
@@ -942,12 +1010,20 @@ class LogRepository:
             params["path_or_request_id"] = f"%{path_or_request_id}%"
             if log_type == "request":
                 clauses.append(
-                    "(r.path LIKE :path_or_request_id OR r.request_id LIKE :path_or_request_id OR r.client_request_id LIKE :path_or_request_id OR r.task_trace_id LIKE :path_or_request_id)"
+                    "(r.path LIKE :path_or_request_id OR r.request_id LIKE :path_or_request_id OR r.client_request_id LIKE :path_or_request_id OR r.behavior_trace_id LIKE :path_or_request_id OR r.parent_behavior_event_id LIKE :path_or_request_id OR r.task_trace_id LIKE :path_or_request_id)"
                 )
             elif log_type == "usage_event":
-                clauses.append("(e.page_path LIKE :path_or_request_id OR e.request_id LIKE :path_or_request_id OR e.task_trace_id LIKE :path_or_request_id)")
+                clauses.append("(e.page_path LIKE :path_or_request_id OR e.request_id LIKE :path_or_request_id OR e.behavior_trace_id LIKE :path_or_request_id OR e.behavior_event_id LIKE :path_or_request_id OR e.task_trace_id LIKE :path_or_request_id)")
             else:
                 clauses.append("(a.domain LIKE :path_or_request_id OR a.task_trace_id LIKE :path_or_request_id)")
+
+        behavior_trace_id = (filters.get("behavior_trace_id") or "").strip()
+        if behavior_trace_id:
+            if "behavior_trace_id" in column_map:
+                clauses.append(f"{column('behavior_trace_id')} = :behavior_trace_id")
+                params["behavior_trace_id"] = behavior_trace_id
+            else:
+                clauses.append("1 = 0")
 
         task_trace_id = (filters.get("task_trace_id") or "").strip()
         if task_trace_id:
@@ -979,6 +1055,8 @@ class LogRepository:
               u.username AS actor_username,
               r.client_type AS client_type,
               r.client_request_id AS client_request_id,
+              r.behavior_trace_id AS behavior_trace_id,
+              r.parent_behavior_event_id AS parent_behavior_event_id,
               NULL AS event_name,
               r.method AS method,
               r.path AS path,
@@ -1010,6 +1088,8 @@ class LogRepository:
               u.username AS actor_username,
               e.client_type AS client_type,
               NULL AS client_request_id,
+              e.behavior_trace_id AS behavior_trace_id,
+              e.behavior_event_id AS parent_behavior_event_id,
               e.event_name AS event_name,
               NULL AS method,
               e.page_path AS path,
@@ -1041,6 +1121,8 @@ class LogRepository:
               u.username AS actor_username,
               'backend' AS client_type,
               NULL AS client_request_id,
+              NULL AS behavior_trace_id,
+              NULL AS parent_behavior_event_id,
               a.action_type AS event_name,
               NULL AS method,
               a.domain AS path,
@@ -1075,6 +1157,8 @@ class LogRepository:
             actor_username=row.get("actor_username"),
             client_type=row.get("client_type"),
             client_request_id=row.get("client_request_id"),
+            behavior_trace_id=row.get("behavior_trace_id"),
+            parent_behavior_event_id=row.get("parent_behavior_event_id"),
             event_name=row.get("event_name"),
             method=row.get("method"),
             path=row.get("path"),

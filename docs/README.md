@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 10:02:47
+updated_at: 2026-08-26 20:58:03
 ---
 
 # 文档索引
@@ -30,6 +30,7 @@ updated_at: 2026-08-25 10:02:47
 | 文档 | 说明 |
 |------|------|
 | [standards/api-governance.md](standards/api-governance.md) | REST、统一响应、OpenAPI First |
+| [standards/product-data-collection-observability.md](standards/product-data-collection-observability.md) | 通用产品数据采集、请求日志、Task Trace、保留周期和脱敏边界 |
 | [standards/error-codes.md](standards/error-codes.md) | 错误码分段与登记 |
 | [standards/openapi-rules.md](standards/openapi-rules.md) | FastAPI 注解与契约 |
 | [standards/authentication.md](standards/authentication.md) | JWT 鉴权 |
@@ -88,6 +89,6 @@ updated_at: 2026-08-25 10:02:47
 
 所有 OpenSpec Change 在 `/opsx-apply` 前都必须纳入 Sprint 正式范围。通过 `/opsx-propose` 或 `/spec-opt` 直接创建的非 REQ/BUG Change，也需要先进入 `iterations/change|archive/<sprint>/sprint.yaml` 的 `changes[]`，不得因“纯治理”或“无 REQ/BUG 来源”跳过 Sprint。
 
-下一步命令参数保持来源对象一致：REQ 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `REQ-*`；BUG 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用 `<change-id>`。
+下一步命令参数保持来源对象一致：REQ 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `REQ-*`；BUG 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 
-命令完成输出必须区分「下一步」与「待用户决策/处理」：已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」。
+命令完成输出必须区分「下一步」与「待用户决策/处理」：技能契约不得给出可被原样输出的尖括号占位模板、通用 BUG 示例或规范语气；已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」。

@@ -311,6 +311,8 @@ export interface LogListItem {
   duration_ms?: number | null;
   request_id?: string | null;
   client_request_id?: string | null;
+  behavior_trace_id?: string | null;
+  parent_behavior_event_id?: string | null;
   task_trace_id?: string | null;
   task_type?: string | null;
   task_status?: string | null;
@@ -335,6 +337,7 @@ export interface TaskTraceSpanData {
   ended_at?: string | null;
   duration_ms?: number | null;
   request_id?: string | null;
+  behavior_trace_id?: string | null;
   error_code?: string | null;
   summary: string;
   is_slowest?: boolean;
@@ -345,6 +348,7 @@ export interface TaskTraceData {
   task_type: string;
   status: string;
   parent_request_id?: string | null;
+  behavior_trace_id?: string | null;
   duration_ms?: number | null;
   resource_type?: string | null;
   resource_id?: string | null;
@@ -370,8 +374,12 @@ export interface RequestSnapshotRequestData {
   route_match_status?: RequestSnapshotRequestDataRouteMatchStatus;
   request_id?: string | null;
   client_request_id?: string | null;
+  behavior_trace_id?: string | null;
+  parent_behavior_event_id?: string | null;
   trusted_request_id_header?: string | null;
   client_request_id_header?: string | null;
+  behavior_trace_id_header?: string | null;
+  behavior_event_id_header?: string | null;
 }
 
 export type RequestSnapshotInputDataQuery = { [key: string]: unknown };
@@ -500,6 +508,7 @@ export interface ObservabilitySlowRequestItem {
   duration_ms: number;
   client_type: string;
   request_id?: string | null;
+  behavior_trace_id?: string | null;
 }
 
 export interface ObservabilityTaskItem {
@@ -520,11 +529,13 @@ export interface ObservabilitySpanItem {
   status: string;
   duration_ms?: number | null;
   request_id?: string | null;
+  behavior_trace_id?: string | null;
   error_code?: string | null;
   summary: string;
 }
 
 export interface ObservabilityTraceResultsData {
+  behavior_trace_id?: string | null;
   request_id?: string | null;
   task_trace_id?: string | null;
   log_ids?: string[];
@@ -1661,6 +1672,8 @@ export interface ApiResponseUploadResult {
 export interface UsageEventData {
   id: string;
   accepted: boolean;
+  behavior_trace_id?: string | null;
+  behavior_event_id?: string | null;
 }
 
 export interface ApiResponseUsageEventData {
@@ -2295,6 +2308,8 @@ export interface UsageEventCreate {
   page_path?: string | null;
   request_id?: string | null;
   client_request_id?: string | null;
+  behavior_trace_id?: string | null;
+  behavior_event_id?: string | null;
   task_trace_id?: string | null;
   task_type?: string | null;
   session_id?: string | null;
@@ -2519,6 +2534,7 @@ status_code?: number | null;
 result?: string | null;
 resource_id?: string | null;
 path_or_request_id?: string | null;
+behavior_trace_id?: string | null;
 task_trace_id?: string | null;
 start_time?: string | null;
 end_time?: string | null;
@@ -2541,6 +2557,7 @@ path_or_request_id?: string | null;
 status_code?: number | null;
 result?: string | null;
 request_id?: string | null;
+behavior_trace_id?: string | null;
 task_trace_id?: string | null;
 start_time?: string | null;
 end_time?: string | null;

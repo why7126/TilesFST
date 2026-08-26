@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from io import BytesIO
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -13,6 +14,8 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.db.seed import DEFAULT_ADMIN_USERNAME
 from app.db.session import get_session_factory, init_database, reset_engine
+from app.modules.media import storage as media_storage
+from app.modules.media.storage import ImageThumbnailResult, get_media_storage_client
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.log_repository import LogRepository
 from app.repositories.task_trace_repository import TaskTraceRepository
@@ -41,6 +44,80 @@ def _create_employee() -> tuple[str, str]:
             )
             return created.id, "Operator123!"
         return existing.id, "Operator123!"
+    finally:
+        session.close()
+
+
+PNG_BYTES = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+    b"\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
+    b"\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01"
+    b"\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def _fake_generated_variant(
+    content: bytes,
+    content_type: str | None,
+    *,
+    target_max_size_kb: int = 0,
+    **_: object,
+) -> ImageThumbnailResult:
+    generated = f"variant-{target_max_size_kb}".encode()
+    return ImageThumbnailResult(
+        content=generated,
+        content_type="image/webp",
+        width=1,
+        height=1,
+        original_width=1,
+        original_height=1,
+        original_size=len(content),
+        size=len(generated),
+        resized=False,
+    )
+
+
+def _task_spans(task_trace_id: str) -> list[dict[str, object]]:
+    session = get_session_factory()()
+    try:
+        rows = (
+            session.execute(
+                text(
+                    """
+                    SELECT span_name, status, duration_ms, started_at, ended_at, error_code, metadata
+                    FROM task_trace_spans
+                    WHERE task_trace_id = :task_trace_id
+                    ORDER BY sequence ASC, created_at ASC
+                    """
+                ),
+                {"task_trace_id": task_trace_id},
+            )
+            .mappings()
+            .all()
+        )
+        return [dict(row) for row in rows]
+    finally:
+        session.close()
+
+
+def _latest_upload_image_spans() -> list[dict[str, object]]:
+    session = get_session_factory()()
+    try:
+        trace_id = (
+            session.execute(
+                text(
+                    """
+                    SELECT task_trace_id
+                    FROM task_trace_spans
+                    WHERE task_type = 'upload_image'
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+            )
+            .scalar_one()
+        )
+        return _task_spans(str(trace_id))
     finally:
         session.close()
 
@@ -116,13 +193,21 @@ def test_sqlite_init_migrates_legacy_task_trace_log_tables(
             assert "task_trace_id" in columns
             assert "task_type" in columns
             if table == "request_logs":
+                assert "behavior_trace_id" in columns
+                assert "parent_behavior_event_id" in columns
                 assert "client_request_id" in columns
                 assert "idx_request_logs_client_request_id" in indexes
                 assert "idx_request_logs_client_created" in indexes
                 assert "idx_request_logs_result_created" in indexes
+                assert "idx_request_logs_behavior_trace" in indexes
+                assert "idx_request_logs_parent_behavior_event" in indexes
             if table == "usage_events":
+                assert "behavior_trace_id" in columns
+                assert "behavior_event_id" in columns
                 assert "idx_usage_events_client_created" in indexes
                 assert "idx_usage_events_result_created" in indexes
+                assert "idx_usage_events_behavior_trace" in indexes
+                assert "idx_usage_events_behavior_event" in indexes
             if table == "audit_logs":
                 assert "idx_audit_logs_created" in indexes
             assert f"idx_{table}_task_trace" in indexes
@@ -136,6 +221,8 @@ def test_request_logging_records_admin_api_request(client: TestClient) -> None:
             **headers,
             "x-request-id": "client_must_not_be_trusted",
             "x-client-request-id": "web_admin:client.req-001",
+            "x-behavior-trace-id": "bt:pytest-behavior-trace-001",
+            "x-behavior-event-id": "be:pytest-behavior-event-001",
         },
         params={"page": 1, "token": "secret-token", "unexpected": "ignored"},
     )
@@ -149,7 +236,8 @@ def test_request_logging_records_admin_api_request(client: TestClient) -> None:
             session.execute(
                 text(
                     """
-                    SELECT method, path, status_code, request_id, client_request_id, actor_role, client_type, metadata
+                    SELECT method, path, status_code, request_id, client_request_id,
+                           behavior_trace_id, parent_behavior_event_id, actor_role, client_type, metadata
                     FROM request_logs
                     WHERE path = '/api/v1/admin/brands'
                     ORDER BY created_at DESC
@@ -167,6 +255,8 @@ def test_request_logging_records_admin_api_request(client: TestClient) -> None:
     assert row["status_code"] == 200
     assert row["request_id"] == response.headers["x-request-id"]
     assert row["client_request_id"] == "web_admin:client.req-001"
+    assert row["behavior_trace_id"] == "bt:pytest-behavior-trace-001"
+    assert row["parent_behavior_event_id"] == "be:pytest-behavior-event-001"
     assert row["actor_role"] == "admin"
     assert row["client_type"] == "web_admin"
     metadata = json.loads(row["metadata"])
@@ -175,8 +265,12 @@ def test_request_logging_records_admin_api_request(client: TestClient) -> None:
     assert snapshot["request"]["route_match_status"] == "matched"
     assert snapshot["request"]["request_id"] == response.headers["x-request-id"]
     assert snapshot["request"]["client_request_id"] == "web_admin:client.req-001"
+    assert snapshot["request"]["behavior_trace_id"] == "bt:pytest-behavior-trace-001"
+    assert snapshot["request"]["parent_behavior_event_id"] == "be:pytest-behavior-event-001"
     assert snapshot["request"]["trusted_request_id_header"] == "x-request-id"
     assert snapshot["request"]["client_request_id_header"] == "x-client-request-id"
+    assert snapshot["request"]["behavior_trace_id_header"] == "x-behavior-trace-id"
+    assert snapshot["request"]["behavior_event_id_header"] == "x-behavior-event-id"
     assert snapshot["input"]["query"]["allowed"] == {"page": "1"}
     assert snapshot["input"]["query"]["redacted_keys"] == ["token"]
     assert snapshot["input"]["query"]["ignored_keys"] == ["unexpected"]
@@ -220,6 +314,38 @@ def test_request_logging_client_request_id_degrades_safely(client: TestClient) -
     metadata = json.loads(row["metadata"])
     assert metadata["request_snapshot"]["request"]["client_request_id"] is None
     assert "bad\nid" not in json.dumps(metadata, ensure_ascii=False)
+
+
+def test_direct_api_request_keeps_behavior_trace_empty(client: TestClient) -> None:
+    response = client.get("/api/v1/tiles")
+    assert response.status_code == 200
+
+    session = get_session_factory()()
+    try:
+        row = (
+            session.execute(
+                text(
+                    """
+                    SELECT request_id, behavior_trace_id, parent_behavior_event_id, metadata
+                    FROM request_logs
+                    WHERE path = '/api/v1/tiles'
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+            )
+            .mappings()
+            .one()
+        )
+    finally:
+        session.close()
+
+    assert row["request_id"]
+    assert row["behavior_trace_id"] is None
+    assert row["parent_behavior_event_id"] is None
+    snapshot = json.loads(row["metadata"])["request_snapshot"]
+    assert snapshot["request"]["behavior_trace_id"] is None
+    assert snapshot["request"]["parent_behavior_event_id"] is None
 
 
 def test_request_logging_defaults_client_type_by_channel(client: TestClient) -> None:
@@ -280,6 +406,133 @@ def test_request_snapshot_logging_failure_does_not_block_business_response(
     assert response.headers.get("x-request-id")
 
 
+def test_avatar_upload_records_stage_trace_spans(
+    client: TestClient,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(media_storage, "generate_image_thumbnail", _fake_generated_variant)
+    _, password = _create_employee()
+    headers = _auth_headers(client, "log_employee", password)
+
+    response = client.post(
+        "/api/v1/admin/uploads",
+        headers=headers,
+        files={"file": ("avatar.png", BytesIO(PNG_BYTES), "image/png")},
+    )
+
+    assert response.status_code == 200
+    task_trace_id = response.json()["data"]["task_trace_id"]
+    spans = _task_spans(task_trace_id)
+    by_name = {str(span["span_name"]): span for span in spans}
+    for span_name in ("file_read", "original_put_object"):
+        assert by_name[span_name]["status"] == "success"
+        assert isinstance(by_name[span_name]["duration_ms"], int)
+        assert by_name[span_name]["duration_ms"] >= 0
+        assert by_name[span_name]["started_at"]
+        assert by_name[span_name]["ended_at"]
+
+
+def test_general_image_upload_records_six_required_stage_trace_spans(
+    client: TestClient,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(media_storage, "generate_image_thumbnail", _fake_generated_variant)
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+
+    response = client.post(
+        "/api/v1/admin/uploads/banner-images",
+        headers=headers,
+        files={"file": ("banner.png", BytesIO(PNG_BYTES), "image/png")},
+    )
+
+    assert response.status_code == 200
+    task_trace_id = response.json()["data"]["task_trace_id"]
+    spans = _task_spans(task_trace_id)
+    required = [
+        "file_read",
+        "original_put_object",
+        "thumbnail_generate",
+        "thumbnail_put_object",
+        "display_generate",
+        "display_put_object",
+    ]
+    by_name = {str(span["span_name"]): span for span in spans}
+    assert list(name for name in required if name in by_name) == required
+    assert all(by_name[name]["status"] == "success" for name in required)
+    assert all(isinstance(by_name[name]["duration_ms"], int) for name in required)
+
+
+def test_upload_trace_preserves_original_put_failure_stage(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+    storage = get_media_storage_client()
+    storage.fail_put = True
+
+    response = client.post(
+        "/api/v1/admin/uploads/banner-images",
+        headers=headers,
+        files={"file": ("banner.png", BytesIO(PNG_BYTES), "image/png")},
+    )
+
+    assert response.status_code == 502
+    spans = _latest_upload_image_spans()
+    by_name = {str(span["span_name"]): span for span in spans}
+    assert by_name["file_read"]["status"] == "success"
+    assert by_name["original_put_object"]["status"] == "failed"
+    assert by_name["original_put_object"]["error_code"]
+    assert "thumbnail_generate" not in by_name
+
+
+def test_upload_trace_records_variant_generation_skip(
+    client: TestClient,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    def fail_generate(*_: object, **__: object) -> ImageThumbnailResult:
+        raise ValueError("unsupported test image")
+
+    monkeypatch.setattr(media_storage, "generate_image_thumbnail", fail_generate)
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+
+    response = client.post(
+        "/api/v1/admin/uploads/banner-images",
+        headers=headers,
+        files={"file": ("banner.png", BytesIO(PNG_BYTES), "image/png")},
+    )
+
+    assert response.status_code == 200
+    task_trace_id = response.json()["data"]["task_trace_id"]
+    spans = _task_spans(task_trace_id)
+    by_name = {str(span["span_name"]): span for span in spans}
+    assert by_name["thumbnail_generate"]["status"] == "skipped"
+    assert by_name["thumbnail_put_object"]["status"] == "skipped"
+    assert by_name["display_generate"]["status"] == "skipped"
+    assert by_name["display_put_object"]["status"] == "skipped"
+    serialized = json.dumps(spans, ensure_ascii=False)
+    assert "/Users/" not in serialized
+    assert "Authorization" not in serialized
+    assert "secret" not in serialized.lower()
+
+
+def test_file_upload_trace_records_non_image_variant_skip(client: TestClient) -> None:
+    headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
+
+    response = client.post(
+        "/api/v1/admin/uploads/brand-certificates",
+        headers=headers,
+        files={"file": ("certificate.pdf", BytesIO(b"%PDF-1.4\n%%EOF"), "application/pdf")},
+    )
+
+    assert response.status_code == 200
+    task_trace_id = response.json()["data"]["task_trace_id"]
+    spans = _task_spans(task_trace_id)
+    by_name = {str(span["span_name"]): span for span in spans}
+    assert by_name["file_read"]["status"] == "success"
+    assert by_name["original_put_object"]["status"] == "success"
+    assert by_name["thumbnail_generate"]["status"] == "skipped"
+    assert by_name["thumbnail_put_object"]["status"] == "skipped"
+    assert by_name["display_generate"]["status"] == "skipped"
+    assert by_name["display_put_object"]["status"] == "skipped"
+
+
 def test_usage_event_success_and_admin_log_detail(client: TestClient) -> None:
     headers = _auth_headers(client, DEFAULT_ADMIN_USERNAME, "AdminPass123!")
     response = client.post(
@@ -297,9 +550,13 @@ def test_usage_event_success_and_admin_log_detail(client: TestClient) -> None:
                 "result": "success",
             },
             "duration_ms": 321,
+            "behavior_trace_id": "bt:usage-detail-001",
+            "behavior_event_id": "be:usage-detail-view-001",
         },
     )
     assert response.status_code == 200
+    assert response.json()["data"]["behavior_trace_id"] == "bt:usage-detail-001"
+    assert response.json()["data"]["behavior_event_id"] == "be:usage-detail-view-001"
     event_id = response.json()["data"]["id"]
 
     list_response = client.get(
@@ -311,8 +568,19 @@ def test_usage_event_success_and_admin_log_detail(client: TestClient) -> None:
     data = list_response.json()["data"]
     assert data["total"] >= 1
     assert any(item["id"] == event_id for item in data["items"])
-    assert next(item for item in data["items"] if item["id"] == event_id)["duration_ms"] == 321
+    event_row = next(item for item in data["items"] if item["id"] == event_id)
+    assert event_row["duration_ms"] == 321
+    assert event_row["behavior_trace_id"] == "bt:usage-detail-001"
+    assert event_row["parent_behavior_event_id"] == "be:usage-detail-view-001"
     assert "summary" in data
+
+    behavior_response = client.get(
+        "/api/v1/admin/logs",
+        headers=headers,
+        params={"behavior_trace_id": "bt:usage-detail-001"},
+    )
+    assert behavior_response.status_code == 200
+    assert any(item["id"] == event_id for item in behavior_response.json()["data"]["items"])
 
     detail = client.get(f"/api/v1/admin/logs/{event_id}", headers=headers)
     assert detail.status_code == 200
@@ -539,6 +807,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
         assert admin is not None
         trace_service = TaskTraceService(TaskTraceRepository(session))
         task_trace_id = trace_service.generate_task_trace_id("upload_video")
+        behavior_trace_id = "bt:task-upload-video-001"
         trace_service.record_span(
             task_trace_id=task_trace_id,
             task_type="upload_video",
@@ -546,6 +815,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
             sequence=10,
             actor_user_id=admin.id,
             request_id="req_task_trace_demo",
+            behavior_trace_id=behavior_trace_id,
             resource_type="media",
             resource_id="media_1",
             summary="后端接收上传请求",
@@ -562,6 +832,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
             sequence=20,
             actor_user_id=admin.id,
             request_id="req_task_trace_demo",
+            behavior_trace_id=behavior_trace_id,
             resource_type="media",
             resource_id="media_1",
             duration_ms=1800,
@@ -575,6 +846,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
             sequence=10,
             actor_user_id=admin.id,
             request_id="req_task_trace_demo",
+            behavior_trace_id=behavior_trace_id,
             resource_type="media",
             resource_id="media_2",
             summary="后端接收文件上传请求",
@@ -585,6 +857,8 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
             actor_role="admin",
             client_type="web_admin",
             client_request_id=None,
+            behavior_trace_id=behavior_trace_id,
+            parent_behavior_event_id="be:upload-click-001",
             method="POST",
             path="/api/v1/admin/uploads/tile-videos",
             status_code=200,
@@ -610,6 +884,8 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
     assert data["total"] >= 1
     item = next(row for row in data["items"] if row["id"] == log_id)
     assert item["actor_username"] == DEFAULT_ADMIN_USERNAME
+    assert item["behavior_trace_id"] == "bt:task-upload-video-001"
+    assert item["parent_behavior_event_id"] == "be:upload-click-001"
     assert item["task_trace_id"] == task_trace_id
     assert item["task_type"] == "upload_video"
     assert item["task_status"] == "success"
@@ -620,8 +896,11 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
     assert detail.status_code == 200
     detail_data = detail.json()["data"]
     assert detail_data["actor"]["fields"]["操作者"] == DEFAULT_ADMIN_USERNAME
+    assert detail_data["basic"]["fields"]["behavior_trace_id"] == "bt:task-upload-video-001"
+    assert detail_data["basic"]["fields"]["parent_behavior_event_id"] == "be:upload-click-001"
     assert detail_data["task_trace"]["task_trace_id"] == task_trace_id
     assert detail_data["task_trace"]["parent_request_id"] == "req_task_trace_demo"
+    assert detail_data["task_trace"]["behavior_trace_id"] == "bt:task-upload-video-001"
     related_ids = {trace["task_trace_id"] for trace in detail_data["related_task_traces"]}
     assert task_trace_id in related_ids
     assert second_task_trace_id in related_ids
@@ -630,6 +909,7 @@ def test_admin_logs_filter_and_detail_task_trace_timeline(client: TestClient) ->
         "storage_put_object",
     ]
     assert detail_data["task_trace"]["spans"][0]["request_id"] == "req_task_trace_demo"
+    assert detail_data["task_trace"]["spans"][0]["behavior_trace_id"] == "bt:task-upload-video-001"
     assert detail_data["task_trace"]["spans"][1]["is_slowest"] is True
     serialized = str(detail_data["task_trace"])
     assert "Bearer secret" not in serialized

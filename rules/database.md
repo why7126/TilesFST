@@ -4,7 +4,7 @@ content: SQLite表设计、迁移、索引、媒体元数据、软删除、审�
 source: AI自动生成初稿，项目团队确认
 update_method: 新增表、字段、索引、迁移或媒体元数据存储规则时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 18:58:37
+updated_at: 2026-08-26 20:26:00
 note: 当前项目本地/演示默认 SQLite，生产支持 MySQL 8.0+
 ---
 
@@ -99,3 +99,9 @@ data/README.md
 - 升级后关键业务读写 smoke。
 
 不得仅凭本地 SQLite 测试通过宣称生产 DB 升级安全。DB 回滚默认只能依赖升级前备份恢复或已验证的反向迁移策略；缺少 DB 备份或恢复责任时，升级计划 MUST 标记为 blocked 或 requires manual review。
+
+## 8. 产品数据采集与链路观测门禁
+
+数据库变更若涉及 `usage_events`、`request_logs`、`task_traces`、`task_trace_spans`、索引、迁移、保留周期、脱敏字段或链路查询路径，MUST 读取 `docs/standards/product-data-collection-observability.md`。
+
+触发范围内的 Change MUST 在设计、任务或验收材料中声明 `product_data_collection_observability` 适用层级，并同步 SQLite / MySQL schema、迁移、数据库设计文档和测试；若某项不适用，MUST 记录具体 N/A 原因。

@@ -107,6 +107,9 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "/api/v1/miniapp/search/suggestions" in search_ts
     assert "/api/v1/miniapp/search?" in search_ts
     assert "DEBOUNCE_MS = 300" in search_ts
+    assert "inputTrackTimer" in search_ts
+    assert "scheduleSearchInputTrack" in search_ts
+    assert "this.scheduleSearchInputTrack(keyword, normalized, requestId)" in search_ts
     assert "suggestionSeq" in search_ts
     assert "miniapp_search_recent_keywords_v1" in search_ts
     assert "search_filter_apply" in search_ts
@@ -291,6 +294,16 @@ def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None
     assert "'x-client-request-id': clientRequestId" in api_ts
     assert "const clientRequestId = createClientRequestId()" in api_js
     assert "const clientRequestId = createClientRequestId()" in api_ts
+    assert "skipPerformanceTracking" in api_js
+    assert "skipPerformanceTracking" in api_ts
+    assert "function isTelemetryPath" in api_js
+    assert "function isTelemetryPath(path: string)" in api_ts
+    assert "!skipPerformanceTracking && !isTelemetryPath(path)" in api_js
+    assert "!skipPerformanceTracking && !isTelemetryPath(path)" in api_ts
+    assert "if (shouldReportPerformance)" in api_js
+    assert "if (shouldReportPerformance)" in api_ts
+    assert "skipPerformanceTracking: true" in api_js
+    assert "skipPerformanceTracking: true" in api_ts
     assert "function normalizeMediaUrls" in api_js
     assert "value.indexOf('/media/') === 0" in api_js
     assert "resolve(normalizeMediaUrls(body.data, currentBaseUrl))" in api_js
@@ -315,6 +328,10 @@ def test_miniapp_rum_uses_product_version_and_request_id_contract() -> None:
         assert "PRODUCT_VERSION" in source
         assert "miniappApiConfig.environment || 'dev'" not in source
         assert "request_id: metric.request_id || createRumRequestId()" in source
+        assert "function isTelemetryPageKey" in source
+        assert "api/v1/usage-events" in source
+        assert "api/v1/performance-events" in source
+        assert "if (isTelemetryPageKey(metric.page_key))" in source
         assert "miniapp-rum:" in source
         assert "function baseUrls" in source
         assert "apiFallbackBaseUrls" in source
@@ -708,6 +725,7 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
     product_list_config = json.loads(_read("pages/product-list/index.json"))
     brand_detail_config = json.loads(_read("pages/brand-detail/index.json"))
     tile_detail_config = json.loads(_read("pages/tile-detail/index.json"))
+    certificate_detail_config = json.loads(_read("pages/certificate-detail/index.json"))
     home_wxml = _read("pages/index/index.wxml")
     category_wxml = _read("pages/category/index.wxml")
     brand_list_wxml = _read("pages/brand-list/index.wxml")
@@ -717,6 +735,8 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
     product_list_wxml = _read("pages/product-list/index.wxml")
     brand_detail_wxml = _read("pages/brand-detail/index.wxml")
     tile_detail_wxml = _read("pages/tile-detail/index.wxml")
+    certificate_detail_wxml = _read("pages/certificate-detail/index.wxml")
+    certificate_detail_wxss = _read("pages/certificate-detail/index.wxss")
     floating_wxml = _read("components/home-floating-button/index.wxml")
     floating_wxss = _read("components/home-floating-button/index.wxss")
     floating_js = _read("components/home-floating-button/index.js")
@@ -734,6 +754,7 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
         product_list_config,
         brand_detail_config,
         tile_detail_config,
+        certificate_detail_config,
     ]:
         assert config["usingComponents"]["home-floating-button"] == "../../components/home-floating-button/index"
 
@@ -744,6 +765,12 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
     assert '<home-floating-button show="{{searchMode == \'result\'}}" offset="list" />' in search_wxml
     assert '<home-floating-button offset="list" />' in product_list_wxml
     assert '<home-floating-button offset="list" />' in brand_detail_wxml
+    assert '<home-floating-button offset="list" />' in certificate_detail_wxml
+    assert "padding-bottom: calc(260rpx + env(safe-area-inset-bottom))" in certificate_detail_wxss
+    assert ".summary,\n.brand-card-section,\n.panel {\n  margin: 22rpx 26rpx 0;\n}" in certificate_detail_wxss
+    assert "margin-right: 158rpx" not in certificate_detail_wxss
+    assert ".panel {\n  padding: 26rpx;\n}" in certificate_detail_wxss
+    assert "padding: 26rpx 154rpx 26rpx 26rpx" not in certificate_detail_wxss
     assert '<home-floating-button offset="{{product ? \'actionbar\' : \'list\'}}" />' in tile_detail_wxml
 
     assert 'wx:if="{{show}}"' in floating_wxml
@@ -1051,7 +1078,7 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert "sort=default" in product_list_js
     assert "pageSize" in product_list_js
     assert "product_list_page_view" in product_list_js
-    assert "product_list_item_exposure" in product_list_js
+    assert "product_list_item_exposure" not in product_list_js
     assert "product_list_item_click" in product_list_js
     assert "product_list_filter_open" not in product_list_js
     assert "product_list_filter_apply" not in product_list_js
@@ -1092,6 +1119,27 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert ".filter-drawer" not in product_list_wxss
     assert ".sort-tabs" not in product_list_wxss
     assert "min-height: 88rpx" in product_list_wxss
+
+
+def test_miniapp_usage_events_are_deduped_and_frequency_controlled() -> None:
+    product_list_js = _read("pages/product-list/index.js")
+    search_js = _read("pages/search/index.js")
+    card_js = _read("components/product-card/index.js")
+    log_service = (ROOT / "src/backend/app/services/log_service.py").read_text(encoding="utf-8")
+
+    assert "product_list_item_exposure" not in product_list_js
+    assert '"product_list_item_exposure"' in log_service
+    assert "product_card_exposure" in card_js
+    assert "properties.keyword || 'no-keyword'" in card_js
+    assert "properties.requestId || 'no-request'" in card_js
+
+    on_input_block = search_js[search_js.index("onInput(event)") : search_js.index("clearKeyword()")]
+    assert "this.scheduleSearchInputTrack(keyword, normalized, requestId)" in on_input_block
+    assert "track('search_input'" not in on_input_block
+    assert "clearTimeout(this.inputTrackTimer)" in search_js
+    assert "inputAction: normalizedKeyword ? 'typing_pause' : 'clear'" in search_js
+    assert "track('search_submit'" in search_js
+    assert "resultCount ? 'search_result_exposure' : 'search_no_result'" in search_js
 
 
 def test_miniapp_wechat_share_pages_cover_friend_timeline_and_runtime_sync() -> None:
@@ -1317,6 +1365,18 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "product_card_click" in card_js
     assert "product_card_image_failed" in card_js
     assert "product_card_unavailable_click" in card_js
+    assert "EXPOSURE_FLUSH_DELAY_MS = 120" in card_js
+    assert "trackedExposureKeys" in card_js
+    assert "pendingExposureBatches" in card_js
+    assert "function queueProductCardExposure" in card_js
+    assert "function flushProductCardExposureBatch" in card_js
+    assert "trackCardExposure(normalized)" in card_js
+    assert "track('product_card_exposure'" in card_js
+    assert "exposureCount: batch.items.length" in card_js
+    assert "exposureItems: batch.items.map" in card_js
+    assert "properties.skuId || 'missing-sku'" in card_js
+    assert "properties.keyword || 'no-keyword'" in card_js
+    assert "properties.requestId || 'no-request'" in card_js
     assert "resolveTelemetryRequestId" in card_js
     assert "requestId: this.resolveTelemetryRequestId()" in card_js
     assert "NAV_LOCK_MS = 800" in card_js

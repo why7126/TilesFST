@@ -28,6 +28,12 @@ TOKEN_FIELDS = (
     "reasoning_output_tokens",
     "total_tokens",
 )
+TOKEN_SIGNAL_FIELDS = (
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "model_call_count",
+)
 COUNT_FIELDS = (
     "command_run_count",
     "model_call_count",
@@ -479,13 +485,28 @@ def timestamp(row: dict[str, Any]) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
+def _text_from_content_parts(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        parts = [_text_from_content_parts(item) for item in value]
+        return "\n".join(part for part in parts if part)
+    if isinstance(value, dict):
+        for key in ("text", "content", "message", "cmd", "command"):
+            text = _text_from_content_parts(value.get(key))
+            if text:
+                return text
+    return ""
+
+
 def safe_text(value: Any) -> str:
     if isinstance(value, str):
         return value
     if isinstance(value, dict):
         for key in ("text", "content", "message", "cmd", "command"):
-            if isinstance(value.get(key), str):
-                return value[key]
+            text = _text_from_content_parts(value.get(key))
+            if text:
+                return text
     return ""
 
 
@@ -761,7 +782,16 @@ def select_workflow_context_record(
         )
         for index, record in enumerate(records)
     ]
-    best_score, _, target = max(scored, key=lambda item: (item[0], item[1]))
+    best_score, _, target = max(
+        scored,
+        key=lambda item: (
+            item[0],
+            any(int(item[2].get(field) or 0) > 0 for field in TOKEN_SIGNAL_FIELDS),
+            int(item[2].get("model_call_count") or 0),
+            int(item[2].get("total_tokens") or 0),
+            item[1],
+        ),
+    )
     return target if best_score > 0 else records[-1]
 
 
@@ -895,6 +925,24 @@ def normalize_sprint_issue_aliases(rows: list[dict[str, Any]], scope: dict[str, 
     return normalized_rows
 
 
+def trim_rows_to_sprint_scope(rows: list[dict[str, Any]], scope: dict[str, list[str]]) -> list[dict[str, Any]]:
+    scoped_keys = {
+        key: set(str(item) for item in scope.get(key) or [])
+        for key in ("requirements", "bugs", "changes")
+    }
+    if not any(scoped_keys.values()):
+        return rows
+
+    trimmed_rows: list[dict[str, Any]] = []
+    for row in rows:
+        trimmed = dict(row)
+        for key, values in scoped_keys.items():
+            if values:
+                trimmed[key] = sorted(set(str(item) for item in row.get(key, [])) & values)
+        trimmed_rows.append(trimmed)
+    return trimmed_rows
+
+
 def empty_sprint_usage_matrix_cells() -> dict[str, dict[str, int]]:
     return {
         metric: {label: 0 for _, label in SPRINT_MATRIX_COMMAND_COLUMNS}
@@ -935,6 +983,13 @@ def build_sprint_usage_matrices(
         for issue_id in [*scope_bugs, *[item for item in row_bugs if item not in scope_bugs]]
     )
 
+    label_by_event = dict(SPRINT_MATRIX_COMMAND_COLUMNS)
+    observed_counts = Counter(
+        label_by_event[str(row.get("workflow_event") or row.get("command") or "unknown")]
+        for row in rows
+        if str(row.get("workflow_event") or row.get("command") or "unknown") in label_by_event
+    )
+
     row_cells = {
         row_id: {
             "object_type": object_type,
@@ -957,13 +1012,20 @@ def build_sprint_usage_matrices(
         "source": "data/ai-usage command-runs",
         "metrics": list(SPRINT_MATRIX_METRICS),
         "columns": [
-            {"workflow_event": event, "label": label}
+            {
+                "workflow_event": event,
+                "label": label,
+                "status": "observed" if observed_counts.get(label, 0) else "unknown",
+                "command_run_count": observed_counts.get(label, 0),
+            }
             for event, label in SPRINT_MATRIX_COMMAND_COLUMNS
         ],
         "rows": [row_cells[row_id] for _, row_id in ordered_row_keys],
         "note": (
             "Total and sprint rows aggregate unique command runs. Requirement and bug rows "
-            "are attribution views; a multi-issue command run may be counted in multiple object rows."
+            "are attribution views; a multi-issue command run may be counted in multiple object rows. "
+            "Workflow columns with status=unknown were not observed in the current snapshot and should "
+            "not be interpreted as true zero usage."
         ),
     }
 
@@ -975,7 +1037,7 @@ def aggregate_sprint(records: list[dict[str, Any]], sprint_id: str) -> dict[str,
     for record in records:
         if record_matches_sprint_scope(record, sprint_id, scope):
             unique[record["turn_hash"]] = record
-    rows = normalize_sprint_issue_aliases(list(unique.values()), scope)
+    rows = trim_rows_to_sprint_scope(normalize_sprint_issue_aliases(list(unique.values()), scope), scope)
     totals = {field: sum(int(row.get(field) or 0) for row in rows) for field in TOKEN_FIELDS}
     totals.update(
         {

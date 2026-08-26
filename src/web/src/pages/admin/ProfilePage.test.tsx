@@ -97,6 +97,27 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('联系邮箱')).toHaveValue('');
   });
 
+  it('falls back to initials when profile avatar image fails to load', async () => {
+    const api = await import('@/features/admin/api/profile-api');
+    vi.mocked(api.fetchProfileMe).mockResolvedValue({
+      ...profile,
+      avatar_object_key: 'images/default/user/avatars/broken.png',
+      avatar_url: '/media/images/default/user/avatars/broken.png',
+    });
+
+    renderProfilePage();
+
+    await screen.findByDisplayValue('Admin User');
+    const avatar = document.querySelector('.profile-avatar');
+    const img = avatar?.querySelector('img') as HTMLImageElement;
+    expect(img).toBeTruthy();
+    fireEvent.error(img);
+
+    expect(document.querySelector('.profile-avatar.is-fallback')).toBeTruthy();
+    expect(avatar).toHaveTextContent('AU');
+    expect(avatar?.querySelector('img')).toBeNull();
+  });
+
   it('does not show role or status fields in the profile form grid', async () => {
     renderProfilePage();
 

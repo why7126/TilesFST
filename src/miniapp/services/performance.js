@@ -43,6 +43,11 @@ function normalizePageKey(value) {
   return String(value || '').replace(/^\//, '').split('?')[0] || 'miniapp/unknown';
 }
 
+function isTelemetryPageKey(value) {
+  const normalized = normalizePageKey(value);
+  return normalized === 'api/v1/usage-events' || normalized === 'api/v1/performance-events';
+}
+
 function resolveNetworkType(input, callback) {
   if (input) {
     callback(input);
@@ -65,6 +70,9 @@ function resolveNetworkType(input, callback) {
 
 function reportPerformanceMetric(metric) {
   if (!Number.isFinite(metric.duration_ms) || metric.duration_ms < 0) {
+    return;
+  }
+  if (isTelemetryPageKey(metric.page_key)) {
     return;
   }
   resolveNetworkType(metric.network_type, (networkType) => {

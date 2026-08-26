@@ -2788,6 +2788,25 @@ def test_miniapp_contract_drift_usage_events_are_registered_and_persisted(
             },
         ),
         (
+            "product_card_exposure",
+            {
+                "page_path": "/components/product-card/index",
+                "skuId": 1,
+                "skuCode": "FST-001",
+                "sourcePage": "home",
+                "sourceModule": "waterfall",
+                "listContext": "首页瀑布流",
+                "index": 0,
+                "requestId": "card-batch-1",
+                "exposureCount": 2,
+                "exposureItems": [
+                    {"skuId": 1, "skuCode": "FST-001", "index": 0, "requestId": "card-batch-1"},
+                    {"skuId": 2, "skuCode": "FST-002", "index": 1, "requestId": "card-batch-2"},
+                ],
+                "client_type": "wechat_miniapp",
+            },
+        ),
+        (
             "product_card_click",
             {
                 "page_path": "/components/product-card/index",

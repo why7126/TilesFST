@@ -132,7 +132,6 @@ Page({
           loadingMore: false,
           emptyText: this.emptyText(),
         });
-        this.trackItems(merged);
         if (options.eventName) {
           this.trackListEvent(options.eventName, {
             page: nextPage,
@@ -251,15 +250,6 @@ Page({
 
   trackPageView() {
     this.trackListEvent('product_list_page_view', {});
-  },
-
-  trackItems(items) {
-    items.slice(0, 12).forEach((item, index) => {
-      this.trackListEvent('product_list_item_exposure', {
-        skuId: item.product_id,
-        positionIndex: index,
-      });
-    });
   },
 
   trackListEvent(eventName, extra) {

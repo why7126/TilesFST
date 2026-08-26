@@ -35,6 +35,7 @@ function writeStringList(key, values) {
 
 Page({
   suggestionTimer: 0,
+  inputTrackTimer: 0,
   suggestionSeq: 0,
   searchSeq: 0,
 
@@ -103,6 +104,9 @@ Page({
     if (this.suggestionTimer) {
       clearTimeout(this.suggestionTimer);
     }
+    if (this.inputTrackTimer) {
+      clearTimeout(this.inputTrackTimer);
+    }
   },
 
   onSearchEntryInput(event) {
@@ -137,7 +141,7 @@ Page({
     const normalized = normalizeKeyword(keyword);
     const requestId = this.nextRequestId(normalized);
     this.setData({ keyword, normalizedKeyword: normalized, requestId, searchMode: normalized ? 'suggest' : 'home', error: '' });
-    track('search_input', this.trackBase({ keyword, normalizedKeyword: normalized }));
+    this.scheduleSearchInputTrack(keyword, normalized, requestId);
     if (this.suggestionTimer) {
       clearTimeout(this.suggestionTimer);
     }
@@ -149,6 +153,10 @@ Page({
   },
 
   clearKeyword() {
+    if (this.inputTrackTimer) {
+      clearTimeout(this.inputTrackTimer);
+      this.inputTrackTimer = 0;
+    }
     this.setData({
       keyword: '',
       normalizedKeyword: '',
@@ -162,6 +170,7 @@ Page({
       hasResults: false,
       error: '',
     });
+    track('search_input', this.trackBase({ keyword: '', normalizedKeyword: '', inputAction: 'clear' }));
   },
 
   cancelSearch() {
@@ -214,9 +223,28 @@ Page({
       });
   },
 
+  scheduleSearchInputTrack(keyword, normalizedKeyword, requestId) {
+    if (this.inputTrackTimer) {
+      clearTimeout(this.inputTrackTimer);
+    }
+    this.inputTrackTimer = setTimeout(() => {
+      if (this.data.requestId !== requestId || this.data.normalizedKeyword !== normalizedKeyword) return;
+      track('search_input', this.trackBase({
+        keyword,
+        normalizedKeyword,
+        inputAction: normalizedKeyword ? 'typing_pause' : 'clear',
+      }));
+      this.inputTrackTimer = 0;
+    }, DEBOUNCE_MS);
+  },
+
   submitSearch() {
     const keyword = normalizeKeyword(this.data.keyword);
     if (!keyword) return;
+    if (this.inputTrackTimer) {
+      clearTimeout(this.inputTrackTimer);
+      this.inputTrackTimer = 0;
+    }
     const history = [keyword].concat(this.data.recentSearches.filter((item) => item !== keyword)).slice(0, 20);
     writeStringList(HISTORY_KEY, history);
     this.setData({

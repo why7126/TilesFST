@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from app.core.exceptions import ProfileValidationError
+from app.modules.media.storage import MEDIA_NOT_FOUND, get_media_storage_client
 from app.repositories.profile_activity_repository import ProfileActivityRepository
 from app.repositories.user_repository import UserRecord, UserRepository
 from app.schemas.profile import ProfileActivityItem, ProfileMe, ProfilePatchRequest
@@ -107,6 +108,8 @@ class ProfileService:
             phone=phone,
             remark=remark,
         )
+        if "avatar_object_key" in fields_set:
+            self._validate_avatar_object_key(avatar_object_key)
 
         avatar_changed = (
             "avatar_object_key" in fields_set
@@ -175,6 +178,20 @@ class ProfileService:
 
         if remark is not None and len(remark) > 200:
             raise ProfileValidationError("备注说明不能超过 200 字")
+
+    @staticmethod
+    def _validate_avatar_object_key(avatar_object_key: str | None) -> None:
+        if not avatar_object_key:
+            return
+        try:
+            get_media_storage_client().get_object_info(avatar_object_key)
+        except ValueError as exc:
+            raise ProfileValidationError("头像媒体对象路径无效") from exc
+        except Exception as exc:
+            code = getattr(exc, "code", None)
+            if code == MEDIA_NOT_FOUND:
+                raise ProfileValidationError("头像媒体对象不存在或不可读") from exc
+            raise ProfileValidationError("头像媒体对象暂不可用，请稍后重试") from exc
 
     @staticmethod
     def _build_profile_update_summary(

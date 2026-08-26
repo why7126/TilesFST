@@ -17,6 +17,8 @@ from app.modules.media.storage import (
     S3CompatibleMediaStorageClient,
     StoredMediaObject,
     TencentCOSMediaStorageClient,
+    WEBP_DERIVATIVE_ENCODER_METHOD,
+    _thumbnail_save_kwargs,
     generate_image_thumbnail,
     get_media_file_response,
     get_media_head_response,
@@ -86,6 +88,13 @@ def test_generate_image_thumbnail_supports_common_formats(
     assert thumbnail.content_type == "image/webp"
     with Image.open(BytesIO(thumbnail.content)) as image:
         assert image.format == "WEBP"
+
+
+def test_webp_derivatives_use_low_latency_encoder_method() -> None:
+    save_kwargs = _thumbnail_save_kwargs("WEBP", jpeg_quality=82, webp_quality=82)
+
+    assert save_kwargs["method"] == WEBP_DERIVATIVE_ENCODER_METHOD
+    assert WEBP_DERIVATIVE_ENCODER_METHOD <= 1
 
 
 def test_generate_image_thumbnail_does_not_upscale_small_images() -> None:
@@ -389,6 +398,67 @@ def test_save_upload_file_generates_thumbnail_and_display_variants() -> None:
     assert storage.objects["images/default/tiles/pending/demo.display.webp"].content_type == "image/webp"
     assert len(storage.objects["images/default/tiles/pending/demo.thumb.webp"].content) < len(original)
     assert len(storage.objects["images/default/tiles/pending/demo.display.webp"].content) < len(original)
+
+
+def test_save_upload_file_generates_webp_avatar_variants_and_stage_spans() -> None:
+    original = _image_bytes("WEBP", (640, 640), color=(80, 160, 120))
+    storage = _MemoryMediaStorageClient.from_objects({})
+    file = UploadFile(filename="avatar.webp", file=BytesIO(original))
+    file.headers = {"content-type": "image/webp"}
+    spans: list[tuple[str, str, dict | None]] = []
+
+    def record_stage(
+        span_name: str,
+        status: str,
+        duration_ms: int,
+        started_at: str,
+        ended_at: str,
+        error_code: str | None,
+        metadata: dict | None,
+    ) -> None:
+        assert duration_ms >= 0
+        assert started_at
+        assert ended_at
+        assert error_code is None
+        spans.append((span_name, status, metadata))
+
+    set_media_storage_client(storage)
+    try:
+        size = asyncio.run(
+            save_upload_file(
+                file,
+                "images/default/user/avatars/avatar.webp",
+                5,
+                stage_recorder=record_stage,
+                thumbnail_key="images/default/user/avatars/avatar.thumb.webp",
+                display_key="images/default/user/avatars/avatar.display.webp",
+            )
+        )
+    finally:
+        set_media_storage_client(None)
+
+    assert size == len(original)
+    assert set(storage.objects) == {
+        "images/default/user/avatars/avatar.webp",
+        "images/default/user/avatars/avatar.thumb.webp",
+        "images/default/user/avatars/avatar.display.webp",
+    }
+    assert storage.objects["images/default/user/avatars/avatar.thumb.webp"].content_type == "image/webp"
+    assert storage.objects["images/default/user/avatars/avatar.display.webp"].content_type == "image/webp"
+    assert [(span_name, status) for span_name, status, _ in spans] == [
+        ("file_read", "success"),
+        ("original_put_object", "success"),
+        ("thumbnail_generate", "success"),
+        ("thumbnail_put_object", "success"),
+        ("display_generate", "success"),
+        ("display_put_object", "success"),
+    ]
+    thumbnail_metadata = next(metadata for span_name, _, metadata in spans if span_name == "thumbnail_generate")
+    assert thumbnail_metadata is not None
+    assert thumbnail_metadata["variant"] == "thumbnail"
+    assert thumbnail_metadata["content_type"] == "image/webp"
+    assert thumbnail_metadata["width"] <= 480
+    assert thumbnail_metadata["height"] <= 480
 
 
 def test_media_head_response_returns_image_cache_headers() -> None:

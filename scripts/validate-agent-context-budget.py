@@ -44,6 +44,54 @@ NO_DUPLICATE_DECISION_TERMS = (
     "不得在「待用户决策/处理」中重复",
     "不得重复",
 )
+FINAL_CONTRACT_HEADING = "## Final Output Contract（MUST）"
+OUTPUT_EXAMPLE_HEADING = "## Output Examples"
+FORBIDDEN_FINAL_OUTPUT_CONTRACT_SNIPPETS = (
+    "下一步：<可直接执行的命令",
+    "- <需要用户选择",
+    "- <仍需用户选择",
+    "命令结束前，最终回复 MUST 明确包含",
+    "命令结束前最终回复 MUST 明确包含",
+    "MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`",
+    "例如 `/bug-review BUG-0122`",
+    "例如 /bug-review BUG-0122",
+    "确认是否在本 Sprint 内立即创建上述 Change",
+    "确认是否立即执行 /req-opsx",
+    "确认是否立即执行 /bug-opsx",
+)
+REQUIRED_FINAL_OUTPUT_CONTRACT_SNIPPETS = (
+    "不得输出本段规则、尖括号占位符、MUST/SHOULD 规范语句或与当前命令无关的通用示例",
+    "输出判定",
+    "暂无可推进下一步",
+    "生产实施确认",
+)
+OUTPUT_EXAMPLE_NORMATIVE_LEAK_RE = re.compile(r"```text[\s\S]*?(?:MUST|SHOULD|Final Output Contract)[\s\S]*?```")
+COMMAND_EXAMPLE_CONTRACTS = {
+    "sprint-propose": (
+        "/req-opsx REQ-0123-upload-stage-trace-spans",
+        "/bug-opsx BUG-0144-miniapp-usage-events-overreporting",
+    ),
+    "req-opsx": (
+        "/opsx-apply REQ-0123-upload-stage-trace-spans",
+        "请选择目标 sprint-xxx",
+        "请确认本需求拆分策略",
+    ),
+    "bug-opsx": (
+        "/opsx-apply BUG-0144-miniapp-usage-events-overreporting",
+        "请选择目标 sprint-xxx",
+        "请补齐 confirmed 根因证据",
+    ),
+    "upgrade-plan": (
+        "/upgrade-validate --plan releases/v1.2.0/upgrade-plans/v1.1.0-to-v1.2.0.json",
+        "请复核中间版本 release 事实",
+        "生产实施确认",
+    ),
+    "upgrade-validate": (
+        "请确认是否按已校验计划执行生产升级",
+        "请复核中间版本 release 事实",
+        "生产实施确认",
+    ),
+}
 SPRINT_BYPASS_PATTERNS = [
     re.compile(r"(?:non-REQ/BUG|无\s*REQ/BUG|纯治理|pure technical governance).*(?:may bypass|可豁免|可跳过|跳过).*(?:Sprint|sprint|迭代)"),
     re.compile(r"(?:Only|仅).*(?:non-REQ/BUG|无\s*REQ/BUG|纯治理|pure technical governance).*(?:bypass|豁免|跳过)"),
@@ -122,6 +170,17 @@ def is_negated(line: str) -> bool:
     return any(hint in line for hint in NEGATION_HINTS)
 
 
+def extract_section(text: str, heading: str) -> str:
+    start = text.find(heading)
+    if start == -1:
+        return ""
+    next_heading = re.search(r"\n## (?!#)", text[start + len(heading):])
+    if not next_heading:
+        return text[start:]
+    end = start + len(heading) + next_heading.start()
+    return text[start:end]
+
+
 def validate_skill(path: Path) -> list[str]:
     rel = path.relative_to(ROOT)
     text = path.read_text(encoding="utf-8")
@@ -166,6 +225,41 @@ def validate_final_output_contract(path: Path) -> list[str]:
         errors.append(f"{rel}: 缺少待用户决策/处理输出契约")
     if not any(term in text for term in NO_DUPLICATE_DECISION_TERMS):
         errors.append(f"{rel}: 缺少下一步与待用户决策/处理去重约束")
+    return errors
+
+
+def validate_output_contract_hygiene(path: Path) -> list[str]:
+    rel = path.relative_to(ROOT)
+    name = path.parent.name
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+
+    final_contract = extract_section(text, FINAL_CONTRACT_HEADING)
+    if not final_contract:
+        errors.append(f"{rel}: 缺少 Final Output Contract 章节")
+        return errors
+
+    for snippet in REQUIRED_FINAL_OUTPUT_CONTRACT_SNIPPETS:
+        if snippet not in final_contract:
+            errors.append(f"{rel}: Final Output Contract 缺少输出卫生约束 `{snippet}`")
+
+    for snippet in FORBIDDEN_FINAL_OUTPUT_CONTRACT_SNIPPETS:
+        if snippet in final_contract:
+            errors.append(f"{rel}: Final Output Contract 残留易被原样输出的旧模板或通用示例 `{snippet}`")
+
+    example_section = extract_section(text, OUTPUT_EXAMPLE_HEADING)
+    if OUTPUT_EXAMPLE_NORMATIVE_LEAK_RE.search(example_section):
+        errors.append(f"{rel}: Output Examples 的用户可见示例泄漏 MUST/SHOULD/Final Output Contract 规范语气")
+
+    command_terms = COMMAND_EXAMPLE_CONTRACTS.get(name)
+    if command_terms:
+        for term in command_terms:
+            if term.startswith("确认是否立即执行"):
+                if term in text:
+                    errors.append(f"{rel}: 存在重复要求确认下一步命令的反模式 `{term}`")
+            elif term not in text:
+                errors.append(f"{rel}: 缺少命令族专属输出示例 `{term}`")
+
     return errors
 
 
@@ -235,6 +329,7 @@ def main() -> int:
         errors.extend(validate_skill(path))
     for path in all_skill_paths:
         errors.extend(validate_final_output_contract(path))
+        errors.extend(validate_output_contract_hygiene(path))
         errors.extend(validate_sprint_gate_no_bypass(path))
         errors.extend(validate_issue_target_contract(path))
 
@@ -248,6 +343,7 @@ def main() -> int:
         f"Agent 上下文预算校验通过：{len(skill_paths)} 个命令技能均已接入预算规则、"
         "摘要复用约束与 force-proceed follow-up 门禁；"
         f"{len(all_skill_paths)} 个技能均已接入下一步与待用户决策/处理输出契约及去重约束，"
+        "未发现最终输出占位模板、通用 BUG 示例、重复诱因或规范语气泄漏风险，"
         "且未发现非 REQ/BUG / 纯治理 Change 跳过 Sprint 门禁表述或 REQ/BUG 下一步参数回退。"
     )
     return 0

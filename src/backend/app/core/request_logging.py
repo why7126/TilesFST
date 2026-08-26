@@ -24,6 +24,10 @@ from app.services.task_trace_service import TaskTraceService
 CLIENT_REQUEST_ID_HEADER = "x-client-request-id"
 CLIENT_REQUEST_ID_MAX_LENGTH = 128
 CLIENT_REQUEST_ID_ALLOWED_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-")
+BEHAVIOR_TRACE_ID_HEADER = "x-behavior-trace-id"
+BEHAVIOR_EVENT_ID_HEADER = "x-behavior-event-id"
+BEHAVIOR_ID_MAX_LENGTH = 128
+BEHAVIOR_ID_ALLOWED_CHARS = CLIENT_REQUEST_ID_ALLOWED_CHARS
 ALLOWED_CLIENT_TYPES = frozenset({"web_admin", "web_catalog", "wechat_miniapp"})
 
 EXCLUDED_PREFIXES = (
@@ -65,6 +69,9 @@ BODY_VALUE_ALLOWLIST = {
     "client_type",
     "request_id",
     "client_request_id",
+    "behavior_trace_id",
+    "behavior_event_id",
+    "parent_behavior_event_id",
     "task_trace_id",
     "task_type",
     "session_id",
@@ -109,6 +116,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request.state.request_id = request_id
         client_request_id = _client_request_id_from_request(request)
         request.state.client_request_id = client_request_id
+        behavior_trace_id = _behavior_trace_id_from_request(request)
+        behavior_event_id = _behavior_event_id_from_request(request)
+        request.state.behavior_trace_id = behavior_trace_id
+        request.state.behavior_event_id = behavior_event_id
         started_at = datetime.now(UTC)
         body_schema_summary = await _body_schema_summary_from_request(request)
         started = time.perf_counter()
@@ -133,6 +144,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     finished_at=finished_at.isoformat(),
                     body_schema_summary=body_schema_summary,
                     client_request_id=client_request_id,
+                    behavior_trace_id=behavior_trace_id,
+                    parent_behavior_event_id=behavior_event_id,
                 )
 
 
@@ -152,6 +165,8 @@ def _record_request_log(
     finished_at: str,
     body_schema_summary: dict[str, Any],
     client_request_id: str | None,
+    behavior_trace_id: str | None,
+    parent_behavior_event_id: str | None,
 ) -> None:
     session = get_session_factory()()
     try:
@@ -172,6 +187,8 @@ def _record_request_log(
                 actor_username=actor_username,
                 client_type=client_type,
                 client_request_id=effective_client_request_id,
+                behavior_trace_id=behavior_trace_id,
+                parent_behavior_event_id=parent_behavior_event_id,
                 method=request.method,
                 path=request.url.path,
                 status_code=status_code,
@@ -192,8 +209,12 @@ def _record_request_log(
                             "route_match_status": route_match_status,
                             "request_id": request_id,
                             "client_request_id": effective_client_request_id,
+                            "behavior_trace_id": behavior_trace_id,
+                            "parent_behavior_event_id": parent_behavior_event_id,
                             "trusted_request_id_header": "x-request-id",
                             "client_request_id_header": CLIENT_REQUEST_ID_HEADER,
+                            "behavior_trace_id_header": BEHAVIOR_TRACE_ID_HEADER,
+                            "behavior_event_id_header": BEHAVIOR_EVENT_ID_HEADER,
                         },
                         "input": {
                             "query": query_summary,
@@ -275,6 +296,25 @@ def _validate_client_request_id(value: str | None) -> str | None:
     if not stripped or len(stripped) > CLIENT_REQUEST_ID_MAX_LENGTH:
         return None
     if any(char not in CLIENT_REQUEST_ID_ALLOWED_CHARS for char in stripped):
+        return None
+    return stripped
+
+
+def _behavior_trace_id_from_request(request: Request) -> str | None:
+    return _validate_behavior_id(request.headers.get(BEHAVIOR_TRACE_ID_HEADER))
+
+
+def _behavior_event_id_from_request(request: Request) -> str | None:
+    return _validate_behavior_id(request.headers.get(BEHAVIOR_EVENT_ID_HEADER))
+
+
+def _validate_behavior_id(value: str | None) -> str | None:
+    if not value:
+        return None
+    stripped = value.strip()
+    if not stripped or len(stripped) > BEHAVIOR_ID_MAX_LENGTH:
+        return None
+    if any(char not in BEHAVIOR_ID_ALLOWED_CHARS for char in stripped):
         return None
     return stripped
 

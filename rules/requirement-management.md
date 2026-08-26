@@ -2,7 +2,7 @@
 purpose: 需求（REQ）生命周期、状态机、目录与评审门禁
 source: 项目团队 + AI v2 定稿
 update_method: 命令族变更时同步更新
-updated_at: 2026-08-21 13:45:41
+updated_at: 2026-08-26 20:26:00
 ---
 
 # 需求管理规范
@@ -128,6 +128,12 @@ REQ 来源链路的下一步命令参数 MUST 始终使用原始 `REQ-*`。`/req
 
 - `/req-opsx`：推荐入口为已评审后的 `in_sprint`；兼容 `approved` 的追溯/补建 Change 场景，但输出 MUST 提醒若尚未纳入 Sprint，应先 `/sprint-propose`
 - 旧命令 `/requirement-to-opsx` 已删除 → `/req-opsx`
+
+### 4.4 产品数据采集与链路观测门禁
+
+需求涉及 API、DB、日志审计、行为埋点、Task Trace、Web 请求封装、小程序请求封装或 App 请求封装时，REQ 文档 MUST 读取并引用 `docs/standards/product-data-collection-observability.md`，并记录 `product_data_collection_observability` 适用状态、`affected_layers`、`reason` 和 `validation`。
+
+若声明不适用，MUST 说明为什么不影响 API、DB、请求日志、行为事件、Task Trace 或端请求封装；不得只写“无”或“不涉及”。`/req-review` SHOULD 将缺少声明、验收项或 N/A 原因视为评审风险；`/req-opsx` MUST 将该声明带入 Change。
 
 ## 5. Readiness（req-opsx / req-complete）
 

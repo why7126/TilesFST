@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from 'axios';
 import { getTilesFSTAPI } from '../../../shared/api/generated';
+import { getActiveBehaviorContext } from '../../tracking/behavior-context';
 import { getEnvelopeErrorMessage } from '../../../shared/api/error-envelope';
 import { clearStoredToken, getStoredToken } from '../utils/auth-token';
 
@@ -18,6 +19,11 @@ apiClient.interceptors.request.use((config) => {
   const clientRequestId = createClientRequestId();
   if (clientRequestId) {
     config.headers['x-client-request-id'] = clientRequestId;
+  }
+  const behaviorContext = getActiveBehaviorContext();
+  if (behaviorContext) {
+    config.headers['x-behavior-trace-id'] = behaviorContext.behaviorTraceId;
+    config.headers['x-behavior-event-id'] = behaviorContext.behaviorEventId;
   }
   return config;
 });

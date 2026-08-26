@@ -85,6 +85,7 @@ export function ProfilePage() {
   const [saveTip, setSaveTip] = useState<string | null>(null);
   const [avatarUploadState, setAvatarUploadState] = useState<AvatarUploadState>('idle');
   const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const [avatarImageFailed, setAvatarImageFailed] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -107,6 +108,10 @@ export function ProfilePage() {
   useEffect(() => {
     void loadProfile();
   }, [loadProfile]);
+
+  useEffect(() => {
+    setAvatarImageFailed(false);
+  }, [profile?.avatar_url]);
 
   const initials = useMemo(
     () => getUserInitials(profile?.display_name, profile?.username),
@@ -184,6 +189,7 @@ export function ProfilePage() {
 
   const roleText = roleLabel(profile.role);
   const statusText = statusLabel(profile.status);
+  const showAvatarImage = Boolean(profile.avatar_url) && !avatarImageFailed;
   const identityMetaParts = [
     roleText,
     profile.email?.trim() || null,
@@ -211,9 +217,15 @@ export function ProfilePage() {
           </div>
           <div className="profile-body">
             <div className="identity-strip">
-              <div className="profile-avatar" aria-hidden={Boolean(profile.avatar_url)}>
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" />
+              <div className={`profile-avatar${showAvatarImage ? '' : ' is-fallback'}`} aria-hidden>
+                {showAvatarImage ? (
+                  <img
+                    src={profile.avatar_url ?? ''}
+                    alt=""
+                    onError={() => {
+                      setAvatarImageFailed(true);
+                    }}
+                  />
                 ) : (
                   initials
                 )}

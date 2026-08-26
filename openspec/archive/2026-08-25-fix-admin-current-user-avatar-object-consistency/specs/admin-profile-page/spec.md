@@ -1,0 +1,68 @@
+## MODIFIED Requirements
+
+### Requirement: 个人资料 self-service API
+
+系统 MUST 提供当前登录用户（`admin` 或 `employee`）的个人资料 self-service API：`GET /api/v1/profile/me` 与 `PATCH /api/v1/profile/me`。接口 MUST 使用 `require_admin_access` 鉴权。`store_owner` MUST NOT 调用上述接口。`PATCH /api/v1/profile/me` 写入非空 `avatar_object_key` 前 MUST 校验该 key 对应对象存在且可通过后端对象存储适配层受控读取；对象不存在、权限异常或读取失败时 MUST 返回统一错误响应，并 MUST NOT 更新用户资料。清空头像 key 的空值语义 MUST 保持可用。
+
+#### Scenario: 获取完整个人资料
+
+- **WHEN** `admin` 或 `employee` 携带有效 token 请求 `GET /api/v1/profile/me`
+- **THEN** 系统返回 HTTP 200
+- **AND** `data` MUST 包含 id、username、display_name、role、status、email、phone、remark、avatar_object_key、avatar_url（非空时）、last_login_at、updated_at
+
+#### Scenario: 更新个人资料
+
+- **WHEN** 用户 PATCH 合法 `display_name`（2–32 字符）、email、phone、remark（≤200 字）
+- **THEN** 系统返回 HTTP 200 与更新后 profile
+- **AND** MUST 写入 `profile_activity_logs`（`action_type=profile_update`）
+
+#### Scenario: 拒绝写入不存在的头像对象 key
+
+- **GIVEN** 当前登录用户具备 profile self-service 权限
+- **WHEN** 用户 PATCH 非空 `avatar_object_key` 且该 key 对应 object 不存在或不可读
+- **THEN** 系统 MUST 返回统一业务错误响应
+- **AND** 用户资料中的 `avatar_object_key` MUST 保持原值
+- **AND** 错误响应 MUST NOT 暴露对象存储 endpoint、bucket、access key、secret key 或底层 SDK 堆栈
+
+#### Scenario: 允许清空头像 key
+
+- **GIVEN** 当前登录用户已有头像 key
+- **WHEN** 用户 PATCH `avatar_object_key=null` 或等价清空语义
+- **THEN** 系统 MUST 成功清空头像字段
+- **AND** 返回的 profile MUST 不包含可加载头像 URL 或返回空头像 URL 语义
+
+### Requirement: 管理端个人资料页面
+
+Web 客户端 MUST 提供 `/admin/profile` 页面，视觉 MUST 高保真对齐 `issues/requirements/archive/REQ-0014-profile-page/prototype/web/profile-page.html` 与 `profile-page.png` 的 CSS Port 策略。页面 MUST 复用 `AdminLayout`。`admin` 与 `employee` MUST 可访问；`store_owner` MUST NOT 访问。页面 MUST 仅保留 **一处**「保存修改」主 CTA，MUST 位于「基础资料」卡片底部 `profile-form-actions` 与「重置」并列；MUST NOT 在页头 `profile-page-head` 与表单底部重复渲染相同主按钮。个人资料页头像图片加载失败时 MUST 稳定回退到当前用户 initials，占位尺寸 MUST 保持稳定且 MUST NOT 展示破损图片。
+
+#### Scenario: 访问个人资料页
+
+- **WHEN** 已登录 `admin` 或 `employee` 访问 `/admin/profile`
+- **THEN** MUST 展示眉标 `SYSTEM / PROFILE`、标题「个人资料」、两列 layout（主卡片 + 侧栏卡片）
+- **AND** 样式 MUST 主要来自 port CSS（如 `profile-page.css`）
+
+#### Scenario: 个人资料头像加载失败兜底
+
+- **GIVEN** `/api/v1/profile/me` 返回非空 `avatar_url`
+- **WHEN** 该头像图片加载失败
+- **THEN** 个人资料页 MUST 显示当前用户 initials fallback
+- **AND** MUST NOT 展示破损图片
+- **AND** fallback 前后头像区域尺寸 MUST 保持稳定
+
+### Requirement: 个人资料头像 self-upload
+
+已认证 `admin` 或 `employee` MUST 可通过授权上传接口上传本人头像（JPG/PNG/WebP，≤2MB），写入 MinIO 或 S3 兼容对象存储，并更新 `avatar_object_key`。上传失败 MUST 保留旧头像并展示错误。上传成功后用于 profile 更新的 `object_key` MUST 能通过后端受控 `/media/{object_key}` 或等价 URL 读取。
+
+#### Scenario: 运营人员上传头像
+
+- **WHEN** `employee` 在个人资料页选择合法头像文件
+- **THEN** 系统 MUST 允许 upload 并成功 PATCH profile
+- **AND** MUST 写入 `avatar_update` audit
+
+#### Scenario: 上传头像后对象与 URL 可读
+
+- **GIVEN** 用户通过个人资料页上传合法头像且上传接口返回 `object_key`
+- **WHEN** 用户使用该 `object_key` 保存个人资料
+- **THEN** profile 更新 MUST 成功
+- **AND** `/media/{object_key}` 或等价受控 URL MUST 返回可读图片
+- **AND** `GET /api/v1/profile/me` 返回的 `avatar_url` MUST 与受控媒体读取策略一致

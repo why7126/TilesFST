@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-22 14:33:52
+updated_at: 2026-08-25 23:20:00
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -55,6 +55,8 @@ users 1 ── * audit_logs.actor_user_id（Sprint 003，可选 FK）
 users 1 ── * request_logs.actor_user_id（Sprint 004，可选 FK）
 users 1 ── * usage_events.actor_user_id（Sprint 004，可选 FK）
 request_logs.request_id ── * usage_events.request_id（逻辑关联，非 FK）
+usage_events.behavior_trace_id ── * request_logs.behavior_trace_id（界面行为链路逻辑关联，非 FK）
+request_logs.request_id ── * task_traces.parent_request_id（直接 API 或任务入口逻辑关联，非 FK）
 task_traces.task_trace_id ── * task_trace_spans.task_trace_id（逻辑关联，非 FK）
 task_traces.task_trace_id ── * request_logs / usage_events / audit_logs.task_trace_id（逻辑关联，非 FK）
 performance_events.request_id ── request_logs.request_id（逻辑关联，非 FK）
@@ -242,6 +244,8 @@ API 请求日志。OpenSpec：`openspec/changes/add-product-usage-logging/`
 | actor_role | TEXT | NULL | `admin` / `employee` / `store_owner` 等 |
 | client_type | TEXT | NULL | `web_admin`、`web_catalog`、`wechat_miniapp`、`unknown` |
 | client_request_id | TEXT | NULL | 客户端请求标识，来自 `x-client-request-id` 或请求体 `client_request_id`，独立于可信 `request_id` |
+| behavior_trace_id | TEXT | NULL | 界面行为链路 ID，来自 `x-behavior-trace-id`；直接 API 调用为空 |
+| parent_behavior_event_id | TEXT | NULL | 触发本次请求的行为事件 ID，来自 `x-behavior-event-id`；直接 API 调用为空 |
 | method | TEXT | NOT NULL | HTTP Method |
 | path | TEXT | NOT NULL | API Path，不含 query |
 | status_code | INTEGER | NOT NULL | HTTP 状态码 |
@@ -256,9 +260,9 @@ API 请求日志。OpenSpec：`openspec/changes/add-product-usage-logging/`
 | metadata | TEXT | NULL | JSON 扩展信息，已做敏感字段过滤；请求日志可包含 `request_snapshot` 结构化请求快照 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_client_request_id`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_client_created`、`idx_request_logs_result_created`、`idx_request_logs_path_created`、`idx_request_logs_task_trace`
+索引：`idx_request_logs_created`、`idx_request_logs_request_id`、`idx_request_logs_client_request_id`、`idx_request_logs_behavior_trace`、`idx_request_logs_parent_behavior_event`、`idx_request_logs_actor_created`、`idx_request_logs_status_created`、`idx_request_logs_client_created`、`idx_request_logs_result_created`、`idx_request_logs_path_created`、`idx_request_logs_task_trace`
 
-`metadata.request_snapshot` 作为详情展示契约存储统一 Request Snapshot。`client_request_id` 是独立查询列，用于辅助跨端请求归因和日志审计展示；它不作为认证授权依据，也不得覆盖服务端可信 `request_id`。当前快照字段仅用于管理端日志详情排障，不参与列表筛选；常用筛选仍依赖 `request_id`、`client_request_id`、`actor_user_id`、`status_code`、`client_type`、`result`、`path`、`created_at`、`task_trace_id` 等索引。REQ-0076 链路观测仪表复用 `request_logs`、`usage_events`、`audit_logs`、`task_traces`、`task_trace_spans` 的时间、状态和 trace 索引进行聚合，不新增表、字段或索引；BUG-0127 补齐 `client_type + created_at` 与 `result + created_at` 索引用于日志审计列表条件下推和低成本筛选。若后续需要按 `route_template`、`resource_id` 聚合，仍应通过新的 OpenSpec Change 评估冗余列或索引，避免直接依赖 SQLite/MySQL JSON 方言差异。
+`metadata.request_snapshot` 作为详情展示契约存储统一 Request Snapshot。`client_request_id` 是独立查询列，用于辅助跨端请求归因和日志审计展示；它不作为认证授权依据，也不得覆盖服务端可信 `request_id`。`behavior_trace_id` 用于把一次页面访问、点击或表单提交产生的多个后端请求关联到同一行为链路；`parent_behavior_event_id` 用于从请求日志回指触发请求的单条 `usage_events.behavior_event_id`。直接 API 调用没有界面行为来源时，这两个字段保持 NULL，并继续通过 `request_id` 与任务链路关联。常用筛选依赖 `request_id`、`client_request_id`、`behavior_trace_id`、`parent_behavior_event_id`、`actor_user_id`、`status_code`、`client_type`、`result`、`path`、`created_at`、`task_trace_id` 等索引。REQ-0076 链路观测仪表复用 `request_logs`、`usage_events`、`audit_logs`、`task_traces`、`task_trace_spans` 的时间、状态和 trace 索引进行聚合；BUG-0127 补齐 `client_type + created_at` 与 `result + created_at` 索引用于日志审计列表条件下推和低成本筛选。若后续需要按 `route_template`、`resource_id` 聚合，仍应通过新的 OpenSpec Change 评估冗余列或索引，避免直接依赖 SQLite/MySQL JSON 方言差异。
 
 Repository：`log_repository.py`；Service：`log_service.py`；中间件：`request_logging.py`
 
@@ -272,6 +276,8 @@ Repository：`log_repository.py`；Service：`log_service.py`；中间件：`req
 |---|---|---|---|
 | id | TEXT | PK | UUID |
 | request_id | TEXT | NULL | 关联 API 请求链路 ID，前端可透传 |
+| behavior_trace_id | TEXT | NULL | 一次用户行为链路 ID，用于关联同一页面访问、点击或表单提交触发的多个请求 |
+| behavior_event_id | TEXT | NULL | 单条用户行为事件 ID，可被 `request_logs.parent_behavior_event_id` 回指 |
 | actor_user_id | TEXT | NULL FK → users.id | 已登录操作人，匿名上报为空 |
 | actor_role | TEXT | NULL | 操作人角色 |
 | client_type | TEXT | NOT NULL | 客户端类型，默认 `admin_web` |
@@ -289,7 +295,9 @@ Repository：`log_repository.py`；Service：`log_service.py`；中间件：`req
 | metadata | TEXT | NULL | JSON 属性快照，禁止 password/token/secret 等敏感字段 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_actor_created`、`idx_usage_events_client_created`、`idx_usage_events_result_created`、`idx_usage_events_task_trace`
+索引：`idx_usage_events_created`、`idx_usage_events_event_created`、`idx_usage_events_request_id`、`idx_usage_events_behavior_trace`、`idx_usage_events_behavior_event`、`idx_usage_events_actor_created`、`idx_usage_events_client_created`、`idx_usage_events_result_created`、`idx_usage_events_task_trace`
+
+界面触发的数据链路为：`usage_events.behavior_trace_id -> request_logs.behavior_trace_id -> task_traces.parent_request_id -> task_trace_spans`。前端每次调用 `POST /api/v1/usage-events` 时生成新的 `behavior_trace_id` 与 `behavior_event_id`，并在短时间窗口内通过请求头 `x-behavior-trace-id`、`x-behavior-event-id` 透传给随后触发的 API 请求。
 
 Repository：`log_repository.py`；Service：`log_service.py`
 
@@ -336,6 +344,7 @@ Repository：`performance_repository.py`；Service：`performance_service.py`
 | actor_user_id | TEXT | NULL FK → users.id | 发起人 |
 | client_type | TEXT | NULL | 客户端类型 |
 | parent_request_id | TEXT | NULL | 触发 Task Trace 的后端可信主请求 `request_id`，仅用于追踪定位，不作为权限依据 |
+| behavior_trace_id | TEXT | NULL | 任务所属界面行为链路 ID；直接 API 触发时为空 |
 | resource_type | TEXT | NULL | 资源类型摘要 |
 | resource_id | TEXT | NULL | 资源 ID 摘要 |
 | started_at / ended_at | TEXT | NOT NULL / NULL | 任务起止时间 |
@@ -346,7 +355,7 @@ Repository：`performance_repository.py`；Service：`performance_service.py`
 | metadata | TEXT | NULL | 已脱敏 JSON |
 | created_at / updated_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_task_traces_task_trace_id`、`idx_task_traces_parent_request_id`、`idx_task_traces_type_created`、`idx_task_traces_status_created`
+索引：`idx_task_traces_task_trace_id`、`idx_task_traces_parent_request_id`、`idx_task_traces_behavior_trace`、`idx_task_traces_type_created`、`idx_task_traces_status_created`
 
 ## 5.8 task_trace_spans（Sprint 011 / REQ-0069）
 
@@ -363,6 +372,7 @@ Task Trace 节点时间线。上传首批 span 包含 `frontend_upload_start`、
 | duration_ms | INTEGER | NULL | 节点耗时 |
 | sequence | INTEGER | NOT NULL | 时间线排序 |
 | request_id | TEXT | NULL | 关联 HTTP 请求 |
+| behavior_trace_id | TEXT | NULL | 节点所属界面行为链路 ID；直接 API 触发时为空 |
 | actor_user_id | TEXT | NULL FK → users.id | 操作人 |
 | client_type | TEXT | NULL | 客户端 |
 | resource_type / resource_id | TEXT | NULL | 资源摘要 |
@@ -371,7 +381,7 @@ Task Trace 节点时间线。上传首批 span 包含 `frontend_upload_start`、
 | metadata | TEXT | NULL | 已脱敏 JSON，不保存 Authorization、Cookie、AccessKey、SecretKey、DSN、`.env`、真实客户数据、完整敏感请求体或内部绝对路径 |
 | created_at | TEXT | NOT NULL | ISO8601 UTC |
 
-索引：`idx_task_trace_spans_trace_sequence`、`idx_task_trace_spans_request_id`、`idx_task_trace_spans_type_created`
+索引：`idx_task_trace_spans_trace_sequence`、`idx_task_trace_spans_request_id`、`idx_task_trace_spans_behavior_trace`、`idx_task_trace_spans_type_created`
 
 ---
 

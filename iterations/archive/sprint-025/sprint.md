@@ -1,7 +1,7 @@
 ---
 note: workflow-sync — workflow-sync 自动同步 — 18/18 Change archived；0 applied；Sprint `completed`
 created_at: 2026-08-21 18:43:30
-updated_at: 2026-08-25 14:51:36
+updated_at: 2026-08-25 15:48:21
 ---
 
 # sprint-025 规划
@@ -294,6 +294,7 @@ REQ-0115 approved
 - `issues/requirements/archive/REQ-0120-webp-derived-image-variants/acceptance.md`
 - `issues/requirements/archive/REQ-0120-webp-derived-image-variants/trace.md`
 - `docs/knowledge-base/retrospectives/sprint-024-retrospective.md`
+- `docs/knowledge-base/retrospectives/sprint-025-retrospective.md`
 - `docs/knowledge-base/best-practices/admin-media-upload-chain.md`
 - `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`
 
@@ -302,3 +303,4 @@ REQ-0115 approved
 | 时间 | 命令 | 结果 |
 |---|---|---|
 | 2026-08-25 14:45:16 | /sprint-archive sprint-025 | 18/18 Change 已归档；readiness、stale scan 与 issue promote gate 通过；AI usage snapshot 缺失，按 estimated_fallback 警告记录。 |
+| 2026-08-25 15:48:21 | /sprint-exps sprint-025 | 已生成 Sprint 复盘并回链；AI usage snapshot 已通过 session JSONL 与归因补洞刷新为 actual/present，fresh gate 与 matrix write gate 通过。 |

@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -181,6 +181,14 @@ def ai_usage_snapshot(
 def project_time_to_utc_iso(value: Any) -> str | None:
     """Convert project document timestamps to timezone-aware UTC ISO for usage checks."""
 
+    if isinstance(value, datetime):
+        parsed = value
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=PROJECT_TZ)
+        return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    if isinstance(value, date):
+        parsed = datetime.combine(value, time.min, tzinfo=PROJECT_TZ)
+        return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     if not isinstance(value, str) or not value.strip():
         return None
     parsed = ai_usage.parse_datetime(value)
@@ -262,22 +270,30 @@ def format_int(value: Any) -> str:
 
 def render_usage_matrix_table(usage_matrices: dict[str, Any], metric: str) -> list[str]:
     matrix_columns = [
-        str(column.get("label"))
+        column
         for column in usage_matrices.get("columns", [])
         if column.get("label")
     ]
+    column_labels = [str(column.get("label")) for column in matrix_columns]
     matrix_rows = usage_matrices.get("rows") or []
     lines = [
         f"### {metric} 矩阵",
         "",
-        "| 对象 | " + " | ".join(matrix_columns) + " |",
-        "| ------ | " + " | ".join("------:" for _ in matrix_columns) + " |",
+        "| 对象 | " + " | ".join(column_labels) + " |",
+        "| ------ | " + " | ".join("------:" for _ in column_labels) + " |",
     ]
     for row in matrix_rows:
         cells = ((row.get("metrics") or {}).get(metric) or {})
+        rendered_cells = []
+        for column in matrix_columns:
+            label = str(column.get("label"))
+            if column.get("status") == "unknown":
+                rendered_cells.append("-")
+            else:
+                rendered_cells.append(str(cells.get(label, 0)))
         lines.append(
             f"| {row.get('object_id')} | "
-            + " | ".join(str(cells.get(column, 0)) for column in matrix_columns)
+            + " | ".join(rendered_cells)
             + " |"
         )
     return lines
@@ -380,7 +396,7 @@ def render_ai_usage_retrospective_section(fact_sheet: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "矩阵口径：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。矩阵数据来自 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet 渲染输出。",
+            "矩阵口径：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。`-` 表示该 workflow 阶段在当前 snapshot 中未采集或未归因，不等价于真实 `0`；只有已观测 workflow 列中的数字 `0` 才表示真实零消耗。矩阵数据来自 `data/ai-usage/sprints/<sprint-id>.json` 经 Fact Sheet 渲染输出。",
             "",
         ]
     )
@@ -691,6 +707,11 @@ def usage_matrices_summary(
         for row in rows:
             metric_names.update((row.get("metrics") or {}).keys())
         metrics = sorted(metric_names)
+    unknown_columns = [
+        str(column.get("label"))
+        for column in columns
+        if isinstance(column, dict) and column.get("status") == "unknown" and column.get("label")
+    ]
     legacy_views = [
         key
         for key in ("by_issue", "by_change", "by_workflow_event", "by_model")
@@ -703,6 +724,8 @@ def usage_matrices_summary(
         "omitted": bool(rows),
         "metrics": metrics,
         "columns_count": len(columns),
+        "unknown_columns_count": len(unknown_columns),
+        "unknown_columns": unknown_columns,
         "rows_count": len(rows),
         "legacy_views": legacy_views,
         "fields_path": "ai_usage_snapshot.usage_matrices",

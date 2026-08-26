@@ -1,6 +1,8 @@
 ---
 name: "sprint-exps"
 description: "Sprint 经验复盘 - 总结整迭代流程、需求、开发与质量经验，沉淀到 docs/knowledge-base"
+created_at: 2026-08-06 00:00:00
+updated_at: 2026-08-26 20:58:03
 ---
 
 # sprint-exps
@@ -55,7 +57,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    ```bash
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown
    ```
-   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若 recommended_action 指向 `scripts/extract-ai-usage.py` 或当前命令可运行 post-command hook，MUST 先刷新 snapshot；刷新完成后 MUST 重新运行 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 复核 fresh gate，且只能以刷新后的 summary 判断是否可渲染矩阵。不得沿用刷新前的 blocker 结论，也不得在未重新 summary 时直接运行 `--ai-usage-markdown` 写入真实矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
+   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。矩阵单元中的 `-` 表示该 workflow 阶段在当前 snapshot 中未采集或未归因，MUST NOT 被解读为真实 0；只有已观测 workflow 列中的数字 `0` 才表示真实零消耗。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON，原始矩阵列状态仍使用 `unknown` 表示未观测。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若 recommended_action 指向 `scripts/extract-ai-usage.py` 或当前命令可运行 post-command hook，MUST 先刷新 snapshot；刷新完成后 MUST 重新运行 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 复核 fresh gate，且只能以刷新后的 summary 判断是否可渲染矩阵。不得沿用刷新前的 blocker 结论，也不得在未重新 summary 时直接运行 `--ai-usage-markdown` 写入真实矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
 6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 8. 输出 Experience Analysis Report。
@@ -79,7 +81,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 - **模型 Token 使用分析（MUST）**：
   - 复盘文档 MUST 增加独立章节 `## 模型 Token 使用分析`，位置建议在“流程复盘”之后、“需求与设计”之前。
-  - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的 compact 真实统计摘要：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数，以及 `usage_matrices_summary` 的矩阵可用性和行列规模。
+  - 优先使用 `data/ai-usage/sprints/<sprint-id>.json` 经 `scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 暴露的 compact 真实统计摘要：command run 数、模型调用、工具调用、失败重跑、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具输出字符数，以及 `usage_matrices_summary` 的矩阵可用性、行列规模和 unknown 列数量。
   - 若 `ai_usage_snapshot.fresh_gate.status != pass`、`ai_usage_snapshot.snapshot_status != present`、`ai_usage_snapshot.ai_usage_mode != actual` 或 `ai_usage_snapshot.usage_matrices_summary.available != true`，MUST 输出 fresh gate blocker、reason（如 missing/stale/failed/coverage-missing/usage-matrices-missing/required-metrics-empty）、impact、freshness_baseline、recommended_action；默认不得生成真实 token 成本矩阵，不得编造具体 token 数字，不得静默按真实统计展示。
   - `usage_matrices_summary.raw_present=true` 只表示 snapshot 文件里存在原始矩阵，不代表可写入复盘；只有 `usage_matrices_summary.matrix_write_gate.status=pass` 且 `available=true` 才允许通过 `--ai-usage-markdown` 写入真实矩阵。
   - 若 snapshot 过期、覆盖不足、缺少矩阵或无法判定覆盖范围，MUST 在本章节保留 warning，并提示刷新 snapshot；覆盖不足或缺少矩阵 MAY 保持 `snapshot_status: present`，但 fresh gate MUST 为 blocker 且 `ai_usage_mode` MUST NOT 作为真实统计使用。仅当用户明确要求继续 fallback 复盘时，MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析，且 MUST 说明不能用于真实 token 成本量化。
@@ -88,8 +90,8 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
     - 第二张：总输入 Token 消耗数 `input_tokens`。
     - 第三张：总输出 Token 消耗数 `output_tokens`。
     - 第四张：模型调用次数 `model_call_count`。
-  - 四张矩阵表 MUST 使用相同结构：第一列为对象，表格最上方 MUST 是 `Total` 汇总行；之后纵向按 Sprint、REQ、BUG 排列（例如 `sprint-010` / `REQ-0001-*` / `BUG-0001-*`，展示时 MAY 保留 canonical ID）；横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 展示。
-  - 矩阵口径 MUST 说明：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较。
+  - 四张矩阵表 MUST 使用相同结构：第一列为对象，表格最上方 MUST 是 `Total` 汇总行；之后纵向按 Sprint、REQ、BUG 排列（例如 `sprint-010` / `REQ-0001-*` / `BUG-0001-*`，展示时 MAY 保留 canonical ID）；横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Modify`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 展示。
+  - 矩阵口径 MUST 说明：`Total` 与 Sprint 行按唯一 command run 汇总；REQ/BUG 行是对象归因视图，同一 command run 关联多个 REQ/BUG 时可在多个对象行出现，因此对象行不应直接相加后与 `Total` 比较；`-` 表示对应 workflow 列未观测，不等价于真实 `0`。
   - MUST 分析高消耗来源：重复读取 `rules/` 与技能文件、宽泛 `rg/find`、全量 Sprint/Issue/Change 读取、`openspec/archive/**`、legacy `openspec/changes/archive/**`、OpenAPI/Orval 生成物 diff、长测试日志、Workflow Sync 全量输出、Docker/build 大日志、Harness/模板 assets 注入。
   - MUST 优先引用自动 Fact Sheet summary 的 `token_risks`、Change/tasks 计数、四件套行数、warnings 与 evidence hint 计数，减少人工展开四件套、trace 与 tasks 的 token 消耗。
   - MUST 给出优化方案，至少包含：读取边界、搜索排除、输出截断、diff/stat 优先、失败日志摘要、复用已读规则摘要、按 Change 分段处理、必要时沉淀脚本或校验 gate。
@@ -123,10 +125,10 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 ### total_tokens 矩阵
 
-| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
-|------|---------:|------------:|------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|-----------:|-----------:|---------:|---------:|-------------:|-------------:|-----------:|-------------:|---------------:|---------------:|-------------:|---------------:|
-| Total | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
-| sprint-xxx | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 | 待填 |
+| 对象 | Capture | BUG-Capture | REQ-Capture | BUG-Explore | REQ-Explore | REQ-Generate | BUG-Generate | REQ-Complete | BUG-Complete | REQ-Review | BUG-Review | REQ-Opsx | BUG-Opsx | Opsx-Explore | Opsx-Propose | Opsx-Apply | Opsx-Modify | Opsx-Archive | Sprint-Propose | Sprint-Explore | Sprint-Apply | Sprint-Archive |
+|------|---------:|------------:|------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|-----------:|-----------:|---------:|---------:|-------------:|-------------:|-----------:|------------:|-------------:|---------------:|---------------:|-------------:|---------------:|
+| Total | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- |
+| sprint-xxx | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- | 待填/- |
 
 ### input_tokens 矩阵
 
@@ -140,7 +142,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
 
 同上结构，指标取 `model_call_count`。
 
-> 矩阵数据优先来自 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown`；summary 只提供 `usage_matrices_summary`。若完整矩阵缺失，提示刷新 `data/ai-usage` snapshot，不得手工估填具体数值。
+> 矩阵数据优先来自 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown`；summary 只提供 `usage_matrices_summary`。若完整矩阵缺失，提示刷新 `data/ai-usage` snapshot，不得手工估填具体数值；若单元格为 `-`，说明该 workflow 阶段未采集或未归因，不得当作真实 0。
 
 ### 高消耗来源
 
@@ -168,15 +170,17 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event sprint.e
 
 ## Final Output Contract（MUST）
 
-命令结束前，最终回复 MUST 明确包含：
+命令结束前，最终回复必须包含面向用户的真实结果，不得输出本段规则、尖括号占位符、MUST/SHOULD 规范语句或与当前命令无关的通用示例。
 
-```text
-下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
-待用户决策/处理：
-- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
-```
+输出必须包含两项：
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
-- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
-- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+
+输出判定：
+
+- 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
+- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
+- REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 import hashlib
 from io import BytesIO
 import logging
@@ -32,6 +33,7 @@ DISPLAY_IMAGE_WEBP_QUALITY = 86
 WEBP_DERIVATIVE_CONTENT_TYPE = "image/webp"
 WEBP_DERIVATIVE_FORMAT = "WEBP"
 WEBP_DERIVATIVE_EXTENSION = "webp"
+WEBP_DERIVATIVE_ENCODER_METHOD = 1
 WEBP_ORIGINAL_FALLBACK_EXTENSIONS = ("jpg", "jpeg", "png", "webp")
 OBJECT_MISSING_ERROR_CODES = {"NoSuchKey", "NoSuchObject", "NoSuchResource"}
 
@@ -212,7 +214,11 @@ def _thumbnail_save_kwargs(
             "progressive": True,
         }
     if output_format == "WEBP":
-        return {"format": "WEBP", "quality": webp_quality, "method": 6}
+        return {
+            "format": "WEBP",
+            "quality": webp_quality,
+            "method": WEBP_DERIVATIVE_ENCODER_METHOD,
+        }
     return {"format": "PNG", "optimize": True}
 
 
@@ -844,6 +850,10 @@ def _parse_byte_range(range_header: str, total_size: int) -> tuple[int, int] | N
 
 
 UploadTimingContext = dict[str, Any]
+UploadStageRecorder = Callable[
+    [str, str, int, str, str, str | None, dict[str, Any] | None],
+    None,
+]
 
 
 def _elapsed_ms(started_at: float) -> int:
@@ -883,11 +893,35 @@ def _log_upload_stage(
     )
 
 
+def _record_upload_stage(
+    recorder: UploadStageRecorder | None,
+    *,
+    span_name: str,
+    status: str,
+    stage_started_at: float,
+    started_at: str,
+    error_code: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    if recorder is None:
+        return
+    recorder(
+        span_name,
+        status,
+        _elapsed_ms(stage_started_at),
+        started_at,
+        datetime.now(UTC).isoformat(),
+        error_code,
+        metadata,
+    )
+
+
 async def save_upload_file(
     file: UploadFile,
     object_key: str,
     max_size_mb: int,
     timing: UploadTimingContext | None = None,
+    stage_recorder: UploadStageRecorder | None = None,
     thumbnail_key: str | None = None,
     thumbnail_max_size_kb: int = 0,
     display_key: str | None = None,
@@ -899,9 +933,29 @@ async def save_upload_file(
     if display_key is not None:
         resolve_media_path(display_key)
     stage_started_at = perf_counter()
+    stage_started_iso = datetime.now(UTC).isoformat()
     _log_upload_stage(timing, "file_read_start", stage_started_at)
-    content = await file.read()
+    try:
+        content = await file.read()
+    except Exception:
+        _record_upload_stage(
+            stage_recorder,
+            span_name="file_read",
+            status="failed",
+            stage_started_at=stage_started_at,
+            started_at=stage_started_iso,
+            error_code="file_read_failed",
+        )
+        raise
     _log_upload_stage(timing, "file_read_done", stage_started_at, size_bytes=len(content))
+    _record_upload_stage(
+        stage_recorder,
+        span_name="file_read",
+        status="success",
+        stage_started_at=stage_started_at,
+        started_at=stage_started_iso,
+        metadata={"size_bytes": len(content), "content_type": file.content_type},
+    )
     max_size_bytes = max_size_mb * 1024 * 1024
     stage_started_at = perf_counter()
     if len(content) > max_size_bytes:
@@ -909,10 +963,39 @@ async def save_upload_file(
         raise AppError(status_code=400, code=FILE_SIZE_EXCEEDED, message="文件大小超限")
     _log_upload_stage(timing, "validation_done", stage_started_at, size_bytes=len(content))
     stage_started_at = perf_counter()
+    stage_started_iso = datetime.now(UTC).isoformat()
     _log_upload_stage(timing, "storage_put_start", stage_started_at, size_bytes=len(content))
     client = get_media_storage_client()
-    client.put_object(object_key, content, file.content_type)
+    try:
+        client.put_object(object_key, content, file.content_type)
+    except Exception as exc:
+        _record_upload_stage(
+            stage_recorder,
+            span_name="original_put_object",
+            status="failed",
+            stage_started_at=stage_started_at,
+            started_at=stage_started_iso,
+            error_code=str(getattr(exc, "code", "") or "storage_put_failed"),
+            metadata={
+                "object_key_prefix": object_key.rsplit("/", 1)[0],
+                "size_bytes": len(content),
+                "content_type": file.content_type,
+            },
+        )
+        raise
     _log_upload_stage(timing, "storage_put_done", stage_started_at, size_bytes=len(content))
+    _record_upload_stage(
+        stage_recorder,
+        span_name="original_put_object",
+        status="success",
+        stage_started_at=stage_started_at,
+        started_at=stage_started_iso,
+        metadata={
+            "object_key_prefix": object_key.rsplit("/", 1)[0],
+            "size_bytes": len(content),
+            "content_type": file.content_type,
+        },
+    )
     if thumbnail_key:
         _put_generated_image_variant(
             client=client,
@@ -922,7 +1005,15 @@ async def save_upload_file(
             variant_key=thumbnail_key,
             variant="thumbnail",
             timing=timing,
+            stage_recorder=stage_recorder,
             target_max_size_kb=thumbnail_max_size_kb,
+        )
+    else:
+        _record_skipped_image_variant(
+            stage_recorder=stage_recorder,
+            object_key=object_key,
+            variant="thumbnail",
+            reason="variant_not_requested",
         )
     if display_key:
         _put_generated_image_variant(
@@ -933,13 +1024,53 @@ async def save_upload_file(
             variant_key=display_key,
             variant="display",
             timing=timing,
+            stage_recorder=stage_recorder,
             max_width=DISPLAY_IMAGE_MAX_WIDTH,
             max_height=DISPLAY_IMAGE_MAX_HEIGHT,
             jpeg_quality=DISPLAY_IMAGE_JPEG_QUALITY,
             webp_quality=DISPLAY_IMAGE_WEBP_QUALITY,
             target_max_size_kb=display_max_size_kb,
         )
+    else:
+        _record_skipped_image_variant(
+            stage_recorder=stage_recorder,
+            object_key=object_key,
+            variant="display",
+            reason="variant_not_requested",
+        )
     return len(content)
+
+
+def _record_skipped_image_variant(
+    *,
+    stage_recorder: UploadStageRecorder | None,
+    object_key: str,
+    variant: str,
+    reason: str,
+) -> None:
+    metadata = {
+        "variant": variant,
+        "object_key_prefix": object_key.rsplit("/", 1)[0],
+        "reason": reason,
+    }
+    _record_upload_stage(
+        stage_recorder,
+        span_name=f"{variant}_generate",
+        status="skipped",
+        stage_started_at=perf_counter(),
+        started_at=datetime.now(UTC).isoformat(),
+        error_code=reason,
+        metadata=metadata,
+    )
+    _record_upload_stage(
+        stage_recorder,
+        span_name=f"{variant}_put_object",
+        status="skipped",
+        stage_started_at=perf_counter(),
+        started_at=datetime.now(UTC).isoformat(),
+        error_code=reason,
+        metadata=metadata,
+    )
 
 
 def _put_generated_image_variant(
@@ -951,6 +1082,7 @@ def _put_generated_image_variant(
     variant_key: str,
     variant: str,
     timing: UploadTimingContext | None,
+    stage_recorder: UploadStageRecorder | None,
     max_width: int = 480,
     max_height: int = 480,
     jpeg_quality: int = 82,
@@ -958,6 +1090,7 @@ def _put_generated_image_variant(
     target_max_size_kb: int = 0,
 ) -> None:
     stage_started_at = perf_counter()
+    stage_started_iso = datetime.now(UTC).isoformat()
     _log_upload_stage(timing, f"{variant}_put_start", stage_started_at, size_bytes=len(content))
     try:
         generated = generate_image_thumbnail(
@@ -978,8 +1111,83 @@ def _put_generated_image_variant(
             exc.__class__.__name__,
         )
         _log_upload_stage(timing, f"{variant}_generation_skipped", stage_started_at, size_bytes=0)
+        _record_upload_stage(
+            stage_recorder,
+            span_name=f"{variant}_generate",
+            status="skipped",
+            stage_started_at=stage_started_at,
+            started_at=stage_started_iso,
+            error_code="variant_generation_skipped",
+            metadata={
+                "variant": variant,
+                "object_key_prefix": object_key.rsplit("/", 1)[0],
+                "reason": exc.__class__.__name__,
+            },
+        )
+        _record_upload_stage(
+            stage_recorder,
+            span_name=f"{variant}_put_object",
+            status="skipped",
+            stage_started_at=perf_counter(),
+            started_at=datetime.now(UTC).isoformat(),
+            error_code="variant_generation_skipped",
+            metadata={
+                "variant": variant,
+                "object_key_prefix": variant_key.rsplit("/", 1)[0],
+            },
+        )
         return
-    client.put_object(variant_key, generated.content, generated.content_type)
+    _record_upload_stage(
+        stage_recorder,
+        span_name=f"{variant}_generate",
+        status="success",
+        stage_started_at=stage_started_at,
+        started_at=stage_started_iso,
+        metadata={
+            "variant": variant,
+            "content_type": generated.content_type,
+            "size_bytes": generated.size,
+            "width": generated.width,
+            "height": generated.height,
+            "original_size": generated.original_size,
+            "original_width": generated.original_width,
+            "original_height": generated.original_height,
+            "resized": generated.resized,
+        },
+    )
+    stage_started_at = perf_counter()
+    stage_started_iso = datetime.now(UTC).isoformat()
+    try:
+        client.put_object(variant_key, generated.content, generated.content_type)
+    except Exception as exc:
+        _record_upload_stage(
+            stage_recorder,
+            span_name=f"{variant}_put_object",
+            status="failed",
+            stage_started_at=stage_started_at,
+            started_at=stage_started_iso,
+            error_code=str(getattr(exc, "code", "") or "storage_put_failed"),
+            metadata={
+                "variant": variant,
+                "object_key_prefix": variant_key.rsplit("/", 1)[0],
+                "size_bytes": generated.size,
+                "content_type": generated.content_type,
+            },
+        )
+        raise
+    _record_upload_stage(
+        stage_recorder,
+        span_name=f"{variant}_put_object",
+        status="success",
+        stage_started_at=stage_started_at,
+        started_at=stage_started_iso,
+        metadata={
+            "variant": variant,
+            "object_key_prefix": variant_key.rsplit("/", 1)[0],
+            "size_bytes": generated.size,
+            "content_type": generated.content_type,
+        },
+    )
     _log_upload_stage(
         timing,
         f"{variant}_put_done",

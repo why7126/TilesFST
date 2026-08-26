@@ -1,5 +1,6 @@
 import { api } from '@/features/auth/api/auth-api';
 import type { UsageEventCreate } from '@/shared/api/generated';
+import { createBehaviorId, setActiveBehaviorContext } from '../behavior-context';
 
 const SESSION_KEY = 'tilesfst_tracking_session_id';
 const DEFAULT_CLIENT_TYPE = 'web_admin';
@@ -71,12 +72,17 @@ export async function trackUsageEvent(
       ...properties,
       page_path: properties.page_path ?? pagePath,
     });
+    const behaviorTraceId = createBehaviorId('bt');
+    const behaviorEventId = createBehaviorId('be');
+    setActiveBehaviorContext(behaviorTraceId, behaviorEventId);
     const payload: UsageEventCreate = {
       event_name: eventName,
       properties: sanitizedProperties,
       client_type: options.clientType ?? DEFAULT_CLIENT_TYPE,
       page_path: pagePath,
       request_id: options.requestId ?? undefined,
+      behavior_trace_id: behaviorTraceId,
+      behavior_event_id: behaviorEventId,
       session_id: getUsageTrackingSessionId(),
       duration_ms: normalizeDurationMs(options.durationMs),
       summary: options.summary,

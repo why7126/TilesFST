@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-21 08:36:38
+updated_at: 2026-08-26 20:26:00
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -21,6 +21,8 @@ note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通
 `docs/` 只沉淀长期产品、架构、部署、接口、数据库、兼容性和治理信息；需求、BUG、迭代不得放入 `docs/`。
 
 长期事实 MUST 只有一个事实源。`AGENTS.md`、`rules/`、`docs/standards/`、`.agents/skills/` 和 `docs/spec-logs/` 之间不得重复完整规则；入口文件只保留短摘要和相对链接，详细规则放在最匹配的归属文档中。新增或更新长期文档时 SHOULD 遵守 `docs/standards/document-prose-hygiene.md`，避免会话推理、临时草稿、review 对话、不可解析引用和不必要历史叙事进入长期文档。
+
+产品数据采集与链路观测详细事实源为 `docs/standards/product-data-collection-observability.md`。`AGENTS.md`、`rules/`、`.agents/skills/`、Sprint 和 Change 文档只保留门禁摘要、适用性声明、N/A 原因、验证结果和路径引用，不得复制完整规范正文。
 
 ```text
 docs/
@@ -166,6 +168,8 @@ implementation/
 ```
 
 归档前 MUST 先完成文档同步复核：根据 `tasks.md`、`trace.md`、delta spec 与实现影响范围，更新受影响的长期文档、README、`.env.example`、API / DB / 部署 / 发布 / 兼容性文档或明确记录“不适用”原因。API 变更必须同步 `docs/03-api-index.md`、API 治理说明与 Orval 相关说明；DB 变更必须同步 `docs/04-database-design.md`；Docker、环境变量、发布镜像变更必须同步部署、发布与示例环境文档。不得在 docs 同步缺失或未说明豁免原因时执行归档。
+
+若 Change 涉及 API、DB、日志审计、行为埋点、Task Trace 或端请求封装，归档前 MUST 复核 `product_data_collection_observability` 声明、`affected_layers` 适用层级、N/A 原因和 `validation` 验证摘要；缺失时不得归档。
 
 归档时合并 delta spec 到 `openspec/specs/`，更新 Issue/Sprint 状态，并移动 Change 到 `openspec/archive/YYYY-MM-DD-<change-id>/`；不得删除归档内容。正式 spec 正文使用中文，OpenSpec 关键字可保留英文；归档后清理脚手架占位文案。
 

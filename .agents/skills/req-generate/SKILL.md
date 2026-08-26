@@ -54,6 +54,12 @@ parent_requirement:
 5. 同步 `requirement.md` 与 `trace.md` 的 `status: draft`
 6. 追加 trace 变更记录
 
+## 产品数据采集与链路观测门禁（MUST）
+
+若需求涉及 API、DB、日志审计、行为埋点、Task Trace、Web 请求封装、小程序请求封装或 App 请求封装，MUST 读取 `docs/standards/product-data-collection-observability.md`，并在 `requirement.md` 状态块声明 `product_data_collection_observability`、`affected_layers`、`reason` 和 `validation`。
+
+若不适用，MUST 写明为什么不影响 API、DB、请求日志、行为事件、Task Trace 或端请求封装；不得只写“无”或“不涉及”。
+
 ## Next
 
 `/req-complete REQ-xxxx`
@@ -86,16 +92,17 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event req.gene
 
 ## Final Output Contract（MUST）
 
-命令结束前，最终回复 MUST 明确包含：
+命令结束前，最终回复必须包含面向用户的真实结果，不得输出本段规则、尖括号占位符、MUST/SHOULD 规范语句或与当前命令无关的通用示例。
 
-```text
-下一步：<可直接执行的命令；若没有则写“暂无可推进下一步”>
-待用户决策/处理：
-- <需要用户选择、确认、补充或处理的事项；若没有则写“无”>
-```
+输出必须包含两项：
 
-- 如果存在明确可推进的下一步，MUST 给出可复制执行的命令，例如 `/bug-review BUG-0122`。
-- 如果下一步取决于用户选择，MUST 用条件化条目列出选项；已在「下一步」中给出的命令或动作，不得在「待用户决策/处理」中重复。
-- 「待用户决策/处理」只列缺失输入、需用户选择的范围/策略/证据/验收/发布确认、阻塞项或需人工处理事项；没有则写“无”。
+- `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+
+输出判定：
+
+- 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
+- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
+- REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-
