@@ -93,6 +93,8 @@ Page({
     loadingMore: false,
     loadMoreError: '',
     requestId: '',
+    keyword: '',
+    emptyText: '还没有收藏',
     navigating: false,
     removingId: 0,
     imageFallback: '',
@@ -130,23 +132,26 @@ Page({
     this.setData({ status: 'loading', requestId, loadMoreError: '' });
     try {
       const items = readFavorites().sort((a, b) => b.favorited_at - a.favorited_at);
-      const visibleItems = items.slice(0, this.data.pageSize);
-      const status = items.length ? 'ready' : 'empty';
+      const filteredItems = this.filterFavorites(items, this.data.keyword);
+      const visibleItems = filteredItems.slice(0, this.data.pageSize);
+      const status = filteredItems.length ? 'ready' : 'empty';
       this.setData({
         status,
         items,
         visibleItems,
-        total: items.length,
+        total: filteredItems.length,
         page: 1,
-        hasMore: items.length > visibleItems.length,
+        hasMore: filteredItems.length > visibleItems.length,
         loadingMore: false,
+        emptyText: this.favoriteEmptyText(filteredItems.length, items.length),
       });
       track('favorite_list_page_view', {
         page_path: '/pages/favorites/index',
         terminal: 'miniapp',
         sourcePage,
         hasLogin: false,
-        resultCount: items.length,
+        resultCount: filteredItems.length,
+        keyword: this.data.keyword || undefined,
         requestId,
       });
     } catch (_error) {
@@ -168,11 +173,12 @@ Page({
     this.setData({ loadingMore: true, loadMoreError: '' });
     try {
       const nextPage = this.data.page + 1;
-      const nextVisible = this.data.items.slice(0, nextPage * this.data.pageSize);
+      const filteredItems = this.filterFavorites(this.data.items, this.data.keyword);
+      const nextVisible = filteredItems.slice(0, nextPage * this.data.pageSize);
       this.setData({
         page: nextPage,
         visibleItems: nextVisible,
-        hasMore: this.data.items.length > nextVisible.length,
+        hasMore: filteredItems.length > nextVisible.length,
         loadingMore: false,
       });
     } catch (_error) {
@@ -202,6 +208,55 @@ Page({
       requestId: this.data.requestId,
     });
     wx.navigateTo({ url: '/pages/product-list/index?sourcePage=favorites' });
+  },
+
+  onSearchInput(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    this.setData({ keyword: event.detail.keyword || '' });
+  },
+
+  onSearchSubmit(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    const keyword = String(event.detail.keyword || '').trim().replace(/\s+/g, ' ');
+    const filteredItems = this.filterFavorites(this.data.items, keyword);
+    const visibleItems = filteredItems.slice(0, this.data.pageSize);
+    this.setData({
+      keyword,
+      visibleItems,
+      total: filteredItems.length,
+      page: 1,
+      status: filteredItems.length ? 'ready' : 'empty',
+      hasMore: filteredItems.length > visibleItems.length,
+      emptyText: this.favoriteEmptyText(filteredItems.length, this.data.items.length, keyword),
+    });
+    track('list_search_submit', {
+      page_path: '/pages/favorites/index',
+      terminal: 'miniapp',
+      sourcePage: 'favorites',
+      scope: 'favorites',
+      keyword,
+      resultCount: filteredItems.length,
+      requestId: this.data.requestId,
+    });
+  },
+
+  clearSearchKeyword() {
+    const visibleItems = this.data.items.slice(0, this.data.pageSize);
+    this.setData({
+      keyword: '',
+      visibleItems,
+      total: this.data.items.length,
+      page: 1,
+      status: this.data.items.length ? 'ready' : 'empty',
+      hasMore: this.data.items.length > visibleItems.length,
+      emptyText: this.favoriteEmptyText(this.data.items.length, this.data.items.length),
+    });
+    track('list_search_reset', {
+      page_path: '/pages/favorites/index',
+      terminal: 'miniapp',
+      sourcePage: 'favorites',
+      scope: 'favorites',
+      resultCount: this.data.items.length,
+      requestId: this.data.requestId,
+    });
   },
 
   openItem(event: WechatMiniprogram.TouchEvent) {
@@ -255,13 +310,15 @@ Page({
         if (!writeFavorites(nextItems)) {
           throw new Error('storage_write_failed');
         }
-        const nextVisible = nextItems.slice(0, this.data.page * this.data.pageSize);
+        const filteredItems = this.filterFavorites(nextItems, this.data.keyword);
+        const nextVisible = filteredItems.slice(0, this.data.page * this.data.pageSize);
         this.setData({
           items: nextItems,
           visibleItems: nextVisible,
-          total: nextItems.length,
-          status: nextItems.length ? 'ready' : 'empty',
-          hasMore: nextItems.length > nextVisible.length,
+          total: filteredItems.length,
+          status: filteredItems.length ? 'ready' : 'empty',
+          hasMore: filteredItems.length > nextVisible.length,
+          emptyText: this.favoriteEmptyText(filteredItems.length, nextItems.length),
           removingId: 0,
         });
         wx.showToast({ title: '已取消收藏', icon: 'success' });
@@ -285,5 +342,24 @@ Page({
   onImageError(event: WechatMiniprogram.TouchEvent) {
     const index = Number(event.currentTarget.dataset.index || 0);
     this.setData({ [`visibleItems[${index}].cover_image`]: '' });
+  },
+
+  filterFavorites(items: FavoriteItem[], keyword: string): FavoriteItem[] {
+    const normalized = keyword.trim().toLowerCase();
+    if (!normalized) return items;
+    return items.filter((item) => [
+      item.product_name,
+      item.sku_code,
+      item.brand_name,
+      item.category_name,
+      item.specification,
+    ].some((value) => String(value || '').toLowerCase().includes(normalized)));
+  },
+
+  favoriteEmptyText(filteredCount: number, allCount: number, keyword = this.data.keyword): string {
+    if (allCount && !filteredCount && keyword) {
+      return `收藏范围内没有找到“${keyword}”`;
+    }
+    return allCount ? '暂无匹配收藏' : '还没有收藏';
   },
 });

@@ -1,0 +1,262 @@
+# product-data-collection-observability-standard Specification
+
+## Purpose
+定义产品数据采集与链路观测规范的流程门禁，确保 API、DB、日志审计、行为埋点、Task Trace 和端请求封装相关变更在需求、OpenSpec、Sprint、实现与归档阶段完成规范读取、适用性声明、N/A 原因、验证计划和验收证据。
+## Requirements
+### Requirement: 产品数据采集与链路观测规范硬门禁
+系统 SHALL 将 `docs/standards/product-data-collection-observability.md` 接入项目治理入口、规则、技能和实现级校验，使 API、DB、日志审计、行为埋点、Task Trace、Web 请求封装、小程序请求封装和 App 请求封装相关变更必须读取、声明、验证并验收该规范。
+
+#### Scenario: 任务入口路由到采集规范
+- **WHEN** 变更涉及 API、DB / 数据模型、日志审计、行为埋点、Task Trace、Web 请求封装、小程序请求封装或 App 请求封装
+- **THEN** `AGENTS.md` SHALL 将 `docs/standards/product-data-collection-observability.md` 列为追加读取材料
+- **AND** 完成检查清单 SHALL 要求报告门禁适用性、N/A 原因和验证结果。
+
+#### Scenario: 规则文件声明触发条件
+- **WHEN** 相关规则约束 API、数据库、测试、文档治理、需求管理、Sprint 或 OpenSpec 流程
+- **THEN** 规则 SHALL 声明采集规范门禁触发条件
+- **AND** SHALL 要求触发范围内的变更记录 `product_data_collection_observability` 或等价固定声明
+- **AND** SHALL 避免复制完整采集规范正文。
+
+#### Scenario: 技能检查清单执行门禁
+- **WHEN** req、opsx 或 sprint 技能处理触发范围内的 REQ、BUG、Change 或 Sprint
+- **THEN** 技能 SHALL 检查是否已读取采集规范
+- **AND** SHALL 要求记录适用层级、N/A 原因、验证计划或验收结果
+- **AND** SHALL 在缺少声明或验收证据时输出可执行修复路径。
+
+### Requirement: 采集规范适用性声明可审计
+系统 SHALL 为需求、OpenSpec Change、Sprint 验收和实现校验提供可审计的采集规范适用性声明格式。
+
+#### Scenario: 适用声明包含固定字段
+- **WHEN** 需求或 Change 命中采集规范门禁触发范围
+- **THEN** 文档 SHALL 记录 `product_data_collection_observability`
+- **AND** SHALL 包含适用状态、`affected_layers`、`reason` 和 `validation`
+- **AND** 适用层级 SHALL 覆盖命中的 API、database、request_logs、usage_events、task_trace、web_request_wrapper、miniapp_request_wrapper、app_request_wrapper 或 workflow_governance。
+
+#### Scenario: N/A 原因可审计
+- **WHEN** 需求或 Change 声明采集规范不适用
+- **THEN** 声明 SHALL 使用 `status: not_applicable` 或等价明确状态
+- **AND** `reason` SHALL 说明为什么不影响 API、DB、日志审计、行为埋点、Task Trace 或端请求封装
+- **AND** SHALL NOT 仅使用“无”“不涉及”作为不适用说明。
+
+#### Scenario: 输出摘要不膨胀
+- **WHEN** workflow 命令、校验脚本或验收材料报告采集规范门禁状态
+- **THEN** 输出 SHALL 只包含门禁状态、适用层级、N/A 原因、缺失项或校验命令摘要
+- **AND** SHALL NOT 输出完整采集规范正文、完整 Workflow Sync 派生块、敏感日志、密钥、Cookie、Authorization header、真实客户数据或本机绝对路径。
+
+### Requirement: 采集规范门禁实现级校验
+系统 SHALL 提供实现级校验脚本，检查采集规范门禁入口、规则、技能和 active Change 声明。
+
+#### Scenario: 校验治理入口完整性
+- **WHEN** 运行采集规范门禁校验脚本
+- **THEN** 脚本 SHALL 检查 `AGENTS.md`、相关 `rules/` 和 req / opsx / sprint 技能文件是否引用 `docs/standards/product-data-collection-observability.md`
+- **AND** SHALL 检查是否包含必读、必声明、必验收、N/A 原因和实现级验证要求。
+
+#### Scenario: 校验目标触发范围和声明
+- **WHEN** 校验脚本按 Change、REQ、Sprint 或当前 diff 聚焦运行
+- **THEN** 脚本 SHALL 通过路径级和语义级规则识别 API、DB、日志审计、行为埋点、Task Trace 或端请求封装触发范围
+- **AND** 命中触发范围时 SHALL 检查目标材料是否存在 `product_data_collection_observability` 或等价固定声明
+- **AND** SHALL 报告缺失文件、缺失字段、触发依据和修复建议。
+
+#### Scenario: 默认扫描范围受控
+- **WHEN** 未显式要求历史审计
+- **THEN** 校验脚本 SHALL 聚焦 active Change、指定 REQ、指定 Sprint 或当前 diff
+- **AND** SHALL NOT 默认扫描全部历史 archive
+- **AND** SHALL NOT 读取或输出 `.env`、真实客户数据、运行时数据库、密钥、Authorization header、Cookie 或本机绝对路径。
+
+### Requirement: 后续 API DB 与端请求封装变更受门禁约束
+系统 SHALL 要求后续具体变更在影响 API contract、DB schema、日志审计、行为事件、Task Trace 或端请求封装时同步对应治理资产和测试，或记录明确不适用依据。
+
+#### Scenario: API contract 变化同步治理
+- **WHEN** 后续 Change 修改请求头、请求日志字段、响应字段、错误码、OpenAPI contract 或 Orval 生成输入
+- **THEN** Change SHALL 读取采集规范并声明 API 与请求日志影响
+- **AND** SHALL 同步 OpenAPI、Orval、API 文档和测试
+- **AND** 若不需要同步 SHALL 记录具体 N/A 原因。
+
+#### Scenario: DB 结构或保留周期变化同步治理
+- **WHEN** 后续 Change 修改 `usage_events`、`request_logs`、`task_traces`、`task_trace_spans`、索引、迁移或保留周期
+- **THEN** Change SHALL 读取采集规范并声明 database、request_logs、usage_events 或 task_trace 影响
+- **AND** SHALL 同步 SQLite / MySQL schema、迁移、数据库文档和测试
+- **AND** 若不适用 SHALL 记录具体 N/A 原因。
+
+#### Scenario: 端请求封装和行为埋点变化同步治理
+- **WHEN** 后续 Change 修改 Web、小程序或 App 请求封装、行为埋点、链路 ID 透传、离线重试或错误摘要
+- **THEN** Change SHALL 读取采集规范并声明对应端侧 affected layer
+- **AND** SHALL 说明 `behavior_trace_id`、`behavior_event_id`、`client_request_id` 或等价字段的生成、透传、脱敏和验证策略
+- **AND** 若仓库未承载某端实现 SHALL 记录具体 N/A 原因。
+
+### Requirement: 通用采集规范适用范围
+系统 SHALL 提供通用产品数据采集与链路观测规范，覆盖小程序、店主端、App、Web 管理端和后端 API。
+
+#### Scenario: 新产品设计阶段引用规范
+- **WHEN** 新产品或新模块进入需求、设计或 OpenSpec Change 阶段
+- **THEN** 团队 SHALL 引用通用产品数据采集与链路观测规范
+- **AND** 明确适用客户端、行为事件、API 请求日志、Task Trace 和数据保留策略
+- **AND** 对不适用的采集层级记录 N/A 原因。
+
+#### Scenario: 规范覆盖所有终端类型
+- **WHEN** 团队阅读通用规范
+- **THEN** 规范 SHALL 覆盖 Web 管理端、店主端、小程序、App 和后端 API
+- **AND** SHALL 明确每类客户端的行为事件生成、链路 ID 透传、请求日志和直接 API 调用边界。
+
+### Requirement: 行为事件采集口径
+系统 SHALL 定义产品行为事件采集口径，并区分可命名业务行为和纯 UI 噪音。
+
+#### Scenario: 采集可命名业务行为
+- **WHEN** 用户在界面产生页面访问、业务按钮点击、菜单切换、搜索、筛选、详情查看、表单提交、保存、删除、上传、分享、收藏、登录成功或登录失败等可命名业务行为
+- **THEN** 客户端 SHALL 按规范记录 `usage_events` 或等价行为事实源
+- **AND** 行为事件 SHALL 包含事件名、客户端类型、页面路径或页面标识、会话标识、行为分类、脱敏属性和发生时间。
+
+#### Scenario: 排除纯 UI 噪音
+- **WHEN** 用户只产生纯视觉交互、无业务含义 hover、tooltip 关闭、布局点击或重复无状态点击
+- **THEN** 规范 SHALL 允许产品将该类交互排除在行为事件采集之外
+- **AND** 排除规则 SHALL 不影响可命名业务行为采集。
+
+#### Scenario: 行为采集失败不阻断主流程
+- **WHEN** 行为事件上报、校验或持久化失败
+- **THEN** 客户端和服务端 SHALL 不阻断用户主业务流程
+- **AND** 失败处理 SHALL 不泄露敏感字段。
+
+### Requirement: API 请求日志全量覆盖
+系统 SHALL 要求所有业务 API 请求记录 `request_logs`，并定义可排除的低价值高频请求。
+
+#### Scenario: 业务 API 请求写入 request_logs
+- **WHEN** 后端收到业务 API 请求
+- **THEN** 系统 SHALL 记录 `request_logs`
+- **AND** `request_id` SHALL 由后端生成并作为服务端可信单次 HTTP 请求 ID
+- **AND** 日志 SHALL 至少记录 method、path、status_code、duration_ms、client_type、actor、result、created_at 和脱敏 metadata 摘要。
+
+#### Scenario: 排除低价值高频请求
+- **WHEN** 请求目标为健康检查、静态资源、OpenAPI 文档资源、预检 OPTIONS、内部探活或等价低价值高频请求
+- **THEN** 规范 SHALL 允许将该请求排除在默认 `request_logs` 采集之外
+- **AND** 排除项 SHALL 在规范或产品实现文档中明确记录。
+
+#### Scenario: 请求日志写入失败降级
+- **WHEN** `request_logs` 写入失败
+- **THEN** 系统 SHALL 降级处理
+- **AND** SHALL NOT 用日志写入失败覆盖或阻断主业务响应。
+
+### Requirement: 链路 ID 与两类入口
+系统 SHALL 定义 `behavior_trace_id`、`behavior_event_id`、`parent_behavior_event_id`、`request_id`、`client_request_id` 和 `task_trace_id` 的语义、生成方和可信边界。
+
+#### Scenario: 界面触发入口串联行为与请求
+- **WHEN** 一个用户行为触发一个或多个 API 请求
+- **THEN** 客户端 SHALL 为该行为链路生成或复用 `behavior_trace_id`
+- **AND** 单条行为事件 SHALL 使用 `behavior_event_id`
+- **AND** 行为触发的 API 请求 SHALL 透传 `behavior_trace_id` 和可用的 `behavior_event_id`
+- **AND** 后端 `request_logs` SHALL 记录 `behavior_trace_id` 与 `parent_behavior_event_id` 或等价来源行为字段。
+
+#### Scenario: 直接 API 调用不伪造行为事件
+- **WHEN** 外部系统、脚本、API 客户端或后台服务直接调用业务 API
+- **THEN** 系统 SHALL 不要求伪造 `usage_events`
+- **AND** `behavior_trace_id` SHALL 允许为空
+- **AND** 排障 SHALL 从 `request_logs.request_id` 进入后续任务链路。
+
+#### Scenario: 客户端链路字段不可作为安全边界
+- **WHEN** 客户端传入 `behavior_trace_id`、`behavior_event_id`、`parent_behavior_event_id` 或 `client_request_id`
+- **THEN** 后端 SHALL 校验长度、字符集和格式
+- **AND** 非法、超长或敏感值 SHALL 被忽略或返回文档化错误
+- **AND** 这些字段 SHALL NOT 作为认证、授权、审计身份或租户隔离依据。
+
+### Requirement: 四层链路模型
+系统 SHALL 采用 `usage_events -> request_logs -> task_traces -> task_trace_spans` 四层链路模型。
+
+#### Scenario: 行为触发任务链路
+- **WHEN** 界面行为触发 API 请求且该请求产生任务
+- **THEN** 系统 SHALL 支持通过 `usage_events.behavior_trace_id` 关联 `request_logs.behavior_trace_id`
+- **AND** SHALL 通过 `task_traces.parent_request_id` 关联 `request_logs.request_id`
+- **AND** SHALL 通过 `task_trace_spans.task_trace_id` 关联任务流程节点。
+
+#### Scenario: 直接 API 进入任务链路
+- **WHEN** 直接 API 调用触发任务
+- **THEN** 系统 SHALL 支持 `request_logs.request_id -> task_traces.parent_request_id -> task_trace_spans` 的排障链路
+- **AND** SHALL 在 `behavior_trace_id` 为空时兼容展示和查询。
+
+### Requirement: 标准数据结构
+系统 SHALL 在通用产品数据采集与链路观测规范中定义 `usage_events`、`request_logs`、`task_traces` 和 `task_trace_spans` 的最小标准字段、中文注释、可空规则、生成方、关联关系、索引建议和脱敏边界。
+
+#### Scenario: 数据结构作为规范组成部分
+- **WHEN** 团队阅读或引用通用采集规范
+- **THEN** 规范 SHALL 提供 `usage_events`、`request_logs`、`task_traces` 和 `task_trace_spans` 的字段级结构说明
+- **AND** 每类字段 SHALL 说明中文注释、必填性、可空性、生成方、关联或用途和脱敏边界
+- **AND** 规范 SHALL 说明这些字段是跨产品最小标准字段，具体产品可以在不改变字段语义和安全边界的前提下扩展。
+
+#### Scenario: 链路字段可空和关联规则清晰
+- **WHEN** 界面触发 API、直接 API 调用、任务类请求或后台定时任务进入采集链路
+- **THEN** 规范 SHALL 明确 `behavior_trace_id`、`parent_behavior_event_id`、`parent_request_id` 和 `task_trace_id` 的可空规则和关联关系
+- **AND** 直接 API 调用 SHALL NOT 因缺少行为事件而伪造 `usage_events`
+- **AND** 任务类请求 SHALL 优先通过 `task_traces.parent_request_id` 关联 `request_logs.request_id`。
+
+#### Scenario: 索引和实现扩展边界清晰
+- **WHEN** 产品落地采集表、迁移或数据库设计文档
+- **THEN** 规范 SHALL 提供关键查询维度的索引建议
+- **AND** 产品 SHALL 在对应 Change 中同步 SQLite / MySQL schema、迁移、数据库设计文档和测试
+- **AND** 物理类型、分区、归档表、枚举实现和索引名称 MAY 由产品实现自行确定。
+
+### Requirement: Task Trace 分级覆盖
+系统 SHALL 对 Task Trace 采用分级覆盖策略。
+
+#### Scenario: 高价值任务必须接入 Task Trace
+- **WHEN** 接口或任务满足长耗时、三步以上业务过程、批量处理、异步任务、导入导出、上传或对象存储、第三方服务调用、失败需定位具体节点、高风险写操作、影响关键业务数据或权限中的任一条件
+- **THEN** 该接口或任务 SHALL 接入 `task_traces`
+- **AND** 关键流程节点 SHALL 写入 `task_trace_spans`。
+
+#### Scenario: 普通简单写操作可只保留请求日志
+- **WHEN** 接口是普通简单写操作且不满足强制 Task Trace 条件
+- **THEN** 规范 SHALL 允许该接口只保留 `request_logs`
+- **AND** 需求、设计或实现文档 SHALL 说明不接入 Task Trace 的理由。
+
+#### Scenario: Task Trace 写入失败降级
+- **WHEN** `task_traces` 或 `task_trace_spans` 写入失败
+- **THEN** 系统 SHALL 降级处理
+- **AND** SHALL NOT 覆盖主业务错误。
+
+### Requirement: 数据保留周期
+系统 SHALL 定义日志、行为事件、任务链路和聚合数据的默认保留周期。
+
+#### Scenario: 默认保留周期生效
+- **WHEN** 产品接入数据采集与链路观测规范
+- **THEN** `request_logs` 明细 SHALL 默认保留 90 天
+- **AND** `usage_events` 明细 SHALL 默认保留 180 天
+- **AND** `task_traces` 与 `task_trace_spans` 明细 SHALL 默认保留 90 天
+- **AND** 聚合数据 SHALL 默认保留 1 年。
+
+#### Scenario: 调整保留周期需要依据
+- **WHEN** 产品因合规、审计或业务分析需要调整默认保留周期
+- **THEN** 产品实现文档 SHALL 记录原因、范围和审批依据
+- **AND** SHALL 区分明细数据和聚合数据。
+
+#### Scenario: 超期明细删除或匿名化
+- **WHEN** 明细数据超过保留周期
+- **THEN** 系统 SHALL 删除或匿名化超期明细
+- **AND** SHALL NOT 无限期保留敏感明细数据。
+
+### Requirement: 安全脱敏与禁止采集字段
+系统 SHALL 定义采集、持久化和展示过程中的敏感字段禁止清单，并将后端脱敏作为安全边界。
+
+#### Scenario: 禁止采集或展示敏感字段
+- **WHEN** 系统采集 payload、metadata、错误摘要、请求摘要、响应摘要或流程节点摘要
+- **THEN** 系统 SHALL NOT 采集或展示 Authorization、Cookie、Token、密码、真实密钥、数据库 DSN、MinIO AccessKey、MinIO SecretKey、完整请求体、完整响应体、本机绝对路径、完整内部对象 key 或真实客户敏感数据。
+
+#### Scenario: 后端脱敏是安全边界
+- **WHEN** 客户端已经对字段做展示级脱敏
+- **THEN** 后端 SHALL 仍在持久化前执行敏感字段过滤、长度截断和安全 JSON 序列化
+- **AND** SHALL NOT 将前端脱敏作为唯一安全边界。
+
+### Requirement: 新产品接入清单与后续引用
+系统 SHALL 提供新产品接入 checklist，并允许后续 REQ、BUG、OpenSpec Change 和 Sprint 验收引用该规范。
+
+#### Scenario: 新产品接入 checklist 完整
+- **WHEN** 团队阅读通用规范
+- **THEN** 规范 SHALL 提供新产品接入 checklist
+- **AND** checklist SHALL 覆盖前端 helper 或 SDK、后端 request log middleware、Task Trace helper、DB migration、OpenAPI / Orval、脱敏 helper、测试模板和验收清单。
+
+#### Scenario: 后续 Change 引用规范
+- **WHEN** 后续观测类、日志类、上传类、批量任务类或跨端采集类需求进入 OpenSpec Change
+- **THEN** Change 设计或验收 SHALL 引用通用产品数据采集与链路观测规范
+- **AND** 若某层采集不适用，SHALL 记录 N/A 原因。
+
+#### Scenario: Contract 变更同步治理
+- **WHEN** 后续具体接入新增 API 字段、查询参数、响应字段、DB 字段或索引
+- **THEN** 对应 Change SHALL 同步 Pydantic Schema、OpenAPI、Orval、API 文档、SQLite / MySQL schema、迁移、数据库设计文档和测试
+- **AND** 若不需要 Orval 或 DB 变更，SHALL 在设计或验收记录中说明原因。
+

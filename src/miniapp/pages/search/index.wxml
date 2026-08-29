@@ -73,7 +73,7 @@
       </button>
     </scroll-view>
 
-    <view wx:if="{{loading}}" class="state">加载中...</view>
+    <view wx:if="{{loading && !hasResults}}" class="state">加载中...</view>
     <view wx:elif="{{error}}" class="state">
       <view>{{error}}</view>
       <button class="retry-btn" bindtap="retrySearch">重试</button>
@@ -112,13 +112,13 @@
         />
         <view wx:else class="section-result-product-card" bindtap="openSectionItem" data-item="{{bestMatch}}">
           <view class="section-card-image-frame">
-            <text>{{bestMatch.entity_type == 'brand' ? '品牌' : '匹配'}}</text>
+            <image wx:if="{{bestMatch.image_url}}" class="section-card-image" src="{{bestMatch.image_url}}" mode="aspectFill" />
+            <text wx:else>{{bestMatch.image_label}}</text>
           </view>
           <view class="section-card-content">
-            <view class="section-card-name">{{bestMatch.title || bestMatch.name}}</view>
-            <view class="section-card-brand">{{bestMatch.entity_type == 'brand' ? '品牌' : '搜索结果'}}</view>
-            <view class="section-card-spec">{{bestMatch.count ? bestMatch.count + ' 个公开 SKU' : '查看详情'}}</view>
-            <view class="section-card-price"><text>最佳匹配</text>{{bestMatch.title || bestMatch.name}}</view>
+            <view class="section-card-name">{{bestMatch.card_title}}</view>
+            <view class="section-card-brand">{{bestMatch.card_meta_primary}}</view>
+            <view class="section-card-spec">{{bestMatch.card_meta_secondary}}</view>
           </view>
         </view>
       </view>
@@ -148,13 +148,13 @@
           <block wx:else>
             <view wx:for="{{item.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
               <view class="section-card-image-frame">
-                <text>{{item.card_label}}</text>
+                <image wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
+                <text wx:else>{{sectionItem.image_label}}</text>
               </view>
               <view class="section-card-content">
-                <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || '查看详情'}}</view>
-                <view class="section-card-brand">{{item.card_label}}</view>
-                <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
-                <view class="section-card-price"><text>相关信息</text>{{sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+                <view class="section-card-name">{{sectionItem.card_title}}</view>
+                <view class="section-card-brand">{{sectionItem.card_meta_primary}}</view>
+                <view class="section-card-spec">{{sectionItem.card_meta_secondary}}</view>
               </view>
             </view>
           </block>
@@ -181,18 +181,19 @@
         <block wx:else>
           <view wx:for="{{activeDisplaySection.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
             <view class="section-card-image-frame">
-              <text>{{activeDisplaySection.card_label}}</text>
+              <image wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
+              <text wx:else>{{sectionItem.image_label}}</text>
             </view>
             <view class="section-card-content">
-              <view class="section-card-name">{{sectionItem.product_name || sectionItem.name || sectionItem.title || sectionItem.label || '查看详情'}}</view>
-              <view class="section-card-brand">{{activeDisplaySection.card_label}}</view>
-              <view class="section-card-spec">{{sectionItem.subtitle || sectionItem.type || sectionItem.certificate_no || '信息待补充'}}</view>
-              <view class="section-card-price"><text>相关信息</text>{{sectionItem.certificate_no || sectionItem.count || '查看详情'}}</view>
+              <view class="section-card-name">{{sectionItem.card_title}}</view>
+              <view class="section-card-brand">{{sectionItem.card_meta_primary}}</view>
+              <view class="section-card-spec">{{sectionItem.card_meta_secondary}}</view>
             </view>
           </view>
         </block>
       </block>
-      <button wx:if="{{hasMore && !loading}}" class="more-btn" bindtap="loadMore">加载更多</button>
+      <view wx:if="{{loadingMore}}" class="load-more-state">加载更多中...</view>
+      <view wx:elif="{{!hasMore}}" class="load-more-state">已加载全部</view>
     </view>
   </view>
 

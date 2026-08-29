@@ -20,7 +20,7 @@ export const MINIAPP_API_CONFIGS: Record<MiniappEnvironment, MiniappApiConfig> =
 };
 
 export function resolveMiniappEnvironment(): MiniappEnvironment {
-  return 'development';
+  return 'production';
 }
 
 export function resolveMiniappApiConfig(environment = resolveMiniappEnvironment()): MiniappApiConfig {

@@ -37,7 +37,8 @@
                 "group": "常用任务",
                 "pages": [
                   "tasks/catalog-maintenance",
-                  "tasks/media-and-certificate"
+                  "tasks/media-and-certificate",
+                  "docs/latest/faq"
                 ]
               }
             ]
@@ -77,22 +78,22 @@
                 "group": "版本索引",
                 "pages": [
                   "versions/index",
-                  "docs/v1.0.0/overview",
-                  "docs/v1.0.0/admin/catalog",
-                  "docs/v1.0.0/admin/governance",
-                  "docs/v1.0.0/admin/index",
-                  "docs/v1.0.0/admin/media",
-                  "docs/v1.0.0/faq",
-                  "docs/v1.0.0/miniapp/brand-certificate",
-                  "docs/v1.0.0/miniapp/browse",
-                  "docs/v1.0.0/miniapp/index",
-                  "docs/v1.0.0/public/index"
+                  "docs/v1.2.0/overview",
+                  "docs/v1.2.0/admin/catalog",
+                  "docs/v1.2.0/admin/governance",
+                  "docs/v1.2.0/admin/index",
+                  "docs/v1.2.0/admin/media",
+                  "docs/v1.2.0/faq",
+                  "docs/v1.2.0/miniapp/brand-certificate",
+                  "docs/v1.2.0/miniapp/browse",
+                  "docs/v1.2.0/miniapp/index",
+                  "docs/v1.2.0/public/index"
                 ]
               },
               {
                 "group": "发布公告",
                 "pages": [
-                  "releases/v1.0.0/announcement"
+                  "releases/v1.2.0/announcement"
                 ]
               }
             ]

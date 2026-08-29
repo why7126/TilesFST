@@ -21,11 +21,17 @@ type CertificateListResponse = {
   has_more: boolean;
 };
 
+type CertificateListSearchEvent = 'list_search_submit' | 'list_search_reset';
+
 const PAGE_SIZE = 12;
 const CLICK_LOCK_MS = 650;
 
 function requestId(): string {
   return `cert-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+}
+
+function normalizeKeyword(value: unknown): string {
+  return String(value || '').trim().replace(/\s+/g, ' ');
 }
 
 Page({
@@ -42,6 +48,7 @@ Page({
     error: '',
     loadMoreError: '',
     requestId: '',
+    keyword: '',
     skeletons: [1, 2, 3, 4],
     items: [] as CertificateItem[],
   },
@@ -80,7 +87,7 @@ Page({
     }
   },
 
-  loadCertificates(options: { reset: boolean; eventName?: string }) {
+  loadCertificates(options: { reset: boolean; eventName?: string; searchEvent?: CertificateListSearchEvent }) {
     if (this.data.loadingMore || (!options.reset && this.data.loading)) return;
     if (!options.reset && !this.data.hasMore) return;
     const nextPage = options.reset ? 1 : this.data.page + 1;
@@ -110,7 +117,16 @@ Page({
           page: nextPage,
           pageSize: this.data.pageSize,
           resultCount: incoming.length,
+          keyword: this.data.keyword || undefined,
         });
+        if (options.searchEvent) {
+          this.trackListEvent(options.searchEvent, {
+            sourcePage: 'certificate-list',
+            scope: 'certificate',
+            keyword: this.data.keyword || undefined,
+            resultCount: data.total || merged.length,
+          });
+        }
         wx.stopPullDownRefresh();
       })
       .catch(() => {
@@ -129,7 +145,12 @@ Page({
   },
 
   buildQuery(page: number): string {
-    return [`page=${page}`, `pageSize=${this.data.pageSize}`].join('&');
+    const keyword = normalizeKeyword(this.data.keyword);
+    return [
+      `page=${page}`,
+      `pageSize=${this.data.pageSize}`,
+      keyword ? `keyword=${encodeURIComponent(keyword)}` : '',
+    ].filter(Boolean).join('&');
   },
 
   mergeCertificates(current: CertificateItem[], incoming: CertificateItem[]): CertificateItem[] {
@@ -149,6 +170,32 @@ Page({
 
   retryLoadMore() {
     this.loadCertificates({ reset: false, eventName: 'certificate_list_load_more' });
+  },
+
+  onSearchInput(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    this.setData({ keyword: event.detail.keyword || '' });
+  },
+
+  onSearchSubmit(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    this.setData({
+      keyword: normalizeKeyword(event.detail.keyword),
+      requestId: requestId(),
+    });
+    this.loadCertificates({
+      reset: true,
+      eventName: 'certificate_list_search',
+      searchEvent: 'list_search_submit',
+    });
+  },
+
+  clearSearch() {
+    if (!this.data.keyword) return;
+    this.setData({ keyword: '', requestId: requestId() });
+    this.loadCertificates({
+      reset: true,
+      eventName: 'certificate_list_search_reset',
+      searchEvent: 'list_search_reset',
+    });
   },
 
   openCertificate(event: WechatMiniprogram.TouchEvent) {

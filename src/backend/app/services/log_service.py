@@ -79,6 +79,21 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "required": {"module", "keyword"},
         "forbidden": {"token", "password"},
     },
+    "search_entry_click": {
+        "category": "miniapp_search",
+        "required": {"sourcePage", "scope", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "list_search_submit": {
+        "category": "miniapp_search",
+        "required": {"page_path", "sourcePage", "scope", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
+    "list_search_reset": {
+        "category": "miniapp_search",
+        "required": {"page_path", "sourcePage", "scope", "resultCount", "requestId", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "phone"},
+    },
     "filter_change": {
         "category": "discovery",
         "required": {"module", "filter_name", "filter_value"},

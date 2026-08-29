@@ -1081,6 +1081,7 @@ def patch_issue_trace(
     change_status_map: dict[str, str],
     event: str | None = None,
     focus_change: str | None = None,
+    sprint_id: str | None = None,
     write: bool = True,
 ) -> PatchResult:
     trace_path = issue.path / "trace.md"
@@ -1110,6 +1111,8 @@ def patch_issue_trace(
     if frontmatter_match:
         block = frontmatter_match.group(1).rstrip("\n") + "\n"
         current_block = block
+        if sprint_id:
+            block = ensure_yaml_scalar(block, "iteration", sprint_id)
         if generated_at:
             block = ensure_nested_yaml_scalar(block, "lifecycle", "generated", generated_at)
         for change_id, status in change_status_map.items():
@@ -1131,6 +1134,8 @@ def patch_issue_trace(
         block = yaml_match.group(1).rstrip("\n") + "\n"
         current_block = block
         block = update_yaml_scalar(block, "status", derived.display_status)
+        if sprint_id:
+            block = ensure_yaml_scalar(block, "iteration", sprint_id)
         if generated_at:
             block = ensure_nested_yaml_scalar(block, "lifecycle", "generated", generated_at)
         for change_id, status in change_status_map.items():

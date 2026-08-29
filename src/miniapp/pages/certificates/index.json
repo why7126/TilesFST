@@ -2,6 +2,7 @@
   "navigationStyle": "custom",
   "usingComponents": {
     "custom-navigation": "../../components/custom-navigation/index",
-    "home-floating-button": "../../components/home-floating-button/index"
+    "home-floating-button": "../../components/home-floating-button/index",
+    "search-entry": "../../components/search-entry/index"
   }
 }

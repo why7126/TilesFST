@@ -1,4 +1,5 @@
 const { request, track } = require('../../services/api');
+const { navigateToSearch } = require('../../utils/search-navigation');
 
 const PAGE_SIZE = 12;
 const INITIAL_WATERFALL_DELAY_MS = 160;
@@ -225,7 +226,13 @@ Page({
 
   openSearch() {
     track('miniapp_home_search_click', { page_path: '/pages/index/index' });
-    wx.navigateTo({ url: '/pages/search/index' });
+    track('search_entry_click', {
+      page_path: '/pages/index/index',
+      sourcePage: 'home',
+      scope: 'all',
+      entry: 'home_primary',
+    });
+    navigateToSearch({ sourcePage: 'home', scope: 'all' });
   },
 
   openStoreInfo() {
@@ -290,8 +297,11 @@ Page({
         wx.showToast({ title: '内容建设中', icon: 'none' });
         return;
       }
-      wx.navigateTo({
-        url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`,
+      navigateToSearch({
+        sourcePage: 'home-carousel',
+        scope: 'all',
+        keyword,
+        requestId: this.data.requestId,
       });
       return;
     }

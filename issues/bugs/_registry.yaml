@@ -1,9 +1,18 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 145
+next_id: 146
 entries:
+  - id: BUG-0145-admin-log-detail-field-overlap
+    title: 管理端日志详情长字段名和值重叠
+    status: done
+    severity: medium
+    created: "2026-08-26 23:53:45"
+    related_requirement: null
+    related_bug: null
+    related_change: fix-admin-log-detail-field-overlap
+    iteration: sprint-026
   - id: BUG-0144-miniapp-usage-events-overreporting
     title: 小程序商品列表页与搜索页 usage-events 仍可能偏多
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-08-26 08:29:04"
     related_requirement: null
@@ -12,7 +21,7 @@ entries:
     iteration: sprint-026
   - id: BUG-0143-miniapp-telemetry-request-amplification
     title: 微信小程序启动阶段埋点请求数量异常偏高
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-08-25 22:34:46"
     related_requirement: null
@@ -21,7 +30,7 @@ entries:
     iteration: sprint-026
   - id: BUG-0142-admin-avatar-upload-storage-put-slow
     title: 管理端头像上传小文件对象存储写入耗时 30 秒以上
-    status: in_sprint
+    status: done
     severity: high
     created: "2026-08-25 17:40:13"
     related_requirement: null
@@ -30,7 +39,7 @@ entries:
     iteration: sprint-026
   - id: BUG-0141-ai-usage-token-count-jsonl
     title: AI usage extractor 未识别新版 token_count JSONL 导致 Sprint snapshot 缺失
-    status: in_sprint
+    status: done
     severity: medium
     created: "2026-08-25 15:01:59"
     related_requirement: null

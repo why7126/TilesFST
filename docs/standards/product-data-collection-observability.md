@@ -382,7 +382,7 @@ openspec validate add-product-data-collection-observability-standard --strict
 
 ## 14. 相关事实源
 
-- `issues/requirements/review/REQ-0126-product-data-collection-observability-standard/`
+- `issues/requirements/archive/REQ-0126-product-data-collection-observability-standard/`
 - `openspec/changes/add-product-data-collection-observability-standard/`
 - `docs/standards/task-trace-coverage.md`
 - `docs/standards/api-governance.md`

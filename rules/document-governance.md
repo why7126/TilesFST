@@ -4,7 +4,7 @@ content: docs、issues、iterations、openspec 的生成、更新、同步与归
 source: AI自动生成初稿，项目团队确认
 update_method: 研发流程变化时由AI辅助更新，人工Review后合并
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-26 20:26:00
+updated_at: 2026-08-27 00:25:41
 note: AI执行需求、BUG、技术改造前必须读取；优先级高于普通文档说明
 ---
 
@@ -210,6 +210,7 @@ python scripts/sync-workflow-status.py --event <event> [--sprint auto] [--change
 - `sprint.yaml` 中正式纳入的 REQ/BUG MUST 同步出现在 `sprint.md` 的 Sprint 目标列表和对应要点小节；未评审项只能列「延后项（待评审）」。
 - `/sprint-propose` 或任何改变 Sprint 范围的同步动作完成后，MUST 运行 `python scripts/validate-sprint-scope.py <sprint-id> [--item <REQ|BUG|change-id>]`；该校验必须确认 `sprint.yaml` 中的正式范围同时出现在 `sprint.md` `## 2. Scope` 主表与 workflow-sync 派生表，失败时不得结束命令。
 - 对已存在 Sprint 追加或修正正式范围时，`sprint.yaml` MUST 先由确定性脚本 `scripts/add-sprint-scope-item.py` 更新，再由 Workflow Sync 刷新 Markdown 派生块。禁止只修改 `sprint.md`、Issue trace 或 Change trace 后宣称已纳入 Sprint；`/opsx-apply --dry-run` 仍解析不到 Sprint 时视为 Sprint scope 持久化失败，必须先修复 `sprint.yaml`。
+- `/sprint-propose` 或等价 Sprint scope 同步解析到目标 Sprint 后，Workflow Sync MUST 将 `sprint.yaml` 正式 `requirements[]` / `bugs[]` 中的 Issue trace 同步为 `status: in_sprint`，并在 frontmatter 与 fenced YAML 同步写入 `iteration: sprint-xxx`；未进入 Sprint 机器范围的 Issue 不得写入 `iteration`。
 - 多个 REQ/BUG/Change 追加到同一个 Sprint 时，`scripts/add-sprint-scope-item.py` MUST 串行运行。该脚本带有文件锁用于防止并发写坏 `sprint.yaml`，但 Agent 编排不得用并行工具同时写同一 Sprint scope；每个写入后以最新 `sprint.yaml` 为事实源继续下一项。
 - Sprint close / `/sprint-archive` 前 MUST 运行 `python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>`；该 readiness gate 包含 Sprint close stale scan，会检查目标 Sprint 四件套是否残留与真实 Issue/Change 生命周期冲突的“待 `/req-opsx` / `/bug-opsx` / `/opsx-apply`”、`proposed`、`applied` 等中间态文案，以及作为 canonical archive path 的 `openspec/changes/archive/` 旧路径引用。若只需单独复核 stale scan，可运行 `python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>`。命中 blocker 时不得静默关闭 Sprint，且不得手工编辑 `sprint.md` workflow-sync marker 派生块。
 

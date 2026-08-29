@@ -91,35 +91,32 @@ Fact Sheet 生成与 `/sprint-exps` 消费流程 MUST 遵守 Agent 上下文预�
 - **THEN** 系统 MUST 通过 README、ignore 规则或等价机制说明哪些文件可提交、哪些文件仅本地保留
 
 ### Requirement: 用户消息级命令运行边界
-系统 MUST 将“用户一轮消息”定义为 AI command run 边界，并将该轮触发的模型调用、工具调用和中间输出聚合到同一个 command run，直到下一轮用户消息或会话结束。
 
-#### Scenario: 单轮命令聚合
-- **WHEN** 一个用户消息触发多次模型调用和工具调用
-- **THEN** 系统 MUST 将这些事件聚合为一个 command run
-- **AND** command run MUST 包含 started_at、ended_at、command、workflow_event、requirements、bugs、changes、sprint_id 和 attribution_confidence 或等价字段
+系统 SHALL 将一次用户消息驱动的 AI 执行过程定义为一条 AI command run，并记录 started_at、ended_at、command、workflow_event、requirements、bugs、changes、sprint_id 与 attribution_confidence。
 
-#### Scenario: 多 Issue 显式关联
-- **WHEN** 同一轮用户消息显式处理多个 REQ 或 BUG
-- **THEN** command run MUST 支持多值 Issue 关联
-- **AND** 系统 MUST 标记归因置信度
+#### Scenario: 新版 message content 列表建立 command run
+
+- **GIVEN** Codex session JSONL 包含 `payload.type=message` 且 `payload.role=user` 的用户消息
+- **AND** 用户消息的 `payload.content` 是文本片段列表
+- **WHEN** AI usage extractor 解析该 session JSONL
+- **THEN** 系统 SHALL 从文本片段中提取用户命令文本并建立 command run
+- **AND** 系统 SHALL 根据该命令文本识别 workflow_event、BUG、REQ、Change 与 Sprint 归因
+- **AND** 系统 SHALL NOT 要求原始 session JSONL 写入仓库
 
 ### Requirement: AI 命令 Token 与执行指标聚合
-系统 MUST 为每个 command run 聚合模型调用次数、input tokens、cached input tokens、output tokens、reasoning output tokens、total tokens、工具调用次数、工具输出字符数和失败重跑次数。
 
-#### Scenario: 按 last_token_usage 聚合 Token
-- **WHEN** command run 内存在 `payload.type == token_count` 的事件
-- **THEN** 系统 MUST 使用每个事件的 `last_token_usage` 汇总 Token 指标
-- **AND** 系统 MUST NOT 将 session 级 `total_token_usage` 作为单个 command run 成本
+系统 SHALL 在 command run 维度聚合模型调用次数、输入 token、输出 token、cached input token、reasoning output token、总 token、工具调用次数、工具耗时、失败次数与重试次数。
 
-#### Scenario: 聚合工具与重跑指标
-- **WHEN** command run 内存在工具调用、工具结果或失败后重复执行
-- **THEN** 系统 MUST 统计 tool_call_count、tool_output_chars 和 retry_count 或等价指标
-- **AND** 如果 retry_count 是近似统计，系统 MUST 记录 retry_count_method 或等价口径说明
+#### Scenario: 新版 token_count 归属到 message content command run
 
-#### Scenario: 异常事件兼容
-- **WHEN** session JSONL 中存在未知事件类型或单行解析失败
-- **THEN** 系统 SHOULD 跳过异常事件并记录 warning
-- **AND** 系统 MUST NOT 因单个异常事件中断整个 Sprint 使用量提取
+- **GIVEN** 同一 session JSONL 中先出现新版 `payload.type=message` 用户消息
+- **AND** 后续出现 `payload.type=token_count` 事件
+- **AND** token 用量位于 `payload.info.last_token_usage`
+- **WHEN** AI usage extractor 解析这些事件
+- **THEN** 系统 SHALL 将 token_count 事件归属到最近的用户 command run
+- **AND** 系统 SHALL 累计 `model_call_count` 与 token totals
+- **AND** 系统 SHALL NOT 因 command run 边界缺失产生空 snapshot
+- **AND** 系统 SHALL NOT 将 session 级 `total_token_usage` 当作单条 command run 成本
 
 ### Requirement: 工作流对象归因
 系统 MUST 通过独立字段将 command run 关联到 REQ、BUG、OpenSpec Change、Sprint 和 workflow event，并在归因不唯一时保留多值和置信度。
@@ -886,32 +883,32 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 系统 MUST 运行环境静态检查并输出恢复后的策略摘要
 
 ### Requirement: Sprint 复盘 AI 使用量矩阵
-`/sprint-exps` MUST 基于 `data/ai-usage` 的 Sprint snapshot 展示 AI 使用量矩阵，用于按 Sprint、REQ、BUG 与工作流命令交叉分析 token 与模型调用消耗。
 
-#### Scenario: 输出四张指标矩阵
-- **WHEN** 用户执行 `/sprint-exps sprint-xxx`
-- **AND** 对应 `data/ai-usage/sprints/<sprint-id>.json` 存在可用真实统计
-- **THEN** 复盘文档 MUST 在 `## 模型 Token 使用分析` 中输出 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵表
-- **AND** 四张表 MUST 使用相同的行列结构
+系统 SHALL 在 Sprint AI Usage 矩阵中区分真实数值 `0` 与未采集或未归因的 workflow 阶段。
 
-#### Scenario: 矩阵行列顺序
-- **WHEN** `/sprint-exps` 输出 AI 使用量矩阵
-- **THEN** 表格最上方 MUST 包含 `Total` 汇总行
-- **AND** 纵向对象行 MUST 按 Sprint、REQ、BUG 顺序排列
-- **AND** Sprint 行 MUST 使用 `sprint-xxx` 或规范大写展示名，REQ/BUG 行 MUST 使用对应 canonical ID
-- **AND** 横向命令列 MUST 按 `Capture`、`BUG-Capture`、`REQ-Capture`、`BUG-Explore`、`REQ-Explore`、`REQ-Generate`、`BUG-Generate`、`REQ-Complete`、`BUG-Complete`、`REQ-Review`、`BUG-Review`、`REQ-Opsx`、`BUG-Opsx`、`Opsx-Explore`、`Opsx-Propose`、`Opsx-Apply`、`Opsx-Archive`、`Sprint-Propose`、`Sprint-Explore`、`Sprint-Apply`、`Sprint-Archive` 的顺序展示
+#### Scenario: 未观测 workflow 阶段展示为短横线
 
-#### Scenario: 缺少矩阵统计
-- **WHEN** Sprint snapshot 缺失、过期、覆盖不足或缺少矩阵字段
-- **THEN** `/sprint-exps` MUST 标记 `ai_usage_mode: estimated_fallback` 或输出 warning
-- **AND** `/sprint-exps` MUST 提示刷新 `data/ai-usage` snapshot
-- **AND** `/sprint-exps` MUST NOT 编造矩阵数值
+- **GIVEN** Sprint AI Usage snapshot 只包含部分 workflow_event 的 command run
+- **WHEN** Fact Sheet 渲染 Sprint AI Usage 矩阵
+- **THEN** 系统 SHALL 将没有任何 command run 覆盖的 workflow 列标记为 `unknown`
+- **AND** 系统 SHALL 将未观测 workflow 阶段渲染为 `-`
+- **AND** 系统 SHALL NOT 将未观测 workflow 阶段渲染为普通 `0`
+- **AND** 系统 SHALL 保留已观测 workflow 列中的真实 `0` 数值
 
-#### Scenario: 对象归因口径
-- **WHEN** 同一 command run 同时关联多个 REQ 或 BUG
-- **THEN** Sprint 行与 `Total` 行 MUST 按唯一 command run 汇总
-- **AND** REQ/BUG 行 MAY 按对象归因分别计入同一 command run
-- **AND** 复盘说明 SHOULD 提醒对象行用于归因分析，不代表可与 `Total` 行直接相加
+#### Scenario: post-command hook 同分候选优先真实 token run
+
+- **GIVEN** 同一 session 中存在多个与目标 workflow、Sprint、Issue 或 Change 上下文同分匹配的 command run
+- **AND** 其中至少一个 run 具有非零 token 或模型调用指标
+- **WHEN** post-command hook 选择目标 run 并补充显式上下文
+- **THEN** 系统 SHALL 优先选择具有非零 token 或模型调用指标的 run
+- **AND** 系统 SHALL NOT 因同分排序误选零 token turn
+
+#### Scenario: Sprint 矩阵对象行裁剪到正式 scope
+
+- **GIVEN** Sprint AI Usage snapshot 的 command run 同时关联当前 Sprint scope 内对象与历史相关对象
+- **WHEN** 系统聚合 Sprint usage coverage 与矩阵对象行
+- **THEN** 系统 SHALL 仅保留 `sprint.yaml` 正式 scope 内的 REQ、BUG 与 Change
+- **AND** 系统 SHALL NOT 将未纳入当前 Sprint 的历史相关 REQ/BUG 渲染为当前 Sprint 矩阵对象行
 
 ### Requirement: OpenSpec Change 归档根目录独立化
 系统 MUST 使用 `openspec/archive/` 作为已完成 OpenSpec Change 的 canonical archive root，并 MUST 将 `openspec/changes/` 保留为 active Change 根目录。新增归档、Workflow Sync 输出、release 事实源、Fact Sheet、AI usage、readiness 报告和技能文档 MUST 使用 canonical archive root；legacy `openspec/changes/archive/` 仅可作为迁移期只读兼容路径。
@@ -1317,50 +1314,64 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** wrapper MUST 返回非零退出码
 
 ### Requirement: 命令技能输出下一步引导
-系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中提供明确可执行的下一步引导。若存在可推进的下一步，输出 MUST 给出可直接复制执行的命令；若没有明确下一步，输出 MUST 说明“暂无可推进下一步”或等价结论。
+
+系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中提供明确可执行的下一步引导。若存在可推进的下一步，输出 MUST 给出可直接复制执行的真实命令；若没有明确下一步，输出 MUST 说明“暂无可推进下一步”或等价结论。命令技能 MUST NOT 在最终回复示例中使用容易被原样照抄的尖括号占位模板。
 
 #### Scenario: 命令成功且存在单一下一步
-- **WHEN** 任一命令技能完成执行
-- **AND** 当前状态存在明确可推进的下一命令
-- **THEN** 最终输出 MUST 包含 `下一步` 或等价字段
-- **AND** 该字段 MUST 包含可直接复制执行的命令，例如 `/bug-review BUG-0122 --approve`
 
-#### Scenario: 命令成功且存在多个分支
 - **WHEN** 任一命令技能完成执行
-- **AND** 下一步取决于用户选择、评审结论、目标 Sprint、容量或验收结果
-- **THEN** 最终输出 MUST 用条件化方式列出可选下一步
-- **AND** 每个可选下一步 SHOULD 包含可直接复制执行的命令或明确处理动作
+- **AND** 当前状态存在唯一下一步命令
+- **THEN** 最终输出 MUST 包含 `下一步` 或等价字段
+- **AND** `下一步` MUST 使用真实命令、真实版本、真实 Issue ID、真实 Change ID 或真实计划路径
+- **AND** 最终输出 MUST NOT 包含 `<可直接执行的命令>`、`<REQ-id>`、`<BUG-id>`、`<change-id>`、`<sprint-id>`、`<version>` 等占位符
+
+#### Scenario: 下一步被用户决策阻塞
+
+- **WHEN** 任一命令技能完成执行
+- **AND** 下一步取决于用户选择、评审结论、目标 Sprint、容量、验收结果、发布确认或生产实施确认
+- **THEN** `下一步` MUST 明确写为“暂无可推进下一步”或等价结论
+- **AND** `待用户决策/处理` MUST 只列阻塞该下一步的具体用户选择、补充信息或人工确认
 
 #### Scenario: 命令完成但暂无下一步
+
 - **WHEN** 任一命令技能完成执行
 - **AND** 当前状态没有明确可推进的下一步
 - **THEN** 最终输出 MUST 明确说明暂无可推进下一步
-- **AND** 输出 MUST NOT 编造不适用的命令
+- **AND** 若没有额外人工事项，`待用户决策/处理` MUST 写明“无”
 
 ### Requirement: 命令技能输出待决策或待处理点
-系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中明确列出待用户决策或处理的点。若没有待决策或待处理点，输出 MUST 明确写明“无”或等价结论。
 
-#### Scenario: 存在用户决策点
-- **WHEN** 命令执行后仍需用户选择目标 Sprint、评审结论、范围取舍、容量调整、验收确认、发布确认或环境策略
-- **THEN** 最终输出 MUST 包含 `待用户决策`、`待用户处理`、`决策点` 或等价字段
+系统 MUST 要求 `.agents/skills/` 下每个命令技能在命令完成输出中明确列出待用户决策或处理的点。若没有待决策或待处理点，输出 MUST 明确写明“无”或等价结论。命令技能 MUST 将待处理事项限制为缺失输入、范围或策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+
+#### Scenario: 存在待用户决策
+
+- **WHEN** 命令执行后仍缺少用户选择、证据、验收、发布或人工处理
+- **THEN** 最终输出 MUST 包含 `待用户决策/处理` 或等价字段
 - **AND** 输出 MUST 用清晰条目列出每个待决策或待处理点
+- **AND** 条目 MUST 不重复 `下一步` 中已经给出的命令或动作
 
-#### Scenario: 不存在用户决策点
-- **WHEN** 命令执行后无需用户额外决策或处理即可继续
+#### Scenario: 不存在待用户决策
+
+- **WHEN** 命令执行后没有额外待决策或待处理点
 - **THEN** 最终输出 MUST 包含待决策/待处理字段
 - **AND** 该字段 MUST 标明无待决策或待处理点
 
 #### Scenario: 下一步命令不得重复为待处理项
+
 - **WHEN** 最终输出的 `下一步` 字段已经给出可直接执行的命令或明确动作
 - **THEN** `待用户决策/处理` 字段 MUST NOT 重复该命令或动作
-- **AND** 只有仍缺少的用户输入、范围选择、策略确认、证据补充、验收确认、发布确认、阻塞项或人工处理事项 MAY 出现在 `待用户决策/处理`
+- **AND** `待用户决策/处理` MUST NOT 使用“确认是否执行上述命令”“是否立即执行下一步”等方式重复询问同一动作
+- **AND** 只有仍缺少的用户输入、范围选择、策略确认、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项 MAY 出现在 `待用户决策/处理`
 - **AND** 如果没有这些额外事项，`待用户决策/处理` MUST 写明“无”
 
-#### Scenario: 技能校验发现缺少输出契约
-- **WHEN** 技能校验脚本扫描 `.agents/skills/*/SKILL.md`
-- **AND** 某个命令技能缺少下一步引导、待决策/待处理输出契约或去重约束
-- **THEN** 校验 MUST 返回非零退出码
-- **AND** 报告 MUST 列出不符合要求的技能文件
+#### Scenario: 校验命令技能输出契约卫生
+
+- **WHEN** 执行 `python scripts/validate-agent-context-budget.py`
+- **THEN** 脚本 MUST 检查每个命令技能是否包含下一步引导、待决策/待处理输出契约和去重约束
+- **AND** 脚本 MUST 拒绝 Final Output Contract 中残留 `<可直接执行的命令>` 或 `<需要用户选择...>` 等可被原样输出的占位模板
+- **AND** 脚本 MUST 拒绝所有命令族共用与当前命令无关的 `/bug-review BUG-0122` 默认示例
+- **AND** 脚本 MUST 检查 `/sprint-propose`、`/req-opsx`、`/bug-opsx` 等高频命令是否残留会把同一动作同时写入 `下一步` 和 `待用户决策/处理` 的旧示例
+- **AND** 脚本 SHOULD 检查命令最终输出示例是否将 `MUST`、`SHOULD`、`Final Output Contract` 等规范语气暴露为用户可见结果
 
 ### Requirement: Harness 学习同步技能
 
@@ -1722,4 +1733,21 @@ Agent workflow tooling SHALL support upgrade planning and validation commands wi
 - **WHEN** upgrade 命令生成计划、校验计划或提示人工步骤
 - **THEN** 命令 SHALL NOT 自动修改真实生产 env、自动执行生产升级、自动执行数据库写入迁移或对象存储写入维护任务
 - **AND** 需要人工确认时 SHALL 输出结构化选项、推荐项、阻塞项和风险说明。
+
+### Requirement: Workflow Sync 必须回填 Sprint 正式范围 Issue 的 iteration
+
+当 `/sprint-propose` 或等价 Sprint scope 同步动作已将 REQ/BUG 写入目标 Sprint 的 `sprint.yaml` 正式范围时，Workflow Sync MUST 将对应 Issue `trace.md` 的 `status` 与 `iteration` 同步为同一 Sprint 事实。
+
+#### Scenario: sprint.propose 同步已纳入 REQ
+
+- **WHEN** `iterations/change/sprint-xxx/sprint.yaml` 的 `requirements[]` 包含某个已评审 REQ
+- **AND** 运行 `python scripts/sync-workflow-status.py --event sprint.propose --sprint sprint-xxx`
+- **THEN** 该 REQ `trace.md` frontmatter 与 fenced YAML 中的 `status` MUST 为 `in_sprint`
+- **AND** 该 REQ `trace.md` frontmatter 与 fenced YAML 中的 `iteration` MUST 为 `sprint-xxx`
+
+#### Scenario: 未纳入 Sprint 的 Issue 不回填 iteration
+
+- **WHEN** 某个 REQ/BUG 不在已解析 Sprint 的 `requirements[]` 或 `bugs[]` 中
+- **AND** 运行 Workflow Sync
+- **THEN** Workflow Sync MUST NOT 为该 Issue 写入目标 Sprint 的 `iteration`
 

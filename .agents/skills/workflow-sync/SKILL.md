@@ -72,6 +72,12 @@ Session input discovery:
 | `sprint.*` | Use explicit sprint or the single `in_progress` sprint |
 | No issue/change focus | Fall back to single `in_progress` sprint (legacy default) |
 
+For `sprint.propose`, once a Sprint is resolved or explicitly passed, Workflow Sync MUST backfill the focused REQ/BUG trace state for every Issue already persisted in that Sprint's formal `requirements[]` / `bugs[]` scope:
+
+- set `status` to `in_sprint` when the Issue was previously `approved`;
+- set `iteration` to the same `sprint-xxx` in both trace frontmatter and fenced YAML;
+- do not write `iteration` for Issues that are not in the Sprint machine scope.
+
 For `req.opsx` / `bug.opsx` with `--change`, if the focused issue is already in sprint scope, Workflow Sync MUST also:
 
 - add the Change to `sprint.yaml` `changes[]`;

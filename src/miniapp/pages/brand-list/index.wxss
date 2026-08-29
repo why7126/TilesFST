@@ -12,6 +12,10 @@
   gap: 24rpx;
 }
 
+.brand-search-entry {
+  margin: 2rpx 0 24rpx;
+}
+
 .brand-hero,
 .skeleton-hero {
   position: relative;

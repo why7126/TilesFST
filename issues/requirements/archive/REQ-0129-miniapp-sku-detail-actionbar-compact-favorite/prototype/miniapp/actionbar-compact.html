@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REQ-0129 小程序商品详情页底部操作栏紧凑化</title>
+  <style>
+    :root {
+      --page: #18160F;
+      --surface: #211E16;
+      --deep: #100F0A;
+      --text: #EDE8DF;
+      --muted: rgba(237, 232, 223, 0.56);
+      --gold: #C8A055;
+      --line: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0f0e0a;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .phone {
+      position: relative;
+      width: min(390px, 100vw);
+      height: 844px;
+      overflow: hidden;
+      background: var(--page);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .nav {
+      height: 88px;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 18px 14px;
+      background: rgba(24, 22, 15, 0.96);
+      border-bottom: 1px solid var(--line);
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .media {
+      height: 330px;
+      background:
+        linear-gradient(135deg, rgba(200, 160, 85, 0.2), transparent 40%),
+        linear-gradient(45deg, #383226, #17140f);
+    }
+
+    .summary,
+    .panel {
+      margin: 12px 14px 0;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid rgba(200, 160, 85, 0.2);
+      border-radius: 8px;
+    }
+
+    .title {
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .price {
+      margin-top: 12px;
+      color: var(--gold);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .line {
+      height: 12px;
+      margin-top: 12px;
+      border-radius: 2px;
+      background: rgba(237, 232, 223, 0.12);
+    }
+
+    .line.short {
+      width: 62%;
+    }
+
+    .home {
+      position: absolute;
+      right: 18px;
+      bottom: 122px;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(200, 160, 85, 0.44);
+      border-radius: 50%;
+      background: rgba(24, 22, 15, 0.92);
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.36);
+      color: var(--gold);
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .actionbar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      min-height: 68px;
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 14px 18px;
+      border-top: 1px solid var(--line);
+      background: rgba(24, 22, 15, 0.98);
+    }
+
+    .favorite {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      justify-self: center;
+      border: 0;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.035);
+      color: rgba(237, 232, 223, 0.54);
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .favorite.active {
+      color: var(--gold);
+    }
+
+    .share {
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--gold);
+      color: var(--page);
+      font-size: 16px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="商品详情页紧凑底部操作栏原型">
+    <section class="nav">商品详情</section>
+    <section class="media" aria-label="商品媒体区"></section>
+    <section class="summary">
+      <div class="title">意大利岩板系列 600x1200</div>
+      <div class="price">¥198/㎡</div>
+    </section>
+    <section class="panel">
+      <div class="line"></div>
+      <div class="line short"></div>
+      <div class="line"></div>
+    </section>
+    <div class="home" aria-label="返回首页">⌂</div>
+    <footer class="actionbar">
+      <button class="favorite active" aria-label="已收藏">♥</button>
+      <div class="share">分享给客户</div>
+    </footer>
+  </main>
+</body>
+</html>

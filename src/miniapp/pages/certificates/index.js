@@ -7,6 +7,10 @@ function requestId() {
   return `cert-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
 
+function normalizeKeyword(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
 Page({
   lastPreviewAt: 0,
   data: {
@@ -21,6 +25,7 @@ Page({
     error: '',
     loadMoreError: '',
     requestId: '',
+    keyword: '',
     skeletons: [1, 2, 3, 4],
     items: [],
   },
@@ -89,7 +94,16 @@ Page({
           page: nextPage,
           pageSize: this.data.pageSize,
           resultCount: incoming.length,
+          keyword: this.data.keyword || undefined,
         });
+        if (options.searchEvent) {
+          this.trackListEvent(options.searchEvent, {
+            sourcePage: 'certificate-list',
+            scope: 'certificate',
+            keyword: this.data.keyword || undefined,
+            resultCount: data.total || merged.length,
+          });
+        }
         wx.stopPullDownRefresh();
       })
       .catch(() => {
@@ -108,7 +122,12 @@ Page({
   },
 
   buildQuery(page) {
-    return [`page=${page}`, `pageSize=${this.data.pageSize}`].join('&');
+    const keyword = normalizeKeyword(this.data.keyword);
+    return [
+      `page=${page}`,
+      `pageSize=${this.data.pageSize}`,
+      keyword ? `keyword=${encodeURIComponent(keyword)}` : '',
+    ].filter(Boolean).join('&');
   },
 
   mergeCertificates(current, incoming) {
@@ -128,6 +147,32 @@ Page({
 
   retryLoadMore() {
     this.loadCertificates({ reset: false, eventName: 'certificate_list_load_more' });
+  },
+
+  onSearchInput(event) {
+    this.setData({ keyword: event.detail.keyword || '' });
+  },
+
+  onSearchSubmit(event) {
+    this.setData({
+      keyword: normalizeKeyword(event.detail.keyword),
+      requestId: requestId(),
+    });
+    this.loadCertificates({
+      reset: true,
+      eventName: 'certificate_list_search',
+      searchEvent: 'list_search_submit',
+    });
+  },
+
+  clearSearch() {
+    if (!this.data.keyword) return;
+    this.setData({ keyword: '', requestId: requestId() });
+    this.loadCertificates({
+      reset: true,
+      eventName: 'certificate_list_search_reset',
+      searchEvent: 'list_search_reset',
+    });
   },
 
   openCertificate(event) {

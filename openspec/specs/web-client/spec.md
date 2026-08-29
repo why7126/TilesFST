@@ -2123,30 +2123,44 @@ Web 客户端 SHALL 在管理端与店主展示端 API 请求中注入统一客�
 - **AND** 测试 SHALL 覆盖客户端请求标识存在且不会覆盖 Authorization 逻辑。
 
 ### Requirement: 日志审计请求身份交互
+
 Web 管理端 SHALL 在日志审计列表和详情中展示请求身份字段，并保持管理端列表页横切一致性。
 
-#### Scenario: 日志审计列表展示请求身份字段
-- **WHEN** admin 查看 `/admin/logs`
-- **THEN** 页面 SHALL 展示客户端类型和后端可信 `request_id`
-- **AND** 页面 SHALL 按 design 决策展示或隐藏客户端请求标识列
-- **AND** 表格中的长 ID SHALL 单行截断，不得撑破表格布局。
+#### Scenario: 日志审计筛选支持行为链路
 
-#### Scenario: 日志详情抽屉展示请求身份字段
-- **WHEN** admin 打开日志详情抽屉
-- **THEN** 抽屉 SHALL 分组展示后端可信 `request_id`、客户端请求标识和 `x-request-id` 响应头语义
-- **AND** 抽屉 SHALL 保持可关闭、可滚动和不丢失列表上下文。
+- **WHEN** admin 打开日志审计页
+- **THEN** Web 客户端 SHALL 提供按 `behavior_trace_id` 查询的入口
+- **AND** SHALL 保持按 `request_id` 和 `task_trace_id` 查询的入口
+- **AND** 筛选变化 SHALL 重置分页并调用后端日志审计 API
+- **AND** 页面 SHALL NOT 在前端全量拉取后切片伪分页。
 
-#### Scenario: 请求 ID 复制反馈无布局位移
-- **WHEN** admin 复制后端可信 `request_id` 或客户端请求标识
-- **THEN** 页面 SHALL 使用 fixed toast 或等价不改变文档流的反馈
-- **AND** 页面 SHALL NOT 使用文档流 notice 推挤 hero、筛选区或表格
-- **AND** Clipboard API 不可用或写入失败时 SHALL 提供手动复制兜底。
+#### Scenario: 日志详情展示链路关系
 
-#### Scenario: 管理端列表横切 AC 保持
-- **WHEN** 本 Change 修改 `/admin/logs` 列表、指标卡、筛选区或分页
-- **THEN** 分页 DOM SHALL 保持 `page-summary` 与 `page-right` 基准结构
-- **AND** 指标卡 DOM SHALL 使用 `.metric-label`、`.metric-value` 与 `.metric-desc`
-- **AND** 实现 SHALL NOT 引入 `window.confirm`。
+- **WHEN** admin 打开日志详情
+- **THEN** Web 客户端 SHALL 展示服务端可信 `request_id`
+- **AND** SHALL 展示可用的 `behavior_trace_id`
+- **AND** SHALL 展示可用的 `parent_behavior_event_id`
+- **AND** SHALL 展示可用的 `task_trace_id`
+- **AND** SHALL 将 task trace spans 展示为“流程节点”。
+
+#### Scenario: 长链路 ID 展示不破坏列表
+
+- **WHEN** 日志列表展示 `behavior_trace_id`、`request_id`、`client_request_id` 或 `task_trace_id`
+- **THEN** 字段 SHALL 使用单行、截断、tooltip/title、复制按钮或等价可访问策略
+- **AND** SHALL NOT 撑宽整表、遮挡操作列或破坏分页 DOM
+- **AND** 复制成功或失败 SHALL 使用 fixed toast 或等价不造成布局位移的反馈。
+
+#### Scenario: 无行为来源展示空态
+
+- **WHEN** 日志记录来自直接 API 调用、外部系统、脚本或历史数据且没有 `behavior_trace_id`
+- **THEN** Web 客户端 SHALL 展示“无界面行为来源”、未采集或等价空态
+- **AND** SHALL 继续允许 admin 查看请求详情、任务链路和流程节点。
+
+#### Scenario: 日志审计行为链路测试覆盖
+
+- **WHEN** 实现日志审计行为链路查询
+- **THEN** 前端测试 SHALL 覆盖 `behavior_trace_id`、`request_id`、`task_trace_id` 三类查询入口
+- **AND** SHALL 覆盖空行为来源、长 ID 截断、复制反馈、分页结构和敏感字段不展示。
 
 ### Requirement: 小程序普通 API 请求身份注入
 微信小程序 SHALL 在统一 request 封装中为普通 API 请求注入客户端类型和客户端请求标识。

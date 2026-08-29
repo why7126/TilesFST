@@ -1,0 +1,164 @@
+sprint_id: sprint-026
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-25 15:21:18
+end_date: 2026-08-28 16:15:59
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements:
+  - REQ-0123-upload-stage-trace-spans
+  - REQ-0124-log-audit-behavior-trace-model
+  - REQ-0125-miniapp-certificate-detail-home-floating-button
+  - REQ-0126-product-data-collection-observability-standard
+  - REQ-0127-product-data-collection-observability-hard-gate
+  - REQ-0128-search-experience-unification
+  - REQ-0129-miniapp-sku-detail-actionbar-compact-favorite
+bugs:
+  - BUG-0141-ai-usage-token-count-jsonl
+  - BUG-0140-admin-current-user-avatar-missing-object
+  - BUG-0139-admin-avatar-upload-nginx-redirect-cors
+  - BUG-0142-admin-avatar-upload-storage-put-slow
+  - BUG-0143-miniapp-telemetry-request-amplification
+  - BUG-0144-miniapp-usage-events-overreporting
+  - BUG-0145-admin-log-detail-field-overlap
+changes:
+  - fix-ai-usage-message-content-token-count
+  - fix-admin-current-user-avatar-object-consistency
+  - fix-admin-avatar-upload-nginx-redirect-cors
+  - add-upload-stage-trace-spans
+  - fix-admin-avatar-webp-thumbnail-timeout
+  - add-log-audit-behavior-trace-model
+  - update-miniapp-certificate-detail-home-floating-button
+  - fix-miniapp-telemetry-request-amplification
+  - fix-miniapp-usage-events-overreporting
+  - add-product-data-collection-observability-standard
+  - add-product-data-collection-observability-hard-gate
+  - refine-skill-final-output-contract
+  - fix-workflow-sync-sprint-propose-iteration
+  - update-search-experience-unification
+  - fix-admin-log-detail-field-overlap
+  - update-miniapp-sku-detail-actionbar-compact-favorite
+scope_estimates:
+  - id: BUG-0141-ai-usage-token-count-jsonl
+    change: fix-ai-usage-message-content-token-count
+    bug: BUG-0141-ai-usage-token-count-jsonl
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium AI usage 治理脚本缺陷修复，覆盖新版 Codex session JSONL `payload.content` 列表用户消息解析、`payload.type=token_count` 归属、sprint-025 snapshot 恢复、脱敏最小 fixture 与聚焦回归测试；不涉及业务 API/DB/UI，按 S=1 人天纳入。
+  - id: BUG-0140-admin-current-user-avatar-missing-object
+    change: fix-admin-current-user-avatar-object-consistency
+    bug: BUG-0140-admin-current-user-avatar-missing-object
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 管理端当前登录用户头像媒体一致性缺陷修复，覆盖历史头像 key 数据修复、后端头像 key 对象存在性校验、个人资料页图片加载失败 initials fallback、媒体四联验收与聚焦回归测试；不涉及 DB 结构变更，API/Orval 仅在新增错误码或 Schema 变更时同步，按 S=1 人天纳入。
+  - id: BUG-0139-admin-avatar-upload-nginx-redirect-cors
+    change: fix-admin-avatar-upload-nginx-redirect-cors
+    bug: BUG-0139-admin-avatar-upload-nginx-redirect-cors
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 管理后台头像上传 Nginx 代理路径缺陷修复，覆盖无尾斜杠 /api/v1/admin/uploads 精确匹配、Docker Web localhost:3000 端口不丢失、上传专用代理配置测试与媒体四联验收；不涉及 API/DB/Orval，按 S=1 人天纳入。
+  - id: REQ-0123-upload-stage-trace-spans
+    change: add-upload-stage-trace-spans
+    requirement: REQ-0123-upload-stage-trace-spans
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 媒体上传可观测性增强，覆盖头像上传与通用图片上传两条分支的阶段级 task trace spans，至少记录 file_read、original_put_object、thumbnail_generate、thumbnail_put_object、display_generate、display_put_object，并补齐失败保留、脱敏与聚焦测试；已创建 Change add-upload-stage-trace-spans，按 M=3 人天纳入后续 /opsx-apply。
+  - id: BUG-0142-admin-avatar-upload-storage-put-slow
+    change: fix-admin-avatar-webp-thumbnail-timeout
+    bug: BUG-0142-admin-avatar-upload-storage-put-slow
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/high 管理端头像 WebP 缩略图生成 28 秒级长尾性能缺陷修复，根因已 confirmed，覆盖 thumbnail_generate 性能收敛、阶段级 trace 保留、媒体四联验收与聚焦回归测试；不涉及 API/DB/Orval，按 S=1 人天纳入。
+  - id: REQ-0124-log-audit-behavior-trace-model
+    change: add-log-audit-behavior-trace-model
+    requirement: REQ-0124-log-audit-behavior-trace-model
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 日志审计行为链路与任务链路采集模型落地，覆盖 usage_events 行为链路字段、request_logs 行为来源关联字段、前端请求透传、直接 API 兼容、task_traces.parent_request_id 任务关联、task_trace_spans 流程节点查询、管理端日志审计三类 ID 查询、DB/API/Orval/测试与 admin-list 横切验收；影响后端、数据库、Web 管理端和前端请求封装，按 L=5 人天纳入。
+  - id: REQ-0125-miniapp-certificate-detail-home-floating-button
+    change: update-miniapp-certificate-detail-home-floating-button
+    requirement: REQ-0125-miniapp-certificate-detail-home-floating-button
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: P2 小程序证书详情页导航一致性增强，复用既有 home-floating-button 并固定 offset="list"，覆盖组件声明、WXML 挂载、.ts/.js 同步、分享直达/错误态回首页和 320/375/430pt 不遮挡验收；不涉及 API/DB/Orval/组件契约调整，按 XS=0.5 人天纳入。
+  - id: BUG-0143-miniapp-telemetry-request-amplification
+    change: fix-miniapp-telemetry-request-amplification
+    bug: BUG-0143-miniapp-telemetry-request-amplification
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium 小程序启动阶段埋点请求放大缺陷修复，覆盖 usage-events 遥测请求不再触发 RUM、商品卡曝光去重或批量、首页业务 API 性能观测不退化、事件字典与隐私约束及聚焦回归测试；主要影响小程序端请求封装与埋点策略，后端 API/DB 是否变更由后续 Change 设计确认，按 S=1 人天纳入。
+  - id: BUG-0144-miniapp-usage-events-overreporting
+    change: fix-miniapp-usage-events-overreporting
+    bug: BUG-0144-miniapp-usage-events-overreporting
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium 小程序商品列表页与搜索页 usage-events 偏多缺陷修复，覆盖列表曝光双口径治理、搜索输入频控、搜索结果与商品卡曝光边界、跨场景去重键和事件字典/隐私约束回归；与 BUG-0143 同属小程序埋点请求治理后续收敛面，主要影响小程序端埋点策略，后端 API/DB 是否变更由后续 Change 设计确认，按 S=1 人天纳入。
+  - id: REQ-0126-product-data-collection-observability-standard
+    change: add-product-data-collection-observability-standard
+    requirement: REQ-0126-product-data-collection-observability-standard
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 通用产品数据采集与链路观测规范沉淀，覆盖 usage_events、request_logs、task_traces、task_trace_spans 四层模型、直接 API 入口、Task Trace 分级覆盖、默认保留周期、敏感字段脱敏和新产品接入 checklist；主要交付规范文档与治理验收入口，不直接改造业务代码，按 S=1 人天纳入。
+  - id: REQ-0127-product-data-collection-observability-hard-gate
+    change: add-product-data-collection-observability-hard-gate
+    requirement: REQ-0127-product-data-collection-observability-hard-gate
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 产品数据采集与链路观测规范硬门禁治理，覆盖 AGENTS.md、相关 rules、req/opsx/sprint 技能检查清单和实现级校验脚本接入；主要修改治理资产与校验脚本，不直接改业务 API/DB/Web/小程序/App 代码，按 S=1 人天纳入。
+  - id: refine-skill-final-output-contract
+    change: refine-skill-final-output-contract
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 命令最终输出契约治理，覆盖下一步与待用户决策处理去重、占位模板泄漏、通用 BUG 示例替换、命令族专属正反例和校验脚本扩展；不修改业务 src/API/DB/Web/小程序，按 S=1 人天纳入。
+  - id: REQ-0128-search-experience-unification
+    change: update-search-experience-unification
+    requirement: REQ-0128-search-experience-unification
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 搜索体验统一优化，覆盖小程序首页搜索入口强化、search-entry 入口契约与多页面跳转复用、搜索页承接搜索首页/联想/结果、分类/品牌/证书/商品/收藏列表搜索路径、管理端主要列表关键词搜索与筛选重置一致性、搜索行为事件与请求链路观测、关键词脱敏、API/Orval/测试影响声明；跨小程序、Web 管理端、后端 API 请求日志与观测验收，按 L=5 人天纳入。
+  - id: BUG-0145-admin-log-detail-field-overlap
+    change: fix-admin-log-detail-field-overlap
+    bug: BUG-0145-admin-log-detail-field-overlap
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1/medium Web 管理端日志详情抽屉字段布局缺陷修复，覆盖 parent_behavior_event_id、client_request_id、behavior_trace_id、task_trace_id 等长链路字段不重叠、字段说明 tooltip 可访问性、桌面与窄宽度视觉证据和前端回归测试；不改变后端 API、DB、日志采集、Orval、小程序或对象存储，按 S=1 人天纳入。
+  - id: fix-workflow-sync-sprint-propose-iteration
+    change: fix-workflow-sync-sprint-propose-iteration
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 Workflow Sync 治理一致性修复，覆盖 sprint.propose 后已纳入 REQ/BUG trace iteration 自动回填、状态派生一致性和聚焦回归测试；不修改业务 src/API/DB/Web/小程序/管理端，按 S=1 人天纳入。
+  - id: REQ-0129-miniapp-sku-detail-actionbar-compact-favorite
+    change: update-miniapp-sku-detail-actionbar-compact-favorite
+    requirement: REQ-0129-miniapp-sku-detail-actionbar-compact-favorite
+    size: XS
+    story_points: 0.5
+    estimated_person_days: 0.5
+    rationale: P2 小程序商品详情页底部操作栏体验优化，覆盖收藏按钮去除可见第二行文字、收藏状态图标表达、操作栏高度压缩、返回首页悬浮按钮 actionbar offset 同步调整，以及 320/375/430pt 视觉验收；不涉及 API/DB/Orval/请求封装/行为事件，按 XS=0.5 人天纳入。
+estimated_story_points: 25
+estimated_person_days: 25
+capacity_usage: 0.8333
+fix_buffer_person_days: 5
+fix_buffer_ratio: 0.1667
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 25
+  capacity_usage: 0.8333
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 REQ-0123、REQ-0124、REQ-0125、REQ-0126、REQ-0127、REQ-0128、REQ-0129、BUG-0141、BUG-0140、BUG-0139、BUG-0142、BUG-0143、BUG-0144、BUG-0145 与 fix-workflow-sync-sprint-propose-iteration，合计估算 25 人天，占用 83.33%，fix 缓冲 5 人天 / 16.67%。

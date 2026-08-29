@@ -4,6 +4,7 @@
   "usingComponents": {
     "custom-navigation": "../../components/custom-navigation/index",
     "product-card": "../../components/product-card/index",
-    "home-floating-button": "../../components/home-floating-button/index"
+    "home-floating-button": "../../components/home-floating-button/index",
+    "search-entry": "../../components/search-entry/index"
   }
 }

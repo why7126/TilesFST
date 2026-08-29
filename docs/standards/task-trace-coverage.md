@@ -3,7 +3,7 @@ purpose: Task Trace 覆盖清单
 content: REQ-0074 首批任务型接口候选清单、接入优先级、span 策略与后续排期
 source: /opsx-apply update-task-trace-coverage-expansion
 created_at: 2026-07-26 15:34:18
-updated_at: 2026-08-26 10:58:47
+updated_at: 2026-08-27 19:20:00
 ---
 
 # Task Trace 覆盖清单
@@ -31,7 +31,7 @@ updated_at: 2026-08-26 10:58:47
 | 保存 SKU | `POST /api/v1/admin/tile-skus`、`PUT /api/v1/admin/tile-skus/{tile_id}` | `sku_create` / `sku_update` | P1 | 接收请求、输入校验、业务校验、主记录保存、图片/视频关联、响应 | `api_receive`、`input_validate`、`business_process` / `business_persist`、`api_response`、失败 span | 否 | 否 | 关联已上传媒体 object key，不直接写对象存储 | 本期接入 |
 | 批量操作 | SKU 上架、下架、删除及后续批量上下架/排序 | `sku_publish` / `sku_unpublish`，后续 `sku_batch_*` | P1 | 接收请求、状态校验、单项处理、成功/失败计数、最终结果 | 单项：`api_receive`、`input_validate`、`business_persist`、`api_response`；批量：`batch_parse`、`item_process`、`batch_result` | 否 | 后续批量接口是 | 否 | 本期接入单项状态任务；批量接口待业务能力出现后接入 |
 | 导入 / 导出 | SKU 导入、SKU 导出、日志导出 | `sku_import` / `sku_export` / `log_export` | P2 | 文件接收/生成、解析、校验、持久化、结果文件生成、状态更新 | `file_receive`、`parse`、`validate_rows`、`persist_rows`、`build_result_file`、`task_finished` | 是 | 是 | 可能涉及对象存储和导出文件 | 未纳入；当前无正式导入导出业务能力，后续独立 REQ |
-| 媒体处理 | 图片/视频上传后处理、元数据提取、封面或转码候选 | `media_post_process` | P1 | 校验、对象存储、元数据提取、后处理、数据库更新、失败补偿 | `validate_media`、`storage_get_object`、`extract_metadata`、`post_process`、`db_update`、`compensate_failed` | 可能 | 否 | 是 | 上传链路已由 REQ-0069 覆盖；后处理/转码不在本期扩展 |
+| 媒体处理 | 图片/视频上传后处理、元数据提取、封面或转码候选 | `upload_image` / `upload_file` / `media_post_process` | P1 | 文件读取、原图写入、缩略图生成、缩略图写入、展示图生成、展示图写入、失败补偿 | `file_read`、`original_put_object`、`thumbnail_generate`、`thumbnail_put_object`、`display_generate`、`display_put_object`、后续后处理可扩展 `validate_media`、`extract_metadata`、`post_process`、`compensate_failed` | 可能 | 否 | 是 | REQ-0123 已补齐头像上传与通用图片上传阶段级 spans；媒体后处理/转码仍需后续独立 REQ |
 | 异步任务 | 未来导入、导出、媒体后处理 worker | `async_*` | P2 | 分发、worker 启动、处理、持久化结果、完成/失败 | `async_dispatch`、`worker_start`、`worker_process`、`worker_persist_result`、`worker_finished` / `worker_failed` | 是 | 可能 | 视任务而定 | 本期提供上下文序列化策略；无现有 worker，不新增业务能力 |
 | 复杂查询 | 日志审计聚合、链路观测摘要、复杂 SKU 检索 | `log_observability_query` / `sku_complex_query` | P2 | 条件解析、权限过滤、数据库查询、聚合统计、响应序列化 | `parse_filters`、`permission_filter`、`db_query`、`aggregate_metrics`、`serialize_response` | 否 | 否 | 否 | 未纳入；由 REQ-0076 链路观测仪表承接日志聚合 |
 

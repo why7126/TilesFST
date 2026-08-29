@@ -4,6 +4,8 @@ import { reportPerformanceMetric } from './performance';
 const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
 const CLIENT_TYPE = 'wechat_miniapp';
 const CLIENT_REQUEST_ID_PREFIX = 'miniapp';
+const BEHAVIOR_TRACE_ID_PREFIX = 'bt:miniapp';
+const BEHAVIOR_EVENT_ID_PREFIX = 'be:miniapp';
 
 type ApiResponse<T> = {
   code: number;
@@ -13,7 +15,11 @@ type ApiResponse<T> = {
 
 type MiniappRequestOption = WechatMiniprogram.RequestOption & {
   skipPerformanceTracking?: boolean;
+  behaviorTraceId?: string;
+  behaviorEventId?: string;
 };
+
+let activeBehaviorContext: { behaviorTraceId: string; behaviorEventId: string } | null = null;
 
 function baseUrl(): string {
   const app = getApp<{
@@ -61,6 +67,18 @@ function createClientRequestId(): string | undefined {
   }
 }
 
+function createBehaviorId(prefix: string): string | undefined {
+  try {
+    return `${prefix}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  } catch {
+    return undefined;
+  }
+}
+
+function setActiveBehaviorContext(behaviorTraceId?: string, behaviorEventId?: string) {
+  activeBehaviorContext = behaviorTraceId && behaviorEventId ? { behaviorTraceId, behaviorEventId } : null;
+}
+
 function cleanProperties(properties: Record<string, unknown>): Record<string, unknown> {
   const next: Record<string, unknown> = {};
   Object.keys(properties).forEach((key) => {
@@ -77,10 +95,13 @@ function isTelemetryPath(path: string): boolean {
 }
 
 export function request<T>(path: string, options: MiniappRequestOption = {}): Promise<T> {
-  const { skipPerformanceTracking, ...requestOptions } = options;
+  const { skipPerformanceTracking, behaviorTraceId, behaviorEventId, ...requestOptions } = options;
   const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
+  const behaviorContext = activeBehaviorContext;
+  const effectiveBehaviorTraceId = behaviorTraceId || behaviorContext?.behaviorTraceId;
+  const effectiveBehaviorEventId = behaviorEventId || behaviorContext?.behaviorEventId;
   const attempts: Array<{
     url: string;
     statusCode?: number;
@@ -101,6 +122,8 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
           ...(requestOptions.header || {}),
           'x-client-type': CLIENT_TYPE,
           ...(clientRequestId ? { 'x-client-request-id': clientRequestId } : {}),
+          ...(effectiveBehaviorTraceId ? { 'x-behavior-trace-id': effectiveBehaviorTraceId } : {}),
+          ...(effectiveBehaviorEventId ? { 'x-behavior-event-id': effectiveBehaviorEventId } : {}),
         },
         success: (res) => {
           const body = res.data;
@@ -163,17 +186,26 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
 
 export function track(eventName: string, properties: Record<string, unknown>): void {
   const cleanedProperties = cleanProperties(properties);
+  const behaviorTraceId = createBehaviorId(BEHAVIOR_TRACE_ID_PREFIX);
+  const behaviorEventId = createBehaviorId(BEHAVIOR_EVENT_ID_PREFIX);
+  setActiveBehaviorContext(behaviorTraceId, behaviorEventId);
   request('/api/v1/usage-events', {
     method: 'POST',
     skipPerformanceTracking: true,
+    behaviorTraceId,
+    behaviorEventId,
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,
       page_path: String(cleanedProperties.page_path || ''),
       client_request_id: createClientRequestId(),
+      behavior_trace_id: behaviorTraceId,
+      behavior_event_id: behaviorEventId,
       properties: {
         ...cleanedProperties,
         client_type: CLIENT_TYPE,
+        behavior_trace_id: behaviorTraceId,
+        behavior_event_id: behaviorEventId,
       },
     },
   }).catch(() => {

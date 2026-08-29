@@ -1,4 +1,5 @@
 import { request, track } from '../../services/api';
+import { navigateToSearch } from '../../utils/search-navigation';
 
 type BrandBanner = {
   id: number;
@@ -45,6 +46,8 @@ type BrandListResponse = {
   page_size: number;
   has_more: boolean;
 };
+
+type BrandListSearchEvent = 'list_search_submit' | 'list_search_reset';
 
 const PAGE_SIZE = 20;
 function requestId(): string {
@@ -107,6 +110,7 @@ Page({
     loadMoreError: '',
     requestId: '',
     sourcePage: 'tabbar',
+    keyword: '',
     imageFallback: '',
     skeletons: [1, 2, 3, 4],
   },
@@ -115,6 +119,7 @@ Page({
     this.setCurrentTab();
     this.setData({
       sourcePage: query.sourcePage || query.source || 'tabbar',
+      keyword: safeText(query.keyword),
       requestId: requestId(),
     });
     this.loadBrands(true);
@@ -147,10 +152,11 @@ Page({
     }
   },
 
-  loadBrands(reset: boolean) {
+  loadBrands(reset: boolean, searchEvent?: BrandListSearchEvent) {
     if (this.data.loadingMore) return;
     if (!reset && !this.data.hasMore) return;
     const nextPage = reset ? 1 : this.data.page + 1;
+    const keyword = safeText(this.data.keyword);
     this.setData({
       status: reset ? 'loading' : this.data.status,
       loadingMore: !reset,
@@ -158,14 +164,19 @@ Page({
       ...(reset ? { items: [], page: 1, hasMore: true } : {}),
     });
 
-    request<BrandListResponse>(`/api/v1/miniapp/brands?page=${nextPage}&pageSize=${this.data.pageSize}`)
+    const params = [
+      `page=${nextPage}`,
+      `pageSize=${this.data.pageSize}`,
+      keyword ? `keyword=${encodeURIComponent(keyword)}` : '',
+    ].filter(Boolean).join('&');
+    request<BrandListResponse>(`/api/v1/miniapp/brands?${params}`)
       .then((data) => {
         const incoming = (data.items || []).map(normalizeBrandItem);
         const merged = reset ? incoming : this.mergeBrands(this.data.items, incoming);
         const status = merged.length ? 'ready' : 'empty';
         this.setData({
           status,
-          banners: data.banners || [],
+          banners: keyword ? [] : data.banners || [],
           items: merged,
           page: data.page || nextPage,
           pageSize: data.page_size || this.data.pageSize,
@@ -175,8 +186,17 @@ Page({
         });
         this.trackBrandListEvent('brand_list_page_view', {
           sourcePage: this.data.sourcePage,
+          keyword,
           resultCount: data.total || merged.length,
         });
+        if (searchEvent) {
+          this.trackBrandListEvent(searchEvent, {
+            sourcePage: 'brand-list',
+            scope: 'brand',
+            keyword,
+            resultCount: data.total || merged.length,
+          });
+        }
         wx.stopPullDownRefresh();
       })
       .catch(() => {
@@ -209,6 +229,22 @@ Page({
     this.loadBrands(false);
   },
 
+  onSearchInput(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    this.setData({ keyword: safeText(event.detail.keyword) });
+  },
+
+  onSearchSubmit(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    const keyword = safeText(event.detail.keyword || this.data.keyword);
+    this.setData({ keyword, requestId: requestId() });
+    this.loadBrands(true, 'list_search_submit');
+  },
+
+  clearSearch() {
+    if (!this.data.keyword) return;
+    this.setData({ keyword: '', requestId: requestId() });
+    this.loadBrands(true, 'list_search_reset');
+  },
+
   openBanner(event: WechatMiniprogram.TouchEvent) {
     const banner = event.currentTarget.dataset.banner as BrandBanner;
     const index = Number(event.currentTarget.dataset.index || 0);
@@ -232,8 +268,11 @@ Page({
         wx.showToast({ title: '内容建设中', icon: 'none' });
         return;
       }
-      wx.navigateTo({
-        url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`,
+      navigateToSearch({
+        sourcePage: 'brand-list-carousel',
+        scope: 'all',
+        keyword,
+        requestId: this.data.requestId,
       });
       return;
     }

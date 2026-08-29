@@ -16,6 +16,7 @@ from app.modules.media.storage import (
     set_media_storage_client,
 )
 from app.services.log_service import EVENT_DEFINITIONS
+from app.services.miniapp_home_service import MiniappHomeService
 from app.repositories.miniapp_home_repository import MiniappHomeRepository
 
 
@@ -100,6 +101,24 @@ def test_miniapp_new_product_filter_uses_mysql_date_expression() -> None:
     assert "DATE_SUB(UTC_TIMESTAMP(), INTERVAL 90 DAY)" in where
     assert "datetime('now', '-90 days')" not in where
     assert params == {}
+
+
+def test_miniapp_search_product_filters_brand_fast_path_skips_keyword_like() -> None:
+    where, params = MiniappHomeRepository._search_product_filters(
+        keyword="菲尚特",
+        brand=None,
+        category=None,
+        spec=None,
+        price_min=None,
+        price_max=None,
+        search_brand_id=1,
+    )
+
+    assert "t.brand_id = :search_brand_id" in where
+    assert "t.name LIKE :keyword" not in where
+    assert "b.name LIKE :keyword" not in where
+    assert params["search_brand_id"] == 1
+    assert params["exact_keyword"] == "菲尚特"
 
 
 def _seed_public_catalog(api_client: TestClient) -> None:
@@ -504,6 +523,29 @@ def test_miniapp_brand_list_returns_public_brands_and_brand_list_carousel(
     assert "内部备注" not in response.text
     assert "object_key" not in response.text
 
+    keyword_response = api_client.get("/api/v1/miniapp/brands?page=1&pageSize=10&keyword=FST")
+    assert keyword_response.status_code == 200
+    keyword_data = keyword_response.json()["data"]
+    assert keyword_data["banners"] == []
+    assert keyword_data["total"] == 1
+    assert [item["brand_name"] for item in keyword_data["items"]] == ["菲尚特"]
+
+    english_response = api_client.get(
+        "/api/v1/miniapp/brands?page=1&pageSize=10&keyword=EmptyBrand"
+    )
+    assert english_response.status_code == 200
+    english_data = english_response.json()["data"]
+    assert english_data["banners"] == []
+    assert english_data["total"] == 1
+    assert [item["brand_name"] for item in english_data["items"]] == ["无公开 SKU 品牌"]
+
+    disabled_response = api_client.get("/api/v1/miniapp/brands?page=1&pageSize=10&keyword=OffBrand")
+    assert disabled_response.status_code == 200
+    disabled_data = disabled_response.json()["data"]
+    assert disabled_data["banners"] == []
+    assert disabled_data["total"] == 0
+    assert disabled_data["items"] == []
+
 
 def test_miniapp_product_list_supports_context_filters_sort_and_facets(api_client: TestClient) -> None:
     _seed_public_catalog(api_client)
@@ -535,6 +577,64 @@ def test_miniapp_product_list_supports_context_filters_sort_and_facets(api_clien
     assert data["facets"]["categories"][0]["value"] == "1"
     assert data["facets"]["specs"][0]["value"] == "800×800mm"
     assert any(item["value"] == "100-200" for item in data["facets"]["price_ranges"])
+
+
+def test_miniapp_list_product_cards_skip_media_existence_probe(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _seed_public_catalog(api_client)
+
+    def fail_media_probe(object_key: str) -> bool:
+        raise AssertionError("list product cards must not probe media storage")
+
+    monkeypatch.setattr(MiniappHomeService, "_media_object_exists", fail_media_probe)
+
+    product_response = api_client.get(
+        "/api/v1/miniapp/products",
+        params={"keyword": "银河", "page": 1, "pageSize": 10},
+    )
+    search_home_response = api_client.get("/api/v1/miniapp/search/home")
+
+    assert product_response.status_code == 200
+    assert search_home_response.status_code == 200
+    assert all(
+        item["cover_image"].endswith(".thumb.webp")
+        for item in product_response.json()["data"]["items"]
+    )
+    assert all(
+        item["cover_image"].endswith(".thumb.webp")
+        for item in search_home_response.json()["data"]["recent_browsing"]
+    )
+
+
+def test_miniapp_home_and_detail_recommendation_cards_use_lightweight_media_path(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _seed_public_catalog(api_client)
+    original_variant_urls = MiniappHomeService._image_variant_urls
+    calls: list[tuple[str, bool]] = []
+
+    def track_variant_urls(
+        cls: type[MiniappHomeService],
+        object_key: str,
+        *,
+        verify_exists: bool = True,
+    ) -> dict[str, str | None]:
+        calls.append((object_key, verify_exists))
+        return original_variant_urls(object_key, verify_exists=verify_exists)
+
+    monkeypatch.setattr(MiniappHomeService, "_image_variant_urls", classmethod(track_variant_urls))
+
+    home_response = api_client.get("/api/v1/miniapp/home")
+    detail_response = api_client.get("/api/v1/miniapp/skus/1")
+
+    assert home_response.status_code == 200
+    assert detail_response.status_code == 200
+    tile_calls = [(key, verify) for key, verify in calls if key.startswith("tiles/")]
+    assert any(verify is False for _, verify in tile_calls)
+    assert any(verify is True for _, verify in tile_calls)
 
 
 def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
@@ -1140,6 +1240,24 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
     assert second_page.status_code == 200
     assert second_page.json()["data"]["total"] == 3
     assert second_page.json()["data"]["items"][0]["certificate_id"] == 12
+
+    name_filtered = api_client.get("/api/v1/miniapp/certificates?keyword=绿色&page=1&pageSize=10")
+    assert name_filtered.status_code == 200
+    assert name_filtered.json()["data"]["total"] == 1
+    assert [item["certificate_id"] for item in name_filtered.json()["data"]["items"]] == [10]
+
+    brand_filtered = api_client.get("/api/v1/miniapp/certificates?keyword=菲尚特&page=1&pageSize=10")
+    assert brand_filtered.status_code == 200
+    assert brand_filtered.json()["data"]["total"] == 3
+
+    type_filtered = api_client.get("/api/v1/miniapp/certificates?keyword=检测报告&page=1&pageSize=10")
+    assert type_filtered.status_code == 200
+    assert type_filtered.json()["data"]["total"] == 1
+    assert type_filtered.json()["data"]["items"][0]["certificate_id"] == 11
+
+    hidden_filtered = api_client.get("/api/v1/miniapp/certificates?keyword=隐藏&page=1&pageSize=10")
+    assert hidden_filtered.status_code == 200
+    assert hidden_filtered.json()["data"]["total"] == 0
 
 
 def test_miniapp_certificate_detail_returns_public_data_and_filters_private_records(
@@ -1783,6 +1901,26 @@ def test_miniapp_usage_events_validate_dictionary_and_forbidden_properties(
 def test_miniapp_certificate_detail_load_failed_usage_event_is_accepted(
     api_client: TestClient,
 ) -> None:
+    for event_name in ["list_search_submit", "list_search_reset"]:
+        list_search_event = api_client.post(
+            "/api/v1/usage-events",
+            json={
+                "event_name": event_name,
+                "client_type": "wechat_miniapp",
+                "page_path": "/pages/certificates/index",
+                "properties": {
+                    "page_path": "/pages/certificates/index",
+                    "sourcePage": "certificate-list",
+                    "scope": "certificate",
+                    "keyword": "检测报告",
+                    "resultCount": 1,
+                    "requestId": f"{event_name}-certificate-test",
+                    "client_type": "wechat_miniapp",
+                },
+            },
+        )
+        assert list_search_event.status_code == 200
+
     response = api_client.post(
         "/api/v1/usage-events",
         json={
@@ -2118,6 +2256,26 @@ def test_miniapp_brand_list_usage_events_validate_dictionary_and_forbidden_prope
     )
     assert category_click.status_code == 200
 
+    for event_name in ["list_search_submit", "list_search_reset"]:
+        list_search_event = api_client.post(
+            "/api/v1/usage-events",
+            json={
+                "event_name": event_name,
+                "client_type": "wechat_miniapp",
+                "page_path": "/pages/brand-list/index",
+                "properties": {
+                    "page_path": "/pages/brand-list/index",
+                    "sourcePage": "brand-list",
+                    "scope": "brand",
+                    "keyword": "携诚",
+                    "resultCount": 1,
+                    "requestId": f"{event_name}-brand-test",
+                    "client_type": "wechat_miniapp",
+                },
+            },
+        )
+        assert list_search_event.status_code == 200
+
     rejected = api_client.post(
         "/api/v1/usage-events",
         json={
@@ -2291,7 +2449,7 @@ def test_miniapp_full_search_returns_tabs_facets_certificates_and_public_filter(
                   deleted_at, created_at, updated_at
                 ) VALUES
                   (1, 1, '银河灰检测证书', 1, 'QUALITY', 'CERT-001', '质检机构',
-                   '/media/certs/1.pdf', 'certs/1.pdf', 'cert.pdf', 'application/pdf',
+                   '/media/images/default/brand-certificates/1.webp', 'images/default/brand-certificates/1.webp', 'cert.webp', 'image/webp',
                    1024, 1, NULL, NULL, 1, '内部备注', NULL, :now, :now),
                   (2, 1, '银河灰内部证书', 2, 'QUALITY', 'CERT-002', '质检机构',
                    '/media/certs/2.pdf', 'certs/2.pdf', 'cert2.pdf', 'application/pdf',
@@ -2312,10 +2470,21 @@ def test_miniapp_full_search_returns_tabs_facets_certificates_and_public_filter(
     assert [tab["value"] for tab in data["tabs"]] == ["all", "sku", "brand", "category", "certificate"]
     assert data["tabs"][0]["selected"] is True
     assert data["best_match"]["sku_code"] in {"FST-001", "FST-004"}
-    assert data["total"] == 2
+    assert data["total"] == 3
     assert data["has_more"] is False
-    assert data["facets"]["brands"][0]["label"] == "菲尚特"
-    assert any(section["entity_type"] == "certificate" for section in data["sections"])
+    assert data["facets"] == {
+        "brands": [],
+        "categories": [],
+        "specs": [],
+        "price_ranges": [],
+    }
+    certificate_section = next(section for section in data["sections"] if section["entity_type"] == "certificate")
+    certificate_item = certificate_section["items"][0]
+    assert certificate_item["certificate_type"] == "QUALITY"
+    assert certificate_item["certificate_type_label"] == "质量认证"
+    assert certificate_item["brand_name"] == "菲尚特"
+    assert certificate_item["file_url"] == "/media/images/default/brand-certificates/1.webp"
+    assert certificate_item["thumbnail_url"] == "/media/images/default/brand-certificates/1.thumb.webp"
     assert "银河灰检测证书" in response.text
     assert "银河灰内部证书" not in response.text
     assert "FST-DRAFT" not in response.text
@@ -2336,10 +2505,195 @@ def test_miniapp_search_best_match_supports_exact_brand_match(
     data = response.json()["data"]
     assert data["best_match"]["entity_type"] == "brand"
     assert data["best_match"]["name"] == "菲尚特"
+    assert data["best_match"]["logo_url"] == "/media/logos/fst.webp"
     assert data["best_match"]["target_path"] == "/pages/search/index?keyword=菲尚特&tab=brand"
-    assert data["total"] == 3
-    assert any(section["entity_type"] == "brand" and section["count"] == 1 for section in data["sections"])
+    assert data["total"] == 4
+    brand_section = next(section for section in data["sections"] if section["entity_type"] == "brand")
+    assert brand_section["count"] == 1
+    assert brand_section["items"][0]["logo_url"] == "/media/logos/fst.webp"
+    assert "logo_object_key" not in response.text
     assert any(section["entity_type"] == "sku" and section["count"] == 3 for section in data["sections"])
+
+
+def test_miniapp_search_load_more_returns_sku_only_payload(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+
+    first_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=all&page=1&page_size=2&request_id=req-brand"
+    )
+    second_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=all&page=2&page_size=2&request_id=req-brand"
+    )
+
+    assert first_response.status_code == 200
+    first_data = first_response.json()["data"]
+    assert first_data["has_more"] is True
+    assert first_data["best_match"]["entity_type"] == "brand"
+    assert any(section["entity_type"] == "brand" for section in first_data["sections"])
+
+    assert second_response.status_code == 200
+    second_data = second_response.json()["data"]
+    assert second_data["page"] == 2
+    assert second_data["has_more"] is False
+    assert second_data["best_match"] is None
+    assert second_data["recommended_keywords"] == []
+    assert second_data["facets"] == {
+        "brands": [],
+        "categories": [],
+        "specs": [],
+        "price_ranges": [],
+    }
+    assert [section["entity_type"] for section in second_data["sections"]] == ["sku"]
+    assert len(second_data["sections"][0]["items"]) == 1
+    assert second_data["items"][0]["product_name"] == second_data["sections"][0]["items"][0]["product_name"]
+
+
+def test_miniapp_search_first_page_skips_search_home_hot_score_branch(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _seed_public_catalog(api_client)
+    original_list_search_named_results = MiniappHomeRepository.list_search_named_results
+
+    def fail_hot_score_sql(self: MiniappHomeRepository) -> str:
+        raise AssertionError("search first page must not trigger hot_score metadata LIKE")
+
+    def fail_search_facets(self: MiniappHomeRepository, *, keyword: str) -> dict[str, list[object]]:
+        raise AssertionError("search first page must not trigger facets aggregation")
+
+    def assert_brand_only_named_results(
+        self: MiniappHomeRepository,
+        *,
+        keyword: str,
+        include_category_spec: bool = True,
+    ) -> dict[str, list[object]]:
+        assert include_category_spec is False
+        return original_list_search_named_results(
+            self,
+            keyword=keyword,
+            include_category_spec=include_category_spec,
+        )
+
+    monkeypatch.setattr(MiniappHomeRepository, "_hot_score_sql", fail_hot_score_sql)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_facets", fail_search_facets)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_named_results", assert_brand_only_named_results)
+
+    response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=all&page=1&page_size=10&request_id=req-fast"
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["recommended_keywords"] == ["岩板", "柔光砖", "800×800", "客厅", "菲尚特"]
+    assert data["best_match"]["entity_type"] == "brand"
+    assert any(section["entity_type"] == "sku" for section in data["sections"])
+    assert data["facets"] == {
+        "brands": [],
+        "categories": [],
+        "specs": [],
+        "price_ranges": [],
+    }
+    assert all(section["entity_type"] != "category" for section in data["sections"])
+
+
+def test_miniapp_search_exact_brand_uses_brand_id_fast_path(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _seed_public_catalog(api_client)
+    original_products = MiniappHomeRepository.list_search_products
+    product_calls: list[dict[str, object]] = []
+
+    def track_products(self: MiniappHomeRepository, **kwargs: object) -> object:
+        product_calls.append(dict(kwargs))
+        return original_products(self, **kwargs)
+
+    def fail_named_results(self: MiniappHomeRepository, **kwargs: object) -> dict[str, list[object]]:
+        raise AssertionError("exact brand search should reuse brand fast match")
+
+    def fail_media_probe(object_key: str) -> bool:
+        raise AssertionError("search card build must not probe media storage")
+
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_products", track_products)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_named_results", fail_named_results)
+    monkeypatch.setattr(MiniappHomeService, "_media_object_exists", fail_media_probe)
+
+    response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=all&page=1&page_size=10&request_id=req-brand-fast"
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert product_calls[0]["search_brand_id"] == 1
+    assert "search_brand_match;dur=" in response.headers["server-timing"]
+    assert "search_sku_list;dur=" in response.headers["server-timing"]
+    assert "search_sku_count;dur=" in response.headers["server-timing"]
+    assert "search_product_cards;dur=" in response.headers["server-timing"]
+    assert "search_certificates;dur=" in response.headers["server-timing"]
+    assert data["best_match"]["entity_type"] == "brand"
+    assert [section["entity_type"] for section in data["sections"]] == ["brand", "certificate", "sku"]
+    assert data["tabs"][0]["count"] == 4
+
+
+def test_miniapp_search_single_tabs_only_run_required_queries(
+    api_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _seed_public_catalog(api_client)
+
+    calls: list[str] = []
+    original_products = MiniappHomeRepository.list_search_products
+    original_named = MiniappHomeRepository.list_search_named_results
+    original_certificates = MiniappHomeRepository.list_search_certificates
+
+    def track_products(self: MiniappHomeRepository, **kwargs: object) -> object:
+        calls.append("sku")
+        return original_products(self, **kwargs)
+
+    def track_named(self: MiniappHomeRepository, **kwargs: object) -> object:
+        calls.append("brand")
+        assert kwargs.get("include_category_spec") is False
+        return original_named(self, **kwargs)
+
+    def track_certificates(self: MiniappHomeRepository, **kwargs: object) -> object:
+        calls.append("certificate")
+        return original_certificates(self, **kwargs)
+
+    def fail_search_facets(self: MiniappHomeRepository, *, keyword: str) -> dict[str, list[object]]:
+        raise AssertionError("single tabs must not trigger facets aggregation")
+
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_products", track_products)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_named_results", track_named)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_certificates", track_certificates)
+    monkeypatch.setattr(MiniappHomeRepository, "list_search_facets", fail_search_facets)
+
+    brand_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=brand&page=1&page_size=10&request_id=req-brand-only"
+    )
+    assert brand_response.status_code == 200
+    assert calls == []
+    brand_data = brand_response.json()["data"]
+    assert [section["entity_type"] for section in brand_data["sections"]] == ["brand"]
+    assert brand_data["items"] == []
+    assert brand_data["has_more"] is False
+
+    calls.clear()
+    certificate_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=certificate&page=1&page_size=10&request_id=req-cert-only"
+    )
+    assert certificate_response.status_code == 200
+    assert calls == ["certificate"]
+    assert [section["entity_type"] for section in certificate_response.json()["data"]["sections"]] == ["certificate"]
+
+    calls.clear()
+    sku_response = api_client.get(
+        "/api/v1/miniapp/search?keyword=菲尚特&tab=sku&page=1&page_size=10&request_id=req-sku-only"
+    )
+    assert sku_response.status_code == 200
+    assert calls == ["sku"]
+    assert [section["entity_type"] for section in sku_response.json()["data"]["sections"]] == ["sku"]
 
 
 def test_miniapp_search_best_match_prefers_sku_then_certificate_match(
@@ -2361,7 +2715,7 @@ def test_miniapp_search_best_match_prefers_sku_then_certificate_match(
                   deleted_at, created_at, updated_at
                 ) VALUES (
                   1, 1, 'ddd', 1, 'QUALITY', 'CERT-ONLY', '质检机构',
-                  '/media/certs/ddd.pdf', 'certs/ddd.pdf', 'ddd.pdf', 'application/pdf',
+                  '/media/images/default/brand-certificates/ddd.webp', 'images/default/brand-certificates/ddd.webp', 'ddd.webp', 'image/webp',
                   1024, 1, NULL, NULL, 1, '内部备注', NULL, :now, :now
                 )
                 """
@@ -2387,6 +2741,10 @@ def test_miniapp_search_best_match_prefers_sku_then_certificate_match(
     data = cert_response.json()["data"]
     assert data["best_match"]["entity_type"] == "certificate"
     assert data["best_match"]["name"] == "ddd"
+    assert data["best_match"]["certificate_type"] == "QUALITY"
+    assert data["best_match"]["certificate_type_label"] == "质量认证"
+    assert data["best_match"]["file_url"] == "/media/images/default/brand-certificates/ddd.webp"
+    assert data["best_match"]["thumbnail_url"] == "/media/images/default/brand-certificates/ddd.thumb.webp"
     assert data["best_match"]["target_path"] == "/pages/search/index?keyword=CERT-ONLY&tab=certificate"
 
 

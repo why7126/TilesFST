@@ -15,6 +15,7 @@
         "v0.3.3/announcement",
         "v0.3.4/announcement",
         "v1.0.0/announcement",
+        "v1.2.0/announcement",
         "templates/announcement"
       ]
     },
@@ -61,6 +62,21 @@
         "v1.0.0/usage-docs/miniapp/index",
         "v1.0.0/usage-docs/overview",
         "v1.0.0/usage-docs/public/index"
+      ]
+    },
+    {
+      "group": "v1.2.0 产品使用文档",
+      "pages": [
+        "v1.2.0/usage-docs/admin/catalog",
+        "v1.2.0/usage-docs/admin/governance",
+        "v1.2.0/usage-docs/admin/index",
+        "v1.2.0/usage-docs/admin/media",
+        "v1.2.0/usage-docs/faq",
+        "v1.2.0/usage-docs/miniapp/brand-certificate",
+        "v1.2.0/usage-docs/miniapp/browse",
+        "v1.2.0/usage-docs/miniapp/index",
+        "v1.2.0/usage-docs/overview",
+        "v1.2.0/usage-docs/public/index"
       ]
     },
     {

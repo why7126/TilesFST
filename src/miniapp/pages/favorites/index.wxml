@@ -1,6 +1,20 @@
 <view class="page">
   <custom-navigation title="收藏列表" />
 
+  <view class="favorite-search-entry">
+    <search-entry
+      mode="input"
+      keyword="{{keyword}}"
+      scope="favorites"
+      source-page="favorites"
+      placeholder="在收藏中搜索商品、品牌或规格"
+      disabled="{{status == 'loading'}}"
+      bind:input="onSearchInput"
+      bind:submit="onSearchSubmit"
+      bind:clear="clearSearchKeyword"
+    />
+  </view>
+
   <view wx:if="{{total > 0}}" class="summary">
     <view class="summary-label">已收藏商品：{{total}}</view>
   </view>
@@ -23,9 +37,10 @@
   </view>
 
   <view wx:elif="{{status == 'empty'}}" class="state">
-    <view class="state-title">还没有收藏</view>
-    <view class="state-desc">浏览商品详情时点亮收藏，之后就能在这里快速找回。</view>
-    <button class="primary-btn" bindtap="openExplore">去浏览商品</button>
+    <view class="state-title">{{emptyText}}</view>
+    <view class="state-desc">{{keyword ? '可以清空关键词继续看收藏。' : '浏览商品详情时点亮收藏，之后就能在这里快速找回。'}}</view>
+    <button wx:if="{{keyword}}" class="primary-btn secondary" bindtap="clearSearchKeyword">清空关键词</button>
+    <button wx:else class="primary-btn" bindtap="openExplore">去浏览商品</button>
   </view>
 
   <view wx:else class="favorite-list">

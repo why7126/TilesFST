@@ -106,6 +106,7 @@ Page({
     searchMode: 'home',
     activeTab: 'all',
     loading: false,
+    loadingMore: false,
     suggesting: false,
     error: '',
     suggestions: [] as Suggestion[],
@@ -151,7 +152,9 @@ Page({
       requestId: this.nextRequestId(keyword),
       recentSearches: readStringList(HISTORY_KEY).slice(0, 20),
     });
-    this.loadSearchHome();
+    if (!keyword) {
+      this.loadSearchHome();
+    }
     track('search_page_view', this.trackBase({ page_path: '/pages/search/index' }));
     if (keyword) {
       this.submitSearch();
@@ -224,10 +227,16 @@ Page({
       skuSuggestions: [],
       items: [],
       sections: [],
+      displaySections: [],
+      activeDisplaySection: null,
+      bestMatch: null,
       total: 0,
       hasResults: false,
+      hasMore: false,
+      loadingMore: false,
       error: '',
     });
+    this.loadSearchHome();
     track('search_input', this.trackBase({ keyword: '', normalizedKeyword: '', inputAction: 'clear' }));
   },
 
@@ -318,6 +327,9 @@ Page({
       skuSuggestions: [],
       suggesting: false,
       page: 1,
+      hasResults: false,
+      hasMore: false,
+      loadingMore: false,
       requestId: this.nextRequestId(keyword),
     });
     track('search_submit', this.trackBase({ module: 'miniapp_search', keyword, normalizedKeyword: keyword }));
@@ -341,28 +353,44 @@ Page({
       this.data.filterSnapshot.priceMin ? `price_min=${this.data.filterSnapshot.priceMin}` : '',
       this.data.filterSnapshot.priceMax ? `price_max=${this.data.filterSnapshot.priceMax}` : '',
     ].filter(Boolean).join('&');
-    this.setData({ loading: true, error: '' });
+    this.setData(reset ? { loading: true, loadingMore: false, error: '' } : { loadingMore: true, error: '' });
     request<SearchResponse>(`/api/v1/miniapp/search?${params}`)
       .then((data) => {
         if (seq !== this.searchSeq) return;
         const items = reset ? data.items || [] : this.data.items.concat(data.items || []);
         const facets = this.markSelectedFacets(data.facets || this.data.facets, this.data.filterSnapshot);
-        const resultCount = this.searchResultCount(data);
-        const displaySections = this.orderDisplaySections(data.sections || []);
+        const resultCount = reset ? this.searchResultCount(data) : Math.max(
+          this.searchResultCount(data),
+          this.data.total,
+          items.length,
+        );
+        const incomingDisplaySections = this.orderDisplaySections(data.sections || []);
+        const displaySections = reset
+          ? incomingDisplaySections
+          : this.mergeDisplaySections(this.data.displaySections, incomingDisplaySections);
+        const bestMatch = reset
+          ? this.normalizeSearchItem(data.best_match || null, '最佳匹配')
+          : this.data.bestMatch;
         this.setData({
           items,
-          sections: data.sections || [],
+          sections: displaySections.map((section) => ({
+            entity_type: section.entity_type,
+            title: section.title,
+            count: section.count,
+            items: section.items,
+          })),
           displaySections,
           activeDisplaySection: this.activeDisplaySection(displaySections, data.active_tab || this.data.activeTab),
-          tabs: this.normalizeTabs(data.tabs || DEFAULT_TABS),
+          tabs: reset ? this.normalizeTabs(data.tabs || DEFAULT_TABS) : this.data.tabs,
           facets,
-          bestMatch: data.best_match || null,
+          bestMatch,
           total: data.total || 0,
           hasResults: resultCount > 0,
           page: data.page || page,
           hasMore: Boolean(data.has_more),
-          recommendedKeywords: data.recommended_keywords || [],
+          recommendedKeywords: reset ? data.recommended_keywords || [] : this.data.recommendedKeywords,
           loading: false,
+          loadingMore: false,
         });
         track(resultCount ? 'search_result_exposure' : 'search_no_result', this.trackBase({
           keyword,
@@ -374,7 +402,7 @@ Page({
       })
       .catch(() => {
         if (seq !== this.searchSeq) return;
-        this.setData({ error: '搜索失败，请重试', loading: false });
+        this.setData({ error: '搜索失败，请重试', loading: false, loadingMore: false });
       });
   },
 
@@ -539,6 +567,13 @@ Page({
     this.loadResults(false);
   },
 
+  onReachBottom() {
+    if (!this.data.hasMore || this.data.loading || this.data.loadingMore || this.data.searchMode !== 'result') {
+      return;
+    }
+    this.loadMore();
+  },
+
   readRecentBrowsing(): ProductCard[] {
     try {
       const value = wx.getStorageSync(BROWSING_KEY);
@@ -602,11 +637,84 @@ Page({
       sku: 'SKU',
       certificate: '证书',
     };
-    return ['brand', 'sku', 'certificate']
+    return ['brand', 'certificate', 'sku']
       .map((entityType) => sections.find((section) => section.entity_type === entityType))
       .filter((section): section is SearchSection => Boolean(section))
       .filter((section) => (section.count || 0) > 0 && (section.items || []).length > 0)
-      .map((section) => ({ ...section, card_label: labels[section.entity_type] || section.title }));
+      .map((section) => ({
+        ...section,
+        card_label: labels[section.entity_type] || section.title,
+        items: (section.items || [])
+          .map((item) => this.normalizeSearchItem(item, labels[section.entity_type] || section.title))
+          .filter((item): item is Record<string, unknown> => Boolean(item)),
+      }));
+  },
+
+  mergeDisplaySections(
+    currentSections: Array<SearchSection & { card_label: string }>,
+    incomingSections: Array<SearchSection & { card_label: string }>,
+  ): Array<SearchSection & { card_label: string }> {
+    const identityOf = (item: Record<string, unknown>, entityType: string) => String(
+      item.product_id || item.id || item.sku_code || `${entityType}:${item.card_title || item.title || item.name || ''}`,
+    );
+    const byType = new Map(currentSections.map((section) => [section.entity_type, section]));
+    incomingSections.forEach((incoming) => {
+      const current = byType.get(incoming.entity_type);
+      if (!current) {
+        byType.set(incoming.entity_type, incoming);
+        return;
+      }
+      const seen = new Set(current.items.map((item) => identityOf(item, current.entity_type)));
+      const appended = incoming.items.filter((item) => {
+        const key = identityOf(item, incoming.entity_type);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      byType.set(incoming.entity_type, {
+        ...current,
+        count: Math.max(current.count || 0, incoming.count || 0),
+        items: current.items.concat(appended),
+      });
+    });
+    return ['brand', 'certificate', 'sku']
+      .map((entityType) => byType.get(entityType as SearchSection['entity_type']))
+      .filter((section): section is SearchSection & { card_label: string } => Boolean(section));
+  },
+
+  normalizeSearchItem(item: Record<string, unknown> | null, fallbackLabel: string): Record<string, unknown> | null {
+    if (!item) return null;
+    const entityType = String(item.entity_type || '');
+    const title = String(item.product_name || item.name || item.title || item.label || '查看详情');
+    if (entityType === 'brand') {
+      const count = Number(item.count || 0);
+      return {
+        ...item,
+        card_title: title,
+        image_url: item.logo_url || item.brand_logo_url || '',
+        image_label: '品牌',
+        card_meta_primary: '品牌名称',
+        card_meta_secondary: `${count} 个 SKU`,
+      };
+    }
+    if (entityType === 'certificate') {
+      return {
+        ...item,
+        card_title: title,
+        image_url: item.thumbnail_url || item.file_url || '',
+        image_label: '证书',
+        card_meta_primary: item.brand_name || '品牌待补充',
+        card_meta_secondary: item.certificate_type_label || item.certificate_type || item.type || '证书类型待补充',
+      };
+    }
+    return {
+      ...item,
+      card_title: title,
+      image_url: item.image_url || '',
+      image_label: fallbackLabel,
+      card_meta_primary: fallbackLabel,
+      card_meta_secondary: item.subtitle || item.type || item.certificate_no || item.count || '查看详情',
+    };
   },
 
   activeDisplaySection(

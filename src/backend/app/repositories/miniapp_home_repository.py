@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Any
 
 from sqlalchemy import text
@@ -87,6 +88,7 @@ class MiniappNamedResult:
     id: int
     name: str
     count: int
+    logo_object_key: str | None = None
 
 
 @dataclass
@@ -175,8 +177,20 @@ class MiniappHomeRepository:
         *,
         page: int = 1,
         page_size: int = 20,
+        keyword: str | None = None,
     ) -> tuple[list[MiniappBrandRecord], int]:
         params = {"limit": page_size, "offset": (page - 1) * page_size}
+        normalized_keyword = (keyword or "").strip().lower()
+        keyword_sql = ""
+        if normalized_keyword:
+            params["keyword"] = f"%{normalized_keyword}%"
+            keyword_sql = """
+              AND (
+                LOWER(b.name) LIKE :keyword
+                OR LOWER(COALESCE(b.short_name, '')) LIKE :keyword
+                OR LOWER(COALESCE(b.english_name, '')) LIKE :keyword
+              )
+            """
         base_sql = """
             SELECT b.id, b.name, b.sort_order, b.short_name, b.english_name,
                    b.logo_object_key, b.description,
@@ -193,9 +207,10 @@ class MiniappHomeRepository:
             LEFT JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
             LEFT JOIN tile_specs s ON s.id = t.spec_id
             WHERE b.status = 'ENABLED'
+            {keyword_sql}
             GROUP BY b.id, b.name, b.sort_order, b.short_name, b.english_name,
                      b.logo_object_key, b.description
-        """
+        """.format(keyword_sql=keyword_sql)
         rows = (
             self._db.execute(
                 text(
@@ -215,7 +230,17 @@ class MiniappHomeRepository:
             [int(row["id"]) for row in rows]
         )
         total = int(
-            self._db.execute(text("SELECT COUNT(*) FROM brands WHERE status = 'ENABLED'")).scalar_one()
+            self._db.execute(
+                text(
+                    f"""
+                    SELECT COUNT(*)
+                    FROM brands b
+                    WHERE b.status = 'ENABLED'
+                    {keyword_sql}
+                    """
+                ),
+                params,
+            ).scalar_one()
             or 0
         )
         return [
@@ -374,8 +399,30 @@ class MiniappHomeRepository:
         *,
         page: int,
         page_size: int,
+        keyword: str | None = None,
     ) -> tuple[list[MiniappCertificateResult], int]:
         where, params = self._certificate_filters()
+        normalized_keyword = (keyword or "").strip().lower()
+        if normalized_keyword:
+            params["keyword"] = f"%{normalized_keyword}%"
+            where = f"""
+            {where}
+              AND (
+                LOWER(bc.name) LIKE :keyword
+                OR LOWER(b.name) LIKE :keyword
+                OR LOWER(COALESCE(bc.type, '')) LIKE :keyword
+                OR LOWER(
+                  CASE bc.type
+                    WHEN 'QUALITY' THEN '质量认证'
+                    WHEN 'INSPECTION' THEN '检测报告'
+                    WHEN 'GREEN_BUILDING' THEN '绿色建材'
+                    WHEN 'HONOR' THEN '荣誉资质'
+                    WHEN 'OTHER' THEN '其他证书'
+                    ELSE '其他证书'
+                  END
+                ) LIKE :keyword
+              )
+            """
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
         rows = (
@@ -629,7 +676,10 @@ class MiniappHomeRepository:
         spec: str | None,
         price_min: float | None,
         price_max: float | None,
+        search_brand_id: int | None = None,
         apply_recall_pin: bool = False,
+        include_hot_score: bool = True,
+        timings: dict[str, int] | None = None,
     ) -> tuple[list[MiniappProductRecord], int]:
         where, params = self._search_product_filters(
             keyword=keyword,
@@ -638,11 +688,12 @@ class MiniappHomeRepository:
             spec=spec,
             price_min=price_min,
             price_max=price_max,
+            search_brand_id=search_brand_id,
         )
         params["limit"] = page_size
         params["offset"] = (page - 1) * page_size
         params["recall_now"] = datetime.now(UTC).isoformat()
-        hot_sql = self._hot_score_sql()
+        hot_sql = self._hot_score_sql() if include_hot_score else "0"
         search_order_sql = """
           CASE
             WHEN lower(sku_code) = :exact_keyword THEN 0
@@ -659,6 +710,7 @@ class MiniappHomeRepository:
         """
         if apply_recall_pin:
             search_order_sql = self._with_recall_pin_order(search_order_sql)
+        list_started_at = perf_counter()
         rows = (
             self._db.execute(
                 text(
@@ -677,6 +729,9 @@ class MiniappHomeRepository:
             .mappings()
             .all()
         )
+        if timings is not None:
+            timings["search_sku_list"] = max(0, int((perf_counter() - list_started_at) * 1000))
+        count_started_at = perf_counter()
         total = int(
             self._db.execute(
                 text(
@@ -693,16 +748,51 @@ class MiniappHomeRepository:
             ).scalar_one()
             or 0
         )
+        if timings is not None:
+            timings["search_sku_count"] = max(0, int((perf_counter() - count_started_at) * 1000))
         return [
             self._to_product(dict(row), include_recall_pin=apply_recall_pin) for row in rows
         ], total
 
-    def list_search_named_results(self, *, keyword: str) -> dict[str, list[MiniappNamedResult]]:
+    def get_exact_search_brand_match(self, *, keyword: str) -> MiniappNamedResult | None:
+        cleaned_keyword = keyword.strip()
+        if not cleaned_keyword:
+            return None
+        row = self._db.execute(
+            text(
+                """
+                SELECT b.id, b.name, b.logo_object_key, COUNT(t.id) AS count
+                FROM brands b
+                JOIN tiles t ON t.brand_id = b.id AND t.status = 'PUBLISHED'
+                JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
+                LEFT JOIN tile_specs s ON s.id = t.spec_id
+                WHERE b.status = 'ENABLED'
+                  AND (s.id IS NULL OR s.status = 'ENABLED')
+                  AND (
+                    lower(b.name) = :exact_keyword
+                    OR lower(COALESCE(b.short_name, '')) = :exact_keyword
+                    OR lower(COALESCE(b.english_name, '')) = :exact_keyword
+                  )
+                GROUP BY b.id, b.name, b.logo_object_key
+                ORDER BY count DESC, b.sort_order ASC, b.id ASC
+                LIMIT 1
+                """
+            ),
+            {"exact_keyword": cleaned_keyword.lower()},
+        ).mappings().first()
+        return self._to_named_result(dict(row)) if row else None
+
+    def list_search_named_results(
+        self,
+        *,
+        keyword: str,
+        include_category_spec: bool = True,
+    ) -> dict[str, list[MiniappNamedResult]]:
         params = {"keyword": f"%{keyword.strip()}%"}
         brands = self._db.execute(
             text(
                 """
-                SELECT b.id, b.name, COUNT(t.id) AS count
+                SELECT b.id, b.name, b.logo_object_key, COUNT(t.id) AS count
                 FROM brands b
                 JOIN tiles t ON t.brand_id = b.id AND t.status = 'PUBLISHED'
                 JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
@@ -710,48 +800,51 @@ class MiniappHomeRepository:
                 WHERE b.status = 'ENABLED'
                   AND (s.id IS NULL OR s.status = 'ENABLED')
                   AND b.name LIKE :keyword
-                GROUP BY b.id, b.name
+                GROUP BY b.id, b.name, b.logo_object_key
                 ORDER BY count DESC, b.sort_order ASC, b.id ASC
                 LIMIT 8
                 """
             ),
             params,
         ).mappings().all()
-        categories = self._db.execute(
-            text(
-                """
-                SELECT c.id, c.name, COUNT(t.id) AS count
-                FROM tile_categories c
-                JOIN tiles t ON t.category_id = c.id AND t.status = 'PUBLISHED'
-                JOIN brands b ON b.id = t.brand_id AND b.status = 'ENABLED'
-                LEFT JOIN tile_specs s ON s.id = t.spec_id
-                WHERE c.status = 'ENABLED'
-                  AND (s.id IS NULL OR s.status = 'ENABLED')
-                  AND (c.name LIKE :keyword OR c.path LIKE :keyword)
-                GROUP BY c.id, c.name
-                ORDER BY count DESC, c.sort_order ASC, c.id ASC
-                LIMIT 8
-                """
-            ),
-            params,
-        ).mappings().all()
-        specs = self._db.execute(
-            text(
-                """
-                SELECT s.id, s.display_name AS name, COUNT(t.id) AS count
-                FROM tile_specs s
-                JOIN tiles t ON t.spec_id = s.id AND t.status = 'PUBLISHED'
-                JOIN brands b ON b.id = t.brand_id AND b.status = 'ENABLED'
-                JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
-                WHERE s.status = 'ENABLED'
-                  AND (s.display_name LIKE :keyword OR t.size LIKE :keyword)
-                GROUP BY s.id, s.display_name
-                ORDER BY count DESC, s.sort_order ASC, s.id ASC
-                LIMIT 8
-                """
-            ),
-            params,
-        ).mappings().all()
+        categories = []
+        specs = []
+        if include_category_spec:
+            categories = self._db.execute(
+                text(
+                    """
+                    SELECT c.id, c.name, COUNT(t.id) AS count
+                    FROM tile_categories c
+                    JOIN tiles t ON t.category_id = c.id AND t.status = 'PUBLISHED'
+                    JOIN brands b ON b.id = t.brand_id AND b.status = 'ENABLED'
+                    LEFT JOIN tile_specs s ON s.id = t.spec_id
+                    WHERE c.status = 'ENABLED'
+                      AND (s.id IS NULL OR s.status = 'ENABLED')
+                      AND (c.name LIKE :keyword OR c.path LIKE :keyword)
+                    GROUP BY c.id, c.name
+                    ORDER BY count DESC, c.sort_order ASC, c.id ASC
+                    LIMIT 8
+                    """
+                ),
+                params,
+            ).mappings().all()
+            specs = self._db.execute(
+                text(
+                    """
+                    SELECT s.id, s.display_name AS name, COUNT(t.id) AS count
+                    FROM tile_specs s
+                    JOIN tiles t ON t.spec_id = s.id AND t.status = 'PUBLISHED'
+                    JOIN brands b ON b.id = t.brand_id AND b.status = 'ENABLED'
+                    JOIN tile_categories c ON c.id = t.category_id AND c.status = 'ENABLED'
+                    WHERE s.status = 'ENABLED'
+                      AND (s.display_name LIKE :keyword OR t.size LIKE :keyword)
+                    GROUP BY s.id, s.display_name
+                    ORDER BY count DESC, s.sort_order ASC, s.id ASC
+                    LIMIT 8
+                    """
+                ),
+                params,
+            ).mappings().all()
         return {
             "brand": [self._to_named_result(dict(row)) for row in brands],
             "category": [self._to_named_result(dict(row)) for row in categories],
@@ -762,9 +855,18 @@ class MiniappHomeRepository:
         rows = self._db.execute(
             text(
                 """
-                SELECT bc.id, bc.name, bc.certificate_no, bc.issuer,
-                       COALESCE(bci.file_url, bc.file_url) AS file_url,
-                       b.name AS brand_name
+                SELECT bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
+                       CASE
+                         WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
+                         THEN '/media/' || bci.file_key
+                         WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
+                         THEN '/media/' || bc.file_key
+                         ELSE COALESCE(bci.file_url, bc.file_url)
+                       END AS file_url,
+                       COALESCE(bci.file_name, bc.file_name) AS file_name,
+                       COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
+                       b.name AS brand_name,
+                       b.logo_object_key AS brand_logo_object_key
                 FROM brand_certificates bc
                 JOIN brands b ON b.id = bc.brand_id
                 LEFT JOIN brand_certificate_images bci
@@ -785,14 +887,16 @@ class MiniappHomeRepository:
         return [
             MiniappCertificateResult(
                 id=int(row["id"]),
-                brand_id=None,
+                brand_id=int(row["brand_id"]) if row.get("brand_id") is not None else None,
                 name=str(row["name"]),
                 certificate_no=row.get("certificate_no"),
                 issuer=row.get("issuer"),
-                type=None,
+                type=row.get("type"),
                 brand_name=str(row["brand_name"]),
-                brand_logo_object_key=None,
+                brand_logo_object_key=row.get("brand_logo_object_key"),
                 file_url=str(row["file_url"]),
+                file_name=row.get("file_name"),
+                file_mime_type=row.get("file_mime_type"),
             )
             for row in rows
         ]
@@ -1254,6 +1358,7 @@ class MiniappHomeRepository:
         spec: str | None,
         price_min: float | None,
         price_max: float | None,
+        search_brand_id: int | None = None,
     ) -> tuple[str, dict[str, Any]]:
         cleaned_keyword = keyword.strip()
         clauses = [
@@ -1261,21 +1366,27 @@ class MiniappHomeRepository:
             "b.status = 'ENABLED'",
             "c.status = 'ENABLED'",
             "(s.id IS NULL OR s.status = 'ENABLED')",
-            """
-            (
-              t.name LIKE :keyword OR t.sku_code LIKE :keyword OR b.name LIKE :keyword
-              OR b.short_name LIKE :keyword OR b.english_name LIKE :keyword
-              OR t.size LIKE :keyword OR s.display_name LIKE :keyword
-              OR t.surface_finish LIKE :keyword OR t.color_family LIKE :keyword
-              OR c.name LIKE :keyword OR c.path LIKE :keyword
-            )
-            """,
         ]
         params: dict[str, Any] = {
             "keyword": f"%{cleaned_keyword}%",
             "exact_keyword": cleaned_keyword.lower(),
             "prefix_keyword": f"{cleaned_keyword.lower()}%",
         }
+        if search_brand_id is not None:
+            clauses.append("t.brand_id = :search_brand_id")
+            params["search_brand_id"] = search_brand_id
+        else:
+            clauses.append(
+                """
+                (
+                  t.name LIKE :keyword OR t.sku_code LIKE :keyword OR b.name LIKE :keyword
+                  OR b.short_name LIKE :keyword OR b.english_name LIKE :keyword
+                  OR t.size LIKE :keyword OR s.display_name LIKE :keyword
+                  OR t.surface_finish LIKE :keyword OR t.color_family LIKE :keyword
+                  OR c.name LIKE :keyword OR c.path LIKE :keyword
+                )
+                """
+            )
         if brand:
             clauses.append("b.name = :brand")
             params["brand"] = brand
@@ -1329,6 +1440,7 @@ class MiniappHomeRepository:
             id=int(row["id"] or 0),
             name=str(row["name"]),
             count=int(row["count"] or 0),
+            logo_object_key=row.get("logo_object_key"),
         )
 
     @staticmethod

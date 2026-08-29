@@ -4,32 +4,20 @@
 TBD - created by archiving change add-miniapp-product-list-component. Update Purpose after archive.
 ## Requirements
 ### Requirement: 微信小程序商品列表页入口
-系统 SHALL 提供微信小程序商品列表页，用于承接分类、搜索、品牌和首页推荐等入口的公开 SKU 浏览。分类入口 SHALL 显式支持一级分类聚合查询和二级分类精确查询。商品列表页 SHALL 保留入口上下文用于初始查询、标题和空状态展示，但 SHALL NOT 在页面内提供二次搜索、筛选或排序控件。
-
-#### Scenario: 一级分类入口进入商品列表
-- **WHEN** 用户从分类页一级分类商品入口进入商品列表
-- **THEN** 小程序 SHALL 打开 `pages/product-list/index?categoryId={primaryCategoryId}&categoryName={encodedName}&categoryLevel=primary&sourcePage=category` 或等价商品列表页
-- **AND** 页面 SHALL 展示一级分类名称作为标题或主要上下文说明
-- **AND** 页面 SHALL 请求并展示该一级分类自身直接挂载的公开 SKU，以及该一级分类下所有启用二级分类的公开 SKU 聚合结果
-- **AND** 页面 SHALL NOT 错误地遗漏直接挂载在一级分类下的 SKU。
-
-#### Scenario: 二级分类入口进入商品列表
-- **WHEN** 用户从分类页二级分类卡片进入商品列表
-- **THEN** 小程序 SHALL 打开 `pages/product-list/index?categoryId={secondaryCategoryId}&categoryName={encodedName}&categoryLevel=secondary&sourcePage=category` 或等价商品列表页
-- **AND** 页面 SHALL 展示二级分类名称作为标题或主要上下文说明
-- **AND** 页面 SHALL 请求并展示当前二级分类下可公开 SKU。
+系统 SHALL 提供微信小程序商品列表页，用于承接分类、搜索、品牌和首页推荐等入口的公开 SKU 浏览。分类入口 SHALL 显式支持一级分类聚合查询和二级分类精确查询。商品列表页 SHALL 保留入口上下文用于初始查询、标题、搜索路径和空状态展示，并 SHALL 支持当前分类、品牌、section 或关键词上下文下继续搜索或返回完整搜索页调整关键词。
 
 #### Scenario: 搜索入口进入商品列表
 - **WHEN** 用户从搜索结果 SKU Tab 或搜索结果入口进入商品列表
 - **THEN** 页面 SHALL 保留当前关键词用于初始结果查询、标题或空状态文案
 - **AND** 分页请求 SHALL 继续携带该关键词
 - **AND** 页面 SHALL NOT 丢失搜索上下文
-- **AND** 页面 SHALL NOT 展示商品列表页内二次搜索、筛选或排序控件。
+- **AND** 页面 SHALL 提供返回完整搜索页调整关键词或在当前商品列表范围继续搜索的路径。
 
 #### Scenario: 品牌和推荐入口进入商品列表
 - **WHEN** 用户从品牌相关页面、首页推荐、新品榜或热销榜进入商品列表
 - **THEN** 页面 SHALL 使用 `brandId`、`source`、`section` 或等价上下文加载公开 SKU
-- **AND** 目标入口不可用时 SHALL 安全降级到可返回提示或已有可用页面。
+- **AND** 目标入口不可用时 SHALL 安全降级到可返回提示或已有可用页面
+- **AND** 页面 MAY 提供当前品牌、section 或推荐上下文下继续搜索的入口。
 
 ### Requirement: 商品列表容器与状态机
 商品列表页 SHALL 提供可复用列表容器，统一处理查询上下文、分页、刷新、加载更多、无更多、空状态和错误状态。
@@ -102,32 +90,19 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 小程序 SHALL NOT 展示“置顶”标识。
 
 ### Requirement: 商品列表空状态与异常状态
-商品列表页 SHALL 根据上下文展示可恢复的空状态和异常状态。商品列表页不提供筛选控件，因此空状态 SHALL NOT 依赖清空筛选入口恢复。
-
-#### Scenario: 一级分类无可公开商品
-- **WHEN** 一级分类自身及其所有启用二级分类均没有可公开 SKU
-- **THEN** 页面 SHALL 展示“该分类暂未上架商品”或等价空状态
-- **AND** 页面 SHALL NOT 自动跳转其他分类。
-
-#### Scenario: 二级分类无商品
-- **WHEN** 二级分类上下文下没有可公开 SKU
-- **THEN** 页面 SHALL 展示“该分类暂未上架商品”或等价空状态
-- **AND** 页面 SHALL NOT 自动跳转其他分类。
+商品列表页 SHALL 根据上下文展示可恢复的空状态和异常状态。存在列表内搜索或搜索上下文时，空状态 SHALL 说明当前搜索范围，并提供调整关键词、清空当前列表关键词或进入完整搜索页的恢复路径。
 
 #### Scenario: 搜索无结果
 - **WHEN** 搜索上下文下没有匹配 SKU
 - **THEN** 页面 SHALL 展示当前关键词
-- **AND** 页面 SHALL 提示用户可返回搜索页调整关键词或搜索条件。
+- **AND** 页面 SHALL 提示用户可返回搜索页调整关键词或搜索条件
+- **AND** 若搜索属于当前分类、品牌或 section 范围，空态 SHALL 明确说明该范围。
 
 #### Scenario: 商品列表无匹配
-- **WHEN** 当前入口上下文下没有可公开 SKU
-- **THEN** 页面 SHALL 展示与分类、品牌、推荐或关键词上下文匹配的空状态
-- **AND** 页面 SHALL NOT 展示清空筛选入口。
-
-#### Scenario: 分类或品牌不可用
-- **WHEN** 入口携带的分类或品牌已下架、停用或不存在
-- **THEN** 页面 SHALL 展示可恢复空状态或返回提示
-- **AND** 页面 SHALL NOT 白屏、路由报错或展示内部错误。
+- **WHEN** 当前入口上下文下没有可公开 SKU 或列表内关键词无匹配结果
+- **THEN** 页面 SHALL 展示与分类、品牌、推荐、收藏或关键词上下文匹配的空状态
+- **AND** 页面 MAY 提供清空当前关键词或进入全局搜索的路径
+- **AND** 页面 SHALL NOT 将当前列表无匹配误表达为全站无结果。
 
 ### Requirement: 商品列表视觉与移动可用性
 商品列表页 SHALL 延续微信小程序深色企业轻奢风，并在主流小程序视口保持可用。商品列表页 SHALL 使用一行 2 个的双列商品卡片布局，首屏主要空间 SHALL 用于商品浏览。
@@ -150,23 +125,19 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 后续实现验收 SHALL 补充 320、375 和 430px 视口 evidence。
 
 ### Requirement: 商品列表页轻量双列浏览
-商品列表页 SHALL 作为轻量商品浏览页，直接展示当前入口上下文下的公开 SKU，并避免搜索、筛选和排序控件占用首屏浏览空间。
+商品列表页 SHALL 作为轻量商品浏览页，直接展示当前入口上下文下的公开 SKU，并避免复杂筛选抽屉、高级排序或完整搜索结果页嵌入占用首屏浏览空间。商品列表页 MAY 提供统一搜索入口、当前列表范围搜索或返回完整搜索页调整关键词的轻量路径。
 
-#### Scenario: 商品列表页不展示搜索筛选排序控件
+#### Scenario: 商品列表页提供轻量搜索路径
 - **WHEN** 用户打开 `pages/product-list/index` 商品列表页
-- **THEN** 页面 SHALL NOT 展示搜索框、搜索按钮、跳转搜索页的搜索入口、筛选按钮、筛选 chips、筛选抽屉入口或排序 tabs
-- **AND** 页面 SHALL 保留标题、入口上下文、状态反馈、商品卡片列表和必要的加载/错误/空态操作。
-
-#### Scenario: 商品列表页展示双列卡片
-- **WHEN** 商品列表页存在可浏览 SKU
-- **THEN** 页面 SHALL 使用一行 2 个商品卡片的双列布局展示商品
-- **AND** 商品卡片 SHALL 使用与首页热销推荐一致的信息结构和视觉密度
-- **AND** 单数商品数量时最后一张卡片 SHALL 保持左侧自然排列且不得拉伸为整行。
+- **THEN** 页面 SHALL 保留标题、入口上下文、状态反馈、商品卡片列表和必要的加载/错误/空态操作
+- **AND** 页面 MAY 展示统一搜索入口、当前列表范围关键词输入或返回完整搜索页的搜索路径
+- **AND** 页面 SHALL NOT 展示复杂筛选抽屉、高级排序 tabs、价格区间筛选或完整搜索结果页嵌入组件
+- **AND** 搜索路径 SHALL 明确表达当前范围或全局搜索语义。
 
 #### Scenario: 搜索页能力不受影响
-- **WHEN** 团队验收 REQ-0056 商品列表页收敛
-- **THEN** 微信小程序搜索页 SHALL 继续保留自身搜索、筛选、结果展示和相关埋点能力
-- **AND** 商品列表页的控件移除 SHALL NOT 删除或破坏搜索页代码路径。
+- **WHEN** 团队验收商品列表页搜索路径
+- **THEN** 微信小程序搜索页 SHALL 继续保留自身搜索首页、联想、结果展示和相关埋点能力
+- **AND** 商品列表页的轻量搜索路径 SHALL NOT 删除或破坏搜索页代码路径。
 
 ### Requirement: 商品列表页微信分享
 商品列表页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前搜索、分类、品牌和榜单上下文。

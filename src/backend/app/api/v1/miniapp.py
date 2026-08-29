@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -31,6 +31,10 @@ from app.schemas.miniapp_home import (
 from app.services.miniapp_home_service import MiniappHomeService
 
 router = APIRouter()
+
+
+def _server_timing_header(timings: dict[str, int]) -> str:
+    return ", ".join(f"{name};dur={duration}" for name, duration in timings.items())
 
 
 def get_miniapp_home_service(db: Session = Depends(get_db)) -> MiniappHomeService:
@@ -105,8 +109,9 @@ def list_brands(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
     page_size_camel: int | None = Query(None, alias="pageSize", ge=1, le=50),
+    keyword: str | None = Query(None, max_length=80),
 ) -> ApiResponse[MiniappBrandListData]:
-    return ApiResponse(data=service.get_brand_list(page=page, page_size=page_size_camel or page_size))
+    return ApiResponse(data=service.get_brand_list(page=page, page_size=page_size_camel or page_size, keyword=keyword))
 
 
 @router.get(
@@ -149,11 +154,13 @@ def list_certificates(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
     page_size_camel: int | None = Query(None, alias="pageSize", ge=1, le=50),
+    keyword: str | None = Query(None, max_length=80),
 ) -> ApiResponse[MiniappCertificateListData]:
     return ApiResponse(
         data=service.list_certificates(
             page=page,
             page_size=page_size_camel or page_size,
+            keyword=keyword,
         )
     )
 
@@ -217,6 +224,7 @@ def suggest_search(
     description="返回综合、SKU、品牌、类目、证书 Tab、分区结果、筛选 facets 与分页信息。",
 )
 def search_all(
+    response: Response,
     service: Annotated[MiniappHomeService, Depends(get_miniapp_home_service)],
     keyword: str = Query(..., min_length=1, max_length=80),
     tab: Literal["all", "sku", "brand", "category", "certificate"] = Query("all"),
@@ -229,19 +237,23 @@ def search_all(
     price_max: float | None = Query(None, ge=0),
     request_id: str | None = Query(None, max_length=128),
 ) -> ApiResponse[MiniappSearchData]:
+    timings: dict[str, int] = {}
+    data = service.search_all(
+        keyword=keyword,
+        active_tab=tab,
+        page=page,
+        page_size=page_size,
+        brand=brand,
+        category=category,
+        spec=spec,
+        price_min=price_min,
+        price_max=price_max,
+        request_id=request_id,
+        timings=timings,
+    )
+    response.headers["Server-Timing"] = _server_timing_header(timings)
     return ApiResponse(
-        data=service.search_all(
-            keyword=keyword,
-            active_tab=tab,
-            page=page,
-            page_size=page_size,
-            brand=brand,
-            category=category,
-            spec=spec,
-            price_min=price_min,
-            price_max=price_max,
-            request_id=request_id,
-        )
+        data=data
     )
 
 

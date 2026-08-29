@@ -1,0 +1,1065 @@
+{
+  "version": "v1.2.0",
+  "generated_at": "2026-08-28 16:59:43",
+  "image_required": true,
+  "image_required_rationale": "本发布范围包含后端运行代码、数据库迁移与 schema 文档、Web 管理端、小程序运行时代码、对象存储媒体派生图策略、OpenAPI/Orval、发布治理脚本与 Docker 镜像输入影响；按发布规范需要后续执行 /image-prepare v1.2.0 与 /image-build v1.2.0 形成镜像证据。",
+  "image_tag": "v1.2.0",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-026",
+      "sprint-025"
+    ],
+    "requirements": [
+      {
+        "id": "REQ-0123-upload-stage-trace-spans",
+        "title": "上传链路阶段级耗时写入 trace spans",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0123-upload-stage-trace-spans/trace.md"
+      },
+      {
+        "id": "REQ-0124-log-audit-behavior-trace-model",
+        "title": "日志审计补齐行为链路与任务链路采集模型",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0124-log-audit-behavior-trace-model/trace.md"
+      },
+      {
+        "id": "REQ-0125-miniapp-certificate-detail-home-floating-button",
+        "title": "小程序证书详情页补充返回首页悬浮按钮",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0125-miniapp-certificate-detail-home-floating-button/trace.md"
+      },
+      {
+        "id": "REQ-0126-product-data-collection-observability-standard",
+        "title": "建立通用产品数据采集与链路观测规范",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0126-product-data-collection-observability-standard/trace.md"
+      },
+      {
+        "id": "REQ-0127-product-data-collection-observability-hard-gate",
+        "title": "产品数据采集与链路观测规范硬门禁",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0127-product-data-collection-observability-hard-gate/trace.md"
+      },
+      {
+        "id": "REQ-0128-search-experience-unification",
+        "title": "搜索体验统一优化",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0128-search-experience-unification/trace.md"
+      },
+      {
+        "id": "REQ-0129-miniapp-sku-detail-actionbar-compact-favorite",
+        "title": "小程序商品详情页底部收藏按钮与操作栏紧凑化",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0129-miniapp-sku-detail-actionbar-compact-favorite/trace.md"
+      },
+      {
+        "id": "REQ-0114-version-deployment-upgrade-rollback-governance",
+        "title": "版本部署升级与回滚治理能力",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0114-version-deployment-upgrade-rollback-governance/trace.md"
+      },
+      {
+        "id": "REQ-0115-media-multi-variant-images",
+        "title": "媒体图片多规格展示图能力",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0115-media-multi-variant-images/trace.md"
+      },
+      {
+        "id": "REQ-0116-workflow-opsx-linked-change-backfill",
+        "title": "Workflow Sync linked Change 回填治理增强",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0116-workflow-opsx-linked-change-backfill/trace.md"
+      },
+      {
+        "id": "REQ-0117-media-maintenance-storage-unreachable-summary",
+        "title": "媒体维护 dry-run 对象存储不可达快速摘要增强",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0117-media-maintenance-storage-unreachable-summary/trace.md"
+      },
+      {
+        "id": "REQ-0118-unified-web-miniapp-image-variant-consumption-matrix",
+        "title": "Web 与小程序图片规格消费矩阵",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0118-unified-web-miniapp-image-variant-consumption-matrix/trace.md"
+      },
+      {
+        "id": "REQ-0119-admin-display-image-size-limit-setting",
+        "title": "管理端媒体与存储新增 display 图体积目标上限配置",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0119-admin-display-image-size-limit-setting/trace.md"
+      },
+      {
+        "id": "REQ-0120-webp-derived-image-variants",
+        "title": "WebP 派生图片规格策略",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0120-webp-derived-image-variants/trace.md"
+      },
+      {
+        "id": "REQ-0121-miniapp-certificate-detail-brand-card-entry",
+        "title": "小程序证书详情页品牌入口复用 brand-card",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0121-miniapp-certificate-detail-brand-card-entry/trace.md"
+      },
+      {
+        "id": "REQ-0122-batch-image-processing-runbook",
+        "title": "批量图片处理 Runbook 文档与投影治理",
+        "status": "done",
+        "scope": "formal",
+        "source": "issues/requirements/archive/REQ-0122-batch-image-processing-runbook/trace.md"
+      }
+    ],
+    "bugs": [
+      {
+        "id": "BUG-0141-ai-usage-token-count-jsonl",
+        "title": "AI usage extractor 未识别新版 token_count JSONL 导致 Sprint snapshot 缺失",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0141-ai-usage-token-count-jsonl/trace.md"
+      },
+      {
+        "id": "BUG-0140-admin-current-user-avatar-missing-object",
+        "title": "当前登录用户头像引用缺失媒体对象",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0140-admin-current-user-avatar-missing-object/trace.md"
+      },
+      {
+        "id": "BUG-0139-admin-avatar-upload-nginx-redirect-cors",
+        "title": "管理后台头像上传被 Nginx 301 重定向丢端口导致 CORS 拦截",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0139-admin-avatar-upload-nginx-redirect-cors/trace.md"
+      },
+      {
+        "id": "BUG-0142-admin-avatar-upload-storage-put-slow",
+        "title": "管理端头像 WebP 缩略图生成长尾性能问题",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0142-admin-avatar-upload-storage-put-slow/trace.md"
+      },
+      {
+        "id": "BUG-0143-miniapp-telemetry-request-amplification",
+        "title": "小程序启动阶段埋点请求放大",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0143-miniapp-telemetry-request-amplification/trace.md"
+      },
+      {
+        "id": "BUG-0144-miniapp-usage-events-overreporting",
+        "title": "小程序商品列表页与搜索页 usage-events 偏多",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0144-miniapp-usage-events-overreporting/trace.md"
+      },
+      {
+        "id": "BUG-0145-admin-log-detail-field-overlap",
+        "title": "Web 管理端日志详情抽屉字段布局重叠",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0145-admin-log-detail-field-overlap/trace.md"
+      },
+      {
+        "id": "BUG-0132-miniapp-sku-detail-large-image-cold-load",
+        "title": "小程序商品详情页媒体冷加载大图资源",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0132-miniapp-sku-detail-large-image-cold-load/trace.md"
+      },
+      {
+        "id": "BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url",
+        "title": "小程序商品详情页品牌卡拉取品牌 Logo 原图",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url/trace.md"
+      },
+      {
+        "id": "BUG-0134-miniapp-certificate-detail-display-url",
+        "title": "小程序证书详情页顶部展示缺少 display_url 导致退回原图",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0134-miniapp-certificate-detail-display-url/trace.md"
+      },
+      {
+        "id": "BUG-0135-miniapp-certificate-card-file-url-fallback",
+        "title": "小程序证书卡缺缩略图时回退 file_url 原文件",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0135-miniapp-certificate-card-file-url-fallback/trace.md"
+      },
+      {
+        "id": "BUG-0136-workflow-sync-bug-generate-captured-draft",
+        "title": "Workflow Sync 未在 bug.generate 后推进 captured BUG 状态",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0136-workflow-sync-bug-generate-captured-draft/trace.md"
+      },
+      {
+        "id": "BUG-0137-miniapp-lightweight-image-variant-consumption",
+        "title": "小程序 Banner、品牌 Logo、分享图普通展示未统一消费轻量图字段",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0137-miniapp-lightweight-image-variant-consumption/trace.md"
+      },
+      {
+        "id": "BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml",
+        "title": "Workflow Sync 写入 trace frontmatter 非法 YAML",
+        "status": "done",
+        "severity": "medium",
+        "scope": "formal",
+        "source": "issues/bugs/archive/BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml/trace.md"
+      }
+    ],
+    "changes": [
+      {
+        "id": "fix-ai-usage-message-content-token-count",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-ai-usage-message-content-token-count/"
+      },
+      {
+        "id": "fix-admin-current-user-avatar-object-consistency",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-fix-admin-current-user-avatar-object-consistency/"
+      },
+      {
+        "id": "fix-admin-avatar-upload-nginx-redirect-cors",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-fix-admin-avatar-upload-nginx-redirect-cors/"
+      },
+      {
+        "id": "add-upload-stage-trace-spans",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-add-upload-stage-trace-spans/"
+      },
+      {
+        "id": "fix-admin-avatar-webp-thumbnail-timeout",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-admin-avatar-webp-thumbnail-timeout/"
+      },
+      {
+        "id": "add-log-audit-behavior-trace-model",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-add-log-audit-behavior-trace-model/"
+      },
+      {
+        "id": "update-miniapp-certificate-detail-home-floating-button",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-update-miniapp-certificate-detail-home-floating-button/"
+      },
+      {
+        "id": "fix-miniapp-telemetry-request-amplification",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-miniapp-telemetry-request-amplification/"
+      },
+      {
+        "id": "fix-miniapp-usage-events-overreporting",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-miniapp-usage-events-overreporting/"
+      },
+      {
+        "id": "add-product-data-collection-observability-standard",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-add-product-data-collection-observability-standard/"
+      },
+      {
+        "id": "add-product-data-collection-observability-hard-gate",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-add-product-data-collection-observability-hard-gate/"
+      },
+      {
+        "id": "refine-skill-final-output-contract",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-refine-skill-final-output-contract/"
+      },
+      {
+        "id": "fix-workflow-sync-sprint-propose-iteration",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-workflow-sync-sprint-propose-iteration/"
+      },
+      {
+        "id": "update-search-experience-unification",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-28-update-search-experience-unification/"
+      },
+      {
+        "id": "fix-admin-log-detail-field-overlap",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-27-fix-admin-log-detail-field-overlap/"
+      },
+      {
+        "id": "update-miniapp-sku-detail-actionbar-compact-favorite",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-28-update-miniapp-sku-detail-actionbar-compact-favorite/"
+      },
+      {
+        "id": "add-version-deployment-upgrade-rollback-governance",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-add-version-deployment-upgrade-rollback-governance/"
+      },
+      {
+        "id": "add-media-multi-variant-images",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-add-media-multi-variant-images/"
+      },
+      {
+        "id": "tighten-sprint-propose-active-sprint-governance",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-tighten-sprint-propose-active-sprint-governance/"
+      },
+      {
+        "id": "fix-miniapp-sku-detail-large-image-cold-load",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-fix-miniapp-sku-detail-large-image-cold-load/"
+      },
+      {
+        "id": "update-workflow-opsx-linked-change-backfill",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-update-workflow-opsx-linked-change-backfill/"
+      },
+      {
+        "id": "improve-media-maintenance-storage-unreachable-summary",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-improve-media-maintenance-storage-unreachable-summary/"
+      },
+      {
+        "id": "update-media-image-variant-consumption-matrix",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-update-media-image-variant-consumption-matrix/"
+      },
+      {
+        "id": "fix-miniapp-sku-detail-brand-logo-thumbnail-url",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-fix-miniapp-sku-detail-brand-logo-thumbnail-url/"
+      },
+      {
+        "id": "fix-miniapp-certificate-detail-display-url",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-24-fix-miniapp-certificate-detail-display-url/"
+      },
+      {
+        "id": "fix-miniapp-certificate-card-file-url-fallback",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-fix-miniapp-certificate-card-file-url-fallback/"
+      },
+      {
+        "id": "fix-workflow-sync-bug-generate-status-transition",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-fix-workflow-sync-bug-generate-status-transition/"
+      },
+      {
+        "id": "add-admin-display-image-size-limit-setting",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-22-add-admin-display-image-size-limit-setting/"
+      },
+      {
+        "id": "add-webp-derived-image-variants",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-add-webp-derived-image-variants/"
+      },
+      {
+        "id": "update-miniapp-certificate-detail-brand-card-entry",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-24-update-miniapp-certificate-detail-brand-card-entry/"
+      },
+      {
+        "id": "tighten-bug-review-root-cause-confirmed-gate",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-24-tighten-bug-review-root-cause-confirmed-gate/"
+      },
+      {
+        "id": "fix-miniapp-lightweight-image-variant-consumption",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-fix-miniapp-lightweight-image-variant-consumption/"
+      },
+      {
+        "id": "add-batch-image-processing-runbook",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-add-batch-image-processing-runbook/"
+      },
+      {
+        "id": "fix-workflow-sync-trace-frontmatter-invalid-yaml",
+        "status": "archived",
+        "scope": "formal",
+        "archive": "openspec/archive/2026-08-25-fix-workflow-sync-trace-frontmatter-invalid-yaml/"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "c1c36a94e027171db19d9e703bb716b8ff789b6c6256fcd44864e745ec48720d",
+    "fields": {
+      "version": "v1.2.0",
+      "image_required": true,
+      "image_required_rationale": "本发布范围包含后端运行代码、数据库迁移与 schema 文档、Web 管理端、小程序运行时代码、对象存储媒体派生图策略、OpenAPI/Orval、发布治理脚本与 Docker 镜像输入影响；按发布规范需要后续执行 /image-prepare v1.2.0 与 /image-build v1.2.0 形成镜像证据。",
+      "image_tag": "v1.2.0",
+      "sprints": [
+        "sprint-026",
+        "sprint-025"
+      ],
+      "requirements": [
+        {
+          "id": "REQ-0123-upload-stage-trace-spans",
+          "title": "上传链路阶段级耗时写入 trace spans",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0123-upload-stage-trace-spans/trace.md"
+        },
+        {
+          "id": "REQ-0124-log-audit-behavior-trace-model",
+          "title": "日志审计补齐行为链路与任务链路采集模型",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0124-log-audit-behavior-trace-model/trace.md"
+        },
+        {
+          "id": "REQ-0125-miniapp-certificate-detail-home-floating-button",
+          "title": "小程序证书详情页补充返回首页悬浮按钮",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0125-miniapp-certificate-detail-home-floating-button/trace.md"
+        },
+        {
+          "id": "REQ-0126-product-data-collection-observability-standard",
+          "title": "建立通用产品数据采集与链路观测规范",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0126-product-data-collection-observability-standard/trace.md"
+        },
+        {
+          "id": "REQ-0127-product-data-collection-observability-hard-gate",
+          "title": "产品数据采集与链路观测规范硬门禁",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0127-product-data-collection-observability-hard-gate/trace.md"
+        },
+        {
+          "id": "REQ-0128-search-experience-unification",
+          "title": "搜索体验统一优化",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0128-search-experience-unification/trace.md"
+        },
+        {
+          "id": "REQ-0129-miniapp-sku-detail-actionbar-compact-favorite",
+          "title": "小程序商品详情页底部收藏按钮与操作栏紧凑化",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0129-miniapp-sku-detail-actionbar-compact-favorite/trace.md"
+        },
+        {
+          "id": "REQ-0114-version-deployment-upgrade-rollback-governance",
+          "title": "版本部署升级与回滚治理能力",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0114-version-deployment-upgrade-rollback-governance/trace.md"
+        },
+        {
+          "id": "REQ-0115-media-multi-variant-images",
+          "title": "媒体图片多规格展示图能力",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0115-media-multi-variant-images/trace.md"
+        },
+        {
+          "id": "REQ-0116-workflow-opsx-linked-change-backfill",
+          "title": "Workflow Sync linked Change 回填治理增强",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0116-workflow-opsx-linked-change-backfill/trace.md"
+        },
+        {
+          "id": "REQ-0117-media-maintenance-storage-unreachable-summary",
+          "title": "媒体维护 dry-run 对象存储不可达快速摘要增强",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0117-media-maintenance-storage-unreachable-summary/trace.md"
+        },
+        {
+          "id": "REQ-0118-unified-web-miniapp-image-variant-consumption-matrix",
+          "title": "Web 与小程序图片规格消费矩阵",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0118-unified-web-miniapp-image-variant-consumption-matrix/trace.md"
+        },
+        {
+          "id": "REQ-0119-admin-display-image-size-limit-setting",
+          "title": "管理端媒体与存储新增 display 图体积目标上限配置",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0119-admin-display-image-size-limit-setting/trace.md"
+        },
+        {
+          "id": "REQ-0120-webp-derived-image-variants",
+          "title": "WebP 派生图片规格策略",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0120-webp-derived-image-variants/trace.md"
+        },
+        {
+          "id": "REQ-0121-miniapp-certificate-detail-brand-card-entry",
+          "title": "小程序证书详情页品牌入口复用 brand-card",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0121-miniapp-certificate-detail-brand-card-entry/trace.md"
+        },
+        {
+          "id": "REQ-0122-batch-image-processing-runbook",
+          "title": "批量图片处理 Runbook 文档与投影治理",
+          "status": "done",
+          "scope": "formal",
+          "source": "issues/requirements/archive/REQ-0122-batch-image-processing-runbook/trace.md"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "BUG-0141-ai-usage-token-count-jsonl",
+          "title": "AI usage extractor 未识别新版 token_count JSONL 导致 Sprint snapshot 缺失",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0141-ai-usage-token-count-jsonl/trace.md"
+        },
+        {
+          "id": "BUG-0140-admin-current-user-avatar-missing-object",
+          "title": "当前登录用户头像引用缺失媒体对象",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0140-admin-current-user-avatar-missing-object/trace.md"
+        },
+        {
+          "id": "BUG-0139-admin-avatar-upload-nginx-redirect-cors",
+          "title": "管理后台头像上传被 Nginx 301 重定向丢端口导致 CORS 拦截",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0139-admin-avatar-upload-nginx-redirect-cors/trace.md"
+        },
+        {
+          "id": "BUG-0142-admin-avatar-upload-storage-put-slow",
+          "title": "管理端头像 WebP 缩略图生成长尾性能问题",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0142-admin-avatar-upload-storage-put-slow/trace.md"
+        },
+        {
+          "id": "BUG-0143-miniapp-telemetry-request-amplification",
+          "title": "小程序启动阶段埋点请求放大",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0143-miniapp-telemetry-request-amplification/trace.md"
+        },
+        {
+          "id": "BUG-0144-miniapp-usage-events-overreporting",
+          "title": "小程序商品列表页与搜索页 usage-events 偏多",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0144-miniapp-usage-events-overreporting/trace.md"
+        },
+        {
+          "id": "BUG-0145-admin-log-detail-field-overlap",
+          "title": "Web 管理端日志详情抽屉字段布局重叠",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0145-admin-log-detail-field-overlap/trace.md"
+        },
+        {
+          "id": "BUG-0132-miniapp-sku-detail-large-image-cold-load",
+          "title": "小程序商品详情页媒体冷加载大图资源",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0132-miniapp-sku-detail-large-image-cold-load/trace.md"
+        },
+        {
+          "id": "BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url",
+          "title": "小程序商品详情页品牌卡拉取品牌 Logo 原图",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0133-miniapp-sku-detail-brand-logo-thumbnail-url/trace.md"
+        },
+        {
+          "id": "BUG-0134-miniapp-certificate-detail-display-url",
+          "title": "小程序证书详情页顶部展示缺少 display_url 导致退回原图",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0134-miniapp-certificate-detail-display-url/trace.md"
+        },
+        {
+          "id": "BUG-0135-miniapp-certificate-card-file-url-fallback",
+          "title": "小程序证书卡缺缩略图时回退 file_url 原文件",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0135-miniapp-certificate-card-file-url-fallback/trace.md"
+        },
+        {
+          "id": "BUG-0136-workflow-sync-bug-generate-captured-draft",
+          "title": "Workflow Sync 未在 bug.generate 后推进 captured BUG 状态",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0136-workflow-sync-bug-generate-captured-draft/trace.md"
+        },
+        {
+          "id": "BUG-0137-miniapp-lightweight-image-variant-consumption",
+          "title": "小程序 Banner、品牌 Logo、分享图普通展示未统一消费轻量图字段",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0137-miniapp-lightweight-image-variant-consumption/trace.md"
+        },
+        {
+          "id": "BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml",
+          "title": "Workflow Sync 写入 trace frontmatter 非法 YAML",
+          "status": "done",
+          "severity": "medium",
+          "scope": "formal",
+          "source": "issues/bugs/archive/BUG-0138-workflow-sync-trace-frontmatter-invalid-yaml/trace.md"
+        }
+      ],
+      "changes": [
+        {
+          "id": "fix-ai-usage-message-content-token-count",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-ai-usage-message-content-token-count/"
+        },
+        {
+          "id": "fix-admin-current-user-avatar-object-consistency",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-fix-admin-current-user-avatar-object-consistency/"
+        },
+        {
+          "id": "fix-admin-avatar-upload-nginx-redirect-cors",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-fix-admin-avatar-upload-nginx-redirect-cors/"
+        },
+        {
+          "id": "add-upload-stage-trace-spans",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-add-upload-stage-trace-spans/"
+        },
+        {
+          "id": "fix-admin-avatar-webp-thumbnail-timeout",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-admin-avatar-webp-thumbnail-timeout/"
+        },
+        {
+          "id": "add-log-audit-behavior-trace-model",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-add-log-audit-behavior-trace-model/"
+        },
+        {
+          "id": "update-miniapp-certificate-detail-home-floating-button",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-update-miniapp-certificate-detail-home-floating-button/"
+        },
+        {
+          "id": "fix-miniapp-telemetry-request-amplification",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-miniapp-telemetry-request-amplification/"
+        },
+        {
+          "id": "fix-miniapp-usage-events-overreporting",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-miniapp-usage-events-overreporting/"
+        },
+        {
+          "id": "add-product-data-collection-observability-standard",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-add-product-data-collection-observability-standard/"
+        },
+        {
+          "id": "add-product-data-collection-observability-hard-gate",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-add-product-data-collection-observability-hard-gate/"
+        },
+        {
+          "id": "refine-skill-final-output-contract",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-refine-skill-final-output-contract/"
+        },
+        {
+          "id": "fix-workflow-sync-sprint-propose-iteration",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-workflow-sync-sprint-propose-iteration/"
+        },
+        {
+          "id": "update-search-experience-unification",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-28-update-search-experience-unification/"
+        },
+        {
+          "id": "fix-admin-log-detail-field-overlap",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-27-fix-admin-log-detail-field-overlap/"
+        },
+        {
+          "id": "update-miniapp-sku-detail-actionbar-compact-favorite",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-28-update-miniapp-sku-detail-actionbar-compact-favorite/"
+        },
+        {
+          "id": "add-version-deployment-upgrade-rollback-governance",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-add-version-deployment-upgrade-rollback-governance/"
+        },
+        {
+          "id": "add-media-multi-variant-images",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-add-media-multi-variant-images/"
+        },
+        {
+          "id": "tighten-sprint-propose-active-sprint-governance",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-tighten-sprint-propose-active-sprint-governance/"
+        },
+        {
+          "id": "fix-miniapp-sku-detail-large-image-cold-load",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-fix-miniapp-sku-detail-large-image-cold-load/"
+        },
+        {
+          "id": "update-workflow-opsx-linked-change-backfill",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-update-workflow-opsx-linked-change-backfill/"
+        },
+        {
+          "id": "improve-media-maintenance-storage-unreachable-summary",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-improve-media-maintenance-storage-unreachable-summary/"
+        },
+        {
+          "id": "update-media-image-variant-consumption-matrix",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-update-media-image-variant-consumption-matrix/"
+        },
+        {
+          "id": "fix-miniapp-sku-detail-brand-logo-thumbnail-url",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-fix-miniapp-sku-detail-brand-logo-thumbnail-url/"
+        },
+        {
+          "id": "fix-miniapp-certificate-detail-display-url",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-24-fix-miniapp-certificate-detail-display-url/"
+        },
+        {
+          "id": "fix-miniapp-certificate-card-file-url-fallback",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-fix-miniapp-certificate-card-file-url-fallback/"
+        },
+        {
+          "id": "fix-workflow-sync-bug-generate-status-transition",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-fix-workflow-sync-bug-generate-status-transition/"
+        },
+        {
+          "id": "add-admin-display-image-size-limit-setting",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-22-add-admin-display-image-size-limit-setting/"
+        },
+        {
+          "id": "add-webp-derived-image-variants",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-add-webp-derived-image-variants/"
+        },
+        {
+          "id": "update-miniapp-certificate-detail-brand-card-entry",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-24-update-miniapp-certificate-detail-brand-card-entry/"
+        },
+        {
+          "id": "tighten-bug-review-root-cause-confirmed-gate",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-24-tighten-bug-review-root-cause-confirmed-gate/"
+        },
+        {
+          "id": "fix-miniapp-lightweight-image-variant-consumption",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-fix-miniapp-lightweight-image-variant-consumption/"
+        },
+        {
+          "id": "add-batch-image-processing-runbook",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-add-batch-image-processing-runbook/"
+        },
+        {
+          "id": "fix-workflow-sync-trace-frontmatter-invalid-yaml",
+          "status": "archived",
+          "scope": "formal",
+          "archive": "openspec/archive/2026-08-25-fix-workflow-sync-trace-frontmatter-invalid-yaml/"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "涉及管理端头像上传/展示、媒体与存储 display 图体积目标配置、日志审计链路字段查询与日志详情布局；同时包含治理脚本和发布命令体验更新。",
+        "owner_web": "主要为媒体多规格消费矩阵与店主 Web 预留规范；未声明店主 Web 主路径 UI 改造。",
+        "miniapp": "涉及 SKU 详情媒体轻量展示、证书详情 display/brand-card/home-floating-button、搜索入口与搜索结果页、品牌/证书/收藏列表搜索、商品详情底部操作栏紧凑化、usage events 上报收敛。",
+        "backend": "涉及媒体派生图生成和维护、miniapp 品牌/证书/搜索接口、日志审计行为链路与 task trace spans、usage event 字典、请求日志和治理脚本。",
+        "database": "涉及 usage_events、request_logs、task_traces、task_trace_spans 等链路观测字段或迁移验证；发布准备需复核 SQLite/MySQL schema、MySQL drift/smoke 与回滚/备份证据。",
+        "object_storage": "涉及 thumbnail/display/original 多规格图片、WebP 派生图、历史对象回填、对象可达性摘要、头像对象一致性和媒体四联/五联验收。",
+        "docker": "涉及后端/Web 镜像构建输入、发布升级回滚治理和部署校验；需后续 image prepare/build 形成正式镜像证据。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v1.2.0",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    ".env.example",
+    "deploy/local/compose.yml",
+    "deploy/local/mysql-minio-external.env.example",
+    "deploy/local/mysql-minio-managed.env.example",
+    "deploy/local/mysql-tencent-cos.env.example",
+    "deploy/local/sqlite-minio-external.env.example",
+    "deploy/local/sqlite-minio-managed.env.example",
+    "deploy/local/sqlite-tencent-cos.env.example",
+    "deploy/prod/compose.tencent-cos.yml",
+    "deploy/prod/mysql-tencent-cos.env.example",
+    "deploy/scripts/down.sh",
+    "deploy/scripts/media-maintenance.sh",
+    "deploy/scripts/up.sh",
+    "deploy/scripts/validate-env.py",
+    "docker-compose.prod.external.yml",
+    "docker-compose.prod.yml",
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md",
+    "scripts/build-images.env.example",
+    "scripts/build-images.sh",
+    "src/backend/Dockerfile",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/schema.sql",
+    "src/shared/product-version.ts",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf"
+  ],
+  "input_hashes": {
+    ".env.example": "9f43fe0ef9e8fd77675ddf8d4054b83e8fcb6a6e83b622f466a09df92150d2b6",
+    "deploy/local/compose.yml": "bb92abd5c69507d32157b2f62a040eab4a937421850aa941624ca41f70fec89e",
+    "deploy/local/mysql-minio-external.env.example": "d18b36153dcbbafdeb91040ca08f8f6eb1eb1b750641a6437ef93df5fe926cbc",
+    "deploy/local/mysql-minio-managed.env.example": "329b800e73bcf3887a0bae37ceeaa6d5c61f77bdfa7d35e46d84fe75a26ded36",
+    "deploy/local/mysql-tencent-cos.env.example": "c7de8e093f6368560e35fd6bab0a87020dd6203c4a89d91a740fcf0ae06f9cb5",
+    "deploy/local/sqlite-minio-external.env.example": "01fc8c071fade5038793a136919cc5803e678473126f350066152dd5ecac45dc",
+    "deploy/local/sqlite-minio-managed.env.example": "47610e2f9d904eb5d3e7487570d1847a5db78a9ecba26371e8e7abbb00bed181",
+    "deploy/local/sqlite-tencent-cos.env.example": "efdc707202ff4620162f23c6df6a37ffdb19b99b1fc9139cd91b5f9a5a0b12a0",
+    "deploy/prod/compose.tencent-cos.yml": "ac58331284d79d7d6c9c727e9459aec440380466b64199549bc7a037796dab6b",
+    "deploy/prod/mysql-tencent-cos.env.example": "e6dc69f4aa5c79f3268871bd990aaa8faf39ccf47dc2a10e52c98111ccd00034",
+    "deploy/scripts/down.sh": "eeebd20cbc949ead0c3e8ba14749ecab0d5a8af4b945a802e803402bd6ab6db6",
+    "deploy/scripts/media-maintenance.sh": "96699f4a4cf1feb79fb82d108d3f82030b1434570a917b11cfd21b09117eb261",
+    "deploy/scripts/up.sh": "e0749eb9c4087e512207c683766ac9015eb7a2194bf778803fa051d41ef78bb5",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "f8dedb6b97875910ac313092d5329d7482448b0f499853285d8fc268e86f55d9",
+    "docker-compose.prod.yml": "242805e32dfdd2695d1159f015c4b9a4fde2ba38bbfa0ae876a5b4973f0b8287",
+    "docs/04-database-design.md": "07f4a2276cff7a5d8b0f2f720aaa108ae5cf71713aef089b46af59ab8671581b",
+    "docs/08-production-image-release.md": "2a7b8d78ad6926755f56d749c8e71744bde7f2f740437246a756b5fb3bfb72f6",
+    "scripts/build-images.env.example": "ae162c6b2d4156059a5c4eca0705536a9062284d5af2cad91c104cfbc1409ebd",
+    "scripts/build-images.sh": "64e00b32b3e19775fc70a1ff64ca88f66b385770ec69afcf4e1fec8ca6dae5d6",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "0613e6be4e5e775b490101d4dd85fe52105a43cd0379387fb28ff9891fada522",
+    "src/backend/app/db/mysql_migrations.py": "3c0ab5c6d618bbe0f56d01472ae208998bffa9585a4c8ed1abc10dcc2d73300e",
+    "src/backend/app/db/schema.mysql.sql": "af4f03431fc21c523488cb0be7aedaae3fd2faedd5931882212039ab5c950217",
+    "src/backend/app/db/schema.sql": "1d37e4cc0067a046a34bf2ba707e7e2244c9869b565d77b9eabf5d5422a53def",
+    "src/shared/product-version.ts": "85abe2b30e0773fa9d2bf713011dca4d28e3814cac2389f08c9e42c433f9934b",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "3d7ab6e12ae5fc6eadb2b8c43fc11faff22d04ec7d6a35001a9a1777c2c4a984"
+  },
+  "database_impact": {
+    "required": true,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v1.2.0"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v1.2.0"
+    }
+  ],
+  "auto_actions": [
+    {
+      "code": "image_tag_normalized",
+      "message": "Set IMAGE_BUILD_TAG to v1.2.0 in scripts/build-images.env."
+    }
+  ],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.0."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.0."
+    }
+  ],
+  "blockers": []
+}

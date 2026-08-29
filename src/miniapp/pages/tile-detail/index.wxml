@@ -141,9 +141,13 @@
   </view>
 
   <view wx:if="{{product}}" class="actions">
-    <button class="action-btn {{product.favorite ? 'active' : ''}}" loading="{{favoriteBusy}}" bindtap="toggleFavorite">
+    <button
+      class="action-btn {{product.favorite ? 'active' : ''}}"
+      loading="{{favoriteBusy}}"
+      bindtap="toggleFavorite"
+      aria-label="{{product.favorite ? '取消收藏' : '收藏'}}"
+    >
       <text class="action-icon">{{product.favorite ? '♥' : '♡'}}</text>
-      <text class="action-label">{{product.favorite ? '已收藏' : '收藏'}}</text>
     </button>
     <button class="share-btn" open-type="share">分享给客户</button>
   </view>

@@ -33,8 +33,14 @@
   </view>
 
   <view wx:else class="home-content">
-    <view class="search-box" bindtap="openSearch">
-      <text class="search-placeholder">搜索瓷砖名称、编号或规格</text>
+    <view class="home-search-entry">
+      <search-entry
+        mode="entry"
+        scope="all"
+        source-page="home"
+        placeholder="搜索瓷砖名称、编号、品牌或规格"
+        bind:tapentry="openSearch"
+      />
     </view>
 
     <swiper

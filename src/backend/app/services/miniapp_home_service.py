@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from time import perf_counter
 
 from app.core.exceptions import AppError, TileSkuNotFoundError
 from app.modules.media.storage import (
@@ -57,6 +58,7 @@ from app.schemas.miniapp_home import (
 
 _INTERNAL_BANNER_TITLE_PREFIXES = ("internal-", "internal_")
 _INTERNAL_BANNER_TITLE_TOKENS = ("MINIAPP_", "NO_JUMP")
+_DEFAULT_SEARCH_KEYWORDS = ["岩板", "柔光砖", "800×800", "客厅", "菲尚特"]
 
 
 class MiniappHomeService:
@@ -81,19 +83,20 @@ class MiniappHomeService:
             ],
             shortcuts=self._shortcuts(),
             services=self._services(),
-            new_products=[self._to_product_card(item, force_new=True) for item in new_products],
-            hot_products=[self._to_product_card(item, force_hot=True) for item in hot_products],
+            new_products=[self._to_list_product_card(item, force_new=True) for item in new_products],
+            hot_products=[self._to_list_product_card(item, force_hot=True) for item in hot_products],
         )
 
-    def get_brand_list(self, *, page: int, page_size: int) -> MiniappBrandListData:
-        items, total = self._repo.list_public_brands(page=page, page_size=page_size)
+    def get_brand_list(self, *, page: int, page_size: int, keyword: str | None = None) -> MiniappBrandListData:
+        normalized_keyword = (keyword or "").strip()
+        items, total = self._repo.list_public_brands(page=page, page_size=page_size, keyword=normalized_keyword)
         return MiniappBrandListData(
             banners=[
                 self._to_banner_item(item)
                 for item in self._repo.list_public_banners(
                     position="MINIAPP_BRAND_LIST_CAROUSEL"
                 )
-            ],
+            ] if not normalized_keyword else [],
             items=[self._to_brand_card(item, include_original_logo=False) for item in items],
             total=total,
             page=page,
@@ -146,10 +149,13 @@ class MiniappHomeService:
         *,
         page: int,
         page_size: int,
+        keyword: str | None = None,
     ) -> MiniappCertificateListData:
+        normalized_keyword = (keyword or "").strip()
         items, total = self._repo.list_public_certificates(
             page=page,
             page_size=page_size,
+            keyword=normalized_keyword,
         )
         return MiniappCertificateListData(
             items=[self._to_certificate_item(item, include_file_url=False) for item in items],
@@ -270,7 +276,7 @@ class MiniappHomeService:
             price_max=price_max,
         )
         return MiniappProductListData(
-            items=[self._to_product_card(item, force_new=section == "new") for item in items],
+            items=[self._to_list_product_card(item, force_new=section == "new") for item in items],
             total=total,
             page=page,
             page_size=page_size,
@@ -281,7 +287,7 @@ class MiniappHomeService:
     def get_search_home(self) -> MiniappSearchHomeData:
         hot_products, _ = self._repo.list_products(page=1, page_size=10, hot_first=True)
         hot_keywords = _unique_non_empty(
-            ["岩板", "柔光砖", "800×800", "客厅", "菲尚特"]
+            _DEFAULT_SEARCH_KEYWORDS
             + [item.brand_name for item in hot_products]
             + [item.category_name for item in hot_products]
             + [item.spec_name or item.size for item in hot_products]
@@ -289,7 +295,7 @@ class MiniappHomeService:
         return MiniappSearchHomeData(
             hot_keywords=hot_keywords,
             recent_browsing=[
-                self._to_product_card(item, force_hot=item.hot_score > 0) for item in hot_products[:10]
+                self._to_list_product_card(item, force_hot=item.hot_score > 0) for item in hot_products[:10]
             ],
         )
 
@@ -365,58 +371,151 @@ class MiniappHomeService:
         price_min: float | None,
         price_max: float | None,
         request_id: str | None,
+        timings: dict[str, int] | None = None,
     ) -> MiniappSearchData:
+        build_started_at = perf_counter()
         normalized = _normalize_keyword(keyword)
         selected_tab = active_tab if active_tab in {"all", "sku", "brand", "category", "certificate"} else "all"
-        products, product_total = self._repo.list_search_products(
-            keyword=normalized,
-            page=page,
-            page_size=page_size,
-            brand=brand,
-            category=category,
-            spec=spec,
-            price_min=price_min,
-            price_max=price_max,
-            apply_recall_pin=True,
+        should_query_sku = selected_tab in {"all", "sku"}
+        should_query_brand = selected_tab in {"all", "brand"}
+        should_query_certificate = selected_tab in {"all", "certificate"}
+        products: list[MiniappProductRecord] = []
+        product_total = 0
+        brand_match_started_at = perf_counter()
+        brand_fast_match = (
+            self._repo.get_exact_search_brand_match(keyword=normalized)
+            if should_query_sku or should_query_brand
+            else None
         )
-        named = self._repo.list_search_named_results(keyword=normalized)
-        certificates = self._repo.list_search_certificates(keyword=normalized)
-        product_cards = [self._to_product_card(item, force_hot=item.hot_score > 0) for item in products]
-        sections = [
-            MiniappSearchSection(
-                entity_type="sku",
-                title="SKU",
-                count=product_total,
-                items=[item.model_dump() for item in product_cards[:8]],
-            ),
-            MiniappSearchSection(
+        if timings is not None and (should_query_sku or should_query_brand):
+            timings["search_brand_match"] = max(0, int((perf_counter() - brand_match_started_at) * 1000))
+        search_brand_id = brand_fast_match.id if should_query_sku and brand_fast_match else None
+        if should_query_sku:
+            products, product_total = self._repo.list_search_products(
+                keyword=normalized,
+                page=page,
+                page_size=page_size,
+                brand=brand,
+                category=category,
+                spec=spec,
+                price_min=price_min,
+                price_max=price_max,
+                search_brand_id=search_brand_id,
+                apply_recall_pin=True,
+                include_hot_score=False,
+                timings=timings,
+            )
+        product_cards_started_at = perf_counter()
+        product_cards = [
+            self._to_product_card(item, force_hot=False, verify_media_exists=False)
+            for item in products
+        ]
+        if timings is not None and should_query_sku:
+            timings["search_product_cards"] = max(
+                0,
+                int((perf_counter() - product_cards_started_at) * 1000),
+            )
+        sku_section = MiniappSearchSection(
+            entity_type="sku",
+            title="SKU",
+            count=product_total,
+            items=[item.model_dump() for item in product_cards],
+        )
+        is_load_more_page = page > 1 and selected_tab in {"all", "sku"}
+        if is_load_more_page:
+            if timings is not None:
+                timings["search_build"] = max(0, int((perf_counter() - build_started_at) * 1000))
+            return MiniappSearchData(
+                keyword=keyword,
+                normalized_keyword=normalized,
+                request_id=request_id or _request_id(normalized),
+                active_tab=selected_tab,  # type: ignore[arg-type]
+                tabs=[
+                    MiniappSearchFacetOption(
+                        value="all",
+                        label="综合",
+                        count=product_total,
+                        selected=selected_tab == "all",
+                    ),
+                    MiniappSearchFacetOption(
+                        value="sku",
+                        label="SKU",
+                        count=product_total,
+                        selected=selected_tab == "sku",
+                    ),
+                    MiniappSearchFacetOption(value="brand", label="品牌", count=0, selected=False),
+                    MiniappSearchFacetOption(value="category", label="类目", count=0, selected=False),
+                    MiniappSearchFacetOption(value="certificate", label="证书", count=0, selected=False),
+                ],
+                best_match=None,
+                sections=[sku_section],
+                facets=MiniappSearchFacets(),
+                items=product_cards,
+                total=product_total,
+                page=page,
+                page_size=page_size,
+                has_more=page * page_size < product_total,
+                recommended_keywords=[],
+            )
+
+        named = {"brand": [], "category": [], "spec": []}
+        if should_query_brand:
+            if brand_fast_match:
+                named["brand"] = [brand_fast_match]
+            else:
+                brand_named_started_at = perf_counter()
+                named = self._repo.list_search_named_results(
+                    keyword=normalized,
+                    include_category_spec=False,
+                )
+                if timings is not None:
+                    timings["search_brand_named"] = max(
+                        0,
+                        int((perf_counter() - brand_named_started_at) * 1000),
+                    )
+        certificates = []
+        if should_query_certificate:
+            certificates_started_at = perf_counter()
+            certificates = self._repo.list_search_certificates(keyword=normalized)
+            if timings is not None:
+                timings["search_certificates"] = max(
+                    0,
+                    int((perf_counter() - certificates_started_at) * 1000),
+                )
+        sections: list[MiniappSearchSection] = []
+        if should_query_brand:
+            sections.append(MiniappSearchSection(
                 entity_type="brand",
                 title="品牌",
                 count=len(named["brand"]),
-                items=[item.__dict__ for item in named["brand"]],
-            ),
-            MiniappSearchSection(
-                entity_type="category",
-                title="类目",
-                count=len(named["category"]),
-                items=[item.__dict__ for item in named["category"]],
-            ),
-            MiniappSearchSection(
+                items=[self._brand_search_item(item) for item in named["brand"]],
+            ))
+        if should_query_certificate:
+            sections.append(MiniappSearchSection(
                 entity_type="certificate",
                 title="证书",
                 count=len(certificates),
-                items=[item.__dict__ for item in certificates],
-            ),
-        ]
+                items=[self._certificate_search_item(item) for item in certificates],
+            ))
+        if should_query_sku:
+            sections.append(sku_section)
         visible_sections = [
             section for section in sections if selected_tab == "all" or section.entity_type == selected_tab
         ]
-        facets = self._search_facets(normalized, brand=brand, category=category, spec=spec)
+        facets = MiniappSearchFacets()
+        response_total = (
+            product_total + len(named["brand"]) + len(certificates)
+            if selected_tab == "all"
+            else product_total if selected_tab == "sku"
+            else len(named["brand"]) if selected_tab == "brand"
+            else len(certificates) if selected_tab == "certificate"
+            else 0
+        )
         tabs = [
             MiniappSearchFacetOption(
                 value="all",
                 label="综合",
-                count=product_total + len(named["brand"]) + len(named["category"]) + len(certificates),
+                count=product_total + len(named["brand"]) + len(certificates),
                 selected=selected_tab == "all",
             ),
             MiniappSearchFacetOption(value="sku", label="SKU", count=product_total, selected=selected_tab == "sku"),
@@ -426,7 +525,7 @@ class MiniappHomeService:
             MiniappSearchFacetOption(
                 value="category",
                 label="类目",
-                count=len(named["category"]),
+                count=0,
                 selected=selected_tab == "category",
             ),
             MiniappSearchFacetOption(
@@ -437,6 +536,8 @@ class MiniappHomeService:
             ),
         ]
         best_match = self._best_match(named["brand"], certificates, product_cards, normalized)
+        if timings is not None:
+            timings["search_build"] = max(0, int((perf_counter() - build_started_at) * 1000))
         return MiniappSearchData(
             keyword=keyword,
             normalized_keyword=normalized,
@@ -447,11 +548,11 @@ class MiniappHomeService:
             sections=visible_sections,
             facets=facets,
             items=product_cards,
-            total=product_total,
+            total=response_total,
             page=page,
             page_size=page_size,
-            has_more=page * page_size < product_total,
-            recommended_keywords=self.get_search_home().hot_keywords[:6],
+            has_more=should_query_sku and page * page_size < product_total,
+            recommended_keywords=_DEFAULT_SEARCH_KEYWORDS[:6],
         )
 
     def _search_facets(
@@ -629,10 +730,10 @@ class MiniappHomeService:
             surface_finish=record.surface_finish,
             favorite=favorite,
             same_series_recommendations=[
-                self._to_product_card(item, force_hot=item.hot_score > 0) for item in series
+                self._to_list_product_card(item, force_hot=item.hot_score > 0) for item in series
             ],
             same_brand_recommendations=[
-                self._to_product_card(item, force_hot=item.hot_score > 0)
+                self._to_list_product_card(item, force_hot=item.hot_score > 0)
                 for item in brand_recommendations
             ],
             share=MiniappSkuShareInfo(
@@ -926,9 +1027,13 @@ class MiniappHomeService:
         force_new: bool = False,
         force_hot: bool = False,
         prefer_thumbnail: bool = True,
+        verify_media_exists: bool = True,
     ) -> MiniappProductCard:
         is_new = force_new or _is_recent(record.created_at)
-        variants = self._image_variant_urls(record.main_image_url) if record.main_image_url else {
+        variants = self._image_variant_urls(
+            record.main_image_url,
+            verify_exists=verify_media_exists,
+        ) if record.main_image_url else {
             "thumbnail_url": None,
             "display_url": None,
             "original_url": None,
@@ -955,6 +1060,22 @@ class MiniappHomeService:
             is_new=is_new,
             is_hot=force_hot or record.hot_score > 0,
             is_recall_pinned=record.is_recall_pinned,
+        )
+
+    def _to_list_product_card(
+        self,
+        record: MiniappProductRecord,
+        *,
+        force_new: bool = False,
+        force_hot: bool = False,
+        prefer_thumbnail: bool = True,
+    ) -> MiniappProductCard:
+        return self._to_product_card(
+            record,
+            force_new=force_new,
+            force_hot=force_hot,
+            prefer_thumbnail=prefer_thumbnail,
+            verify_media_exists=False,
         )
 
     @staticmethod
@@ -988,6 +1109,11 @@ class MiniappHomeService:
                     "name": brand_name,
                     "title": brand_name,
                     "count": getattr(brand, "count", 0),
+                    "logo_url": (
+                        MiniappHomeService._media_url(getattr(brand, "logo_object_key"))
+                        if getattr(brand, "logo_object_key", None)
+                        else None
+                    ),
                     "target_path": _target_path("brand", brand_id, brand_name),
                 }
         for certificate in certificates:
@@ -1002,10 +1128,50 @@ class MiniappHomeService:
                     "certificate_no": getattr(certificate, "certificate_no", None),
                     "issuer": getattr(certificate, "issuer", None),
                     "brand_name": getattr(certificate, "brand_name", None),
+                    "certificate_type": getattr(certificate, "type", None),
+                    "certificate_type_label": _certificate_type_label(getattr(certificate, "type", None)),
                     "file_url": getattr(certificate, "file_url", None),
+                    "thumbnail_url": MiniappHomeService._certificate_thumbnail_url(
+                        getattr(certificate, "file_url", None),
+                        getattr(certificate, "file_mime_type", None),
+                    ),
                     "target_path": f"/pages/search/index?keyword={normalized_keyword}&tab=certificate",
                 }
         return None
+
+    @staticmethod
+    def _brand_search_item(item: object) -> dict[str, object]:
+        logo_object_key = getattr(item, "logo_object_key", None)
+        return {
+            "entity_type": "brand",
+            "id": getattr(item, "id", None),
+            "name": getattr(item, "name", ""),
+            "title": getattr(item, "name", ""),
+            "count": getattr(item, "count", 0),
+            "logo_url": MiniappHomeService._media_url(logo_object_key) if logo_object_key else None,
+            "target_path": _target_path("brand", getattr(item, "id", None), getattr(item, "name", "")),
+        }
+
+    @staticmethod
+    def _certificate_search_item(item: object) -> dict[str, object]:
+        return {
+            "entity_type": "certificate",
+            "id": getattr(item, "id", None),
+            "name": getattr(item, "name", ""),
+            "title": getattr(item, "name", ""),
+            "certificate_no": getattr(item, "certificate_no", None),
+            "issuer": getattr(item, "issuer", None),
+            "brand_id": getattr(item, "brand_id", None),
+            "brand_name": getattr(item, "brand_name", None),
+            "certificate_type": getattr(item, "type", None),
+            "certificate_type_label": _certificate_type_label(getattr(item, "type", None)),
+            "file_url": getattr(item, "file_url", None),
+            "thumbnail_url": MiniappHomeService._certificate_thumbnail_url(
+                getattr(item, "file_url", None),
+                getattr(item, "file_mime_type", None),
+            ),
+            "target_path": f"/pages/search/index?keyword={getattr(item, 'name', '')}&tab=certificate",
+        }
 
     def _setting(self, key: str, default: str | None) -> str | None:
         record = self._settings_repo.get(key)
@@ -1026,7 +1192,7 @@ class MiniappHomeService:
         return str(getattr(image, "file_url", "") or "").strip()
 
     @classmethod
-    def _image_variant_urls(cls, object_key: str) -> dict[str, str | None]:
+    def _image_variant_urls(cls, object_key: str, *, verify_exists: bool = True) -> dict[str, str | None]:
         if object_key.startswith(("http://", "https://")):
             return {
                 "thumbnail_url": object_key,
@@ -1042,6 +1208,12 @@ class MiniappHomeService:
                 "original_url": object_key,
             }
         urls = media_variant_urls(raw_key)
+        if not verify_exists:
+            return {
+                "thumbnail_url": urls["thumbnail_url"],
+                "display_url": urls["display_url"],
+                "original_url": urls["original_url"],
+            }
         thumbnail_key = same_directory_thumbnail_object_key(raw_key)
         display_key = same_directory_display_object_key(raw_key)
         return {

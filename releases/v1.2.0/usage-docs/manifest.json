@@ -1,0 +1,388 @@
+{
+  "version": "v1.2.0",
+  "generated_at": "2026-08-28 16:52:37",
+  "source_version": "v1.0.0",
+  "source_release": {
+    "path": "release.json",
+    "sha256": "eb669859fd78a52b2f38254916f9135ef31be8dd7b4f59ca6de43f967d9111ca"
+  },
+  "input_files": [
+    "release.json",
+    "../../mintlify/docs.json",
+    "../../src/web/src/features/admin/components/AdminLayout.tsx",
+    "../../src/miniapp/app.json",
+    "../v1.0.0/usage-docs/manifest.json"
+  ],
+  "pages": [
+    "admin/catalog.mdx",
+    "admin/governance.mdx",
+    "admin/index.mdx",
+    "admin/media.mdx",
+    "faq.mdx",
+    "miniapp/brand-certificate.mdx",
+    "miniapp/browse.mdx",
+    "miniapp/index.mdx",
+    "overview.mdx",
+    "public/index.mdx"
+  ],
+  "site_projection": {
+    "status": "synced",
+    "source_release": "releases/v1.2.0",
+    "source_manifest": "releases/v1.2.0/usage-docs/manifest.json",
+    "target_site_root": "mintlify/docs/v1.2.0",
+    "latest_target": "mintlify/docs/latest",
+    "synced_at": "2026-08-28 16:54:23",
+    "mode": "copy",
+    "content_hashes": {
+      "admin/catalog.mdx": "092d8d9365930a76708f5a53593c5cc3983ed799a788e7d16f85a132dc309cfc",
+      "admin/governance.mdx": "ca756d53d16e657646ff5c3c9078490abfb4ce58747a609fa7fc6b63b05438ba",
+      "admin/index.mdx": "65293e66d04cb33ef731ebbefba59c5cbea4a6f832985a67fc20a6636359b3e8",
+      "admin/media.mdx": "852dd481a5438a8435f2056ac1a51005080ad72fcbc28f94d80e795ebc2001f5",
+      "faq.mdx": "dd6ac7d3f95bdcb12dbd3fbb14dbc7fdb7fba70b70e4154d49cb3977451c5cc4",
+      "miniapp/brand-certificate.mdx": "d6e147c92e5eb2ed2ffce85c517774573e7b556d2d810dc6d5da25f523a72384",
+      "miniapp/browse.mdx": "4e0d2b75ec658f1bca681f19c478800c1e001de1c2de584a938e252ddfe1af73",
+      "miniapp/index.mdx": "683aa94b3beac2a897c9185a4ac810560dc90d7b0578bc469bc58334881a5c33",
+      "overview.mdx": "6ef46d951debdfc528b5c3ca8ede231dc87f6212cf186e4d0990a0c50746fffc",
+      "public/index.mdx": "e7dd33a2c9b7a889b04a102c016b8ea63cd4945830bfca2b69506ff9408d285e"
+    },
+    "manual_overrides": []
+  },
+  "screenshots": [
+    {
+      "path": "/assets/screenshots/sha256-0df4d31166f358b3-admin-dashboard.png",
+      "pages": [
+        "overview.mdx"
+      ],
+      "caption": "管理端概览截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0013 archived QA system screenshot: admin-sidebar-version-actual.png",
+      "content_hash": "0df4d31166f358b34406209ded7ceda54aeb4c03f94aa6304277fe89eed2c9f8",
+      "site_asset": "mintlify/assets/screenshots/sha256-0df4d31166f358b3-admin-dashboard.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "overview.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-3f9a5408df8e587d-web-login.png",
+      "pages": [
+        "admin/index.mdx",
+        "public/index.mdx"
+      ],
+      "caption": "Web 管理端登录入口截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0005 archived QA system screenshot: login-failure-after-service-restart.png",
+      "content_hash": "3f9a5408df8e587d83c7e40dbb2a0480abca20a95fca199328e6ff231bce32ed",
+      "site_asset": "mintlify/assets/screenshots/sha256-3f9a5408df8e587d-web-login.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/index.mdx",
+        "public/index.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-1761a95b2917d44e-admin-sku-list.png",
+      "pages": [
+        "admin/catalog.mdx"
+      ],
+      "caption": "SKU 管理列表截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0096 archived QA system screenshot: admin-sku-category-filter-only-top-level.png",
+      "content_hash": "1761a95b2917d44eba41af5cd045019a4ea8885822684fb33e295bf3f6bca6bd",
+      "site_asset": "mintlify/assets/screenshots/sha256-1761a95b2917d44e-admin-sku-list.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/catalog.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-ac2a20b7e3fb1ef4-admin-brand-certificate.png",
+      "pages": [
+        "admin/media.mdx",
+        "miniapp/brand-certificate.mdx"
+      ],
+      "caption": "管理端媒体上传截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0085 archived QA system screenshot: upload-stuck-at-99.png",
+      "content_hash": "ac2a20b7e3fb1ef460daac690fe322826724d7d3d13f94a698b0130579149809",
+      "site_asset": "mintlify/assets/screenshots/sha256-ac2a20b7e3fb1ef4-admin-brand-certificate.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/media.mdx",
+        "miniapp/brand-certificate.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-751ed81a06ab7388-admin-banner-list.png",
+      "pages": [
+        "admin/media.mdx"
+      ],
+      "caption": "Banner 管理列表截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0030 archived QA system screenshot: banner-list-ui-inconsistency.png",
+      "content_hash": "751ed81a06ab73887fcb5f74224d7c9d3915c63493822461b67f6e7258a0078d",
+      "site_asset": "mintlify/assets/screenshots/sha256-751ed81a06ab7388-admin-banner-list.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/media.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-fba24b100c99d8da-admin-user-list.png",
+      "pages": [
+        "admin/governance.mdx"
+      ],
+      "caption": "账号资料页面截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0023 archived QA system screenshot: profile-page-duplicate-save-buttons.png",
+      "content_hash": "fba24b100c99d8daa1a1498657a739c2921a0e968b6318785b3766fee02027b0",
+      "site_asset": "mintlify/assets/screenshots/sha256-fba24b100c99d8da-admin-user-list.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/governance.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-bff42343e0485214-admin-system-settings.png",
+      "pages": [
+        "admin/governance.mdx"
+      ],
+      "caption": "管理端页面布局截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0054 archived QA system screenshot: admin-content-padding-example.png",
+      "content_hash": "bff42343e04852142b8c4bb35e9643a3386d87e58a39a0f077565b73b3bae6b0",
+      "site_asset": "mintlify/assets/screenshots/sha256-bff42343e0485214-admin-system-settings.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/governance.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-fba9da927946b3e3-admin-log-audit.png",
+      "pages": [
+        "admin/governance.mdx"
+      ],
+      "caption": "管理端列表页面截图",
+      "source_type": "accepted_system_evidence",
+      "source": "BUG-0027 archived QA system screenshot: tile-spec-list-pagination-font-inconsistency.png",
+      "content_hash": "fba9da927946b3e390b2a3285e214846df990845698efa07555438eca48b612e",
+      "site_asset": "mintlify/assets/screenshots/sha256-fba9da927946b3e3-admin-log-audit.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "admin/governance.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-1225c7d9dfcb2200-miniapp-home.png",
+      "pages": [
+        "miniapp/index.mdx",
+        "miniapp/brand-certificate.mdx"
+      ],
+      "caption": "小程序首页截图",
+      "source_type": "miniapp_devtools",
+      "source": "BUG-0065 miniapp devtools system screenshot: miniapp-preview-deviation.png",
+      "content_hash": "1225c7d9dfcb2200d0e0d2f14a6a89c5e463e1814adb7f1061601601361d95a4",
+      "site_asset": "mintlify/assets/screenshots/sha256-1225c7d9dfcb2200-miniapp-home.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "miniapp/index.mdx",
+        "miniapp/brand-certificate.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-484cf6c2f6fc8ce5-miniapp-category.png",
+      "pages": [
+        "miniapp/browse.mdx"
+      ],
+      "caption": "小程序分类页截图",
+      "source_type": "miniapp_devtools",
+      "source": "BUG-0093 miniapp devtools system screenshot: category-secondary-grid-truncated.png",
+      "content_hash": "484cf6c2f6fc8ce5e36d79140e2179117afc7c882cb373004a3b6a62072e18de",
+      "site_asset": "mintlify/assets/screenshots/sha256-484cf6c2f6fc8ce5-miniapp-category.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "miniapp/browse.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-9180ce7351ecfa54-miniapp-product-card.png",
+      "pages": [
+        "miniapp/browse.mdx"
+      ],
+      "caption": "小程序商品卡片截图",
+      "source_type": "miniapp_devtools",
+      "source": "BUG-0094 miniapp devtools system screenshot: miniapp-list-images-placeholder.png",
+      "content_hash": "9180ce7351ecfa5410b5adee99850f922c9e1bafa42cb552cbe2228482de2955",
+      "site_asset": "mintlify/assets/screenshots/sha256-9180ce7351ecfa54-miniapp-product-card.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "miniapp/browse.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    },
+    {
+      "path": "/assets/screenshots/sha256-9180ce7351ecfa54-miniapp-sku-detail.png",
+      "pages": [
+        "miniapp/browse.mdx",
+        "faq.mdx"
+      ],
+      "caption": "小程序商品列表真实截图",
+      "source_type": "miniapp_devtools",
+      "source": "BUG-0094 miniapp devtools system screenshot: miniapp-list-images-placeholder.png",
+      "content_hash": "9180ce7351ecfa5410b5adee99850f922c9e1bafa42cb552cbe2228482de2955",
+      "site_asset": "mintlify/assets/screenshots/sha256-9180ce7351ecfa54-miniapp-sku-detail.png",
+      "first_used_in": "v0.3.3",
+      "used_by_versions": [
+        "v0.3.3",
+        "v0.3.4",
+        "v1.0.0",
+        "v1.2.0"
+      ],
+      "covered_pages": [
+        "miniapp/browse.mdx",
+        "faq.mdx"
+      ],
+      "reuse_reason": "v1.2.0 继承 v1.0.0 完整使用文档基线；截图对应页面语义未变化，继续复用共享真实系统截图。"
+    }
+  ],
+  "coverage": {
+    "admin": {
+      "status": "covered",
+      "pages": [
+        "admin/index.mdx",
+        "admin/catalog.mdx",
+        "admin/media.mdx",
+        "admin/governance.mdx"
+      ],
+      "notes": "覆盖登录、导航、商品资料、品牌证书、Banner、媒体、用户、设置、日志和 API 文档。"
+    },
+    "miniapp": {
+      "status": "covered",
+      "pages": [
+        "miniapp/index.mdx",
+        "miniapp/browse.mdx",
+        "miniapp/brand-certificate.mdx"
+      ],
+      "notes": "覆盖首页、分类、搜索、商品、收藏、品牌、证书和分享浏览。"
+    },
+    "owner_web": {
+      "status": "covered",
+      "pages": [
+        "public/index.mdx"
+      ],
+      "notes": "覆盖 Web 展示入口、管理端登录入口和店主公开浏览边界。"
+    },
+    "release_impact_scope": {
+      "status": "covered",
+      "pages": [
+        "admin/catalog.mdx",
+        "admin/governance.mdx",
+        "admin/index.mdx",
+        "admin/media.mdx",
+        "faq.mdx",
+        "miniapp/brand-certificate.mdx",
+        "miniapp/browse.mdx",
+        "miniapp/index.mdx",
+        "overview.mdx",
+        "public/index.mdx"
+      ],
+      "notes": "已结合 v0.3.3 release impact_scope 补齐品牌/证书缩略图、小程序文案修复和发布注意事项。"
+    }
+  },
+  "manual_overrides": [
+    {
+      "change_type": "current_version_inherit_previous_usage_docs",
+      "authorized": true,
+      "reason": "v1.2.0 使用文档必须包含前一版本 v1.0.0 的完整内容。",
+      "confirmed_by": "automation",
+      "confirmed_at": "2026-08-28 16:52:37",
+      "files": [
+        "usage-docs/**",
+        "usage-docs/manifest.json",
+        "mintlify/docs/**"
+      ],
+      "summary": "从 v1.0.0 复制完整 usage docs 基线，并将页面版本号更新为 v1.2.0。"
+    }
+  ],
+  "automation_policy": {
+    "current_version": "generated files may be updated by automation after explicit generation decision",
+    "old_versions": "content is locked by default; non-content maintenance and public-safety fixes are allowed with trace",
+    "content_corrections_require_authorization": true
+  }
+}

@@ -4,6 +4,10 @@ const { reportPerformanceMetric } = require('./performance');
 const DEFAULT_BASE_URL = miniappApiConfig.apiBaseUrl;
 const CLIENT_TYPE = 'wechat_miniapp';
 const CLIENT_REQUEST_ID_PREFIX = 'miniapp';
+const BEHAVIOR_TRACE_ID_PREFIX = 'bt:miniapp';
+const BEHAVIOR_EVENT_ID_PREFIX = 'be:miniapp';
+
+let activeBehaviorContext = null;
 
 function baseUrl() {
   const app = getApp();
@@ -45,6 +49,18 @@ function createClientRequestId() {
   }
 }
 
+function createBehaviorId(prefix) {
+  try {
+    return `${prefix}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 10)}`;
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function setActiveBehaviorContext(behaviorTraceId, behaviorEventId) {
+  activeBehaviorContext = behaviorTraceId && behaviorEventId ? { behaviorTraceId, behaviorEventId } : null;
+}
+
 function cleanProperties(properties) {
   const next = {};
   Object.keys(properties).forEach((key) => {
@@ -62,11 +78,18 @@ function isTelemetryPath(path) {
 
 function request(path, options = {}) {
   const skipPerformanceTracking = Boolean(options.skipPerformanceTracking);
+  const behaviorTraceId = options.behaviorTraceId;
+  const behaviorEventId = options.behaviorEventId;
   const requestOptions = { ...options };
   delete requestOptions.skipPerformanceTracking;
+  delete requestOptions.behaviorTraceId;
+  delete requestOptions.behaviorEventId;
   const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
   const urls = baseUrls();
   const clientRequestId = createClientRequestId();
+  const behaviorContext = activeBehaviorContext;
+  const effectiveBehaviorTraceId = behaviorTraceId || (behaviorContext && behaviorContext.behaviorTraceId);
+  const effectiveBehaviorEventId = behaviorEventId || (behaviorContext && behaviorContext.behaviorEventId);
   const attempts = [];
 
   function tryRequest(index) {
@@ -82,6 +105,8 @@ function request(path, options = {}) {
           ...(requestOptions.header || {}),
           'x-client-type': CLIENT_TYPE,
           ...(clientRequestId ? { 'x-client-request-id': clientRequestId } : {}),
+          ...(effectiveBehaviorTraceId ? { 'x-behavior-trace-id': effectiveBehaviorTraceId } : {}),
+          ...(effectiveBehaviorEventId ? { 'x-behavior-event-id': effectiveBehaviorEventId } : {}),
         },
         success: (res) => {
           const body = res.data;
@@ -143,17 +168,26 @@ function request(path, options = {}) {
 
 function track(eventName, properties) {
   const cleanedProperties = cleanProperties(properties);
+  const behaviorTraceId = createBehaviorId(BEHAVIOR_TRACE_ID_PREFIX);
+  const behaviorEventId = createBehaviorId(BEHAVIOR_EVENT_ID_PREFIX);
+  setActiveBehaviorContext(behaviorTraceId, behaviorEventId);
   request('/api/v1/usage-events', {
     method: 'POST',
     skipPerformanceTracking: true,
+    behaviorTraceId,
+    behaviorEventId,
     data: {
       event_name: eventName,
       client_type: CLIENT_TYPE,
       page_path: String(cleanedProperties.page_path || ''),
       client_request_id: createClientRequestId(),
+      behavior_trace_id: behaviorTraceId,
+      behavior_event_id: behaviorEventId,
       properties: {
         ...cleanedProperties,
         client_type: CLIENT_TYPE,
+        behavior_trace_id: behaviorTraceId,
+        behavior_event_id: behaviorEventId,
       },
     },
   }).catch(() => {

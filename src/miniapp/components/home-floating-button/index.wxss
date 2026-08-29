@@ -13,7 +13,7 @@
 }
 
 .home-floating-area.offset-actionbar {
-  bottom: calc(190rpx + env(safe-area-inset-bottom));
+  bottom: calc(154rpx + env(safe-area-inset-bottom));
 }
 
 .home-floating-area.offset-list {

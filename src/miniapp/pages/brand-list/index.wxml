@@ -1,6 +1,19 @@
 <view class="page">
   <custom-navigation title="品牌" />
 
+  <view class="brand-search-entry">
+    <search-entry
+      mode="input"
+      keyword="{{keyword}}"
+      scope="brand"
+      source-page="brand-list"
+      placeholder="搜索品牌名称、简称或英文名"
+      bind:input="onSearchInput"
+      bind:submit="onSearchSubmit"
+      bind:clear="clearSearch"
+    />
+  </view>
+
   <view wx:if="{{status == 'loading'}}" class="skeleton-shell">
     <view class="skeleton-hero"></view>
     <view class="skeleton-list">
@@ -25,14 +38,15 @@
   </view>
 
   <view wx:elif="{{status == 'empty'}}" class="state">
-    <view class="state-title">暂无公开品牌</view>
-    <view class="state-desc">可以先按分类浏览公开商品。</view>
-    <button class="primary-btn" bindtap="openCategory">去看分类</button>
+    <view class="state-title">{{keyword ? '未找到相关品牌' : '暂无公开品牌'}}</view>
+    <view class="state-desc">{{keyword ? '请调整品牌名称、简称或英文名后重试。' : '可以先按分类浏览公开商品。'}}</view>
+    <button wx:if="{{keyword}}" class="primary-btn" bindtap="clearSearch">清空搜索</button>
+    <button wx:else class="primary-btn" bindtap="openCategory">去看分类</button>
   </view>
 
   <view wx:else class="brand-content">
     <swiper
-      wx:if="{{banners.length}}"
+      wx:if="{{!keyword && banners.length}}"
       class="brand-hero"
       autoplay
       circular
@@ -73,14 +87,14 @@
       </swiper-item>
     </swiper>
 
-    <view wx:else class="brand-hero fallback">
+    <view wx:elif="{{!keyword}}" class="brand-hero fallback">
       <view class="brand-hero-copy">
         <view class="brand-hero-title">全球严选瓷砖品牌</view>
       </view>
     </view>
 
     <view class="section-head">
-      <view class="section-title">品牌矩阵</view>
+      <view class="section-title">{{keyword ? '品牌搜索结果' : '品牌矩阵'}}</view>
     </view>
 
     <view class="brand-list">

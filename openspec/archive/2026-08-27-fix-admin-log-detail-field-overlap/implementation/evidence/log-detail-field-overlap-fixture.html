@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BUG-0145 日志详情字段布局证据</title>
+  <style>
+    :root {
+      --admin-line: rgba(24, 22, 15, 0.14);
+      --admin-weak: #8a867d;
+      --admin-text: #18160f;
+      --admin-gold: #a77b2f;
+      --admin-deep: #f8f7f4;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--admin-text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .admin-shell {
+      min-height: 100vh;
+      padding: 32px;
+      box-sizing: border-box;
+    }
+
+    .log-drawer {
+      width: min(100%, 960px);
+      margin: 0 auto;
+      border: 1px solid var(--admin-line);
+      background: #fff;
+    }
+
+    .log-drawer-head {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--admin-line);
+    }
+
+    .log-drawer-head p {
+      margin: 0 0 12px;
+      color: var(--admin-gold);
+      font-size: 12px;
+      letter-spacing: 0.24em;
+    }
+
+    .log-drawer-head h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 500;
+    }
+
+    .log-drawer-body {
+      display: grid;
+      gap: 20px;
+      min-width: 0;
+      overflow-x: hidden;
+      padding: 28px 32px 36px;
+    }
+
+    .log-detail-section {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--admin-line);
+    }
+
+    .log-detail-section h2 {
+      margin: 0;
+      color: var(--admin-gold);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .log-detail-section dl,
+    .snapshot-grid {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      margin: 0;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: minmax(0, clamp(148px, 34%, 220px)) minmax(0, 1fr);
+      gap: 12px;
+      min-width: 0;
+      font-size: 12px;
+    }
+
+    .detail-row dt {
+      min-width: 0;
+      color: var(--admin-weak);
+      overflow-wrap: anywhere;
+    }
+
+    .field-help-label {
+      display: inline-flex;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      align-items: flex-start;
+      gap: 5px;
+      line-height: 1.5;
+    }
+
+    .field-help-text {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .field-help-icon {
+      display: inline-flex;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+      border: 1px solid var(--admin-line);
+      border-radius: 50%;
+      color: var(--admin-weak);
+      font-size: 11px;
+    }
+
+    .detail-row dd {
+      max-width: 100%;
+      min-width: 0;
+      margin: 0;
+      color: var(--admin-text);
+      overflow-wrap: anywhere;
+      word-break: break-all;
+      white-space: normal;
+    }
+
+    .snapshot-block {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--admin-line);
+      background: var(--admin-deep);
+    }
+
+    .snapshot-block h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .snapshot-grid .detail-row {
+      grid-template-columns: minmax(0, clamp(154px, 38%, 220px)) minmax(0, 1fr);
+    }
+
+    @media (max-width: 720px) {
+      .admin-shell {
+        padding: 0;
+      }
+
+      .log-drawer {
+        width: 100vw;
+        max-width: 100vw;
+      }
+
+      .log-drawer-head,
+      .log-drawer-body {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .detail-row,
+      .snapshot-grid .detail-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-shell">
+    <aside class="log-drawer" aria-label="日志详情">
+      <header class="log-drawer-head">
+        <p>LOG DETAIL</p>
+        <h1>日志详情</h1>
+      </header>
+      <div class="log-drawer-body">
+        <section class="log-detail-section">
+          <h2>基础信息</h2>
+          <dl>
+            <div class="detail-row">
+              <dt><span class="field-help-label"><span class="field-help-text" title="parent_behavior_event_id">parent_behavior_event_id</span><span class="field-help-icon" aria-label="字段说明：parent_behavior_event_id">i</span></span></dt>
+              <dd>be:e032e062-f90b-48cd-a415-dc332b06dd5d</dd>
+            </div>
+            <div class="detail-row">
+              <dt><span class="field-help-label"><span class="field-help-text" title="client_request_id">client_request_id</span><span class="field-help-icon" aria-label="字段说明：client_request_id">i</span></span></dt>
+              <dd>web:60d93276-4be5-4cc1-b036-4b47ba5a8336</dd>
+            </div>
+            <div class="detail-row">
+              <dt><span class="field-help-label"><span class="field-help-text" title="behavior_trace_id">behavior_trace_id</span><span class="field-help-icon" aria-label="字段说明：behavior_trace_id">i</span></span></dt>
+              <dd>bt:800072a6-bc88-4656-b73a-03c8f2d881bf</dd>
+            </div>
+            <div class="detail-row">
+              <dt><span class="field-help-label"><span class="field-help-text" title="task_trace_id">task_trace_id</span><span class="field-help-icon" aria-label="字段说明：task_trace_id">i</span></span></dt>
+              <dd>task_upload_video_abcdef1234567890</dd>
+            </div>
+          </dl>
+        </section>
+        <section class="log-detail-section">
+          <h2>Request Snapshot</h2>
+          <div class="snapshot-block">
+            <h3>请求信息</h3>
+            <dl class="snapshot-grid">
+              <div class="detail-row">
+                <dt><span class="field-help-label"><span class="field-help-text" title="parent_behavior_event_id">parent_behavior_event_id</span><span class="field-help-icon" aria-label="字段说明：parent_behavior_event_id">i</span></span></dt>
+                <dd>be:e032e062-f90b-48cd-a415-dc332b06dd5d</dd>
+              </div>
+              <div class="detail-row">
+                <dt><span class="field-help-label"><span class="field-help-text" title="Client Request ID">Client Request ID</span><span class="field-help-icon" aria-label="字段说明：Client Request ID">i</span></span></dt>
+                <dd>web:60d93276-4be5-4cc1-b036-4b47ba5a8336</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>

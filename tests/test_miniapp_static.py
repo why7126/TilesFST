@@ -115,7 +115,7 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "search_filter_apply" in search_ts
     assert "/api/v1/miniapp/skus/${id}" in detail_ts
     assert "/api/v1/miniapp/products/${id}" in detail_ts
-    assert "/api/v1/miniapp/brands?page=" in brand_list_ts
+    assert "/api/v1/miniapp/brands?${params}" in brand_list_ts
     assert "/api/v1/miniapp/brands/${this.data.brandId}" in brand_detail_ts
     assert "/api/v1/miniapp/brands/${this.data.brandId}/certificates" in brand_detail_ts
     assert "/api/v1/miniapp/products?brandId=${this.data.brandId}" in brand_detail_ts
@@ -252,6 +252,125 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "home_contact_click" in store_ts
 
 
+def test_miniapp_search_entry_unification_contracts() -> None:
+    search_entry_ts = _read("components/search-entry/index.ts")
+    search_entry_js = _read("components/search-entry/index.js")
+    search_entry_wxml = _read("components/search-entry/index.wxml")
+    search_navigation_ts = _read("utils/search-navigation.ts")
+    api_ts = _read("services/api.ts")
+
+    assert "mode: { type: String, value: 'input' }" in search_entry_ts
+    assert "mode: { type: String, value: 'input' }" in search_entry_js
+    assert "onEntryTap" in search_entry_ts
+    assert "bindtap=\"onEntryTap\"" in search_entry_wxml
+    assert "triggerEvent('tapentry'" in search_entry_ts
+    assert "triggerEvent('tapentry'" in search_entry_js
+    assert "entry-placeholder" in search_entry_wxml
+    assert "sourcePage" in search_navigation_ts
+    assert "scope" in search_navigation_ts
+    assert "categoryId" in search_navigation_ts
+    assert "brandId" in search_navigation_ts
+    assert "section" in search_navigation_ts
+    assert "x-behavior-trace-id" in api_ts
+    assert "x-behavior-event-id" in api_ts
+    assert "behavior_trace_id: behaviorTraceId" in api_ts
+    assert "behavior_event_id: behaviorEventId" in api_ts
+
+    page_expectations = {
+        "pages/index/index": ('source-page="home"', 'scope="all"', 'bind:tapentry="openSearch"'),
+        "pages/product-list/index": ('source-page="product-list"', 'bind:submit="onSearchSubmit"', 'bind:cancel="openGlobalSearch"'),
+    }
+    for page, snippets in page_expectations.items():
+        page_json = _read(f"{page}.json")
+        page_wxml = _read(f"{page}.wxml")
+        page_ts = _read(f"{page}.ts")
+        page_js = _read(f"{page}.js")
+        assert '"search-entry": "../../components/search-entry/index"' in page_json
+        assert "<search-entry" in page_wxml
+        for snippet in snippets:
+            assert snippet in page_wxml
+        assert "navigateToSearch" in page_ts
+        assert "navigateToSearch" in page_js
+
+    certificate_json = _read("pages/certificates/index.json")
+    certificate_wxml = _read("pages/certificates/index.wxml")
+    certificate_ts = _read("pages/certificates/index.ts")
+    certificate_js = _read("pages/certificates/index.js")
+    assert '"search-entry": "../../components/search-entry/index"' in certificate_json
+    assert "<search-entry" in certificate_wxml
+    assert 'mode="input"' in certificate_wxml
+    assert 'keyword="{{keyword}}"' in certificate_wxml
+    assert 'source-page="certificate-list"' in certificate_wxml
+    assert 'scope="certificate"' in certificate_wxml
+    assert 'placeholder="搜索证书名称、品牌或证书类型"' in certificate_wxml
+    assert 'bind:tapentry="openSearch"' not in certificate_wxml
+    assert 'bind:submit="onSearchSubmit"' in certificate_wxml
+    assert 'bind:clear="clearSearch"' in certificate_wxml
+    assert "openSearch" not in certificate_ts
+    assert "openSearch" not in certificate_js
+    assert "navigateToSearch" not in certificate_ts
+    assert "navigateToSearch" not in certificate_js
+    assert "list_search_submit" in certificate_ts
+    assert "list_search_reset" in certificate_ts
+
+    favorites_json = _read("pages/favorites/index.json")
+    favorites_wxml = _read("pages/favorites/index.wxml")
+    favorites_ts = _read("pages/favorites/index.ts")
+    favorites_js = _read("pages/favorites/index.js")
+    assert '"search-entry": "../../components/search-entry/index"' in favorites_json
+    assert "<search-entry" in favorites_wxml
+    assert 'mode="input"' in favorites_wxml
+    assert 'keyword="{{keyword}}"' in favorites_wxml
+    assert 'source-page="favorites"' in favorites_wxml
+    assert 'scope="favorites"' in favorites_wxml
+    assert 'bind:submit="onSearchSubmit"' in favorites_wxml
+    assert 'bind:clear="clearSearchKeyword"' in favorites_wxml
+    assert 'bind:cancel="openGlobalSearch"' not in favorites_wxml
+    assert "openGlobalSearch" not in favorites_ts
+    assert "openGlobalSearch" not in favorites_js
+    assert "navigateToSearch" not in favorites_ts
+    assert "navigateToSearch" not in favorites_js
+
+    category_json = _read("pages/category/index.json")
+    category_wxml = _read("pages/category/index.wxml")
+    category_ts = _read("pages/category/index.ts")
+    category_js = _read("pages/category/index.js")
+    assert '"search-entry": "../../components/search-entry/index"' not in category_json
+    assert "<search-entry" not in category_wxml
+    assert "category-search-entry" not in category_wxml
+    assert "openSearch" not in category_ts
+    assert "openSearch" not in category_js
+    assert "navigateToSearch" not in category_ts
+    assert "navigateToSearch" not in category_js
+
+    brand_json = _read("pages/brand-list/index.json")
+    brand_wxml = _read("pages/brand-list/index.wxml")
+    brand_ts = _read("pages/brand-list/index.ts")
+    brand_js = _read("pages/brand-list/index.js")
+    assert '"search-entry": "../../components/search-entry/index"' in brand_json
+    assert "<search-entry" in brand_wxml
+    assert 'mode="input"' in brand_wxml
+    assert 'keyword="{{keyword}}"' in brand_wxml
+    assert 'source-page="brand-list"' in brand_wxml
+    assert 'scope="brand"' in brand_wxml
+    assert 'placeholder="搜索品牌名称、简称或英文名"' in brand_wxml
+    assert 'bind:tapentry="openSearch"' not in brand_wxml
+    assert 'bind:submit="onSearchSubmit"' in brand_wxml
+    assert 'bind:clear="clearSearch"' in brand_wxml
+    assert "openSearch" not in brand_ts
+    assert "openSearch" not in brand_js
+    assert "list_search_submit" in brand_ts
+    assert "list_search_reset" in brand_ts
+
+    product_ts = _read("pages/product-list/index.ts")
+    assert "list_search_submit" in product_ts
+    assert "list_search_reset" in product_ts
+    assert "filterSnapshot" in product_ts
+    assert "当前${this.searchScopeLabel()}没有找到" in product_ts
+    assert "filterFavorites" in favorites_ts
+    assert "收藏范围内没有找到" in favorites_ts
+
+
 def test_miniapp_local_api_base_urls_cover_default_and_docker_override() -> None:
     app_js = _read("app.js")
     app_ts = _read("app.ts")
@@ -321,9 +440,9 @@ def test_miniapp_rum_uses_product_version_and_request_id_contract() -> None:
     product_version_ts = _read("utils/product-version.ts")
     shared_product_version = (ROOT / "src" / "shared" / "product-version.ts").read_text(encoding="utf-8")
 
-    assert "export const PRODUCT_VERSION = 'v1.1.2'" in shared_product_version
-    assert "export const PRODUCT_VERSION = 'v1.1.2'" in product_version_ts
-    assert "const PRODUCT_VERSION = 'v1.1.2'" in product_version_js
+    assert "export const PRODUCT_VERSION = 'v1.2.0'" in shared_product_version
+    assert "export const PRODUCT_VERSION = 'v1.2.0'" in product_version_ts
+    assert "const PRODUCT_VERSION = 'v1.2.0'" in product_version_js
     for source in [performance_js, performance_ts]:
         assert "PRODUCT_VERSION" in source
         assert "miniappApiConfig.environment || 'dev'" not in source
@@ -502,7 +621,8 @@ def test_miniapp_home_runtime_entry_loads_home_data_and_interactions() -> None:
     assert "openBanner(event)" in home_js
     assert "hero-shade" not in home_wxml
     assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in home_js
-    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in home_js
+    assert "sourcePage: 'home-carousel'" in home_js
+    assert "navigateToSearch({" in home_js
     assert "if (banner.jump_type === 'none') {" in home_js
     assert "wx.showToast({ title: '内容建设中', icon: 'none' });" in home_js
     assert "openProduct(event)" in home_js
@@ -522,8 +642,8 @@ def test_miniapp_home_recommendation_entries_route_to_product_list() -> None:
         assert "/pages/product-list/index?section=${entry.section}" in source
         assert "/pages/product-list/index?section=${section}" in source
         assert "/pages/search/index?section=" not in source
-        assert "wx.navigateTo({ url: '/pages/search/index' })" in source
-        assert "/pages/search/index?keyword=${encodeURIComponent" in source
+        assert "navigateToSearch({ sourcePage: 'home', scope: 'all' })" in source
+        assert "sourcePage: 'home-carousel'" in source
 
     assert 'bindtap="openQuickEntry"' in home_wxml
     assert 'bindtap="openSection" data-section="new"' in home_wxml
@@ -817,7 +937,7 @@ def test_miniapp_home_floating_button_covers_non_home_pages_and_navigation_fallb
         ".home-floating-area.offset-tabbar",
         "bottom: calc(156rpx + env(safe-area-inset-bottom))",
         ".home-floating-area.offset-actionbar",
-        "bottom: calc(190rpx + env(safe-area-inset-bottom))",
+        "bottom: calc(154rpx + env(safe-area-inset-bottom))",
         "z-index: 24",
         "background: rgba(24,22,15,0.92)",
         "color: #C8A055",
@@ -913,7 +1033,7 @@ def test_miniapp_search_matches_req0046_prototype_structure() -> None:
         "border: 2rpx solid rgba(255,255,255,0.07)",
     ]:
         assert token in entry_wxss
-        assert token in home_wxss
+    assert "home-search-entry" in home_wxss
     assert "min-width: 112rpx" not in entry_wxss
 
     for token in ["最近搜索", "热门搜索"]:
@@ -944,10 +1064,36 @@ def test_miniapp_search_matches_req0046_prototype_structure() -> None:
     assert "displaySections" in search_js
     assert 'wx:for="{{displaySections}}"' in search_wxml
     assert "orderDisplaySections" in search_js
-    assert "['brand', 'sku', 'certificate']" in search_js
+    assert search_js.count("['brand', 'certificate', 'sku']") >= 2
     assert "section-result-product-card" in search_wxml
     assert "section-card-image-frame" in search_wxml
-    assert "section-card-price" in search_wxml
+    assert "section-card-image" in search_wxml
+    assert "section-card-price" not in search_wxml
+    assert "个公开 SKU" not in search_wxml
+    assert "个 SKU" in search_js
+    assert "card_meta_primary: '品牌名称'" in search_js
+    assert "card_meta_secondary: `${count} 个 SKU`" in search_js
+    assert "card_meta_primary: item.brand_name || '品牌待补充'" in search_js
+    assert "card_meta_secondary: item.certificate_type_label || item.certificate_type || item.type || '证书类型待补充'" in search_js
+    assert "normalizeSearchItem" in search_js
+    assert "mergeDisplaySections" in search_js
+    assert "current.items.concat(appended)" in search_js
+    assert "tabs: reset ? this.normalizeTabs(data.tabs || DEFAULT_TABS) : this.data.tabs" in search_js
+    assert "recommendedKeywords: reset ? data.recommended_keywords || [] : this.data.recommendedKeywords" in search_js
+    assert "if (!keyword) {\n      this.loadSearchHome();\n    }" in search_js
+    assert search_js.count("this.loadSearchHome();") >= 2
+    assert "loadingMore" in search_js
+    assert "loadingMore: true" in search_js
+    assert "loadingMore: false" in search_js
+    assert "this.data.loadingMore" in search_js
+    assert "onReachBottom()" in search_js
+    assert "this.loadMore();" in search_js
+    assert 'wx:if="{{loading && !hasResults}}"' in search_wxml
+    assert 'class="more-btn"' not in search_wxml
+    assert ".more-btn" not in search_wxss
+    assert "load-more-state" in search_wxml
+    assert "加载更多中..." in search_wxml
+    assert "已加载全部" in search_wxml
     assert 'wx:if="{{activeTab == \'all\' && bestMatch}}"' in search_wxml
     assert "bestMatch.entity_type == 'sku'" in search_wxml
     assert 'data-item="{{bestMatch}}"' in search_wxml
@@ -958,7 +1104,7 @@ def test_miniapp_search_matches_req0046_prototype_structure() -> None:
     assert 'wx:if="{{item.entity_type == \'sku\'}}"' in search_wxml
     assert 'source-module="section_sku"' in search_wxml
     assert 'product="{{sectionItem}}"' in search_wxml
-    assert "sections: data.sections || []" in search_js
+    assert "sections: displaySections.map" in search_js
     assert "hasResults" in search_js
     assert "searchResultCount" in search_js
     assert 'wx:elif="{{!hasResults}}"' in search_wxml
@@ -1024,8 +1170,11 @@ def test_miniapp_category_page_covers_tree_cache_navigation_and_states() -> None
     assert "page-title-row" not in category_wxml
     assert ".page-title-row" not in category_wxss
     assert "search-box" not in category_wxml
+    assert "<search-entry" not in category_wxml
+    assert "category-search-entry" not in category_wxml
+    assert '"search-entry": "../../components/search-entry/index"' not in _read("pages/category/index.json")
     assert "openSearch" not in category_js
-    assert "/pages/search/index" not in category_js
+    assert "navigateToSearch" not in category_js
     assert 'bindtap="openPrimaryProducts"' in category_wxml
     assert "primary-product-entry" in category_wxml
     assert "查看全部商品" in category_wxml
@@ -1052,6 +1201,7 @@ def test_miniapp_category_page_covers_tree_cache_navigation_and_states() -> None
     assert "color: rgba(237,232,223,0.5)" in category_wxss
     assert ".brand-header" not in category_wxss
     assert ".search-box" not in category_wxss
+    assert ".category-search-entry" not in category_wxss
 
 
 def test_miniapp_product_list_page_carries_category_navigation() -> None:
@@ -1086,7 +1236,7 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert "product_list_refresh" in product_list_js
     assert "product_list_load_more" in product_list_js
     assert "product_list_load_failed" in product_list_js
-    assert "filterSnapshot" not in product_list_js
+    assert "filterSnapshot" in product_list_js
     assert "mergeProducts" in product_list_js
     assert "onPullDownRefresh" in product_list_js
     assert "onReachBottom" in product_list_js
@@ -1100,10 +1250,11 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert "product-card" in product_list_wxml
     assert 'density="grid"' in product_list_wxml
     assert "search-box" not in product_list_wxml
+    assert "<search-entry" in product_list_wxml
     assert "filter-drawer" not in product_list_wxml
     assert "sort-tabs" not in product_list_wxml
     assert "activeFilterChips" not in product_list_wxml
-    assert "openSearch" not in product_list_js
+    assert "openGlobalSearch" in product_list_js
     assert "openFilter" not in product_list_js
     assert "changeSort" not in product_list_js
     assert "clearFilters" not in product_list_js
@@ -1273,8 +1424,22 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "loadMoreError" in certificate_js
     assert "加载更多失败，点击重试" in certificate_js
     assert "暂无公开证书" in certificate_wxml
+    assert "未找到相关证书" in certificate_wxml
     assert "没有符合筛选条件的证书" not in certificate_js
-    assert "搜索证书" not in certificate_wxml
+    assert "<search-entry" in certificate_wxml
+    assert 'mode="input"' in certificate_wxml
+    assert 'keyword="{{keyword}}"' in certificate_wxml
+    assert 'source-page="certificate-list"' in certificate_wxml
+    assert 'scope="certificate"' in certificate_wxml
+    assert 'bind:submit="onSearchSubmit"' in certificate_wxml
+    assert 'bind:clear="clearSearch"' in certificate_wxml
+    assert 'bind:tapentry="openSearch"' not in certificate_wxml
+    assert "openSearch" not in certificate_js
+    assert "navigateToSearch" not in certificate_js
+    assert "keyword ? `keyword=${encodeURIComponent(keyword)}` : ''" in certificate_js
+    assert "list_search_submit" in certificate_js
+    assert "list_search_reset" in certificate_js
+    assert "scope: 'certificate'" in certificate_js
     assert 'bindinput="onKeywordInput"' not in certificate_wxml
     assert 'bindconfirm="submitSearch"' not in certificate_wxml
     assert 'bindchange="onTypeChange"' not in certificate_wxml
@@ -1534,10 +1699,13 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "sku_brand_click" not in detail_ts
     assert "brand-logo" not in detail_wxml
     assert "action-icon" in detail_wxml
+    assert "action-label" not in detail_wxml
     assert detail_wxml.count('class="action-btn') == 1
     assert detail_wxml.count('class="share-btn"') == 1
     bottom_actions = detail_wxml[detail_wxml.index('<view wx:if="{{product}}" class="actions">'):]
     assert bottom_actions.index('bindtap="toggleFavorite"') < bottom_actions.index('open-type="share"')
+    assert "{{product.favorite ? '已收藏' : '收藏'}}" not in bottom_actions
+    assert 'aria-label="{{product.favorite ? \'取消收藏\' : \'收藏\'}}"' in bottom_actions
     assert ">品牌</text>" not in bottom_actions
     assert "分享给客户" in detail_wxml
     assert "同系列推荐" in detail_wxml
@@ -1545,9 +1713,12 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "购物车" not in detail_wxml
     assert "立即购买" not in detail_wxml
     assert "库存" not in detail_wxml
-    assert "grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr)" in detail_wxss
+    assert "padding-bottom: 126rpx" in detail_wxss
+    assert "grid-template-columns: 112rpx minmax(0, 1fr)" in detail_wxss
     assert "repeat(3, minmax(0, 1fr))" not in detail_wxss
     assert "height: 88rpx" in detail_wxss
+    assert "min-height: 108rpx" in detail_wxss
+    assert "min-height: 144rpx" not in detail_wxss
     assert "padding: 0" in detail_wxss
     assert "background: transparent" in detail_wxss
     assert "border-radius: 28rpx" in detail_wxss
@@ -1557,6 +1728,7 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert "height: 680rpx" not in detail_wxss
     assert "env(safe-area-inset-bottom)" in detail_wxss
     assert "min-height: 88rpx" in detail_wxss
+    assert ".action-label" not in detail_wxss
 
 
 def test_miniapp_sku_detail_video_fullscreen_actions_are_wired() -> None:
@@ -1634,6 +1806,8 @@ def test_miniapp_favorite_list_page_uses_local_storage_and_states() -> None:
         assert "favorite_list_item_click" in source
         assert "favorite_list_remove" in source
         assert "favorite_list_empty_action_click" in source
+        assert "list_search_submit" in source
+        assert "list_search_reset" in source
         assert "favorite_list_load_failed" in source
         assert "hasLogin: false" in source
         assert "Authorization" not in source
@@ -1641,6 +1815,12 @@ def test_miniapp_favorite_list_page_uses_local_storage_and_states() -> None:
         assert "favorite: false" in source
 
     assert '<custom-navigation title="收藏列表" />' in favorites_wxml
+    assert 'mode="input"' in favorites_wxml
+    assert 'bind:cancel="openGlobalSearch"' not in favorites_wxml
+    assert "openGlobalSearch" not in favorites_js
+    assert "navigateToSearch" not in favorites_js
+    assert "去全局搜索调整" not in favorites_wxml
+    assert "可以清空关键词继续看收藏。" in favorites_wxml
     assert '<view wx:if="{{total > 0}}" class="summary">' in favorites_wxml
     assert "已收藏商品：{{total}}" in favorites_wxml
     assert "当前收藏保存在本机" not in favorites_wxml
@@ -1697,8 +1877,14 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert brand_json["usingComponents"]["custom-navigation"] == "../../components/custom-navigation/index"
     assert "brand-card" not in brand_json["usingComponents"]
     assert '<custom-navigation title="品牌" />' in brand_wxml
-    assert "/api/v1/miniapp/brands?page=" in brand_ts
-    assert "/api/v1/miniapp/brands?page=" in brand_js
+    assert "/api/v1/miniapp/brands?${params}" in brand_ts
+    assert "/api/v1/miniapp/brands?${params}" in brand_js
+    assert "`page=${nextPage}`" in brand_ts
+    assert "`page=${nextPage}`" in brand_js
+    assert "`pageSize=${this.data.pageSize}`" in brand_ts
+    assert "`pageSize=${this.data.pageSize}`" in brand_js
+    assert "keyword=${encodeURIComponent(keyword)}" in brand_ts
+    assert "keyword=${encodeURIComponent(keyword)}" in brand_js
     assert "normalizeBrandItem" in brand_ts
     assert "normalizeBrandItem" in brand_js
     assert "leaf_category_names" in brand_ts
@@ -1706,16 +1892,36 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "leaf_categories" in brand_ts
     assert "leaf_categories" in brand_js
     assert "brand_list_page_view" in brand_js
+    assert "list_search_submit" in brand_js
+    assert "list_search_reset" in brand_js
+    assert "loadBrands(reset, searchEvent)" in brand_js
+    assert "if (searchEvent)" in brand_js
+    assert "this.trackBrandListEvent(searchEvent" in brand_js
+    assert "resultCount: data.total || merged.length" in brand_js
+    assert "this.loadBrands(true, 'list_search_submit')" in brand_js
+    assert "this.loadBrands(true, 'list_search_reset')" in brand_js
+    assert "this.trackBrandListEvent('list_search_submit'" not in brand_js
+    assert "this.trackBrandListEvent('list_search_reset'" not in brand_js
     assert "brand_list_carousel_click" in brand_js
     assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in brand_ts
     assert "const keyword = (banner.search_keyword || banner.title || '').trim();" in brand_js
-    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in brand_ts
-    assert "url: `/pages/search/index?keyword=${encodeURIComponent(keyword)}`" in brand_js
+    assert "sourcePage: 'brand-list-carousel'" in brand_ts
+    assert "sourcePage: 'brand-list-carousel'" in brand_js
     assert "brand_list_card_click" in brand_js
     assert "brand_list_category_click" in brand_js
     assert "wx.navigateTo" in brand_js
     assert "authorization" not in brand_js
     assert "cookie" not in brand_js
+    assert 'wx:if="{{!keyword && banners.length}}"' in brand_wxml
+    assert 'wx:elif="{{!keyword}}"' in brand_wxml
+    assert 'mode="input"' in brand_wxml
+    assert 'bind:submit="onSearchSubmit"' in brand_wxml
+    assert 'bind:clear="clearSearch"' in brand_wxml
+    assert 'bind:tapentry="openSearch"' not in brand_wxml
+    assert "openSearch" not in brand_js
+    assert "品牌搜索结果" in brand_wxml
+    assert "未找到相关品牌" in brand_wxml
+    assert "清空搜索" in brand_wxml
     assert "object_key" not in brand_js
     assert "<swiper" in brand_wxml
     assert "autoplay" in brand_wxml
@@ -1726,7 +1932,7 @@ def test_miniapp_brand_list_page_covers_carousel_grid_entry_and_tracking() -> No
     assert "BRAND GALLERY" not in brand_wxml
     assert "轮播图保持现有品牌页能力" not in brand_wxml
     carousel_block = brand_wxml[
-        brand_wxml.index('wx:for="{{banners}}"'):brand_wxml.index('<view wx:else class="brand-hero fallback"')
+        brand_wxml.index('wx:for="{{banners}}"'):brand_wxml.index('<view wx:elif="{{!keyword}}" class="brand-hero fallback"')
     ]
     assert 'wx:if="{{item.display_url}}"' in carousel_block
     assert 'src="{{item.display_url}}"' in carousel_block
@@ -1859,7 +2065,7 @@ def test_miniapp_home_matches_prototype_structure_and_visual_tokens() -> None:
     home_wxss = _read("pages/index/index.wxss")
 
     for token in [
-        "search-box",
+        "home-search-entry",
         "hero-button",
         "hero-dots",
         "shortcut-icon",

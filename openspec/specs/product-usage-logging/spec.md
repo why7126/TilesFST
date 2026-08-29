@@ -4,56 +4,21 @@
 定义产品使用行为埋点、API 请求日志、日志存储、管理端日志审计查询与详情展示能力，确保排障、安全审计和产品行为分析有统一、可检索、可脱敏的事实来源。
 ## Requirements
 ### Requirement: API 请求日志采集
-系统 SHALL 采集 API 请求日志摘要与统一 Request Snapshot，用于运维排障、审计链路关联和跨端请求上下文还原。
+系统 SHALL 为后端业务 API 请求采集脱敏请求日志。搜索和列表筛选请求 SHALL 保存安全查询摘要、结果数量、分页、耗时、client type、`behavior_trace_id`、`parent_behavior_event_id`、`client_request_id` 和服务端 `request_id` 中的可用字段，用于关联搜索行为与请求结果。
 
 #### Scenario: 生成或透传 request_id
-- **WHEN** 客户端发送 API 请求且未携带 request_id
-- **THEN** 系统 SHALL 为该请求生命周期生成 request_id
-- **AND** 请求日志 SHALL 存储该 request_id。
+- **WHEN** 业务 API 请求进入后端
+- **THEN** 系统 SHALL 生成服务端可信 `request_id`
+- **AND** 客户端传入的 `client_request_id` SHALL 仅作为辅助字段保存，不得覆盖服务端 `request_id`。
 
-#### Scenario: 持久化请求摘要
-- **WHEN** API 请求完成
-- **THEN** 系统 SHALL 持久化 method、path、status code、毫秒级耗时、request id、client type、可用的操作者上下文、摘要和创建时间。
-
-#### Scenario: 异常请求存储脱敏错误上下文
-- **WHEN** API 请求因应用错误或服务端错误失败
-- **THEN** 请求日志 SHALL 存储 status code、可用的 error code、错误摘要、request id 和已脱敏 metadata
-- **AND** SHALL NOT 存储原始密钥、密码、Authorization header、Cookie 或数据库连接串。
-
-#### Scenario: 默认排除噪声路由
-- **WHEN** 请求目标为健康检查、静态资源、Swagger/OpenAPI 文档或媒体直出路由
-- **THEN** 系统 SHALL 将该请求排除在默认请求日志采集之外。
-
-#### Scenario: 生成统一 Request Snapshot
-- **WHEN** 可采集 API 请求完成
-- **THEN** 系统 SHALL 为该请求生成统一 Request Snapshot
-- **AND** Snapshot SHALL 至少包含 method、path、route template、query 白名单摘要、body schema 摘要、业务资源标识、status code、error code、duration、操作者、客户端、环境、请求开始时间和响应结束时间
-- **AND** Snapshot SHALL 关联对应 request id。
-
-#### Scenario: route template 获取与降级
-- **WHEN** 系统采集 Request Snapshot 的路由上下文
-- **THEN** Snapshot SHALL 同时记录实际 path 和 FastAPI route template 或等价路由模板
-- **AND** 当 route template 无法稳定识别时，Snapshot SHALL 使用明确降级状态而不是使用带查询串的 path 冒充模板。
-
-#### Scenario: query 和 body 摘要脱敏
-- **WHEN** 系统采集 Request Snapshot 输入上下文
-- **THEN** query 参数 SHALL 按后端白名单采集
-- **AND** body SHALL 仅保存 schema 摘要、字段类型、字段数量、长度、业务安全字段或脱敏结果
-- **AND** Snapshot SHALL NOT 保存 Authorization、Cookie、密码、Token、真实密钥、数据库 DSN、MinIO AccessKey、MinIO SecretKey、内部路径、原始文件名或原始敏感 body。
-
-#### Scenario: 业务资源标识
-- **WHEN** 请求可从 path、query、body 或业务上下文识别业务资源
-- **THEN** Request Snapshot SHALL 记录 resource type 与 resource id 或等价 entity type 与 entity id
-- **AND** 当资源无法可靠识别时，Snapshot SHALL 使用空值或未识别状态，不得凭不可靠字符串猜测。
-
-#### Scenario: 跨端 Snapshot 字段兼容
-- **WHEN** 请求来自后台管理端、店主 Web 展示端、微信小程序或后端内部客户端
-- **THEN** Snapshot SHALL 使用兼容字段结构
-- **AND** client type SHALL 能区分 `web_admin`、`web_catalog`、`miniapp`、`backend` 或后续明确终端
-- **AND** 某终端无法提供的字段 SHALL 使用兼容空值。
+#### Scenario: 搜索请求日志摘要
+- **WHEN** 后端处理小程序搜索、列表内搜索或管理端列表搜索请求
+- **THEN** request log SHALL 保存路由、状态码、耗时、分页、结果数量、搜索范围和脱敏查询摘要
+- **AND** 若请求来自界面行为，request log SHALL 保存 `behavior_trace_id` 和 `parent_behavior_event_id` 或等价字段
+- **AND** request log SHALL NOT 保存完整关键词原文、完整 query string、完整请求体、完整响应体、Authorization、Cookie、Token、密码、密钥、`.env` 内容、本机绝对路径或未授权对象存储地址。
 
 ### Requirement: 产品使用行为事件采集
-系统 SHALL 按人工定义的事件字典采集产品使用行为事件。事件字典 SHALL 支持 Web 管理端既有事件，并 SHALL 支持微信小程序首页、首页样式信息架构优化、分类页、商品列表页、商品详情、搜索、收藏列表、品牌详情页、商品卡片组件和品牌卡片组件的详情访问、分享、咨询、快捷入口、瀑布流、搜索交互、收藏交互、品牌入口、卡片曝光、卡片点击和安全降级事件，用于小程序热销推荐统计、分类入口效果分析、搜索体验分析、收藏行为分析、品牌入口效果分析和后续产品优先级判断。
+系统 SHALL 按人工定义的事件字典采集产品使用行为事件。事件字典 SHALL 支持 Web 管理端既有事件，并 SHALL 支持微信小程序首页、首页样式信息架构优化、分类页、商品列表页、商品详情、搜索、收藏列表、品牌详情页、商品卡片组件和品牌卡片组件的详情访问、分享、咨询、快捷入口、瀑布流、搜索交互、收藏交互、品牌入口、卡片曝光、卡片点击和安全降级事件，用于小程序热销推荐统计、分类入口效果分析、搜索体验分析、收藏行为分析、品牌入口效果分析和后续产品优先级判断。搜索体验相关事件 SHALL 覆盖小程序与 Web 管理端的搜索入口点击、搜索输入停顿、搜索提交、联想曝光、联想点击、结果曝光、结果点击、无结果、列表筛选和重置。
 
 #### Scenario: 接受已登记事件
 - **WHEN** 客户端提交的 usage event 存在于事件字典且包含全部必填属性
@@ -70,94 +35,58 @@
 - **THEN** 系统 SHALL 按服务端校验策略在持久化前拒绝或移除这些属性
 - **AND** SHALL NOT 将前端脱敏作为安全边界。
 
-#### Scenario: 小程序收藏列表行为事件
-- **WHEN** 微信小程序用户浏览收藏页、点击收藏项、取消收藏、点击空状态行动入口或收藏页加载失败
-- **THEN** 系统 SHALL 接受已登记或等价预留的 `favorite_list_page_view`、`favorite_list_item_click`、`favorite_list_remove`、`favorite_list_empty_action_click` 和 `favorite_list_load_failed` 事件
-- **AND** 事件 SHALL 仅携带 terminal、objectType、objectId、index、sourcePage、hasLogin、resultCount、requestId、client type 和必要页面上下文
-- **AND** 事件 SHALL NOT 包含手机号、地址、客户姓名、Authorization header、Cookie、raw payload、raw object key、密钥、`.env` 内容或其它不必要个人敏感信息
-- **AND** 埋点失败 SHALL NOT 阻断收藏页浏览、跳转或取消收藏主流程。
-
-#### Scenario: 小程序品牌详情页行为事件
-- **WHEN** 微信小程序用户浏览品牌详情页、切换 Tab、加载品牌商品、加载更多品牌商品、加载品牌证书、点击证书或发生对应加载失败
-- **THEN** 系统 SHALL 接受已登记或等价预留的 `brand_detail_view`、`brand_detail_tab_click`、`brand_products_load`、`brand_products_load_more`、`brand_products_load_failed`、`brand_certificates_load`、`brand_certificates_load_failed` 和 `brand_certificate_click` 事件
-- **AND** 事件 SHALL 仅携带 sourcePage、sourceModule、brandId、brandName、tab、page、pageSize、resultCount、index、requestId、client type 和必要页面上下文
-- **AND** 事件 SHALL NOT 包含手机号、地址、客户姓名、Authorization header、Cookie、raw payload、raw object key、内部备注或其它不必要个人敏感信息
-- **AND** 埋点失败 SHALL NOT 阻断品牌页加载、Tab 切换、商品跳转、证书预览或详情跳转。
-
-#### Scenario: 小程序商品卡片组件行为事件
-- **WHEN** 微信小程序商品卡片发生曝光、可用点击、不可用点击或图片加载失败
-- **THEN** 系统 SHALL 接受已登记或等价预留的 `product_card_exposure`、`product_card_click`、`product_card_unavailable_click` 和 `product_card_image_failed` 事件
-- **AND** 事件 SHALL 仅携带 skuId、skuCode、sourcePage、sourceModule、listContext、index、categoryId、brandId、keyword、requestId、client type 和必要上下文
-- **AND** 事件 SHALL NOT 包含手机号、Authorization header、Cookie、raw payload、raw object key、内部备注或其它不必要个人敏感信息
-- **AND** 埋点失败 SHALL NOT 阻断商品卡片展示或详情跳转。
-
-#### Scenario: 小程序品牌卡片组件行为事件
-- **WHEN** 微信小程序品牌卡片发生可用点击、不可用点击或图片加载失败
-- **THEN** 系统 SHALL 接受已登记或等价预留的 `brand_card_click`、`brand_card_unavailable_click` 和 `brand_card_image_failed` 事件
-- **AND** 事件 SHALL 仅携带 brandId、brandName、sourcePage、sourceModule、skuId、listContext、index、requestId、unavailableReason、client type 和必要上下文
-- **AND** 事件 SHALL NOT 包含手机号、Authorization header、Cookie、raw payload、raw object key、内部备注或其它不必要个人敏感信息
-- **AND** 埋点失败 SHALL NOT 阻断品牌卡片展示、品牌详情跳转或 fallback 跳转。
-
-#### Scenario: 小程序事件字典防漂移
-- **WHEN** 小程序新增或修改 `track()` 事件
-- **THEN** 系统 SHALL 通过测试、静态校验或等价机制发现小程序事件名未在后端事件字典中登记的情况
-- **AND** 对动态事件名调用点 SHALL 维护代表性样例并纳入测试
-- **AND** 测试 SHALL 同时覆盖未知事件仍被拒绝和禁止字段仍被拒绝。
+#### Scenario: 搜索体验事件
+- **WHEN** 微信小程序或 Web 管理端上报搜索入口、搜索提交、联想、结果曝光、无结果、列表筛选或重置事件
+- **THEN** 系统 SHALL 接受已登记或等价预留的稳定搜索事件名
+- **AND** 事件属性 SHALL 包含 `sourcePage`、`scope`、`keywordDigest` 或等价关键词脱敏摘要、`resultCount`、`selectedTab`、筛选条件摘要、`requestId`、client type 和必要页面上下文中的可用字段
+- **AND** 事件 SHALL NOT 包含未脱敏关键词原文、Authorization、Cookie、Token、密码、完整请求体、完整响应体、raw object key、密钥、`.env` 内容或本机绝对路径
+- **AND** 埋点失败 SHALL NOT 阻断搜索、筛选、跳转、联想或结果点击。
 
 ### Requirement: 日志存储与保留
-系统 SHALL 将 request logs、Request Snapshot 与 usage events 存储在关系型存储中，并提供可查询索引和保留周期治理。日志查询常用索引 SHALL 在 SQLite demo 与 MySQL production 之间保持兼容，并 SHALL 支持管理端日志审计页的时间范围、客户端、状态或结果、操作者、request id、path 和 Task Trace 查询。
 
-#### Scenario: 常用筛选字段建立索引
-- **WHEN** 日志按创建时间、日志类型、操作者、request id、status code 或 result、client type、path 或 task trace id 查询
-- **THEN** 系统 SHALL 使用索引或等价优化的数据库访问方式
-- **AND** SQLite schema、SQLite migration、MySQL schema 和 MySQL migration SHALL 保持兼容索引定义
-- **AND** SHALL NOT 在过滤前将全部日志加载到内存。
+系统 SHALL 将 request logs、Request Snapshot 与 usage events 存储在关系型存储中，并提供可查询索引和保留周期治理。日志查询常用索引 SHALL 在 SQLite demo 与 MySQL production 之间保持兼容，并 SHALL 支持管理端日志审计页的时间范围、客户端、状态或结果、操作者、request id、path、行为链路和 Task Trace 查询。
 
-#### Scenario: BUG-0127 日志索引一致性
-- **WHEN** 修复管理端日志审计加载慢问题
-- **THEN** 系统 SHALL 至少评估并按需补齐 `request_logs(client_type, created_at)`、`request_logs(result, created_at)`、`usage_events(client_type, created_at)`、`usage_events(result, created_at)` 和 `audit_logs(created_at)` 等常用查询索引
-- **AND** 新增或调整索引 SHALL 同步到 SQLite / MySQL schema、迁移、数据库文档和测试
-- **AND** 迁移 SHALL 幂等执行，不破坏既有日志数据。
+#### Scenario: 行为链路字段索引
+
+- **WHEN** 系统新增或迁移日志链路字段
+- **THEN** SQLite schema、SQLite migration、MySQL schema 和 MySQL migration SHALL 支持 `usage_events.behavior_trace_id`
+- **AND** SHALL 支持 `usage_events.behavior_event_id`
+- **AND** SHALL 支持 `request_logs.behavior_trace_id`
+- **AND** SHALL 支持 `request_logs.parent_behavior_event_id`
+- **AND** SHALL 按 `behavior_trace_id`、`behavior_event_id`、`request_id`、`task_trace_id`、`parent_request_id` 和创建时间的常用查询建立索引或等价优化。
+
+#### Scenario: 历史日志兼容空行为链路
+
+- **WHEN** 系统读取历史 request logs、usage events、Task Trace 或 task spans
+- **THEN** 缺少 `behavior_trace_id`、`behavior_event_id` 或 `parent_behavior_event_id` 的记录 SHALL 以空值、未采集状态或等价兼容方式返回
+- **AND** 日志审计列表、详情和聚合查询 SHALL NOT 因空行为链路报错。
 
 ### Requirement: 管理端日志查询 API
+
 系统 SHALL 提供仅管理员可用的日志列表与详情查询 API，并在日志详情中返回统一 Request Snapshot。日志列表查询 SHALL 在日志量增长后保持可接受的首屏、筛选和分页性能；系统 SHALL 使用索引友好的查询路径、条件下推、低成本计数和可解耦指标策略，避免默认首屏被无条件三表 UNION、全量排序、全量计数或同步摘要聚合明显阻塞。
 
-#### Scenario: 管理员查询日志列表
-- **WHEN** 已认证 admin 调用 `GET /api/v1/admin/logs`
-- **THEN** 系统 SHALL 返回统一响应，包含分页日志项、total、page、page_size 和指标摘要或指标延迟态
-- **AND** 日志列表数据 SHALL 可在指标聚合失败、延迟或独立加载时先行返回
-- **AND** 响应 SHALL NOT 暴露 Authorization、Cookie、Token、密码、真实密钥、数据库 DSN、`.env` 内容、真实客户数据、内部绝对路径、完整请求体或完整响应体。
+#### Scenario: 按 behavior_trace_id 查询链路
 
-#### Scenario: 支持日志列表筛选
-- **WHEN** admin 按日志类型、时间范围、操作者、client type、status code 或 result、resource id、path、keyword、request id 或 task trace id 筛选
-- **THEN** 系统 SHALL 仅返回匹配日志，并按最新优先排序
-- **AND** 可下推筛选条件 SHALL 在对应日志表查询阶段尽量生效
-- **AND** 系统 SHALL NOT 在过滤前将全部 request logs、usage events 或 audit logs 加载到内存。
+- **WHEN** admin 使用 `behavior_trace_id` 查询日志审计数据
+- **THEN** 系统 SHALL 返回匹配行为链路的 usage events
+- **AND** SHALL 返回同一 `behavior_trace_id` 下的 request logs
+- **AND** SHALL 返回可通过 request logs 关联到的 Task Trace 摘要和流程节点入口
+- **AND** 查询 SHALL 使用索引友好路径，不得在过滤前全量加载日志。
 
-#### Scenario: 指定日志类型使用低成本查询路径
-- **WHEN** admin 指定 `log_type=request`、`log_type=usage_event` 或 `log_type=audit`
-- **THEN** 系统 SHALL 优先查询对应单表或等价低成本路径
-- **AND** 不应继续无条件扫描另外两类日志表
-- **AND** total、分页和 `created_at DESC` 排序 SHALL 与该日志类型的既有语义一致。
+#### Scenario: 按 request_id 查询直接 API 链路
 
-#### Scenario: 混合日志分页保持稳定
-- **WHEN** admin 未指定日志类型并查询混合日志列表
-- **THEN** 系统 SHALL 合并 request logs、usage events 和 audit logs 的匹配记录
-- **AND** 结果 SHALL 按 `created_at DESC` 稳定排序
-- **AND** total、page、page_size 和 items SHALL 与筛选条件保持一致
-- **AND** 实现 SHALL 通过等价测试覆盖跨日志类型排序、分页边界、空结果和重复时间戳场景。
+- **WHEN** admin 使用 `request_id` 查询直接 API 调用
+- **THEN** 系统 SHALL 返回该请求日志
+- **AND** 若存在 `task_traces.parent_request_id` 指向该 `request_id`，系统 SHALL 返回任务链路摘要和流程节点入口
+- **AND** 若请求没有行为来源，系统 SHALL 返回无界面行为来源的空态，而不是错误。
 
-#### Scenario: 摘要指标不阻塞列表首屏
-- **WHEN** 日志审计页需要展示 `today_logs`、`api_errors`、`slow_requests`、`sensitive_ops`
-- **THEN** 系统 SHALL 使用缓存、独立接口、异步加载、索引友好聚合或等价策略获取指标
-- **AND** 指标查询失败、超时或降级 SHALL NOT 阻断列表数据展示
-- **AND** 指标口径、延迟态或错误态 SHALL 在 API、Web 页面和测试中保持一致。
+#### Scenario: 按 task_trace_id 查询任务链路
 
-#### Scenario: 日志查询性能证据
-- **WHEN** BUG-0127 修复完成并进入验收
-- **THEN** 团队 SHALL 记录 SQLite demo 数据下优化前后的列表接口耗时和 `EXPLAIN QUERY PLAN` 摘要
-- **AND** 团队 SHALL 记录生产或生产等价 MySQL 的 `EXPLAIN`、慢查询摘要或无法获取时的原因与剩余风险
-- **AND** 验收 SHALL 覆盖默认首屏、常用筛选、单日志类型筛选、混合分页、指标加载和非管理员访问拒绝。
+- **WHEN** admin 使用 `task_trace_id` 查询日志审计数据
+- **THEN** 系统 SHALL 返回任务摘要
+- **AND** SHALL 返回对应 task trace spans
+- **AND** SHALL 能回溯到 `task_traces.parent_request_id` 对应的 request log
+- **AND** 对有行为链路的任务 SHALL 同时展示 `behavior_trace_id`。
 
 ### Requirement: 使用行为事件接收 API
 系统 SHALL 为受支持客户端提供 usage event 接收 API。
@@ -181,105 +110,69 @@
 
 系统 SHALL 提供 Web 管理端日志审计页面，并对齐产品 v2 Golden Reference。
 
-#### Scenario: 管理员打开日志审计页
+#### Scenario: 日志审计支持三类链路查询入口
 
-- **WHEN** 已认证 admin 打开 `/admin/logs`
-- **THEN** 系统 SHALL 在既有 Admin Shell 内渲染日志审计页面
-- **AND** SYSTEM sidebar SHALL 展示并激活 `日志审计`。
+- **WHEN** admin 打开 `/admin/logs`
+- **THEN** 页面 SHALL 支持按 `behavior_trace_id`、`request_id` 和 `task_trace_id` 查询
+- **AND** 筛选项 SHALL 与时间范围、日志类型、状态或结果、操作者和路径筛选协同工作
+- **AND** 筛选变化 SHALL 重置分页并使用后端真实分页结果。
 
-#### Scenario: 指标与筛选可见
+#### Scenario: 日志详情展示行为到流程节点链路
 
-- **WHEN** admin 查看日志审计页
-- **THEN** 页面 SHALL 展示 TODAY LOGS、API ERRORS、SLOW REQUESTS 和 SENSITIVE OPS 指标卡
-- **AND** 页面 SHALL 展示日志类型、时间范围、状态或结果、操作者、Task Trace ID、路径 / Request ID 筛选。
-- **AND** 时间范围 SHALL 提供最近5分钟、最近10分钟、最近30分钟、最近1小时、最近3小时、最近6小时、最近12小时、最近1天、最近2天、最近3天和最近7天，不提供全部时间选项。
-- **AND** 状态或结果筛选 SHALL 使用下拉选择交互，支持成功、失败和常见 HTTP 状态码精确筛选，且 SHALL 至少包含 `422 参数校验错误`。
+- **WHEN** admin 打开包含行为链路的日志详情
+- **THEN** 详情 SHALL 展示行为事件、API 请求、任务链路和流程节点之间的关系
+- **AND** 流程节点底层 MAY 来自 `task_trace_spans`
+- **AND** 用户可见文案 SHALL 使用“流程节点”描述任务内部 span。
 
-#### Scenario: 操作者筛选使用可搜索单选下拉
+#### Scenario: 无行为来源空态
 
-- **WHEN** admin 使用 `/admin/logs` 的操作者筛选项
-- **THEN** 页面 SHALL 提供单选可搜索下拉，而不是要求 admin 直接输入 User ID
-- **AND** 下拉 SHALL 支持按用户名称和账号搜索操作者候选
-- **AND** 候选项 SHALL 只展示两行：第一行账号 `username`，第二行用户名称 `display_name || username`
-- **AND** 候选项 SHALL 使用账号行区分同名用户。
-
-#### Scenario: 操作者筛选查询日志
-
-- **WHEN** admin 在操作者下拉中选择一个用户候选
-- **THEN** 页面 SHALL 使用该用户的 `id` 作为 `actor_user_id` 请求日志列表
-- **AND** 页面 SHALL NOT 将用户名称或账号字符串作为 `actor_user_id` 传给日志列表 API
-- **AND** 筛选变化 SHALL 将当前页重置为 1 并重新查询。
-
-#### Scenario: 操作者筛选清空与重置
-
-- **WHEN** admin 清空操作者筛选或点击页面重置
-- **THEN** 页面 SHALL 清除 `actor_user_id` 过滤条件
-- **AND** 日志列表 SHALL 按全部操作者和其他默认筛选条件重新查询。
-
-#### Scenario: 操作者候选异常状态
-
-- **WHEN** 操作者候选正在加载、无匹配结果或加载失败
-- **THEN** 页面 SHALL 在下拉或等价控件区域展示清晰状态
-- **AND** 候选加载失败 SHALL NOT 阻止 admin 使用日志类型、时间范围、状态、Task Trace ID、路径 / Request ID 等其他筛选
-- **AND** 候选加载失败反馈 SHALL 与日志列表查询失败反馈可区分。
-
-#### Scenario: 日志表格支持排障
-
-- **WHEN** admin 查看日志行
-- **THEN** 表格 SHALL 展示时间、类型、事件或摘要、操作者账号、客户端、状态或结果、耗时、Task Trace、request id 和详情操作。
-- **AND** 操作者列 SHALL 使用 `actor_username` 单行展示，不展示用户名称。
-- **AND** Task Trace 与 request id 列 SHALL 均以单行短 ID 加复制操作展示。
-- **AND** 类型与状态或结果 SHALL 通过不同颜色或等价视觉样式区分不同值，便于管理员快速扫描异常日志。
-
-#### Scenario: request_id 可复制且不造成布局位移
-
-- **WHEN** admin 复制带有 request id 的日志记录
-- **THEN** 系统 SHALL 优先将完整 request id 写入系统剪贴板
-- **AND** 系统 SHALL 使用 fixed toast 或等价不造成布局位移的反馈展示成功、失败或兜底结果
-- **AND** 当 Clipboard API 不存在、浏览器拒绝写入或写入失败时，系统 SHALL 不抛出未捕获错误
-- **AND** 系统 SHALL 提供手动复制指引、可选中文本或等价兜底，使 admin 仍可获取完整 request id
-- **AND** 系统 SHALL 仅在剪贴板写入成功时记录 `copy_request_id` 成功行为事件。
-
-#### Scenario: employee 不可打开页面
-
-- **WHEN** 已认证 employee 打开 `/admin/logs`
-- **THEN** 系统 SHALL 按既有管理端授权模式展示 forbidden 状态或重定向
-- **AND** 不暴露日志数据。
-
-#### Scenario: 日志能力测试覆盖
-
-- **WHEN** 实现完成
-- **THEN** 后端测试 SHALL 覆盖日志记录、校验、脱敏、权限、筛选和 not-found 行为
-- **AND** 前端测试 SHALL 覆盖列表渲染、筛选、操作者候选搜索、操作者选择、清空、重置、候选无结果、候选加载失败、同名用户区分、request_id 复制成功、Clipboard API 不可用兜底、复制写入失败兜底、详情抽屉、forbidden 状态和分页结构。
+- **WHEN** admin 查看直接 API 调用、历史日志或后台脚本调用产生的日志详情
+- **THEN** 页面 SHALL 显示无界面行为来源、未采集或等价空态
+- **AND** request log、Task Trace 和流程节点展示 SHALL 继续可用。
 
 ### Requirement: 日志详情抽屉
+
 系统 SHALL 在右侧抽屉中展示日志详情和 Request Snapshot，且不丢失列表上下文。
 
 #### Scenario: 打开详情抽屉
+
 - **WHEN** admin 选择日志行详情操作
 - **THEN** 页面 SHALL 打开右侧抽屉，并在抽屉背后保留可见列表上下文。
 
 #### Scenario: 详情分组匹配原型
+
 - **WHEN** 详情抽屉可见
 - **THEN** 抽屉 SHALL 分组展示基础信息、请求信息、操作者与客户端、操作上下文、事件属性和 metadata JSON。
 
 #### Scenario: Request Snapshot 结构化展示
+
 - **WHEN** 详情抽屉展示包含 Request Snapshot 的日志
 - **THEN** 抽屉 SHALL 结构化展示请求信息、输入摘要、业务资源、响应结果、操作者与客户端、环境与时间
 - **AND** JSON 视图 SHALL 作为辅助查看方式，不得作为唯一展示方式
 - **AND** 敏感字段被忽略或脱敏时 SHALL 展示脱敏状态摘要但不得展示敏感原文。
 
+#### Scenario: 长链路字段不重叠
+
+- **WHEN** 详情抽屉展示 `parent_behavior_event_id`、`client_request_id`、`behavior_trace_id`、`task_trace_id` 或等价长 snake_case 排障字段
+- **THEN** 字段名 SHALL NOT 侵入或遮挡字段值展示区域
+- **AND** 字段值 SHALL NOT 被字段名或字段说明图标遮挡
+- **AND** 基础信息、请求信息和 Request Snapshot SHALL 使用换行、截断、title、tooltip、响应式列宽、单列布局或等价可访问策略保持字段名和值可读
+- **AND** 窄宽度视口下抽屉内容 SHALL 可滚动且不得导致页面整体横向失控滚动。
+
 #### Scenario: Snapshot 空态与异常展示
+
 - **WHEN** Snapshot 字段缺失、metadata 为空或 metadata JSON 解析失败
 - **THEN** 日志详情抽屉 SHALL 继续展示核心日志字段
 - **AND** 缺失 Snapshot 字段 SHALL 展示未采集、空值或等价空态
 - **AND** 页面 SHALL NOT 崩溃。
 
 #### Scenario: 关闭抽屉
+
 - **WHEN** admin 点击关闭、点击遮罩或按下 Escape
 - **THEN** 抽屉 SHALL 关闭，并保留当前筛选和分页状态。
 
 #### Scenario: metadata 脱敏且可滚动
+
 - **WHEN** 抽屉展示 metadata
 - **THEN** metadata SHALL 使用等宽字体可滚动区域展示
 - **AND** 敏感字段 SHALL 被脱敏或省略。
@@ -406,47 +299,23 @@ Product usage logging SHALL preserve the existing `/admin/logs` request id copy 
 
 ### Requirement: 任务链路追踪
 
-系统 SHALL 为可追踪业务任务提供 Task Trace 模型，支持任务标识、任务节点、状态、耗时、错误码、资源关联、安全脱敏，并覆盖上传之外的长耗时、多步骤、跨服务、异步、批量、媒体处理、复杂保存和复杂查询类任务型业务接口。
+系统 SHALL 为可观测任务记录可关联的 Task Trace，包含任务类型、阶段 spans、状态、开始时间、结束时间或耗时、请求关联标识、失败摘要，并支持按任务或请求上下文查询。
 
-#### Scenario: 生成任务追踪标识
-- **WHEN** 用户发起需要追踪的业务任务
-- **THEN** 系统 SHALL 生成或确认 `task_trace_id`
-- **AND** `task_trace_id` SHALL NOT 包含用户原始文件名、手机号、密钥、业务敏感信息或可枚举自增序列。
+#### Scenario: 任务链路继承行为链路
 
-#### Scenario: 记录任务节点
-- **WHEN** 任务进入关键处理节点
-- **THEN** 系统 SHALL 记录 task span
-- **AND** span SHALL 至少包含 `task_trace_id`、`task_type`、`span_name`、`status`、开始时间和耗时或结束时间。
+- **GIVEN** 任务由带 `behavior_trace_id` 的 API 请求触发
+- **WHEN** 系统创建或更新 Task Trace
+- **THEN** Task Trace SHALL 记录 `parent_request_id`
+- **AND** Task Trace SHOULD 记录同一个 `behavior_trace_id`
+- **AND** task trace spans MAY 冗余记录 `behavior_trace_id` 以支持链路查询。
 
-#### Scenario: 任务状态可推导
-- **WHEN** 任务结束、失败、超时、取消或批量任务部分成功
-- **THEN** 系统 SHALL 将任务状态标记为 `success`、`failed`、`timeout`、`cancelled` 或 `partial_success`
-- **AND** 进行中的任务 SHALL 可标记为 `processing`。
+#### Scenario: 任务链路支持直接 API 请求
 
-#### Scenario: 任务节点关联请求
-- **WHEN** task span 发生在某个 HTTP 请求生命周期中
-- **THEN** span SHALL 关联对应 `request_id`
-- **AND** 同一 `task_trace_id` MAY 关联多个 request id。
-
-#### Scenario: 子请求和异步任务继承任务上下文
-- **WHEN** 一个用户操作触发子请求、后台 worker 或异步任务
-- **THEN** 子请求、后台 worker 或异步任务 SHALL 继承原始用户操作的 `task_trace_id`
-- **AND** 无法继承时 SHALL 记录降级 span 或明确的关联缺失原因。
-
-#### Scenario: 任务失败可诊断
-- **WHEN** 任务节点失败
-- **THEN** span SHALL 记录统一错误码或失败摘要
-- **AND** SHALL NOT 暴露 Authorization、Cookie、AccessKey、SecretKey、数据库 DSN、`.env` 内容、真实客户数据、内部绝对路径或完整敏感请求体。
-
-#### Scenario: 批量任务部分成功可诊断
-- **WHEN** 批量任务出现部分成功
-- **THEN** 系统 SHALL 记录成功数、失败数和失败分类摘要
-- **AND** 任务最终状态 SHALL 可表达为 `partial_success` 或等价可查询状态。
-
-#### Scenario: 任务追踪持久化可查询
-- **WHEN** 系统持久化 task trace 或 task span
-- **THEN** 持久化结构 SHALL 支持按 `task_trace_id`、`task_type` 和创建时间查询
-- **AND** SQLite demo 与 MySQL production SHALL 使用兼容 schema。
+- **GIVEN** 任务由无行为上下文的 API 请求触发
+- **WHEN** 系统创建 Task Trace
+- **THEN** Task Trace SHALL 记录 `parent_request_id`
+- **AND** `parent_request_id` SHALL 关联 `request_logs.request_id`
+- **AND** Task Trace SHALL NOT 要求存在 `behavior_trace_id`。
 
 ### Requirement: 客户端请求身份标准
 系统 SHALL 在 API 请求日志与 usage events 中统一记录客户端类型、后端可信 `request_id` 与客户端请求标识，并保持三者语义边界清晰。
@@ -476,30 +345,17 @@ Product usage logging SHALL preserve the existing `/admin/logs` request id copy 
 - **AND** 客户端类型 SHALL NOT 作为认证授权依据。
 
 ### Requirement: 客户端请求身份日志审计展示
+
 系统 SHALL 在日志审计能力中展示客户端请求身份信息，支持排障而不泄露敏感字段。
 
-#### Scenario: 日志列表展示请求身份摘要
-- **WHEN** admin 查看 `/admin/logs` 日志列表
-- **THEN** 表格 SHALL 展示客户端类型和后端可信 `request_id`
-- **AND** 表格 MAY 展示短格式客户端请求标识
-- **AND** 长 ID SHALL 截断展示，完整值 SHALL 可通过复制、详情抽屉或等价方式获取。
+#### Scenario: 请求身份与行为链路身份分离
 
-#### Scenario: 日志详情展示两类请求 ID
-- **WHEN** admin 打开日志详情抽屉
-- **THEN** 详情 SHALL 展示后端可信 `request_id`
-- **AND** 详情 SHALL 展示客户端请求标识，若不存在则展示空值或等价缺省状态
-- **AND** 字段命名或说明 SHALL 避免将客户端请求标识误读为服务端可信链路 ID。
-
-#### Scenario: 客户端请求标识筛选策略
-- **WHEN** 日志审计实现 `client_request_id` 筛选
-- **THEN** 日志查询 API SHALL 使用索引或等价优化过滤该字段
-- **AND** OpenAPI、Orval 和文档 SHALL 同步该查询参数
-- **AND** 若本期不实现筛选，design 或验收记录 SHALL 明确说明原因。
-
-#### Scenario: 敏感字段不进入日志身份字段
-- **WHEN** 系统记录请求身份相关日志或 usage events
-- **THEN** 系统 SHALL NOT 存储 Authorization Header、Cookie、Token、密码、真实密钥、MinIO AccessKey/SecretKey、数据库 DSN、完整敏感请求体或 `.env` 内容
-- **AND** 前端脱敏 SHALL NOT 被视为安全边界。
+- **WHEN** 日志审计详情展示请求身份
+- **THEN** 详情 SHALL 区分服务端可信 `request_id`
+- **AND** SHALL 区分客户端请求标识 `client_request_id`
+- **AND** SHALL 区分行为链路 `behavior_trace_id`
+- **AND** SHALL 区分来源行为事件 `parent_behavior_event_id`
+- **AND** 页面 SHALL NOT 将任一客户端提供字段展示为可信操作者身份。
 
 ### Requirement: 请求身份测试与文档同步
 系统 SHALL 为客户端请求身份补充后端、Web、小程序、API 契约、数据库和文档同步验证。

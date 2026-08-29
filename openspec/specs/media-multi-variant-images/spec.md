@@ -5,9 +5,9 @@ TBD - created by archiving change add-media-multi-variant-images. Update Purpose
 ## Requirements
 ### Requirement: 媒体图片必须支持多规格展示图
 
-系统 MUST 支持 `thumbnail`、`display`、`original` 三类媒体图片规格。`thumbnail` MUST 用于列表、卡片和轻量预览；`display` MUST 用于详情普通展示和图册浏览；`original` MUST 保留上传原图或等价高清资源，用于高清预览、下载或需要保真的场景。三类规格 MUST 可追溯到同一媒体记录或业务对象，并 MUST 明确 key、MIME、尺寸、质量、体积上限、生成状态和失败原因的记录方式。
+系统 MUST 支持 `thumbnail`、`display`、`original` 三类媒体图片规格。`thumbnail` MUST 用于列表、卡片和轻量预览；`display` MUST 用于详情普通展示和图册浏览；`original` MUST 保留上传原图或等价高清资源，用于高清预览、下载或需要保真的场景。三类规格 MUST 可追溯到同一媒体记录或业务对象，并 MUST 明确 key、MIME、尺寸、质量、体积上限、生成状态、失败原因和生成阶段耗时的记录方式。
 
-系统 MUST 在支持的图片上传链路中保留 `original` 上传格式，并将新生成的 `thumbnail` 与 `display` 派生图编码为 WebP。首期支持 JPEG、PNG、WebP 输入生成 WebP 派生图；SVG、PDF MUST 跳过 WebP 派生；GIF、HEIC、TIFF、BMP 首期 MUST NOT 自动转码，且 MUST 记录跳过、拒绝或 fallback 策略。PNG 透明图的透明度处理 MUST 在实现与验收记录中明确。
+系统 MUST 在支持的图片上传链路中保留 `original` 上传格式，并将新生成的 `thumbnail` 与 `display` 派生图编码为 WebP。首期支持 JPEG、PNG、WebP 输入生成 WebP 派生图；SVG、PDF MUST 跳过 WebP 图片派生；GIF、HEIC、TIFF、BMP 首期 MUST NOT 自动转码，且 MUST 记录跳过、拒绝或 fallback 策略。PNG 透明图的透明度处理 MUST 在实现与验收记录中明确。对于 WebP 输入，系统 MUST 避免 thumbnail 生成出现 20 秒以上长尾；无法在合理时间生成时 MUST 进入可观测失败、跳过或降级路径，而不是静默阻塞上传接口到 30 秒级。
 
 系统 MUST 沉淀 Web 与微信小程序统一的图片三规格消费矩阵。矩阵字段 MUST 至少包括：页面、位置、图对象、是否缩略图、是否 display 图、是否原图、优化方案。矩阵 MUST 覆盖微信小程序真实页面、Web 管理端真实媒体展示位置，并为店主 Web 展示端提供明确的预留规范。矩阵中的每个页面位置 MUST 只表达一个主消费规格；普通展示、高清预览、下载或原文件查看使用不同规格时，MUST 拆成独立行。
 
@@ -23,6 +23,15 @@ TBD - created by archiving change add-media-multi-variant-images. Update Purpose
 - **AND** 生成失败 MUST 有可观测记录和明确降级策略
 - **AND** 错误响应或日志摘要 MUST NOT 暴露对象存储密钥、Authorization header、Cookie、真实 `.env`、本机绝对路径或真实客户数据。
 
+#### Scenario: WebP thumbnail 生成长尾必须受控
+
+- **GIVEN** 用户上传合法 WebP 图片且链路需要生成 WebP thumbnail
+- **WHEN** thumbnail 生成进入解码、缩放或编码阶段
+- **THEN** 系统 MUST 通过实现策略避免 `thumbnail_generate` 出现 20 秒以上长尾
+- **AND** 若触发失败、跳过或降级，系统 MUST 记录 `thumbnail_generate` 的状态、耗时和脱敏原因
+- **AND** 系统 MUST NOT 将 `thumbnail_generate` 耗时只聚合到对象存储 `put_object` 阶段
+- **AND** 验收 MUST 区分对象写入耗时与派生图生成耗时
+
 #### Scenario: 特殊格式按首期策略跳过或降级
 
 - **WHEN** 用户上传 SVG、PDF、GIF、HEIC、TIFF、BMP 或其他首期不支持转码格式
@@ -30,50 +39,6 @@ TBD - created by archiving change add-media-multi-variant-images. Update Purpose
 - **AND** SVG 和 PDF MUST 跳过 WebP 图片派生
 - **AND** GIF、HEIC、TIFF、BMP MUST 按现有上传策略拒绝、跳过或仅提供受控 fallback
 - **AND** 上传、维护任务或验收记录 MUST 能定位跳过原因、拒绝原因或 fallback 策略。
-
-#### Scenario: 派生规格缺失时可安全回退
-
-- **GIVEN** 目标 WebP 规格 URL 缺失、生成失败或对象不可读
-- **WHEN** 客户端请求列表、详情或预览媒体
-- **THEN** 系统 MUST 按明确 fallback 顺序返回可用 URL 或安全占位
-- **AND** fallback 事件 MUST 可观测
-- **AND** 验收记录 MUST NOT 将 fallback 原图视为 WebP 轻量规格性能通过。
-
-#### Scenario: 统一消费矩阵覆盖小程序页面
-
-- **WHEN** 团队维护图片三规格消费矩阵
-- **THEN** 矩阵 MUST 覆盖微信小程序首页、商品列表页、搜索页、商品详情页、品牌列表页、品牌详情页、证书列表页、证书详情页和收藏页
-- **AND** 首页 Banner、商品卡片、搜索结果、推荐商品、品牌 Logo、证书缩略图和收藏商品卡片 MUST 以 WebP `thumbnail` 为目标规格
-- **AND** 商品详情 Banner 普通展示和证书详情普通展示 MUST 以 WebP `display` 为目标规格
-- **AND** 商品图片预览、证书图片预览、下载或原文件查看 MUST 以 `original` 为目标规格
-- **AND** 不使用业务媒体的页面 MAY 标注“不涉及业务图片”。
-
-#### Scenario: 统一消费矩阵覆盖 Web 管理端真实媒体位置
-
-- **WHEN** 团队维护图片三规格消费矩阵
-- **THEN** 矩阵 MUST 覆盖 Web 管理端 SKU 管理、Banner 管理、品牌管理、品牌证书管理、用户或个人资料中的真实媒体展示位置
-- **AND** SKU 列表主图、Banner 列表图、品牌列表 Logo、证书列表缩略图、头像列表或菜单 MUST 以 WebP `thumbnail` 为目标规格
-- **AND** SKU 表单图片网格或大预览、Banner 表单选择或回显预览、证书表单图片普通预览 MUST 以 WebP `display` 为目标规格
-- **AND** SKU 图片高清预览、Banner 原图审核或放大查看、证书下载或原文件查看 MUST 以 `original` 为目标规格
-- **AND** 当前只存在原图 fallback 或单一 URL 字段的位置 MUST 在优化方案中标记为移除原图 fallback、补齐目标规格字段或使用安全占位。
-
-#### Scenario: 店主 Web 展示端按预留规范处理
-
-- **GIVEN** 店主 Web 展示端真实业务页面尚未作为本 Change 验收对象
-- **WHEN** 团队维护图片三规格消费矩阵
-- **THEN** 店主 Web 条目 MUST 标注为预留规范
-- **AND** 商品列表、商品卡片、推荐商品、品牌列表 Logo、品牌卡片和证书列表 SHOULD 以 WebP `thumbnail` 为目标规格
-- **AND** 商品详情普通展示、图册浏览、品牌详情头图普通展示和证书详情普通展示 SHOULD 以 WebP `display` 为目标规格
-- **AND** 点击放大、高清预览、下载和原文件查看 SHOULD 以 `original` 为目标规格
-- **AND** 预留规范 MUST NOT 被写作当前实现已满足或当前页面已验收。
-
-#### Scenario: 矩阵优化方案记录已知偏离点
-
-- **WHEN** 当前实现与目标消费规格不一致
-- **THEN** 矩阵 MUST 在优化方案列记录偏离处理建议
-- **AND** 优化方案 SHOULD 区分补齐目标规格字段、改用目标规格、移除原图 fallback、使用安全占位、拆分普通展示与预览场景
-- **AND** 本规范 Change MUST NOT 直接修复 Web、小程序、后端、API、数据库或对象存储实现偏离
-- **AND** 需要实现修正时 MUST 通过后续独立 REQ、BUG 或 OpenSpec Change 处理。
 
 ### Requirement: 媒体 API 必须提供多规格 URL 语义
 

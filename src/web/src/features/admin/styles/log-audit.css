@@ -471,11 +471,14 @@
 }
 
 .admin-shell .log-drawer-body {
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 18px 24px 28px;
 }
 
 .admin-shell .log-detail-section {
+  min-width: 0;
   padding: 16px 0;
   border-bottom: 0.5px solid var(--admin-line);
 }
@@ -491,25 +494,38 @@
 .admin-shell .log-detail-section dl {
   display: grid;
   gap: 10px;
+  min-width: 0;
   margin: 0;
 }
 
 .admin-shell .detail-row {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, clamp(148px, 34%, 220px)) minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
   font-size: 12px;
 }
 
 .admin-shell .detail-row dt {
+  min-width: 0;
   color: var(--admin-weak);
+  overflow-wrap: anywhere;
 }
 
 .admin-shell .field-help-label {
   display: inline-flex;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  align-items: center;
+  align-items: flex-start;
   gap: 5px;
+  line-height: 1.5;
+}
+
+.admin-shell .field-help-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .admin-shell .field-help-icon {
@@ -519,6 +535,7 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  margin-top: 1px;
   border: 0.5px solid var(--admin-line);
   border-radius: 50%;
   color: var(--admin-muted);
@@ -559,9 +576,13 @@
 }
 
 .admin-shell .detail-row dd {
+  max-width: 100%;
+  min-width: 0;
   margin: 0;
   color: var(--admin-text);
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  white-space: normal;
 }
 
 .admin-shell .log-detail-section pre {
@@ -604,7 +625,7 @@
 }
 
 .admin-shell .snapshot-grid .detail-row {
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: minmax(0, clamp(154px, 38%, 220px)) minmax(0, 1fr);
 }
 
 .admin-shell .snapshot-empty,

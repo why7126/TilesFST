@@ -2,7 +2,7 @@
 bug_id: BUG-0139-admin-avatar-upload-nginx-redirect-cors
 acceptance_status: passed
 created_at: 2026-08-25 15:35:15
-updated_at: 2026-08-25 17:43:45
+updated_at: 2026-08-28 16:21:48
 ---
 
 # 验收计划
@@ -79,7 +79,7 @@ source_change: fix-admin-avatar-upload-nginx-redirect-cors
 source_sprint: sprint-026
 evidence: []
 failed_items: []
-source_event: opsx.archive
+source_event: sprint.archive
 notes: 由 Workflow Sync 根据 Change/Sprint 状态回填。
 ```
 

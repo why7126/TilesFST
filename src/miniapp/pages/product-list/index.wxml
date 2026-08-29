@@ -1,6 +1,20 @@
 <view class="page">
   <custom-navigation title="{{title}}" />
 
+  <view class="product-search-entry">
+    <search-entry
+      keyword="{{keyword}}"
+      scope="{{categoryId ? 'category' : brandId ? 'brand' : section || 'product-list'}}"
+      source-page="product-list"
+      placeholder="{{categoryName ? '在' + categoryName + '中搜索商品' : brandId ? '在当前品牌中搜索商品' : section ? '在当前榜单中搜索商品' : '搜索当前商品列表'}}"
+      disabled="{{loading}}"
+      bind:input="onSearchInput"
+      bind:submit="onSearchSubmit"
+      bind:clear="clearSearchKeyword"
+      bind:cancel="openGlobalSearch"
+    />
+  </view>
+
   <view wx:if="{{loading}}" class="skeleton-grid">
     <view class="skeleton-card" wx:for="{{skeletons}}" wx:key="*this">
       <view class="skeleton-image"></view>
@@ -19,6 +33,8 @@
 
   <view wx:elif="{{!items.length}}" class="state">
     <view>{{emptyText}}</view>
+    <button wx:if="{{keyword}}" class="retry-btn secondary" bindtap="clearSearchKeyword">清空关键词</button>
+    <button class="retry-btn" bindtap="openGlobalSearch">去全局搜索调整</button>
   </view>
 
   <view wx:else class="product-list">

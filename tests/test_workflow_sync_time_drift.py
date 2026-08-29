@@ -212,6 +212,69 @@ def test_workflow_sync_records_opsx_modify_idempotently() -> None:
     assert second.count("/opsx-modify") == 1
 
 
+def test_patch_issue_trace_backfills_iteration_for_sprint_scope(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    req_dir = tmp_path / "issues/requirements/review/REQ-0001-demo"
+    req_dir.mkdir(parents=True)
+    trace_path = req_dir / "trace.md"
+    trace_path.write_text(
+        """---
+requirement_id: REQ-0001-demo
+status: approved
+created_at: 2026-08-26 10:00:00
+updated_at: 2026-08-26 10:00:00
+iteration: null
+openspec_changes: []
+---
+
+# 需求追踪
+
+```yaml
+requirement_id: REQ-0001-demo
+status: approved
+iteration: null
+openspec_changes: []
+```
+
+## 变更记录
+
+| 时间 | 命令 | 说明 |
+|---|---|---|
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sync_patch, "ROOT", tmp_path)
+
+    result = patch_issue_trace(
+        IssueRecord(
+            issue_id="REQ-0001-demo",
+            kind="req",
+            path=req_dir,
+            trace_status="approved",
+        ),
+        DerivedIssue(
+            issue_id="REQ-0001-demo",
+            kind="req",
+            display_status="in_sprint",
+            linked_change=None,
+            note="status `in_sprint`",
+        ),
+        {},
+        event="sprint.propose",
+        sprint_id="sprint-999",
+        write=True,
+    )
+
+    text = trace_path.read_text(encoding="utf-8")
+    assert result.changed
+    assert load_frontmatter_yaml(text)["status"] == "in_sprint"
+    assert load_frontmatter_yaml(text)["iteration"] == "sprint-999"
+    assert load_first_fenced_yaml(text)["status"] == "in_sprint"
+    assert load_first_fenced_yaml(text)["iteration"] == "sprint-999"
+
+
 def test_archive_timestamp_ignores_mutable_issue_updated_at(tmp_path: Path) -> None:
     archived_change = tmp_path / "2026-07-03-fix-example"
     archived_change.mkdir()

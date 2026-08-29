@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-08-25 08:53:42
+updated_at: 2026-08-28 10:13:06
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -31,11 +31,13 @@ note: AI新增文件前必须确认目录边界
 
 搜索入口组件位于 `components/search-entry/`，支持关键词、清空、提交、取消、禁用态、`scope` 与 `sourcePage`。搜索页 `pages/search/index.*` 通过 `GET /api/v1/miniapp/search/home`、`GET /api/v1/miniapp/search/suggestions` 和 `GET /api/v1/miniapp/search` 实现搜索首页、300ms 实时联想、结果 Tab、最佳匹配、品牌/SKU/证书卡片、无结果和失败重试。
 
+- 底部 Tab「全部分类」页不展示搜索入口，保持一级 / 二级分类双栏浏览；用户进入商品列表后可在商品列表上下文继续搜索或调整关键词。
 - 最近搜索仅使用本机 storage `miniapp_search_recent_keywords_v1`，最多 20 条，重复关键词去重置顶。
 - 搜索首页仅展示最近搜索和热门搜索，不展示最近浏览模块；最近搜索支持单条删除和清空，清空按钮需与搜索框右侧对齐。
 - 关键词联想只展示品牌与 SKU 两组，不展示最近搜索、普通关键词、类目、规格或证书。
 - 搜索结果页不展示搜索框、快捷筛选、筛选按钮或筛选抽屉；Tab 展示顺序为综合、品牌、SKU、证书，小程序端不展示类目 Tab。
-- 综合 Tab 只在有结果时展示分区：最多 1 条最佳匹配，其后按品牌、SKU、证书顺序展示非 0 条分区；品牌/SKU/证书单独 Tab 内直接展示卡片内容，不再显示“品牌/SKU/证书 x 条”的分区标题。
+- 综合 Tab 只在有结果时展示分区：最多 1 条最佳匹配，其后按品牌、证书、SKU 顺序展示非 0 条分区；品牌/SKU/证书单独 Tab 内直接展示卡片内容，不再显示“品牌/SKU/证书 x 条”的分区标题。
+- 综合 Tab 加载更多采用“品牌 / 证书首屏固定，SKU 持续追加”的 MVP 策略；第 2 页及后续页只追加 SKU 分区内容，不覆盖已展示的最佳匹配、品牌和证书结果。自动加载下一页时结果列表保持可见，底部仅显示轻量加载或完成状态，不展示黄色“加载更多”主按钮。
 - SKU 结果复用 `components/product-card/`；品牌与证书结果使用与 SKU 卡片一致的一行卡片式视觉，但保留品牌/证书自身跳转行为。
 - `best_match` 可返回 SKU、品牌或证书：SKU 编码或名称直接命中优先，其次品牌名精确命中，最后证书名称或证书编号精确命中；都不满足时为空。
 - 搜索埋点通过 `track()` 上报 `search_page_view`、受防抖控制的 `search_input`、`search_suggestion_exposure`、`search_suggestion_click`、`search_submit`、集合语义的 `search_result_exposure`、`search_result_click`、`search_filter_apply`、`search_no_result`、`search_history_click`、`search_history_delete`、`search_history_clear`；埋点失败不得阻断搜索主流程。
@@ -65,7 +67,7 @@ note: AI新增文件前必须确认目录边界
 
 ## 品牌入口页与品牌主页
 
-品牌入口页位于 `pages/brand-list/index.*`，通过 `GET /api/v1/miniapp/brands` 获取品牌列表页轮播和启用品牌列表。顶部 Hero 保持品牌列表页 Banner 数据、指示器、自动播放和点击行为不变；无 Banner 时展示黑金品牌画廊兜底。轮播下方使用“品牌矩阵”单列卡片：卡片上半区作为品牌入口，展示圆形 Logo、品牌名称、`x 款商品` 和进入箭头；卡片下半区直接展示该品牌所有上架商品绑定的末级类目名称，不额外展示“按类目快速识别”或“全部类目 · 点击查看该品牌下的类目商品”等说明文案。类目来自响应 `leaf_categories`，小程序端按类目名称去重后全部折行展示，不使用 `+N` 折叠；类目胶囊区采用两列固定布局，左右列分别左对齐，类目名称超出胶囊宽度时单行省略，不换行、不撑破边框；类目胶囊字号比品牌名称小 2rpx，避免在移动端过弱；无类目时仅在类目区展示轻量 `暂无类目`。点击品牌卡片上半区进入 `pages/brand-detail/index?brandId=...`；点击类目标签进入 `pages/product-list/index?brandId=...&categoryId=...&categoryLevel=secondary&categoryName=...&sourcePage=brand-list-category`，不展示“公开”字样。
+品牌入口页位于 `pages/brand-list/index.*`，通过 `GET /api/v1/miniapp/brands` 获取品牌列表页轮播和启用品牌列表。页面顶部复用 `search-entry` 输入模式，按品牌名称、品牌简称和品牌英文名在当前品牌列表内过滤；搜索请求携带 `keyword`，搜索结果保持品牌列表页卡片布局，不跳完整搜索结果页；搜索态隐藏品牌列表页 Banner 和黑金品牌画廊兜底，清空关键词后恢复完整品牌列表和 Banner。顶部 Hero 保持品牌列表页 Banner 数据、指示器、自动播放和点击行为不变；无 Banner 时展示黑金品牌画廊兜底。轮播下方使用“品牌矩阵”单列卡片：卡片上半区作为品牌入口，展示圆形 Logo、品牌名称、`x 款商品` 和进入箭头；卡片下半区直接展示该品牌所有上架商品绑定的末级类目名称，不额外展示“按类目快速识别”或“全部类目 · 点击查看该品牌下的类目商品”等说明文案。类目来自响应 `leaf_categories`，小程序端按类目名称去重后全部折行展示，不使用 `+N` 折叠；类目胶囊区采用两列固定布局，左右列分别左对齐，类目名称超出胶囊宽度时单行省略，不换行、不撑破边框；类目胶囊字号比品牌名称小 2rpx，避免在移动端过弱；无类目时仅在类目区展示轻量 `暂无类目`。点击品牌卡片上半区进入 `pages/brand-detail/index?brandId=...`；点击类目标签进入 `pages/product-list/index?brandId=...&categoryId=...&categoryLevel=secondary&categoryName=...&sourcePage=brand-list-category`，不展示“公开”字样。
 
 品牌主页位于 `pages/brand-detail/index.*`，通过 `GET /api/v1/miniapp/brands/{brand_id}` 获取品牌图片、品牌名称、英文名、简介、商品数和证书数；导航栏标题必须使用品牌名称 `brand_name`，不得使用品牌简称。顶部品牌文案以浮层形式覆盖在品牌 Hero 图片上，不展示“x 个商品 / x 个证书”数量行；顶部品牌图位属于首屏 Hero 大图展示位，普通展示优先使用 `brand_hero_display_url`，缺失或不可读时降级到 `brand_hero_thumbnail_url`，再降级到安全视图占位或品牌名占位，不请求 `brand_logo_url` 原图、preview、旧 `url`、语义不明 `image_url` 或不存在的本地静态占位图。品牌列表、品牌卡和详情页品牌入口等小 Logo 场景仍只消费 `brand_logo_thumbnail_url`。商品 Tab 复用 `GET /api/v1/miniapp/products?brandId=...` 和 `components/product-card/`，接口默认按 `published_at ASC, id ASC` 返回当前品牌公开 SKU，历史 `published_at` 空值由后端使用 `created_at` 兜底；小程序端只按接口返回顺序首屏展示和加载更多，不做端侧重排。证书 Tab 通过 `GET /api/v1/miniapp/brands/{brand_id}/certificates` 获取当前品牌可公开证书，卡片样式保持与证书列表页一致，卡片主点击进入 `pages/certificate-detail/index?certificateId=...`，文件预览能力下沉到证书详情页。
 
@@ -77,12 +79,12 @@ note: AI新增文件前必须确认目录边界
 
 ## 证书列表页
 
-证书列表页位于 `pages/certificates/index.*`，通过 `GET /api/v1/miniapp/certificates` 获取所有可公开证书，页面标题固定为“证书列表”。请求仅支持 `page` 和 `pageSize` 分页参数，不提供搜索框、筛选按钮、筛选抽屉或清空筛选动作。
+证书列表页位于 `pages/certificates/index.*`，通过 `GET /api/v1/miniapp/certificates` 获取所有可公开证书，页面标题固定为“证书列表”。页面顶部复用 `search-entry` 输入模式，按证书名称、品牌名称、证书类型枚举或中文类型标签在当前证书列表页过滤；请求支持 `page`、`pageSize` 和 `keyword`，搜索结果保持证书卡片布局，不跳完整搜索结果页。页面不提供管理端证书类型筛选、品牌筛选、有效状态筛选或复杂筛选抽屉。
 
 - 列表采用一行 2 个证书卡片；卡片文本仅展示证书名称、品牌名称和证书类型，不展示证书编号、签发方或有效期状态。
 - 证书列表卡片主点击进入 `pages/certificate-detail/index?certificateId=...`，不直接绑定为文件预览。
 - 页面需覆盖首屏加载、下拉刷新、触底加载更多、无更多、暂无公开证书、网络失败、加载更多失败和图片失败降级状态。
-- 证书列表埋点通过 `track()` 上报 `certificate_list_page_view`、`certificate_click` 和 `certificate_load_failed`；埋点和日志不得记录 `file_key`、Authorization header、Cookie、`.env` 内容、本机路径或后台备注。
+- 证书列表埋点通过 `track()` 上报 `certificate_list_page_view`、`certificate_list_load`、`certificate_list_refresh`、`certificate_list_load_more`、`list_search_submit`、`list_search_reset`、`certificate_click` 和 `certificate_load_failed`；搜索提交和清空需在请求成功后带 `resultCount`、`requestId`、`page_path`、`sourcePage`、`scope` 和 `client_type` 上报。埋点和日志不得记录 `file_key`、Authorization header、Cookie、`.env` 内容、本机路径或后台备注。
 
 ## 证书详情页
 
@@ -95,6 +97,13 @@ note: AI新增文件前必须确认目录边界
 - 品牌入口复用 `components/brand-card/`，使用后端返回的 `brand_entry_path` 和 `brand_logo_thumbnail_url` 展示所属品牌；证书详情页传入 `sourcePage=certificate_detail`、`sourceModule=brand_entry`、`certificateId` 和 `requestId`，普通展示不得 fallback 到品牌 Logo 原图。分享路径携带 `certificateId` 与 `source=share`；分享直达无页面栈时由 `custom-navigation` 返回兜底到首页。
 - 页面不提供底部固定“预览文件”或“分享证书”交互按钮；图片/PDF 预览通过媒体区域触发，分享保留微信原生分享生命周期。
 - 详情页埋点通过 `track()` 上报 `certificate_detail_view`、`certificate_detail_media_switch`、`certificate_detail_image_preview`、`certificate_detail_file_open`、`brand_card_click`、`certificate_detail_share_click` 和 `certificate_detail_load_failed`；不得记录原始对象 key、内部备注、Authorization header、Cookie、`.env` 内容、本机路径或个人隐私。
+
+## 收藏列表页
+
+收藏列表页位于 `pages/favorites/index.*`，使用本机 storage `miniapp_favorite_skus_v1` 展示用户已收藏 SKU。页面顶部复用 `search-entry` 输入模式，只在当前收藏范围内按商品名称、SKU 编码、品牌、类目和规格过滤；搜索结果保持收藏卡片布局，不跳完整搜索结果页。搜索空态说明“收藏范围内没有找到”并提供清空关键词路径，不展示显著的“去全局搜索调整”主按钮。
+
+- 收藏页保留收藏项点击、取消收藏、失效对象降级、加载更多、加载失败和空收藏引导浏览商品路径。
+- 收藏页搜索提交和清空通过 `track()` 上报 `list_search_submit`、`list_search_reset`，需包含 `resultCount`、`requestId`、`page_path`、`sourcePage`、`scope` 和 `client_type`；埋点失败不得阻断收藏列表浏览、搜索、清空或取消收藏。
 
 ## 自定义 TabBar
 

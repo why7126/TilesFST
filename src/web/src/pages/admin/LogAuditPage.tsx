@@ -30,6 +30,7 @@ const ALL_VALUE = 'all';
 const TRACKING_MODULE = 'log_audit';
 
 type Filters = {
+  keyword: string;
   logType: string;
   timeRange: string;
   actor: string;
@@ -40,6 +41,7 @@ type Filters = {
 };
 
 const defaultFilters: Filters = {
+  keyword: '',
   logType: ALL_VALUE,
   timeRange: '1d',
   actor: '',
@@ -102,11 +104,13 @@ const timeRangeOptions = [
 function buildQuery(filters: Filters, page: number, pageSize: number): LogQuery {
   const statusFilter = parseStatusFilter(filters.status);
   const pathOrRequestId = filters.pathOrRequestId.trim();
+  const keyword = filters.keyword.trim();
   const behaviorTraceId = filters.behaviorTraceId.trim();
   const taskTraceId = filters.taskTraceId.trim();
   return {
     page,
     page_size: pageSize,
+    keyword: keyword || undefined,
     log_type: filters.logType === ALL_VALUE ? undefined : filters.logType as ListLogsApiV1AdminLogsGetLogType,
     actor_user_id: filters.actor || undefined,
     status_code: statusFilter.status_code,
@@ -362,7 +366,11 @@ const FIELD_DESCRIPTIONS: Record<string, string> = {
 function FieldHelp({ label, description }: { label: string; description?: string }) {
   const [tooltip, setTooltip] = useState<{ left: number; top: number; placement: 'top' | 'bottom' } | null>(null);
   if (!description) {
-    return <>{label}</>;
+    return (
+      <span className="field-help-label field-help-label-plain">
+        <span className="field-help-text" title={label}>{label}</span>
+      </span>
+    );
   }
   const showTooltip = (target: HTMLElement) => {
     const rect = target.getBoundingClientRect();
@@ -380,7 +388,7 @@ function FieldHelp({ label, description }: { label: string; description?: string
   };
   return (
     <span className="field-help-label">
-      <span>{label}</span>
+      <span className="field-help-text" title={label}>{label}</span>
       <span
         className="field-help-icon"
         aria-label={`字段说明：${label}`}
@@ -937,6 +945,16 @@ export function LogAuditPage() {
 
       <section className="filter-card log-audit-filter" aria-label="日志筛选">
         <div className="log-audit-filter-grid">
+          <div>
+            <span className="field-label">关键词</span>
+            <input
+              className="input"
+              aria-label="关键词"
+              value={filters.keyword}
+              onChange={(event) => updateFilter('keyword', event.target.value)}
+              placeholder="搜索摘要 / 事件 / 操作者"
+            />
+          </div>
           <div>
             <span className="field-label">日志类型</span>
             <AdminFilterSelect

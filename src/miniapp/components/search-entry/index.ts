@@ -6,9 +6,19 @@ Component({
     sourcePage: { type: String, value: 'unknown' },
     disabled: { type: Boolean, value: false },
     showBack: { type: Boolean, value: false },
+    mode: { type: String, value: 'input' },
   },
 
   methods: {
+    onEntryTap() {
+      if (this.data.disabled || this.data.mode !== 'entry') return;
+      this.triggerEvent('tapentry', {
+        keyword: this.data.keyword,
+        scope: this.data.scope,
+        sourcePage: this.data.sourcePage,
+      });
+    },
+
     onInput(event: WechatMiniprogram.Input) {
       this.triggerEvent('input', {
         keyword: event.detail.value,
@@ -19,6 +29,7 @@ Component({
 
     onSubmit(event?: WechatMiniprogram.Input) {
       const keyword = event?.detail?.value || this.data.keyword;
+      if (this.data.disabled) return;
       this.triggerEvent('submit', {
         keyword,
         scope: this.data.scope,

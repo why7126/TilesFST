@@ -13,6 +13,10 @@
   border-bottom: 2rpx solid rgba(255,255,255,0.07);
 }
 
+.favorite-search-entry {
+  margin: 2rpx 0 22rpx;
+}
+
 .summary-label {
   color: #C8A055;
   font-size: 28rpx;
@@ -170,6 +174,11 @@
   font-size: 26rpx;
   font-weight: 800;
   line-height: 88rpx;
+}
+
+.primary-btn.secondary {
+  background: rgba(237,232,223,0.1);
+  color: #EDE8DF;
 }
 
 .skeleton-copy {

@@ -367,6 +367,7 @@ describe('LogAuditPage', () => {
     expect(screen.queryByRole('option', { name: '全部时间' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('状态 / 结果'));
     expect(screen.getByLabelText('状态 / 结果')).toHaveClass('select');
+    expect(screen.getByLabelText('关键词')).toHaveAttribute('placeholder', '搜索摘要 / 事件 / 操作者');
     expect(screen.getByLabelText('路径 / Request ID')).toHaveAttribute('placeholder', '接口路径或 request_id');
     expect(screen.getByLabelText('Task Trace ID')).toHaveAttribute('placeholder', 'task_upload_video_xxx');
     expect(screen.getByLabelText('Behavior Trace ID')).toHaveAttribute('placeholder', 'bt:...');
@@ -375,6 +376,7 @@ describe('LogAuditPage', () => {
     expect(screen.getByLabelText('操作者')).toHaveAttribute('placeholder', '搜索用户名称或账号');
     const filterLabels = Array.from(container.querySelectorAll('.log-audit-filter-grid .field-label')).map((label) => label.textContent);
     expect(filterLabels).toEqual([
+      '关键词',
       '日志类型',
       '时间范围',
       '状态 / 结果',
@@ -442,6 +444,25 @@ describe('LogAuditPage', () => {
     const timeRangeQuery = vi.mocked(fetchLogs).mock.calls.at(-1)?.[0];
     expect(new Date(timeRangeQuery?.start_time ?? '').getTime()).toBeGreaterThanOrEqual(beforeChange - 5 * 60 * 1000 - 1000);
     expect(new Date(timeRangeQuery?.start_time ?? '').getTime()).toBeLessThanOrEqual(Date.now() - 5 * 60 * 1000 + 1000);
+
+    fireEvent.change(screen.getByLabelText('关键词'), {
+      target: { value: 'search_submit' },
+    });
+    expect(trackUsageEvent).toHaveBeenCalledWith('filter_change', {
+      module: 'log_audit',
+      entity_type: 'log_query',
+      entity_id: 'keyword',
+      filter_name: 'keyword',
+      filter_value: 'search_submit',
+    });
+    await waitFor(() => {
+      expect(fetchLogs).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          keyword: 'search_submit',
+          page: 1,
+        }),
+      );
+    });
 
     fireEvent.change(screen.getByLabelText('路径 / Request ID'), {
       target: { value: 'req_1234567890abcdef' },
@@ -580,6 +601,7 @@ describe('LogAuditPage', () => {
           status_code: undefined,
           task_trace_id: undefined,
           behavior_trace_id: undefined,
+          keyword: undefined,
           page: 1,
         }),
       );
@@ -782,6 +804,7 @@ describe('LogAuditPage', () => {
     expect(within(drawer).getByText('Trusted Request ID')).toBeInTheDocument();
     expect(within(drawer).getByText('Client Request ID')).toBeInTheDocument();
     expect(within(drawer).getAllByText('behavior_trace_id').length).toBeGreaterThan(0);
+    expect(within(drawer).getAllByText('parent_behavior_event_id').length).toBeGreaterThan(0);
     expect(within(drawer).getByText('Behavior Trace Header')).toBeInTheDocument();
     expect(within(drawer).getByText('Trusted Response Header')).toBeInTheDocument();
     expect(within(drawer).getAllByLabelText('字段说明：Method')[0]).toHaveAttribute(
@@ -804,6 +827,7 @@ describe('LogAuditPage', () => {
     expect(within(drawer).getByText('x-client-request-id')).toBeInTheDocument();
     expect(within(drawer).getAllByText('web:client-request-abcdef1234567890').length).toBeGreaterThan(0);
     expect(within(drawer).getAllByText('bt:log-audit-behavior-001').length).toBeGreaterThan(0);
+    expect(within(drawer).getAllByText('be:log-audit-event-001').length).toBeGreaterThan(0);
     expect(within(drawer).getByText('x-behavior-trace-id')).toBeInTheDocument();
     expect(within(drawer).getByText('x-behavior-event-id')).toBeInTheDocument();
     expect(within(drawer).getAllByText('/api/v1/admin/logs').length).toBeGreaterThan(0);
@@ -829,6 +853,39 @@ describe('LogAuditPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '关闭' }));
     await waitFor(() => expect(screen.queryByLabelText('日志详情')).not.toBeInTheDocument());
+  });
+
+  it('keeps long log detail labels readable without invading the value column', async () => {
+    render(<LogAuditPage />);
+    const row = (await screen.findByText('GET /api/v1/admin/logs · 200')).closest('tr');
+
+    fireEvent.click(
+      within(row as HTMLTableRowElement).getByRole('button', {
+        name: '查看日志详情：GET /api/v1/admin/logs · 200',
+      }),
+    );
+
+    const drawer = await screen.findByLabelText('日志详情');
+    const longLabels = within(drawer).getAllByText('parent_behavior_event_id');
+    expect(longLabels.length).toBeGreaterThan(0);
+    longLabels.forEach((label) => {
+      expect(label).toHaveClass('field-help-text');
+      expect(label).toHaveAttribute('title', 'parent_behavior_event_id');
+      expect(label.closest('dt')).toBeInTheDocument();
+      expect(label.closest('.detail-row')?.querySelector('dd')).toHaveTextContent('be:log-audit-event-001');
+    });
+    expect(within(drawer).getByText('Client Request ID')).toHaveClass('field-help-text');
+    expect(within(drawer).getAllByText('behavior_trace_id')[0]).toHaveClass('field-help-text');
+    expect(within(drawer).getAllByText('task_trace_id')[0]).toHaveClass('field-help-text');
+    expect(within(drawer).getAllByLabelText('字段说明：parent_behavior_event_id')[0]).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('来源行为事件'),
+    );
+    expect(logAuditCss).toContain('grid-template-columns: minmax(0, clamp(148px, 34%, 220px)) minmax(0, 1fr);');
+    expect(logAuditCss).toContain('grid-template-columns: minmax(0, clamp(154px, 38%, 220px)) minmax(0, 1fr);');
+    expect(logAuditCss).toMatch(/\.admin-shell \.detail-row dt \{[\s\S]*min-width: 0;[\s\S]*overflow-wrap: anywhere;/);
+    expect(logAuditCss).toMatch(/\.admin-shell \.field-help-text \{[\s\S]*overflow-wrap: anywhere;[\s\S]*white-space: normal;/);
+    expect(logAuditCss).toMatch(/\.admin-shell \.detail-row dd \{[\s\S]*overflow-wrap: anywhere;[\s\S]*word-break: break-all;/);
   });
 
   it('shows request snapshot empty state when detail has no snapshot', async () => {

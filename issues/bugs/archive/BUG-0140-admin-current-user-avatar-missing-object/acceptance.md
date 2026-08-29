@@ -4,7 +4,7 @@ title: 当前登录用户头像引用缺失媒体对象验收标准
 acceptance_status: passed
 template_ref: docs/standards/media-bug-four-point-acceptance-template.md
 created_at: 2026-08-25 15:41:57
-updated_at: 2026-08-25 17:41:27
+updated_at: 2026-08-28 16:21:48
 ---
 
 # 验收目标
@@ -95,7 +95,7 @@ And 不应出现破损图片
 
 # 验收结论
 
-当前状态：`pending`。核心 key/object/URL/render 自动化验收已通过；Docker Web `localhost:3000` 入口证据已由用户补证截图补齐，待 archive 阶段回填最终验收结论。
+当前状态：`passed`。核心 key/object/URL/render 自动化验收已通过；Docker Web `localhost:3000` 入口证据已由用户补证截图补齐，Change 已归档并回填最终验收结论。
 
 ## 验收结果回填
 
@@ -107,7 +107,7 @@ source_change: fix-admin-current-user-avatar-object-consistency
 source_sprint: sprint-026
 evidence: []
 failed_items: []
-source_event: opsx.archive
+source_event: sprint.archive
 notes: 由 Workflow Sync 根据 Change/Sprint 状态回填。
 ```
 

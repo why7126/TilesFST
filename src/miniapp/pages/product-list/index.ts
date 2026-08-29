@@ -1,4 +1,5 @@
 import { request, track } from '../../services/api';
+import { navigateToSearch } from '../../utils/search-navigation';
 
 type ProductCard = {
   product_id: number;
@@ -236,6 +237,54 @@ Page({
     this.loadProducts({ reset: false, eventName: 'product_list_load_more' });
   },
 
+  onSearchInput(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    this.setData({ keyword: event.detail.keyword || '' });
+  },
+
+  onSearchSubmit(event: WechatMiniprogram.CustomEvent<{ keyword: string }>) {
+    const keyword = String(event.detail.keyword || '').trim().replace(/\s+/g, ' ');
+    const title = keyword ? `搜索：${keyword}` : this.contextTitle();
+    this.setData({ keyword, title, requestId: requestId() });
+    wx.setNavigationBarTitle({ title });
+    this.trackListEvent('list_search_submit', {
+      keyword,
+      scope: this.searchScope(),
+      filterSnapshot: this.filterSnapshot(),
+    });
+    this.loadProducts({ reset: true, eventName: 'product_list_search' });
+  },
+
+  clearSearchKeyword() {
+    const title = this.contextTitle();
+    this.setData({ keyword: '', title, requestId: requestId() });
+    wx.setNavigationBarTitle({ title });
+    this.trackListEvent('list_search_reset', {
+      scope: this.searchScope(),
+      filterSnapshot: this.filterSnapshot(),
+    });
+    this.loadProducts({ reset: true, eventName: 'product_list_search_reset' });
+  },
+
+  openGlobalSearch() {
+    this.trackListEvent('search_entry_click', {
+      sourcePage: 'product-list',
+      scope: this.searchScope(),
+      keyword: this.data.keyword || undefined,
+      filterSnapshot: this.filterSnapshot(),
+    });
+    navigateToSearch({
+      sourcePage: 'product-list',
+      scope: this.searchScope(),
+      keyword: this.data.keyword,
+      categoryId: this.data.categoryId || undefined,
+      categoryName: this.data.categoryName || undefined,
+      categoryLevel: this.data.categoryLevel || undefined,
+      brandId: this.data.brandId || undefined,
+      section: this.data.section || undefined,
+      requestId: this.data.requestId,
+    });
+  },
+
   openProduct(event: WechatMiniprogram.TouchEvent) {
     const id = Number(event.currentTarget.dataset.id || 0);
     const index = Number(event.currentTarget.dataset.index || 0);
@@ -253,10 +302,39 @@ Page({
   },
 
   emptyText(): string {
-    if (this.data.keyword) return `没有找到“${this.data.keyword}”相关商品，可返回搜索页调整关键词`;
+    if (this.data.keyword) return `当前${this.searchScopeLabel()}没有找到“${this.data.keyword}”相关商品`;
     if (this.data.categoryName) return '该分类暂未上架商品';
     if (this.data.brandId) return '该品牌暂未上架商品';
     return '暂无可浏览商品';
+  },
+
+  contextTitle(): string {
+    return this.data.categoryName || (this.data.brandId ? '品牌商品' : this.data.section === 'new' ? '新品榜' : this.data.section === 'hot' ? '热销榜' : '全部商品');
+  },
+
+  searchScope(): string {
+    if (this.data.categoryId) return 'category';
+    if (this.data.brandId) return 'brand';
+    if (this.data.section) return this.data.section;
+    return 'product-list';
+  },
+
+  searchScopeLabel(): string {
+    if (this.data.categoryName) return `分类「${this.data.categoryName}」`;
+    if (this.data.brandId) return '品牌范围';
+    if (this.data.section === 'new') return '新品榜';
+    if (this.data.section === 'hot') return '热销榜';
+    return '商品列表';
+  },
+
+  filterSnapshot(): Record<string, unknown> {
+    return {
+      categoryId: this.data.categoryId || undefined,
+      categoryName: this.data.categoryName || undefined,
+      categoryLevel: this.data.categoryLevel || undefined,
+      brandId: this.data.brandId || undefined,
+      section: this.data.section || undefined,
+    };
   },
 
   errorText(): string {

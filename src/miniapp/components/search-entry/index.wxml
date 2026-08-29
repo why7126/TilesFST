@@ -1,8 +1,8 @@
 <view class="search-entry {{disabled ? 'disabled' : ''}}">
   <button wx:if="{{showBack}}" class="entry-back" bindtap="onCancel">‹</button>
-  <view class="entry-shell">
+  <view class="entry-shell {{mode == 'entry' ? 'entry-shell-tappable' : ''}}" bindtap="onEntryTap">
     <view class="entry-box">
-      <input
+      <input wx:if="{{mode != 'entry'}}"
         class="entry-input"
         disabled="{{disabled}}"
         value="{{keyword}}"
@@ -11,6 +11,7 @@
         bindinput="onInput"
         bindconfirm="onSubmit"
       />
+      <view wx:else class="entry-placeholder">{{keyword || placeholder}}</view>
       <button wx:if="{{keyword && !disabled}}" class="entry-clear" bindtap="onClear">×</button>
     </view>
   </view>

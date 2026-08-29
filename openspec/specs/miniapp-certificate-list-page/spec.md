@@ -60,22 +60,33 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 - **AND** 小程序 SHALL NOT 在缩略图可用或缺失时直接使用原图或原文件 URL 作为图片证书卡片展示图。
 
 ### Requirement: 证书列表状态
-小程序证书列表页 SHALL 不提供搜索或筛选功能，并区分加载、空结果、网络失败和加载更多状态。
+小程序证书列表页 SHALL 区分加载、空结果、网络失败和加载更多状态，并 SHALL 支持按证书名称、品牌名称、证书类型枚举或中文类型标签在当前证书列表页查找。证书列表搜索 SHALL 保持证书卡片布局，不跳完整搜索结果页，且 SHALL 仅返回公开可见证书，不得暴露后台内部字段或未授权文件引用。
 
-#### Scenario: 不展示搜索和筛选入口
+#### Scenario: 证书列表搜索入口
 - **WHEN** 用户进入证书列表页
-- **THEN** 页面 SHALL NOT 展示搜索框、证书类型筛选、品牌筛选、有效状态筛选或清除筛选入口
-- **AND** 小程序 SHALL 仅按分页请求公开证书列表。
+- **THEN** 页面 SHALL 展示 `search-entry` 输入模式或等价证书关键词输入
+- **AND** 搜索能力 SHALL 支持证书名称、品牌名称、证书类型枚举或中文类型标签
+- **AND** 搜索提交 SHALL 请求 `/api/v1/miniapp/certificates` 并携带 `keyword`
+- **AND** 页面 SHALL NOT 展示管理端证书类型筛选、品牌筛选、有效状态筛选或复杂筛选抽屉
+- **AND** 页面 SHALL NOT 跳转 `/pages/search/index` 承接证书列表页搜索
+- **AND** 小程序 SHALL 继续按分页请求公开证书列表或当前关键词下的公开证书结果。
+
+#### Scenario: 证书列表搜索空态
+- **WHEN** 证书关键词搜索无结果
+- **THEN** 页面 SHALL 展示当前关键词对应的证书范围无结果说明
+- **AND** 页面 SHALL 提供清空关键词或继续调整关键词的路径
+- **AND** 页面 SHALL NOT 将列表内无结果误表达为全站无结果。
 
 #### Scenario: 下拉刷新与加载更多
 - **WHEN** 用户下拉刷新或触底加载更多
 - **THEN** 小程序 SHALL 分别处理刷新、首屏加载和加载更多状态
 - **AND** 重复触发 SHALL NOT 产生并发重复请求
-- **AND** 无更多数据时 SHALL 展示轻量提示。
+- **AND** 无更多数据时 SHALL 展示轻量提示
+- **AND** 若当前存在关键词，刷新和加载更多请求 SHALL 保留该关键词。
 
 #### Scenario: 空状态与错误状态
 - **WHEN** API 返回空列表或请求失败
-- **THEN** 页面 SHALL 展示“暂无公开证书”
+- **THEN** 页面 SHALL 展示与当前默认列表或关键词搜索范围匹配的空态
 - **AND** 网络失败 SHALL 保留可用已加载数据或缓存并提供重试入口
 - **AND** 页面 SHALL NOT 白屏或长期停留在无反馈加载状态。
 
@@ -248,4 +259,42 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 - **THEN** 后端测试 SHALL 覆盖详情成功、不可公开过滤、旧单文件兼容、多图主图排序和安全文件 URL
 - **AND** 小程序静态或页面测试 SHALL 覆盖详情路由、列表进入详情、媒体状态、分享、品牌入口、异常状态和范围外能力未出现
 - **AND** 设备 evidence SHALL 覆盖正常、加载、错误、无图/PDF 和分享直达状态。
+
+### Requirement: 证书详情返回首页悬浮按钮
+
+小程序证书详情页 SHALL 复用既有 `home-floating-button` 组件提供明确的返回首页悬浮入口。该入口 SHALL 与其他非首页深层内容页保持一致的位置口径，默认使用 `offset="list"`；页面 SHALL NOT 新增私有返回首页按钮结构、私有 offset、私有样式或私有跳转逻辑。
+
+#### Scenario: 证书详情页挂载返回首页按钮
+
+- **WHEN** 用户进入 `pages/certificate-detail/index`
+- **THEN** 页面 SHALL 声明并挂载 `home-floating-button`
+- **AND** 按钮 SHALL 默认使用 `offset="list"`
+- **AND** 页面原有 `custom-navigation` 左上返回能力 SHALL 保持可用。
+
+#### Scenario: 点击悬浮按钮返回首页
+
+- **WHEN** 用户点击证书详情页返回首页悬浮按钮
+- **THEN** 小程序 SHALL 沿用 `home-floating-button` 的首页导航策略进入 `/pages/index/index`
+- **AND** 失败兜底、忙碌态、失败提示和导航锁 SHALL 由既有组件负责
+- **AND** 页面 SHALL NOT 实现重复的私有 `wx.switchTab`、`wx.reLaunch` 或 toast 逻辑。
+
+#### Scenario: 页面状态覆盖
+
+- **WHEN** 证书详情页处于正常、加载、网络失败、证书不可查看、证书不存在、图片失败或分享直达状态
+- **THEN** 页面 SHALL 保留可恢复的返回首页路径
+- **AND** 悬浮按钮 SHALL NOT 遮挡证书主图、品牌入口、错误态按钮、顶部自定义导航或底部安全区
+- **AND** 证书信息字段被悬浮按钮局部覆盖 SHALL be acceptable，页面 SHALL NOT 为证书信息卡新增右侧避让。
+
+#### Scenario: 重复点击与再次进入
+
+- **WHEN** 用户快速重复点击证书详情页返回首页悬浮按钮，或成功返回首页后再次进入证书详情页
+- **THEN** 返回首页导航 SHALL 保持可恢复、可重试
+- **AND** 页面 SHALL NOT 出现重复跳转、多次 toast、页面栈异常或导航锁无法释放。
+
+#### Scenario: 静态检查与设备 evidence
+
+- **WHEN** 团队验收证书详情页返回首页悬浮按钮
+- **THEN** 验收 SHALL 覆盖 `index.json` 组件声明、`index.wxml` 组件引用、`offset="list"` 和 `.ts` / `.js` 同步
+- **AND** DevTools evidence SHALL 覆盖 320、375、430 pt 视口下标题、原生胶囊 reserve、内容 offset、品牌入口同宽、证书信息非避让排版和悬浮按钮位置一致结论
+- **AND** 真机 evidence 不可用时 SHALL 标记 `blocked` 或 `follow_up`，不得写作真机通过。
 

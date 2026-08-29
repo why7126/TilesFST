@@ -2410,6 +2410,7 @@ page?: number;
  */
 page_size?: number;
 pageSize?: number | null;
+keyword?: string | null;
 };
 
 export type ListCertificatesApiV1MiniappCertificatesGetParams = {
@@ -2423,6 +2424,7 @@ page?: number;
  */
 page_size?: number;
 pageSize?: number | null;
+keyword?: string | null;
 };
 
 export type SuggestSearchApiV1MiniappSearchSuggestionsGetParams = {

@@ -11,6 +11,10 @@
   margin-top: 24rpx;
 }
 
+.certificate-search-entry {
+  margin: 2rpx 0 24rpx;
+}
+
 .skeleton-grid,
 .certificate-grid {
   display: grid;
