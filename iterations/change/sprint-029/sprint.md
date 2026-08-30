@@ -1,7 +1,8 @@
 ---
+note: workflow-sync — workflow-sync 自动同步 — 1/1 Change archived；0 applied；Sprint `active`
 title: sprint-029 规划
 created_at: 2026-08-30 15:36:34
-updated_at: 2026-08-30 15:44:12
+updated_at: 2026-08-30 15:54:58
 ---
 
 # sprint-029 规划
@@ -20,7 +21,7 @@ updated_at: 2026-08-30 15:44:12
 
 | 类型 | 编号 | 标题 | 状态 | 估算 | 说明 |
 |---|---|---|---|---:|---|
-| Change | enforce-product-version-release-gates | 产品版本号发布强门禁 | applied | 1 人天 | 纯治理 Change，不修改业务 `src/`。 |
+| Change | enforce-product-version-release-gates | enforce product version release gates | archived | 1 人天 | archived `enforce-product-version-release-gates`（2026-08-30 23:59:59） |
 
 <!-- workflow-sync:scope-requirements:start -->
 | 编号 | 名称 | 优先级 | 状态 | 说明 |
@@ -35,8 +36,12 @@ updated_at: 2026-08-30 15:44:12
 <!-- workflow-sync:scope-changes:start -->
 | Change ID | 关联需求 | 状态 | Sprint 目标 |
 |---|---|---|---|
-| `enforce-product-version-release-gates` | — | applied | 强化发布流程产品版本号门禁 |
+| `enforce-product-version-release-gates` | — | archived | archived `enforce-product-version-release-gates`（2026-08-30 23:59:59） |
 <!-- workflow-sync:scope-changes:end -->
+
+REQ：无 已纳入正式范围；BUG：无 已纳入正式范围，优先级高于新增体验能力；当前完成度与验收风险以 Scope 表状态、关联 Change 和 acceptance-report 为准。
+
+Change：已回填 0 个范围项关联 Change，另有 1 个纯 Change；0 archived，1 applied，0 in_progress，0 proposed。所有已纳入范围项均已关联 Change；执行开发与归档时以 Scope 表逐项状态为准。
 
 ## 3. 工作量与容量
 

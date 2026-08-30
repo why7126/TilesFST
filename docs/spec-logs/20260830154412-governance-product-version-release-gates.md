@@ -4,7 +4,7 @@ content: 强化发布流程产品版本号门禁
 source: /spec-opt enforce-product-version-release-gates
 update_method: 本日志记录单次治理变更事实；后续变更另开日志或更新 CHANGELOG 摘要
 created_at: 2026-08-30 15:44:12
-updated_at: 2026-08-30 15:44:12
+updated_at: 2026-08-30 15:47:12
 ---
 
 # 产品版本号发布门禁治理日志
@@ -62,7 +62,15 @@ updated_at: 2026-08-30 15:44:12
 - `uv run pytest tests/test_release_validation.py::test_version_mismatch_blocks_release_even_with_rationale tests/test_release_validation.py::test_miniapp_product_version_mismatch_blocks_publish tests/test_release_validation.py::test_release_status_classifies_product_version_mismatch_as_prepare_gap tests/test_release_validation.py::test_image_input_candidates_include_user_visible_product_versions -q`：4 passed。
 - `python scripts/validate-release.py --release-dir releases/v1.2.2 --stage publish --target development`：通过。
 - `python scripts/validate-release.py --release-dir releases/v1.2.2 --status --target development`：published，publish ready yes，无阻塞项。
-- 其余治理校验待最终执行后回填。
+- `openspec validate enforce-product-version-release-gates`：通过。
+- `python scripts/validate-agent-context-budget.py`：通过。
+- `python scripts/validate-openspec-language.py`：通过。
+- `python scripts/validate-directory-structure.py`：通过。
+- `python scripts/validate-sprint-selection.py --sprint sprint-029`：通过。
+- `python scripts/validate-sprint-scope.py sprint-029 --item enforce-product-version-release-gates`：通过。
+- `python scripts/validate-doc-prose-hygiene.py <focused-paths>`：仅启发式 warning，无阻断。
+- `python scripts/sync-workflow-status.py --event opsx.apply --change enforce-product-version-release-gates --sprint auto`：通过。
+- `python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.apply --change enforce-product-version-release-gates --sprint sprint-029 --json`：actual，warning_count=0。
 
 ## 后续建议
 

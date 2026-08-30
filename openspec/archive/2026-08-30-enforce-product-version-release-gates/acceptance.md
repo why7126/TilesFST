@@ -1,6 +1,6 @@
 ---
 created_at: 2026-08-30 15:36:34
-updated_at: 2026-08-30 15:44:12
+updated_at: 2026-08-30 15:47:12
 ---
 
 # 验收
@@ -16,13 +16,14 @@ updated_at: 2026-08-30 15:44:12
 ## 验收结果
 
 ```yaml
-acceptance_status: pending_validation
-accepted_at:
-accepted_by:
+acceptance_status: passed
+accepted_at: 2026-08-30 15:47:12
+accepted_by: Codex / spec-opt
 evidence:
   - "release validator 已改为阻断 shared / miniapp PRODUCT_VERSION 不一致。"
   - "image build input candidates 已纳入 shared / miniapp 产品版本源。"
   - "聚焦测试：4 passed。"
-pending_items:
-  - "等待 OpenSpec、目录、上下文预算、文档卫生、Workflow Sync 和 AI Usage hook 验证完成后回填。"
+  - "当前 v1.2.2 development publish validation 与 status 通过。"
+  - "OpenSpec、目录结构、上下文预算、Sprint scope、Workflow Sync 和 AI Usage hook 通过；文档卫生仅启发式 warning。"
+pending_items: []
 ```
