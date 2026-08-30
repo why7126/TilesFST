@@ -441,3 +441,32 @@ The BUG-0075 fix SHALL include focused regression coverage for admin brand-detai
 - **AND** SHALL 支持断言输出不直连未授权对象存储
 - **AND** SHALL 支持断言测试摘要不暴露 raw object key、密钥、`.env`、Authorization header、Cookie 或本机绝对路径。
 
+### Requirement: 测试证据与环境证据边界
+
+测试治理 SHALL 区分自动化测试、开发环境 smoke、DevTools evidence、体验版 evidence 和生产 evidence 的证明范围。
+
+#### Scenario: 自动化测试不得冒充生产验证
+- **WHEN** pytest、Vitest、静态校验、开发 API smoke 或 DevTools 验证通过
+- **THEN** 测试结果 MAY 作为开发阶段验收证据
+- **AND** SHALL 记录覆盖边界和目标环境
+- **AND** SHALL NOT 被表述为生产环境、体验版、真机或生产发布验证已通过。
+
+#### Scenario: 生产环境不可用时记录后置
+- **WHEN** 开发阶段无法访问生产环境、生产数据、生产对象存储、体验版入口或真机设备
+- **THEN** 测试计划或验收记录 SHALL 将缺失证据标记为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`
+- **AND** SHALL 说明该缺口阻塞的后续阶段，而不是默认阻塞开发归档。
+
+### Requirement: 环境证据脚本测试覆盖
+
+测试治理 SHALL 覆盖环境分层 evidence 强脚本门禁，确保校验规则、CLI 输出和发布集成不会静默回退。
+
+#### Scenario: 脚本聚焦测试覆盖误判
+- **WHEN** 团队修改环境证据校验脚本或接入点
+- **THEN** 测试 SHALL 覆盖开发证据冒充生产通过、DevTools 冒充体验版或真机通过、`production_only_pending` 在生产发布目标下阻断，以及开发目标下保留后置项不阻断
+- **AND** 测试 SHALL 使用临时目录和脱敏样例，不读取真实生产数据或真实凭据。
+
+#### Scenario: 发布与归档集成测试覆盖
+- **WHEN** 环境证据脚本被接入 release 或 archive validator
+- **THEN** 聚焦测试 SHALL 验证 validator 能消费脚本结果并返回对应错误分类
+- **AND** 不得要求 Docker Compose、真实小程序体验版或生产环境才能运行脚本单测。
+

@@ -1,11 +1,12 @@
 ---
 name: "upgrade-plan"
 description: "生成版本首次部署、相邻升级或跨版本升级与回滚计划"
+updated_at: 2026-08-30 10:25:00
 ---
 
 # upgrade-plan
 
-Use this skill when the user asks `/upgrade-plan --from <fresh|version> --to <version>` or wants to generate a deployment upgrade / rollback plan. Normal release preparation should cover `fresh` and the previous release by default; cross-version plans are generated only when the user explicitly provides an older `--from` version.
+Use this skill when the user asks `/upgrade-plan --from <fresh|version> --to <version> [--target development|production]` or wants to generate a deployment upgrade / rollback plan. Normal release preparation should cover `fresh` and the previous release by default for the release target; cross-version plans are generated only when the user explicitly provides an older `--from` version. When the operator is unsure which default plans are missing, prefer `/release-status <version>` first; it renders the exact target-specific `/upgrade-plan` commands for `fresh` and the previous release.
 
 ## Context Budget Guardrails（MUST）
 
@@ -36,8 +37,8 @@ releases/<to-version>/image-manifest.json（若存在）
 ## Command
 
 ```bash
-python scripts/validate-release-upgrade.py plan --from <fresh|version> --to <version>
-python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
+python scripts/validate-release-upgrade.py plan --from <fresh|version> --to <version> --target <development|production>
+python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<from>-to-<version>.<target>.json
 ```
 
 ## Boundaries
@@ -46,15 +47,17 @@ python scripts/validate-release-upgrade.py validate-plan --plan releases/<versio
 - MUST NOT 自动修改真实生产 env。
 - MUST NOT 自动执行数据库写入迁移、DB restore 或对象存储写入维护任务。
 - MUST NOT 为首次部署、相邻升级、跨版本升级构建不同业务镜像；同一目标版本复用同一份 image manifest。
+- `--target development` 生成开发部署计划，不得用生产 env、生产备份、生产 smoke 或生产公开证据作为 blocker。
+- `--target production` 生成生产部署计划，必须保留生产 env、备份、MySQL、对象存储、smoke 和回滚证据要求。
 
 ## Output
 
-报告 from version、to version、support level、source confidence、blocker/warning 数、plan path、validate result、下一步和待用户决策/处理。
+报告 from version、to version、deployment target、support level、source confidence、blocker/warning 数、plan path、validate result、下一步和待用户决策/处理。
 
 下一步通常为：
 
 ```text
-/upgrade-validate --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
+/upgrade-validate --plan releases/<version>/upgrade-plans/<from>-to-<version>.<target>.json
 ```
 
 若计划已校验通过且需要实施，提示人工按计划执行；不得自动实施。

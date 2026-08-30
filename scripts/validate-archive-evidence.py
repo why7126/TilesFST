@@ -14,12 +14,13 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from archive_evidence import validate_archive_evidence
+import environment_tiered_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def render_markdown(result) -> str:
+def render_markdown(result, environment_report=None) -> str:
     lines = [
         "## Archive Evidence Report",
         "",
@@ -54,6 +55,19 @@ def render_markdown(result) -> str:
     lines.extend(["", f"**Verdict:** {'PASS' if result.ok else 'BLOCKED'}"])
     if result.blocker:
         lines.extend(["", result.blocker])
+    if environment_report is not None:
+        lines.extend(
+            [
+                "",
+                "## Environment Tiered Evidence",
+                "",
+                f"- Checked Files: {len(environment_report.checked_files)}",
+                f"- Blockers: {len(environment_report.blockers)}",
+                f"- Verdict: {'PASS' if environment_report.ok else 'BLOCKED'}",
+            ]
+        )
+        for blocker in environment_report.blockers:
+            lines.append(f"- `{blocker.file}:{blocker.line}` [{blocker.rule_id}] {blocker.message}")
     return "\n".join(lines)
 
 
@@ -87,11 +101,24 @@ def main(argv: list[str] | None = None) -> int:
         change_id=args.change,
         write_minimal_trace=not args.no_write_minimal_trace,
     )
+    archive_files = [
+        archive_path / name
+        for name in ("proposal.md", "design.md", "tasks.md", "trace.md", "acceptance.md", "test-plan.md")
+        if (archive_path / name).exists()
+    ]
+    environment_report = environment_tiered_evidence.validate_files(
+        archive_files,
+        root,
+        target="development",
+        scope=f"archive:{args.change}",
+    )
     if args.json:
-        print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
+        payload = asdict(result)
+        payload["environment_tiered_evidence"] = asdict(environment_report)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
-        print(render_markdown(result))
-    return 0 if result.ok else 1
+        print(render_markdown(result, environment_report))
+    return 0 if result.ok and environment_report.ok else 1
 
 
 if __name__ == "__main__":

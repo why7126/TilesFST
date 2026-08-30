@@ -375,3 +375,83 @@
 - **THEN** release publish SHALL NOT describe cross-version upgrade as supported
 - **AND** public release material SHALL use manual review or unsupported wording.
 
+### Requirement: 发布目标环境分离
+产品版本发布管理 SHALL 区分开发环境发布确认与生产发布确认，并根据目标环境选择发布门禁。
+
+#### Scenario: 开发环境发布确认不受生产证据阻断
+- **WHEN** 发布对象声明 `release_target.environment=development`
+- **THEN** 发布确认 SHALL 表示开发环境部署或开发交付确认
+- **AND** 生产真实 env、生产 MySQL 或对象存储备份、生产公开 API、生产 no-fallback 媒体证据和生产 smoke SHALL NOT 阻断该开发环境发布确认
+- **AND** 这些生产事项 SHALL 作为后续生产发布待办、known issue 或 production release blocker 记录。
+
+#### Scenario: 生产发布确认使用生产门禁
+- **WHEN** 发布对象声明 `release_target.environment=production`
+- **THEN** 发布确认 SHALL 要求生产部署相关证据
+- **AND** 生产 env 显式版本、生产备份、生产 smoke、生产公开 API 和生产媒体证据 SHALL 按发布范围参与门禁或记录明确不适用理由。
+
+#### Scenario: 发布对象记录目标环境
+- **WHEN** 创建或更新发布对象
+- **THEN** 发布对象 SHOULD 包含 `release_target.environment`、`release_target.deployment_scope`、`release_target.production_release_required` 和 `release_target.rationale`
+- **AND** `environment` 与 `deployment_scope` SHALL 使用 `development` 或 `production`。
+
+### Requirement: 发布状态决策面板
+产品版本发布管理 SHALL 提供只读发布状态决策面板，用于汇总 release、image、upgrade 和 publish 当前状态，并向操作者输出可执行的下一步。
+
+#### Scenario: 状态面板区分决策与证据
+- **WHEN** 操作者查看某个版本的发布状态
+- **THEN** 状态面板 SHALL 分别列出需要用户选择的决策项、需要命令或人工补齐的证据项，以及不阻断当前目标的后续事项
+- **AND** 每个阻塞项 SHALL 标明分类、影响阶段、阻塞目标、当前证据、建议动作和复核命令。
+
+#### Scenario: 开发发布显示生产后续但不阻断
+- **WHEN** 发布对象声明 `release_target.environment=development`
+- **THEN** 状态面板 SHALL 将生产 env、生产备份、生产 no-fallback、公开 API 和生产 smoke 缺口归类为 `production_only_pending`
+- **AND** 这些缺口 SHALL NOT 作为开发发布的阻塞项。
+
+#### Scenario: 状态面板输出唯一下一步
+- **WHEN** 状态面板能够推导出下一条安全动作
+- **THEN** 输出 SHALL 提供一条可复制的下一步命令
+- **AND** 若仍存在需要用户选择、补证或人工确认的事项，输出 SHALL 将其放入待用户处理区域而不是混入下一步命令。
+
+### Requirement: 发布阻塞分类契约
+产品版本发布管理 SHALL 使用统一阻塞分类表达 release、image、upgrade 和 publish 中的决策、证据、环境、范围和安全问题。
+
+#### Scenario: 阻塞分类字段完整
+- **WHEN** 发布命令、状态面板或 validator 报告发布阻塞项
+- **THEN** 阻塞项 SHALL 使用 `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`production_only_pending`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety` 或 `schema_invalid` 等分类
+- **AND** 阻塞项 SHOULD 包含 phase、blocks_target、owner、current_evidence、safe_remediation 和 rerun_check。
+
+#### Scenario: 发布确认阶段不再重新发现普通下一步
+- **WHEN** 发布状态面板已报告某版本未达到 publish ready
+- **THEN** `/release-publish` SHOULD 只确认已就绪发布或报告状态面板已暴露的阻塞项
+- **AND** 普通缺失的 image manifest、默认 upgrade plan 或用户决策 SHOULD 在 `/release-status` 或 `/release-prepare` 阶段提前暴露。
+
+### Requirement: 生产证据后置承接
+
+产品发布管理 SHALL 承接开发阶段留下的 `production_only_pending` 证据缺口，并在生产发布时重新判定阻塞状态。
+
+#### Scenario: 开发阶段遗留生产待办
+- **WHEN** REQ、BUG、Change 或 Sprint 验收记录存在 `production_only_pending`
+- **THEN** 开发环境发布或开发归档 SHALL 可继续完成
+- **AND** 发布状态面板 SHALL 将这些事项显示为生产发布待办或后续生产确认项
+- **AND** SHALL NOT 将其混入开发阶段失败项。
+
+#### Scenario: 生产发布重新收紧门禁
+- **WHEN** 发布对象声明 `release_target.environment=production`
+- **THEN** 生产证据待办 SHALL 重新按发布范围归类为 `publish_evidence_missing`、`environment_unavailable`、`schema_invalid` 或明确 N/A
+- **AND** 缺少生产 env、备份、公开 API、生产 no-fallback 媒体、生产 smoke 或回滚准备证据时 SHALL 阻塞生产发布，除非该项对本次发布范围不适用。
+
+### Requirement: 生产发布环境证据强门禁
+
+发布状态与发布确认 SHALL 在生产目标下强制重新判定开发阶段遗留的 `production_only_pending`，不得让开发证据自动升级为生产发布证据。
+
+#### Scenario: Development target 保留生产后置项
+- **WHEN** release status 或 release validation 的目标为 `development`
+- **THEN** 环境证据脚本发现 `production_only_pending` SHALL 作为 production follow-up 或非阻塞项输出
+- **AND** 仅当文本把开发证据写作生产通过、体验版通过或真机通过时才作为 blocker。
+
+#### Scenario: Production target 阻断未重判的后置项
+- **WHEN** release status 或 release publish 的目标为 `production`
+- **THEN** 仍残留的 `production_only_pending` SHALL 被视为未重新判定的生产证据缺口
+- **AND** validation SHALL 将其归类为 `publish_evidence_missing` 或 `environment_unavailable`
+- **AND** 发布确认 SHALL 阻断，直到该项被生产 evidence、明确 N/A 或具体 blocker 替代。
+

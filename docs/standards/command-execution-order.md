@@ -4,7 +4,7 @@ content: workflow 命令阶段、最小相关验证、Workflow Sync 与 AI Usage
 source: /spec-study apply MoonBox 治理质量学习项
 update_method: 命令族、治理脚本或验证矩阵变化时更新
 created_at: 2026-08-21 08:18:18
-updated_at: 2026-08-21 08:36:38
+updated_at: 2026-08-30 12:55:22
 ---
 
 # 命令执行顺序与治理脚本门禁矩阵
@@ -34,6 +34,7 @@ updated_at: 2026-08-21 08:36:38
 | 目录边界、docs、issues、iterations、releases、mintlify、deploy | `python scripts/validate-directory-structure.py` |
 | 长期文档、规则、技能说明、知识库 | `python scripts/validate-doc-prose-hygiene.py <focused-paths>` |
 | Sprint scope | `python scripts/validate-sprint-scope.py <sprint-id> --item <change-id|REQ|BUG>` |
+| 环境分层 evidence / 生产证据后置 | `python scripts/validate-environment-tiered-evidence.py --change <change-id>`、`--sprint <sprint-id>` 或 `--release-dir releases/<version> --target production` |
 | BUG 根因、返修根因或问题排查证据 | `python scripts/validate-root-cause-evidence.py --bug <BUG-id>` 或 `--change <change-id>` |
 | API / OpenAPI / Orval | API 治理校验、OpenAPI 生成和相关 pytest / Vitest |
 | DB schema | DB 文档、schema/migration 校验和相关 pytest |

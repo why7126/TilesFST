@@ -51,6 +51,8 @@ SENSITIVE_PATTERNS = (
 
 INPUT_FILE_CANDIDATES = (
     "src/shared/product-version.ts",
+    "src/miniapp/utils/product-version.ts",
+    "src/miniapp/utils/product-version.js",
     "src/backend/Dockerfile",
     "src/web/Dockerfile",
     "src/web/nginx.conf",
@@ -63,14 +65,16 @@ INPUT_FILE_CANDIDATES = (
     "src/backend/app/db/schema.mysql.sql",
     "src/backend/app/db/migrations.py",
     "src/backend/app/db/mysql_migrations.py",
-    "docs/04-database-design.md",
-    "docs/08-production-image-release.md",
 )
 DEPLOY_INPUT_PATTERNS = (
     "deploy/**/*.yml",
     "deploy/**/*.env.example",
     "deploy/scripts/*",
 )
+LEGACY_NARRATIVE_INPUT_FILES = {
+    "docs/04-database-design.md",
+    "docs/08-production-image-release.md",
+}
 
 
 class ImageBuildError(ValueError):
@@ -401,9 +405,15 @@ def validate_plan(version: str, release_dir: Path | None = None, *, require_unbl
             errors.append(f"image-build-plan.json missing {key}")
     if require_unblocked and plan.get("blockers"):
         errors.append("image-build-plan.json has blockers")
-    input_files = [ROOT / item for item in plan.get("input_files", []) if isinstance(item, str)]
+    input_files = [
+        ROOT / item
+        for item in plan.get("input_files", [])
+        if isinstance(item, str) and item not in LEGACY_NARRATIVE_INPUT_FILES
+    ]
     current_hashes = current_input_hashes([path for path in input_files if path.exists()])
     for path, expected in plan.get("input_hashes", {}).items():
+        if path in LEGACY_NARRATIVE_INPUT_FILES:
+            continue
         actual = current_hashes.get(path)
         if actual != expected:
             errors.append(f"input hash drift: {path}")

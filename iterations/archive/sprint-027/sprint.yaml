@@ -1,0 +1,51 @@
+sprint_id: sprint-027
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-29 18:13:44
+end_date: 2026-09-12 18:13:44
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements:
+  - REQ-0130-media-maintenance-progress-output
+  - REQ-0131-media-object-key-business-id-layout
+bugs:
+  - BUG-0146-batch-media-maintenance-banner-variants
+changes:
+  - add-media-maintenance-progress-output
+  - fix-media-maintenance-banner-variants
+  - update-media-object-key-business-id-layout
+scope_estimates:
+  - id: REQ-0130-media-maintenance-progress-output
+    change: add-media-maintenance-progress-output
+    requirement: REQ-0130-media-maintenance-progress-output
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P1 媒体维护 CLI 运维体验增强，覆盖可选进度输出、stdout/stderr 兼容边界、backfill-image-variants/backfill-brand-certificate-thumbnails/media-drift-reconcile 任务进度、脱敏输出、Runbook 与聚焦测试；不新增 API/DB/Web/小程序/管理端 UI，按 S=1 人天纳入。
+  - id: BUG-0146-batch-media-maintenance-banner-variants
+    change: fix-media-maintenance-banner-variants
+    bug: BUG-0146-batch-media-maintenance-banner-variants
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: P0/P1 生产媒体性能缺陷修复：补齐批量媒体维护命令 Banner 候选来源，覆盖 backfill-image-variants、backfill-brand-certificate-thumbnails/media-drift-reconcile 的 Banner 派生图 dry-run/apply/幂等验收、生产 runbook 和聚焦测试；不新增 API/DB schema/Web/小程序 UI，按 S=1 人天纳入。
+  - id: REQ-0131-media-object-key-business-id-layout
+    change: update-media-object-key-business-id-layout
+    requirement: REQ-0131-media-object-key-business-id-layout
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1 对象存储与媒体治理需求，覆盖头像、品牌 Logo、Banner、SKU 图片/视频、品牌证书图片与文件的业务对象 id 目录、pending/formalize、旧 key 兼容、存量迁移 dry-run/apply/audit/rollback、派生图一致性、受控媒体 URL、规范文档与观测门禁；涉及后端上传/媒体服务、数据库引用、Web/小程序/管理端消费策略和维护任务，按 M=3 人天纳入。
+estimated_story_points: 5
+estimated_person_days: 5
+capacity_usage: 0.1667
+fix_buffer_person_days: 25
+fix_buffer_ratio: 0.8333
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 5
+  capacity_usage: 0.1667
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。本 Sprint 当前纳入 REQ-0130、REQ-0131 与 BUG-0146，合计估算 5 人天，占用 16.67%，fix 缓冲 25 人天 / 83.33%。

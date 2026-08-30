@@ -2,7 +2,7 @@
 name: "sprint-exps"
 description: "Sprint 经验复盘 - 总结整迭代流程、需求、开发与质量经验，沉淀到 docs/knowledge-base"
 created_at: 2026-08-06 00:00:00
-updated_at: 2026-08-26 20:58:03
+updated_at: 2026-08-30 08:50:35
 ---
 
 # sprint-exps
@@ -57,7 +57,7 @@ Use this skill when the user asks to run the workflow command `sprint-exps`.
    ```bash
    python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --ai-usage-markdown
    ```
-   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。矩阵单元中的 `-` 表示该 workflow 阶段在当前 snapshot 中未采集或未归因，MUST NOT 被解读为真实 0；只有已观测 workflow 列中的数字 `0` 才表示真实零消耗。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON，原始矩阵列状态仍使用 `unknown` 表示未观测。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若 recommended_action 指向 `scripts/extract-ai-usage.py` 或当前命令可运行 post-command hook，MUST 先刷新 snapshot；刷新完成后 MUST 重新运行 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 复核 fresh gate，且只能以刷新后的 summary 判断是否可渲染矩阵。不得沿用刷新前的 blocker 结论，也不得在未重新 summary 时直接运行 `--ai-usage-markdown` 写入真实矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
+   该输出必须包含 `Token Usage Fact Sheet` 与 `total_tokens`、`input_tokens`、`output_tokens`、`model_call_count` 四张矩阵。矩阵单元中的 `-` 表示该 workflow 阶段在当前 snapshot 中未采集或未归因，MUST NOT 被解读为真实 0；只有已观测 workflow 列中的数字 `0` 才表示真实零消耗。仅当需要调试渲染输入或字段兼容时，才 MAY 使用 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --fields ai_usage_snapshot.usage_matrices` 读取原始矩阵 JSON，原始矩阵列状态仍使用 `unknown` 表示未观测。若 fresh gate 为 `blocker`，或 snapshot `missing`、`stale`、`failed`、覆盖不足、关键 totals 为空或缺少矩阵摘要，MUST 先输出 fresh gate blocker、reason、impact、freshness_baseline 和 recommended_action，并要求刷新 snapshot 后再输出真实成本矩阵。若 recommended_action 指向 `scripts/extract-ai-usage.py` 或当前命令可运行 post-command hook，MUST 先刷新 snapshot；刷新时默认依赖 `AI_USAGE_SESSIONS_DIR` 或 `~/.codex/sessions/**/*.jsonl` 自动发现本地 Codex session，仅在自动发现失败、候选缺少可归因 `token_count` 或历史回溯需要精确映射时要求显式 `--session-jsonl`。刷新完成后 MUST 重新运行 `python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --summary` 复核 fresh gate，且只能以刷新后的 summary 判断是否可渲染矩阵。不得沿用刷新前的 blocker 结论，也不得在未重新 summary 时直接运行 `--ai-usage-markdown` 写入真实矩阵。只有当用户明确要求继续 fallback 复盘时，才 MAY 输出 `ai_usage_mode: estimated_fallback` 的非量化成本风险分析；该输出 MUST 说明不能用于真实 token 成本量化，并保留 recommended_action。仅在需要定位原始证据时读取完整 evidence hints。
 6. 五维分析：流程、需求设计、开发质量、可复用抽象、模型 Token 使用。
 7. 聚类 → 行动项 → 写入 knowledge-base（除非 dry-run）。
 8. 输出 Experience Analysis Report。
@@ -166,7 +166,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event sprint.e
 ```
 
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
-- If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+- If default session discovery/input is unavailable or cannot yield attributable token data, report `usage_mode: unavailable` or `estimated_fallback` and the recommended action; do not treat that as parent command failure.
 
 ## Final Output Contract（MUST）
 

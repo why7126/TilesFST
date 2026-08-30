@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-22 09:14:33
+updated_at: 2026-08-30 15:36:34
 ---
 
 # 发布规范
@@ -17,10 +17,14 @@ updated_at: 2026-08-22 09:14:33
 对外发布 Web 管理端或店主端时，若本次发版包含产品版本语义变更，MUST 人工更新：
 
 ```text
-src/shared/product-version.ts  →  PRODUCT_VERSION（如 v0.0.1）
+src/shared/product-version.ts              →  PRODUCT_VERSION（如 v0.0.1）
+src/miniapp/utils/product-version.ts       →  PRODUCT_VERSION（如 v0.0.1）
+src/miniapp/utils/product-version.js       →  PRODUCT_VERSION（如 v0.0.1）
 ```
 
 MUST NOT 依赖 `package.json`、FastAPI `version`、OpenAPI 版本、Git commit 或 CI 构建号作为用户可见产品版本。
+
+发布准备和发布确认阶段 MUST 强制校验上述存在的用户可见版本源均等于 `releases/<version>/release.json` 的 `version`。`version_change_rationale` 只能解释 draft/proposal 阶段意图，不得作为 prepare 或 publish 放行条件。若产品版本源在 `/image-build` 后发生变更，必须重新执行 `/image-prepare <version>` 与 `/image-build <version>`。
 
 ## 产品版本发布对象
 
@@ -36,6 +40,82 @@ releases/vX.Y.Z/release.json
 - 追踪关联 REQ、BUG 和 OpenSpec Change。
 - 区分 Sprint `release-note.md` 与产品版本公告：Sprint release note 描述迭代交付，产品版本公告描述对外版本。
 - 阻止未评审、未纳入交付或未归档闭环的内容进入正式发布范围。
+- 显式记录发布目标环境，区分开发环境发布确认与生产发布确认。
+
+发布对象 SHOULD 包含：
+
+```json
+{
+  "release_target": {
+    "environment": "development | production",
+    "deployment_scope": "development | production",
+    "production_release_required": true,
+    "rationale": "本次发布确认覆盖的环境边界"
+  }
+}
+```
+
+语义：
+
+- `development` 表示当前 release-publish 只确认开发环境部署、开发交付或开发验收发布；生产真实 env、生产 MySQL / 对象存储备份、生产公开 API、生产 no-fallback 媒体证据和生产 smoke 不得阻断该确认。
+- `production` 表示当前 release-publish 是生产发布确认；生产 env 显式版本、生产备份、生产 smoke、生产公开 API 和生产媒体证据按发布范围参与门禁，或必须记录明确不适用理由。
+- 缺少 `release_target` 的历史 release 按生产语义兼容校验；新 release SHOULD 显式写入目标环境。
+
+开发阶段 REQ、BUG、Change 或 Sprint 验收遗留的 `production_only_pending` 事项，进入发布流程时必须继续保留为生产发布待办，不得改写为开发验收失败。只有当 `release_target.environment=production` 时，这些事项才按发布范围重新归类为 `publish_evidence_missing`、`environment_unavailable`、`schema_invalid` 或明确 N/A 并参与生产发布门禁。
+
+## Release Status 决策面板
+
+发布流程 SHOULD 提供只读状态面板，统一汇总 `release.json`、`image-build-plan.json`、`image-manifest.json`、`upgrade-plans/` 和 release validator 的当前结论。推荐入口：
+
+```text
+/release-status <version> [--target development|production]
+python scripts/validate-release.py --release-dir releases/<version> --status [--target development|production]
+python scripts/validate-environment-tiered-evidence.py --release-dir releases/<version> --target production
+```
+
+状态面板 MUST NOT 自动生成或修改 release、image、upgrade、公告、usage docs、publish confirmation、真实 env、数据库或对象存储数据。它只负责回答：
+
+- 当前 release target 与部署边界是什么。
+- 当前阶段是否已达到 publish ready。
+- 哪些事项是用户决策缺口，哪些是证据缺口。
+- 哪些生产证据只是 `production_only_pending`，不阻塞 development 发布。
+- 默认 upgrade 路径是否缺失，并给出可复制的 `/upgrade-plan` 命令。
+- 下一步是否存在唯一安全命令。
+
+`validate-release.py --status` 和 `validate-release.py --stage publish --target production` 必须接入环境分层 evidence 门禁。生产发布前，任何 release、upgrade plan、公告或发布证据中的 `production_only_pending` 都必须重新判定为生产 evidence、明确 N/A、`environment_unavailable` 或发布阻塞项；不得继续沿用开发阶段的 pending 结论。
+
+发布阻塞项 SHOULD 使用统一分类：
+
+| 分类 | 含义 |
+|---|---|
+| `decision_missing` | 需要用户选择或确认，例如 usage docs 是否生成、发布目标或生产实施策略。 |
+| `prepare_evidence_missing` | prepare 阶段需要补齐的测试、文档、OpenSpec、版本或安全证据。 |
+| `publish_evidence_missing` | publish 阶段需要补齐的 image manifest、upgrade plan、checksum、公告位置或确认凭据。 |
+| `production_only_pending` | 只影响生产发布，不阻塞 development 发布的生产 env、备份、公开 API、no-fallback、smoke 或回滚证据。 |
+| `input_drift` | 稳定发布范围、构建输入或镜像输入 hash 发生漂移，需要重新生成 plan / manifest。 |
+| `environment_unavailable` | 本地 Docker、网络、数据库、依赖或权限不可用，无法获得自动化证据。 |
+| `scope_incomplete` | Sprint、Issue 或 OpenSpec Change 未纳入、未归档或状态不闭环。 |
+| `public_safety` | 公告、usage docs、release metadata 或证据中存在敏感信息风险。 |
+| `schema_invalid` | JSON、必填字段、枚举、时间格式或结构契约不合法。 |
+
+每个 actionable item SHOULD 至少包含：`classification`、`phase`、`blocks_target`、`message`、`owner`、`current_evidence`、`safe_remediation` 和 `rerun_check`。命令最终输出可摘要化，但不得把用户决策、证据缺口和非阻塞生产后续混为同一类。
+
+生产发布对象 SHOULD 使用 `production_deployment` 记录生产专属证据：
+
+```json
+{
+  "production_deployment": {
+    "env_image_tag": {"status": "pass | na", "evidence": "生产 env / Compose config 脱敏证据"},
+    "backup_confirmation": {"status": "pass | na", "evidence": "DB / 对象存储备份确认"},
+    "public_api_consistency": {"status": "pass | na", "evidence": "公开 API 字段一致性证据"},
+    "media_no_fallback": {"status": "pass | na", "evidence": "Content-Type 与 x-media-fallback 证据"},
+    "runtime_smoke": {"status": "pass | na", "evidence": "生产 smoke 证据"},
+    "rollback_readiness": {"status": "pass | na", "evidence": "回滚准备证据"}
+  }
+}
+```
+
+`status=pass` 必须有 `evidence`，`status=na` 必须有 `rationale`。该对象只在生产发布确认中作为强门禁；开发环境发布可保留 `na` 或省略。
 
 ## 公开发布公告
 
@@ -122,6 +202,12 @@ releases/vX.Y.Z/usage-docs/
 releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.json
 ```
 
+新版本升级计划 SHOULD 使用目标环境后缀：
+
+```text
+releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.<target>.json
+```
+
 `from_version=fresh` 表示首次部署。升级计划 MUST 至少包含：
 
 - `from_version`、`to_version`、`support_level`、`source_confidence`。
@@ -132,10 +218,19 @@ releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.json
 
 `releases/<to-version>/upgrade-plans/` 只允许存放项目团队确认需要支持或评估的真实部署升级路径。为解释能力、覆盖单测或演示支持级别而构造的示例版本，MUST 放在测试临时数据、测试 fixture 或文档示例中，不得作为正式 release 事实源写入目标版本目录。
 
-每次正常发布默认应生成并校验两类升级计划：
+每次正常发布默认应生成并校验两类升级计划，且计划目标环境 MUST 跟随 `release_target.environment`：
 
 - `fresh -> <to-version>` 首次部署计划。
 - `<previous-release-version> -> <to-version>` 上一正式版本到当前版本的相邻升级计划；若当前版本是首个正式 release，则该项记为 N/A。
+
+开发环境发布生成 development 目标升级计划；这些计划表达开发部署、开发验证和开发回滚边界，不得凭它宣称生产升级路径已验证。生产环境发布必须额外生成或校验 production 目标升级计划。
+
+状态面板发现默认升级路径缺失时 SHOULD 直接输出对应命令，例如：
+
+```text
+/upgrade-plan --from fresh --to <version> --target <development|production>
+/upgrade-plan --from <previous-release-version> --to <version> --target <development|production>
+```
 
 跨版本升级计划（例如 `<old-version> -> <to-version>` 且 `old-version` 不是上一正式版本）MUST NOT 在每次发布时默认生成。只有用户明确指定来源版本并执行 `/upgrade-plan --from <old-version> --to <to-version>` 或等价脚本命令时，才可写入目标版本 `upgrade-plans/`，并按证据情况标记为 `cross-version-upgrade-supported`、`cross-version-upgrade-requires-manual-review` 或 `unsupported`。
 
@@ -154,10 +249,10 @@ releases/<to-version>/upgrade-plans/<from-version>-to-<to-version>.json
 推荐命令：
 
 ```text
-/upgrade-plan --from <fresh|version> --to <version>
+/upgrade-plan --from <fresh|version> --to <version> [--target development|production]
 /upgrade-validate --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
-python scripts/validate-release-upgrade.py plan --from <fresh|version> --to <version>
-python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<from>-to-<version>.json
+python scripts/validate-release-upgrade.py plan --from <fresh|version> --to <version> --target development|production
+python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<from>-to-<version>.<target>.json
 ```
 
 upgrade 命令只生成计划和校验结果，MUST NOT 自动执行生产升级、自动修改真实生产 env、自动执行数据库写入迁移或对象存储写入维护任务。
@@ -168,11 +263,14 @@ upgrade 命令只生成计划和校验结果，MUST NOT 自动执行生产升级
 
 | 决策 | 记录位置 | 说明 |
 |---|---|---|
+| 发布目标环境 | `release.json.release_target` | 开发环境发布或生产发布；决定生产证据是否参与 publish 门禁 |
 | 产品使用文档 | `release.json.usage_docs.generation_decision` | 生成、跳过或待确认；待确认阻断发布确认。 |
 | 公开公告 | `release.json.announcement_decision` 与 `announcement.mdx` | 可先跳过或占位；发布后补生成公告属于非稳定发布元数据刷新。 |
 | 镜像构建 | `release.json.image_required`、`image_plan`、`image_manifest` | 涉及后端、Web、Docker、DB、对象存储或离线交付时通常为 required。 |
 
 命令输出 MUST 将这三类决策放入摘要，避免操作者在多个命令之间依赖记忆。已确认的决策不得重复追问；未知决策必须以结构化选项列入待用户处理。
+
+`/release-status` 输出的决策摘要 MUST 优先消费已记录事实，不得为已确认的 release target、usage docs、announcement 或 image required 决策重复提问。若无法使用原生交互卡片，文本输出 SHOULD 仍限制在 1-3 个关键决策，并提供推荐选项与原因。
 
 发布确认前 MUST 校验：
 
@@ -184,12 +282,15 @@ upgrade 命令只生成计划和校验结果，MUST NOT 自动执行生产升级
 | Docker Compose | 涉及部署变更时，Compose 配置与部署文档已同步 |
 | 数据库 | 涉及数据库迁移或 schema 影响时，迁移脚本、数据库文档、回滚说明、MySQL schema drift 或目标 MySQL smoke 证据已同步 |
 | 环境变量 | 涉及环境变量时，`.env.example` 与相邻注释已同步 |
-| 产品版本 | `src/shared/product-version.ts` 的 `PRODUCT_VERSION` 与发布对象版本一致；如不更新，必须记录原因 |
+| 产品版本 | Web shared 与小程序版本源中存在的 `PRODUCT_VERSION` 均与发布对象版本一致；任一不一致都阻断 prepare/publish，不能用 rationale 放行 |
 | Mintlify | 公告 build / preview 或等价校验通过 |
 | 产品使用文档 | 已确认 generated / skipped / pending_confirmation；generated 时 `usage_docs_preview` 通过，skipped 时记录不适用原因，pending_confirmation 阻断 |
 | Mintlify 多版本站点 | generated usage docs 已同步或投影到 `mintlify/`，导航、`latest`、公告投影、共享截图 hash 和公开安全校验通过；未确认生产承载方式时记录 blocker 或待确认项 |
 | 镜像准备 | 当 `image_required=true` 时，`releases/<version>/image-build-plan.json` 已生成、校验通过并被 `release.json` 引用 |
 | 镜像构建 | 当 `image_required=true` 或包含离线镜像交付时，`releases/<version>/image-manifest.json` 已生成、未过期并被 `release.json` 引用；外部构建证据必须受控 |
+| 默认升级计划 | 正常发布默认具备 `fresh -> <version>` 与上一正式版本相邻升级计划；开发发布使用 `.development.json` 目标计划，生产发布使用 `.production.json` 目标计划 |
+
+生产发布专属门禁仅在 `release_target.environment=production` 时强制：生产部署 env 显式版本、生产 DB / 对象存储备份、生产公开 API 字段一致性、生产 no-fallback 媒体证据、生产端侧渲染或 smoke。开发环境发布可将这些项记录为后续生产发布待办、known issue 或 production release blocker，但不得因此阻断开发环境发布确认。
 
 任一必填门禁失败时，发布流程 MUST 阻断，并输出失败原因与修复建议。
 
@@ -199,17 +300,22 @@ upgrade 命令只生成计划和校验结果，MUST NOT 自动执行生产升级
 
 ```text
 /release-propose <version>
+  → /release-status <version>
   → /release-prepare <version>
+  → /release-status <version>
   → /image-prepare <version>
   → /image-build <version>
+  → /release-status <version>
   → /release-publish <version>
 ```
 
-`/image-prepare` 只生成或更新 `releases/<version>/image-build-plan.json`，记录版本、image tag、source scope、build env 安全摘要、Dockerfile、Compose、构建脚本、构建 env 示例、Nginx、schema、migration、数据库文档 input hash、required commands、auto actions、warnings 和 blockers。默认构建 env 缺失或 `IMAGE_BUILD_TAG` 与版本不一致时，命令 MAY 只自动创建/更新安全白名单变量并记录 auto action。Compose fallback tag 与当前版本不同但实际发布 env 明确设置 `TILESFST_IMAGE_TAG=<version>` 时 SHOULD 记录 warning，不得作为 blocker 要求每次 release 改 Compose 默认值。Docker 不可用、网络不可用、构建 env 示例异常、自动修正后仍版本不一致或真实构建前置条件不满足时可以写 blocked plan，但不得写 pass 证据。
+`/release-status` 只读汇总当前阶段、阻塞分类、默认 upgrade 路径和下一步，不替代任何准备、构建、升级计划或发布确认命令。
+
+`/image-prepare` 只生成或更新 `releases/<version>/image-build-plan.json`，记录版本、image tag、source scope、build env 安全摘要、Dockerfile、Compose、构建脚本、构建 env 示例、Nginx、schema、migration、deploy 脚本 input hash、required commands、auto actions、warnings 和 blockers。默认构建 env 缺失或 `IMAGE_BUILD_TAG` 与版本不一致时，命令 MAY 只自动创建/更新安全白名单变量并记录 auto action。Compose fallback tag 与当前版本不同但实际发布 env 明确设置 `TILESFST_IMAGE_TAG=<version>` 时 SHOULD 记录 warning，不得作为 blocker 要求每次 release 改 Compose 默认值。长期发布证据、运维叙述或部署说明文档不应作为镜像稳定输入；除非它们同时是运行时、构建或部署包输入，否则只由 release/deployment gate 记录。Docker 不可用、网络不可用、构建 env 示例异常、自动修正后仍版本不一致或真实构建前置条件不满足时可以写 blocked plan，但不得写 pass 证据。
 
 `/image-build` MUST 读取有效且未过期的 image build plan 后再复用 `scripts/build-images.sh` 执行真实构建。构建成功后写入 `releases/<version>/image-manifest.json`，记录 version、image_tag、built_at、platform、backend_image、web_image、tarball、input_hashes、validation 和 source_plan。镜像 tar 包与 `.sha256` MUST 默认输出到仓库外 `../releases/<version>/images/`，不得提交到仓库内 `releases/`。构建后 MUST 校验 manifest 记录的 tarball sha256、`.sha256` sidecar 和实际 tarball sha256 三者一致。缺少 plan、plan blocked、版本/tag 不一致、input hash 漂移、Docker/buildx/网络/基础镜像源/验证/tar/sha256 失败时 MUST 阻断，不得伪造成功 manifest。
 
-发布确认阶段 MUST 重新校验 manifest 的版本、tag、source plan、input hashes、tarball 路径、sidecar sha256 和实际 tarball sha256。manifest 生成后 Dockerfile、构建脚本、schema、migration、Compose 或 release stable input 漂移时，镜像证据失效，必须重新执行 `/image-prepare` 与 `/image-build`，或记录经批准的外部构建证据。公告文案不参与镜像二进制构建，MUST NOT 纳入 image build plan / manifest input hash；公告中的发布状态、usage docs 决策和镜像 evidence 描述可在发布确认前按当前 `release.json`、`image-manifest.json` 和 `.sha256` sidecar 刷新。发布输出 MUST 以当前 manifest 中的 sha256 为唯一发布 sha，并提醒在 tarball 所在目录执行 `shasum -a 256 -c <tarball>.sha256`。
+发布确认阶段 MUST 重新校验 manifest 的版本、tag、source plan、input hashes、tarball 路径、sidecar sha256 和实际 tarball sha256。manifest 生成后 Dockerfile、构建脚本、schema、migration、Compose、产品版本源或 release stable input 漂移时，镜像证据失效，必须重新执行 `/image-prepare` 与 `/image-build`，或记录经批准的外部构建证据。公告文案不参与镜像二进制构建，MUST NOT 纳入 image build plan / manifest input hash；公告中的发布状态、usage docs 决策和镜像 evidence 描述可在发布确认前按当前 `release.json`、`image-manifest.json` 和 `.sha256` sidecar 刷新。发布输出 MUST 以当前 manifest 中的 sha256 为唯一发布 sha，并提醒在 tarball 所在目录执行 `shasum -a 256 -c <tarball>.sha256`。
 
 `/release-publish` 是发布确认命令，不得把最终 tarball sha256、manifest sha256、发布时间或发布确认写回公告。公告中如需描述镜像校验，MUST 引用 `releases/<version>/image-manifest.json` 与离线包 `.sha256` sidecar 作为事实源。最终 sha、发布时间、公告位置和确认人只写入 `release.json.publish_confirmation` 或发布输出。若发布确认发现公告只残留 usage docs、image prepare/build、门禁状态等可由当前 release metadata 推导出的过期状态，MAY 在 publish 前刷新公告并继续校验；若公告涉及范围、功能、风险、回滚、公开安全或需人工 copy edit 的实质变更，MUST 阻断 publish 并要求先修公告。
 

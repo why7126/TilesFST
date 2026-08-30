@@ -11,6 +11,7 @@ from app.core.exceptions import (
 )
 from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRecord, BrandRepository
+from app.modules.media.business_media import formalize_business_media_object, is_pending_business_media_key
 from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.schemas.brand_admin import (
     BrandAdminItem,
@@ -140,6 +141,7 @@ class BrandAdminService:
             logo_object_key=payload.logo_object_key,
             description=_normalize_optional(payload.description, max_len=500),
         )
+        brand = self._formalize_logo_if_needed(brand)
         return self.to_item(brand)
 
     def update_brand(self, brand_id: int, payload: BrandUpdateRequest) -> BrandAdminItem:
@@ -163,7 +165,31 @@ class BrandAdminService:
             description=_normalize_optional(payload.description, max_len=500),
         )
         assert updated is not None
+        updated = self._formalize_logo_if_needed(updated)
         return self.to_item(updated)
+
+    def _formalize_logo_if_needed(self, brand: BrandRecord) -> BrandRecord:
+        object_key = brand.logo_object_key
+        if not object_key or not is_pending_business_media_key(object_key):
+            return brand
+        target_key = formalize_business_media_object(
+            object_key=object_key,
+            resource_type="brand-logos",
+            business_id=brand.id,
+            usage="logos",
+            media_kind="image",
+        )
+        updated = self._repo.update(
+            brand.id,
+            name=brand.name,
+            sort_order=brand.sort_order,
+            short_name=brand.short_name,
+            english_name=brand.english_name,
+            logo_object_key=target_key,
+            description=brand.description,
+        )
+        assert updated is not None
+        return updated
 
     def enable_brand(self, brand_id: int) -> BrandAdminItem:
         brand = self._repo.get_by_id(brand_id)

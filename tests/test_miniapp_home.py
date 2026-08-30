@@ -1260,6 +1260,74 @@ def test_miniapp_certificate_list_filters_public_data_and_supports_facets(
     assert hidden_filtered.json()["data"]["total"] == 0
 
 
+def test_miniapp_certificate_list_derives_thumbnail_from_image_key_when_urls_are_empty(
+    api_client: TestClient,
+) -> None:
+    _seed_public_catalog(api_client)
+    from app.db.session import get_session_factory
+
+    db = get_session_factory()()
+    now = _now()
+    try:
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificates (
+                  id, brand_id, name, sort_order, type, certificate_no, issuer,
+                  file_url, file_key, file_name, file_mime_type, file_size_bytes,
+                  is_permanent, effective_date, expiry_date, is_visible, remark,
+                  deleted_at, created_at, updated_at
+                ) VALUES
+                  (16, 1, '生产空 URL 图片证书', 1, 'QUALITY', 'IMG-EMPTY-URL', '质检机构',
+                   '', '', '', '', 1, 1, NULL, NULL, 1,
+                   '内部证书备注', NULL, :now, :now),
+                  (17, 1, '生产空 URL PDF 证书', 2, 'INSPECTION', 'PDF-EMPTY-URL', '检测中心',
+                   '', 'files/default/brand-certificates/prod-report.pdf',
+                   'prod-report.pdf', 'application/pdf', 4096, 1, NULL, NULL, 1,
+                   'PDF 内部备注', NULL, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.execute(
+            text(
+                """
+                INSERT INTO brand_certificate_images (
+                  id, certificate_id, file_url, file_key, file_name, file_mime_type,
+                  file_size_bytes, is_main, sort_order, created_at, updated_at
+                ) VALUES
+                  (116, 16, '',
+                   'images/default/brand-certificates/prod-certificate.webp',
+                   'prod-certificate.webp', 'image/webp', 3072, 0, 0, :now, :now)
+                """
+            ),
+            {"now": now},
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = api_client.get("/api/v1/miniapp/certificates?keyword=生产空 URL&page=1&pageSize=10")
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["total"] == 2
+    assert [item["certificate_id"] for item in data["items"]] == [16, 17]
+    assert data["items"][0]["file_kind"] == "image"
+    assert data["items"][0]["file_url"] is None
+    assert (
+        data["items"][0]["thumbnail_url"]
+        == "/media/images/default/brand-certificates/prod-certificate.thumb.webp"
+    )
+    assert data["items"][0]["file_name"] == "prod-certificate.webp"
+    assert data["items"][1]["file_kind"] == "pdf"
+    assert data["items"][1]["file_url"] is None
+    assert data["items"][1]["thumbnail_url"] is None
+    assert "file_key" not in response.text
+    assert "内部证书备注" not in response.text
+    assert "PDF 内部备注" not in response.text
+
+
 def test_miniapp_certificate_detail_returns_public_data_and_filters_private_records(
     api_client: TestClient,
 ) -> None:

@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-26 20:58:03
+updated_at: 2026-08-30 15:36:34
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -90,7 +90,7 @@ rules/agent-context-budget.md
 | 缺陷 | `/bug-capture` → `/bug-generate` → `/bug-complete` → `/bug-review` → `/sprint-propose` → `/bug-opsx` |
 | Change | `/opsx-propose`、`/opsx-explore`、`/opsx-apply`、`/opsx-archive` |
 | Sprint | `/sprint-propose`、`/sprint-explore`、`/sprint-apply`、`/sprint-archive`、`/sprint-exps` |
-| Release | `/release-propose <version>`、`/release-prepare <version>`、`/image-prepare <version>`、`/image-build <version>`、`/upgrade-plan --from <fresh\|version> --to <version>`、`/upgrade-validate --plan <path>`、`/release-publish <version>` |
+| Release | `/release-propose <version> [--target development\|production]`、`/release-status <version> [--target development\|production]`、`/release-prepare <version>`、`/image-prepare <version>`、`/image-build <version>`、`/upgrade-plan --from <fresh\|version> --to <version> [--target development\|production]`、`/upgrade-validate --plan <path>`、`/release-publish <version> [--target development\|production]` |
 | 小程序发布 | `/miniapp-env`、`/miniapp-check`、`/miniapp-prepare`、`/miniapp-confirm`、`/miniapp-restore` |
 | 产品使用文档 | `/usage-docs-generate`、`/usage-docs-update`、`/usage-docs-validate` |
 | Bootstrap | `/initialize-project`、`/build-design-system`、`/build-api-standard`、`/build-test-framework` |
@@ -144,6 +144,8 @@ rules/agent-context-budget.md
 - 带 `prototype/` 的 UI 页面必须先完成原型拆解、UI Contract、UI Skeleton 首轮确认、1440px 与关键交互视觉验收、computed style 证据、Mock/API 边界声明和最终一致性检查；不得缺少视觉证据、样式证据或文档回填即归档。
 - 问题排查、BUG 完善、BUG 来源实现、验收返修或效果不如预期时必须遵守证据化根因分析治理：根因状态区分 `unknown`、`hypothesis`、`probable`、`confirmed`；confirmed 必须绑定证据链，证据不足时输出人工补证步骤。
 - BUG 默认 approve 或显式 `--approve` 评审前必须满足 `root_cause_status: confirmed` 且证据链可定位；`unknown`、`hypothesis`、`probable`、缺 `root-cause.md` 或缺根因状态均不得 `/bug-review` approve。
+- 开发、体验版和生产发布 evidence 必须分层记录；开发阶段无法获得的生产 env、生产备份、生产公开 API、生产 no-fallback 媒体、生产 smoke、体验版或真机 Network 证据不得默认阻塞 `opsx.archive`，应记录为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`，生产发布时重新按生产门禁判定。
+- `/opsx-archive`、`/sprint-archive`、`/release-status`、`/release-publish` 必须执行 `scripts/validate-environment-tiered-evidence.py` 或已接入该模块的上层 validator；开发证据冒充生产通过、体验版/真机 Network 无 evidence 却标 `passed`、生产发布前仍遗留 `production_only_pending` 均为阻断项。
 - 所有 workflow 命令完成后必须输出执行链路复盘，包含链路状态、问题证据、规范优化建议和 follow-up 自动创建状态；无明确优化点写“无明显优化点”，不得默认自动创建 follow-up Issue/Change。
 - 长期文档必须遵守事实唯一归属和表达卫生；不得写入会话推理、临时草稿、review 对话、不可解析引用、未脱敏本机路径或学习对象源码。
 
@@ -197,7 +199,7 @@ Web 端采用“工业石材 · 暗色旗舰风”。UI 任务必须：
 
 - `data/` 仅用于本地开发、演示、测试样例和运行时承载；禁止真实客户数据。
 - `.env.example` 必须保留；新增或修改环境变量时同步说明用途、默认值和安全边界。
-- 发布涉及镜像交付或 Docker/Compose/DB 构建输入时，先 `/image-prepare <version>` 生成 plan，再 `/image-build <version>` 生成 manifest；`/release-publish` 必须校验镜像证据未过期。
+- 发布涉及镜像交付或 Docker/Compose/DB 构建输入时，先 `/image-prepare <version>` 生成 plan，再 `/image-build <version>` 生成 manifest；`/release-status <version>` 可只读汇总 release / image / upgrade / publish 当前阶段、阻塞分类、默认 upgrade 路径和下一步；`/release-publish` 必须校验镜像证据未过期，并阻断 Web / 小程序用户可见 `PRODUCT_VERSION` 与发布版本不一致的发布确认。产品版本源变更后必须重跑 `/image-prepare <version>` 与 `/image-build <version>`。发布对象通过 `release_target.environment` 区分开发环境发布与生产发布；开发发布不得被生产 env、生产备份、生产 no-fallback/API/smoke 证据阻断，生产发布需单独确认生产门禁。
 - `releases/vX.Y.Z/usage-docs/` 保留为全量产品使用文档快照和 manifest 事实源；`mintlify/` 仅承载站点源目录、多版本导航、`latest` 指针和共享截图资产。
 - MinIO 使用单 Bucket + 前缀策略：`MINIO_BUCKET`、`MINIO_PREFIX_*`。
 - 默认内部端口保留 Backend `8000`、Web `3000`、Mintlify docs-site `3000`；宿主机端口通过 `HOST_PORT_BACKEND`、`HOST_PORT_WEB`、`HOST_PORT_MINTLIFY_DOCS` 覆盖。

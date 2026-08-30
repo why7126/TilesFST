@@ -1,4 +1,4 @@
-const PRODUCT_VERSION = 'v1.2.0';
+const PRODUCT_VERSION = 'v1.2.2';
 
 module.exports = {
   PRODUCT_VERSION,

@@ -1,5 +1,6 @@
 """Admin upload endpoints."""
 
+import hashlib
 import logging
 from time import perf_counter
 from typing import Callable
@@ -21,8 +22,10 @@ from app.repositories.user_repository import UserRecord
 from app.repositories.task_trace_repository import TaskTraceRepository
 from app.modules.media.storage import (
     build_brand_certificate_upload_object_key,
-    build_image_upload_object_key,
-    build_video_upload_object_key,
+    build_business_image_upload_object_key,
+    build_business_video_upload_object_key,
+    build_pending_image_upload_object_key,
+    build_pending_video_upload_object_key,
     media_url_for_object_key,
     media_variant_urls,
     same_directory_display_object_key,
@@ -44,6 +47,16 @@ def _elapsed_ms(started_at: float) -> int:
     return round((perf_counter() - started_at) * 1000)
 
 
+def _fingerprint(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
+def _object_key_prefix(object_key: str | None) -> str | None:
+    if not object_key:
+        return None
+    return object_key.rsplit("/", 1)[0] if "/" in object_key else ""
+
+
 def _log_tile_video_stage(
     *,
     started_at: float,
@@ -57,20 +70,21 @@ def _log_tile_video_stage(
     logger.info(
         (
             "media_upload_timing upload_type=tile_video stage=%s elapsed_ms=%s "
-            "object_key=%s file_name=%s content_type=%s size_bytes=%s max_size_mb=%s tile_id=%s "
-            "provider=%s endpoint=%s bucket=%s region=%s path_style=%s auto_create_bucket=%s"
+            "object_key_hash=%s object_key_prefix=%s file_name_present=%s content_type=%s "
+            "size_bytes=%s max_size_mb=%s tile_id=%s provider=%s bucket_hash=%s region=%s "
+            "path_style=%s auto_create_bucket=%s"
         ),
         stage,
         _elapsed_ms(started_at),
-        object_key,
-        file.filename,
+        _fingerprint(object_key) if object_key else None,
+        _object_key_prefix(object_key),
+        bool(file.filename),
         file.content_type,
         size_bytes,
         max_size_mb,
         tile_id,
         settings.effective_object_storage_provider(),
-        settings.effective_object_storage_endpoint(),
-        settings.effective_object_storage_bucket(),
+        _fingerprint(settings.effective_object_storage_bucket()),
         settings.effective_object_storage_region(),
         settings.effective_object_storage_path_style(),
         settings.effective_object_storage_auto_create_bucket(),
@@ -534,7 +548,12 @@ async def upload_image(
             summary="图片 MIME 与大小限制校验通过",
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
-        object_key = build_image_upload_object_key("user/avatars", file.content_type)
+        object_key = build_business_image_upload_object_key(
+            "user-avatars",
+            current_user.id,
+            "avatars",
+            file.content_type,
+        )
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
         display_key = same_directory_display_object_key(object_key)
         size = await save_upload_file(
@@ -644,12 +663,17 @@ async def upload_image(
 )
 async def upload_brand_logo(
     request: Request,
+    brand_id: int | None = Query(None),
     file: UploadFile = File(...),
     current_user: UserRecord = Depends(require_admin_access),
     effective: EffectiveSettingsService = Depends(get_effective_settings_service),
     db: Session = Depends(get_db),
-) -> ApiResponse[UploadResult]:
-    object_key = build_image_upload_object_key("brands/logos", file.content_type)
+    ) -> ApiResponse[UploadResult]:
+    object_key = (
+        build_business_image_upload_object_key("brand-logos", brand_id, "logos", file.content_type)
+        if brand_id
+        else build_pending_image_upload_object_key("brand-logos", "logos", file.content_type)
+    )
     return ApiResponse(
         data=await _save_traced_upload(
             request=request,
@@ -659,7 +683,7 @@ async def upload_brand_logo(
             task_type="upload_image",
             business_type="brand_logo",
             resource_type="brand_logo",
-            resource_id=None,
+            resource_id=str(brand_id) if brand_id else None,
             max_size_mb=effective.max_image_size_mb(),
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
@@ -679,12 +703,17 @@ async def upload_brand_logo(
 )
 async def upload_banner_image(
     request: Request,
+    banner_id: int | None = Query(None),
     file: UploadFile = File(...),
     current_user: UserRecord = Depends(require_admin_access),
     effective: EffectiveSettingsService = Depends(get_effective_settings_service),
     db: Session = Depends(get_db),
 ) -> ApiResponse[UploadResult]:
-    object_key = build_image_upload_object_key("banners", file.content_type)
+    object_key = (
+        build_business_image_upload_object_key("banners", banner_id, "images", file.content_type)
+        if banner_id
+        else build_pending_image_upload_object_key("banners", "images", file.content_type)
+    )
     return ApiResponse(
         data=await _save_traced_upload(
             request=request,
@@ -694,7 +723,7 @@ async def upload_banner_image(
             task_type="upload_image",
             business_type="banner_image",
             resource_type="banner",
-            resource_id=None,
+            resource_id=str(banner_id) if banner_id else None,
             max_size_mb=effective.max_image_size_mb(),
             validate_file=lambda: _validate_image_type(file.content_type, effective),
             object_key=object_key,
@@ -720,8 +749,11 @@ async def upload_tile_image(
     effective: EffectiveSettingsService = Depends(get_effective_settings_service),
     db: Session = Depends(get_db),
 ) -> ApiResponse[UploadResult]:
-    resource_type = f"tiles/{tile_id}" if tile_id else "tiles/pending"
-    object_key = build_image_upload_object_key(resource_type, file.content_type)
+    object_key = (
+        build_business_image_upload_object_key("tiles", tile_id, "images", file.content_type)
+        if tile_id
+        else build_pending_image_upload_object_key("tiles", "images", file.content_type)
+    )
     return ApiResponse(
         data=await _save_traced_upload(
             request=request,
@@ -815,8 +847,11 @@ async def upload_tile_video(
         tile_id=tile_id,
         max_size_mb=max_size_mb,
     )
-    resource_type = f"tiles/{tile_id}" if tile_id else "tiles/pending"
-    object_key = build_video_upload_object_key(resource_type, file.content_type)
+    object_key = (
+        build_business_video_upload_object_key("tiles", tile_id, "videos", file.content_type)
+        if tile_id
+        else build_pending_video_upload_object_key("tiles", "videos", file.content_type)
+    )
     _log_tile_video_stage(
         started_at=started_at,
         stage="object_key_built",
@@ -834,12 +869,12 @@ async def upload_tile_video(
                 "started_at": started_at,
                 "upload_type": "tile_video",
                 "object_key": object_key,
-                "file_name": file.filename,
+                "object_key_prefix": _object_key_prefix(object_key),
+                "file_name_present": bool(file.filename),
                 "content_type": file.content_type,
                 "max_size_mb": max_size_mb,
                 "provider": settings.effective_object_storage_provider(),
-                "endpoint": settings.effective_object_storage_endpoint(),
-                "bucket": settings.effective_object_storage_bucket(),
+                "bucket_hash": _fingerprint(settings.effective_object_storage_bucket()),
                 "region": settings.effective_object_storage_region(),
                 "path_style": settings.effective_object_storage_path_style(),
                 "auto_create_bucket": settings.effective_object_storage_auto_create_bucket(),
@@ -944,6 +979,7 @@ async def upload_tile_video(
 )
 async def upload_brand_certificate(
     request: Request,
+    certificate_id: int | None = Query(None),
     file: UploadFile = File(...),
     current_user: UserRecord = Depends(require_system_admin),
     effective: EffectiveSettingsService = Depends(get_effective_settings_service),
@@ -959,6 +995,7 @@ async def upload_brand_certificate(
         business_type="brand_certificate",
         max_size_mb=max_size_mb,
         resource_type="brand_certificate",
+        resource_id=str(certificate_id) if certificate_id else None,
     )
     object_key = None
     try:
@@ -972,11 +1009,11 @@ async def upload_brand_certificate(
             sequence=40,
             actor_user_id=current_user.id,
             resource_type="brand_certificate",
-            resource_id=None,
+            resource_id=str(certificate_id) if certificate_id else None,
             summary="证书文件 MIME 与大小限制校验通过",
             metadata={"content_type": file.content_type, "max_size_mb": max_size_mb},
         )
-        object_key = build_brand_certificate_upload_object_key(file.content_type)
+        object_key = build_brand_certificate_upload_object_key(file.content_type, certificate_id)
         thumbnail_key = (
             same_directory_thumbnail_object_key(object_key)
             if file.content_type and file.content_type.startswith("image/")
@@ -998,7 +1035,7 @@ async def upload_brand_certificate(
                 task_type="upload_file",
                 actor_user_id=current_user.id,
                 resource_type="brand_certificate",
-                resource_id=None,
+                resource_id=str(certificate_id) if certificate_id else None,
             ),
             thumbnail_key=thumbnail_key,
             thumbnail_max_size_kb=effective.thumbnail_max_size_kb() if thumbnail_key else 0,
@@ -1014,7 +1051,7 @@ async def upload_brand_certificate(
             task_type="upload_file",
             actor_user_id=current_user.id,
             resource_type="brand_certificate",
-            resource_id=None,
+            resource_id=str(certificate_id) if certificate_id else None,
             started_at=trace_started,
             object_key=object_key,
             size=None,
@@ -1036,7 +1073,7 @@ async def upload_brand_certificate(
         sequence=50,
         actor_user_id=current_user.id,
         resource_type="brand_certificate",
-        resource_id=None,
+        resource_id=str(certificate_id) if certificate_id else None,
         duration_ms=elapsed_ms(trace_started),
         summary="对象存储写入完成",
         metadata={"object_key_prefix": object_key.rsplit("/", 1)[0], "size_bytes": size},
@@ -1050,7 +1087,7 @@ async def upload_brand_certificate(
         sequence=60,
         actor_user_id=current_user.id,
         resource_type="brand_certificate",
-        resource_id=None,
+        resource_id=str(certificate_id) if certificate_id else None,
         status="skipped",
         summary="证书上传返回对象 key，品牌证书保存阶段落库",
     )
@@ -1063,7 +1100,7 @@ async def upload_brand_certificate(
         sequence=70,
         actor_user_id=current_user.id,
         resource_type="brand_certificate",
-        resource_id=None,
+        resource_id=str(certificate_id) if certificate_id else None,
         status="success" if file.content_type and file.content_type.startswith("image/") else "skipped",
         summary="证书图片派生规格生成完成或文件类证书无需派生",
     )
@@ -1074,7 +1111,7 @@ async def upload_brand_certificate(
         task_type="upload_file",
         actor_user_id=current_user.id,
         resource_type="brand_certificate",
-        resource_id=None,
+        resource_id=str(certificate_id) if certificate_id else None,
         started_at=trace_started,
         object_key=object_key,
         size=size,

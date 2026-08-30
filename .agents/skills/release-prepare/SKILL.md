@@ -1,6 +1,7 @@
 ---
 name: "release-prepare"
 description: "执行发布前校验并生成或更新公开公告源文件"
+updated_at: 2026-08-30 15:36:34
 ---
 
 # release-prepare
@@ -56,7 +57,7 @@ issues/bugs/{archive,review,plan}/<BUG>/trace.md
 
 ## Gates
 
-Prepare MUST verify and record evidence for each applicable gate in `release.json`:
+Prepare MUST verify and record evidence for each applicable gate in `release.json`. Gate applicability follows `release_target.environment`; development releases do not require production-only env, MySQL/COS backup, public API, no-fallback media, production smoke evidence, trial-only miniapp Network evidence, or real-device evidence that can only be produced after upload. Preserve those gaps as `production_only_pending` or release-stage follow-up instead of development blockers.
 
 | Gate | Evidence |
 |---|---|
@@ -66,11 +67,14 @@ Prepare MUST verify and record evidence for each applicable gate in `release.jso
 | `docker_compose` | Deployment changes have Compose config/docs evidence, or `na` rationale. |
 | `database_migration` | DB changes have schema/migration/docs/rollback evidence plus MySQL schema drift or target MySQL smoke evidence, or `na` rationale. |
 | `env_example` | Env changes have `.env.example` evidence, or `na` rationale. |
-| `product_version` | `PRODUCT_VERSION` equals release version, or rationale is explicit. |
+| `product_version` | `src/shared/product-version.ts`、`src/miniapp/utils/product-version.ts` 和 `src/miniapp/utils/product-version.js` 中存在的 `PRODUCT_VERSION` 均等于 release version；rationale 不得放行 prepare。 |
 | `mintlify_preview` | Mintlify build/preview or equivalent static MDX safety check evidence. |
 | `usage_docs_preview` | First confirm whether usage docs are required. If generated, validate manifest/navigation/safety/coverage. If skipped, record rationale and do not create an empty `usage-docs/` directory. Pending confirmation blocks readiness. |
 | `image_prepare` | When `image_required=true`, `releases/<version>/image-build-plan.json` exists, validates, and is referenced by release metadata. |
 | `image_build` | In prepare, record `na` with a blocker / next step when `releases/<version>/image-manifest.json` is not yet generated; publish is the stage that requires manifest or approved external build evidence. |
+| `upgrade_plans` | Normal releases require `fresh -> <version>` and previous release adjacent upgrade plans for the target environment before publish; development target plans do not prove production upgrade readiness. |
+
+Before reporting readiness, `/release-prepare` SHOULD reference the same release status taxonomy as `/release-status`: separate `decision_missing`, `prepare_evidence_missing`, `publish_evidence_missing`, `production_only_pending`, `input_drift`, `environment_unavailable`, `scope_incomplete`, `public_safety`, and `schema_invalid`. Missing default upgrade plans should be shown as exact `/upgrade-plan --from ... --to ... --target ...` commands rather than prose-only reminders.
 
 Do not write `status: pass` without concrete command/path/time evidence.
 
@@ -79,6 +83,7 @@ When release scope includes backend runtime, Web build output, Dockerfile, Compo
 - Set or keep `image_required=true` in `release.json`.
 - Require `/image-prepare <version>` evidence before marking prepare complete.
 - Point to `/image-build <version>` when a built image or offline tarball must be delivered.
+- If any product version source is updated after image evidence exists, require rerunning `/image-prepare <version>` and `/image-build <version>` before publish.
 - Do not execute the heavy image build from `/release-prepare` by default.
 
 ## Commands
@@ -105,6 +110,8 @@ python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
 Only run expensive or environment-dependent checks when they match release scope or user requested full validation. If a command cannot run locally, record the blocker; do not invent evidence.
 
 If `impact_scope.database` is not `none` / `na` / `不涉及`, `database_migration` MUST be `pass` and its evidence MUST explicitly mention MySQL or `schema.mysql.sql`, a schema drift / target MySQL smoke check, and database rollback or backup evidence. Do not paste raw `DATABASE_URL` or credentials into release artifacts.
+
+For `release_target.environment=production`, production deployment evidence such as explicit `TILESFST_IMAGE_TAG=<version>`, production backup confirmation, production public API consistency, production no-fallback media checks, and production smoke may be blockers. For `development`, record those items only as future production release follow-up when relevant.
 
 ## Actionable Blockers（MUST）
 
@@ -169,7 +176,7 @@ python scripts/generate-usage-docs.py <version> --skip --confirmed-by operator -
 If ready, next command:
 
 ```text
-/release-publish <version>
+/release-status <version>
 ```
 
 ## Final Step — AI Usage Post-command Hook (MUST)

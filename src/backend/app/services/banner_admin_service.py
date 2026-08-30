@@ -17,6 +17,7 @@ from app.core.exceptions import (
     BannerSchemaDriftError,
     BannerTitleDuplicatedError,
 )
+from app.modules.media.business_media import formalize_business_media_object, is_pending_business_media_key
 from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.repositories.banner_repository import BannerRecord, BannerRepository, compute_time_status
 from app.repositories.topic_repository import TopicRepository
@@ -393,6 +394,7 @@ class BannerAdminService:
         except SQLAlchemyError as exc:
             self._banners.rollback()
             raise BannerSchemaDriftError() from exc
+        banner = self._formalize_custom_image_if_needed(banner)
         return self.to_item(banner)
 
     def update_banner(self, banner_id: int, payload: BannerUpdateRequest) -> BannerAdminItem:
@@ -443,7 +445,43 @@ class BannerAdminService:
             self._banners.rollback()
             raise BannerSchemaDriftError() from exc
         assert updated is not None
+        updated = self._formalize_custom_image_if_needed(updated)
         return self.to_item(updated)
+
+    def _formalize_custom_image_if_needed(self, banner: BannerRecord) -> BannerRecord:
+        if banner.image_source != "custom_upload" or not is_pending_business_media_key(banner.image_object_key):
+            return banner
+        target_key = formalize_business_media_object(
+            object_key=banner.image_object_key,
+            resource_type="banners",
+            business_id=banner.id,
+            usage="images",
+            media_kind="image",
+        )
+        try:
+            updated = self._banners.update(
+                banner.id,
+                title=banner.title,
+                display_client=banner.display_client,
+                position=banner.position,
+                image_object_key=target_key,
+                image_source=banner.image_source,
+                sku_gallery_asset_id=banner.sku_gallery_asset_id,
+                jump_type=banner.jump_type,
+                sku_id=banner.sku_id,
+                external_url=banner.external_url,
+                topic_id=banner.topic_id,
+                brand_id=banner.brand_id,
+                sort_order=banner.sort_order,
+                valid_from=banner.valid_from,
+                valid_to=banner.valid_to,
+                remark=banner.remark,
+            )
+        except SQLAlchemyError as exc:
+            self._banners.rollback()
+            raise BannerSchemaDriftError() from exc
+        assert updated is not None
+        return updated
 
     def online_banner(self, banner_id: int) -> BannerAdminItem:
         banner = self._banners.get_by_id(banner_id)

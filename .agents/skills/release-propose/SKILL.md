@@ -1,6 +1,7 @@
 ---
 name: "release-propose"
 description: "创建或更新产品版本发布计划"
+updated_at: 2026-08-30 15:36:34
 ---
 
 # release-propose
@@ -23,7 +24,7 @@ Use this skill when the user asks `/release-propose <version>` or wants to creat
 ## Input
 
 - `<version>`：必填，SemVer 风格，如 `v0.1.0`。
-- Flags：`--sprint <sprint-id>`、`--req <REQ-id>`、`--bug <BUG-id>`、`--change <change-id>`、`--dry-run`。
+- Flags：`--sprint <sprint-id>`、`--req <REQ-id>`、`--bug <BUG-id>`、`--change <change-id>`、`--target <development|production>`、`--dry-run`。
 
 ## Must Read
 
@@ -61,7 +62,7 @@ src/shared/product-version.ts
 | Sprint | Candidate Sprint SHOULD be completed or explicitly marked as planned release scope with open gates. |
 | Change | Formal Changes SHOULD be archived before publish; unarchived Changes are allowed only in propose as blocking gate gaps. |
 | Public safety | Do not include secrets, real customer data, internal DB URLs, MinIO credentials, tokens, or non-public ops details. |
-| Product version | If `src/shared/product-version.ts` differs from `<version>`, set `version_change_rationale` or list the mismatch as a blocking gap for prepare/publish. |
+| Product version | If `src/shared/product-version.ts`、`src/miniapp/utils/product-version.ts` or `src/miniapp/utils/product-version.js` differs from `<version>`, list the mismatch as a blocking gap for prepare/publish; `version_change_rationale` may explain draft intent but MUST NOT make publish ready. |
 
 ## Operator Decisions（MUST）
 
@@ -69,11 +70,12 @@ src/shared/product-version.ts
 
 | Decision | Required output |
 |---|---|
+| Release target | `development/production` plus deployment boundary and whether a separate production release is required. |
 | Usage docs | `required=true/false/pending` plus confirmation source and rationale when known. |
 | Public announcement | `generated/skipped/pending` plus whether `announcement.mdx` is final copy or placeholder. |
 | Image build | `image_required=true/false` plus whether `/image-prepare` and `/image-build` are expected. |
 
-If any decision is unknown, keep the release as a draft plan and list the missing decision under `待用户决策/处理` with 2-3 structured choices. If the user supplied these decisions in the command text, record them in `release.json` and echo them in the final response; do not ask again.
+If any decision is unknown, keep the release as a draft plan and list the missing decision under `待用户决策/处理` with 2-3 structured choices. If the user did not supply a target, default to `development` for local/dev deployment confirmation and require an explicit production release later. If the user supplied these decisions in the command text, record them in `release.json` and echo them in the final response; do not ask again. The output SHOULD point to `/release-status <version>` when the operator needs a consolidated read-only view before the next mutating command.
 
 ## Artifacts（非 `--dry-run` MUST）
 
@@ -89,6 +91,7 @@ Use `releases/templates/release.json` as the base shape. The release object MUST
 - `release_time` in `YYYY-MM-DD HH:mm:ss`
 - `summary`
 - `formal_scope_only: true`
+- `release_target`
 - `sprints`
 - `requirements`
 - `bugs`
@@ -114,13 +117,13 @@ If validation fails because expected publish-time evidence is still missing, rep
 
 ## Output
 
-Report version, selected Sprint / REQ / BUG / Change counts, created/updated path, current gate gaps, validation result, and next command:
+Report version, release target, selected Sprint / REQ / BUG / Change counts, created/updated path, current gate gaps, validation result, and next command:
 
 ```text
-/release-prepare <version>
+/release-status <version>
 ```
 
-Output MUST include a `发布决策摘要` section covering usage docs, announcement, and image build. Gate gaps MUST distinguish `missing_decision`, `prepare_evidence_missing`, and `publish_evidence_missing` where applicable.
+Output MUST include a `发布决策摘要` section covering release target, usage docs, announcement, and image build. Gate gaps MUST distinguish `missing_decision`, `prepare_evidence_missing`, `publish_evidence_missing`, and `production_only_evidence_pending` where applicable.
 
 ## Final Step — AI Usage Post-command Hook (MUST)
 

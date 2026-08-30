@@ -102,6 +102,7 @@ class MiniappCertificateResult:
     brand_name: str
     brand_logo_object_key: str | None
     file_url: str
+    file_key: str | None = None
     file_name: str | None = None
     file_mime_type: str | None = None
     is_permanent: bool = False
@@ -346,13 +347,8 @@ class MiniappHomeRepository:
                 text(
                     """
                     SELECT bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-                           CASE
-                             WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
-                             THEN '/media/' || bci.file_key
-                             WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
-                             THEN '/media/' || bc.file_key
-                             ELSE COALESCE(bci.file_url, bc.file_url)
-                           END AS file_url,
+                           COALESCE(NULLIF(bci.file_url, ''), NULLIF(bc.file_url, '')) AS file_url,
+                           COALESCE(NULLIF(bci.file_key, ''), NULLIF(bc.file_key, '')) AS file_key,
                            COALESCE(bci.file_name, bc.file_name) AS file_name,
                            COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
                            bc.is_permanent, bc.effective_date, bc.expiry_date,
@@ -360,7 +356,13 @@ class MiniappHomeRepository:
                     FROM brand_certificates bc
                     JOIN brands b ON b.id = bc.brand_id
                     LEFT JOIN brand_certificate_images bci
-                      ON bci.certificate_id = bc.id AND bci.is_main = 1
+                      ON bci.id = (
+                        SELECT bci2.id
+                        FROM brand_certificate_images bci2
+                        WHERE bci2.certificate_id = bc.id
+                        ORDER BY bci2.is_main DESC, bci2.sort_order ASC, bci2.id ASC
+                        LIMIT 1
+                      )
                     WHERE bc.deleted_at IS NULL
                       AND bc.is_visible = 1
                       AND bc.brand_id = :brand_id
@@ -374,25 +376,7 @@ class MiniappHomeRepository:
             .mappings()
             .all()
         )
-        return [
-            MiniappCertificateResult(
-                id=int(row["id"]),
-                brand_id=int(row["brand_id"]),
-                name=str(row["name"]),
-                certificate_no=row.get("certificate_no"),
-                issuer=row.get("issuer"),
-                type=row.get("type"),
-                brand_name=str(row["brand_name"]),
-                brand_logo_object_key=row.get("brand_logo_object_key"),
-                file_url=str(row["file_url"]),
-                file_name=row.get("file_name"),
-                file_mime_type=row.get("file_mime_type"),
-                is_permanent=bool(row.get("is_permanent")),
-                effective_date=row.get("effective_date"),
-                expiry_date=row.get("expiry_date"),
-            )
-            for row in rows
-        ]
+        return [self._to_certificate(dict(row)) for row in rows]
 
     def list_public_certificates(
         self,
@@ -501,7 +485,7 @@ class MiniappHomeRepository:
         return [
             MiniappCertificateImageResult(
                 id=int(row["id"]),
-                file_url=str(row["file_url"]),
+                file_url=str(row.get("file_url") or ""),
                 file_key=row.get("file_key"),
                 file_name=row.get("file_name"),
                 file_mime_type=row.get("file_mime_type"),
@@ -856,13 +840,8 @@ class MiniappHomeRepository:
             text(
                 """
                 SELECT bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-                       CASE
-                         WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
-                         THEN '/media/' || bci.file_key
-                         WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
-                         THEN '/media/' || bc.file_key
-                         ELSE COALESCE(bci.file_url, bc.file_url)
-                       END AS file_url,
+                       COALESCE(NULLIF(bci.file_url, ''), NULLIF(bc.file_url, '')) AS file_url,
+                       COALESCE(NULLIF(bci.file_key, ''), NULLIF(bc.file_key, '')) AS file_key,
                        COALESCE(bci.file_name, bc.file_name) AS file_name,
                        COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
                        b.name AS brand_name,
@@ -870,7 +849,13 @@ class MiniappHomeRepository:
                 FROM brand_certificates bc
                 JOIN brands b ON b.id = bc.brand_id
                 LEFT JOIN brand_certificate_images bci
-                  ON bci.certificate_id = bc.id AND bci.is_main = 1
+                  ON bci.id = (
+                    SELECT bci2.id
+                    FROM brand_certificate_images bci2
+                    WHERE bci2.certificate_id = bc.id
+                    ORDER BY bci2.is_main DESC, bci2.sort_order ASC, bci2.id ASC
+                    LIMIT 1
+                  )
                 WHERE bc.deleted_at IS NULL
                   AND bc.is_visible = 1
                   AND b.status = 'ENABLED'
@@ -884,22 +869,7 @@ class MiniappHomeRepository:
             ),
             {"keyword": f"%{keyword.strip()}%", "limit": limit},
         ).mappings().all()
-        return [
-            MiniappCertificateResult(
-                id=int(row["id"]),
-                brand_id=int(row["brand_id"]) if row.get("brand_id") is not None else None,
-                name=str(row["name"]),
-                certificate_no=row.get("certificate_no"),
-                issuer=row.get("issuer"),
-                type=row.get("type"),
-                brand_name=str(row["brand_name"]),
-                brand_logo_object_key=row.get("brand_logo_object_key"),
-                file_url=str(row["file_url"]),
-                file_name=row.get("file_name"),
-                file_mime_type=row.get("file_mime_type"),
-            )
-            for row in rows
-        ]
+        return [self._to_certificate(dict(row)) for row in rows]
 
     def list_search_facets(self, *, keyword: str) -> dict[str, list[MiniappNamedResult]]:
         where, params = self._search_product_filters(
@@ -1416,13 +1386,8 @@ class MiniappHomeRepository:
         return """
             SELECT
               bc.id, bc.brand_id, bc.name, bc.certificate_no, bc.issuer, bc.type,
-              CASE
-                WHEN bci.file_key LIKE 'images/default/brand-certificates/%'
-                THEN '/media/' || bci.file_key
-                WHEN bc.file_key LIKE 'images/default/brand-certificates/%'
-                THEN '/media/' || bc.file_key
-                ELSE COALESCE(bci.file_url, bc.file_url)
-              END AS file_url,
+              COALESCE(NULLIF(bci.file_url, ''), NULLIF(bc.file_url, '')) AS file_url,
+              COALESCE(NULLIF(bci.file_key, ''), NULLIF(bc.file_key, '')) AS file_key,
               COALESCE(bci.file_name, bc.file_name) AS file_name,
               COALESCE(bci.file_mime_type, bc.file_mime_type) AS file_mime_type,
               bc.is_permanent,
@@ -1431,8 +1396,26 @@ class MiniappHomeRepository:
             FROM brand_certificates bc
             JOIN brands b ON b.id = bc.brand_id
             LEFT JOIN brand_certificate_images bci
-              ON bci.certificate_id = bc.id AND bci.is_main = 1
+              ON bci.id = (
+                SELECT bci2.id
+                FROM brand_certificate_images bci2
+                WHERE bci2.certificate_id = bc.id
+                ORDER BY bci2.is_main DESC, bci2.sort_order ASC, bci2.id ASC
+                LIMIT 1
+              )
         """
+
+    @staticmethod
+    def _certificate_public_file_url(row: dict[str, Any]) -> str:
+        file_url = str(row.get("file_url") or "").strip()
+        file_key = str(row.get("file_key") or "").strip()
+        if file_key.startswith(
+            ("images/default/brand-certificates/", "files/default/brand-certificates/")
+        ):
+            return f"/media/{file_key}"
+        if file_url:
+            return file_url
+        return f"/media/{file_key}" if file_key else ""
 
     @staticmethod
     def _to_named_result(row: dict[str, Any]) -> MiniappNamedResult:
@@ -1454,7 +1437,8 @@ class MiniappHomeRepository:
             type=row.get("type"),
             brand_name=str(row["brand_name"]),
             brand_logo_object_key=row.get("brand_logo_object_key"),
-            file_url=str(row["file_url"]),
+            file_url=MiniappHomeRepository._certificate_public_file_url(row),
+            file_key=row.get("file_key"),
             file_name=row.get("file_name"),
             file_mime_type=row.get("file_mime_type"),
             is_permanent=bool(row.get("is_permanent")),

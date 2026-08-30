@@ -1,0 +1,274 @@
+{
+  "version": "v1.2.2",
+  "generated_at": "2026-08-30 15:27:35",
+  "image_required": true,
+  "image_required_rationale": "本版本包含后端 miniapp certificates API 媒体 URL / 缩略图回填修复、小程序端渲染验收相关交付，以及发布校验脚本治理更新；发布前需要执行 image-prepare 与 image-build 获取可追溯镜像证据。",
+  "image_tag": "v1.2.2",
+  "platform": "linux/amd64",
+  "source_scope": {
+    "sprints": [
+      "sprint-028"
+    ],
+    "requirements": [],
+    "bugs": [
+      {
+        "id": "BUG-0147-miniapp-certificate-list-images-missing",
+        "title": "小程序证书列表页图片不显示",
+        "status": "done",
+        "severity": "high",
+        "scope": "formal",
+        "change": "fix-miniapp-certificate-media-urls",
+        "source": "issues/bugs/archive/BUG-0147-miniapp-certificate-list-images-missing/trace.md"
+      }
+    ],
+    "changes": [
+      {
+        "id": "standardize-ai-usage-session-discovery",
+        "status": "archived",
+        "scope": "formal",
+        "source": "openspec/archive/2026-08-30-standardize-ai-usage-session-discovery/"
+      },
+      {
+        "id": "fix-miniapp-certificate-media-urls",
+        "status": "archived",
+        "scope": "formal",
+        "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/"
+      },
+      {
+        "id": "add-release-status-decision-panel",
+        "status": "archived",
+        "scope": "formal",
+        "source": "openspec/archive/2026-08-30-add-release-status-decision-panel/"
+      },
+      {
+        "id": "standardize-environment-tiered-evidence-gates",
+        "status": "archived",
+        "scope": "formal",
+        "source": "openspec/archive/2026-08-30-standardize-environment-tiered-evidence-gates/"
+      },
+      {
+        "id": "enforce-environment-tiered-evidence-gates",
+        "status": "archived",
+        "scope": "formal",
+        "source": "openspec/archive/2026-08-30-enforce-environment-tiered-evidence-gates/"
+      }
+    ]
+  },
+  "release_input": {
+    "source": "release.json stable fields",
+    "hash": "deccfa9b755af333bc1b19dd48480d5d94bf75f184493c850beec66433d51d34",
+    "fields": {
+      "version": "v1.2.2",
+      "image_required": true,
+      "image_required_rationale": "本版本包含后端 miniapp certificates API 媒体 URL / 缩略图回填修复、小程序端渲染验收相关交付，以及发布校验脚本治理更新；发布前需要执行 image-prepare 与 image-build 获取可追溯镜像证据。",
+      "image_tag": "v1.2.2",
+      "sprints": [
+        "sprint-028"
+      ],
+      "requirements": [],
+      "bugs": [
+        {
+          "id": "BUG-0147-miniapp-certificate-list-images-missing",
+          "title": "小程序证书列表页图片不显示",
+          "status": "done",
+          "severity": "high",
+          "scope": "formal",
+          "change": "fix-miniapp-certificate-media-urls",
+          "source": "issues/bugs/archive/BUG-0147-miniapp-certificate-list-images-missing/trace.md"
+        }
+      ],
+      "changes": [
+        {
+          "id": "standardize-ai-usage-session-discovery",
+          "status": "archived",
+          "scope": "formal",
+          "source": "openspec/archive/2026-08-30-standardize-ai-usage-session-discovery/"
+        },
+        {
+          "id": "fix-miniapp-certificate-media-urls",
+          "status": "archived",
+          "scope": "formal",
+          "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/"
+        },
+        {
+          "id": "add-release-status-decision-panel",
+          "status": "archived",
+          "scope": "formal",
+          "source": "openspec/archive/2026-08-30-add-release-status-decision-panel/"
+        },
+        {
+          "id": "standardize-environment-tiered-evidence-gates",
+          "status": "archived",
+          "scope": "formal",
+          "source": "openspec/archive/2026-08-30-standardize-environment-tiered-evidence-gates/"
+        },
+        {
+          "id": "enforce-environment-tiered-evidence-gates",
+          "status": "archived",
+          "scope": "formal",
+          "source": "openspec/archive/2026-08-30-enforce-environment-tiered-evidence-gates/"
+        }
+      ],
+      "impact_scope": {
+        "web_admin": "不新增页面；品牌证书相关管理数据若进入公开证书列表，会被后端媒体 URL/缩略图回填链路间接影响。",
+        "owner_web": "不涉及",
+        "miniapp": "证书列表页图片类证书应显示真实缩略图；非图片或缺失媒体继续显示占位。",
+        "backend": "miniapp certificates API 的证书媒体 URL / 缩略图回填链路更新，并包含发布状态、AI Usage 和环境分层证据校验脚本治理。",
+        "database": "不涉及",
+        "object_storage": "不新增存储结构；修复依赖既有证书媒体 key、公开 URL 和缩略图对象读取。",
+        "docker": "发布需通过镜像治理生成 image-build-plan 与 image-manifest；本提案阶段尚未构建镜像。"
+      },
+      "announcement": "announcement.mdx"
+    }
+  },
+  "build_env": {
+    "default": {
+      "path": "scripts/build-images.env",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v1.2.2",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "m.daocloud.io/docker.io/python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "m.daocloud.io/docker.io/node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "m.daocloud.io/docker.io/nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    },
+    "example": {
+      "path": "scripts/build-images.env.example",
+      "exists": true,
+      "safe_values": {
+        "IMAGE_BUILD_TAG": "v0.0.1",
+        "IMAGE_BUILD_PLATFORM": "linux/amd64",
+        "BACKEND_PYTHON_BASE_IMAGE": "python:3.12-slim",
+        "WEB_NODE_BASE_IMAGE": "node:22-alpine",
+        "WEB_NGINX_BASE_IMAGE": "nginx:1.27-alpine",
+        "IMAGE_BUILD_BACKEND_IMAGE": "tilesfst-backend",
+        "IMAGE_BUILD_WEB_IMAGE": "tilesfst-web",
+        "IMAGE_BUILD_BUILDER": "tilesfst-builder",
+        "IMAGE_BUILD_CREATE_BUILDER": "true",
+        "IMAGE_BUILD_LOAD": "true",
+        "IMAGE_BUILD_EXPORT_TAR": "true"
+      }
+    }
+  },
+  "input_files": [
+    ".env.example",
+    "deploy/local/compose.yml",
+    "deploy/local/mysql-minio-external.env.example",
+    "deploy/local/mysql-minio-managed.env.example",
+    "deploy/local/mysql-tencent-cos.env.example",
+    "deploy/local/sqlite-minio-external.env.example",
+    "deploy/local/sqlite-minio-managed.env.example",
+    "deploy/local/sqlite-tencent-cos.env.example",
+    "deploy/prod/compose.tencent-cos.yml",
+    "deploy/prod/mysql-tencent-cos.env.example",
+    "deploy/scripts/down.sh",
+    "deploy/scripts/media-maintenance.sh",
+    "deploy/scripts/up.sh",
+    "deploy/scripts/validate-env.py",
+    "docker-compose.prod.external.yml",
+    "docker-compose.prod.yml",
+    "scripts/build-images.env.example",
+    "scripts/build-images.sh",
+    "src/backend/Dockerfile",
+    "src/backend/app/db/migrations.py",
+    "src/backend/app/db/mysql_migrations.py",
+    "src/backend/app/db/schema.mysql.sql",
+    "src/backend/app/db/schema.sql",
+    "src/shared/product-version.ts",
+    "src/web/Dockerfile",
+    "src/web/nginx.conf"
+  ],
+  "input_hashes": {
+    ".env.example": "9f43fe0ef9e8fd77675ddf8d4054b83e8fcb6a6e83b622f466a09df92150d2b6",
+    "deploy/local/compose.yml": "bb92abd5c69507d32157b2f62a040eab4a937421850aa941624ca41f70fec89e",
+    "deploy/local/mysql-minio-external.env.example": "d18b36153dcbbafdeb91040ca08f8f6eb1eb1b750641a6437ef93df5fe926cbc",
+    "deploy/local/mysql-minio-managed.env.example": "329b800e73bcf3887a0bae37ceeaa6d5c61f77bdfa7d35e46d84fe75a26ded36",
+    "deploy/local/mysql-tencent-cos.env.example": "c7de8e093f6368560e35fd6bab0a87020dd6203c4a89d91a740fcf0ae06f9cb5",
+    "deploy/local/sqlite-minio-external.env.example": "01fc8c071fade5038793a136919cc5803e678473126f350066152dd5ecac45dc",
+    "deploy/local/sqlite-minio-managed.env.example": "47610e2f9d904eb5d3e7487570d1847a5db78a9ecba26371e8e7abbb00bed181",
+    "deploy/local/sqlite-tencent-cos.env.example": "efdc707202ff4620162f23c6df6a37ffdb19b99b1fc9139cd91b5f9a5a0b12a0",
+    "deploy/prod/compose.tencent-cos.yml": "ac58331284d79d7d6c9c727e9459aec440380466b64199549bc7a037796dab6b",
+    "deploy/prod/mysql-tencent-cos.env.example": "e6dc69f4aa5c79f3268871bd990aaa8faf39ccf47dc2a10e52c98111ccd00034",
+    "deploy/scripts/down.sh": "eeebd20cbc949ead0c3e8ba14749ecab0d5a8af4b945a802e803402bd6ab6db6",
+    "deploy/scripts/media-maintenance.sh": "96699f4a4cf1feb79fb82d108d3f82030b1434570a917b11cfd21b09117eb261",
+    "deploy/scripts/up.sh": "e0749eb9c4087e512207c683766ac9015eb7a2194bf778803fa051d41ef78bb5",
+    "deploy/scripts/validate-env.py": "08f73ebf7280f649d0dcbfc16e761e2e8a3ed65413adf34c0a9f1f8a7089e81a",
+    "docker-compose.prod.external.yml": "f8dedb6b97875910ac313092d5329d7482448b0f499853285d8fc268e86f55d9",
+    "docker-compose.prod.yml": "242805e32dfdd2695d1159f015c4b9a4fde2ba38bbfa0ae876a5b4973f0b8287",
+    "scripts/build-images.env.example": "ae162c6b2d4156059a5c4eca0705536a9062284d5af2cad91c104cfbc1409ebd",
+    "scripts/build-images.sh": "64e00b32b3e19775fc70a1ff64ca88f66b385770ec69afcf4e1fec8ca6dae5d6",
+    "src/backend/Dockerfile": "ce9306ea6cadccb7f11871f640ae5f1be2ce0d120f5e0f2a4391e30cd4ae4aaa",
+    "src/backend/app/db/migrations.py": "0613e6be4e5e775b490101d4dd85fe52105a43cd0379387fb28ff9891fada522",
+    "src/backend/app/db/mysql_migrations.py": "3c0ab5c6d618bbe0f56d01472ae208998bffa9585a4c8ed1abc10dcc2d73300e",
+    "src/backend/app/db/schema.mysql.sql": "af4f03431fc21c523488cb0be7aedaae3fd2faedd5931882212039ab5c950217",
+    "src/backend/app/db/schema.sql": "1d37e4cc0067a046a34bf2ba707e7e2244c9869b565d77b9eabf5d5422a53def",
+    "src/shared/product-version.ts": "272c5bfc8fdd07cb41b9cd72102599e683db20d256a2b1155cf152bc01cafe70",
+    "src/web/Dockerfile": "03a22e7962973ec57bab19c64b4d77e00fa749c9a75803f62251d5297d6ad110",
+    "src/web/nginx.conf": "3d7ab6e12ae5fc6eadb2b8c43fc11faff22d04ec7d6a35001a9a1777c2c4a984"
+  },
+  "database_impact": {
+    "required": false,
+    "inputs": [
+      "src/backend/app/db/schema.sql",
+      "src/backend/app/db/schema.mysql.sql",
+      "src/backend/app/db/migrations.py",
+      "src/backend/app/db/mysql_migrations.py",
+      "docs/04-database-design.md"
+    ],
+    "evidence_required": [
+      "MySQL schema drift or target MySQL smoke evidence",
+      "database rollback or backup evidence"
+    ]
+  },
+  "compose_tag_defaults": {
+    "docker-compose.prod.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ],
+    "docker-compose.prod.external.yml": [
+      "v0.0.4",
+      "v0.0.4"
+    ]
+  },
+  "required_commands": [
+    {
+      "name": "prepare",
+      "command": "python scripts/validate-image-build.py prepare --release v1.2.2"
+    },
+    {
+      "name": "build",
+      "command": "./scripts/build-images.sh scripts/build-images.env"
+    },
+    {
+      "name": "manifest",
+      "command": "python scripts/validate-image-build.py build --release v1.2.2"
+    }
+  ],
+  "auto_actions": [],
+  "warnings": [
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.2."
+    },
+    {
+      "code": "compose_default_tag_fallback_mismatch",
+      "message": "docker-compose.prod.external.yml fallback TILESFST_IMAGE_TAG is v0.0.4; release deploy env must set TILESFST_IMAGE_TAG=v1.2.2."
+    }
+  ],
+  "blockers": []
+}

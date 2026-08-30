@@ -1,0 +1,31 @@
+sprint_id: sprint-029
+status: active
+lifecycle_stage: change
+start_date: 2026-08-30 15:36:34
+end_date:
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements: []
+bugs: []
+estimated_story_points: 1
+estimated_person_days: 1
+capacity_usage: 0.0333
+fix_buffer_person_days: 29
+fix_buffer_ratio: 0.9667
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 1
+  capacity_usage: 0.0333
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。
+changes:
+  - enforce-product-version-release-gates
+scope_estimates:
+  - id: enforce-product-version-release-gates
+    change: enforce-product-version-release-gates
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：强化发布流程产品版本号门禁，要求 Web 与小程序 PRODUCT_VERSION 对齐发布版本，发布确认阻断用户可见版本号不一致，并要求版本源变更后重跑 image-prepare/image-build；不修改业务 src。

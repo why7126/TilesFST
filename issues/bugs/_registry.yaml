@@ -1,6 +1,24 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 146
+next_id: 148
 entries:
+  - id: BUG-0147-miniapp-certificate-list-images-missing
+    title: 小程序证书列表页图片不显示
+    status: done
+    severity: high
+    created: "2026-08-30 10:23:23"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0135-miniapp-certificate-card-file-url-fallback
+    related_change: fix-miniapp-certificate-media-urls
+    iteration: sprint-028
+  - id: BUG-0146-batch-media-maintenance-banner-variants
+    title: 批量媒体维护命令未覆盖 Banner 自定义上传图
+    status: done
+    severity: high
+    created: "2026-08-29 19:02:43"
+    related_requirement: REQ-0115-media-multi-variant-images
+    related_bug: BUG-0137-miniapp-lightweight-image-variant-consumption
+    related_change: fix-media-maintenance-banner-variants
+    iteration: null
   - id: BUG-0145-admin-log-detail-field-overlap
     title: 管理端日志详情长字段名和值重叠
     status: done

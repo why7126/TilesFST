@@ -38,13 +38,26 @@
 
 ### Requirement: Banner 图片上传
 
-Banner 自定义上传 MUST 经后端授权写入 MinIO 单桶，object_key MUST 使用 `images/default/banners/{uuid}.{ext}` 形态（与 `update-object-storage-key-layout` 语义前缀一致）。上传 MUST 受 `MAX_IMAGE_SIZE_MB` 与 `ALLOWED_IMAGE_TYPES` 约束。
+Banner 自定义上传 MUST 经后端授权写入 MinIO 单桶。新上传 Banner 图片在 `banner_id` 已存在时 MUST 使用 `images/default/banners/{banner_id}/{uuid}.{ext}` 正式目录；在 Banner 创建前上传时 MUST 使用 `images/default/banners/pending/`，并在 Banner 创建成功后 formalize 到正式目录。上传 MUST 受 `MAX_IMAGE_SIZE_MB` 与 `ALLOWED_IMAGE_TYPES` 约束，并 MUST 继续返回 `object_key` 与 `/media/{object_key}` 或等价受控 URL。
+
+历史 `images/default/banners/{uuid}.{ext}` 或等价旧目录 Banner 图片 MUST 保持读取兼容。存量迁移若改写 `banners.image_object_key`，MUST 通过 dry-run、apply、二次审计和幂等复跑验证；旧对象删除必须单独确认。
 
 #### Scenario: Banner 图上传成功
 
 - **WHEN** `admin` 经 `POST /api/v1/admin/uploads/banner-images` 上传合法 JPG/PNG/WebP
 - **THEN** MUST 返回 `object_key` 与 `/media/{object_key}` URL
-- **AND** object_key MUST 以 `images/default/banners/` 开头
+- **AND** 当 `banner_id` 已存在时 object_key MUST 以 `images/default/banners/{banner_id}/` 开头
+- **AND** 当 `banner_id` 尚未存在时 object_key MUST 使用 Banner pending 目录
+- **AND** 响应 MUST NOT 暴露对象存储 raw URL 或内部 endpoint。
+
+#### Scenario: Banner 保存后正式化
+
+- **GIVEN** 新建 Banner 表单引用 pending 自定义图片
+- **WHEN** Banner 创建成功并获得 `banner_id`
+- **THEN** 系统 MUST 将 Banner 图片原图和派生图 formalize 到 `images/default/banners/{banner_id}/`
+- **AND** `banners.image_object_key` MUST 指向正式目录 key
+- **AND** 小程序公开 Banner 查询继续返回后端受控 URL
+- **AND** 历史 Banner 图片在迁移前 MUST 继续可读。
 
 ### Requirement: Banner 管理错误码
 
@@ -89,4 +102,24 @@ Web 管理端 Banner 管理页面 MUST 在列表缩略图与新建/编辑弹窗�
 - **WHEN** 管理端用户在修复后的 Banner 弹窗中保存配置
 - **THEN** Banner 新建、编辑、保存、上线、下线、排序和跳转类型配置 MUST 保持既有行为
 - **AND** API 请求与响应契约 MUST 不因本预览修复发生变化。
+
+### Requirement: Banner 自定义上传图必须支持历史派生图维护
+
+Banner 自定义上传图 MUST 能被生产媒体维护作业识别和补齐历史派生图。系统 MUST 使用 `banners.image_object_key` 作为 Banner 历史图片候选来源，并 SHOULD 优先限定为 `image_source = 'custom_upload'` 或 `images/default/banners/` 标准目录，避免重复处理引用 SKU 主图、SKU 图册图或品牌 Logo 的 Banner 图片。
+
+#### Scenario: Banner 自定义上传图进入维护候选
+
+- **WHEN** 数据库存在 Banner 自定义上传图
+- **AND** `image_object_key` 指向 `images/default/banners/` 下的 JPEG、PNG 或 WebP 原图
+- **THEN** 生产媒体维护任务 MUST 将该记录作为历史图片派生图候选
+- **AND** 候选来源 MUST 可在脱敏输出中与 SKU、品牌 Logo 和证书来源区分
+- **AND** 同一 object key 被多个业务记录引用时 MUST 去重处理。
+
+#### Scenario: Banner 历史派生图补齐不改变配置
+
+- **WHEN** 维护任务补齐 Banner `.thumb.webp` 或 `.display.webp`
+- **THEN** 系统 MUST NOT 修改 Banner 标题、展示位置、跳转类型、上下线状态、排序、有效期或 `image_object_key`
+- **AND** 系统 MUST NOT 删除 Banner 原图
+- **AND** 若 Banner 已迁入业务 id 目录，系统 MAY 生成旧无 id URL 的 `.thumb.webp` 与 `.display.webp` alias 以兼容历史访问路径
+- **AND** 管理端和小程序继续通过既有 Banner 配置读取图片 URL。
 

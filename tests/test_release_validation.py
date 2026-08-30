@@ -79,17 +79,136 @@ def test_validate_release_passes(tmp_path: Path) -> None:
     assert validate_release_script.validate_release(release_dir, product_version) == []
 
 
-def test_version_mismatch_requires_rationale(tmp_path: Path) -> None:
+def test_version_mismatch_blocks_release_even_with_rationale(tmp_path: Path) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v0.1.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["version_change_rationale"] = "temporary draft note"
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    product_version.write_text("export const PRODUCT_VERSION = 'v0.0.1';\n", encoding="utf-8")
+    errors = validate_release_script.validate_release(release_dir, product_version, stage="publish")
+    assert any("product version mismatch blocks publish" in error for error in errors)
+    assert any("/image-prepare v0.1.0" in error and "/image-build v0.1.0" in error for error in errors)
+
+
+def test_miniapp_product_version_mismatch_blocks_publish(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v0.1.0")
+    miniapp_dir = tmp_path / "src" / "miniapp" / "utils"
+    miniapp_dir.mkdir(parents=True)
+    miniapp_ts = miniapp_dir / "product-version.ts"
+    miniapp_js = miniapp_dir / "product-version.js"
+    miniapp_ts.write_text("export const PRODUCT_VERSION = 'v0.0.1';\n", encoding="utf-8")
+    miniapp_js.write_text("const PRODUCT_VERSION = 'v0.1.0';\nmodule.exports = { PRODUCT_VERSION };\n", encoding="utf-8")
+    monkeypatch.setattr(validate_release_script, "PRODUCT_VERSION_FILE", product_version.resolve())
+    monkeypatch.setattr(validate_release_script, "MINIAPP_PRODUCT_VERSION_FILES", (miniapp_ts.resolve(), miniapp_js.resolve()))
+
+    errors = validate_release_script.validate_release(release_dir, product_version, stage="publish")
+
+    assert any(str(miniapp_ts) in error for error in errors)
+    assert any("product version mismatch blocks publish" in error for error in errors)
+
+
+def test_release_status_classifies_product_version_mismatch_as_prepare_gap(tmp_path: Path) -> None:
     release_dir, product_version = write_release(tmp_path, version="v0.1.0")
     product_version.write_text("export const PRODUCT_VERSION = 'v0.0.1';\n", encoding="utf-8")
-    errors = validate_release_script.validate_release(release_dir, product_version)
-    assert any("version_change_rationale" in error for error in errors)
+
+    status = validate_release_script.release_status(release_dir, product_version)
+
+    assert status["phase"] == "prepare_blocked"
+    assert any(item["classification"] == "prepare_evidence_missing" for item in status["blocking_evidence"])
+    assert any("/image-prepare v0.1.0" in item["message"] for item in status["blocking_evidence"])
 
 
 def test_sensitive_announcement_fails(tmp_path: Path) -> None:
     release_dir, product_version = write_release(tmp_path, announcement="DATABASE_URL=mysql+pymysql://user:pass@example/db")
     errors = validate_release_script.validate_release(release_dir, product_version)
     assert any("sensitive pattern" in error for error in errors)
+
+
+def test_release_status_reports_missing_default_upgrade_plan_command(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v1.0.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-08-30 10:25:00"
+    data["release_target"] = {
+        "environment": "development",
+        "deployment_scope": "development",
+        "production_release_required": True,
+        "rationale": "development release",
+    }
+    data["usage_docs"] = {
+        "status": "skipped",
+        "generation_decision": {"required": False, "confirmed_at": "2026-08-30 10:25:00", "confirmed_by": "operator", "rationale": "no docs"},
+    }
+    data["gates"]["usage_docs_preview"] = {"status": "na", "rationale": "no docs"}
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(validate_release_script, "ROOT", tmp_path)
+
+    status = validate_release_script.release_status(release_dir, product_version)
+
+    assert status["phase"] == "upgrade_pending"
+    assert status["next_command"] == "/upgrade-plan --from fresh --to v1.0.0 --target development"
+    assert any(item["classification"] == "publish_evidence_missing" for item in status["blocking_evidence"])
+
+
+def test_release_status_keeps_production_followups_non_blocking_for_development(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v1.0.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-08-30 10:25:00"
+    data["release_target"] = {
+        "environment": "development",
+        "deployment_scope": "development",
+        "production_release_required": True,
+        "rationale": "development release",
+    }
+    data["usage_docs"] = {
+        "status": "skipped",
+        "generation_decision": {"required": False, "confirmed_at": "2026-08-30 10:25:00", "confirmed_by": "operator", "rationale": "no docs"},
+    }
+    data["gates"]["usage_docs_preview"] = {"status": "na", "rationale": "no docs"}
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    write_upgrade_plan(release_dir, from_version="fresh", to_version="v1.0.0", target="development")
+    monkeypatch.setattr(validate_release_script, "ROOT", tmp_path)
+
+    status = validate_release_script.release_status(release_dir, product_version)
+
+    assert status["phase"] == "publish_ready"
+    assert status["blocking_decisions"] == []
+    assert status["blocking_evidence"] == []
+    assert status["production_followups"]
+    assert status["production_followups"][0]["classification"] == "production_only_pending"
+
+
+def test_release_status_reclassifies_production_only_pending_for_production_target(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v1.0.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-08-30 10:25:00"
+    data["release_target"] = {
+        "environment": "development",
+        "deployment_scope": "development",
+        "production_release_required": True,
+        "rationale": "development release",
+    }
+    data["usage_docs"] = {
+        "status": "skipped",
+        "generation_decision": {"required": False, "confirmed_at": "2026-08-30 10:25:00", "confirmed_by": "operator", "rationale": "no docs"},
+    }
+    data["gates"]["usage_docs_preview"] = {"status": "na", "rationale": "no docs"}
+    data["known_issues"] = [
+        {
+            "classification": "production_only_pending",
+            "target_environment": "production",
+            "phase": "production_publish",
+            "blocking_scope": "release-publish:production",
+            "evidence_ref": "development archive follow-up",
+        }
+    ]
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    write_upgrade_plan(release_dir, from_version="fresh", to_version="v1.0.0", target="production")
+    monkeypatch.setattr(validate_release_script, "ROOT", tmp_path)
+
+    status = validate_release_script.release_status(release_dir, product_version, target_override="production")
+
+    assert status["phase"] == "prepare_blocked"
+    assert any(item["classification"] == "publish_evidence_missing" for item in status["blocking_evidence"])
 
 
 def test_missing_gate_fails(tmp_path: Path) -> None:
@@ -145,6 +264,18 @@ def test_image_required_false_requires_rationale(tmp_path: Path) -> None:
     assert any("image_required false requires image_required_rationale" in error for error in errors)
 
 
+def test_image_input_candidates_exclude_release_evidence_narrative_docs() -> None:
+    assert "docs/08-production-image-release.md" not in validate_image_build_script.INPUT_FILE_CANDIDATES
+    assert "docs/04-database-design.md" not in validate_image_build_script.INPUT_FILE_CANDIDATES
+    assert "docs/08-production-image-release.md" in validate_image_build_script.LEGACY_NARRATIVE_INPUT_FILES
+
+
+def test_image_input_candidates_include_user_visible_product_versions() -> None:
+    assert "src/shared/product-version.ts" in validate_image_build_script.INPUT_FILE_CANDIDATES
+    assert "src/miniapp/utils/product-version.ts" in validate_image_build_script.INPUT_FILE_CANDIDATES
+    assert "src/miniapp/utils/product-version.js" in validate_image_build_script.INPUT_FILE_CANDIDATES
+
+
 def write_minimal_image_plan(release_dir: Path, release_data: dict) -> None:
     (release_dir / "image-build-plan.json").write_text(
         json.dumps(
@@ -198,6 +329,82 @@ def test_image_required_true_prepare_requires_plan_not_manifest(tmp_path: Path) 
     assert validate_release_script.validate_release(release_dir, product_version, stage="prepare") == []
     publish_errors = validate_release_script.validate_release(release_dir, product_version, stage="publish")
     assert any("image manifest" in error for error in publish_errors)
+
+
+def write_upgrade_plan(release_dir: Path, *, from_version: str, to_version: str, target: str) -> None:
+    payload = {
+        "from_version": from_version,
+        "to_version": to_version,
+        "deployment_target": target,
+        "support_level": "fresh-install-supported" if from_version == "fresh" else "adjacent-upgrade-supported",
+        "source_confidence": "fresh" if from_version == "fresh" else "verified",
+        "impact_summary": {},
+        "required_checks": [],
+        "steps": [],
+        "rollback": {
+            "previous_image": "previous",
+            "target_image": to_version,
+            "env_snapshot": "redacted",
+            "database_backup": "recommended",
+            "object_storage_backup": "recommended",
+            "rollback_steps": [],
+            "post_rollback_smoke": "pending",
+        },
+        "blockers": [],
+        "warnings": [],
+        "evidence": {},
+    }
+    for name in (f"{from_version}-to-{to_version}.json", f"{from_version}-to-{to_version}.{target}.json"):
+        path = release_dir / "upgrade-plans" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def test_development_publish_does_not_require_production_deployment(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v1.0.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-08-30 10:00:00"
+    data["release_target"] = {
+        "environment": "development",
+        "deployment_scope": "development",
+        "production_release_required": True,
+        "rationale": "dev release",
+    }
+    data["usage_docs"] = {
+        "status": "skipped",
+        "generation_decision": {"required": False, "confirmed_at": "2026-08-30 10:00:00", "confirmed_by": "operator", "rationale": "not needed"},
+    }
+    data["gates"]["usage_docs_preview"] = {"status": "na", "rationale": "not needed"}
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    write_upgrade_plan(release_dir, from_version="fresh", to_version="v1.0.0", target="development")
+    monkeypatch.setattr(validate_release_script, "ROOT", tmp_path)
+
+    assert validate_release_script.validate_release(release_dir, product_version, stage="publish") == []
+
+
+def test_production_publish_requires_production_deployment_and_matching_plans(tmp_path: Path, monkeypatch) -> None:
+    release_dir, product_version = write_release(tmp_path, version="v1.0.0")
+    data = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
+    data["release_time"] = "2026-08-30 10:00:00"
+    data["release_target"] = {
+        "environment": "development",
+        "deployment_scope": "development",
+        "production_release_required": True,
+        "rationale": "dev release",
+    }
+    data["usage_docs"] = {
+        "status": "skipped",
+        "generation_decision": {"required": False, "confirmed_at": "2026-08-30 10:00:00", "confirmed_by": "operator", "rationale": "not needed"},
+    }
+    data["gates"]["usage_docs_preview"] = {"status": "na", "rationale": "not needed"}
+    (release_dir / "release.json").write_text(json.dumps(data), encoding="utf-8")
+    write_upgrade_plan(release_dir, from_version="fresh", to_version="v1.0.0", target="development")
+    monkeypatch.setattr(validate_release_script, "ROOT", tmp_path)
+
+    errors = validate_release_script.validate_release(release_dir, product_version, stage="publish", target_override="production")
+
+    assert any("deployment_target development does not match release target production" in error for error in errors)
+    assert any("production_deployment" in error for error in errors)
 
 
 def test_image_plan_detects_input_hash_drift(tmp_path: Path, monkeypatch) -> None:

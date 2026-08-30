@@ -1,0 +1,62 @@
+sprint_id: sprint-028
+status: completed
+lifecycle_stage: archive
+start_date: 2026-08-30 08:50:35
+end_date: 2026-08-30 14:44:32
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+requirements: []
+bugs: []
+estimated_story_points: 7
+estimated_person_days: 7
+capacity_usage: 0.2333
+fix_buffer_person_days: 23
+fix_buffer_ratio: 0.7667
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 7
+  capacity_usage: 0.2333
+  result: pass
+  note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。
+changes:
+  - standardize-ai-usage-session-discovery
+  - fix-miniapp-certificate-media-urls
+  - add-release-status-decision-panel
+  - standardize-environment-tiered-evidence-gates
+  - enforce-environment-tiered-evidence-gates
+scope_estimates:
+  - id: standardize-ai-usage-session-discovery
+    change: standardize-ai-usage-session-discovery
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：将 ~/.codex/sessions 设为 AI Usage 默认 session 自动发现规范，同步 workflow-sync、sprint-archive、sprint-exps 等命令输出口径与脚本提示；不影响 API/DB/Web/小程序/管理端业务实现，按 S=1 人天纳入。
+  - id: BUG-0147-miniapp-certificate-list-images-missing
+    change: fix-miniapp-certificate-media-urls
+    bug: BUG-0147-miniapp-certificate-list-images-missing
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: 生产小程序证书列表图片类证书 thumbnail_url 为空导致全部占位；修复涉及后端公开证书列表 API、证书媒体 key/URL/缩略图一致性、历史对象审计与小程序媒体四联验收，按 M=3 人天纳入。
+  - id: add-release-status-decision-panel
+    change: add-release-status-decision-panel
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：新增发布状态决策面板、blocker 分类契约、默认 upgrade 路径提示和 image input hash 边界说明；不引入发布自动编排、不修改业务 src。
+  - id: standardize-environment-tiered-evidence-gates
+    change: standardize-environment-tiered-evidence-gates
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：制定环境分层验收与生产证据后置规范，统一开发、体验版、生产发布各阶段 evidence 门禁与 production_only_pending 口径；不修改业务 src。
+  - id: enforce-environment-tiered-evidence-gates
+    change: enforce-environment-tiered-evidence-gates
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：将环境分层验收与生产证据后置规则做成强脚本门禁，接入归档与发布校验；不修改业务 src。
+bugs:
+  - BUG-0147-miniapp-certificate-list-images-missing

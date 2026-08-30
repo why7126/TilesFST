@@ -1,0 +1,2927 @@
+{
+  "task": "backfill-image-variants",
+  "mode": "dry_run",
+  "dry_run": true,
+  "limit": 100,
+  "environment": {
+    "app_env": "development",
+    "database_backend": "sqlite",
+    "object_storage_provider": "tencent-cos",
+    "object_storage_bucket_hash": "defdd8dd9ba9",
+    "auto_create_bucket": false
+  },
+  "summary": {
+    "total": 99,
+    "success": 0,
+    "failed": 0,
+    "skipped": 99,
+    "thumbnail_missing": 0,
+    "display_missing": 0,
+    "thumbnail_no_benefit": 0,
+    "display_no_benefit": 0,
+    "estimated_writes": 0,
+    "not_within_target": 0,
+    "retry_candidates": 0,
+    "failure_reasons": {},
+    "thumbnail_max_size_kb": 10,
+    "display_max_width": 1600,
+    "display_max_height": 1600,
+    "display_max_size_kb": 768
+  },
+  "items": [
+    {
+      "source_type": "banner_image",
+      "source_id": 5,
+      "original": {
+        "object_key_hash": "8653f96c0245",
+        "object_key_prefix": "images/default/banners/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "84697bcbfa8c",
+        "object_key_prefix": "images/default/banners/5"
+      },
+      "display": {
+        "object_key_hash": "e64b0a2ed211",
+        "object_key_prefix": "images/default/banners/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "banner_image",
+      "source_id": 6,
+      "original": {
+        "object_key_hash": "baf439c762b2",
+        "object_key_prefix": "images/default/banners/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "65738fdcc2fa",
+        "object_key_prefix": "images/default/banners/6"
+      },
+      "display": {
+        "object_key_hash": "75074922b9ec",
+        "object_key_prefix": "images/default/banners/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "banner_image",
+      "source_id": 7,
+      "original": {
+        "object_key_hash": "3ef1049ea74e",
+        "object_key_prefix": "images/default/banners/7"
+      },
+      "thumbnail": {
+        "object_key_hash": "fd3d10418925",
+        "object_key_prefix": "images/default/banners/7"
+      },
+      "display": {
+        "object_key_hash": "318da007cb46",
+        "object_key_prefix": "images/default/banners/7"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "banner_image",
+      "source_id": 13,
+      "original": {
+        "object_key_hash": "2189b2ec265c",
+        "object_key_prefix": "images/default/banners/13"
+      },
+      "thumbnail": {
+        "object_key_hash": "bcbd18b825e6",
+        "object_key_prefix": "images/default/banners/13"
+      },
+      "display": {
+        "object_key_hash": "00c6ddddfd94",
+        "object_key_prefix": "images/default/banners/13"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "banner_image",
+      "source_id": 14,
+      "original": {
+        "object_key_hash": "0f134270544e",
+        "object_key_prefix": "images/default/banners/14"
+      },
+      "thumbnail": {
+        "object_key_hash": "686fd031d37d",
+        "object_key_prefix": "images/default/banners/14"
+      },
+      "display": {
+        "object_key_hash": "89ce890261f9",
+        "object_key_prefix": "images/default/banners/14"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "banner_image",
+      "source_id": 15,
+      "original": {
+        "object_key_hash": "b3a86172e50c",
+        "object_key_prefix": "images/default/banners/15"
+      },
+      "thumbnail": {
+        "object_key_hash": "f2394e7ae81b",
+        "object_key_prefix": "images/default/banners/15"
+      },
+      "display": {
+        "object_key_hash": "d0ca4f78bb09",
+        "object_key_prefix": "images/default/banners/15"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 1,
+      "original": {
+        "object_key_hash": "b9a4d64f961b",
+        "object_key_prefix": "images/default/brand-logos/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "e7681475997f",
+        "object_key_prefix": "images/default/brand-logos/1"
+      },
+      "display": {
+        "object_key_hash": "eebe70d9d372",
+        "object_key_prefix": "images/default/brand-logos/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 2,
+      "original": {
+        "object_key_hash": "6d993bc2956f",
+        "object_key_prefix": "images/default/brand-logos/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "a34eae498c12",
+        "object_key_prefix": "images/default/brand-logos/2"
+      },
+      "display": {
+        "object_key_hash": "129b7b44a501",
+        "object_key_prefix": "images/default/brand-logos/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 3,
+      "original": {
+        "object_key_hash": "0b94f333c7fa",
+        "object_key_prefix": "images/default/brand-logos/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "ae8ded9f0bb6",
+        "object_key_prefix": "images/default/brand-logos/3"
+      },
+      "display": {
+        "object_key_hash": "efee393ba792",
+        "object_key_prefix": "images/default/brand-logos/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 4,
+      "original": {
+        "object_key_hash": "f72d72ec27e8",
+        "object_key_prefix": "images/default/brand-logos/4"
+      },
+      "thumbnail": {
+        "object_key_hash": "7accede513e8",
+        "object_key_prefix": "images/default/brand-logos/4"
+      },
+      "display": {
+        "object_key_hash": "54d4fdaa4aa2",
+        "object_key_prefix": "images/default/brand-logos/4"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 5,
+      "original": {
+        "object_key_hash": "659a402f1d69",
+        "object_key_prefix": "images/default/brand-logos/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "c926fe8a06c8",
+        "object_key_prefix": "images/default/brand-logos/5"
+      },
+      "display": {
+        "object_key_hash": "0be68b6c1ff2",
+        "object_key_prefix": "images/default/brand-logos/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 6,
+      "original": {
+        "object_key_hash": "86e5c874f778",
+        "object_key_prefix": "images/default/brand-logos/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "f4635be0094e",
+        "object_key_prefix": "images/default/brand-logos/6"
+      },
+      "display": {
+        "object_key_hash": "19283a2e644b",
+        "object_key_prefix": "images/default/brand-logos/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 7,
+      "original": {
+        "object_key_hash": "fb9fb868cfc1",
+        "object_key_prefix": "images/default/brand-logos/7"
+      },
+      "thumbnail": {
+        "object_key_hash": "b5aeeaf5b447",
+        "object_key_prefix": "images/default/brand-logos/7"
+      },
+      "display": {
+        "object_key_hash": "670ee95cdbd5",
+        "object_key_prefix": "images/default/brand-logos/7"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 8,
+      "original": {
+        "object_key_hash": "3f4de3cc1e89",
+        "object_key_prefix": "images/default/brand-logos/8"
+      },
+      "thumbnail": {
+        "object_key_hash": "73e2db3075dd",
+        "object_key_prefix": "images/default/brand-logos/8"
+      },
+      "display": {
+        "object_key_hash": "e5ceb5fb68f9",
+        "object_key_prefix": "images/default/brand-logos/8"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 9,
+      "original": {
+        "object_key_hash": "35940fdd3fe8",
+        "object_key_prefix": "images/default/brand-logos/9"
+      },
+      "thumbnail": {
+        "object_key_hash": "35eb67d1fc47",
+        "object_key_prefix": "images/default/brand-logos/9"
+      },
+      "display": {
+        "object_key_hash": "63103189f07e",
+        "object_key_prefix": "images/default/brand-logos/9"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 10,
+      "original": {
+        "object_key_hash": "e418a8ca0872",
+        "object_key_prefix": "images/default/brand-logos/10"
+      },
+      "thumbnail": {
+        "object_key_hash": "a20e3b271633",
+        "object_key_prefix": "images/default/brand-logos/10"
+      },
+      "display": {
+        "object_key_hash": "6146cfa87e73",
+        "object_key_prefix": "images/default/brand-logos/10"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 11,
+      "original": {
+        "object_key_hash": "a3242c6433ce",
+        "object_key_prefix": "images/default/brand-logos/11"
+      },
+      "thumbnail": {
+        "object_key_hash": "74d1bc1b6558",
+        "object_key_prefix": "images/default/brand-logos/11"
+      },
+      "display": {
+        "object_key_hash": "2e723c6eb447",
+        "object_key_prefix": "images/default/brand-logos/11"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "brand_logo",
+      "source_id": 12,
+      "original": {
+        "object_key_hash": "8acc98ea8eb1",
+        "object_key_prefix": "images/default/brand-logos/12"
+      },
+      "thumbnail": {
+        "object_key_hash": "5645fc068e09",
+        "object_key_prefix": "images/default/brand-logos/12"
+      },
+      "display": {
+        "object_key_hash": "76257faa268c",
+        "object_key_prefix": "images/default/brand-logos/12"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_file",
+      "source_id": 1,
+      "original": {
+        "object_key_hash": "8520d3627e83",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "053c47f79e5f",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "display": {
+        "object_key_hash": "b71e321c5f5e",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_file",
+      "source_id": 6,
+      "original": {
+        "object_key_hash": "0ce92028189d",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "b680b42fcc65",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "display": {
+        "object_key_hash": "5e890c9fefc7",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 31,
+      "original": {
+        "object_key_hash": "5792186e41bd",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "f6942f5d707d",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "display": {
+        "object_key_hash": "2d3dda0be436",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 32,
+      "original": {
+        "object_key_hash": "7d15ddcd4f22",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "3531872dfd60",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "display": {
+        "object_key_hash": "02e843a8e884",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 33,
+      "original": {
+        "object_key_hash": "3f0526dee0f1",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "4ae42087fd58",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "display": {
+        "object_key_hash": "fa10000a239d",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 34,
+      "original": {
+        "object_key_hash": "6293f462deba",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "4c0f1df6d74c",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "display": {
+        "object_key_hash": "ef7de386bdd0",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 35,
+      "original": {
+        "object_key_hash": "ada7cd2e3661",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "d00b53ee7089",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "display": {
+        "object_key_hash": "3f25b324cdbb",
+        "object_key_prefix": "images/default/brand-certificates/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 36,
+      "original": {
+        "object_key_hash": "0d10f05388c7",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "418c2b224f4b",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "display": {
+        "object_key_hash": "4d3ac3ac3102",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 37,
+      "original": {
+        "object_key_hash": "2786a0a867c8",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "fadb5246cfc5",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "display": {
+        "object_key_hash": "7dc35561ee62",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 38,
+      "original": {
+        "object_key_hash": "b637b5b77cac",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "e8e50cd5548c",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "display": {
+        "object_key_hash": "712c37cba7aa",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 39,
+      "original": {
+        "object_key_hash": "55efa8a3c9a6",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "5a186444e03f",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "display": {
+        "object_key_hash": "a2706ce897ce",
+        "object_key_prefix": "images/default/brand-certificates/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 40,
+      "original": {
+        "object_key_hash": "87b36541a07f",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail": {
+        "object_key_hash": "7ec501d26fd7",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "display": {
+        "object_key_hash": "86df58119a62",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 41,
+      "original": {
+        "object_key_hash": "e3504be25d98",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail": {
+        "object_key_hash": "b67e6aecf131",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "display": {
+        "object_key_hash": "f1dff825d1df",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 42,
+      "original": {
+        "object_key_hash": "b10877d38d7e",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail": {
+        "object_key_hash": "69693871e109",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "display": {
+        "object_key_hash": "3be0b5db7224",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 43,
+      "original": {
+        "object_key_hash": "c997e8bcd243",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail": {
+        "object_key_hash": "16e280a21767",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "display": {
+        "object_key_hash": "181c88d87483",
+        "object_key_prefix": "images/default/brand-certificates/4"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 44,
+      "original": {
+        "object_key_hash": "f7560ca7cbb0",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "d91038c398a3",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "display": {
+        "object_key_hash": "223a32f1b548",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 45,
+      "original": {
+        "object_key_hash": "303c33c19967",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "1fe80c167dc1",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "display": {
+        "object_key_hash": "e87460f844f4",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 46,
+      "original": {
+        "object_key_hash": "a4e13f0440c4",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "f3acbaf50813",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "display": {
+        "object_key_hash": "68353f9cb368",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 47,
+      "original": {
+        "object_key_hash": "a3d8dc407b86",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "ee9e49a1b852",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "display": {
+        "object_key_hash": "1da986ed4150",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 48,
+      "original": {
+        "object_key_hash": "a101113c04b4",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail": {
+        "object_key_hash": "1ed535413602",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "display": {
+        "object_key_hash": "e7b4f862261c",
+        "object_key_prefix": "images/default/brand-certificates/5"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 49,
+      "original": {
+        "object_key_hash": "46def7c61d5f",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "542ccca7b813",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "display": {
+        "object_key_hash": "76777a7cc805",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 50,
+      "original": {
+        "object_key_hash": "efa130a9f15e",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "f211be17bd96",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "display": {
+        "object_key_hash": "82e491692155",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 51,
+      "original": {
+        "object_key_hash": "30b2c2dd4644",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "cd79b59444d4",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "display": {
+        "object_key_hash": "a8bd1e1eb8f8",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 52,
+      "original": {
+        "object_key_hash": "575389f99936",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "8cb6e109354b",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "display": {
+        "object_key_hash": "c3120ebef710",
+        "object_key_prefix": "images/default/brand-certificates/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 54,
+      "original": {
+        "object_key_hash": "9270b947144c",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "133c361e4a78",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "display": {
+        "object_key_hash": "3831e2791e6d",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 55,
+      "original": {
+        "object_key_hash": "270893e95164",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "01d5c193e0fc",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "display": {
+        "object_key_hash": "cfdf36b2d86b",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "certificate_image",
+      "source_id": 56,
+      "original": {
+        "object_key_hash": "7a57a5910f1b",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail": {
+        "object_key_hash": "2a277cdc6421",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "display": {
+        "object_key_hash": "7396a9fcd707",
+        "object_key_prefix": "images/default/brand-certificates/6"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 87,
+      "original": {
+        "object_key_hash": "70ff904c574d",
+        "object_key_prefix": "images/default/tiles/49"
+      },
+      "thumbnail": {
+        "object_key_hash": "63588ea270a8",
+        "object_key_prefix": "images/default/tiles/49"
+      },
+      "display": {
+        "object_key_hash": "bb5eea899f61",
+        "object_key_prefix": "images/default/tiles/49"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 88,
+      "original": {
+        "object_key_hash": "3bac52828be4",
+        "object_key_prefix": "images/default/tiles/50"
+      },
+      "thumbnail": {
+        "object_key_hash": "a6c975b7f56e",
+        "object_key_prefix": "images/default/tiles/50"
+      },
+      "display": {
+        "object_key_hash": "27237c60f1ed",
+        "object_key_prefix": "images/default/tiles/50"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 89,
+      "original": {
+        "object_key_hash": "43db646e65ba",
+        "object_key_prefix": "images/default/tiles/51"
+      },
+      "thumbnail": {
+        "object_key_hash": "e5078d218dec",
+        "object_key_prefix": "images/default/tiles/51"
+      },
+      "display": {
+        "object_key_hash": "1a7fbe4f7df3",
+        "object_key_prefix": "images/default/tiles/51"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 90,
+      "original": {
+        "object_key_hash": "c07a1ec8b094",
+        "object_key_prefix": "images/default/tiles/52"
+      },
+      "thumbnail": {
+        "object_key_hash": "13d315e6cb7c",
+        "object_key_prefix": "images/default/tiles/52"
+      },
+      "display": {
+        "object_key_hash": "eeb5bdc3dcbf",
+        "object_key_prefix": "images/default/tiles/52"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 91,
+      "original": {
+        "object_key_hash": "3de8be4d1a0c",
+        "object_key_prefix": "images/default/tiles/53"
+      },
+      "thumbnail": {
+        "object_key_hash": "ed53d72283c4",
+        "object_key_prefix": "images/default/tiles/53"
+      },
+      "display": {
+        "object_key_hash": "8d34d619a582",
+        "object_key_prefix": "images/default/tiles/53"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 92,
+      "original": {
+        "object_key_hash": "145de5a7d157",
+        "object_key_prefix": "images/default/tiles/54"
+      },
+      "thumbnail": {
+        "object_key_hash": "d05e14c9d429",
+        "object_key_prefix": "images/default/tiles/54"
+      },
+      "display": {
+        "object_key_hash": "95cfeecb06e8",
+        "object_key_prefix": "images/default/tiles/54"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 93,
+      "original": {
+        "object_key_hash": "6b356c277ec7",
+        "object_key_prefix": "images/default/tiles/55"
+      },
+      "thumbnail": {
+        "object_key_hash": "e10831f40470",
+        "object_key_prefix": "images/default/tiles/55"
+      },
+      "display": {
+        "object_key_hash": "8d52361325ca",
+        "object_key_prefix": "images/default/tiles/55"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 94,
+      "original": {
+        "object_key_hash": "9384e9436d02",
+        "object_key_prefix": "images/default/tiles/56"
+      },
+      "thumbnail": {
+        "object_key_hash": "b8e1e61197d5",
+        "object_key_prefix": "images/default/tiles/56"
+      },
+      "display": {
+        "object_key_hash": "11a9b054ca8a",
+        "object_key_prefix": "images/default/tiles/56"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 95,
+      "original": {
+        "object_key_hash": "2326d739f337",
+        "object_key_prefix": "images/default/tiles/57"
+      },
+      "thumbnail": {
+        "object_key_hash": "b4dc7ccd18e0",
+        "object_key_prefix": "images/default/tiles/57"
+      },
+      "display": {
+        "object_key_hash": "84571e42e7ef",
+        "object_key_prefix": "images/default/tiles/57"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 96,
+      "original": {
+        "object_key_hash": "20ea58528f39",
+        "object_key_prefix": "images/default/tiles/58"
+      },
+      "thumbnail": {
+        "object_key_hash": "67e8157d765d",
+        "object_key_prefix": "images/default/tiles/58"
+      },
+      "display": {
+        "object_key_hash": "0aee40eb1134",
+        "object_key_prefix": "images/default/tiles/58"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 97,
+      "original": {
+        "object_key_hash": "03d5688a4821",
+        "object_key_prefix": "images/default/tiles/59"
+      },
+      "thumbnail": {
+        "object_key_hash": "4d5ed2c3c7a0",
+        "object_key_prefix": "images/default/tiles/59"
+      },
+      "display": {
+        "object_key_hash": "078352de7b21",
+        "object_key_prefix": "images/default/tiles/59"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 98,
+      "original": {
+        "object_key_hash": "c773cb47d6a4",
+        "object_key_prefix": "images/default/tiles/60"
+      },
+      "thumbnail": {
+        "object_key_hash": "fe2978442ea5",
+        "object_key_prefix": "images/default/tiles/60"
+      },
+      "display": {
+        "object_key_hash": "160b15e4ef05",
+        "object_key_prefix": "images/default/tiles/60"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 99,
+      "original": {
+        "object_key_hash": "ef70f5f8d0b4",
+        "object_key_prefix": "images/default/tiles/61"
+      },
+      "thumbnail": {
+        "object_key_hash": "e3823b76e95c",
+        "object_key_prefix": "images/default/tiles/61"
+      },
+      "display": {
+        "object_key_hash": "b2bb9cfcef2d",
+        "object_key_prefix": "images/default/tiles/61"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 201,
+      "original": {
+        "object_key_hash": "f6c06715c3cb",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "thumbnail": {
+        "object_key_hash": "def3cb3d1a65",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "display": {
+        "object_key_hash": "3aae316e2dd5",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 202,
+      "original": {
+        "object_key_hash": "f81e652963bb",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "thumbnail": {
+        "object_key_hash": "d0b5c9bbed16",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "display": {
+        "object_key_hash": "c4a1a968922a",
+        "object_key_prefix": "images/default/tiles/7"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 203,
+      "original": {
+        "object_key_hash": "310936bc26b5",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "aafe1c454970",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "display": {
+        "object_key_hash": "9eba8b5abe1d",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 204,
+      "original": {
+        "object_key_hash": "c62208a3b153",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "thumbnail": {
+        "object_key_hash": "fbdf13429b02",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "display": {
+        "object_key_hash": "b55801142ec1",
+        "object_key_prefix": "images/default/tiles/1"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 205,
+      "original": {
+        "object_key_hash": "6b696381c7bc",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "8778ed693344",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "display": {
+        "object_key_hash": "d0a716d7f826",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 206,
+      "original": {
+        "object_key_hash": "169d1190973b",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "thumbnail": {
+        "object_key_hash": "7d0b95776a25",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "display": {
+        "object_key_hash": "0c3d9f49df7d",
+        "object_key_prefix": "images/default/tiles/3"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 207,
+      "original": {
+        "object_key_hash": "1452dc33bfe8",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "127b7960c693",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "display": {
+        "object_key_hash": "2aabc5106ffa",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 208,
+      "original": {
+        "object_key_hash": "ee837f6f9e68",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "thumbnail": {
+        "object_key_hash": "524f8a763f64",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "display": {
+        "object_key_hash": "ed21b9feee47",
+        "object_key_prefix": "images/default/tiles/2"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 211,
+      "original": {
+        "object_key_hash": "ecb54f415242",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "thumbnail": {
+        "object_key_hash": "726138140f55",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "display": {
+        "object_key_hash": "3d462ba77639",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 212,
+      "original": {
+        "object_key_hash": "40244cc52650",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "thumbnail": {
+        "object_key_hash": "50f045df4aec",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "display": {
+        "object_key_hash": "cd2672b3cb9f",
+        "object_key_prefix": "images/default/tiles/8"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 213,
+      "original": {
+        "object_key_hash": "8369a509db23",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "thumbnail": {
+        "object_key_hash": "3e964d3d8d46",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "display": {
+        "object_key_hash": "c51b1944d2c4",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 214,
+      "original": {
+        "object_key_hash": "698831647d0d",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "thumbnail": {
+        "object_key_hash": "95672185a8aa",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "display": {
+        "object_key_hash": "7f0a9d6a14e2",
+        "object_key_prefix": "images/default/tiles/9"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 215,
+      "original": {
+        "object_key_hash": "866262c42e04",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "thumbnail": {
+        "object_key_hash": "d064b4ff419f",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "display": {
+        "object_key_hash": "57b959f54506",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 216,
+      "original": {
+        "object_key_hash": "0e3bc8189e70",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "thumbnail": {
+        "object_key_hash": "3c50e2763413",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "display": {
+        "object_key_hash": "f019db89e85f",
+        "object_key_prefix": "images/default/tiles/10"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 217,
+      "original": {
+        "object_key_hash": "c5079ce6e6d7",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "thumbnail": {
+        "object_key_hash": "8150d7f87569",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "display": {
+        "object_key_hash": "82b2c7e5af0c",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 218,
+      "original": {
+        "object_key_hash": "df6f59f18b2a",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "thumbnail": {
+        "object_key_hash": "4f2c5c273bed",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "display": {
+        "object_key_hash": "da3d73ba9113",
+        "object_key_prefix": "images/default/tiles/11"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 219,
+      "original": {
+        "object_key_hash": "18499012e036",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "thumbnail": {
+        "object_key_hash": "41e238736113",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "display": {
+        "object_key_hash": "6ea076b57ea4",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 220,
+      "original": {
+        "object_key_hash": "919ffd786f0e",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "thumbnail": {
+        "object_key_hash": "e54e4797da7a",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "display": {
+        "object_key_hash": "8277131f5344",
+        "object_key_prefix": "images/default/tiles/12"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 221,
+      "original": {
+        "object_key_hash": "eec4f470af97",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "thumbnail": {
+        "object_key_hash": "5e1ef368037d",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "display": {
+        "object_key_hash": "5cd4e9f7bf0c",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 222,
+      "original": {
+        "object_key_hash": "9f7e59ce6a1d",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "thumbnail": {
+        "object_key_hash": "ab3bceaf42c5",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "display": {
+        "object_key_hash": "aeb24c0ba274",
+        "object_key_prefix": "images/default/tiles/13"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 223,
+      "original": {
+        "object_key_hash": "215c4595cf2b",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "thumbnail": {
+        "object_key_hash": "e15adcf7e443",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "display": {
+        "object_key_hash": "598e716fac8a",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 224,
+      "original": {
+        "object_key_hash": "678d408aae78",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "thumbnail": {
+        "object_key_hash": "7f3b0a314671",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "display": {
+        "object_key_hash": "ee1260c2cdf5",
+        "object_key_prefix": "images/default/tiles/15"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 225,
+      "original": {
+        "object_key_hash": "8f95645f8405",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "thumbnail": {
+        "object_key_hash": "1922de01f20b",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "display": {
+        "object_key_hash": "c684811913a9",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 226,
+      "original": {
+        "object_key_hash": "e64f613cb83d",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "thumbnail": {
+        "object_key_hash": "a956f2d0b199",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "display": {
+        "object_key_hash": "b7bd35f2b835",
+        "object_key_prefix": "images/default/tiles/14"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 413,
+      "original": {
+        "object_key_hash": "c07b333da089",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail": {
+        "object_key_hash": "17fb0bb9e7e5",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "display": {
+        "object_key_hash": "efdb1cc498be",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 414,
+      "original": {
+        "object_key_hash": "2d77857a36d1",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail": {
+        "object_key_hash": "a29c5e27c11b",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "display": {
+        "object_key_hash": "823aed9de676",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 415,
+      "original": {
+        "object_key_hash": "5fcfbe518db4",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail": {
+        "object_key_hash": "76455526c338",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "display": {
+        "object_key_hash": "b05da41911d3",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 416,
+      "original": {
+        "object_key_hash": "a3d1e8d384e2",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail": {
+        "object_key_hash": "29d90761d056",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "display": {
+        "object_key_hash": "49614a4e2635",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 417,
+      "original": {
+        "object_key_hash": "a9ba7c8dc637",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail": {
+        "object_key_hash": "bb7fd8317318",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "display": {
+        "object_key_hash": "8b9ccd017a93",
+        "object_key_prefix": "images/default/tiles/83"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 418,
+      "original": {
+        "object_key_hash": "702508c494b7",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail": {
+        "object_key_hash": "5b7a12b61e1d",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "display": {
+        "object_key_hash": "035894416b9e",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 419,
+      "original": {
+        "object_key_hash": "51d651ef076e",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail": {
+        "object_key_hash": "bf54f1441278",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "display": {
+        "object_key_hash": "74edcbeaf61f",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 420,
+      "original": {
+        "object_key_hash": "33a87e28ae0a",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail": {
+        "object_key_hash": "14e048c26f56",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "display": {
+        "object_key_hash": "d6e3b4304fb5",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 421,
+      "original": {
+        "object_key_hash": "1c516b709050",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail": {
+        "object_key_hash": "a614f9c9ef3a",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "display": {
+        "object_key_hash": "f59238683456",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 422,
+      "original": {
+        "object_key_hash": "1aa2a0b47b88",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail": {
+        "object_key_hash": "1d6a2441ab69",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "display": {
+        "object_key_hash": "27f7b5e00fad",
+        "object_key_prefix": "images/default/tiles/84"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 423,
+      "original": {
+        "object_key_hash": "069cab182cd2",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail": {
+        "object_key_hash": "7220cf5cb9d5",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "display": {
+        "object_key_hash": "8edcbdb6bd3a",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 424,
+      "original": {
+        "object_key_hash": "dda72c0e6966",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail": {
+        "object_key_hash": "f210a7f1d5e1",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "display": {
+        "object_key_hash": "34fcf7ce6130",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 425,
+      "original": {
+        "object_key_hash": "64f7c0cf6f33",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail": {
+        "object_key_hash": "35d04cd2c58d",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "display": {
+        "object_key_hash": "eccb03228855",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 426,
+      "original": {
+        "object_key_hash": "1f81a3467e6b",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail": {
+        "object_key_hash": "fd6dcd8ae49f",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "display": {
+        "object_key_hash": "f34609063c90",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 427,
+      "original": {
+        "object_key_hash": "a47c7d4f4e54",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail": {
+        "object_key_hash": "3c851bed39ed",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "display": {
+        "object_key_hash": "f05faad63e57",
+        "object_key_prefix": "images/default/tiles/85"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 428,
+      "original": {
+        "object_key_hash": "1f395b32a69c",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "thumbnail": {
+        "object_key_hash": "daf9f85b42ad",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "display": {
+        "object_key_hash": "f506778f7ec8",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    },
+    {
+      "source_type": "sku_image",
+      "source_id": 429,
+      "original": {
+        "object_key_hash": "2c2818151be6",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "thumbnail": {
+        "object_key_hash": "e5c0e7209fe1",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "display": {
+        "object_key_hash": "8395d9438a4f",
+        "object_key_prefix": "images/default/tiles/82"
+      },
+      "thumbnail_exists": true,
+      "display_exists": true,
+      "needs": {
+        "thumbnail": false,
+        "display": false
+      },
+      "reasons": {
+        "thumbnail": null,
+        "display": null
+      },
+      "variant_results": {},
+      "status": "skipped",
+      "display_max_size_kb": 768
+    }
+  ],
+  "acceptance_summary": {
+    "task": "backfill-image-variants",
+    "key": {
+      "status": "pass",
+      "samples": 99
+    },
+    "object": {
+      "status": "pass",
+      "samples": 99
+    },
+    "URL": {
+      "status": "n/a",
+      "reason": "maintenance audit does not call HTTP media URLs"
+    },
+    "thumbnail_benefit": {
+      "status": "pass",
+      "reason": null
+    },
+    "render": {
+      "status": "blocked",
+      "reason": "requires Web or miniapp evidence after apply"
+    }
+  }
+}

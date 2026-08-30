@@ -4,7 +4,7 @@ status: done
 lifecycle_stage: archive
 priority: P1
 created_at: 2026-08-22 10:40:11
-updated_at: 2026-08-25 09:43:38
+updated_at: 2026-08-30 11:49:33
 lifecycle:
   captured: 2026-08-22 10:40:11
   generated: 2026-08-22 10:52:29
@@ -15,7 +15,7 @@ iteration: sprint-025
 openspec_changes:
   - change_id: add-media-multi-variant-images
     type: add
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0012-object-storage-key-layout
   - REQ-0099-global-thumbnail-size-limit
@@ -64,7 +64,7 @@ iteration: sprint-025
 openspec_changes:
   - change_id: add-media-multi-variant-images
     type: add
-    status: archived
+    status: proposed
 readiness: Partially Ready
 readiness_notes: 已评审通过；命中的 best-practices 为 draft，且 UI PNG 待后续 Change 阶段导出，因此保持 Partially Ready。
 expected_openspec_change: add-media-multi-variant-images
@@ -112,3 +112,5 @@ review_decisions:
 | BUG-0134-miniapp-certificate-detail-display-url | high | done | fix-miniapp-certificate-detail-display-url | 小程序证书详情页顶部展示缺少 display_url 导致退回原图 |
 | BUG-0135-miniapp-certificate-card-file-url-fallback | high | done | fix-miniapp-certificate-card-file-url-fallback | 小程序证书卡缺缩略图时不应 fallback 到 file_url 原文件 |
 | BUG-0137-miniapp-lightweight-image-variant-consumption | high | done | fix-miniapp-lightweight-image-variant-consumption | 小程序 Banner、品牌 Logo、分享图普通展示未统一消费轻量图字段 |
+| BUG-0146-batch-media-maintenance-banner-variants | high | done | fix-media-maintenance-banner-variants | 批量媒体维护命令未覆盖 Banner 自定义上传图 |
+| BUG-0147-miniapp-certificate-list-images-missing | high | done | fix-miniapp-certificate-media-urls | 小程序证书列表页图片不显示 |

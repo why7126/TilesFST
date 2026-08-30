@@ -2,7 +2,6 @@
 
 ## Purpose
 版本部署升级与回滚治理能力用于以结构化升级路径对象管理 `from_version -> to_version` 的首次部署、相邻升级、跨版本升级、验证证据、支持级别和回滚边界，避免将发布存在、迁移代码存在或镜像存在误判为升级路径已验证。
-
 ## Requirements
 ### Requirement: 升级路径对象
 系统 SHALL 使用结构化升级路径对象表达 `from_version -> to_version` 的首次部署、相邻升级、跨版本升级和回滚治理事实。
@@ -126,3 +125,39 @@
 - **THEN** 命令 SHALL 读取 release、image manifest、env 示例、DB schema/migration、Compose 和维护任务文档
 - **AND** 命令 SHALL 输出支持级别、影响摘要、blocker、warning、升级步骤、回滚步骤和证据缺口
 - **AND** 命令 SHALL NOT 自动执行生产升级、自动修改真实 env、自动执行写入型 DB 或对象存储维护任务。
+
+### Requirement: 升级计划目标环境分离
+版本部署升级与回滚治理 SHALL 支持开发环境和生产环境两类升级计划目标，并避免把生产实施门禁误用为开发部署门禁。
+
+#### Scenario: 开发环境升级计划
+- **WHEN** 系统生成 `deployment_target=development` 的升级计划
+- **THEN** 计划 SHALL 表达开发部署、开发验证和开发回滚边界
+- **AND** 生产真实 env、生产 MySQL 或对象存储备份、生产 smoke 和生产公开证据 SHALL NOT 作为开发计划 blocker
+- **AND** 生产实施要求 MAY 作为后续生产发布提醒记录。
+
+#### Scenario: 生产环境升级计划
+- **WHEN** 系统生成 `deployment_target=production` 的升级计划
+- **THEN** 计划 SHALL 保留生产 env、备份、MySQL、对象存储、smoke 和回滚证据要求
+- **AND** 不得凭开发环境部署计划宣称生产升级路径已验证。
+
+#### Scenario: 常规发布默认升级计划跟随发布目标
+- **WHEN** 正常发布需要生成默认升级计划
+- **THEN** `fresh -> <to-version>` 和 `<previous-release-version> -> <to-version>` 的默认计划 SHALL 使用发布对象声明的目标环境
+- **AND** 若后续单独生产发布，生产发布 SHALL 生成或校验生产目标升级计划。
+
+### Requirement: 默认升级路径提示
+版本部署升级与回滚治理 SHALL 为正常发布提供默认升级路径提示，帮助操作者一次性看到目标环境所需的首次部署和相邻升级计划。
+
+#### Scenario: 状态面板提示缺失默认升级计划
+- **WHEN** 某个发布目标缺少 `fresh -> <version>` 或上一正式版本到当前版本的目标环境升级计划
+- **THEN** 状态面板 SHALL 输出对应 `/upgrade-plan --from ... --to ... --target ...` 命令
+- **AND** 输出 SHALL 不要求操作者记忆默认路径规则。
+
+### Requirement: 镜像稳定输入边界
+版本部署升级与回滚治理 SHALL 将镜像稳定输入限定为会影响构建产物、运行时行为或部署包行为的文件和发布范围字段。
+
+#### Scenario: 发布证据叙述不触发镜像漂移
+- **WHEN** 仅发布证据、运维叙述或长期文档说明发生变化，且不影响 Dockerfile、Compose、Nginx、构建脚本、env 示例、schema、migration 或稳定发布范围字段
+- **THEN** 镜像计划或 manifest 校验 SHALL NOT 因这些叙述文件变化而报告 image input drift
+- **AND** 需要补充的发布证据 SHALL 由 release 或 deployment gate 单独表达。
+

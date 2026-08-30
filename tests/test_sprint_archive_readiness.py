@@ -176,3 +176,19 @@ def test_stale_scan_blocker_blocks_sprint_archive_readiness(tmp_path: Path) -> N
     assert readiness.stale_scan.blocker_count == 2
     payload = validate_sprint_archive_readiness.readiness_to_json(readiness, force=False)
     assert '"verdict": "blocked"' in payload
+
+
+def test_environment_evidence_blocker_blocks_sprint_archive_readiness(tmp_path: Path) -> None:
+    write_sprint(tmp_path, "sprint-999", ["fix-env-claim"])
+    write_tasks(tmp_path, "fix-env-claim", ["- [x] implement", "- [x] test"])
+    change_dir = tmp_path / "openspec" / "changes" / "fix-env-claim"
+    change_dir.joinpath("acceptance.md").write_text(
+        "DevTools Network 开发环境截图已验证 production 生产环境通过。\n",
+        encoding="utf-8",
+    )
+
+    readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
+
+    assert readiness.blockers == []
+    assert readiness.has_blockers is True
+    assert readiness.environment_tiered_evidence.blockers[0].rule_id == "environment-claim-mismatch"

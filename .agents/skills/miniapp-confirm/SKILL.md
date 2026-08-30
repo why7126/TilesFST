@@ -23,7 +23,7 @@ Recommended flags:
 --notes <text>
 ```
 
-`--notes` 建议包含 DevTools Network 结论、体验版 Network 结论、失败项、阻塞项、剩余风险和下一步。缺少体验版 Network evidence 时，不得写作 `passed`；应使用 `blocked`、`follow_up` 或明确的 `not_applicable` 原因。
+`--notes` 建议包含 DevTools Network 结论、体验版 Network 结论、失败项、阻塞项、剩余风险和下一步。缺少体验版 Network evidence 时，不得写作体验版或生产 `passed`；若当前确认仅覆盖开发阶段，可将体验版或生产证据缺口记录为 `production_only_pending`、`follow_up` 或明确的 `not_applicable_for_development`，并说明后续承接阶段。
 
 ## Steps
 
@@ -36,6 +36,7 @@ python scripts/miniapp-env.py confirm --channel <trial|release> --version <versi
 
 3. 输出可复制到 release、Sprint 验收报告或发布记录的安全摘要。
 4. 若记录 Network evidence，摘要必须区分 `network_devtools` 与 `network_trial`，并不得包含 token、Cookie、Authorization header、`.env`、真实密钥、真实客户数据或未脱敏隐私。
+5. 若当前证据来自开发者工具或开发环境，输出必须标注 `target_environment=development` 或等价说明，不得声称体验版、真机或生产发布通过。
 
 ## Output
 
@@ -57,4 +58,3 @@ python scripts/miniapp-env.py confirm --channel <trial|release> --version <versi
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-

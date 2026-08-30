@@ -3,7 +3,6 @@
 ## Purpose
 
 定义批量图片处理 Runbook 的长期事实源、版本使用文档投影、生产执行安全门禁和验收证据模板要求。
-
 ## Requirements
 ### Requirement: 批量图片处理 Runbook 必须双投影
 
@@ -69,23 +68,15 @@ Runbook MUST 提供缩略图专项重建流程，覆盖候选识别、dry-run �
 
 ### Requirement: Runbook 必须覆盖对象 key 迁移
 
-Runbook MUST 提供对象 key 迁移流程，覆盖迁移候选识别、旧 key 与新 key 映射、dry-run、apply、数据库引用更新、对象复制或移动策略、幂等复跑、失败清单、二次审计和回滚说明。对象 key 迁移的默认回滚 MUST 以 MySQL 快照和对象存储 bucket / prefix 快照恢复为主；未验证反向脚本 MUST NOT 被描述为默认可靠回滚。
+批量图片处理 Runbook MUST 说明历史图片原图、缩略图、展示图和业务对象 id 目录迁移的生产执行边界。Runbook MUST 区分 dry-run、apply、二次审计、幂等复跑、备份确认、失败分类和回滚说明，并 MUST 明确 PDF/文档类证书不参与图片派生图生成。Runbook MUST 不包含真实 `.env`、生产私有域名、对象存储密钥、完整 object key、本机绝对路径或真实客户数据。
 
-#### Scenario: 对象 key 迁移前置门禁
+#### Scenario: Runbook 覆盖业务对象 id 目录迁移
 
-- **WHEN** 运维准备执行对象 key 迁移 apply
-- **THEN** Runbook MUST 要求已完成 dry-run 并记录摘要
-- **AND** Runbook MUST 要求已确认 MySQL 快照
-- **AND** Runbook MUST 要求已确认对象存储 bucket 或 prefix 快照
-- **AND** Runbook MUST 要求执行窗口、影响范围和回滚负责人已记录。
-
-#### Scenario: 对象 key 迁移验收
-
-- **GIVEN** 对象 key 迁移 apply 已完成
-- **WHEN** 团队验收迁移结果
-- **THEN** 验收 MUST 记录旧 key、新 key、数据库引用、对象存在性、受控 URL、端侧 render 和失败项处理
-- **AND** 重复执行 MUST 幂等跳过已迁移或不适用记录
-- **AND** 验收证据 MUST 脱敏 object key 或使用可复核摘要。
+- **WHEN** 团队更新批量图片处理 Runbook
+- **THEN** Runbook MUST 描述头像、品牌 Logo、Banner、SKU 图片和品牌证书图片的业务对象 id 目录迁移策略
+- **AND** Runbook MUST 说明原图、`.thumb.webp`、`.display.webp` 的同目录或等价可追溯要求
+- **AND** Runbook MUST 说明 dry-run 进入 apply 的备份确认条件
+- **AND** Runbook MUST 说明旧对象清理不属于普通迁移默认动作。
 
 ### Requirement: Runbook 必须定义生产执行安全门禁
 
@@ -114,3 +105,25 @@ Runbook MUST 提供批量图片处理验收证据模板。模板 MUST 覆盖 dry
 - **THEN** 验收记录 MUST 包含长期 Runbook 路径、版本快照路径、脚本清单、dry-run 示例、apply 门禁、二次审计模板和脱敏检查结论
 - **AND** 若未执行真实生产任务，验收 MUST 明确标注未执行生产任务及原因
 - **AND** 记录 MUST 能支持发布前检查和后续 `/bug-capture` 或 `/req-capture` 追踪。
+
+### Requirement: Runbook 必须说明媒体维护进度输出
+
+Runbook MUST 说明媒体维护任务可选进度输出的使用方式、输出通道边界和生产日志采集注意事项。
+
+#### Scenario: 记录进度参数用法
+
+- **WHEN** Runbook 描述 `backfill-image-variants`、`backfill-brand-certificate-thumbnails` 或 `media-drift-reconcile` 的 dry-run / apply 命令
+- **THEN** Runbook MUST 说明可选 `--progress` 或等价参数的用途
+- **AND** Runbook MUST 说明未启用进度参数时 stdout JSON 行为保持兼容
+
+#### Scenario: 记录 stdout 与 stderr 边界
+
+- **WHEN** Runbook 提供带进度输出的生产命令示例
+- **THEN** Runbook MUST 说明最终 JSON 输出到 stdout
+- **AND** Runbook SHOULD 说明进度信息输出到 stderr，便于分别保存审计 JSON 与运行日志
+
+#### Scenario: 记录脱敏与审计要求
+
+- **WHEN** Runbook 展示进度输出样例或日志采集建议
+- **THEN** 样例 MUST 不包含真实 object key、客户信息、私有 endpoint、密钥、连接串、`.env` 内容或本机绝对路径
+- **AND** Runbook MUST 提醒最终审计事实仍以命令结束后的 JSON summary 与 acceptance summary 为准

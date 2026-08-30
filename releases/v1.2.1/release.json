@@ -1,0 +1,281 @@
+{
+  "version": "v1.2.1",
+  "release_time": "2026-08-30 09:19:49",
+  "owner": "product",
+  "summary": "本版本汇总 sprint-027 的媒体维护与对象存储治理交付：新增媒体维护 CLI 可选进度输出，统一新增与迁移媒体 object key 的业务对象 id 目录策略，并修复批量媒体维护命令未覆盖 Banner 自定义上传图导致派生图缺失的问题。",
+  "formal_scope_only": true,
+  "release_target": {
+    "environment": "development",
+    "deployment_scope": "development",
+    "production_release_required": true,
+    "rationale": "本次 v1.2.1 发布确认仅覆盖开发环境部署与开发交付；生产环境将额外单独发布。"
+  },
+  "version_change_rationale": "",
+  "image_required": true,
+  "image_required_rationale": "本版本包含后端媒体维护 CLI、上传/媒体服务、对象存储 key 生成与迁移逻辑，以及公开 API/Orval 生成物同步影响；发布前需要执行 image-prepare 与 image-build 获取可追溯镜像证据。",
+  "image_tag": "v1.2.1",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部构建证据；默认后续通过 /image-prepare v1.2.1 与 /image-build v1.2.1 生成仓库内计划和 manifest。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-30 09:24:56",
+      "confirmed_by": "operator",
+      "rationale": "用户在 release-propose 阶段明确不需要生成 docs；本版本只生成公告并保留 usage-docs 目录不存在。"
+    }
+  },
+  "announcement_decision": {
+    "status": "generated",
+    "confirmed_at": "2026-08-30 09:19:49",
+    "confirmed_by": "operator",
+    "rationale": "用户明确要求需要生成公告；本次已生成 announcement.mdx，作为发布提案阶段的公开公告文案草案，后续 release-prepare 需复核 Mintlify/公开安全。",
+    "copy_status": "draft"
+  },
+  "sprints": [
+    "sprint-027"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-0130-media-maintenance-progress-output",
+      "title": "媒体维护任务进度输出",
+      "status": "done",
+      "scope": "formal",
+      "change": "add-media-maintenance-progress-output",
+      "source": "issues/requirements/archive/REQ-0130-media-maintenance-progress-output/trace.md"
+    },
+    {
+      "id": "REQ-0131-media-object-key-business-id-layout",
+      "title": "统一媒体对象 Key 按业务对象 id 分目录",
+      "status": "done",
+      "scope": "formal",
+      "change": "update-media-object-key-business-id-layout",
+      "source": "issues/requirements/archive/REQ-0131-media-object-key-business-id-layout/trace.md"
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-0146-batch-media-maintenance-banner-variants",
+      "title": "批量媒体维护命令未覆盖 Banner 自定义上传图",
+      "status": "done",
+      "severity": "high",
+      "scope": "formal",
+      "change": "fix-media-maintenance-banner-variants",
+      "source": "issues/bugs/archive/BUG-0146-batch-media-maintenance-banner-variants/trace.md"
+    }
+  ],
+  "changes": [
+    {
+      "id": "add-media-maintenance-progress-output",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-29-add-media-maintenance-progress-output/"
+    },
+    {
+      "id": "update-media-object-key-business-id-layout",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-29-update-media-object-key-business-id-layout/"
+    },
+    {
+      "id": "fix-media-maintenance-banner-variants",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-fix-media-maintenance-banner-variants/"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-027/acceptance-report.md 与 sprint.md 显示 3/3 Change 已 archive；关联归档目录为 openspec/archive/2026-08-29-add-media-maintenance-progress-output/、openspec/archive/2026-08-29-update-media-object-key-business-id-layout/、openspec/archive/2026-08-30-fix-media-maintenance-banner-variants/。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-027/acceptance-report.md 记录 REQ-0131 后端对象 key/维护任务/部署脚本聚焦测试 47 passed、Pillow 图片上传与媒体测试 97 passed、管理端媒体相关 Vitest 9 files / 94 tests passed、小程序媒体相关 pytest 61 passed；BUG-0146 本地 dry-run、apply、URL headers、公开接口响应和端侧截图证据已记录。"
+    },
+    "orval": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-027/acceptance-report.md 与 update-media-object-key-business-id-layout trace 记录 OpenAPI/Orval 同步和门禁校验已完成；2026-08-30 09:25:19 运行 python scripts/validate-api-standard.py，结果通过。"
+    },
+    "docker_compose": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-027/acceptance-report.md 记录 Docker Compose 当前 backend/web/docs-site 均运行中，Web 暴露 http://localhost:3000，Backend 暴露 http://localhost:8000；2026-08-30 09:24:56 运行 docker compose config --quiet，结果通过。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "本版本不新增数据库表或迁移；REQ-0131 复用既有媒体引用字段，发布前生产 media-drift-reconcile apply 需要备份确认但不属于 schema migration。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "本版本发布范围未引入新增环境变量；对象存储与媒体维护继续使用既有配置边界。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-08-30 09:24:15 读取 src/shared/product-version.ts，确认原 PRODUCT_VERSION 为 v1.2.0；release-prepare 已更新为 v1.2.1，与 release.json.version 一致。"
+    },
+    "mintlify_preview": {
+      "status": "pass",
+      "evidence": "2026-08-30 09:26:00 运行 python scripts/validate-mintlify-site.py，发现 docs/latest/faq 导航重复；已删除 mintlify/docs.json 中“常用任务”的重复引用后复跑，结果 Mintlify site validation passed。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-30 09:24:56: usage docs skipped by operator; 用户在 release-propose 阶段明确不需要生成 docs；本版本只生成公告并保留 usage-docs 目录不存在。"
+    },
+    "image_prepare": {
+      "status": "pass",
+      "evidence": "2026-08-30 09:29:23 运行 python scripts/validate-image-build.py prepare --release v1.2.1 生成 releases/v1.2.1/image-build-plan.json；随后运行 python scripts/validate-image-build.py validate-plan --release v1.2.1，结果通过。plan image_required=true、image_tag=v1.2.1、platform=linux/amd64、blockers=0。"
+    },
+    "image_build": {
+      "status": "pass",
+      "evidence": "2026-08-30 09:35:08 运行 python scripts/validate-image-build.py build --release v1.2.1，构建 tilesfst-backend:v1.2.1 与 tilesfst-web:v1.2.1，后端依赖验证、Web Nginx 配置验证、离线 tar 导出均通过；生成 releases/v1.2.1/image-manifest.json。2026-08-30 09:35:36 在 ../releases/v1.2.1/images 执行 shasum -a 256 -c tilesfst-v1.2.1-linux-amd64.tar.gz.sha256，结果 OK。tarball=../releases/v1.2.1/images/tilesfst-v1.2.1-linux-amd64.tar.gz，sha256=754adcf5193867a6b3361170e79f6e6c31a22ab8964f3186817086d697e01cc8。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "BUG-0146-production-no-fallback-evidence",
+      "type": "publish_evidence_missing",
+      "status": "open",
+      "summary": "生产历史无 id Banner thumb/display URL 在 Sprint 验收复核中仍返回 PNG fallback；本地 alias apply 与 no-fallback 已通过，但生产 MySQL/env 重新执行和公开 API 字段一致性补证仍需在发布/运维窗口完成。",
+      "source": "iterations/archive/sprint-027/acceptance-report.md"
+    },
+    {
+      "id": "BUG-0146-non-banner-sku-image-maintenance-residual",
+      "type": "maintenance_residual",
+      "status": "open",
+      "summary": "生产 backfill-image-variants apply 的整批任务仍有非 Banner sku_image 失败，summary.failed=2、retry_candidates=2、failure_reasons.OSError=2；该残留不属于本版本 Banner 修复正式范围，但需另行跟进。",
+      "source": "iterations/archive/sprint-027/acceptance-report.md"
+    }
+  ],
+  "publish_confirmation": {
+    "published_at": "2026-08-30 09:42:57",
+    "announcement_url": "releases/v1.2.1/announcement.mdx",
+    "confirmed_by": "operator",
+    "notes": "发布确认已记录。最终镜像 sha256 以 releases/v1.2.1/image-manifest.json 和 tarball .sha256 sidecar 为准；生产部署 env 显式 TILESFST_IMAGE_TAG=v1.2.1、BUG-0146 生产 no-fallback/API/端侧渲染证据作为发布/运维窗口跟进项保留。"
+  },
+  "upgrade_steps": [
+    "发布前更新 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v1.2.1，并复跑发布校验。",
+    "执行 /release-prepare v1.2.1 完成公告公开安全、Mintlify 预览和发布前门禁整理。",
+    "执行 /image-prepare v1.2.1 与 /image-build v1.2.1 生成镜像计划和 manifest。",
+    "生产窗口先完成媒体对象与数据库引用备份，再按 Runbook 执行 media-drift-reconcile / backfill-image-variants dry-run、apply、二次 audit 和 no-fallback 复核。",
+    "完成后复核管理端、店主 Web 和小程序中 Banner 与媒体 URL 的展示、Content-Type 和 x-media-fallback 证据。"
+  ],
+  "rollback": {
+    "conditions": [
+      "媒体维护任务输出破坏 stdout JSON 兼容，影响既有生产脚本或审计归档。",
+      "新上传或迁移后的媒体 URL 无法读取，或旧 key 兼容读取失败。",
+      "Banner thumb/display 生产 no-fallback 复核失败且影响首页或品牌列表展示。",
+      "生产媒体维护任务出现不可接受的批量写入失败或对象存储异常。"
+    ],
+    "steps": [
+      "停止继续执行生产媒体维护 apply 与旧对象清理动作。",
+      "回退到上一版本部署包或镜像，并恢复上一版本环境配置。",
+      "保留数据库引用与旧对象读取兼容；如已执行迁移，按发布前备份和 Runbook 审计结果回滚受影响媒体引用。",
+      "复跑 smoke、公开媒体 URL headers 和端侧渲染检查，确认恢复到上一版本可用状态。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "不新增页面；受媒体上传/回显、品牌 Logo、Banner 和品牌证书等既有入口的媒体 URL 消费策略影响。",
+    "owner_web": "不新增页面；受 Banner 与公开媒体派生图读取效果影响。",
+    "miniapp": "不新增页面；受首页/品牌列表 Banner 与公开媒体派生图读取效果影响。",
+    "backend": "媒体维护 CLI 进度输出、Banner 候选覆盖、对象 key 生成、formalize、迁移/audit/rollback 和受控媒体 URL 逻辑更新。",
+    "database": "不涉及",
+    "object_storage": "新增和迁移媒体优先进入 user-avatars、brand-logos、banners、tiles、brand-certificates 等业务媒体类型目录；旧/过渡目录继续兼容读取。",
+    "docker": "发布需通过镜像治理生成 image-build-plan 与 image-manifest；本提案阶段尚未构建镜像。"
+  },
+  "prepare_result": {
+    "status": "image_built_with_publish_operations_pending",
+    "prepared_at": "2026-08-30 09:35:36",
+    "commands": [
+      {
+        "command": "python scripts/generate-usage-docs.py v1.2.1 --skip --rationale '用户在 release-propose 阶段明确不需要生成 docs；本版本只生成公告并保留 usage-docs 目录不存在。' --confirmed-by operator",
+        "result": "pass",
+        "summary": "Usage docs skipped for v1.2.1; release.json updated."
+      },
+      {
+        "command": "python scripts/validate-usage-docs.py --release-dir releases/v1.2.1",
+        "result": "pass",
+        "summary": "Usage docs validation passed."
+      },
+      {
+        "command": "python scripts/validate-api-standard.py",
+        "result": "pass",
+        "summary": "API 标准校验通过。"
+      },
+      {
+        "command": "docker compose config --quiet",
+        "result": "pass",
+        "summary": "Compose 配置校验通过。"
+      },
+      {
+        "command": "python scripts/validate-mintlify-site.py",
+        "result": "pass_after_fix",
+        "summary": "首次发现 docs/latest/faq 导航重复；修复 mintlify/docs.json 后复跑通过。"
+      },
+      {
+        "command": "python scripts/validate-image-build.py validate-plan --release v1.2.1",
+        "result": "pass",
+        "summary": "Image plan validation passed; releases/v1.2.1/image-build-plan.json exists and blockers=0."
+      },
+      {
+        "command": "python scripts/validate-release.py --release-dir releases/v1.2.1 --stage prepare",
+        "result": "pass",
+        "summary": "Release validation passed for 1 release."
+      },
+      {
+        "command": "python scripts/validate-image-build.py build --release v1.2.1",
+        "result": "pass_after_escalation",
+        "summary": "初次构建被沙箱拦截 Docker buildx 本机状态访问；提升权限后 backend/web 镜像构建、平台验证、后端依赖验证、Web Nginx 验证和离线 tar 导出通过。"
+      },
+      {
+        "command": "python scripts/validate-image-build.py validate-manifest --release v1.2.1",
+        "result": "pass",
+        "summary": "Image manifest validation passed."
+      },
+      {
+        "command": "shasum -a 256 -c tilesfst-v1.2.1-linux-amd64.tar.gz.sha256",
+        "result": "pass",
+        "summary": "在 ../releases/v1.2.1/images 执行 sidecar 校验，tilesfst-v1.2.1-linux-amd64.tar.gz: OK。"
+      },
+      {
+        "command": "python scripts/validate-release.py --release-dir releases/v1.2.1 --stage publish",
+        "result": "pass",
+        "summary": "Release validation passed for 1 release."
+      }
+    ],
+    "blockers": [
+      {
+        "id": "production-banner-no-fallback-evidence",
+        "classification": "publish_evidence_missing",
+        "current_evidence": "iterations/archive/sprint-027/acceptance-report.md 记录生产历史无 id Banner thumb/display URL 仍返回 PNG fallback，生产公开 API 字段一致性证据未闭环。",
+        "safe_remediation": "生产窗口使用生产 MySQL/env 重新执行媒体维护 dry-run/apply/audit，并补充公开 API 字段、Content-Type=image/webp、x-media-fallback=0 与端侧渲染证据。",
+        "rerun_check": "python scripts/validate-release.py --release-dir releases/v1.2.1 --stage prepare"
+      }
+    ],
+    "warnings": [
+      {
+        "id": "compose-fallback-tag-mismatch",
+        "classification": "deploy_env_warning",
+        "current_evidence": "releases/v1.2.1/image-build-plan.json 记录 docker-compose.prod.yml 与 docker-compose.prod.external.yml 的 TILESFST_IMAGE_TAG fallback 仍为 v0.0.4。",
+        "safe_remediation": "生产部署 env 必须显式设置 TILESFST_IMAGE_TAG=v1.2.1；该 fallback mismatch 按发布规范记录为 warning，不阻塞 /image-build。",
+        "rerun_check": "python scripts/validate-image-build.py validate-plan --release v1.2.1"
+      },
+      {
+        "id": "non-banner-sku-image-maintenance-residual",
+        "classification": "maintenance_residual",
+        "current_evidence": "iterations/archive/sprint-027/acceptance-report.md 记录生产 backfill-image-variants apply 整批任务仍有非 Banner sku_image 失败，summary.failed=2。",
+        "safe_remediation": "另行 capture 或运维跟进非 Banner SKU 图片维护残留；不纳入本版本 Banner 修复正式范围。",
+        "rerun_check": "按后续 Issue 或运维 Runbook 指定复核命令执行。"
+      }
+    ]
+  },
+  "announcement": "announcement.mdx"
+}

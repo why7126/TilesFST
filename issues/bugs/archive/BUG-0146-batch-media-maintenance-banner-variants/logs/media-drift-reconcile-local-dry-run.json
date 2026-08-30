@@ -1,0 +1,4131 @@
+{
+  "task": "media-drift-reconcile",
+  "mode": "dry_run",
+  "dry_run": true,
+  "limit": 100,
+  "environment": {
+    "app_env": "development",
+    "database_backend": "sqlite",
+    "object_storage_provider": "tencent-cos",
+    "object_storage_bucket_hash": "defdd8dd9ba9",
+    "auto_create_bucket": false
+  },
+  "tasks": {
+    "sku_pending_formalization": {
+      "task": "formalize-pending-tile-images",
+      "mode": "dry_run",
+      "dry_run": true,
+      "limit": 100,
+      "environment": {
+        "app_env": "development",
+        "database_backend": "sqlite",
+        "object_storage_provider": "tencent-cos",
+        "object_storage_bucket_hash": "defdd8dd9ba9",
+        "auto_create_bucket": false
+      },
+      "summary": {
+        "total": 0,
+        "success": 0,
+        "failed": 0,
+        "missing_original": 0,
+        "missing_thumbnail": 0,
+        "target_exists": 0,
+        "thumbnail_max_size_kb": 10,
+        "display_max_size_kb": 768,
+        "failure_reasons": {}
+      },
+      "items": [],
+      "acceptance_summary": {
+        "task": "formalize-pending-tile-images",
+        "key": {
+          "status": "pass",
+          "samples": 0
+        },
+        "object": {
+          "status": "pass",
+          "samples": 0
+        },
+        "URL": {
+          "status": "n/a",
+          "reason": "maintenance audit does not call HTTP media URLs"
+        },
+        "thumbnail_benefit": {
+          "status": "pass",
+          "reason": null
+        },
+        "render": {
+          "status": "blocked",
+          "reason": "requires Web or miniapp evidence after apply"
+        }
+      }
+    },
+    "business_id_media_key_migration": {
+      "task": "migrate-business-id-media-keys",
+      "mode": "dry_run",
+      "dry_run": true,
+      "limit": 100,
+      "environment": {
+        "app_env": "development",
+        "database_backend": "sqlite",
+        "object_storage_provider": "tencent-cos",
+        "object_storage_bucket_hash": "defdd8dd9ba9",
+        "auto_create_bucket": false
+      },
+      "summary": {
+        "total": 100,
+        "candidates": 1,
+        "success": 0,
+        "skipped": 99,
+        "failed": 0,
+        "missing_original": 1,
+        "target_exists": 0,
+        "failure_reasons": {}
+      },
+      "items": [
+        {
+          "source_type": "banner_image",
+          "source_id": 5,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "8653f96c0245",
+            "object_key_prefix": "images/default/banners/5"
+          },
+          "target": {
+            "object_key_hash": "8653f96c0245",
+            "object_key_prefix": "images/default/banners/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 6,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "baf439c762b2",
+            "object_key_prefix": "images/default/banners/6"
+          },
+          "target": {
+            "object_key_hash": "baf439c762b2",
+            "object_key_prefix": "images/default/banners/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 7,
+          "business_id": 7,
+          "source": {
+            "object_key_hash": "3ef1049ea74e",
+            "object_key_prefix": "images/default/banners/7"
+          },
+          "target": {
+            "object_key_hash": "3ef1049ea74e",
+            "object_key_prefix": "images/default/banners/7"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 13,
+          "business_id": 13,
+          "source": {
+            "object_key_hash": "2189b2ec265c",
+            "object_key_prefix": "images/default/banners/13"
+          },
+          "target": {
+            "object_key_hash": "2189b2ec265c",
+            "object_key_prefix": "images/default/banners/13"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 14,
+          "business_id": 14,
+          "source": {
+            "object_key_hash": "0f134270544e",
+            "object_key_prefix": "images/default/banners/14"
+          },
+          "target": {
+            "object_key_hash": "0f134270544e",
+            "object_key_prefix": "images/default/banners/14"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 15,
+          "business_id": 15,
+          "source": {
+            "object_key_hash": "b3a86172e50c",
+            "object_key_prefix": "images/default/banners/15"
+          },
+          "target": {
+            "object_key_hash": "b3a86172e50c",
+            "object_key_prefix": "images/default/banners/15"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 1,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "b9a4d64f961b",
+            "object_key_prefix": "images/default/brand-logos/1"
+          },
+          "target": {
+            "object_key_hash": "b9a4d64f961b",
+            "object_key_prefix": "images/default/brand-logos/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 2,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "6d993bc2956f",
+            "object_key_prefix": "images/default/brand-logos/2"
+          },
+          "target": {
+            "object_key_hash": "6d993bc2956f",
+            "object_key_prefix": "images/default/brand-logos/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 3,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "0b94f333c7fa",
+            "object_key_prefix": "images/default/brand-logos/3"
+          },
+          "target": {
+            "object_key_hash": "0b94f333c7fa",
+            "object_key_prefix": "images/default/brand-logos/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 4,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "f72d72ec27e8",
+            "object_key_prefix": "images/default/brand-logos/4"
+          },
+          "target": {
+            "object_key_hash": "f72d72ec27e8",
+            "object_key_prefix": "images/default/brand-logos/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 5,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "659a402f1d69",
+            "object_key_prefix": "images/default/brand-logos/5"
+          },
+          "target": {
+            "object_key_hash": "659a402f1d69",
+            "object_key_prefix": "images/default/brand-logos/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 6,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "86e5c874f778",
+            "object_key_prefix": "images/default/brand-logos/6"
+          },
+          "target": {
+            "object_key_hash": "86e5c874f778",
+            "object_key_prefix": "images/default/brand-logos/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 7,
+          "business_id": 7,
+          "source": {
+            "object_key_hash": "fb9fb868cfc1",
+            "object_key_prefix": "images/default/brand-logos/7"
+          },
+          "target": {
+            "object_key_hash": "fb9fb868cfc1",
+            "object_key_prefix": "images/default/brand-logos/7"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 8,
+          "business_id": 8,
+          "source": {
+            "object_key_hash": "3f4de3cc1e89",
+            "object_key_prefix": "images/default/brand-logos/8"
+          },
+          "target": {
+            "object_key_hash": "3f4de3cc1e89",
+            "object_key_prefix": "images/default/brand-logos/8"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 9,
+          "business_id": 9,
+          "source": {
+            "object_key_hash": "35940fdd3fe8",
+            "object_key_prefix": "images/default/brand-logos/9"
+          },
+          "target": {
+            "object_key_hash": "35940fdd3fe8",
+            "object_key_prefix": "images/default/brand-logos/9"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 10,
+          "business_id": 10,
+          "source": {
+            "object_key_hash": "e418a8ca0872",
+            "object_key_prefix": "images/default/brand-logos/10"
+          },
+          "target": {
+            "object_key_hash": "e418a8ca0872",
+            "object_key_prefix": "images/default/brand-logos/10"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 11,
+          "business_id": 11,
+          "source": {
+            "object_key_hash": "a3242c6433ce",
+            "object_key_prefix": "images/default/brand-logos/11"
+          },
+          "target": {
+            "object_key_hash": "a3242c6433ce",
+            "object_key_prefix": "images/default/brand-logos/11"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 12,
+          "business_id": 12,
+          "source": {
+            "object_key_hash": "8acc98ea8eb1",
+            "object_key_prefix": "images/default/brand-logos/12"
+          },
+          "target": {
+            "object_key_hash": "8acc98ea8eb1",
+            "object_key_prefix": "images/default/brand-logos/12"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 1,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "8520d3627e83",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "target": {
+            "object_key_hash": "8520d3627e83",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 2,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "6074938b8604",
+            "object_key_prefix": "files/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "6074938b8604",
+            "object_key_prefix": "files/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 3,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "c94145057aef",
+            "object_key_prefix": "files/default/brand-certificates/3"
+          },
+          "target": {
+            "object_key_hash": "c94145057aef",
+            "object_key_prefix": "files/default/brand-certificates/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 4,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "eb8d5d9959f0",
+            "object_key_prefix": "files/default/brand-certificates/4"
+          },
+          "target": {
+            "object_key_hash": "eb8d5d9959f0",
+            "object_key_prefix": "files/default/brand-certificates/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 5,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "75fce1b67b6b",
+            "object_key_prefix": "files/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "75fce1b67b6b",
+            "object_key_prefix": "files/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 6,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "0ce92028189d",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "target": {
+            "object_key_hash": "0ce92028189d",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 7,
+          "business_id": 7,
+          "source": {
+            "object_key_hash": "ce1c370c0dc6",
+            "object_key_prefix": "files/default/brand-certificates"
+          },
+          "target": {
+            "object_key_hash": "b0d9184828c3",
+            "object_key_prefix": "files/default/brand-certificates/7"
+          },
+          "original_exists": false,
+          "target_exists": false,
+          "status": "dry_run",
+          "failure_reason": null
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 31,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "5792186e41bd",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "5792186e41bd",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 32,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "7d15ddcd4f22",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "7d15ddcd4f22",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 33,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "3f0526dee0f1",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "3f0526dee0f1",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 34,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "6293f462deba",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "6293f462deba",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 35,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "ada7cd2e3661",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "target": {
+            "object_key_hash": "ada7cd2e3661",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 36,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "0d10f05388c7",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "target": {
+            "object_key_hash": "0d10f05388c7",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 37,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "2786a0a867c8",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "target": {
+            "object_key_hash": "2786a0a867c8",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 38,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "b637b5b77cac",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "target": {
+            "object_key_hash": "b637b5b77cac",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 39,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "55efa8a3c9a6",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "target": {
+            "object_key_hash": "55efa8a3c9a6",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 40,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "87b36541a07f",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "target": {
+            "object_key_hash": "87b36541a07f",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 41,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "e3504be25d98",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "target": {
+            "object_key_hash": "e3504be25d98",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 42,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "b10877d38d7e",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "target": {
+            "object_key_hash": "b10877d38d7e",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 43,
+          "business_id": 4,
+          "source": {
+            "object_key_hash": "c997e8bcd243",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "target": {
+            "object_key_hash": "c997e8bcd243",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 44,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "f7560ca7cbb0",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "f7560ca7cbb0",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 45,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "303c33c19967",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "303c33c19967",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 46,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "a4e13f0440c4",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "a4e13f0440c4",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 47,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "a3d8dc407b86",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "a3d8dc407b86",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 48,
+          "business_id": 5,
+          "source": {
+            "object_key_hash": "a101113c04b4",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "target": {
+            "object_key_hash": "a101113c04b4",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 49,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "46def7c61d5f",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "target": {
+            "object_key_hash": "46def7c61d5f",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 50,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "efa130a9f15e",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "target": {
+            "object_key_hash": "efa130a9f15e",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 51,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "30b2c2dd4644",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "target": {
+            "object_key_hash": "30b2c2dd4644",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 52,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "575389f99936",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "target": {
+            "object_key_hash": "575389f99936",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 53,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "0ce92028189d",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "target": {
+            "object_key_hash": "0ce92028189d",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 54,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "9270b947144c",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "target": {
+            "object_key_hash": "9270b947144c",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 55,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "270893e95164",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "target": {
+            "object_key_hash": "270893e95164",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 56,
+          "business_id": 6,
+          "source": {
+            "object_key_hash": "7a57a5910f1b",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "target": {
+            "object_key_hash": "7a57a5910f1b",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 87,
+          "business_id": 49,
+          "source": {
+            "object_key_hash": "70ff904c574d",
+            "object_key_prefix": "images/default/tiles/49"
+          },
+          "target": {
+            "object_key_hash": "70ff904c574d",
+            "object_key_prefix": "images/default/tiles/49"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 88,
+          "business_id": 50,
+          "source": {
+            "object_key_hash": "3bac52828be4",
+            "object_key_prefix": "images/default/tiles/50"
+          },
+          "target": {
+            "object_key_hash": "3bac52828be4",
+            "object_key_prefix": "images/default/tiles/50"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 89,
+          "business_id": 51,
+          "source": {
+            "object_key_hash": "43db646e65ba",
+            "object_key_prefix": "images/default/tiles/51"
+          },
+          "target": {
+            "object_key_hash": "43db646e65ba",
+            "object_key_prefix": "images/default/tiles/51"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 90,
+          "business_id": 52,
+          "source": {
+            "object_key_hash": "c07a1ec8b094",
+            "object_key_prefix": "images/default/tiles/52"
+          },
+          "target": {
+            "object_key_hash": "c07a1ec8b094",
+            "object_key_prefix": "images/default/tiles/52"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 91,
+          "business_id": 53,
+          "source": {
+            "object_key_hash": "3de8be4d1a0c",
+            "object_key_prefix": "images/default/tiles/53"
+          },
+          "target": {
+            "object_key_hash": "3de8be4d1a0c",
+            "object_key_prefix": "images/default/tiles/53"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 92,
+          "business_id": 54,
+          "source": {
+            "object_key_hash": "145de5a7d157",
+            "object_key_prefix": "images/default/tiles/54"
+          },
+          "target": {
+            "object_key_hash": "145de5a7d157",
+            "object_key_prefix": "images/default/tiles/54"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 93,
+          "business_id": 55,
+          "source": {
+            "object_key_hash": "6b356c277ec7",
+            "object_key_prefix": "images/default/tiles/55"
+          },
+          "target": {
+            "object_key_hash": "6b356c277ec7",
+            "object_key_prefix": "images/default/tiles/55"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 94,
+          "business_id": 56,
+          "source": {
+            "object_key_hash": "9384e9436d02",
+            "object_key_prefix": "images/default/tiles/56"
+          },
+          "target": {
+            "object_key_hash": "9384e9436d02",
+            "object_key_prefix": "images/default/tiles/56"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 95,
+          "business_id": 57,
+          "source": {
+            "object_key_hash": "2326d739f337",
+            "object_key_prefix": "images/default/tiles/57"
+          },
+          "target": {
+            "object_key_hash": "2326d739f337",
+            "object_key_prefix": "images/default/tiles/57"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 96,
+          "business_id": 58,
+          "source": {
+            "object_key_hash": "20ea58528f39",
+            "object_key_prefix": "images/default/tiles/58"
+          },
+          "target": {
+            "object_key_hash": "20ea58528f39",
+            "object_key_prefix": "images/default/tiles/58"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 97,
+          "business_id": 59,
+          "source": {
+            "object_key_hash": "03d5688a4821",
+            "object_key_prefix": "images/default/tiles/59"
+          },
+          "target": {
+            "object_key_hash": "03d5688a4821",
+            "object_key_prefix": "images/default/tiles/59"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 98,
+          "business_id": 60,
+          "source": {
+            "object_key_hash": "c773cb47d6a4",
+            "object_key_prefix": "images/default/tiles/60"
+          },
+          "target": {
+            "object_key_hash": "c773cb47d6a4",
+            "object_key_prefix": "images/default/tiles/60"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 99,
+          "business_id": 61,
+          "source": {
+            "object_key_hash": "ef70f5f8d0b4",
+            "object_key_prefix": "images/default/tiles/61"
+          },
+          "target": {
+            "object_key_hash": "ef70f5f8d0b4",
+            "object_key_prefix": "images/default/tiles/61"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 201,
+          "business_id": 7,
+          "source": {
+            "object_key_hash": "f6c06715c3cb",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "target": {
+            "object_key_hash": "f6c06715c3cb",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 202,
+          "business_id": 7,
+          "source": {
+            "object_key_hash": "f81e652963bb",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "target": {
+            "object_key_hash": "f81e652963bb",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 203,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "310936bc26b5",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "target": {
+            "object_key_hash": "310936bc26b5",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 204,
+          "business_id": 1,
+          "source": {
+            "object_key_hash": "c62208a3b153",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "target": {
+            "object_key_hash": "c62208a3b153",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 205,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "6b696381c7bc",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "target": {
+            "object_key_hash": "6b696381c7bc",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 206,
+          "business_id": 3,
+          "source": {
+            "object_key_hash": "169d1190973b",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "target": {
+            "object_key_hash": "169d1190973b",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 207,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "1452dc33bfe8",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "target": {
+            "object_key_hash": "1452dc33bfe8",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 208,
+          "business_id": 2,
+          "source": {
+            "object_key_hash": "ee837f6f9e68",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "target": {
+            "object_key_hash": "ee837f6f9e68",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 211,
+          "business_id": 8,
+          "source": {
+            "object_key_hash": "ecb54f415242",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "target": {
+            "object_key_hash": "ecb54f415242",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 212,
+          "business_id": 8,
+          "source": {
+            "object_key_hash": "40244cc52650",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "target": {
+            "object_key_hash": "40244cc52650",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 213,
+          "business_id": 9,
+          "source": {
+            "object_key_hash": "8369a509db23",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "target": {
+            "object_key_hash": "8369a509db23",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 214,
+          "business_id": 9,
+          "source": {
+            "object_key_hash": "698831647d0d",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "target": {
+            "object_key_hash": "698831647d0d",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 215,
+          "business_id": 10,
+          "source": {
+            "object_key_hash": "866262c42e04",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "target": {
+            "object_key_hash": "866262c42e04",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 216,
+          "business_id": 10,
+          "source": {
+            "object_key_hash": "0e3bc8189e70",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "target": {
+            "object_key_hash": "0e3bc8189e70",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 217,
+          "business_id": 11,
+          "source": {
+            "object_key_hash": "c5079ce6e6d7",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "target": {
+            "object_key_hash": "c5079ce6e6d7",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 218,
+          "business_id": 11,
+          "source": {
+            "object_key_hash": "df6f59f18b2a",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "target": {
+            "object_key_hash": "df6f59f18b2a",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 219,
+          "business_id": 12,
+          "source": {
+            "object_key_hash": "18499012e036",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "target": {
+            "object_key_hash": "18499012e036",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 220,
+          "business_id": 12,
+          "source": {
+            "object_key_hash": "919ffd786f0e",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "target": {
+            "object_key_hash": "919ffd786f0e",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 221,
+          "business_id": 13,
+          "source": {
+            "object_key_hash": "eec4f470af97",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "target": {
+            "object_key_hash": "eec4f470af97",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 222,
+          "business_id": 13,
+          "source": {
+            "object_key_hash": "9f7e59ce6a1d",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "target": {
+            "object_key_hash": "9f7e59ce6a1d",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 223,
+          "business_id": 15,
+          "source": {
+            "object_key_hash": "215c4595cf2b",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "target": {
+            "object_key_hash": "215c4595cf2b",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 224,
+          "business_id": 15,
+          "source": {
+            "object_key_hash": "678d408aae78",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "target": {
+            "object_key_hash": "678d408aae78",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 225,
+          "business_id": 14,
+          "source": {
+            "object_key_hash": "8f95645f8405",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "target": {
+            "object_key_hash": "8f95645f8405",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 226,
+          "business_id": 14,
+          "source": {
+            "object_key_hash": "e64f613cb83d",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "target": {
+            "object_key_hash": "e64f613cb83d",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 413,
+          "business_id": 83,
+          "source": {
+            "object_key_hash": "c07b333da089",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "target": {
+            "object_key_hash": "c07b333da089",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 414,
+          "business_id": 83,
+          "source": {
+            "object_key_hash": "2d77857a36d1",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "target": {
+            "object_key_hash": "2d77857a36d1",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 415,
+          "business_id": 83,
+          "source": {
+            "object_key_hash": "5fcfbe518db4",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "target": {
+            "object_key_hash": "5fcfbe518db4",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 416,
+          "business_id": 83,
+          "source": {
+            "object_key_hash": "a3d1e8d384e2",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "target": {
+            "object_key_hash": "a3d1e8d384e2",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 417,
+          "business_id": 83,
+          "source": {
+            "object_key_hash": "a9ba7c8dc637",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "target": {
+            "object_key_hash": "a9ba7c8dc637",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 418,
+          "business_id": 84,
+          "source": {
+            "object_key_hash": "702508c494b7",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "target": {
+            "object_key_hash": "702508c494b7",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 419,
+          "business_id": 84,
+          "source": {
+            "object_key_hash": "51d651ef076e",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "target": {
+            "object_key_hash": "51d651ef076e",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 420,
+          "business_id": 84,
+          "source": {
+            "object_key_hash": "33a87e28ae0a",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "target": {
+            "object_key_hash": "33a87e28ae0a",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 421,
+          "business_id": 84,
+          "source": {
+            "object_key_hash": "1c516b709050",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "target": {
+            "object_key_hash": "1c516b709050",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 422,
+          "business_id": 84,
+          "source": {
+            "object_key_hash": "1aa2a0b47b88",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "target": {
+            "object_key_hash": "1aa2a0b47b88",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 423,
+          "business_id": 85,
+          "source": {
+            "object_key_hash": "069cab182cd2",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "target": {
+            "object_key_hash": "069cab182cd2",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 424,
+          "business_id": 85,
+          "source": {
+            "object_key_hash": "dda72c0e6966",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "target": {
+            "object_key_hash": "dda72c0e6966",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "status": "skipped",
+          "reason": "already_business_id_layout"
+        }
+      ],
+      "acceptance_summary": {
+        "task": "migrate-business-id-media-keys",
+        "key": {
+          "status": "pass",
+          "samples": 1
+        },
+        "object": {
+          "status": "pass",
+          "samples": 1
+        },
+        "URL": {
+          "status": "n/a",
+          "reason": "maintenance audit does not call HTTP media URLs"
+        },
+        "thumbnail_benefit": {
+          "status": "pass",
+          "reason": null
+        },
+        "render": {
+          "status": "blocked",
+          "reason": "requires Web or miniapp evidence after apply"
+        }
+      }
+    },
+    "certificate_image_key_migration": {
+      "task": "migrate-certificate-image-keys",
+      "mode": "dry_run",
+      "dry_run": true,
+      "limit": 100,
+      "environment": {
+        "app_env": "development",
+        "database_backend": "sqlite",
+        "object_storage_provider": "tencent-cos",
+        "object_storage_bucket_hash": "defdd8dd9ba9",
+        "auto_create_bucket": false
+      },
+      "summary": {
+        "total": 5,
+        "image_candidates": 0,
+        "document_skipped": 5,
+        "success": 0,
+        "failed": 0,
+        "missing_original": 0,
+        "target_exists": 0,
+        "failure_reasons": {}
+      },
+      "items": [
+        {
+          "table": "brand_certificates",
+          "source_id": 2,
+          "source": {
+            "object_key_hash": "6074938b8604",
+            "object_key_prefix": "files/default/brand-certificates/2"
+          },
+          "target": null,
+          "status": "skipped",
+          "reason": "not_supported_image"
+        },
+        {
+          "table": "brand_certificates",
+          "source_id": 3,
+          "source": {
+            "object_key_hash": "c94145057aef",
+            "object_key_prefix": "files/default/brand-certificates/3"
+          },
+          "target": null,
+          "status": "skipped",
+          "reason": "not_supported_image"
+        },
+        {
+          "table": "brand_certificates",
+          "source_id": 4,
+          "source": {
+            "object_key_hash": "eb8d5d9959f0",
+            "object_key_prefix": "files/default/brand-certificates/4"
+          },
+          "target": null,
+          "status": "skipped",
+          "reason": "not_supported_image"
+        },
+        {
+          "table": "brand_certificates",
+          "source_id": 5,
+          "source": {
+            "object_key_hash": "75fce1b67b6b",
+            "object_key_prefix": "files/default/brand-certificates/5"
+          },
+          "target": null,
+          "status": "skipped",
+          "reason": "not_supported_image"
+        },
+        {
+          "table": "brand_certificates",
+          "source_id": 7,
+          "source": {
+            "object_key_hash": "ce1c370c0dc6",
+            "object_key_prefix": "files/default/brand-certificates"
+          },
+          "target": null,
+          "status": "skipped",
+          "reason": "not_supported_image"
+        }
+      ],
+      "acceptance_summary": {
+        "task": "migrate-certificate-image-keys",
+        "key": {
+          "status": "pass",
+          "samples": 0
+        },
+        "object": {
+          "status": "pass",
+          "samples": 0
+        },
+        "URL": {
+          "status": "n/a",
+          "reason": "maintenance audit does not call HTTP media URLs"
+        },
+        "thumbnail_benefit": {
+          "status": "n/a",
+          "reason": "task does not create or audit thumbnails"
+        },
+        "render": {
+          "status": "blocked",
+          "reason": "requires Web or miniapp evidence after apply"
+        }
+      }
+    },
+    "brand_logo_and_certificate_thumbnail_backfill": {
+      "task": "backfill-brand-certificate-thumbnails",
+      "mode": "dry_run",
+      "dry_run": true,
+      "limit": 100,
+      "environment": {
+        "app_env": "development",
+        "database_backend": "sqlite",
+        "object_storage_provider": "tencent-cos",
+        "object_storage_bucket_hash": "defdd8dd9ba9",
+        "auto_create_bucket": false
+      },
+      "summary": {
+        "total": 99,
+        "success": 0,
+        "failed": 0,
+        "skipped": 99,
+        "missing_thumbnail": 0,
+        "same_size": 0,
+        "same_bytes": 0,
+        "exceeds_target_size": 0,
+        "already_conformant": 99,
+        "estimated_writes": 0,
+        "not_within_target": 0,
+        "retry_candidates": 0,
+        "failure_reasons": {},
+        "thumbnail_max_size_kb": 10
+      },
+      "items": [
+        {
+          "source_type": "banner_image",
+          "source_id": 5,
+          "object_key_hash": "8653f96c0245",
+          "object_key_prefix": "images/default/banners/5",
+          "thumbnail": {
+            "object_key_hash": "84697bcbfa8c",
+            "object_key_prefix": "images/default/banners/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 6,
+          "object_key_hash": "baf439c762b2",
+          "object_key_prefix": "images/default/banners/6",
+          "thumbnail": {
+            "object_key_hash": "65738fdcc2fa",
+            "object_key_prefix": "images/default/banners/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 7,
+          "object_key_hash": "3ef1049ea74e",
+          "object_key_prefix": "images/default/banners/7",
+          "thumbnail": {
+            "object_key_hash": "fd3d10418925",
+            "object_key_prefix": "images/default/banners/7"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 13,
+          "object_key_hash": "2189b2ec265c",
+          "object_key_prefix": "images/default/banners/13",
+          "thumbnail": {
+            "object_key_hash": "bcbd18b825e6",
+            "object_key_prefix": "images/default/banners/13"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 14,
+          "object_key_hash": "0f134270544e",
+          "object_key_prefix": "images/default/banners/14",
+          "thumbnail": {
+            "object_key_hash": "686fd031d37d",
+            "object_key_prefix": "images/default/banners/14"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 15,
+          "object_key_hash": "b3a86172e50c",
+          "object_key_prefix": "images/default/banners/15",
+          "thumbnail": {
+            "object_key_hash": "f2394e7ae81b",
+            "object_key_prefix": "images/default/banners/15"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 1,
+          "object_key_hash": "b9a4d64f961b",
+          "object_key_prefix": "images/default/brand-logos/1",
+          "thumbnail": {
+            "object_key_hash": "e7681475997f",
+            "object_key_prefix": "images/default/brand-logos/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 2,
+          "object_key_hash": "6d993bc2956f",
+          "object_key_prefix": "images/default/brand-logos/2",
+          "thumbnail": {
+            "object_key_hash": "a34eae498c12",
+            "object_key_prefix": "images/default/brand-logos/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 3,
+          "object_key_hash": "0b94f333c7fa",
+          "object_key_prefix": "images/default/brand-logos/3",
+          "thumbnail": {
+            "object_key_hash": "ae8ded9f0bb6",
+            "object_key_prefix": "images/default/brand-logos/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 4,
+          "object_key_hash": "f72d72ec27e8",
+          "object_key_prefix": "images/default/brand-logos/4",
+          "thumbnail": {
+            "object_key_hash": "7accede513e8",
+            "object_key_prefix": "images/default/brand-logos/4"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 5,
+          "object_key_hash": "659a402f1d69",
+          "object_key_prefix": "images/default/brand-logos/5",
+          "thumbnail": {
+            "object_key_hash": "c926fe8a06c8",
+            "object_key_prefix": "images/default/brand-logos/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 6,
+          "object_key_hash": "86e5c874f778",
+          "object_key_prefix": "images/default/brand-logos/6",
+          "thumbnail": {
+            "object_key_hash": "f4635be0094e",
+            "object_key_prefix": "images/default/brand-logos/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 7,
+          "object_key_hash": "fb9fb868cfc1",
+          "object_key_prefix": "images/default/brand-logos/7",
+          "thumbnail": {
+            "object_key_hash": "b5aeeaf5b447",
+            "object_key_prefix": "images/default/brand-logos/7"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 8,
+          "object_key_hash": "3f4de3cc1e89",
+          "object_key_prefix": "images/default/brand-logos/8",
+          "thumbnail": {
+            "object_key_hash": "73e2db3075dd",
+            "object_key_prefix": "images/default/brand-logos/8"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 9,
+          "object_key_hash": "35940fdd3fe8",
+          "object_key_prefix": "images/default/brand-logos/9",
+          "thumbnail": {
+            "object_key_hash": "35eb67d1fc47",
+            "object_key_prefix": "images/default/brand-logos/9"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 10,
+          "object_key_hash": "e418a8ca0872",
+          "object_key_prefix": "images/default/brand-logos/10",
+          "thumbnail": {
+            "object_key_hash": "a20e3b271633",
+            "object_key_prefix": "images/default/brand-logos/10"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 11,
+          "object_key_hash": "a3242c6433ce",
+          "object_key_prefix": "images/default/brand-logos/11",
+          "thumbnail": {
+            "object_key_hash": "74d1bc1b6558",
+            "object_key_prefix": "images/default/brand-logos/11"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 12,
+          "object_key_hash": "8acc98ea8eb1",
+          "object_key_prefix": "images/default/brand-logos/12",
+          "thumbnail": {
+            "object_key_hash": "5645fc068e09",
+            "object_key_prefix": "images/default/brand-logos/12"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 1,
+          "object_key_hash": "8520d3627e83",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "thumbnail": {
+            "object_key_hash": "053c47f79e5f",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 6,
+          "object_key_hash": "0ce92028189d",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "thumbnail": {
+            "object_key_hash": "b680b42fcc65",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 31,
+          "object_key_hash": "5792186e41bd",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "thumbnail": {
+            "object_key_hash": "f6942f5d707d",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 32,
+          "object_key_hash": "7d15ddcd4f22",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "thumbnail": {
+            "object_key_hash": "3531872dfd60",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 33,
+          "object_key_hash": "3f0526dee0f1",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "thumbnail": {
+            "object_key_hash": "4ae42087fd58",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 34,
+          "object_key_hash": "6293f462deba",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "thumbnail": {
+            "object_key_hash": "4c0f1df6d74c",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 35,
+          "object_key_hash": "ada7cd2e3661",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "thumbnail": {
+            "object_key_hash": "d00b53ee7089",
+            "object_key_prefix": "images/default/brand-certificates/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 36,
+          "object_key_hash": "0d10f05388c7",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "thumbnail": {
+            "object_key_hash": "418c2b224f4b",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 37,
+          "object_key_hash": "2786a0a867c8",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "thumbnail": {
+            "object_key_hash": "fadb5246cfc5",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 38,
+          "object_key_hash": "b637b5b77cac",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "thumbnail": {
+            "object_key_hash": "e8e50cd5548c",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 39,
+          "object_key_hash": "55efa8a3c9a6",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "thumbnail": {
+            "object_key_hash": "5a186444e03f",
+            "object_key_prefix": "images/default/brand-certificates/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 40,
+          "object_key_hash": "87b36541a07f",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "thumbnail": {
+            "object_key_hash": "7ec501d26fd7",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 41,
+          "object_key_hash": "e3504be25d98",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "thumbnail": {
+            "object_key_hash": "b67e6aecf131",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 42,
+          "object_key_hash": "b10877d38d7e",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "thumbnail": {
+            "object_key_hash": "69693871e109",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 43,
+          "object_key_hash": "c997e8bcd243",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "thumbnail": {
+            "object_key_hash": "16e280a21767",
+            "object_key_prefix": "images/default/brand-certificates/4"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 44,
+          "object_key_hash": "f7560ca7cbb0",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "thumbnail": {
+            "object_key_hash": "d91038c398a3",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 45,
+          "object_key_hash": "303c33c19967",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "thumbnail": {
+            "object_key_hash": "1fe80c167dc1",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 46,
+          "object_key_hash": "a4e13f0440c4",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "thumbnail": {
+            "object_key_hash": "f3acbaf50813",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 47,
+          "object_key_hash": "a3d8dc407b86",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "thumbnail": {
+            "object_key_hash": "ee9e49a1b852",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 48,
+          "object_key_hash": "a101113c04b4",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "thumbnail": {
+            "object_key_hash": "1ed535413602",
+            "object_key_prefix": "images/default/brand-certificates/5"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 49,
+          "object_key_hash": "46def7c61d5f",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "thumbnail": {
+            "object_key_hash": "542ccca7b813",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 50,
+          "object_key_hash": "efa130a9f15e",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "thumbnail": {
+            "object_key_hash": "f211be17bd96",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 51,
+          "object_key_hash": "30b2c2dd4644",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "thumbnail": {
+            "object_key_hash": "cd79b59444d4",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 52,
+          "object_key_hash": "575389f99936",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "thumbnail": {
+            "object_key_hash": "8cb6e109354b",
+            "object_key_prefix": "images/default/brand-certificates/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 54,
+          "object_key_hash": "9270b947144c",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "thumbnail": {
+            "object_key_hash": "133c361e4a78",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 55,
+          "object_key_hash": "270893e95164",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "thumbnail": {
+            "object_key_hash": "01d5c193e0fc",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 56,
+          "object_key_hash": "7a57a5910f1b",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "thumbnail": {
+            "object_key_hash": "2a277cdc6421",
+            "object_key_prefix": "images/default/brand-certificates/6"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 87,
+          "object_key_hash": "70ff904c574d",
+          "object_key_prefix": "images/default/tiles/49",
+          "thumbnail": {
+            "object_key_hash": "63588ea270a8",
+            "object_key_prefix": "images/default/tiles/49"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 88,
+          "object_key_hash": "3bac52828be4",
+          "object_key_prefix": "images/default/tiles/50",
+          "thumbnail": {
+            "object_key_hash": "a6c975b7f56e",
+            "object_key_prefix": "images/default/tiles/50"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 89,
+          "object_key_hash": "43db646e65ba",
+          "object_key_prefix": "images/default/tiles/51",
+          "thumbnail": {
+            "object_key_hash": "e5078d218dec",
+            "object_key_prefix": "images/default/tiles/51"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 90,
+          "object_key_hash": "c07a1ec8b094",
+          "object_key_prefix": "images/default/tiles/52",
+          "thumbnail": {
+            "object_key_hash": "13d315e6cb7c",
+            "object_key_prefix": "images/default/tiles/52"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 91,
+          "object_key_hash": "3de8be4d1a0c",
+          "object_key_prefix": "images/default/tiles/53",
+          "thumbnail": {
+            "object_key_hash": "ed53d72283c4",
+            "object_key_prefix": "images/default/tiles/53"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 92,
+          "object_key_hash": "145de5a7d157",
+          "object_key_prefix": "images/default/tiles/54",
+          "thumbnail": {
+            "object_key_hash": "d05e14c9d429",
+            "object_key_prefix": "images/default/tiles/54"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 93,
+          "object_key_hash": "6b356c277ec7",
+          "object_key_prefix": "images/default/tiles/55",
+          "thumbnail": {
+            "object_key_hash": "e10831f40470",
+            "object_key_prefix": "images/default/tiles/55"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 94,
+          "object_key_hash": "9384e9436d02",
+          "object_key_prefix": "images/default/tiles/56",
+          "thumbnail": {
+            "object_key_hash": "b8e1e61197d5",
+            "object_key_prefix": "images/default/tiles/56"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 95,
+          "object_key_hash": "2326d739f337",
+          "object_key_prefix": "images/default/tiles/57",
+          "thumbnail": {
+            "object_key_hash": "b4dc7ccd18e0",
+            "object_key_prefix": "images/default/tiles/57"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 96,
+          "object_key_hash": "20ea58528f39",
+          "object_key_prefix": "images/default/tiles/58",
+          "thumbnail": {
+            "object_key_hash": "67e8157d765d",
+            "object_key_prefix": "images/default/tiles/58"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 97,
+          "object_key_hash": "03d5688a4821",
+          "object_key_prefix": "images/default/tiles/59",
+          "thumbnail": {
+            "object_key_hash": "4d5ed2c3c7a0",
+            "object_key_prefix": "images/default/tiles/59"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 98,
+          "object_key_hash": "c773cb47d6a4",
+          "object_key_prefix": "images/default/tiles/60",
+          "thumbnail": {
+            "object_key_hash": "fe2978442ea5",
+            "object_key_prefix": "images/default/tiles/60"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 99,
+          "object_key_hash": "ef70f5f8d0b4",
+          "object_key_prefix": "images/default/tiles/61",
+          "thumbnail": {
+            "object_key_hash": "e3823b76e95c",
+            "object_key_prefix": "images/default/tiles/61"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 201,
+          "object_key_hash": "f6c06715c3cb",
+          "object_key_prefix": "images/default/tiles/7",
+          "thumbnail": {
+            "object_key_hash": "def3cb3d1a65",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 202,
+          "object_key_hash": "f81e652963bb",
+          "object_key_prefix": "images/default/tiles/7",
+          "thumbnail": {
+            "object_key_hash": "d0b5c9bbed16",
+            "object_key_prefix": "images/default/tiles/7"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 203,
+          "object_key_hash": "310936bc26b5",
+          "object_key_prefix": "images/default/tiles/1",
+          "thumbnail": {
+            "object_key_hash": "aafe1c454970",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 204,
+          "object_key_hash": "c62208a3b153",
+          "object_key_prefix": "images/default/tiles/1",
+          "thumbnail": {
+            "object_key_hash": "fbdf13429b02",
+            "object_key_prefix": "images/default/tiles/1"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 205,
+          "object_key_hash": "6b696381c7bc",
+          "object_key_prefix": "images/default/tiles/3",
+          "thumbnail": {
+            "object_key_hash": "8778ed693344",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 206,
+          "object_key_hash": "169d1190973b",
+          "object_key_prefix": "images/default/tiles/3",
+          "thumbnail": {
+            "object_key_hash": "7d0b95776a25",
+            "object_key_prefix": "images/default/tiles/3"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 207,
+          "object_key_hash": "1452dc33bfe8",
+          "object_key_prefix": "images/default/tiles/2",
+          "thumbnail": {
+            "object_key_hash": "127b7960c693",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 208,
+          "object_key_hash": "ee837f6f9e68",
+          "object_key_prefix": "images/default/tiles/2",
+          "thumbnail": {
+            "object_key_hash": "524f8a763f64",
+            "object_key_prefix": "images/default/tiles/2"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 211,
+          "object_key_hash": "ecb54f415242",
+          "object_key_prefix": "images/default/tiles/8",
+          "thumbnail": {
+            "object_key_hash": "726138140f55",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 212,
+          "object_key_hash": "40244cc52650",
+          "object_key_prefix": "images/default/tiles/8",
+          "thumbnail": {
+            "object_key_hash": "50f045df4aec",
+            "object_key_prefix": "images/default/tiles/8"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 213,
+          "object_key_hash": "8369a509db23",
+          "object_key_prefix": "images/default/tiles/9",
+          "thumbnail": {
+            "object_key_hash": "3e964d3d8d46",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 214,
+          "object_key_hash": "698831647d0d",
+          "object_key_prefix": "images/default/tiles/9",
+          "thumbnail": {
+            "object_key_hash": "95672185a8aa",
+            "object_key_prefix": "images/default/tiles/9"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 215,
+          "object_key_hash": "866262c42e04",
+          "object_key_prefix": "images/default/tiles/10",
+          "thumbnail": {
+            "object_key_hash": "d064b4ff419f",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 216,
+          "object_key_hash": "0e3bc8189e70",
+          "object_key_prefix": "images/default/tiles/10",
+          "thumbnail": {
+            "object_key_hash": "3c50e2763413",
+            "object_key_prefix": "images/default/tiles/10"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 217,
+          "object_key_hash": "c5079ce6e6d7",
+          "object_key_prefix": "images/default/tiles/11",
+          "thumbnail": {
+            "object_key_hash": "8150d7f87569",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 218,
+          "object_key_hash": "df6f59f18b2a",
+          "object_key_prefix": "images/default/tiles/11",
+          "thumbnail": {
+            "object_key_hash": "4f2c5c273bed",
+            "object_key_prefix": "images/default/tiles/11"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 219,
+          "object_key_hash": "18499012e036",
+          "object_key_prefix": "images/default/tiles/12",
+          "thumbnail": {
+            "object_key_hash": "41e238736113",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 220,
+          "object_key_hash": "919ffd786f0e",
+          "object_key_prefix": "images/default/tiles/12",
+          "thumbnail": {
+            "object_key_hash": "e54e4797da7a",
+            "object_key_prefix": "images/default/tiles/12"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 221,
+          "object_key_hash": "eec4f470af97",
+          "object_key_prefix": "images/default/tiles/13",
+          "thumbnail": {
+            "object_key_hash": "5e1ef368037d",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 222,
+          "object_key_hash": "9f7e59ce6a1d",
+          "object_key_prefix": "images/default/tiles/13",
+          "thumbnail": {
+            "object_key_hash": "ab3bceaf42c5",
+            "object_key_prefix": "images/default/tiles/13"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 223,
+          "object_key_hash": "215c4595cf2b",
+          "object_key_prefix": "images/default/tiles/15",
+          "thumbnail": {
+            "object_key_hash": "e15adcf7e443",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 224,
+          "object_key_hash": "678d408aae78",
+          "object_key_prefix": "images/default/tiles/15",
+          "thumbnail": {
+            "object_key_hash": "7f3b0a314671",
+            "object_key_prefix": "images/default/tiles/15"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 225,
+          "object_key_hash": "8f95645f8405",
+          "object_key_prefix": "images/default/tiles/14",
+          "thumbnail": {
+            "object_key_hash": "1922de01f20b",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 226,
+          "object_key_hash": "e64f613cb83d",
+          "object_key_prefix": "images/default/tiles/14",
+          "thumbnail": {
+            "object_key_hash": "a956f2d0b199",
+            "object_key_prefix": "images/default/tiles/14"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 413,
+          "object_key_hash": "c07b333da089",
+          "object_key_prefix": "images/default/tiles/83",
+          "thumbnail": {
+            "object_key_hash": "17fb0bb9e7e5",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 414,
+          "object_key_hash": "2d77857a36d1",
+          "object_key_prefix": "images/default/tiles/83",
+          "thumbnail": {
+            "object_key_hash": "a29c5e27c11b",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 415,
+          "object_key_hash": "5fcfbe518db4",
+          "object_key_prefix": "images/default/tiles/83",
+          "thumbnail": {
+            "object_key_hash": "76455526c338",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 416,
+          "object_key_hash": "a3d1e8d384e2",
+          "object_key_prefix": "images/default/tiles/83",
+          "thumbnail": {
+            "object_key_hash": "29d90761d056",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 417,
+          "object_key_hash": "a9ba7c8dc637",
+          "object_key_prefix": "images/default/tiles/83",
+          "thumbnail": {
+            "object_key_hash": "bb7fd8317318",
+            "object_key_prefix": "images/default/tiles/83"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 418,
+          "object_key_hash": "702508c494b7",
+          "object_key_prefix": "images/default/tiles/84",
+          "thumbnail": {
+            "object_key_hash": "5b7a12b61e1d",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 419,
+          "object_key_hash": "51d651ef076e",
+          "object_key_prefix": "images/default/tiles/84",
+          "thumbnail": {
+            "object_key_hash": "bf54f1441278",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 420,
+          "object_key_hash": "33a87e28ae0a",
+          "object_key_prefix": "images/default/tiles/84",
+          "thumbnail": {
+            "object_key_hash": "14e048c26f56",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 421,
+          "object_key_hash": "1c516b709050",
+          "object_key_prefix": "images/default/tiles/84",
+          "thumbnail": {
+            "object_key_hash": "a614f9c9ef3a",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 422,
+          "object_key_hash": "1aa2a0b47b88",
+          "object_key_prefix": "images/default/tiles/84",
+          "thumbnail": {
+            "object_key_hash": "1d6a2441ab69",
+            "object_key_prefix": "images/default/tiles/84"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 423,
+          "object_key_hash": "069cab182cd2",
+          "object_key_prefix": "images/default/tiles/85",
+          "thumbnail": {
+            "object_key_hash": "7220cf5cb9d5",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 424,
+          "object_key_hash": "dda72c0e6966",
+          "object_key_prefix": "images/default/tiles/85",
+          "thumbnail": {
+            "object_key_hash": "f210a7f1d5e1",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 425,
+          "object_key_hash": "64f7c0cf6f33",
+          "object_key_prefix": "images/default/tiles/85",
+          "thumbnail": {
+            "object_key_hash": "35d04cd2c58d",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 426,
+          "object_key_hash": "1f81a3467e6b",
+          "object_key_prefix": "images/default/tiles/85",
+          "thumbnail": {
+            "object_key_hash": "fd6dcd8ae49f",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 427,
+          "object_key_hash": "a47c7d4f4e54",
+          "object_key_prefix": "images/default/tiles/85",
+          "thumbnail": {
+            "object_key_hash": "3c851bed39ed",
+            "object_key_prefix": "images/default/tiles/85"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 428,
+          "object_key_hash": "1f395b32a69c",
+          "object_key_prefix": "images/default/tiles/82",
+          "thumbnail": {
+            "object_key_hash": "daf9f85b42ad",
+            "object_key_prefix": "images/default/tiles/82"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        },
+        {
+          "source_type": "sku_image",
+          "source_id": 429,
+          "object_key_hash": "2c2818151be6",
+          "object_key_prefix": "images/default/tiles/82",
+          "thumbnail": {
+            "object_key_hash": "e5c0e7209fe1",
+            "object_key_prefix": "images/default/tiles/82"
+          },
+          "thumbnail_exists": true,
+          "needs_regeneration": false,
+          "status": "skipped",
+          "reason": null,
+          "thumbnail_max_size_kb": 10
+        }
+      ],
+      "acceptance_summary": {
+        "task": "backfill-brand-certificate-thumbnails",
+        "key": {
+          "status": "pass",
+          "samples": 99
+        },
+        "object": {
+          "status": "pass",
+          "samples": 99
+        },
+        "URL": {
+          "status": "n/a",
+          "reason": "maintenance audit does not call HTTP media URLs"
+        },
+        "thumbnail_benefit": {
+          "status": "pass",
+          "reason": null
+        },
+        "render": {
+          "status": "n/a",
+          "reason": "task is storage/database audit only"
+        }
+      }
+    },
+    "object_key_audit": {
+      "task": "object-key-audit",
+      "mode": "dry_run",
+      "dry_run": true,
+      "limit": 100,
+      "environment": {
+        "app_env": "development",
+        "database_backend": "sqlite",
+        "object_storage_provider": "tencent-cos",
+        "object_storage_bucket_hash": "defdd8dd9ba9",
+        "auto_create_bucket": false
+      },
+      "summary": {
+        "total": 100,
+        "non_standard": 5,
+        "missing_objects": 1
+      },
+      "items": [
+        {
+          "source_type": "banner_image",
+          "source_id": 1,
+          "object_key_hash": "34ef864b4e88",
+          "object_key_prefix": "images/default/tiles/3",
+          "issue": "missing_business_id_directory",
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 2,
+          "object_key_hash": "8b0819a13d62",
+          "object_key_prefix": "images/default/brands/logos",
+          "issue": "missing_business_id_directory",
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 3,
+          "object_key_hash": "8b0819a13d62",
+          "object_key_prefix": "images/default/brands/logos",
+          "issue": "missing_business_id_directory",
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 5,
+          "object_key_hash": "8653f96c0245",
+          "object_key_prefix": "images/default/banners/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 6,
+          "object_key_hash": "baf439c762b2",
+          "object_key_prefix": "images/default/banners/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 7,
+          "object_key_hash": "3ef1049ea74e",
+          "object_key_prefix": "images/default/banners/7",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 12,
+          "object_key_hash": "4b65fa022083",
+          "object_key_prefix": "images/default/brands/logos",
+          "issue": "missing_business_id_directory",
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 13,
+          "object_key_hash": "2189b2ec265c",
+          "object_key_prefix": "images/default/banners/13",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 14,
+          "object_key_hash": "0f134270544e",
+          "object_key_prefix": "images/default/banners/14",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "banner_image",
+          "source_id": 15,
+          "object_key_hash": "b3a86172e50c",
+          "object_key_prefix": "images/default/banners/15",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 1,
+          "object_key_hash": "b9a4d64f961b",
+          "object_key_prefix": "images/default/brand-logos/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 2,
+          "object_key_hash": "6d993bc2956f",
+          "object_key_prefix": "images/default/brand-logos/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 3,
+          "object_key_hash": "0b94f333c7fa",
+          "object_key_prefix": "images/default/brand-logos/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 4,
+          "object_key_hash": "f72d72ec27e8",
+          "object_key_prefix": "images/default/brand-logos/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 5,
+          "object_key_hash": "659a402f1d69",
+          "object_key_prefix": "images/default/brand-logos/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 6,
+          "object_key_hash": "86e5c874f778",
+          "object_key_prefix": "images/default/brand-logos/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 7,
+          "object_key_hash": "fb9fb868cfc1",
+          "object_key_prefix": "images/default/brand-logos/7",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 8,
+          "object_key_hash": "3f4de3cc1e89",
+          "object_key_prefix": "images/default/brand-logos/8",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 9,
+          "object_key_hash": "35940fdd3fe8",
+          "object_key_prefix": "images/default/brand-logos/9",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 10,
+          "object_key_hash": "e418a8ca0872",
+          "object_key_prefix": "images/default/brand-logos/10",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 11,
+          "object_key_hash": "a3242c6433ce",
+          "object_key_prefix": "images/default/brand-logos/11",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "brand_logo",
+          "source_id": 12,
+          "object_key_hash": "8acc98ea8eb1",
+          "object_key_prefix": "images/default/brand-logos/12",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 1,
+          "object_key_hash": "8520d3627e83",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 2,
+          "object_key_hash": "6074938b8604",
+          "object_key_prefix": "files/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 3,
+          "object_key_hash": "c94145057aef",
+          "object_key_prefix": "files/default/brand-certificates/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 4,
+          "object_key_hash": "eb8d5d9959f0",
+          "object_key_prefix": "files/default/brand-certificates/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 5,
+          "object_key_hash": "75fce1b67b6b",
+          "object_key_prefix": "files/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 6,
+          "object_key_hash": "0ce92028189d",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_file",
+          "source_id": 7,
+          "object_key_hash": "ce1c370c0dc6",
+          "object_key_prefix": "files/default/brand-certificates",
+          "issue": "missing_business_id_directory",
+          "object_exists": false
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 31,
+          "object_key_hash": "5792186e41bd",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 32,
+          "object_key_hash": "7d15ddcd4f22",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 33,
+          "object_key_hash": "3f0526dee0f1",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 34,
+          "object_key_hash": "6293f462deba",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 35,
+          "object_key_hash": "ada7cd2e3661",
+          "object_key_prefix": "images/default/brand-certificates/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 36,
+          "object_key_hash": "0d10f05388c7",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 37,
+          "object_key_hash": "2786a0a867c8",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 38,
+          "object_key_hash": "b637b5b77cac",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 39,
+          "object_key_hash": "55efa8a3c9a6",
+          "object_key_prefix": "images/default/brand-certificates/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 40,
+          "object_key_hash": "87b36541a07f",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 41,
+          "object_key_hash": "e3504be25d98",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 42,
+          "object_key_hash": "b10877d38d7e",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 43,
+          "object_key_hash": "c997e8bcd243",
+          "object_key_prefix": "images/default/brand-certificates/4",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 44,
+          "object_key_hash": "f7560ca7cbb0",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 45,
+          "object_key_hash": "303c33c19967",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 46,
+          "object_key_hash": "a4e13f0440c4",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 47,
+          "object_key_hash": "a3d8dc407b86",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 48,
+          "object_key_hash": "a101113c04b4",
+          "object_key_prefix": "images/default/brand-certificates/5",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 49,
+          "object_key_hash": "46def7c61d5f",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 50,
+          "object_key_hash": "efa130a9f15e",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 51,
+          "object_key_hash": "30b2c2dd4644",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 52,
+          "object_key_hash": "575389f99936",
+          "object_key_prefix": "images/default/brand-certificates/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 53,
+          "object_key_hash": "0ce92028189d",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 54,
+          "object_key_hash": "9270b947144c",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 55,
+          "object_key_hash": "270893e95164",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "certificate_image",
+          "source_id": 56,
+          "object_key_hash": "7a57a5910f1b",
+          "object_key_prefix": "images/default/brand-certificates/6",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 87,
+          "object_key_hash": "70ff904c574d",
+          "object_key_prefix": "images/default/tiles/49",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 88,
+          "object_key_hash": "3bac52828be4",
+          "object_key_prefix": "images/default/tiles/50",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 89,
+          "object_key_hash": "43db646e65ba",
+          "object_key_prefix": "images/default/tiles/51",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 90,
+          "object_key_hash": "c07a1ec8b094",
+          "object_key_prefix": "images/default/tiles/52",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 91,
+          "object_key_hash": "3de8be4d1a0c",
+          "object_key_prefix": "images/default/tiles/53",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 92,
+          "object_key_hash": "145de5a7d157",
+          "object_key_prefix": "images/default/tiles/54",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 93,
+          "object_key_hash": "6b356c277ec7",
+          "object_key_prefix": "images/default/tiles/55",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 94,
+          "object_key_hash": "9384e9436d02",
+          "object_key_prefix": "images/default/tiles/56",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 95,
+          "object_key_hash": "2326d739f337",
+          "object_key_prefix": "images/default/tiles/57",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 96,
+          "object_key_hash": "20ea58528f39",
+          "object_key_prefix": "images/default/tiles/58",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 97,
+          "object_key_hash": "03d5688a4821",
+          "object_key_prefix": "images/default/tiles/59",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 98,
+          "object_key_hash": "c773cb47d6a4",
+          "object_key_prefix": "images/default/tiles/60",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 99,
+          "object_key_hash": "ef70f5f8d0b4",
+          "object_key_prefix": "images/default/tiles/61",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 201,
+          "object_key_hash": "f6c06715c3cb",
+          "object_key_prefix": "images/default/tiles/7",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 202,
+          "object_key_hash": "f81e652963bb",
+          "object_key_prefix": "images/default/tiles/7",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 203,
+          "object_key_hash": "310936bc26b5",
+          "object_key_prefix": "images/default/tiles/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 204,
+          "object_key_hash": "c62208a3b153",
+          "object_key_prefix": "images/default/tiles/1",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 205,
+          "object_key_hash": "6b696381c7bc",
+          "object_key_prefix": "images/default/tiles/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 206,
+          "object_key_hash": "169d1190973b",
+          "object_key_prefix": "images/default/tiles/3",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 207,
+          "object_key_hash": "1452dc33bfe8",
+          "object_key_prefix": "images/default/tiles/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 208,
+          "object_key_hash": "ee837f6f9e68",
+          "object_key_prefix": "images/default/tiles/2",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 211,
+          "object_key_hash": "ecb54f415242",
+          "object_key_prefix": "images/default/tiles/8",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 212,
+          "object_key_hash": "40244cc52650",
+          "object_key_prefix": "images/default/tiles/8",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 213,
+          "object_key_hash": "8369a509db23",
+          "object_key_prefix": "images/default/tiles/9",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 214,
+          "object_key_hash": "698831647d0d",
+          "object_key_prefix": "images/default/tiles/9",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 215,
+          "object_key_hash": "866262c42e04",
+          "object_key_prefix": "images/default/tiles/10",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 216,
+          "object_key_hash": "0e3bc8189e70",
+          "object_key_prefix": "images/default/tiles/10",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 217,
+          "object_key_hash": "c5079ce6e6d7",
+          "object_key_prefix": "images/default/tiles/11",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 218,
+          "object_key_hash": "df6f59f18b2a",
+          "object_key_prefix": "images/default/tiles/11",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 219,
+          "object_key_hash": "18499012e036",
+          "object_key_prefix": "images/default/tiles/12",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 220,
+          "object_key_hash": "919ffd786f0e",
+          "object_key_prefix": "images/default/tiles/12",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 221,
+          "object_key_hash": "eec4f470af97",
+          "object_key_prefix": "images/default/tiles/13",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 222,
+          "object_key_hash": "9f7e59ce6a1d",
+          "object_key_prefix": "images/default/tiles/13",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 223,
+          "object_key_hash": "215c4595cf2b",
+          "object_key_prefix": "images/default/tiles/15",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 224,
+          "object_key_hash": "678d408aae78",
+          "object_key_prefix": "images/default/tiles/15",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 225,
+          "object_key_hash": "8f95645f8405",
+          "object_key_prefix": "images/default/tiles/14",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 226,
+          "object_key_hash": "e64f613cb83d",
+          "object_key_prefix": "images/default/tiles/14",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 413,
+          "object_key_hash": "c07b333da089",
+          "object_key_prefix": "images/default/tiles/83",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 414,
+          "object_key_hash": "2d77857a36d1",
+          "object_key_prefix": "images/default/tiles/83",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 415,
+          "object_key_hash": "5fcfbe518db4",
+          "object_key_prefix": "images/default/tiles/83",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 416,
+          "object_key_hash": "a3d1e8d384e2",
+          "object_key_prefix": "images/default/tiles/83",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 417,
+          "object_key_hash": "a9ba7c8dc637",
+          "object_key_prefix": "images/default/tiles/83",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 418,
+          "object_key_hash": "702508c494b7",
+          "object_key_prefix": "images/default/tiles/84",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 419,
+          "object_key_hash": "51d651ef076e",
+          "object_key_prefix": "images/default/tiles/84",
+          "issue": null,
+          "object_exists": true
+        },
+        {
+          "source_type": "tile_image",
+          "source_id": 420,
+          "object_key_hash": "33a87e28ae0a",
+          "object_key_prefix": "images/default/tiles/84",
+          "issue": null,
+          "object_exists": true
+        }
+      ],
+      "acceptance_summary": {
+        "task": "object-key-audit",
+        "key": {
+          "status": "pass",
+          "samples": 100
+        },
+        "object": {
+          "status": "pass",
+          "samples": 100
+        },
+        "URL": {
+          "status": "n/a",
+          "reason": "maintenance audit does not call HTTP media URLs"
+        },
+        "thumbnail_benefit": {
+          "status": "n/a",
+          "reason": "task does not create or audit thumbnails"
+        },
+        "render": {
+          "status": "n/a",
+          "reason": "task is storage/database audit only"
+        }
+      }
+    }
+  },
+  "summary": {
+    "task_count": 5,
+    "failed": 0,
+    "retry_candidates": 0,
+    "pending_main_images": 0,
+    "business_id_media_candidates": 1,
+    "certificate_file_image_candidates": 0,
+    "thumbnail_candidates": 0,
+    "non_standard_keys_after_audit": 5
+  },
+  "acceptance_summary": {
+    "task": "media-drift-reconcile",
+    "key": {
+      "status": "pass",
+      "samples": 304
+    },
+    "object": {
+      "status": "pass",
+      "samples": 304
+    },
+    "URL": {
+      "status": "n/a",
+      "reason": "maintenance audit does not call HTTP media URLs"
+    },
+    "thumbnail_benefit": {
+      "status": "pass",
+      "reason": null
+    },
+    "render": {
+      "status": "blocked",
+      "reason": "requires Web or miniapp evidence after apply"
+    }
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "version": "v1.2.2",
+  "release_time": "2026-08-30 14:58:17",
+  "owner": "product",
+  "summary": "本版本汇总 sprint-028 的小程序证书媒体修复与发布治理交付：修复小程序证书列表图片类证书缩略图缺失问题，并补齐 AI Usage session 自动发现、发布状态决策面板和环境分层证据门禁治理。",
+  "formal_scope_only": true,
+  "release_target": {
+    "environment": "development",
+    "deployment_scope": "development",
+    "production_release_required": true,
+    "rationale": "命令未显式传入 --target，按发布规范默认创建 development 发布计划；该发布确认仅覆盖开发环境部署与开发交付，生产发布需单独确认。"
+  },
+  "production_deployment": {
+    "env_image_tag": {
+      "status": "na",
+      "rationale": "development 发布不需要生产 env 证据；production 发布必须证明 TILESFST_IMAGE_TAG 显式等于目标版本。"
+    },
+    "backup_confirmation": {
+      "status": "na",
+      "rationale": "development 发布不需要生产备份证据；production 发布必须记录 DB / 对象存储备份或明确不适用理由。"
+    },
+    "public_api_consistency": {
+      "status": "na",
+      "rationale": "development 发布不需要生产公开 API 证据；production 发布按范围记录证书列表接口字段一致性。"
+    },
+    "media_no_fallback": {
+      "status": "na",
+      "rationale": "development 发布不需要生产 no-fallback 媒体证据；production 发布按证书缩略图范围记录。"
+    },
+    "runtime_smoke": {
+      "status": "na",
+      "rationale": "development 发布不需要生产 smoke；production 发布必须记录运行时 smoke 证据。"
+    },
+    "rollback_readiness": {
+      "status": "na",
+      "rationale": "development 发布不需要生产回滚证据；production 发布必须记录回滚准备证据。"
+    }
+  },
+  "version_change_rationale": "",
+  "image_required": true,
+  "image_required_rationale": "本版本包含后端 miniapp certificates API 媒体 URL / 缩略图回填修复、小程序端渲染验收相关交付，以及发布校验脚本治理更新；发布前需要执行 image-prepare 与 image-build 获取可追溯镜像证据。",
+  "image_tag": "v1.2.2",
+  "image_plan": "image-build-plan.json",
+  "image_manifest": "image-manifest.json",
+  "external_image_build_evidence": {
+    "status": "na",
+    "rationale": "尚未提供受控外部构建证据；默认后续通过 /image-prepare v1.2.2 与 /image-build v1.2.2 生成仓库内计划和 manifest。"
+  },
+  "usage_docs": {
+    "status": "skipped",
+    "root": "usage-docs",
+    "manifest": "usage-docs/manifest.json",
+    "source_version": null,
+    "manual_overrides_allowed": true,
+    "overwrite_policy": "current-version-only-by-default",
+    "generation_decision": {
+      "required": false,
+      "confirmed_at": "2026-08-30 15:07:08",
+      "confirmed_by": "operator",
+      "rationale": "本版本不生成或更新产品使用文档"
+    }
+  },
+  "announcement_decision": {
+    "status": "generated",
+    "confirmed_at": "2026-08-30 14:58:17",
+    "confirmed_by": "release-propose",
+    "rationale": "为满足发布对象公开安全和结构校验，本次生成 announcement.mdx 草案；release-prepare 阶段仍需复核 Mintlify 预览与公开安全。",
+    "copy_status": "draft"
+  },
+  "sprints": [
+    "sprint-028"
+  ],
+  "requirements": [],
+  "bugs": [
+    {
+      "id": "BUG-0147-miniapp-certificate-list-images-missing",
+      "title": "小程序证书列表页图片不显示",
+      "status": "done",
+      "severity": "high",
+      "scope": "formal",
+      "change": "fix-miniapp-certificate-media-urls",
+      "source": "issues/bugs/archive/BUG-0147-miniapp-certificate-list-images-missing/trace.md"
+    }
+  ],
+  "changes": [
+    {
+      "id": "standardize-ai-usage-session-discovery",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-standardize-ai-usage-session-discovery/"
+    },
+    {
+      "id": "fix-miniapp-certificate-media-urls",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/"
+    },
+    {
+      "id": "add-release-status-decision-panel",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-add-release-status-decision-panel/"
+    },
+    {
+      "id": "standardize-environment-tiered-evidence-gates",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-standardize-environment-tiered-evidence-gates/"
+    },
+    {
+      "id": "enforce-environment-tiered-evidence-gates",
+      "status": "archived",
+      "scope": "formal",
+      "source": "openspec/archive/2026-08-30-enforce-environment-tiered-evidence-gates/"
+    }
+  ],
+  "gates": {
+    "openspec_archive": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-028/acceptance-report.md 与 sprint.md 显示 5/5 Change 已 archive；关联归档目录为 openspec/archive/2026-08-30-standardize-ai-usage-session-discovery/、openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/、openspec/archive/2026-08-30-add-release-status-decision-panel/、openspec/archive/2026-08-30-standardize-environment-tiered-evidence-gates/、openspec/archive/2026-08-30-enforce-environment-tiered-evidence-gates/。"
+    },
+    "tests": {
+      "status": "pass",
+      "evidence": "iterations/archive/sprint-028/acceptance-report.md 记录 tests/test_ai_usage.py 36 passed，OpenSpec validate、语言、目录结构、上下文预算、Sprint scope、Sprint Archive Readiness、Environment Tiered Evidence 和 Product Data Collection Observability Gate 均通过；fix-miniapp-certificate-media-urls trace 记录 tests/test_miniapp_home.py tests/test_miniapp_static.py 90 passed。"
+    },
+    "orval": {
+      "status": "na",
+      "rationale": "sprint-028 release-note.md 记录 BUG-0147 涉及后端 miniapp certificates API、证书媒体 key/URL/缩略图回填与小程序媒体验收，DB 结构变更和 Orval 不适用。"
+    },
+    "docker_compose": {
+      "status": "na",
+      "rationale": "提案阶段尚未执行 Docker Compose 发布校验；后续 /release-prepare v1.2.2 需要按发布范围补充 compose 或部署边界证据。"
+    },
+    "database_migration": {
+      "status": "na",
+      "rationale": "本版本不新增数据库表或迁移；证书媒体修复复用既有媒体引用与公开 URL 字段。"
+    },
+    "env_example": {
+      "status": "na",
+      "rationale": "本版本发布范围未引入新增环境变量；对象存储与媒体访问继续使用既有配置边界。"
+    },
+    "product_version": {
+      "status": "pass",
+      "evidence": "2026-08-30 15:20:00 发布返修已将 src/shared/product-version.ts、src/miniapp/utils/product-version.ts 与 src/miniapp/utils/product-version.js 的 PRODUCT_VERSION 对齐为 v1.2.2。"
+    },
+    "mintlify_preview": {
+      "status": "na",
+      "rationale": "提案阶段仅生成 announcement.mdx 草案；后续 /release-prepare v1.2.2 需要执行 Mintlify 或等价公开安全预览校验。"
+    },
+    "usage_docs_preview": {
+      "status": "na",
+      "rationale": "2026-08-30 15:07:08: usage docs skipped by operator; 本版本不生成或更新产品使用文档"
+    },
+    "image_prepare": {
+      "status": "na",
+      "rationale": "image_required=true；提案阶段尚未生成 releases/v1.2.2/image-build-plan.json，后续需执行 /image-prepare v1.2.2。"
+    },
+    "image_build": {
+      "status": "na",
+      "rationale": "image_required=true；提案阶段尚未生成 releases/v1.2.2/image-manifest.json，后续需在 image plan 通过后执行 /image-build v1.2.2。"
+    }
+  },
+  "known_issues": [
+    {
+      "id": "BUG-0147-production-device-network-evidence",
+      "type": "production_only_pending",
+      "status": "open",
+      "summary": "BUG-0147 开发验收已记录 DevTools Network 与模拟器渲染 evidence，用户确认开发环境不需要真机或体验版独立 Network evidence；生产发布时需按目标环境补充公开 API、媒体 no-fallback、端侧渲染或明确 N/A 证据。",
+      "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/trace.md"
+    },
+    {
+      "id": "BUG-0147-backfill-pillow-test-gap",
+      "type": "prepare_evidence_missing",
+      "status": "open",
+      "summary": "fix-miniapp-certificate-media-urls trace 记录 tests/test_backfill_brand_certificate_thumbnails.py 因缺少 PIL 在收集阶段未执行；发布准备阶段需确认该测试是否仍适用、补齐依赖后复跑，或记录明确不适用理由。",
+      "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/trace.md"
+    }
+  ],
+  "publish_confirmation": {
+    "published_at": "2026-08-30 15:29:17",
+    "announcement_url": "releases/v1.2.2/announcement.mdx",
+    "confirmed_by": "operator",
+    "target": "development",
+    "notes": "development 发布确认已在 PRODUCT_VERSION 对齐 v1.2.2 后重新记录。最终镜像 sha256 以 releases/v1.2.2/image-manifest.json 和 tarball .sha256 sidecar 为准；生产发布需单独确认 production 目标环境、备份、公开 API、媒体 no-fallback、runtime smoke 与回滚准备证据。"
+  },
+  "upgrade_steps": [
+    "发布准备阶段更新 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v1.2.2，并复跑发布校验。",
+    "确认本版本 usage docs 是否需要生成或更新；若不需要，记录 skipped 决策并保持 usage-docs 目录不存在。",
+    "执行 /release-prepare v1.2.2 完成公告公开安全、Mintlify 预览和发布前门禁整理。",
+    "执行 /image-prepare v1.2.2 与 /image-build v1.2.2 生成镜像计划和 manifest。",
+    "生成 development 目标的 fresh -> v1.2.2 与 v1.2.1 -> v1.2.2 升级计划，并完成 smoke 与回归验证。"
+  ],
+  "rollback": {
+    "conditions": [
+      "小程序证书列表接口返回的 file_url 或 thumbnail_url 异常，导致图片类证书无法展示。",
+      "证书媒体 URL 修复影响非图片证书占位、品牌证书 Tab 或证书列表页稳定性。",
+      "发布状态、环境分层证据或 AI Usage 治理脚本阻断既有发布/归档流程。"
+    ],
+    "steps": [
+      "停止继续执行 v1.2.2 发布准备、镜像构建或部署动作。",
+      "回退到上一版本部署包或镜像，并恢复上一版本环境配置。",
+      "保留证书媒体对象和旧 URL 兼容读取，不执行对象清理。",
+      "复核 miniapp certificates API、证书缩略图 URL headers、端侧渲染和发布校验脚本。"
+    ]
+  },
+  "impact_scope": {
+    "web_admin": "不新增页面；品牌证书相关管理数据若进入公开证书列表，会被后端媒体 URL/缩略图回填链路间接影响。",
+    "owner_web": "不涉及",
+    "miniapp": "证书列表页图片类证书应显示真实缩略图；非图片或缺失媒体继续显示占位。",
+    "backend": "miniapp certificates API 的证书媒体 URL / 缩略图回填链路更新，并包含发布状态、AI Usage 和环境分层证据校验脚本治理。",
+    "database": "不涉及",
+    "object_storage": "不新增存储结构；修复依赖既有证书媒体 key、公开 URL 和缩略图对象读取。",
+    "docker": "发布需通过镜像治理生成 image-build-plan 与 image-manifest；本提案阶段尚未构建镜像。"
+  },
+  "announcement": "announcement.mdx"
+}

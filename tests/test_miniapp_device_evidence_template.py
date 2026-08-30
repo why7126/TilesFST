@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -15,7 +16,7 @@ def test_miniapp_device_evidence_template_exists_with_core_structure() -> None:
     source = _read_template()
 
     assert "created_at: 2026-07-19 18:41:32" in source
-    assert "updated_at: 2026-07-19 18:41:32" in source
+    assert re.search(r"^updated_at: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", source, re.MULTILINE)
     assert "miniapp_device_evidence:" in source
     for field in ["template_ref", "target", "pages", "evidence_items", "summary"]:
         assert field in source

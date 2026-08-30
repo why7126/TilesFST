@@ -46,9 +46,9 @@ def map_legacy_object_key(old_key: str) -> str | None:
         return None
 
     if match := _OLD_AVATAR.match(key):
-        return f"images/default/user/avatars/{match.group('filename')}"
+        return f"images/default/user-avatars/pending/{match.group('filename')}"
     if match := _OLD_BRAND_LOGO.match(key):
-        return f"images/default/brands/logos/{match.group('filename')}"
+        return f"images/default/brand-logos/pending/{match.group('filename')}"
     if match := _OLD_TILE_IMAGE.match(key):
         return f"images/default/tiles/{match.group('tile')}/{match.group('filename')}"
     if match := _OLD_TILE_VIDEO.match(key):

@@ -48,8 +48,9 @@ Rules:
 
 Session input discovery:
 
-- Prefer explicit `--session-jsonl <local-session.jsonl>` when available.
-- Otherwise the hook checks `AI_USAGE_SESSION_JSONL`, then `CODEX_SESSION_JSONL`.
+- Discovery order is: explicit `--session-jsonl <local-session.jsonl>`; `AI_USAGE_SESSION_JSONL`; `CODEX_SESSION_JSONL`; `AI_USAGE_SESSIONS_DIR`; default `~/.codex/sessions/**/*.jsonl` auto-discovery.
+- For normal workflow commands, do not claim cost analysis is unavailable before trying default local session auto-discovery with workflow event, Sprint, REQ, BUG, Change or release context.
+- If auto-discovery fails, the matched session lacks attributable `token_count` events, or historical backfill/audit requires precise mapping, ask for explicit `--session-jsonl` or environment configuration.
 - Raw session files remain local-only and MUST NOT be copied into the repository.
 - Do not pass a known-missing `--session-jsonl` merely to produce a non-failing hook summary; `session-jsonl-not-found` is diagnostic fallback, not evidence that usage data was generated.
 - For historical backfill or audit, do not rely on automatic session discovery. Use explicit `--session-jsonl` and, when the historical turn text cannot be classified into canonical REQ/BUG, Change, Sprint, or workflow event, provide a `--manual-map` keyed by `turn_hash`.

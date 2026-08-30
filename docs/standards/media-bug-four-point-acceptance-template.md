@@ -4,7 +4,7 @@ content: 媒体类缺陷修复后的原 BUG 场景、key、object、URL、render
 source: REQ-0091-media-bug-four-point-acceptance-template / add-media-bug-four-point-acceptance-template
 update_method: 媒体 BUG 验收口径、对象存储策略、小程序证据或上传链路治理变化时同步更新
 created_at: 2026-08-01 11:04:15
-updated_at: 2026-08-12 14:54:20
+updated_at: 2026-08-30 12:26:56
 ---
 
 # 媒体类 BUG 四联验收模板
@@ -33,9 +33,12 @@ updated_at: 2026-08-12 14:54:20
 | `pass` | 已验收通过，有可复核证据 | 证据摘要、入口、命令摘要、截图/录屏位置或人工验收摘要 |
 | `fail` | 已验收失败 | 实际结果、期望结果、复现步骤、影响范围和排查线索 |
 | `n/a` | 当前 BUG 不涉及该维度、端或 evidence | N/A 原因和影响判断 |
-| `blocked` | 环境、账号、域名、MinIO、网络、设备、数据或小程序体验版阻塞 | 阻塞原因、缺失资源、责任环境、重试条件和补证方式 |
+| `blocked` | 当前阶段必需的环境、账号、域名、MinIO、网络、设备、数据或小程序体验版阻塞 | 阻塞原因、缺失资源、责任环境、重试条件和补证方式 |
+| `production_only_pending` | 仅生产发布或生产维护阶段可验证，不阻塞开发归档 | 目标环境、后续承接阶段、重试条件和剩余风险 |
 
 `blocked` 不得视为通过。阻塞解除后必须重新记录对应维度结果。
+
+环境相关媒体 evidence SHOULD 额外记录 `target_environment`、`phase`、`blocking_scope` 和 `classification`。开发阶段可用开发 API smoke、对象存储审计摘要、DevTools 截图或 DevTools Network 支撑开发验收；这些证据不得写作生产对象、生产域名、体验版或真机 Network 已通过。生产对象、生产接口、生产 no-fallback、生产缩略图回填或生产真实用户路径只有发布或生产维护后才能验证时，开发阶段应记录为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`，不阻塞 `opsx.archive`。若 Change 目标就是生产维护执行或生产发布确认，则这些证据按范围参与强门禁。
 
 ## 3. 原 BUG 场景
 
@@ -136,11 +139,14 @@ media_bug_four_point_acceptance:
       business_error_code: null
       evidence: "用户入口通过后端受控 URL 可读取媒体"
     render:
-      status: blocked
+      status: production_only_pending
       evidence: null
-      reason: "缺少可用小程序体验版"
+      target_environment: production
+      phase: production_publish
+      blocking_scope: "release-publish:production"
+      reason: "缺少可用小程序体验版；开发阶段不阻塞归档"
       retry_condition: "体验版发布后补充 Network 和页面 evidence"
-  conclusion: blocked
+  conclusion: "开发验收通过；生产证据后置"
 ```
 
 ## 7. 媒体上传横切检查项

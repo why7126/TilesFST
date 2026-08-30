@@ -8,7 +8,7 @@ from pathlib import PurePosixPath
 
 from app.core.exceptions import AppError
 from app.modules.media.storage import (
-    build_image_upload_object_key,
+    build_business_image_upload_object_key,
     DISPLAY_IMAGE_JPEG_QUALITY,
     DISPLAY_IMAGE_MAX_HEIGHT,
     DISPLAY_IMAGE_MAX_WIDTH,
@@ -22,6 +22,8 @@ from app.modules.media.storage import (
 )
 
 PENDING_TILE_IMAGE_PREFIX = "images/default/tiles/pending/"
+PENDING_TILE_IMAGE_PREFIX_V2 = "images/default/tiles/pending/images/"
+PENDING_TILE_IMAGE_PREFIXES = (PENDING_TILE_IMAGE_PREFIX, PENDING_TILE_IMAGE_PREFIX_V2)
 
 
 @dataclass(frozen=True)
@@ -36,7 +38,7 @@ class FormalizedTileImage:
 
 def is_pending_tile_image_key(object_key: str) -> bool:
     key = str(resolve_media_path(object_key))
-    return key.startswith(PENDING_TILE_IMAGE_PREFIX)
+    return any(key.startswith(prefix) for prefix in PENDING_TILE_IMAGE_PREFIXES)
 
 
 def deterministic_formal_tile_image_key(tile_id: int, object_key: str) -> str:
@@ -53,7 +55,7 @@ def _target_key(tile_id: int, source_key: str, target_key: str | None) -> str:
     if target_key:
         return str(resolve_media_path(target_key))
     content_type = mimetypes.guess_type(source_key)[0]
-    return build_image_upload_object_key(f"tiles/{tile_id}", content_type)
+    return build_business_image_upload_object_key("tiles", tile_id, "images", content_type)
 
 
 def formalize_tile_image_object(
@@ -65,7 +67,7 @@ def formalize_tile_image_object(
     display_max_size_kb: int = DISPLAY_IMAGE_TARGET_MAX_SIZE_KB,
 ) -> FormalizedTileImage:
     source_key = str(resolve_media_path(object_key))
-    if not source_key.startswith(PENDING_TILE_IMAGE_PREFIX):
+    if not is_pending_tile_image_key(source_key):
         thumbnail_key = same_directory_thumbnail_object_key(source_key)
         display_key = same_directory_display_object_key(source_key)
         return FormalizedTileImage(

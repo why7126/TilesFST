@@ -440,9 +440,9 @@ def test_miniapp_rum_uses_product_version_and_request_id_contract() -> None:
     product_version_ts = _read("utils/product-version.ts")
     shared_product_version = (ROOT / "src" / "shared" / "product-version.ts").read_text(encoding="utf-8")
 
-    assert "export const PRODUCT_VERSION = 'v1.2.0'" in shared_product_version
-    assert "export const PRODUCT_VERSION = 'v1.2.0'" in product_version_ts
-    assert "const PRODUCT_VERSION = 'v1.2.0'" in product_version_js
+    assert "export const PRODUCT_VERSION = 'v1.2.2'" in shared_product_version
+    assert "export const PRODUCT_VERSION = 'v1.2.2'" in product_version_ts
+    assert "const PRODUCT_VERSION = 'v1.2.2'" in product_version_js
     for source in [performance_js, performance_ts]:
         assert "PRODUCT_VERSION" in source
         assert "miniappApiConfig.environment || 'dev'" not in source

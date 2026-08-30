@@ -1,0 +1,65 @@
+---
+title: 产品版本 v1.2.1
+description: 媒体维护进度输出、媒体对象 Key 治理与 Banner 派生图维护修复
+created_at: 2026-08-30 09:19:49
+updated_at: 2026-08-30 09:19:49
+---
+
+# 产品版本 v1.2.1
+
+发布时间：2026-08-30 09:19:49
+
+关联 Sprint：sprint-027
+
+## 新增功能
+
+- 媒体维护命令增加可选进度输出，运维执行 `backfill-image-variants`、`backfill-brand-certificate-thumbnails` 和 `media-drift-reconcile` 时可以查看任务、阶段、计数和百分比。
+- 默认 stdout 最终 JSON 输出保持兼容；开启进度后，进度信息通过隔离通道输出，方便既有脚本继续解析结果。
+- 新上传与迁移后的媒体对象优先进入按业务媒体类型划分的目录，包括 `user-avatars`、`brand-logos`、`banners`、`tiles` 和 `brand-certificates`。
+- 媒体对象 key formalize、存量迁移 dry-run/apply/audit/rollback 和旧 key 兼容策略已同步到媒体维护流程。
+
+## 修复 BUG
+
+- 修复批量媒体维护命令未覆盖 Banner 自定义上传图的问题，使历史 Banner 可以被维护任务识别并补齐 `.thumb.webp` 与 `.display.webp` 派生图。
+- 修复后，Banner 展示应减少通过 `/media` fallback 原图加载的情况，提升首页和品牌列表的图片加载表现。
+
+## 发布注意事项
+
+- 本版本不新增管理端、店主 Web 或小程序页面。
+- 本版本不生成产品使用文档快照；发布对象已记录 usage docs 跳过决策。
+- 发布前需要将 `PRODUCT_VERSION` 更新为 `v1.2.1` 并复跑发布校验。
+- 生产媒体维护执行前需要确认备份，再按 Runbook 执行 dry-run、apply、二次 audit 和 no-fallback 复核。
+- 旧媒体对象继续保留兼容读取；旧对象清理不包含在本版本默认发布动作中，需单独确认。
+- 镜像计划和镜像构建证据尚未生成，后续需执行 `/image-prepare v1.2.1` 与 `/image-build v1.2.1`。
+
+## 已知问题
+
+- 生产历史无 id Banner thumb/display URL 在 Sprint 验收复核中仍返回 PNG fallback；本地 alias apply 与 no-fallback 已通过，但生产 MySQL/env 重新执行和公开 API 字段一致性补证仍需在发布/运维窗口完成。
+- 生产批量图片维护整批任务仍有非 Banner SKU 图片失败残留；该残留不属于本版本 Banner 修复正式范围，需另行跟进。
+
+## 升级步骤
+
+1. 更新产品版本号并完成发布准备校验。
+2. 生成镜像构建计划并完成镜像构建。
+3. 生产窗口完成媒体对象与数据库引用备份。
+4. 按媒体维护 Runbook 执行 dry-run、apply、二次 audit 和端侧 no-fallback 复核。
+5. 完成 smoke 与回归验证后再发布确认。
+
+## 回滚说明
+
+1. 停止继续执行生产媒体维护 apply 与旧对象清理动作。
+2. 回退到上一版本部署包或镜像，并恢复上一版本环境配置。
+3. 保留旧 key 兼容读取；如已执行迁移，按发布前备份和 Runbook 审计结果回滚受影响媒体引用。
+4. 复核公开媒体 URL headers、Banner 渲染和核心页面 smoke。
+
+## 影响范围
+
+| 范围 | 影响 |
+|---|---|
+| Web 管理端 | 不新增页面；既有媒体上传、回显、品牌 Logo、Banner 和品牌证书入口受媒体 URL 消费策略影响 |
+| 店主 Web | 不新增页面；Banner 与公开媒体派生图读取效果受影响 |
+| 小程序 | 不新增页面；首页和品牌列表 Banner 派生图读取效果受影响 |
+| 后端 | 媒体维护 CLI、Banner 候选覆盖、对象 key 生成、formalize、迁移/audit/rollback 和受控媒体 URL 更新 |
+| 数据库 | 不新增 schema 或 migration；复用既有媒体引用字段 |
+| 对象存储 | 新增和迁移媒体优先进入业务媒体类型目录，旧/过渡目录继续兼容读取 |
+| Docker | 发布需要后续生成镜像计划和镜像构建证据 |

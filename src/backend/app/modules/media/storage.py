@@ -20,7 +20,11 @@ from app.core.config import settings
 from app.core.error_codes import FILE_SIZE_EXCEEDED, STORAGE_UNAVAILABLE
 from app.core.exceptions import AppError
 from app.modules.media.key_migration import map_legacy_object_key
-from app.modules.media.object_keys import build_object_key
+from app.modules.media.object_keys import (
+    build_business_media_object_key,
+    build_object_key,
+    build_pending_media_object_key,
+)
 
 MEDIA_NOT_FOUND = 40404
 MEDIA_INVALID_OBJECT_KEY = 40040
@@ -607,9 +611,51 @@ def build_image_upload_object_key(resource_type: str, content_type: str | None) 
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
+def build_business_image_upload_object_key(
+    resource_type: str,
+    business_id: str | int,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_images.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_business_media_object_key(prefix, resource_type, business_id, usage, extension)
+
+
+def build_pending_image_upload_object_key(
+    resource_type: str,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_images.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_pending_media_object_key(prefix, resource_type, usage, extension)
+
+
 def build_video_upload_object_key(resource_type: str, content_type: str | None) -> str:
     prefix = settings.object_storage_prefix_video.rstrip("/")
     return build_upload_object_key(prefix, resource_type, content_type)
+
+
+def build_business_video_upload_object_key(
+    resource_type: str,
+    business_id: str | int,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_video.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_business_media_object_key(prefix, resource_type, business_id, usage, extension)
+
+
+def build_pending_video_upload_object_key(
+    resource_type: str,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_video.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_pending_media_object_key(prefix, resource_type, usage, extension)
 
 
 def build_file_upload_object_key(resource_type: str, content_type: str | None) -> str:
@@ -617,10 +663,48 @@ def build_file_upload_object_key(resource_type: str, content_type: str | None) -
     return build_upload_object_key(prefix, resource_type, content_type)
 
 
-def build_brand_certificate_upload_object_key(content_type: str | None) -> str:
+def build_business_file_upload_object_key(
+    resource_type: str,
+    business_id: str | int,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_files.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_business_media_object_key(prefix, resource_type, business_id, usage, extension)
+
+
+def build_pending_file_upload_object_key(
+    resource_type: str,
+    usage: str,
+    content_type: str | None,
+) -> str:
+    prefix = settings.object_storage_prefix_files.rstrip("/")
+    extension = _extension_for_content_type(content_type)
+    return build_pending_media_object_key(prefix, resource_type, usage, extension)
+
+
+def build_brand_certificate_upload_object_key(
+    content_type: str | None,
+    certificate_id: str | int | None = None,
+) -> str:
     if content_type and content_type.startswith("image/"):
-        return build_image_upload_object_key("brand-certificates", content_type)
-    return build_file_upload_object_key("brand-certificates", content_type)
+        if certificate_id is not None:
+            return build_business_image_upload_object_key(
+                "brand-certificates",
+                certificate_id,
+                "images",
+                content_type,
+            )
+        return build_pending_image_upload_object_key("brand-certificates", "images", content_type)
+    if certificate_id is not None:
+        return build_business_file_upload_object_key(
+            "brand-certificates",
+            certificate_id,
+            "files",
+            content_type,
+        )
+    return build_pending_file_upload_object_key("brand-certificates", "files", content_type)
 
 
 def validate_object_key(object_key: str) -> PurePosixPath:
@@ -665,6 +749,12 @@ def _cache_headers(resolved_key: str, media_type: str | None, total_size: int | 
 
 def _media_key_fingerprint(object_key: str) -> str:
     return hashlib.sha256(object_key.encode("utf-8")).hexdigest()[:12]
+
+
+def _object_key_prefix(object_key: str | None) -> str | None:
+    if not object_key:
+        return None
+    return object_key.rsplit("/", 1)[0] if "/" in object_key else ""
 
 
 def thumbnail_object_key(object_key: str) -> str:
@@ -872,21 +962,22 @@ def _log_upload_stage(
     logger.info(
         (
             "media_upload_timing upload_type=%s stage=%s elapsed_ms=%s stage_ms=%s "
-            "object_key=%s file_name=%s content_type=%s size_bytes=%s max_size_mb=%s "
-            "provider=%s endpoint=%s bucket=%s region=%s path_style=%s auto_create_bucket=%s"
+            "object_key_hash=%s object_key_prefix=%s file_name_present=%s content_type=%s "
+            "size_bytes=%s max_size_mb=%s provider=%s bucket_hash=%s region=%s "
+            "path_style=%s auto_create_bucket=%s"
         ),
         timing.get("upload_type"),
         stage,
         _elapsed_ms(started_at),
         _elapsed_ms(stage_started_at),
-        timing.get("object_key"),
-        timing.get("file_name"),
+        _media_key_fingerprint(str(timing["object_key"])) if timing.get("object_key") else None,
+        timing.get("object_key_prefix") or _object_key_prefix(str(timing["object_key"])) if timing.get("object_key") else None,
+        bool(timing.get("file_name_present")),
         timing.get("content_type"),
         extra.get("size_bytes", timing.get("size_bytes")),
         timing.get("max_size_mb"),
         timing.get("provider"),
-        timing.get("endpoint"),
-        timing.get("bucket"),
+        timing.get("bucket_hash"),
         timing.get("region"),
         timing.get("path_style"),
         timing.get("auto_create_bucket"),

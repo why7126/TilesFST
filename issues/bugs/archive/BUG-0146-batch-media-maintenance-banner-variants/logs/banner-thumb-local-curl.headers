@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Sat, 29 Aug 2026 15:12:24 GMT
+Content-Type: image/webp
+Content-Length: 9578
+Connection: keep-alive
+cache-control: public, max-age=604800, stale-while-revalidate=86400
+etag: W/"8fe8914f1d220d90"
+x-media-resolved-key-hash: 84697bcbfa8c
+x-media-fallback: 0
+x-request-id: req_fb1431e918de4ff0
+

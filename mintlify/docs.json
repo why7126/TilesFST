@@ -37,8 +37,7 @@
                 "group": "常用任务",
                 "pages": [
                   "tasks/catalog-maintenance",
-                  "tasks/media-and-certificate",
-                  "docs/latest/faq"
+                  "tasks/media-and-certificate"
                 ]
               }
             ]

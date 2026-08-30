@@ -1,0 +1,1996 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-30 15:29:02",
+  "deployment_target": "development",
+  "from_version": "v1.2.1",
+  "to_version": "v1.2.2",
+  "support_level": "adjacent-upgrade-supported",
+  "source_confidence": "verified",
+  "version_facts": {
+    "target_release": {
+      "path": "releases/v1.2.2/release.json",
+      "exists": true
+    },
+    "target_image_manifest": {
+      "path": "releases/v1.2.2/image-manifest.json",
+      "exists": true
+    },
+    "product_version": "v1.2.2",
+    "git_ref": {
+      "status": "manual_review",
+      "recommendation": "使用发布 tag 或 commit 补充源码快照锚点"
+    },
+    "deployment_image_tag": {
+      "key": "TILESFST_IMAGE_TAG",
+      "expected": "v1.2.2",
+      "target": "development",
+      "value": "<redacted-or-operator-confirmed>"
+    }
+  },
+  "impact_summary": {
+    "database": "none",
+    "environment": "development_manual_review",
+    "docker": "target image manifest required",
+    "api": "manual_review_for_cross_version",
+    "object_storage": "manual_review_for_cross_version",
+    "maintenance_jobs": "dry_run_required_if_write_tasks_exist"
+  },
+  "env_diff": {
+    "status": "manual_review",
+    "source": "current-env-examples",
+    "deployment_target": "development",
+    "summary": {
+      "added": [
+        {
+          "path": ".env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "ADMIN_RESET_PASSWORD_ON_STARTUP",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "ALLOWED_IMAGE_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "ALLOWED_VIDEO_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "APP_NAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "BACKEND_CORS_ORIGINS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "BACKEND_HOST",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "BACKEND_PORT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "DATA_ROOT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "JWT_REMEMBER_ME_EXPIRE_DAYS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "MAX_FILE_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "MAX_IMAGE_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "MAX_VIDEO_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_DIRECT_READ_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_DIRECT_READ_EXPIRES_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_AUDIOS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_EXPORT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_FILES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_IMAGES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_IMPORT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_ORIGINAL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_PROCESSED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_TEMP",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_THUMBNAILS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO_COVER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO_TRANSCODED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "PROCESSED_DIR",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "TILESFST_BACKEND_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "TILESFST_IMAGE_TAG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "TILESFST_WEB_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "TMP_DIR",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "VIDEO_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "VIDEO_GENERATE_COVER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "VIDEO_TRANSCODE_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "VITE_API_BASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": ".env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-external.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-minio-managed.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/mysql-tencent-cos.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-external.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-minio-managed.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "HOST_PORT_MINIO_API",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "HOST_PORT_MINIO_CONSOLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/local/sqlite-tencent-cos.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "APP_DEBUG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "DOCS_SITE_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_BACKEND",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_MINTLIFY_DOCS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "HOST_PORT_WEB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "MINTLIFY_CLI_VERSION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "TILESFST_BACKEND_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "TILESFST_DEPLOY_ENV_ID",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "TILESFST_DOCS_SITE_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "TILESFST_IMAGE_TAG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "TILESFST_WEB_IMAGE_REPOSITORY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_BODY_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_CLIENT_MAX_BODY_SIZE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_CONNECT_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_READ_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_REQUEST_BUFFERING",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_PROXY_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "UPLOAD_SEND_TIMEOUT_SECONDS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "deploy/prod/mysql-tencent-cos.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "BACKEND_PYTHON_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_BACKEND_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_BUILDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_CREATE_BUILDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_EXPORT_TAR",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_LOAD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_PLATFORM",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_TAG",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "IMAGE_BUILD_WEB_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "WEB_NGINX_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "scripts/build-images.env.example",
+          "key": "WEB_NODE_BASE_IMAGE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "ADMIN_RESET_PASSWORD_ON_STARTUP",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "ALLOWED_IMAGE_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "ALLOWED_VIDEO_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "BACKEND_CORS_ORIGINS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "BACKEND_HOST",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "BACKEND_PORT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "LOG_LEVEL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "MAX_IMAGE_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "MAX_VIDEO_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_AUTO_CREATE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PATH_STYLE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_AUDIOS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_FILES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_IMAGES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_ORIGINAL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_PROCESSED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_TEMP",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_THUMBNAILS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO_COVER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PREFIX_VIDEO_TRANSCODED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_PROVIDER",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_REGION",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "OBJECT_STORAGE_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "VIDEO_PROCESSING_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "VIDEO_THUMBNAIL_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.docker",
+          "key": "VIDEO_TRANSCODE_ENABLED",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "ADMIN_INITIAL_PASSWORD",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "ADMIN_RESET_PASSWORD_ON_STARTUP",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "ADMIN_USERNAME",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "ALLOWED_IMAGE_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "ALLOWED_VIDEO_TYPES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "APP_ENV",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "APP_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "BACKEND_CORS_ORIGINS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "BACKEND_HOST",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "BACKEND_PORT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "JWT_ACCESS_TOKEN_EXPIRE_MINUTES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "JWT_REMEMBER_ME_EXPIRE_DAYS",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "LOG_LEVEL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MAX_IMAGE_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MAX_VIDEO_SIZE_MB",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_ACCESS_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_BUCKET",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_ENDPOINT",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_PREFIX_IMAGES",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_PREFIX_ORIGINAL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_PREFIX_VIDEO",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_SECRET_KEY",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "MINIO_SECURE",
+          "recommendation": "确认生产环境是否需要显式配置"
+        },
+        {
+          "path": "src/backend/.env.example",
+          "key": "SQLITE_DATABASE_URL",
+          "recommendation": "确认生产环境是否需要显式配置"
+        }
+      ],
+      "removed": [],
+      "changed_default": [],
+      "required_in_production": [],
+      "unsafe_example_value": [],
+      "manual_review": []
+    },
+    "notes": [
+      "当前仓库尚未保存历史版本 env 示例快照；跨版本 env diff 需结合 Git tag、release 归档或人工快照复核。",
+      "输出仅包含变量名、分类和建议，不包含真实 env 值。",
+      "development 目标计划不把生产必填变量或示例值作为 blocker；production 目标计划必须复核生产必填变量和示例值风险。"
+    ]
+  },
+  "required_checks": [
+    "python scripts/validate-release-upgrade.py validate-plan --plan releases/v1.2.2/upgrade-plans/v1.2.1-to-v1.2.2.development.json",
+    "python scripts/validate-image-build.py validate-manifest --release v1.2.2",
+    "docker compose config --quiet 或目标 deploy Compose config 校验",
+    "若 database impact 非 none：python scripts/check-mysql-schema-drift.py --database-url \"$DATABASE_URL\"",
+    "部署后 health/login/core API/Web/media smoke"
+  ],
+  "steps": [
+    "确认来源版本 v1.2.1 和目标版本 v1.2.2 release 事实源存在。",
+    "确认开发数据库、对象存储影响范围和当前 env 摘要；生产目标必须完成备份。",
+    "加载或拉取目标镜像，将 TILESFST_IMAGE_TAG 更新为 v1.2.2。",
+    "执行开发目标 Compose config 校验并重启服务。",
+    "完成开发升级后 health、login、核心 API、Web、小程序或媒体 smoke。"
+  ],
+  "rollback": {
+    "previous_image": "v1.2.1",
+    "target_image": "v1.2.2",
+    "env_snapshot": "旧 env 变量名摘要、hash 或负责人确认；不得记录真实值",
+    "database_backup": "recommended",
+    "object_storage_backup": "只读确认；若执行写入型维护任务则必须备份或记录不可逆风险",
+    "rollback_steps": [
+      "回退 TILESFST_IMAGE_TAG 或镜像包到 v1.2.1。",
+      "恢复旧 env 摘要对应的真实 env，由运维在开发环境执行。",
+      "如数据库已写入变更，根据备份恢复或已验证反向迁移执行。",
+      "完成回滚后 health、login、核心 API、Web 和媒体 smoke。"
+    ],
+    "post_rollback_smoke": "pending"
+  },
+  "blockers": [],
+  "warnings": [],
+  "evidence": {
+    "release": {
+      "path": "releases/v1.2.2/release.json",
+      "exists": true
+    },
+    "image_manifest": {
+      "path": "releases/v1.2.2/image-manifest.json",
+      "exists": true
+    },
+    "database": "na",
+    "object_storage": "manual_review",
+    "post_upgrade_smoke": "pending",
+    "post_rollback_smoke": "pending"
+  }
+}

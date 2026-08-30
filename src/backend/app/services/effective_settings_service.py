@@ -10,7 +10,8 @@ from app.core.config import settings
 from app.repositories.system_settings_repository import SystemSettingsRepository
 
 OBJECT_KEY_RULE_DESCRIPTION = (
-    "{prefix}/{tenant}/{resource_type}/{uuid}.{ext} — 例：images/default/user/avatars/<uuid>.jpg"
+    "{prefix}/{tenant}/{business_media_type}/{business_object_id}/{uuid}.{ext} — "
+    "例：images/default/user-avatars/{user_id}/<uuid>.jpg"
 )
 
 AUDIT_SCOPE_DESCRIPTION = (

@@ -190,7 +190,7 @@ def test_upload_brand_logo_returns_accessible_media_url(client: TestClient) -> N
     )
     assert upload.status_code == 200
     data = upload.json()["data"]
-    assert data["object_key"].startswith("images/default/brands/logos/")
+    assert data["object_key"].startswith("images/default/brand-logos/pending/")
     assert data["url"] == f"/media/{data['object_key']}"
     assert data["task_trace_id"].startswith("task_upload_image_")
     assert data["task_type"] == "upload_image"
@@ -375,7 +375,7 @@ def test_upload_brand_logo_accepts_23mb_image_when_effective_limit_allows(
 
     assert response.status_code == 200
     object_key = response.json()["data"]["object_key"]
-    assert object_key.startswith("images/default/brands/logos/")
+    assert object_key.startswith("images/default/brand-logos/pending/")
     assert object_key in get_media_storage_client().objects
 
 
@@ -420,6 +420,11 @@ def test_upload_tile_video_emits_stage_timing_logs(client: TestClient, caplog) -
     assert any("stage=storage_put_done" in message for message in messages)
     assert any("stage=response_ready" in message for message in messages)
     assert all("Authorization" not in message for message in messages)
+    assert all("object_key=" not in message for message in messages)
+    assert all("file_name=" not in message for message in messages)
+    assert all("endpoint=" not in message for message in messages)
+    assert all(" bucket=" not in message and not message.startswith("bucket=") for message in messages)
+    assert all("object_key_hash=" in message or "object_key_hash=None" in message for message in messages)
 
 
 def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> None:
@@ -428,12 +433,12 @@ def test_upload_endpoints_store_expected_minio_prefixes(client: TestClient) -> N
         (
             "/api/v1/admin/uploads",
             ("avatar.png", b"avatar", "image/png"),
-            "images/default/user/avatars/",
+            "images/default/user-avatars/",
         ),
         (
             "/api/v1/admin/uploads/brand-logos",
             ("logo.webp", _image_bytes(), "image/webp"),
-            "images/default/brands/logos/",
+            "images/default/brand-logos/pending/",
         ),
         (
             "/api/v1/admin/uploads/tile-images",
@@ -511,7 +516,8 @@ def test_brand_list_returns_accessible_logo_url(client: TestClient) -> None:
     response = client.get("/api/v1/admin/brands", headers=headers, params={"keyword": "Logo Brand"})
     assert response.status_code == 200
     item = response.json()["data"]["items"][0]
-    assert item["logo_url"] == upload_data["url"]
+    assert item["logo_url"] != upload_data["url"]
+    assert item["logo_url"].startswith("/media/images/default/brand-logos/1/")
     assert client.get(item["logo_url"]).status_code == 200
 
 
@@ -538,7 +544,8 @@ def test_brand_detail_returns_accessible_logo_url(client: TestClient) -> None:
     response = client.get(f"/api/v1/admin/brands/{brand_id}", headers=headers)
     assert response.status_code == 200
     item = response.json()["data"]
-    assert item["logo_url"] == upload_data["url"]
+    assert item["logo_url"] != upload_data["url"]
+    assert item["logo_url"].startswith(f"/media/images/default/brand-logos/{brand_id}/")
     media = client.get(item["logo_url"])
     assert media.status_code == 200
     assert media.content == b"detail-logo"

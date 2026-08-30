@@ -452,18 +452,30 @@ Sprint close、Sprint archive 与 `/sprint-exps` 中的 AI usage snapshot 生成
 - **AND** 系统 MUST 优先保存数字指标、工作流 ID、仓库相对路径、hash、时间范围、短安全标签或 warning
 
 ### Requirement: 工作流命令自动构建 AI usage 事实源
-系统 MUST 为 `/req-*`、`/bug-*`、`/opsx-*`、`/sprint-*` 工作流命令提供后置 AI usage fact source 构建流程，并在主命令和 Workflow Sync 成功后尝试生成或刷新脱敏使用量事实。对于 release 与 image 工作流命令，系统 MUST 提供等价的 post-command hook 归因规则，使发布版本与镜像构建命令可追踪。
+系统 MUST 为 `/req-*`、`/bug-*`、`/opsx-*`、`/sprint-*` 工作流命令提供后置 AI usage fact source 构建流程，并在主命令和 Workflow Sync 成功后尝试生成或刷新脱敏使用量事实。对于 release 与 image 工作流命令，系统 MUST 提供等价的 post-command hook 归因规则，使发布版本与镜像构建命令可追踪。Hook 在未显式传入 session 文件时 MUST 先尝试自动发现本地 Codex session；默认发现目录为 `AI_USAGE_SESSIONS_DIR` 指定目录，未设置时为 `~/.codex/sessions/**/*.jsonl`。仅当自动发现失败、候选 session 不存在、候选缺少可归因 `token_count`，或需要历史回溯/审计的精确映射时，才要求用户显式提供 `--session-jsonl` 或设置 `AI_USAGE_SESSION_JSONL`。
 
 #### Scenario: 主命令与 Workflow Sync 成功后触发
-- **WHEN** `/req-*`、`/bug-*`、`/opsx-*` 或 `/sprint-*` 工作流命令完成
+- **WHEN** 任一受支持工作流命令完成
 - **AND** 主命令完成且 Workflow Sync 返回成功
-- **THEN** 系统 MUST 触发统一 AI usage fact source hook 或等价共享流程
-- **AND** 系统 MUST 输出短摘要，包含 hook status、usage mode、warning 数量和 recommended action
+- **THEN** 命令 MUST 运行统一 AI usage post-command hook 或报告明确跳过原因
+- **AND** hook MUST 继承 workflow event、REQ、BUG、Change、Sprint 或 Release 上下文
 
-#### Scenario: release 与 image 命令写入版本归因
-- **WHEN** `/release-*` or `/image-*` workflow commands run with `--release vX.Y.Z` or `<version>`
-- **THEN** their AI usage hook SHALL support release version attribution
-- **AND** image command usage records SHALL be attributable to the release version and, when provided, the related image plan or manifest
+#### Scenario: 默认发现本地 Codex sessions
+- **WHEN** hook 未收到显式 `--session-jsonl`
+- **AND** `AI_USAGE_SESSION_JSONL` 与 `CODEX_SESSION_JSONL` 均未设置
+- **THEN** hook MUST 扫描 `AI_USAGE_SESSIONS_DIR` 或默认 `~/.codex/sessions/**/*.jsonl`
+- **AND** hook MUST 使用 workflow event、Sprint、REQ、BUG、Change 或 Release 关键词选择候选 session
+- **AND** 成功路径 MUST 输出 compact summary，且不得输出本机绝对 session 路径或原始 session 内容
+
+#### Scenario: 自动发现失败后给出可执行补救动作
+- **WHEN** hook 自动发现失败、候选文件不可读、缺少可归因 token_count 或需要历史回溯精确映射
+- **THEN** hook MUST 输出 `usage_mode: unavailable` 或 `estimated_fallback` 的 compact warning
+- **AND** recommended_action MUST 优先说明检查默认 sessions 目录、`AI_USAGE_SESSIONS_DIR`、`AI_USAGE_SESSION_JSONL` 或显式 `--session-jsonl`
+- **AND** 命令输出 MUST NOT 简化为“本地 session 输入不可用所以无法做成本分析”
+
+#### Scenario: AI usage hook 输出保持紧凑
+- **WHEN** hook 完成、跳过或降级
+- **THEN** successful output SHALL include only status, usage_mode, command_run_count, sprint_snapshot or release artifact summary, warning_count, and recommended_action.
 - **AND** successful output SHALL stay compact and SHALL NOT print raw session content, prompts, local absolute paths, secrets, or full command-run JSON.
 
 ### Requirement: 统一 AI usage post-command hook
@@ -1750,4 +1762,46 @@ Agent workflow tooling SHALL support upgrade planning and validation commands wi
 - **WHEN** 某个 REQ/BUG 不在已解析 Sprint 的 `requirements[]` 或 `bugs[]` 中
 - **AND** 运行 Workflow Sync
 - **THEN** Workflow Sync MUST NOT 为该 Issue 写入目标 Sprint 的 `iteration`
+
+### Requirement: 环境分层 evidence 门禁
+
+workflow 命令 SHALL 区分开发验收、体验版验证、生产发布和发布后跟进的 evidence 阻塞范围，避免生产专属证据误阻塞开发归档，同时禁止用开发证据声称生产通过。
+
+#### Scenario: 开发归档不被生产专属证据阻塞
+- **WHEN** Change、BUG 或 Sprint 的当前阶段是开发验收或开发归档
+- **THEN** workflow 命令 SHALL 接受自动化测试、开发 API smoke、DevTools 截图、DevTools Network、静态校验或等价开发环境证据作为当前阶段证据
+- **AND** 仅生产环境可获得的生产 env、生产备份、生产公开 API、生产 no-fallback 媒体、生产 smoke 或生产真实用户路径证据 SHALL NOT 阻塞 `opsx.archive` 或开发阶段 `sprint.archive`
+- **AND** 这些缺口 SHALL 标记为 `production_only_pending`、`follow_up`、`not_applicable_for_development` 或发布阶段待办。
+
+#### Scenario: 环境 evidence 字段可复核
+- **WHEN** workflow 命令记录环境相关 evidence
+- **THEN** evidence SHOULD 包含 `target_environment`、`phase`、`blocking_scope`、`classification` 和 `evidence_ref` 或等价表格列
+- **AND** `blocking_scope` SHALL 明确证据缺口阻塞开发归档、体验版验收、生产发布还是发布后跟进
+- **AND** evidence SHALL 使用脱敏路径、命令摘要、截图、报告或人工摘要，不得包含密钥、token、Cookie、Authorization header、`.env`、真实客户数据或未脱敏隐私。
+
+#### Scenario: 不得扩大通过结论
+- **WHEN** 当前只有开发环境或 DevTools evidence
+- **THEN** workflow 输出 SHALL 仅声明开发阶段或 DevTools 结论
+- **AND** SHALL NOT 写作生产环境、体验版、真机或生产发布已通过
+- **AND** 缺少的目标环境证据 SHALL 记录剩余风险和后续承接命令或阶段。
+
+### Requirement: 环境证据强脚本门禁
+
+workflow 归档命令 SHALL 运行环境分层 evidence 校验脚本，阻断开发证据冒充生产通过、DevTools evidence 冒充体验版或真机通过，以及生产专属证据未按目标环境后置或重新判定的情况。
+
+#### Scenario: 单 Change 归档执行环境证据门禁
+- **WHEN** 团队执行 `/opsx-archive <change-id>`
+- **THEN** 归档流程 SHALL 校验目标 Change 的环境证据语义
+- **AND** 发现开发 evidence 被写作生产通过、体验版通过或真机通过时 SHALL 阻断归档
+- **AND** `production_only_pending` 若缺少目标环境、阶段或阻塞范围上下文 SHALL 阻断归档。
+
+#### Scenario: Sprint 归档聚合环境证据门禁
+- **WHEN** 团队执行 `/sprint-archive <sprint-id>` 或 Sprint archive readiness
+- **THEN** readiness SHALL 聚合检查 Sprint 四件套和 scope 内 Change 文档的环境证据语义
+- **AND** 任一目标文档存在环境证据强门禁 blocker 时 SHALL 阻断 Sprint close。
+
+#### Scenario: 强门禁报告可定位
+- **WHEN** 环境证据校验发现 blocker
+- **THEN** 报告 SHALL 包含文件路径、行号或段落摘要、分类、消息和修复建议
+- **AND** 报告 SHALL 不输出密钥、token、Cookie、Authorization header、`.env` 内容、真实客户数据或完整网络日志。
 

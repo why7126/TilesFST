@@ -315,7 +315,7 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         assert pdf.status_code == 200
         data = pdf.json()["data"]
         assert data["file_key"].endswith(".pdf")
-        assert data["file_key"].startswith("files/default/brand-certificates/")
+        assert data["file_key"].startswith("files/default/brand-certificates/pending/")
         assert data["file_url"] == data["url"]
         assert data["thumbnail_key"] is None
         assert data["thumbnail_url"] is None
@@ -331,10 +331,10 @@ def test_brand_certificate_upload_accepts_pdf_and_rejects_invalid_type(
         assert image.status_code == 200
         image_data = image.json()["data"]
         thumbnail_key = same_directory_thumbnail_object_key(image_data["file_key"])
-        assert image_data["file_key"].startswith("images/default/brand-certificates/")
+        assert image_data["file_key"].startswith("images/default/brand-certificates/pending/")
         assert image_data["thumbnail_key"] == thumbnail_key
         assert image_data["thumbnail_url"] == f"/media/{thumbnail_key}"
-        assert thumbnail_key.startswith("images/default/brand-certificates/")
+        assert thumbnail_key.startswith("images/default/brand-certificates/pending/")
         assert image_data["file_key"] in storage.objects
         assert thumbnail_key in storage.objects
         assert storage.objects[thumbnail_key].content != storage.objects[image_data["file_key"]].content

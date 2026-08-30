@@ -42,13 +42,15 @@ iterations/change/<sprint-id>/sprint.md（依赖/Scope 片段）
 ```bash
 openspec list --json
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
+python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
 python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 ```
 
-`validate-sprint-archive-readiness.py` includes the Sprint close stale scan. It MUST fail when Sprint four-piece docs or scoped REQ/BUG top-level Markdown files still contain stale intermediate wording such as "待 `/req-opsx`", "待 `/bug-opsx`", "待 `/opsx-apply`", stale `proposed` / `applied` semantics for archived Changes, unresolved `待验收` / `待实现`, active Change paths for archived Changes, or canonical `openspec/changes/archive/` links. For focused diagnosis, run:
+`validate-sprint-archive-readiness.py` includes the Sprint close stale scan and environment-tiered evidence gate. It MUST fail when Sprint four-piece docs or scoped REQ/BUG top-level Markdown files still contain stale intermediate wording such as "待 `/req-opsx`", "待 `/bug-opsx`", "待 `/opsx-apply`", stale `proposed` / `applied` semantics for archived Changes, unresolved `待验收` / `待实现`, active Change paths for archived Changes, canonical `openspec/changes/archive/` links, development evidence claiming production/trial/real-device pass, trial/real-device Network marked `passed` without evidence, or production publish still carrying unreclassified `production_only_pending`. For focused diagnosis, run:
 
 ```bash
 python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>
+python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
 ```
 
 Do not hand-edit `sprint.md` workflow-sync marker blocks while fixing stale scan blockers; rerun Workflow Sync or edit only non-derived human-authored notes.
@@ -94,13 +96,13 @@ python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 Inspect `ai_usage_snapshot.fresh_gate`、`snapshot_status`、`ai_usage_mode`、`generated_at`、`coverage`、`warnings` and `recommended_action`.
 
 - If `fresh_gate.status: pass`, `snapshot_status: present` and `ai_usage_mode: actual`, output only a compact summary: fresh gate status, snapshot status, mode, path, generated_at, coverage status, usage_matrices presence and warning_count.
-- If snapshot is `missing`、`stale` or `failed`, try to generate/refresh it only when the operator provides a local session input, using:
+- If snapshot is `missing`、`stale` or `failed`, first try to generate/refresh through AI Usage default session discovery. The extractor checks explicit `--session-jsonl`, `AI_USAGE_SESSION_JSONL`, `CODEX_SESSION_JSONL`, `AI_USAGE_SESSIONS_DIR`, then default `~/.codex/sessions/**/*.jsonl` using workflow/Sprint context. Use explicit input only when auto-discovery fails, the candidate lacks attributable `token_count`, or historical audit needs precise mapping:
 
 ```bash
 python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id> --json
 ```
 
-- If local session input is unavailable or generation fails, continue only with an explicit warning in the close report: `ai_usage_mode: estimated_fallback`, reason, impact, and recommended_action. Do not state that real token usage was used.
+- If session auto-discovery/input is unavailable, lacks token data, or generation fails, continue only with an explicit warning in the close report: `ai_usage_mode: estimated_fallback`, reason, impact, and recommended_action. Do not state that real token usage was used.
 - Do not print raw session JSONL, prompts, system/developer instructions, local absolute paths, tool output bodies, or full snapshot contents.
 
 ## 产品数据采集与链路观测归档门禁（MUST）
@@ -123,6 +125,7 @@ Unless `--no-sprint-close`, close only when all Sprint changes are archived and 
 
 ```bash
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
+python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
 ```
 
 Then update the four-piece as needed:
@@ -168,7 +171,7 @@ python scripts/extract-ai-usage.py --post-command-hook --workflow-event sprint.a
 ```
 
 - Print only the compact hook summary: `status`, `usage_mode`, `command_run_count`, `sprint_snapshot`, `warning_count`, and `recommended_action`.
-- If local session input is unavailable, report `usage_mode: unavailable` and the recommended action; do not treat that as parent command failure.
+- If default session discovery/input is unavailable or cannot yield attributable token data, report `usage_mode: unavailable` or `estimated_fallback` and the recommended action; do not treat that as parent command failure.
 
 ## Output
 

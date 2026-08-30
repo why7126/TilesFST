@@ -137,7 +137,11 @@ class MiniappHomeService:
                     issuer=item.issuer,
                     brand_name=item.brand_name,
                     file_url=item.file_url,
-                    thumbnail_url=self._certificate_thumbnail_url(item.file_url, item.file_mime_type),
+                    thumbnail_url=self._certificate_thumbnail_url(
+                        item.file_url,
+                        item.file_mime_type,
+                        item.file_key,
+                    ),
                 )
                 for item in items
             ],
@@ -860,6 +864,7 @@ class MiniappHomeService:
             thumbnail_url=MiniappHomeService._certificate_thumbnail_url(
                 record.file_url,
                 record.file_mime_type,
+                getattr(record, "file_key", None),
             ),
             file_name=record.file_name,
             file_mime_type=record.file_mime_type,
@@ -898,7 +903,12 @@ class MiniappHomeService:
             )
         if not media and record.file_url:
             kind = _certificate_file_kind(record.file_mime_type, record.file_url, record.file_name)
-            variants = self._image_variant_urls(record.file_url) if kind == "image" else {
+            object_ref = self._certificate_media_object_ref(
+                record.file_url,
+                record.file_mime_type,
+                getattr(record, "file_key", None),
+            )
+            variants = self._image_variant_urls(object_ref) if kind == "image" and object_ref else {
                 "thumbnail_url": None,
                 "display_url": None,
                 "original_url": None,
@@ -948,14 +958,33 @@ class MiniappHomeService:
         )
 
     @staticmethod
-    def _certificate_thumbnail_url(file_url: str | None, file_mime_type: str | None) -> str | None:
-        if not file_url or file_mime_type not in {"image/jpeg", "image/jpg", "image/png", "image/webp"}:
+    def _certificate_media_object_ref(
+        file_url: str | None,
+        file_mime_type: str | None,
+        file_key: str | None = None,
+    ) -> str | None:
+        if file_mime_type not in {"image/jpeg", "image/jpg", "image/png", "image/webp"}:
             return None
+        cleaned_key = str(file_key or "").strip()
+        cleaned_url = str(file_url or "").strip()
+        if cleaned_key.startswith("images/default/brand-certificates/"):
+            return cleaned_key
         prefix = "/media/"
-        if not file_url.startswith(prefix):
+        if cleaned_url.startswith(prefix):
+            return cleaned_url.removeprefix(prefix)
+        return cleaned_key or None
+
+    @classmethod
+    def _certificate_thumbnail_url(
+        cls,
+        file_url: str | None,
+        file_mime_type: str | None,
+        file_key: str | None = None,
+    ) -> str | None:
+        object_key = cls._certificate_media_object_ref(file_url, file_mime_type, file_key)
+        if not object_key:
             return None
-        object_key = file_url.removeprefix(prefix)
-        return f"{prefix}{same_directory_thumbnail_object_key(object_key)}"
+        return f"/media/{same_directory_thumbnail_object_key(object_key)}"
 
     def _media_items(self, record: MiniappProductRecord) -> list[MiniappSkuMediaItem]:
         media = self._repo.list_product_media(record.id)
@@ -1134,6 +1163,7 @@ class MiniappHomeService:
                     "thumbnail_url": MiniappHomeService._certificate_thumbnail_url(
                         getattr(certificate, "file_url", None),
                         getattr(certificate, "file_mime_type", None),
+                        getattr(certificate, "file_key", None),
                     ),
                     "target_path": f"/pages/search/index?keyword={normalized_keyword}&tab=certificate",
                 }
@@ -1169,6 +1199,7 @@ class MiniappHomeService:
             "thumbnail_url": MiniappHomeService._certificate_thumbnail_url(
                 getattr(item, "file_url", None),
                 getattr(item, "file_mime_type", None),
+                getattr(item, "file_key", None),
             ),
             "target_path": f"/pages/search/index?keyword={getattr(item, 'name', '')}&tab=certificate",
         }
@@ -1189,7 +1220,8 @@ class MiniappHomeService:
         file_key = str(getattr(image, "file_key", "") or "").strip()
         if file_key.startswith("images/default/brand-certificates/"):
             return file_key
-        return str(getattr(image, "file_url", "") or "").strip()
+        file_url = str(getattr(image, "file_url", "") or "").strip()
+        return file_url or file_key
 
     @classmethod
     def _image_variant_urls(cls, object_key: str, *, verify_exists: bool = True) -> dict[str, str | None]:

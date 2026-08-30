@@ -142,6 +142,7 @@ If the Change or linked REQ has `prototype/`, `prototype_refs`, `AC-PROTOTYPE-*`
 - Before detailed UI implementation is considered complete, record 1440px desktop visual evidence or equivalent evidence. Miniapp UI requires WeChat DevTools, real-device screenshot, or equivalent evidence.
 - For high-risk visual differences, record computed style, Playwright assertion, WeChat DevTools evidence, or equivalent evidence with selector/page/viewport/result.
 - Mock/API boundary MUST be explicit. If real API integration is out of scope, record it as non-goal or follow-up.
+- Environment-tiered evidence MUST distinguish `development`、`trial` and `production`: DevTools, static tests, local smoke and development API evidence may satisfy development acceptance, but MUST NOT be described as trial, real-device, or production publish proof. Production-only gaps that cannot be verified before release should be recorded as `production_only_pending`, `environment_unavailable`, `follow_up`, or `not_applicable_for_development` unless the Change target is production execution.
 
 Infer tags from trace, proposal/design, change id, and tasks:
 

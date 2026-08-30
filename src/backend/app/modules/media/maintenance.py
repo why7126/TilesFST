@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import hashlib
 import json
 import mimetypes
+from pathlib import PurePosixPath
 import sys
-from typing import Any
+from typing import Any, TextIO
 
 from sqlalchemy import text
 
@@ -31,6 +32,7 @@ from app.modules.media.storage import (
     MEDIA_NOT_FOUND,
     generate_image_thumbnail,
     get_media_storage_client,
+    media_url_for_object_key,
     same_directory_display_object_key,
     same_directory_thumbnail_object_key,
 )
@@ -43,6 +45,7 @@ from app.repositories.system_settings_repository import SystemSettingsRepository
 from app.services.effective_settings_service import EffectiveSettingsService
 
 IMAGE_MIME_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
+BANNER_IMAGE_PREFIX = "images/default/banners/"
 CERTIFICATE_FILE_PREFIX = "files/default/brand-certificates/"
 CERTIFICATE_IMAGE_PREFIX = "images/default/brand-certificates/"
 OBJECT_STORAGE_UNREACHABLE = "object_storage_unreachable"
@@ -77,6 +80,85 @@ class ObjectStorageBlockedError(Exception):
     category: str
     error_code: str
     operation: str
+
+
+@dataclass
+class ProgressReporter:
+    enabled: bool
+    task: str
+    total: int
+    stage: str
+    stream: TextIO = field(default_factory=lambda: sys.stderr)
+    completed: int = 0
+    success: int = 0
+    failed: int = 0
+    skipped: int = 0
+
+    def emit(self, *, stage: str | None = None, status: str = "running") -> None:
+        if not self.enabled:
+            return
+        current_stage = stage or self.stage
+        total = max(0, int(self.total))
+        percent = 100.0 if total == 0 else min(100.0, (self.completed / total) * 100)
+        print(
+            " ".join(
+                [
+                    "progress",
+                    f"task={self.task}",
+                    f"stage={current_stage}",
+                    f"status={status}",
+                    f"completed={self.completed}",
+                    f"total={total}",
+                    f"progress_percent={percent:.2f}",
+                    f"success={self.success}",
+                    f"failed={self.failed}",
+                    f"skipped={self.skipped}",
+                ]
+            ),
+            file=self.stream,
+            flush=True,
+        )
+
+    def advance(
+        self,
+        *,
+        stage: str | None = None,
+        status: str = "running",
+        completed_delta: int = 1,
+        success: int | None = None,
+        failed: int | None = None,
+        skipped: int | None = None,
+    ) -> None:
+        self.completed += completed_delta
+        if success is not None:
+            self.success = success
+        if failed is not None:
+            self.failed = failed
+        if skipped is not None:
+            self.skipped = skipped
+        self.emit(stage=stage, status=status)
+
+
+def _progress_reporter(
+    args: argparse.Namespace,
+    *,
+    task: str,
+    stage: str,
+    total: int,
+) -> ProgressReporter:
+    return ProgressReporter(
+        enabled=bool(getattr(args, "progress", False)),
+        task=str(getattr(args, "progress_task", task)),
+        stage=str(getattr(args, "progress_stage", stage)),
+        total=total,
+        stream=sys.stderr,
+    )
+
+
+def _copy_args(args: argparse.Namespace, **overrides: Any) -> argparse.Namespace:
+    values = vars(args).copy()
+    values.update(overrides)
+    return argparse.Namespace(**values)
 
 
 def _fingerprint(value: str) -> str:
@@ -375,6 +457,64 @@ def _regenerate_display(
     return True, None, bool(target_bytes and display.size > target_bytes)
 
 
+def _banner_legacy_variant_keys(
+    row: dict[str, object],
+    *,
+    thumbnail_key: str,
+    display_key: str,
+) -> dict[str, str]:
+    if str(row.get("source_type") or "") != "banner_image":
+        return {}
+    object_key = str(row.get("object_key") or "").strip()
+    source_id = str(row.get("source_id") or "").strip()
+    if not object_key.startswith(BANNER_IMAGE_PREFIX) or not source_id:
+        return {}
+    relative_key = object_key.removeprefix(BANNER_IMAGE_PREFIX)
+    business_prefix = f"{source_id}/"
+    if not relative_key.startswith(business_prefix):
+        return {}
+    filename = relative_key.removeprefix(business_prefix)
+    if not filename or "/" in filename:
+        return {}
+    legacy_original_key = f"{BANNER_IMAGE_PREFIX}{filename}"
+    return {
+        "thumbnail": same_directory_thumbnail_object_key(legacy_original_key),
+        "display": same_directory_display_object_key(legacy_original_key),
+        "canonical_thumbnail": thumbnail_key,
+        "canonical_display": display_key,
+    }
+
+
+def _copy_or_regenerate_banner_legacy_variant(
+    *,
+    original_key: str,
+    canonical_key: str,
+    legacy_key: str,
+    variant: str,
+    thumbnail_max_size_kb: int,
+    display_max_size_kb: int,
+) -> tuple[bool, str | None, bool]:
+    storage = get_media_storage_client()
+    try:
+        canonical = storage.get_object(canonical_key)
+        storage.put_object(legacy_key, canonical.content, canonical.content_type)
+        return True, None, False
+    except AppError as exc:
+        if _classify_storage_error(exc) != OBJECT_MISSING:
+            return False, str(getattr(exc, "code", exc.__class__.__name__)), False
+    if variant == "thumbnail":
+        return _regenerate_thumbnail(
+            original_key,
+            legacy_key,
+            thumbnail_max_size_kb=thumbnail_max_size_kb,
+        )
+    return _regenerate_display(
+        original_key,
+        legacy_key,
+        display_max_size_kb=display_max_size_kb,
+    )
+
+
 def _image_content_type_for_key(object_key: str, content_type: str | None) -> str | None:
     normalized = (content_type or "").lower().split(";", 1)[0].strip()
     if normalized in IMAGE_MIME_TYPES:
@@ -406,6 +546,18 @@ def _thumbnail_source_rows(limit: int | None) -> list[dict[str, object]]:
             WHERE logo_object_key IS NOT NULL
               AND logo_object_key != ''
             UNION ALL
+            SELECT 'banner_image' AS source_type,
+                   id AS source_id,
+                   image_object_key AS object_key,
+                   NULL AS mime_type
+            FROM banners
+            WHERE image_object_key IS NOT NULL
+              AND image_object_key != ''
+              AND (
+                  image_source = 'custom_upload'
+                  OR image_object_key LIKE 'images/default/banners/%'
+              )
+            UNION ALL
             SELECT 'certificate_file' AS source_type,
                    id AS source_id,
                    file_key AS object_key,
@@ -435,6 +587,18 @@ def _thumbnail_source_rows(limit: int | None) -> list[dict[str, object]]:
         session.close()
 
 
+def _unique_thumbnail_source_rows(limit: int | None) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for row in _thumbnail_source_rows(limit):
+        object_key = str(row["object_key"] or "").strip()
+        if not object_key or object_key in seen:
+            continue
+        seen.add(object_key)
+        rows.append(row)
+    return rows
+
+
 def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
     execute = bool(args.apply)
     limit = args.limit
@@ -461,13 +625,18 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
         "thumbnail_max_size_kb": thumbnail_max_size_kb,
     }
     items: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for row in _thumbnail_source_rows(limit):
+    rows = _unique_thumbnail_source_rows(limit)
+    progress = _progress_reporter(
+        args,
+        task="backfill-brand-certificate-thumbnails",
+        stage="thumbnail_backfill",
+        total=len(rows),
+    )
+    progress.emit(status="started")
+    for row in rows:
         object_key = str(row["object_key"] or "").strip()
-        if not object_key or object_key in seen:
-            continue
-        seen.add(object_key)
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
+        progress.emit(status="checking_variants")
         try:
             needs_regeneration, reason = _needs_regeneration(
                 object_key,
@@ -498,6 +667,7 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
             if reason == "thumbnail_exceeds_target_size":
                 summary["exceeds_target_size"] += 1
             if execute:
+                progress.emit(status="regenerating_thumbnail")
                 ok, failure, not_within_target = _regenerate_thumbnail(
                     object_key,
                     thumbnail_key,
@@ -531,6 +701,11 @@ def run_thumbnail_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 "thumbnail_max_size_kb": thumbnail_max_size_kb,
             }
         )
+        progress.advance(
+            success=int(summary["success"]),
+            failed=int(summary["failed"]),
+            skipped=int(summary["skipped"]),
+        )
     summary["total"] = len(items)
     result["summary"] = summary
     result["items"] = items
@@ -563,6 +738,8 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
         "display_missing": 0,
         "thumbnail_no_benefit": 0,
         "display_no_benefit": 0,
+        "banner_legacy_alias_missing": 0,
+        "banner_legacy_alias_writes": 0,
         "estimated_writes": 0,
         "not_within_target": 0,
         "retry_candidates": 0,
@@ -573,14 +750,24 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
         "display_max_size_kb": display_max_size_kb,
     }
     items: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for row in _thumbnail_source_rows(limit):
+    rows = _unique_thumbnail_source_rows(limit)
+    progress = _progress_reporter(
+        args,
+        task="backfill-image-variants",
+        stage="image_variant_backfill",
+        total=len(rows),
+    )
+    progress.emit(status="started")
+    for row in rows:
         object_key = str(row["object_key"] or "").strip()
-        if not object_key or object_key in seen:
-            continue
-        seen.add(object_key)
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
         display_key = same_directory_display_object_key(object_key)
+        banner_legacy_keys = _banner_legacy_variant_keys(
+            row,
+            thumbnail_key=thumbnail_key,
+            display_key=display_key,
+        )
+        progress.emit(status="checking_variants")
         try:
             thumbnail_needs, thumbnail_reason = _needs_regeneration(
                 object_key,
@@ -594,6 +781,22 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
             )
             thumbnail_exists = _object_exists(thumbnail_key)
             display_exists = _object_exists(display_key)
+            banner_legacy_needs: dict[str, bool] = {}
+            banner_legacy_reasons: dict[str, str | None] = {}
+            for variant in ("thumbnail", "display"):
+                legacy_key = banner_legacy_keys.get(variant)
+                if not legacy_key:
+                    continue
+                max_size_kb = (
+                    thumbnail_max_size_kb if variant == "thumbnail" else display_max_size_kb
+                )
+                needs_alias, alias_reason = _needs_regeneration(
+                    object_key,
+                    legacy_key,
+                    thumbnail_max_size_kb=max_size_kb,
+                )
+                banner_legacy_needs[variant] = needs_alias
+                banner_legacy_reasons[variant] = alias_reason
         except ObjectStorageBlockedError as exc:
             return _apply_storage_blocked_result(
                 result,
@@ -604,7 +807,8 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 thumbnail_applicable=True,
                 render_applicable=True,
             )
-        required_writes = int(thumbnail_needs) + int(display_needs)
+        banner_legacy_writes = sum(1 for needs in banner_legacy_needs.values() if needs)
+        required_writes = int(thumbnail_needs) + int(display_needs) + banner_legacy_writes
         status = "dry_run" if required_writes and not execute else "skipped"
         summary["estimated_writes"] += required_writes
         summary["retry_candidates"] += 1 if required_writes else 0
@@ -616,6 +820,9 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
             summary["thumbnail_no_benefit"] += 1
         if display_reason in {"thumbnail_same_size", "thumbnail_copied_original"}:
             summary["display_no_benefit"] += 1
+        summary["banner_legacy_alias_writes"] += banner_legacy_writes
+        if any(reason == "thumbnail_missing" for reason in banner_legacy_reasons.values()):
+            summary["banner_legacy_alias_missing"] += 1
 
         variant_results: dict[str, str] = {}
         if execute and required_writes:
@@ -627,6 +834,7 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 if not needs:
                     variant_results[variant] = "skipped"
                     continue
+                progress.emit(status=f"generating_{variant}")
                 if variant == "thumbnail":
                     ok, failure, not_within_target = _regenerate_thumbnail(
                         object_key,
@@ -649,6 +857,31 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
                     variant_results[variant] = "failed"
                     reasons = summary["failure_reasons"]
                     reasons[failure or "unknown"] = reasons.get(failure or "unknown", 0) + 1
+            for variant in ("thumbnail", "display"):
+                if not banner_legacy_needs.get(variant):
+                    continue
+                progress.emit(status=f"generating_banner_legacy_{variant}")
+                canonical_key = str(banner_legacy_keys.get(f"canonical_{variant}") or "")
+                legacy_key = str(banner_legacy_keys.get(variant) or "")
+                ok, failure, not_within_target = _copy_or_regenerate_banner_legacy_variant(
+                    original_key=object_key,
+                    canonical_key=canonical_key,
+                    legacy_key=legacy_key,
+                    variant=variant,
+                    thumbnail_max_size_kb=thumbnail_max_size_kb,
+                    display_max_size_kb=display_max_size_kb,
+                )
+                result_key = f"banner_legacy_{variant}"
+                if ok:
+                    summary["success"] += 1
+                    summary["not_within_target"] += 1 if not_within_target else 0
+                    variant_results[result_key] = "generated"
+                else:
+                    status = "failed"
+                    summary["failed"] += 1
+                    variant_results[result_key] = "failed"
+                    reasons = summary["failure_reasons"]
+                    reasons[failure or "unknown"] = reasons.get(failure or "unknown", 0) + 1
         elif not required_writes:
             summary["skipped"] += 1
         items.append(
@@ -663,15 +896,28 @@ def run_image_variant_backfill(args: argparse.Namespace) -> dict[str, Any]:
                 "needs": {
                     "thumbnail": thumbnail_needs,
                     "display": display_needs,
+                    "banner_legacy_thumbnail": banner_legacy_needs.get("thumbnail", False),
+                    "banner_legacy_display": banner_legacy_needs.get("display", False),
                 },
                 "reasons": {
                     "thumbnail": thumbnail_reason,
                     "display": display_reason,
+                    "banner_legacy_thumbnail": banner_legacy_reasons.get("thumbnail"),
+                    "banner_legacy_display": banner_legacy_reasons.get("display"),
+                },
+                "banner_legacy_aliases": {
+                    "thumbnail": _safe_object_ref(banner_legacy_keys.get("thumbnail")),
+                    "display": _safe_object_ref(banner_legacy_keys.get("display")),
                 },
                 "variant_results": variant_results,
                 "status": status,
                 "display_max_size_kb": display_max_size_kb,
             }
+        )
+        progress.advance(
+            success=int(summary["success"]),
+            failed=int(summary["failed"]),
+            skipped=int(summary["skipped"]),
         )
     summary["total"] = len(items)
     result["summary"] = summary
@@ -760,6 +1006,13 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
         "failure_reasons": {},
     }
     items: list[dict[str, Any]] = []
+    progress = _progress_reporter(
+        args,
+        task="formalize-pending-tile-images",
+        stage="sku_pending_formalization",
+        total=len(rows),
+    )
+    progress.emit(status="started")
     for row in rows:
         tile_id = int(row["tile_id"])
         image_id = int(row["image_id"])
@@ -768,8 +1021,11 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
         thumbnail_key = same_directory_thumbnail_object_key(object_key)
         target_thumbnail_key = same_directory_thumbnail_object_key(target_key)
         try:
+            progress.emit(status="checking_source")
             original_exists = _object_exists(object_key)
+            progress.emit(status="checking_thumbnail")
             thumbnail_exists = _object_exists(thumbnail_key)
+            progress.emit(status="checking_target")
             destination_exists = _object_exists(target_key)
         except ObjectStorageBlockedError as exc:
             return _apply_storage_blocked_result(
@@ -793,6 +1049,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                 summary["failed"] += 1
             else:
                 try:
+                    progress.emit(status="copying_object")
                     formalize_tile_image_object(
                         tile_id=tile_id,
                         object_key=object_key,
@@ -800,6 +1057,7 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                         thumbnail_max_size_kb=thumbnail_max_size_kb,
                         display_max_size_kb=display_max_size_kb,
                     )
+                    progress.emit(status="updating_db")
                     _update_image_reference(image_id=image_id, target_key=target_key)
                     status = "migrated"
                     summary["success"] += 1
@@ -825,6 +1083,11 @@ def run_pending_tile_formalization(args: argparse.Namespace) -> dict[str, Any]:
                 "status": status,
                 "failure_reason": failure_reason,
             }
+        )
+        progress.advance(
+            status=status,
+            success=int(summary["success"]),
+            failed=int(summary["failed"]),
         )
     result["summary"] = summary
     result["items"] = items
@@ -889,6 +1152,328 @@ def _update_certificate_key(*, table_name: str, source_id: int, target_key: str)
         session.close()
 
 
+def _filename_from_object_key(object_key: str) -> str:
+    return PurePosixPath(object_key).name
+
+
+def _is_image_key(object_key: str, mime_type: str | None) -> bool:
+    return _image_content_type_for_key(object_key, mime_type) is not None
+
+
+def _business_media_target_key(row: dict[str, object]) -> str | None:
+    source_type = str(row["source_type"])
+    source_id = str(row["source_id"] or "").strip()
+    business_id = str(row["business_id"] or "").strip()
+    object_key = str(row["object_key"] or "").strip()
+    filename = _filename_from_object_key(object_key)
+    if not source_id or not business_id or not object_key or not filename:
+        return None
+    if source_type == "user_avatar":
+        return f"images/default/user-avatars/{source_id}/{filename}"
+    if source_type == "brand_logo":
+        return f"images/default/brand-logos/{source_id}/{filename}"
+    if source_type == "banner_image":
+        return f"images/default/banners/{source_id}/{filename}"
+    if source_type == "tile_image":
+        return f"images/default/tiles/{business_id}/{filename}"
+    if source_type == "tile_video":
+        return f"videos/default/tiles/{business_id}/{filename}"
+    if source_type in {"certificate_file", "certificate_image"}:
+        if _is_image_key(object_key, str(row.get("mime_type") or "")):
+            return f"images/default/brand-certificates/{business_id}/{filename}"
+        return f"files/default/brand-certificates/{business_id}/{filename}"
+    return None
+
+
+def _already_business_media_key(row: dict[str, object], target_key: str | None) -> bool:
+    return target_key is not None and str(row["object_key"] or "").strip() == target_key
+
+
+def _business_media_rows(limit: int | None) -> list[dict[str, object]]:
+    session = get_session_factory()()
+    try:
+        sql = """
+            SELECT 'user_avatar' AS source_type,
+                   id AS source_id,
+                   id AS business_id,
+                   avatar_object_key AS object_key,
+                   NULL AS mime_type,
+                   'users' AS table_name,
+                   'avatar_object_key' AS column_name
+            FROM users
+            WHERE avatar_object_key IS NOT NULL AND avatar_object_key != ''
+            UNION ALL
+            SELECT 'brand_logo' AS source_type,
+                   id AS source_id,
+                   id AS business_id,
+                   logo_object_key AS object_key,
+                   NULL AS mime_type,
+                   'brands' AS table_name,
+                   'logo_object_key' AS column_name
+            FROM brands
+            WHERE logo_object_key IS NOT NULL AND logo_object_key != ''
+            UNION ALL
+            SELECT 'banner_image' AS source_type,
+                   id AS source_id,
+                   id AS business_id,
+                   image_object_key AS object_key,
+                   NULL AS mime_type,
+                   'banners' AS table_name,
+                   'image_object_key' AS column_name
+            FROM banners
+            WHERE image_object_key IS NOT NULL AND image_object_key != ''
+              AND (image_source = 'custom_upload' OR image_object_key LIKE 'images/default/banners/%')
+            UNION ALL
+            SELECT 'tile_image' AS source_type,
+                   id AS source_id,
+                   tile_id AS business_id,
+                   object_key AS object_key,
+                   NULL AS mime_type,
+                   'tile_images' AS table_name,
+                   'object_key' AS column_name
+            FROM tile_images
+            WHERE object_key IS NOT NULL AND object_key != ''
+            UNION ALL
+            SELECT 'tile_video' AS source_type,
+                   id AS source_id,
+                   tile_id AS business_id,
+                   object_key AS object_key,
+                   NULL AS mime_type,
+                   'tile_videos' AS table_name,
+                   'object_key' AS column_name
+            FROM tile_videos
+            WHERE object_key IS NOT NULL AND object_key != ''
+            UNION ALL
+            SELECT 'certificate_file' AS source_type,
+                   id AS source_id,
+                   id AS business_id,
+                   file_key AS object_key,
+                   file_mime_type AS mime_type,
+                   'brand_certificates' AS table_name,
+                   'file_key' AS column_name
+            FROM brand_certificates
+            WHERE deleted_at IS NULL AND file_key IS NOT NULL AND file_key != ''
+            UNION ALL
+            SELECT 'certificate_image' AS source_type,
+                   id AS source_id,
+                   certificate_id AS business_id,
+                   file_key AS object_key,
+                   file_mime_type AS mime_type,
+                   'brand_certificate_images' AS table_name,
+                   'file_key' AS column_name
+            FROM brand_certificate_images
+            WHERE file_key IS NOT NULL AND file_key != ''
+            ORDER BY source_type ASC, source_id ASC
+        """
+        params: dict[str, int] = {}
+        if limit is not None:
+            sql = f"SELECT * FROM ({sql}) scoped LIMIT :limit"
+            params["limit"] = limit
+        return [dict(row) for row in session.execute(text(sql), params).mappings().all()]
+    finally:
+        session.close()
+
+
+def _update_business_media_reference(row: dict[str, object], target_key: str) -> None:
+    table_name = str(row["table_name"])
+    column_name = str(row["column_name"])
+    if table_name not in {
+        "users",
+        "brands",
+        "banners",
+        "tile_images",
+        "tile_videos",
+        "brand_certificates",
+        "brand_certificate_images",
+    }:
+        raise ValueError(f"unsupported media table: {table_name}")
+    if column_name not in {"avatar_object_key", "logo_object_key", "image_object_key", "object_key", "file_key"}:
+        raise ValueError(f"unsupported media column: {column_name}")
+
+    assignments = f"{column_name} = :target_key"
+    params: dict[str, object] = {"target_key": target_key, "source_id": row["source_id"]}
+    if table_name in {"tile_images", "brand_certificate_images"}:
+        assignments += ", url = :url" if table_name == "tile_images" else ", file_url = :url"
+        params["url"] = media_url_for_object_key(target_key)
+    if table_name == "brand_certificates":
+        assignments += ", file_url = :url"
+        params["url"] = media_url_for_object_key(target_key)
+
+    session = get_session_factory()()
+    try:
+        session.execute(
+            text(f"UPDATE {table_name} SET {assignments} WHERE id = :source_id"),
+            params,
+        )
+        session.commit()
+    finally:
+        session.close()
+
+
+def _copy_media_object_with_variants(source_key: str, target_key: str, mime_type: str | None) -> None:
+    storage = get_media_storage_client()
+    if not _object_exists(target_key):
+        original = storage.get_object(source_key)
+        storage.put_object(target_key, original.content, original.content_type or mime_type)
+    if not _is_image_key(source_key, mime_type):
+        return
+    for source_variant, target_variant in (
+        (same_directory_thumbnail_object_key(source_key), same_directory_thumbnail_object_key(target_key)),
+        (same_directory_display_object_key(source_key), same_directory_display_object_key(target_key)),
+    ):
+        if _object_exists(target_variant):
+            continue
+        try:
+            variant = storage.get_object(source_variant)
+        except AppError:
+            continue
+        storage.put_object(target_variant, variant.content, variant.content_type)
+
+
+def run_business_id_media_key_migration(args: argparse.Namespace) -> dict[str, Any]:
+    execute = bool(args.apply)
+    limit = args.limit
+    rows = _business_media_rows(limit)
+    result = _base_summary(task="migrate-business-id-media-keys", apply=execute, limit=limit)
+    summary: dict[str, Any] = {
+        "total": len(rows),
+        "candidates": 0,
+        "success": 0,
+        "skipped": 0,
+        "failed": 0,
+        "missing_original": 0,
+        "target_exists": 0,
+        "failure_reasons": {},
+    }
+    items: list[dict[str, Any]] = []
+    progress = _progress_reporter(
+        args,
+        task="migrate-business-id-media-keys",
+        stage="business_id_media_key_migration",
+        total=len(rows),
+    )
+    progress.emit(status="started")
+    for row in rows:
+        source_key = str(row["object_key"] or "").strip()
+        target_key = _business_media_target_key(row)
+        progress.emit(status="item_started")
+        if _already_business_media_key(row, target_key):
+            summary["skipped"] += 1
+            items.append(
+                {
+                    "source_type": row["source_type"],
+                    "source_id": row["source_id"],
+                    "business_id": row["business_id"],
+                    "source": _safe_object_ref(source_key),
+                    "target": _safe_object_ref(target_key),
+                    "status": "skipped",
+                    "reason": "already_business_id_layout",
+                }
+            )
+            progress.advance(
+                status="skipped",
+                success=int(summary["success"]),
+                failed=int(summary["failed"]),
+                skipped=int(summary["skipped"]),
+            )
+            continue
+        if target_key is None:
+            summary["skipped"] += 1
+            items.append(
+                {
+                    "source_type": row["source_type"],
+                    "source_id": row["source_id"],
+                    "business_id": row["business_id"],
+                    "source": _safe_object_ref(source_key),
+                    "target": None,
+                    "status": "skipped",
+                    "reason": "unsupported_key",
+                }
+            )
+            progress.advance(
+                status="skipped",
+                success=int(summary["success"]),
+                failed=int(summary["failed"]),
+                skipped=int(summary["skipped"]),
+            )
+            continue
+
+        summary["candidates"] += 1
+        try:
+            progress.emit(status="checking_source")
+            original_exists = _object_exists(source_key)
+            progress.emit(status="checking_target")
+            target_exists = _object_exists(target_key)
+        except ObjectStorageBlockedError as exc:
+            return _apply_storage_blocked_result(
+                result,
+                task="migrate-business-id-media-keys",
+                affected_tasks=["migrate-business-id-media-keys"],
+                checked_items=len(items),
+                error=exc,
+                thumbnail_applicable=True,
+                render_applicable=True,
+            )
+        summary["missing_original"] += 0 if original_exists else 1
+        summary["target_exists"] += 1 if target_exists else 0
+        status = "dry_run"
+        failure_reason = None
+        if execute:
+            if not original_exists and not target_exists:
+                status = "failed"
+                failure_reason = "missing_original"
+                summary["failed"] += 1
+            else:
+                try:
+                    if original_exists:
+                        progress.emit(status="copying_object")
+                        _copy_media_object_with_variants(
+                            source_key,
+                            target_key,
+                            str(row.get("mime_type") or ""),
+                        )
+                    progress.emit(status="updating_db")
+                    _update_business_media_reference(row, target_key)
+                    status = "migrated"
+                    summary["success"] += 1
+                except (AppError, ValueError) as exc:
+                    status = "failed"
+                    failure_reason = str(getattr(exc, "code", exc.__class__.__name__))
+                    summary["failed"] += 1
+            if failure_reason:
+                reasons = summary["failure_reasons"]
+                reasons[failure_reason] = reasons.get(failure_reason, 0) + 1
+        items.append(
+            {
+                "source_type": row["source_type"],
+                "source_id": row["source_id"],
+                "business_id": row["business_id"],
+                "source": _safe_object_ref(source_key),
+                "target": _safe_object_ref(target_key),
+                "original_exists": original_exists,
+                "target_exists": target_exists,
+                "status": status,
+                "failure_reason": failure_reason,
+            }
+        )
+        progress.advance(
+            status=status,
+            success=int(summary["success"]),
+            failed=int(summary["failed"]),
+            skipped=int(summary["skipped"]),
+        )
+    result["summary"] = summary
+    result["items"] = items
+    result["acceptance_summary"] = _media_acceptance_summary(
+        task="migrate-business-id-media-keys",
+        total=summary["candidates"],
+        failed=summary["failed"],
+        thumbnail_applicable=True,
+        render_applicable=True,
+    )
+    return result
+
+
 def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, Any]:
     execute = bool(args.apply)
     limit = args.limit
@@ -909,9 +1494,17 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
         "failure_reasons": {},
     }
     items: list[dict[str, Any]] = []
+    progress = _progress_reporter(
+        args,
+        task="migrate-certificate-image-keys",
+        stage="certificate_image_key_migration",
+        total=len(rows),
+    )
+    progress.emit(status="started")
     for row in rows:
         source_key = str(row["object_key"] or "").strip()
         mime_type = _image_content_type_for_key(source_key, str(row["mime_type"] or ""))
+        progress.emit(status="item_started")
         if mime_type is None:
             summary["document_skipped"] += 1
             items.append(
@@ -924,11 +1517,19 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
                     "reason": "not_supported_image",
                 }
             )
+            progress.advance(
+                status="skipped",
+                success=int(summary["success"]),
+                failed=int(summary["failed"]),
+                skipped=int(summary["document_skipped"]),
+            )
             continue
 
         target_key = _certificate_target_key(source_key)
         try:
+            progress.emit(status="checking_source")
             original_exists = _object_exists(source_key)
+            progress.emit(status="checking_target")
             target_exists = _object_exists(target_key)
         except ObjectStorageBlockedError as exc:
             return _apply_storage_blocked_result(
@@ -953,8 +1554,10 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
             else:
                 try:
                     storage = get_media_storage_client()
+                    progress.emit(status="copying_object")
                     original = storage.get_object(source_key)
                     storage.put_object(target_key, original.content, mime_type)
+                    progress.emit(status="updating_db")
                     _update_certificate_key(
                         table_name=str(row["table_name"]),
                         source_id=int(row["source_id"]),
@@ -983,6 +1586,12 @@ def run_certificate_image_key_migration(args: argparse.Namespace) -> dict[str, A
                 "failure_reason": failure_reason,
             }
         )
+        progress.advance(
+            status=status,
+            success=int(summary["success"]),
+            failed=int(summary["failed"]),
+            skipped=int(summary["document_skipped"]),
+        )
     summary["total"] = len(items)
     result["summary"] = summary
     result["items"] = items
@@ -1000,15 +1609,58 @@ def run_bug_0116_media_drift(args: argparse.Namespace) -> dict[str, Any]:
     task_name = getattr(args, "task", "media-drift-reconcile")
     result = _base_summary(task=task_name, apply=bool(args.apply), limit=args.limit)
     task_plan: list[tuple[str, Callable[[argparse.Namespace], dict[str, Any]], argparse.Namespace]] = [
-        ("sku_pending_formalization", run_pending_tile_formalization, args),
-        ("certificate_image_key_migration", run_certificate_image_key_migration, args),
-        ("brand_logo_and_certificate_thumbnail_backfill", run_thumbnail_backfill, args),
-        ("object_key_audit", run_object_key_audit, argparse.Namespace(apply=False, limit=args.limit)),
+        (
+            "sku_pending_formalization",
+            run_pending_tile_formalization,
+            _copy_args(args, progress_task=task_name, progress_stage="sku_pending_formalization"),
+        ),
+        (
+            "business_id_media_key_migration",
+            run_business_id_media_key_migration,
+            _copy_args(args, progress_task=task_name, progress_stage="business_id_media_key_migration"),
+        ),
+        (
+            "certificate_image_key_migration",
+            run_certificate_image_key_migration,
+            _copy_args(args, progress_task=task_name, progress_stage="certificate_image_key_migration"),
+        ),
+        (
+            "brand_logo_and_certificate_thumbnail_backfill",
+            run_thumbnail_backfill,
+            _copy_args(
+                args,
+                progress_task=task_name,
+                progress_stage="brand_logo_and_certificate_thumbnail_backfill",
+            ),
+        ),
+        (
+            "object_key_audit",
+            run_object_key_audit,
+            _copy_args(
+                args,
+                apply=False,
+                progress_task=task_name,
+                progress_stage="object_key_audit",
+            ),
+        ),
     ]
     tasks: dict[str, dict[str, Any]] = {}
     blocked_affected_tasks: list[str] = []
+    progress = _progress_reporter(
+        args,
+        task=task_name,
+        stage="media_drift_reconcile",
+        total=len(task_plan),
+    )
+    progress.emit(status="started")
     for index, (name, runner, runner_args) in enumerate(task_plan):
+        progress.emit(stage=name, status="started")
         tasks[name] = runner(runner_args)
+        progress.advance(
+            stage=name,
+            status="completed",
+            failed=sum(int(task["summary"].get("failed", 0)) for task in tasks.values()),
+        )
         if _is_storage_blocked(tasks[name]):
             blocked_affected_tasks = [task_name for task_name, _, _ in task_plan[index:]]
             for skipped_name, _, _ in task_plan[index + 1 :]:
@@ -1056,6 +1708,7 @@ def run_bug_0116_media_drift(args: argparse.Namespace) -> dict[str, Any]:
         "failed": failed,
         "retry_candidates": retry_candidates,
         "pending_main_images": tasks["sku_pending_formalization"]["summary"].get("total", 0),
+        "business_id_media_candidates": tasks["business_id_media_key_migration"]["summary"].get("candidates", 0),
         "certificate_file_image_candidates": tasks["certificate_image_key_migration"][
             "summary"
         ].get("image_candidates", 0),
@@ -1089,6 +1742,22 @@ def run_object_key_audit(args: argparse.Namespace) -> dict[str, Any]:
                 SELECT 'brand_logo' AS source_type, id AS source_id, logo_object_key AS object_key
                 FROM brands
                 WHERE logo_object_key IS NOT NULL AND logo_object_key != ''
+                UNION ALL
+                SELECT 'user_avatar' AS source_type, id AS source_id, avatar_object_key AS object_key
+                FROM users
+                WHERE avatar_object_key IS NOT NULL AND avatar_object_key != ''
+                UNION ALL
+                SELECT 'banner_image' AS source_type, id AS source_id, image_object_key AS object_key
+                FROM banners
+                WHERE image_object_key IS NOT NULL AND image_object_key != ''
+                UNION ALL
+                SELECT 'tile_image' AS source_type, id AS source_id, object_key AS object_key
+                FROM tile_images
+                WHERE object_key IS NOT NULL AND object_key != ''
+                UNION ALL
+                SELECT 'tile_video' AS source_type, id AS source_id, object_key AS object_key
+                FROM tile_videos
+                WHERE object_key IS NOT NULL AND object_key != ''
                 UNION ALL
                 SELECT 'certificate_file' AS source_type, id AS source_id, file_key AS object_key
                 FROM brand_certificates
@@ -1149,12 +1818,31 @@ def run_object_key_audit(args: argparse.Namespace) -> dict[str, Any]:
 def _object_key_issue(*, source_type: str, object_key: str) -> str | None:
     if not object_key:
         return "empty"
-    if source_type in {"brand_logo", "certificate_image"} and not object_key.startswith("images/"):
+    parts = tuple(object_key.split("/"))
+    if source_type == "user_avatar" and "avartars" in parts:
+        return "invalid_avatar_directory_spelling"
+    if object_key.startswith("/"):
+        return "leading_slash"
+    if source_type in {"user_avatar", "brand_logo", "banner_image", "tile_image", "certificate_image"} and not object_key.startswith("images/"):
         return "image_not_in_images_prefix"
+    if source_type == "tile_video" and not object_key.startswith("videos/"):
+        return "video_not_in_videos_prefix"
     if source_type == "certificate_file":
         suffix = object_key.rsplit(".", 1)[-1].lower() if "." in object_key else ""
         if suffix in {"jpg", "jpeg", "png", "webp"} and not object_key.startswith("images/"):
             return "certificate_image_file_not_in_images_prefix"
+    expected_parts = {
+        "user_avatar": ("images", "default", "user-avatars"),
+        "brand_logo": ("images", "default", "brand-logos"),
+        "banner_image": ("images", "default", "banners"),
+        "tile_image": ("images", "default", "tiles"),
+        "tile_video": ("videos", "default", "tiles"),
+        "certificate_file": (object_key.split("/", 1)[0], "default", "brand-certificates"),
+        "certificate_image": ("images", "default", "brand-certificates"),
+    }.get(source_type)
+    if expected_parts:
+        if len(parts) < 5 or parts[:3] != expected_parts or parts[3] == "pending":
+            return "missing_business_id_directory"
     if object_key.startswith("original/"):
         return "legacy_original_prefix"
     return None
@@ -1192,13 +1880,16 @@ def _media_acceptance_summary(
 TASKS: dict[str, MaintenanceTask] = {
     "backfill-brand-certificate-thumbnails": MaintenanceTask(
         name="backfill-brand-certificate-thumbnails",
-        description="Audit or regenerate SKU, brand logo and brand certificate image thumbnails.",
+        description="Audit or regenerate SKU, banner, brand logo and brand certificate image thumbnails.",
         runner=run_thumbnail_backfill,
         supports_apply=True,
     ),
     "backfill-image-variants": MaintenanceTask(
         name="backfill-image-variants",
-        description="Audit or generate thumbnail and display variants for historical image media.",
+        description=(
+            "Audit or generate thumbnail and display variants for historical SKU, "
+            "banner, brand logo and certificate images."
+        ),
         runner=run_image_variant_backfill,
         supports_apply=True,
     ),
@@ -1214,6 +1905,12 @@ TASKS: dict[str, MaintenanceTask] = {
         runner=run_certificate_image_key_migration,
         supports_apply=True,
     ),
+    "migrate-business-id-media-keys": MaintenanceTask(
+        name="migrate-business-id-media-keys",
+        description="Move historical media objects into business object id directories.",
+        runner=run_business_id_media_key_migration,
+        supports_apply=True,
+    ),
     "bug-0116-media-drift": MaintenanceTask(
         name="bug-0116-media-drift",
         description="Historical alias for media-drift-reconcile.",
@@ -1222,7 +1919,7 @@ TASKS: dict[str, MaintenanceTask] = {
     ),
     "media-drift-reconcile": MaintenanceTask(
         name="media-drift-reconcile",
-        description="Audit or reconcile SKU, brand Logo and certificate image drift.",
+        description="Audit or reconcile SKU, banner, brand Logo and certificate image drift.",
         runner=run_bug_0116_media_drift,
         supports_apply=True,
     ),
@@ -1244,6 +1941,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--confirm-backup",
         action="store_true",
         help="Confirm MySQL and object storage bucket/prefix snapshots exist before apply",
+    )
+    parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Print progress lines to stderr without changing final JSON stdout",
     )
     return parser
 

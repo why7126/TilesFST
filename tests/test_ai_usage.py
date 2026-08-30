@@ -885,7 +885,8 @@ def test_post_command_hook_missing_session_returns_unavailable(tmp_path: Path) -
     assert summary["command_run_count"] == 0
     assert summary["session_input"] == "unavailable"
     assert "session-jsonl-missing" in summary["warnings"]
-    assert summary["recommended_action"]
+    assert "AI_USAGE_SESSIONS_DIR" in summary["recommended_action"]
+    assert "~/.codex/sessions" in summary["recommended_action"]
 
 
 def test_compact_post_command_summary_uses_standard_field_allowlist() -> None:
@@ -1028,6 +1029,23 @@ def test_post_command_hook_auto_discovers_session_by_workflow_context(tmp_path: 
     assert "REQ-0038-brand-certificate-management" in sprint_run["requirements"]
     assert "add-brand-certificate-management" in sprint_run["changes"]
     assert str(tmp_path) not in json.dumps(summary)
+
+
+def test_post_command_hook_warning_recommends_default_session_discovery(tmp_path: Path) -> None:
+    session = tmp_path / "session.jsonl"
+    write_jsonl(session, [{"type": "user_message", "text": "/sprint-archive sprint-027"}])
+
+    summary = ai_usage.post_command_hook(
+        session_jsonl=session,
+        out_dir=tmp_path / "ai-usage",
+        workflow_event="sprint.archive",
+        sprint_id="sprint-027",
+    )
+
+    assert summary["status"] == "warning"
+    assert summary["usage_mode"] == "estimated_fallback"
+    assert "AI_USAGE_SESSIONS_DIR" in summary["recommended_action"]
+    assert "~/.codex/sessions" in summary["recommended_action"]
 
 
 def test_post_command_hook_merges_multiple_target_runs_from_same_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

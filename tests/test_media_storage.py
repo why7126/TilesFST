@@ -427,11 +427,11 @@ def test_save_upload_file_generates_webp_avatar_variants_and_stage_spans() -> No
         size = asyncio.run(
             save_upload_file(
                 file,
-                "images/default/user/avatars/avatar.webp",
+                "images/default/user-avatars/1/avatar.webp",
                 5,
                 stage_recorder=record_stage,
-                thumbnail_key="images/default/user/avatars/avatar.thumb.webp",
-                display_key="images/default/user/avatars/avatar.display.webp",
+                thumbnail_key="images/default/user-avatars/1/avatar.thumb.webp",
+                display_key="images/default/user-avatars/1/avatar.display.webp",
             )
         )
     finally:
@@ -439,12 +439,12 @@ def test_save_upload_file_generates_webp_avatar_variants_and_stage_spans() -> No
 
     assert size == len(original)
     assert set(storage.objects) == {
-        "images/default/user/avatars/avatar.webp",
-        "images/default/user/avatars/avatar.thumb.webp",
-        "images/default/user/avatars/avatar.display.webp",
+        "images/default/user-avatars/1/avatar.webp",
+        "images/default/user-avatars/1/avatar.thumb.webp",
+        "images/default/user-avatars/1/avatar.display.webp",
     }
-    assert storage.objects["images/default/user/avatars/avatar.thumb.webp"].content_type == "image/webp"
-    assert storage.objects["images/default/user/avatars/avatar.display.webp"].content_type == "image/webp"
+    assert storage.objects["images/default/user-avatars/1/avatar.thumb.webp"].content_type == "image/webp"
+    assert storage.objects["images/default/user-avatars/1/avatar.display.webp"].content_type == "image/webp"
     assert [(span_name, status) for span_name, status, _ in spans] == [
         ("file_read", "success"),
         ("original_put_object", "success"),

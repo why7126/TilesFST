@@ -2,7 +2,7 @@
 name: "release-publish"
 description: "记录产品版本发布确认结果和最终公告位置"
 created_at: "2026-07-02 14:56:58"
-updated_at: 2026-08-26 20:58:03
+updated_at: 2026-08-30 15:36:34
 ---
 
 # release-publish
@@ -25,7 +25,7 @@ Use this skill when the user asks `/release-publish <version>` or wants to recor
 ## Input
 
 - `<version>`：必填，例如 `v0.1.0`。
-- Flags：`--announcement-url <url>`、`--published-at <YYYY-MM-DD HH:mm:ss>`、`--dry-run`、`--force`（仅用户明确确认时可用）。
+- Flags：`--announcement-url <url>`、`--published-at <YYYY-MM-DD HH:mm:ss>`、`--target <development|production>`、`--dry-run`、`--force`（仅用户明确确认时可用）。
 
 ## Must Read
 
@@ -46,15 +46,22 @@ src/shared/product-version.ts
 Publish MUST be blocked unless:
 
 - `python scripts/validate-release.py --release-dir releases/<version> --stage publish` exits `0`.
+- `python scripts/validate-environment-tiered-evidence.py --release-dir releases/<version> --target <development|production>` exits `0`, either directly or through `validate-release.py`.
 - Every required gate is `pass` or correctly justified as `na`.
 - Formal-scope Changes are archived.
 - Public announcement is safe for external publication.
-- Product version mismatch has explicit rationale, or `PRODUCT_VERSION` equals `<version>`.
+- Web and miniapp user-visible product version sources all match `<version>`: `src/shared/product-version.ts`, `src/miniapp/utils/product-version.ts`, and `src/miniapp/utils/product-version.js` when present. `version_change_rationale` MUST NOT bypass publish.
 - Usage docs are either generated with validated `usage_docs_preview=pass`, or explicitly skipped with `usage_docs_preview=na`; `pending_confirmation` blocks publish.
 - If `image_required=true` or offline image delivery is in scope, `releases/<version>/image-manifest.json` validates, or approved external build evidence is present.
 - Manifest version, image tag, source plan, input hashes, tarball path, sidecar sha256, and actual tarball sha256 still match current release inputs.
-- If release stable inputs changed after `/image-build`, publish MUST block and rerun `/image-prepare <version>` plus `/image-build <version>` before confirmation. Announcement copy is not an image build input; status-only announcement refreshes do not require image rebuild.
+- If release stable inputs or product version sources changed after `/image-build`, publish MUST block and rerun `/image-prepare <version>` plus `/image-build <version>` before confirmation. Announcement copy is not an image build input; status-only announcement refreshes do not require image rebuild.
 - User has supplied or confirmed the final announcement location if there is an external URL.
+- Normal release default upgrade plans exist and validate for the release target: `fresh -> <version>` and, when a previous release exists, `<previous-release-version> -> <version>`. New plans use target-suffixed names such as `fresh-to-v1.2.1.development.json`; legacy unsuffixed plans remain accepted only when their `deployment_target` matches.
+- If `release_target.environment=development`, production-only evidence gaps MUST NOT block publish; record them as production release follow-up.
+- If `release_target.environment=production`, `release.json.production_deployment` MUST contain `env_image_tag`, `backup_confirmation`, `public_api_consistency`, `media_no_fallback`, `runtime_smoke`, and `rollback_readiness`; each item must be `pass` with evidence or `na` with rationale.
+- Development-only evidence from local tests, DevTools screenshots, DevTools Network, or development smoke MUST NOT be promoted into production publish proof. When publishing to production, any upstream `production_only_pending` item MUST be re-evaluated as a production gate, N/A, or blocker.
+
+Before recording publish confirmation, `/release-publish` SHOULD run or consume `/release-status <version>` / `python scripts/validate-release.py --release-dir releases/<version> --status`. If the status panel reports `decision_missing`, `prepare_evidence_missing`, missing default upgrade plans, environment-tiered evidence blockers, or image input drift, publish should report those already classified blockers instead of rediscovering them as unstructured errors.
 
 ### Anti-loop Rule（MUST）
 
@@ -67,7 +74,7 @@ Publish MUST be blocked unless:
 - If the operator asks to generate or replace public announcement copy after publish, this is allowed as a status/content refresh when stable release scope and image input files are unchanged. Update `announcement.mdx` and non-stable announcement metadata in `release.json`, then rerun release publish validation and image manifest validation. Do not rerun `/image-prepare` or `/image-build` unless stable release scope or image input files changed.
 - `release.json` gate evidence, `known_issues`, `publish_confirmation`, and other publish bookkeeping MUST NOT be treated as image stable input; scripts must continue to hash only stable release scope and input files.
 
-`--force` MUST NOT bypass public-safety failures, missing `release.json` / `announcement.mdx`, usage docs pending confirmation, generated usage docs manifest/navigation/safety failures, skipped usage docs without rationale, missing image manifest for image-required releases, or stale image input hashes.
+`--force` MUST NOT bypass public-safety failures, missing `release.json` / `announcement.mdx`, usage docs pending confirmation, generated usage docs manifest/navigation/safety failures, skipped usage docs without rationale, product version mismatch, missing image manifest for image-required releases, or stale image input hashes.
 
 ## Steps
 
@@ -80,6 +87,7 @@ Publish MUST be blocked unless:
    - If external build evidence is used, confirm evidence source, platform, digest or tarball sha256, validation method, owner confirmation and risk statement.
 3. Confirm publish-time fields:
    - `release_time` / published time in `YYYY-MM-DD HH:mm:ss`
+   - release target environment and deployment scope
    - final announcement path or URL
    - rollback and known issues are present
 4. Update only `releases/<version>/release.json` with publish confirmation fields if the existing schema already contains them, or append a conservative `publish_confirmation` object. Do not update `announcement.mdx` in this step:

@@ -1174,7 +1174,11 @@ def _status_payload(
         "usage_matrices": usage_matrices or {},
         "recommended_action": None
         if status == "present" and resolved_usage_mode == USAGE_MODE_ACTUAL
-        else f"Run `python scripts/extract-ai-usage.py --session-jsonl <local-session.jsonl> --sprint <sprint-id>` and re-check {path.name}.",
+        else (
+            "Run `python scripts/extract-ai-usage.py --post-command-hook --workflow-event <event> "
+            "--sprint <sprint-id> --json` to auto-discover `AI_USAGE_SESSIONS_DIR` or "
+            f"`~/.codex/sessions`; if discovery fails, rerun with explicit `--session-jsonl` and re-check {path.name}."
+        ),
     }
     payload["fresh_gate"] = sprint_snapshot_fresh_gate(payload)
     return payload
@@ -1644,7 +1648,10 @@ def post_command_hook(
             },
             "warnings": [warning],
             "warning_count": 1,
-            "recommended_action": "Provide --session-jsonl or set AI_USAGE_SESSION_JSONL to build a redacted usage fact source.",
+            "recommended_action": (
+                "Ensure local Codex sessions exist under `AI_USAGE_SESSIONS_DIR` or `~/.codex/sessions`, "
+                "or provide `--session-jsonl` / `AI_USAGE_SESSION_JSONL` to build a redacted usage fact source."
+            ),
         }
     if not resolved_session.exists():
         return {
@@ -1660,7 +1667,10 @@ def post_command_hook(
             },
             "warnings": ["session-jsonl-not-found"],
             "warning_count": 1,
-            "recommended_action": "Check the local Codex session path and rerun the hook with --session-jsonl.",
+            "recommended_action": (
+                "Check `AI_USAGE_SESSION_JSONL`, `CODEX_SESSION_JSONL`, `AI_USAGE_SESSIONS_DIR`, "
+                "or the default `~/.codex/sessions` directory, then rerun the hook or pass explicit `--session-jsonl`."
+            ),
         }
 
     records, parse_warnings = parse_session_jsonl(resolved_session, manual_map)
@@ -1723,7 +1733,11 @@ def post_command_hook(
     status = "ok" if usage_mode == USAGE_MODE_ACTUAL else "warning"
     recommended_action = None
     if usage_mode != USAGE_MODE_ACTUAL:
-        recommended_action = "Inspect warnings and rerun with a session containing token_count events if actual usage is required."
+        recommended_action = (
+            "Inspect warnings, confirm auto-discovered sessions under `AI_USAGE_SESSIONS_DIR` or "
+            "`~/.codex/sessions` contain attributable token_count events, and rerun with explicit "
+            "`--session-jsonl` if actual usage is required."
+        )
     return {
         "status": status,
         "usage_mode": usage_mode,

@@ -1,7 +1,21 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 130
+next_id: 132
 entries:
+  - id: REQ-0131-media-object-key-business-id-layout
+    title: 统一媒体对象 Key 按业务对象 id 分目录
+    status: done
+    iteration: sprint-027
+    created: "2026-08-29 19:15:09"
+    parent_requirement: REQ-0012-object-storage-key-layout
+    related_change: update-media-object-key-business-id-layout
+  - id: REQ-0130-media-maintenance-progress-output
+    title: 媒体维护任务进度输出
+    status: done
+    iteration: sprint-027
+    created: "2026-08-29 18:02:43"
+    parent_requirement: REQ-0097-prod-compose-media-maintenance-job
+    related_change: add-media-maintenance-progress-output
   - id: REQ-0129-miniapp-sku-detail-actionbar-compact-favorite
     title: 小程序商品详情页底部收藏按钮与操作栏紧凑化
     status: done

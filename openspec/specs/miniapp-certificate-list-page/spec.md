@@ -37,6 +37,21 @@ TBD - created by archiving change add-miniapp-certificate-list-page. Update Purp
 - **THEN** 证书列表 SHALL 使用稳定排序
 - **AND** 分页追加 SHALL NOT 重复、遗漏或顺序漂移。
 
+#### Scenario: 图片证书返回受控缩略图
+- **GIVEN** 公开证书列表中存在图片类品牌证书，且证书存在可信主图记录、可信 `file_key` 或可兼容旧单文件图片来源
+- **WHEN** 小程序请求 `GET /api/v1/miniapp/certificates`
+- **THEN** 后端 SHALL 为该图片证书返回非空 `thumbnail_url` 或等价受控卡片小图 URL
+- **AND** `thumbnail_url` SHALL 指向后端受控 `/media/` URL、对象存储适配层生成的公开安全 URL 或等价受控读取 URL
+- **AND** URL 语义 SHALL 对应同目录 `.thumb.webp` 或等价轻量缩略图
+- **AND** 响应 SHALL NOT 暴露 `file_key`、raw object key、bucket、内部 endpoint、Authorization header、Cookie、密钥、`.env` 内容或本机路径。
+
+#### Scenario: 图片证书缺少可信缩略图时保持占位语义
+- **GIVEN** 图片类证书缺少可信媒体 key、缩略图对象不存在、对象不可读或媒体类型证据不足
+- **WHEN** 后端生成公开证书列表响应
+- **THEN** 后端 MAY 返回 `thumbnail_url: null`
+- **AND** 小程序 SHALL 展示统一“证书”占位或受控失败态
+- **AND** 小程序 SHALL NOT 使用 `file_url`、原图、原始文件 URL 或 raw object URL 作为列表卡片图片 fallback。
+
 ### Requirement: 证书卡片展示
 
 小程序 SHALL 使用移动端两列证书卡片展示公开证书摘要，并对图片、PDF 和缺失文件稳定降级。图片证书卡片 SHALL 优先使用后端受控真实缩略图或等价卡片小图；预览或详情入口 SHALL 使用原图、原文件或等价安全引用。证书卡片缺少缩略图、缩略图不可读或图片加载失败时 SHALL 展示统一占位或受控失败态，SHALL NOT 在卡片图片 `src` 中 fallback 到 `file_url`、原图或原始文件 URL。

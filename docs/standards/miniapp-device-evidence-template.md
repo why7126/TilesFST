@@ -4,7 +4,7 @@ content: 微信小程序 DevTools 预览、真机验收、自动化证据、N/A�
 source: REQ-0052-miniapp-device-evidence-template / add-miniapp-device-evidence-template
 update_method: 小程序设备验收字段、证据边界或 Sprint 验收口径变化时同步更新
 created_at: 2026-07-19 18:41:32
-updated_at: 2026-08-12 14:54:20
+updated_at: 2026-08-30 12:26:56
 ---
 
 # 小程序 DevTools/真机验收 evidence 模板
@@ -42,6 +42,19 @@ updated_at: 2026-08-12 14:54:20
 | `blocked` | 设备、账号、环境、网络、版本或外部依赖阻塞 | 阻塞原因、责任人和下一步 |
 | `not_applicable` | 当前 Change 不需要该类设备验收 | N/A reason，不得留空 |
 | `follow_up` | 可发布但保留后续人工确认 | 剩余风险、责任人和承接方式 |
+
+### 3.1 环境分层字段
+
+每条涉及环境、设备或网络的 evidence SHOULD 记录以下字段。历史表格可使用等价列名。
+
+| 字段 | 要求 |
+|---|---|
+| `target_environment` | `development`、`trial`、`production` 或 `not_applicable` |
+| `phase` | `dev_acceptance`、`trial_acceptance`、`release_prepare`、`production_publish` 或 `post_release` |
+| `blocking_scope` | 当前缺口阻塞的命令或阶段，例如 `opsx.archive`、`sprint.archive`、`release-publish:production` |
+| `classification` | `prepare_evidence_missing`、`production_only_pending`、`environment_unavailable`、`blocked`、`not_applicable` 或 `follow_up` |
+
+开发阶段 DevTools 预览、DevTools Network、静态校验和开发 API smoke 可支撑 `dev_acceptance`，但不得写作体验版、真机或生产发布通过。体验版入口、生产域名、生产接口或真机设备只有发布后才能验证时，开发阶段记录为 `production_only_pending`、`follow_up` 或 `not_applicable_for_development`，不阻塞 `opsx.archive`；生产发布阶段必须重新验证或记录明确 N/A。
 
 通用字段：
 
@@ -111,6 +124,8 @@ Network evidence 用于记录小程序发布前的真实请求链路。静态测
 | `resource_result` | 图片、视频、证书图片、受控媒体 URL 或静态资源加载结论 |
 | `failure_or_blocker` | `failed` / `blocked` / `follow_up` 时必填：失败表现、阻塞原因、剩余风险和下一步 |
 | `network_equivalence_note` | `network_devtools` 必须说明“不等同于体验版或真机网络验收” |
+
+`network_devtools` 在开发阶段可作为开发验收证据；若生产 API、生产域名、体验版入口或真机 Network 只有发布后才能验证，`network_trial` 或生产 Network 缺口应标记为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`。缺少体验版或生产 Network evidence 时仍不得写作体验版或生产通过。
 
 媒体资源 Network evidence 还应补充以下字段，详见 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`：
 

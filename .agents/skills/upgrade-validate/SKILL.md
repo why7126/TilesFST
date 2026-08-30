@@ -1,6 +1,7 @@
 ---
 name: "upgrade-validate"
 description: "校验版本部署升级与回滚计划"
+updated_at: 2026-08-30 09:55:00
 ---
 
 # upgrade-validate
@@ -43,7 +44,9 @@ python scripts/validate-release-upgrade.py validate-plan --plan <path>
 
 ## Output
 
-报告 plan path、from version、to version、support level、blocker/warning 数、校验结果、下一步和待用户决策/处理。
+报告 plan path、from version、to version、deployment target、support level、blocker/warning 数、校验结果、下一步和待用户决策/处理。新计划文件名应包含目标后缀，例如 `.development.json` 或 `.production.json`；历史无后缀计划仅在 `deployment_target` 匹配时兼容。
+
+当 `deployment_target=development` 时，必须说明该计划仅覆盖开发环境部署/回滚，不代表生产升级路径已验证。当 `deployment_target=production` 时，必须提醒生产实施前完成真实 env、备份、smoke 和回滚证据确认。
 
 当 `support_level=cross-version-upgrade-requires-manual-review` 时，输出必须提醒人工复核中间版本 release 事实、env diff、DB drift/smoke、对象存储影响和回滚证据。
 

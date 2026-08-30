@@ -21,6 +21,7 @@ from app.repositories.brand_certificate_repository import (
     BrandCertificateRepository,
 )
 from app.repositories.brand_repository import BrandRepository
+from app.modules.media.business_media import formalize_business_media_object, is_pending_business_media_key
 from app.modules.media.storage import same_directory_thumbnail_object_key
 from app.schemas.brand_certificate_admin import (
     BrandCertificateCreateRequest,
@@ -222,6 +223,7 @@ class BrandCertificateAdminService:
         if self._repo.get_by_brand_and_name(brand_id=payload.brand_id, name=values["name"]):
             raise BrandCertificateNameDuplicatedError()
         record = self._repo.create(values, images)
+        record = self._formalize_certificate_media_if_needed(record)
         self._audit(actor_user_id, "brand_certificate_create", record, "新增品牌证书", task_trace_id, task_type)
         return self.to_item(record)
 
@@ -247,8 +249,84 @@ class BrandCertificateAdminService:
             raise BrandCertificateNameDuplicatedError()
         record = self._repo.update(certificate_id, values, images)
         assert record is not None
+        record = self._formalize_certificate_media_if_needed(record)
         self._audit(actor_user_id, "brand_certificate_update", record, "编辑品牌证书", task_trace_id, task_type)
         return self.to_item(record)
+
+    def _formalize_certificate_media_if_needed(
+        self,
+        record: BrandCertificateRecord,
+    ) -> BrandCertificateRecord:
+        changed = False
+        file_key = record.file_key
+        file_url = record.file_url
+        if is_pending_business_media_key(record.file_key):
+            is_image = record.file_mime_type in CERTIFICATE_IMAGE_MIME_TYPES
+            usage = "images" if is_image else "files"
+            media_kind = "image" if is_image else "file"
+            file_key = formalize_business_media_object(
+                object_key=record.file_key,
+                resource_type="brand-certificates",
+                business_id=record.id,
+                usage=usage,
+                media_kind=media_kind,
+            )
+            file_url = f"/media/{file_key}"
+            changed = True
+
+        images: list[dict] = []
+        for image in record.images:
+            image_key = image.file_key
+            image_url = image.file_url
+            if is_pending_business_media_key(image.file_key):
+                image_key = formalize_business_media_object(
+                    object_key=image.file_key,
+                    resource_type="brand-certificates",
+                    business_id=record.id,
+                    usage="images",
+                    media_kind="image",
+                )
+                image_url = f"/media/{image_key}"
+                changed = True
+            images.append(
+                {
+                    "file_url": image_url,
+                    "file_key": image_key,
+                    "file_name": image.file_name,
+                    "file_mime_type": image.file_mime_type,
+                    "file_size_bytes": image.file_size_bytes,
+                    "is_main": int(image.is_main),
+                    "sort_order": image.sort_order,
+                }
+            )
+
+        if not changed:
+            return record
+
+        updated = self._repo.update(
+            record.id,
+            {
+                "brand_id": record.brand_id,
+                "name": record.name,
+                "sort_order": record.sort_order,
+                "type": record.type,
+                "certificate_no": record.certificate_no,
+                "issuer": record.issuer,
+                "file_url": file_url,
+                "file_key": file_key,
+                "file_name": record.file_name,
+                "file_mime_type": record.file_mime_type,
+                "file_size_bytes": record.file_size_bytes,
+                "is_permanent": int(record.is_permanent),
+                "effective_date": record.effective_date,
+                "expiry_date": record.expiry_date,
+                "is_visible": int(record.is_visible),
+                "remark": record.remark,
+            },
+            images,
+        )
+        assert updated is not None
+        return updated
 
     def show_certificate(
         self,

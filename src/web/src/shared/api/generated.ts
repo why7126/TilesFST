@@ -2756,12 +2756,24 @@ keyword?: string | null;
 status?: string | null;
 };
 
+export type UploadBrandLogoApiV1AdminUploadsBrandLogosPostParams = {
+brand_id?: number | null;
+};
+
+export type UploadBannerImageApiV1AdminUploadsBannerImagesPostParams = {
+banner_id?: number | null;
+};
+
 export type UploadTileImageApiV1AdminUploadsTileImagesPostParams = {
 tile_id?: number | null;
 };
 
 export type UploadTileVideoApiV1AdminUploadsTileVideosPostParams = {
 tile_id?: number | null;
+};
+
+export type UploadBrandCertificateApiV1AdminUploadsBrandCertificatesPostParams = {
+certificate_id?: number | null;
 };
 
 export type HealthCheckHealthGet200 = {[key: string]: string};
@@ -3876,13 +3888,16 @@ formData.append(`file`, bodyUploadImageApiV1AdminUploadsPost.file);
  * @summary 上传品牌 Logo
  */
 const uploadBrandLogoApiV1AdminUploadsBrandLogosPost = (
-    bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost: BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost, options?: AxiosRequestConfig
+    bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost: BodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost,
+    params?: UploadBrandLogoApiV1AdminUploadsBrandLogosPostParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
 formData.append(`file`, bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost.file);
 
     return axiosInstance.post(
       `/api/v1/admin/uploads/brand-logos`,
-      formData,options
+      formData,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 
@@ -3890,13 +3905,16 @@ formData.append(`file`, bodyUploadBrandLogoApiV1AdminUploadsBrandLogosPost.file)
  * @summary 上传 Banner 图片
  */
 const uploadBannerImageApiV1AdminUploadsBannerImagesPost = (
-    bodyUploadBannerImageApiV1AdminUploadsBannerImagesPost: BodyUploadBannerImageApiV1AdminUploadsBannerImagesPost, options?: AxiosRequestConfig
+    bodyUploadBannerImageApiV1AdminUploadsBannerImagesPost: BodyUploadBannerImageApiV1AdminUploadsBannerImagesPost,
+    params?: UploadBannerImageApiV1AdminUploadsBannerImagesPostParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
 formData.append(`file`, bodyUploadBannerImageApiV1AdminUploadsBannerImagesPost.file);
 
     return axiosInstance.post(
       `/api/v1/admin/uploads/banner-images`,
-      formData,options
+      formData,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 
@@ -3938,13 +3956,16 @@ formData.append(`file`, bodyUploadTileVideoApiV1AdminUploadsTileVideosPost.file)
  * @summary 上传品牌证书文件
  */
 const uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost = (
-    bodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost: BodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost, options?: AxiosRequestConfig
+    bodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost: BodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,
+    params?: UploadBrandCertificateApiV1AdminUploadsBrandCertificatesPostParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<ApiResponseUploadResult>> => {const formData = new FormData();
 formData.append(`file`, bodyUploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost.file);
 
     return axiosInstance.post(
       `/api/v1/admin/uploads/brand-certificates`,
-      formData,options
+      formData,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 

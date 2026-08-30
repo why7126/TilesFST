@@ -6,12 +6,16 @@ import sqlite3
 from pathlib import Path
 
 from app.modules.media.key_migration import collect_migrations, map_legacy_object_key
-from app.modules.media.object_keys import build_object_key
+from app.modules.media.object_keys import (
+    build_business_media_object_key,
+    build_object_key,
+    build_pending_media_object_key,
+)
 
 
 def test_build_object_key_uses_semantic_layout_without_date_segments() -> None:
-    key = build_object_key("images", "user/avatars", "jpg")
-    assert key.startswith("images/default/user/avatars/")
+    key = build_object_key("images", "user-avatars", "jpg")
+    assert key.startswith("images/default/user-avatars/")
     assert key.endswith(".jpg")
     assert "/20" not in key.split("/")[-2:]  # no YYYY/MM before filename
 
@@ -20,6 +24,27 @@ def test_build_object_key_normalizes_prefix_and_extension() -> None:
     key = build_object_key("videos/", "tiles/pending", ".MP4")
     assert key.startswith("videos/default/tiles/pending/")
     assert key.endswith(".mp4")
+
+
+def test_build_business_media_object_key_uses_business_id_and_usage() -> None:
+    key = build_business_media_object_key("images", "brand-logos", 42, "logos", "WEBP")
+    assert key.startswith("images/default/brand-logos/42/")
+    assert key.endswith(".webp")
+
+
+def test_build_pending_media_object_key_uses_pending_business_slot() -> None:
+    key = build_pending_media_object_key("images", "banners", "images", "png")
+    assert key.startswith("images/default/banners/pending/")
+    assert key.endswith(".png")
+
+
+def test_build_business_media_object_key_rejects_path_like_business_id() -> None:
+    try:
+        build_business_media_object_key("images", "brands", "../42", "logos", "webp")
+    except ValueError as exc:
+        assert "business_id" in str(exc)
+    else:
+        raise AssertionError("expected path-like business id to be rejected")
 
 
 def test_map_legacy_brand_certificate_image_key() -> None:
@@ -34,12 +59,12 @@ def test_map_legacy_brand_certificate_pdf_key_stays_file_resource() -> None:
 
 def test_map_legacy_avatar_key() -> None:
     old = "original/default/avatars/2026/06/abc-123.webp"
-    assert map_legacy_object_key(old) == "images/default/user/avatars/abc-123.webp"
+    assert map_legacy_object_key(old) == "images/default/user-avatars/pending/abc-123.webp"
 
 
 def test_map_legacy_brand_logo_key() -> None:
     old = "original/default/brands/logos/2026/06/logo.webp"
-    assert map_legacy_object_key(old) == "images/default/brands/logos/logo.webp"
+    assert map_legacy_object_key(old) == "images/default/brand-logos/pending/logo.webp"
 
 
 def test_map_legacy_tile_image_key() -> None:
@@ -53,7 +78,7 @@ def test_map_legacy_tile_video_key() -> None:
 
 
 def test_map_legacy_returns_none_for_current_key() -> None:
-    current = "images/default/brands/logos/logo.webp"
+    current = "images/default/brand-logos/42/logo.webp"
     assert map_legacy_object_key(current) is None
 
 
@@ -92,7 +117,7 @@ def test_collect_migrations_from_sqlite(tmp_path: Path) -> None:
 
     migrations = collect_migrations(db_path)
     assert [item.new_key for item in migrations] == [
-        "images/default/brands/logos/logo.webp",
+        "images/default/brand-logos/pending/logo.webp",
         "images/default/brand-certificates/certificate.webp",
         "images/default/brand-certificates/page.png",
     ]
