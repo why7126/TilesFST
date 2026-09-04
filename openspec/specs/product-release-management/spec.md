@@ -375,37 +375,14 @@
 - **THEN** release publish SHALL NOT describe cross-version upgrade as supported
 - **AND** public release material SHALL use manual review or unsupported wording.
 
-### Requirement: 发布目标环境分离
-产品版本发布管理 SHALL 区分开发环境发布确认与生产发布确认，并根据目标环境选择发布门禁。
-
-#### Scenario: 开发环境发布确认不受生产证据阻断
-- **WHEN** 发布对象声明 `release_target.environment=development`
-- **THEN** 发布确认 SHALL 表示开发环境部署或开发交付确认
-- **AND** 生产真实 env、生产 MySQL 或对象存储备份、生产公开 API、生产 no-fallback 媒体证据和生产 smoke SHALL NOT 阻断该开发环境发布确认
-- **AND** 这些生产事项 SHALL 作为后续生产发布待办、known issue 或 production release blocker 记录。
-
-#### Scenario: 生产发布确认使用生产门禁
-- **WHEN** 发布对象声明 `release_target.environment=production`
-- **THEN** 发布确认 SHALL 要求生产部署相关证据
-- **AND** 生产 env 显式版本、生产备份、生产 smoke、生产公开 API 和生产媒体证据 SHALL 按发布范围参与门禁或记录明确不适用理由。
-
-#### Scenario: 发布对象记录目标环境
-- **WHEN** 创建或更新发布对象
-- **THEN** 发布对象 SHOULD 包含 `release_target.environment`、`release_target.deployment_scope`、`release_target.production_release_required` 和 `release_target.rationale`
-- **AND** `environment` 与 `deployment_scope` SHALL 使用 `development` 或 `production`。
-
 ### Requirement: 发布状态决策面板
-产品版本发布管理 SHALL 提供只读发布状态决策面板，用于汇总 release、image、upgrade 和 publish 当前状态，并向操作者输出可执行的下一步。
+
+发布状态面板 SHALL 以只读方式汇总 release、image、upgrade 和 publish 当前阶段，并在单一项目发布语义下区分用户决策、证据缺口、普通 follow-up 和唯一下一步。
 
 #### Scenario: 状态面板区分决策与证据
 - **WHEN** 操作者查看某个版本的发布状态
-- **THEN** 状态面板 SHALL 分别列出需要用户选择的决策项、需要命令或人工补齐的证据项，以及不阻断当前目标的后续事项
-- **AND** 每个阻塞项 SHALL 标明分类、影响阶段、阻塞目标、当前证据、建议动作和复核命令。
-
-#### Scenario: 开发发布显示生产后续但不阻断
-- **WHEN** 发布对象声明 `release_target.environment=development`
-- **THEN** 状态面板 SHALL 将生产 env、生产备份、生产 no-fallback、公开 API 和生产 smoke 缺口归类为 `production_only_pending`
-- **AND** 这些缺口 SHALL NOT 作为开发发布的阻塞项。
+- **THEN** 状态面板 SHALL 分别列出需要用户选择的决策项、需要命令或人工补齐的证据项，以及不阻断当前项目发布的后续事项
+- **AND** 每个阻塞项 SHALL 标明分类、影响阶段、当前证据、建议动作和复核命令。
 
 #### Scenario: 状态面板输出唯一下一步
 - **WHEN** 状态面板能够推导出下一条安全动作
@@ -413,66 +390,123 @@
 - **AND** 若仍存在需要用户选择、补证或人工确认的事项，输出 SHALL 将其放入待用户处理区域而不是混入下一步命令。
 
 ### Requirement: 发布阻塞分类契约
-产品版本发布管理 SHALL 使用统一阻塞分类表达 release、image、upgrade 和 publish 中的决策、证据、环境、范围和安全问题。
+
+产品版本发布管理 SHALL 使用统一阻塞分类表达 release、image、upgrade 和 publish 中的决策、证据、环境、范围和安全问题，不再使用生产目标专属分类作为当前发布门禁。
 
 #### Scenario: 阻塞分类字段完整
 - **WHEN** 发布命令、状态面板或 validator 报告发布阻塞项
-- **THEN** 阻塞项 SHALL 使用 `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`production_only_pending`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety` 或 `schema_invalid` 等分类
-- **AND** 阻塞项 SHOULD 包含 phase、blocks_target、owner、current_evidence、safe_remediation 和 rerun_check。
+- **THEN** 阻塞项 SHALL use `decision_missing`, `prepare_evidence_missing`, `publish_evidence_missing`, `input_drift`, `environment_unavailable`, `scope_incomplete`, `public_safety`, or `schema_invalid`
+- **AND** 阻塞项 SHOULD include phase, owner, current_evidence, safe_remediation, and rerun_check.
 
 #### Scenario: 发布确认阶段不再重新发现普通下一步
 - **WHEN** 发布状态面板已报告某版本未达到 publish ready
 - **THEN** `/release-publish` SHOULD 只确认已就绪发布或报告状态面板已暴露的阻塞项
 - **AND** 普通缺失的 image manifest、默认 upgrade plan 或用户决策 SHOULD 在 `/release-status` 或 `/release-prepare` 阶段提前暴露。
 
-### Requirement: 生产证据后置承接
-
-产品发布管理 SHALL 承接开发阶段留下的 `production_only_pending` 证据缺口，并在生产发布时重新判定阻塞状态。
-
-#### Scenario: 开发阶段遗留生产待办
-- **WHEN** REQ、BUG、Change 或 Sprint 验收记录存在 `production_only_pending`
-- **THEN** 开发环境发布或开发归档 SHALL 可继续完成
-- **AND** 发布状态面板 SHALL 将这些事项显示为生产发布待办或后续生产确认项
-- **AND** SHALL NOT 将其混入开发阶段失败项。
-
-#### Scenario: 生产发布重新收紧门禁
-- **WHEN** 发布对象声明 `release_target.environment=production`
-- **THEN** 生产证据待办 SHALL 重新按发布范围归类为 `publish_evidence_missing`、`environment_unavailable`、`schema_invalid` 或明确 N/A
-- **AND** 缺少生产 env、备份、公开 API、生产 no-fallback 媒体、生产 smoke 或回滚准备证据时 SHALL 阻塞生产发布，除非该项对本次发布范围不适用。
-
-### Requirement: 生产发布环境证据强门禁
-
-发布状态与发布确认 SHALL 在生产目标下强制重新判定开发阶段遗留的 `production_only_pending`，不得让开发证据自动升级为生产发布证据。
-
-#### Scenario: Development target 保留生产后置项
-- **WHEN** release status 或 release validation 的目标为 `development`
-- **THEN** 环境证据脚本发现 `production_only_pending` SHALL 作为 production follow-up 或非阻塞项输出
-- **AND** 仅当文本把开发证据写作生产通过、体验版通过或真机通过时才作为 blocker。
-
-#### Scenario: Production target 阻断未重判的后置项
-- **WHEN** release status 或 release publish 的目标为 `production`
-- **THEN** 仍残留的 `production_only_pending` SHALL 被视为未重新判定的生产证据缺口
-- **AND** validation SHALL 将其归类为 `publish_evidence_missing` 或 `environment_unavailable`
-- **AND** 发布确认 SHALL 阻断，直到该项被生产 evidence、明确 N/A 或具体 blocker 替代。
-
 ### Requirement: 产品版本号发布强门禁
 
-发布准备与发布确认 SHALL 强制校验用户可见产品版本号与目标发布版本一致，不得通过说明性 rationale 放行版本漂移。
+发布准备 SHALL 自动同步用户可见产品版本号与目标发布版本；发布确认 SHALL 只校验版本号一致性，不得在确认阶段写入版本源或通过说明性 rationale 放行版本漂移。
 
-#### Scenario: Release prepare blocks product version mismatch
-- **WHEN** release prepare validation runs for `<version>`
-- **AND** `src/shared/product-version.ts`, `src/miniapp/utils/product-version.ts`, or `src/miniapp/utils/product-version.js` exists with `PRODUCT_VERSION` different from `<version>`
-- **THEN** validation SHALL fail before marking prepare complete
-- **AND** the failure SHALL identify the mismatched file and expected version.
+#### Scenario: Release prepare synchronizes product version sources
+- **WHEN** release prepare runs for `<version>`
+- **THEN** it SHALL synchronize existing user-visible `PRODUCT_VERSION` sources to `<version>` before prepare validation
+- **AND** the synchronized sources SHALL include `src/shared/product-version.ts`, `src/miniapp/utils/product-version.ts`, and `src/miniapp/utils/product-version.js` when present
+- **AND** it SHALL record `release.json.gates.product_version` evidence and `release.json.product_version_sync` metadata.
 
-#### Scenario: Release publish blocks user-visible version mismatch
+#### Scenario: Release prepare refreshes derived announcement version status
+- **WHEN** release prepare synchronizes product version sources
+- **THEN** it MAY refresh release announcement title, heading, and version status copy that can be derived from `release.json`
+- **AND** it SHALL NOT write final publish confirmation, tarball checksum, or manually authored feature/risk copy into `announcement.mdx`.
+
+#### Scenario: Release publish confirms but does not write product version sources
 - **WHEN** release publish validation runs for `<version>`
 - **AND** any user-visible `PRODUCT_VERSION` source differs from `<version>`
-- **THEN** publish SHALL be blocked even if `version_change_rationale` is present
-- **AND** the release MUST NOT be marked published until the version sources are aligned.
+- **THEN** publish SHALL be blocked and SHALL point back to `/release-prepare <version>`
+- **AND** release publish SHALL NOT modify Web or miniapp product version source files.
+
+#### Scenario: Image prepare requires aligned product version sources
+- **WHEN** image prepare runs for `<version>`
+- **AND** any existing user-visible `PRODUCT_VERSION` source differs from `<version>`
+- **THEN** image prepare SHALL record a blocker that instructs the operator to run `/release-prepare <version>` first
+- **AND** image prepare SHALL NOT modify product version source files itself.
 
 #### Scenario: Version source change invalidates image evidence
 - **WHEN** a product version source is changed after image prepare or image build evidence exists
-- **THEN** the operator SHALL rerun `/image-prepare <version>` and `/image-build <version>` before publishing
+- **THEN** the operator SHALL rerun `/release-prepare <version>`, `/image-prepare <version>`, and `/image-build <version>` before publishing
 - **AND** release status or validation SHALL present those commands as the safe remediation path.
+
+### Requirement: 单一项目发布语义
+
+产品版本发布管理 SHALL 使用单一项目发布语义，不再将 development 或 production 作为本项目发布目标维度。
+
+#### Scenario: 旧 target 入参不改变发布门禁
+- **WHEN** release、status、publish 或 upgrade 命令收到历史兼容的 `--target development` 或 `--target production`
+- **THEN** validator SHALL treat it as compatibility input only
+- **AND** the release scope SHALL remain `project`
+- **AND** target input SHALL NOT change required gates, blocker classification, default next command, publish readiness, or upgrade plan filename.
+
+#### Scenario: 发布对象不要求目标环境字段
+- **WHEN** creating or validating a new `releases/<version>/release.json`
+- **THEN** `release_target` and `production_deployment` SHALL NOT be required
+- **AND** their absence SHALL NOT block release prepare, status, or publish validation.
+
+#### Scenario: 默认升级计划使用无后缀文件名
+- **WHEN** generating or validating default upgrade plans for a release
+- **THEN** plan files SHALL be named `<from-version>-to-<to-version>.json`
+- **AND** plan filenames SHALL NOT include `.development` or `.production` suffixes.
+
+### Requirement: 发布命令主线下一步
+
+发布命令 MUST 将变更型准备命令作为主线下一步，将只读状态面板作为按需排查入口，避免操作者把状态面板误解为准备阶段的必经步骤。
+
+#### Scenario: release propose points to release prepare
+
+- **GIVEN** `/release-propose <version>` 已创建或更新发布计划
+- **WHEN** 命令输出下一步
+- **THEN** 默认下一步 MUST 是 `/release-prepare <version>`
+- **AND** 输出 MAY 提醒操作者可按需运行 `/release-status <version>` 查看只读状态面板
+
+#### Scenario: release status remains read-only
+
+- **GIVEN** 操作者运行 `/release-status <version>`
+- **WHEN** 状态面板输出 release、image、upgrade 和 publish 状态
+- **THEN** 它 MUST NOT 创建或修改 release、image、upgrade、公告、usage docs 或 publish confirmation
+- **AND** 它 MUST 只汇总当前阶段、阻塞分类、默认 upgrade 路径和下一步
+
+### Requirement: 发布准备自动化产物决策
+发布命令族 SHALL 将公告、产品使用文档和升级计划的产物决策写入发布计划，并 SHALL 由发布准备命令按计划生成或校验这些产物。
+
+#### Scenario: release-propose 默认声明发布准备产物
+- **WHEN** 操作者执行 `/release-propose <version>` 且未提供额外产物参数
+- **THEN** 发布计划 SHALL 声明每次发布必须生成或更新 `announcement.mdx`
+- **AND** 发布计划 SHALL 默认声明不生成或不更新 usage docs
+- **AND** 发布计划 SHALL 默认声明 `fresh -> <version>` 与上一正式版本到 `<version>` 两条升级计划；若不存在上一正式版本，该相邻升级计划 SHALL 记录为不适用。
+
+#### Scenario: release-propose 支持显式产物参数
+- **WHEN** 操作者执行 `/release-propose <version> --usage-docs`
+- **THEN** 发布计划 SHALL 将 `usage_docs.generation_decision.required` 记录为 `true`。
+- **WHEN** 操作者执行 `/release-propose <version> --no-usage-docs`
+- **THEN** 发布计划 SHALL 将 `usage_docs.generation_decision.required` 记录为 `false`。
+- **WHEN** 操作者执行 `/release-propose <version> --upgrade-from <fresh|version>`
+- **THEN** 发布计划 SHALL 将该来源版本追加到待生成升级路径，并与默认路径去重。
+
+#### Scenario: release-prepare 按发布计划生成和校验产物
+- **WHEN** 操作者执行 `/release-prepare <version>`
+- **THEN** 发布准备流程 SHALL 自动同步 Web 与小程序用户可见 `PRODUCT_VERSION` 到发布版本。
+- **AND** 发布准备流程 SHALL 生成或更新 `announcement.mdx`。
+- **AND** 若 `usage_docs.generation_decision.required` 为 `true`，发布准备流程 SHALL 生成并校验 usage docs 与 Mintlify 投影。
+- **AND** 若 `usage_docs.generation_decision.required` 为 `false`，发布准备流程 SHALL 保持 `usage_docs.status=skipped` 且不得创建空 `usage-docs/` 目录。
+- **AND** 发布准备流程 SHALL 生成并校验默认和显式声明的升级计划。
+
+#### Scenario: release-status 仅报告状态和安全下一步
+- **WHEN** `/release-status <version>` 发现默认或显式声明的升级计划缺失
+- **THEN** 状态面板 SHALL 作为只读结果报告缺口。
+- **AND** 安全修复路径 SHALL 指向 `/release-prepare <version>`，由 prepare 阶段统一生成默认和声明产物。
+
+#### Scenario: release-publish 只记录发布确认
+- **WHEN** 操作者执行 `/release-publish <version>`
+- **THEN** 发布确认流程 SHALL NOT 修改 Web 或小程序 `PRODUCT_VERSION` 源。
+- **AND** 发布确认流程 SHALL NOT 生成或替换主发布公告。
+- **AND** 发布确认流程 SHALL NOT 生成 usage docs、Mintlify 投影或 upgrade plan。
+- **AND** 发布确认流程 SHALL 仅在发布门禁通过后写入发布确认字段。
 

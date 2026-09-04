@@ -5,7 +5,7 @@ source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 note: 适用于瓷砖信息管理平台项目模板
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-30 12:55:22
+updated_at: 2026-08-31 10:23:00
 ---
 
 # 测试规范
@@ -31,28 +31,27 @@ updated_at: 2026-08-30 12:55:22
 
 相关 Change SHOULD 运行 `python scripts/validate-product-data-observability-gates.py --change <change-id>` 或等价聚焦校验；失败时必须先补齐声明字段、N/A 原因或验收证据。
 
-## 环境分层验收与生产证据后置
+## 证据来源声明与诊断
 
-测试证据必须说明目标环境和证明边界。开发阶段可使用 pytest、Vitest、静态校验、开发 API smoke、Docker 本地验证、微信 DevTools 截图或 DevTools Network 摘要支撑 `dev_acceptance`；这些证据不得表述为体验版、真机或生产发布已经通过。
+测试证据必须说明来源和证明边界。开发阶段可使用 pytest、Vitest、静态校验、开发 API smoke、Docker 本地验证、微信 DevTools 截图或 DevTools Network 摘要支撑开发验收；这些证据不得表述为体验版、真机或线上已经通过。
 
-生产环境、生产数据库、生产对象存储、生产公开 API、生产 no-fallback 媒体、生产 smoke、生产真实用户路径、体验版入口或真机设备只有发布后才能获得时，开发阶段验收应记录为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`，并明确 `blocking_scope`。除非 Change 目标本身就是生产维护执行或生产发布确认，这类证据缺口不得阻塞 `opsx.archive` 或开发阶段 Sprint 归档。
+当体验版入口、真机设备、线上接口或真实用户路径暂不可验证时，验收材料应写明当前证据来源、不可验证原因和后续承接方式，不再推荐使用 `production_only_pending` 作为新流程分类。历史材料中的 `production_only_pending` 仅作为兼容记录保留。
 
-环境相关 evidence SHOULD 包含或等价记录：
+证据来源 SHOULD 包含或等价记录：
 
 | 字段 | 含义 |
 |---|---|
-| `target_environment` | `development`、`trial`、`production` 或 `not_applicable` |
-| `phase` | `dev_acceptance`、`trial_acceptance`、`release_prepare`、`production_publish` 或 `post_release` |
-| `blocking_scope` | 当前缺口阻塞的命令或阶段，例如 `opsx.archive`、`sprint.archive`、`release-publish:production` |
-| `classification` | `prepare_evidence_missing`、`production_only_pending`、`environment_unavailable`、`blocked`、`not_applicable` 或 `follow_up` |
+| `evidence_source` | 证据来源，例如 pytest、Vitest、DevTools、真机截图、Network 摘要、人工验收摘要 |
 | `evidence_ref` | 脱敏命令摘要、截图、报告、artifact 或人工摘要 |
+| `network_summary` | 涉及 Network 时的脱敏请求域名、状态、时间或失败原因 |
+| `executed_at` | 证据产生时间，使用 `YYYY-MM-DD HH:mm:ss` |
 
-环境分层 evidence 在归档和发布链路中是脚本门禁：
+证据来源诊断脚本保留为手动排查工具，不再作为 release、opsx archive 或 sprint archive 默认阻断门禁自动应用：
 
 ```bash
 python scripts/validate-environment-tiered-evidence.py --change <change-id>
 python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
-python scripts/validate-environment-tiered-evidence.py --release-dir releases/<version> --target production
+python scripts/validate-environment-tiered-evidence.py --release-dir releases/<version>
 ```
 
-该门禁必须阻断：开发证据冒充体验版、真机或生产通过；体验版 / 真机 Network 标记 `passed` 却缺少可定位 evidence；生产发布目标仍遗留 `production_only_pending` 而未重新判定。
+诊断报告用于提示证据来源混淆、体验版 / 真机 Network 缺少可定位 evidence 等风险；只有其他明确门禁主动采纳该诊断结果时，才会转化为阻断项。

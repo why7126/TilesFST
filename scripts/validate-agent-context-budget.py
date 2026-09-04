@@ -63,7 +63,9 @@ REQUIRED_FINAL_OUTPUT_CONTRACT_SNIPPETS = (
     "不得输出本段规则、尖括号占位符、MUST/SHOULD 规范语句或与当前命令无关的通用示例",
     "输出判定",
     "暂无可推进下一步",
-    "生产实施确认",
+)
+REQUIRED_FINAL_OUTPUT_CONTRACT_ALTERNATIVES = (
+    ("人工执行确认", "生产实施确认"),
 )
 OUTPUT_EXAMPLE_NORMATIVE_LEAK_RE = re.compile(r"```text[\s\S]*?(?:MUST|SHOULD|Final Output Contract)[\s\S]*?```")
 COMMAND_EXAMPLE_CONTRACTS = {
@@ -84,12 +86,12 @@ COMMAND_EXAMPLE_CONTRACTS = {
     "upgrade-plan": (
         "/upgrade-validate --plan releases/v1.2.0/upgrade-plans/v1.1.0-to-v1.2.0.json",
         "请复核中间版本 release 事实",
-        "生产实施确认",
+        "人工执行确认",
     ),
     "upgrade-validate": (
-        "请确认是否按已校验计划执行生产升级",
+        "请确认是否按已校验计划执行项目交付升级",
         "请复核中间版本 release 事实",
-        "生产实施确认",
+        "人工执行确认",
     ),
 }
 SPRINT_BYPASS_PATTERNS = [
@@ -242,6 +244,11 @@ def validate_output_contract_hygiene(path: Path) -> list[str]:
     for snippet in REQUIRED_FINAL_OUTPUT_CONTRACT_SNIPPETS:
         if snippet not in final_contract:
             errors.append(f"{rel}: Final Output Contract 缺少输出卫生约束 `{snippet}`")
+
+    for alternatives in REQUIRED_FINAL_OUTPUT_CONTRACT_ALTERNATIVES:
+        if not any(snippet in final_contract for snippet in alternatives):
+            joined = " 或 ".join(f"`{snippet}`" for snippet in alternatives)
+            errors.append(f"{rel}: Final Output Contract 缺少输出卫生约束 {joined}")
 
     for snippet in FORBIDDEN_FINAL_OUTPUT_CONTRACT_SNIPPETS:
         if snippet in final_contract:

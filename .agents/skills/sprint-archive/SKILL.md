@@ -42,14 +42,14 @@ iterations/change/<sprint-id>/sprint.md（依赖/Scope 片段）
 ```bash
 openspec list --json
 python scripts/validate-sprint-archive-readiness.py --sprint <sprint-id>
-python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
 python scripts/generate-sprint-fact-sheet.py --sprint <sprint-id> --json
 ```
 
-`validate-sprint-archive-readiness.py` includes the Sprint close stale scan and environment-tiered evidence gate. It MUST fail when Sprint four-piece docs or scoped REQ/BUG top-level Markdown files still contain stale intermediate wording such as "待 `/req-opsx`", "待 `/bug-opsx`", "待 `/opsx-apply`", stale `proposed` / `applied` semantics for archived Changes, unresolved `待验收` / `待实现`, active Change paths for archived Changes, canonical `openspec/changes/archive/` links, development evidence claiming production/trial/real-device pass, trial/real-device Network marked `passed` without evidence, or production publish still carrying unreclassified `production_only_pending`. For focused diagnosis, run:
+`validate-sprint-archive-readiness.py` includes the Sprint close stale scan. It MUST fail when Sprint four-piece docs or scoped REQ/BUG top-level Markdown files still contain stale intermediate wording such as "待 `/req-opsx`", "待 `/bug-opsx`", "待 `/opsx-apply`", stale `proposed` / `applied` semantics for archived Changes, unresolved `待验收` / `待实现`, active Change paths for archived Changes, or canonical `openspec/changes/archive/` links. For focused evidence source diagnostics, run manually:
 
 ```bash
 python scripts/check-sprint-close-stale-scan.py --sprint <sprint-id>
+# optional manual diagnostic only:
 python scripts/validate-environment-tiered-evidence.py --sprint <sprint-id>
 ```
 

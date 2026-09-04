@@ -2,7 +2,7 @@
 name: "image-build"
 description: "基于发布镜像构建计划执行镜像构建并生成 manifest"
 created_at: "2026-07-29 15:51:41"
-updated_at: 2026-08-26 20:58:03
+updated_at: 2026-08-31 09:10:00
 ---
 
 # image-build
@@ -93,7 +93,7 @@ Report compact summary only:
 - blocker count
 - validation summary
 - next command: `/release-publish <version>` only when release gates are ready
-- if release validation is still blocked by `usage_docs.status=pending_confirmation`, do not imply the image flow can clear it; report both explicit unblock paths:
+- if release validation is still blocked by `usage_docs.status=requested` or legacy `pending_confirmation`, do not imply the image flow can clear it; report `/release-prepare <version>` for requested docs, or rerun `/release-propose <version> --usage-docs` / `--no-usage-docs` for legacy pending decisions:
 
 ```text
 python scripts/generate-usage-docs.py <version>

@@ -99,32 +99,32 @@ def test_env_diff_reports_added_changed_required_and_unsafe(tmp_path: Path) -> N
 
     diff = upgrade.diff_env_snapshots(before, after)
 
-    assert {"path": "a.env.example", "key": "NEW_KEY", "recommendation": "确认生产环境是否需要显式配置"} in diff["added"]
+    assert {"path": "a.env.example", "key": "NEW_KEY", "recommendation": "确认本项目交付环境是否需要显式配置"} in diff["added"]
     assert any(item["key"] == "OLD_KEY" for item in diff["removed"])
     assert any(item["key"] == "APP_ENV" for item in diff["changed_default"])
-    assert any(item["key"] == "APP_SECRET_KEY" for item in diff["required_in_production"])
-    assert any(item["key"] == "APP_SECRET_KEY" for item in diff["unsafe_example_value"])
+    assert diff["required_configuration"] == []
+    assert diff["unsafe_example_value"] == []
 
 
-def test_development_env_diff_does_not_report_production_required_or_unsafe() -> None:
+def test_target_env_diff_does_not_report_production_required_or_unsafe() -> None:
     after = {"a.env.example": {"APP_ENV": "production", "APP_SECRET_KEY": "change-me"}}
 
     diff = upgrade.diff_env_snapshots({}, after, deployment_target="development")
 
-    assert diff["required_in_production"] == []
+    assert diff["required_configuration"] == []
     assert diff["unsafe_example_value"] == []
 
 
-def test_build_plan_accepts_explicit_development_target(tmp_path: Path) -> None:
+def test_build_plan_ignores_legacy_explicit_target(tmp_path: Path) -> None:
     write_release(tmp_path, "v1.0.0")
     (tmp_path / "src" / "shared").mkdir(parents=True)
     (tmp_path / "src" / "shared" / "product-version.ts").write_text("export const PRODUCT_VERSION = 'v1.0.0';\n", encoding="utf-8")
 
     plan = upgrade.build_plan("fresh", "v1.0.0", tmp_path, deployment_target="development")
 
-    assert plan["deployment_target"] == "development"
+    assert plan["deployment_scope"] == "project"
     assert plan["support_level"] == "fresh-install-supported"
-    assert plan["env_diff"]["deployment_target"] == "development"
+    assert plan["env_diff"]["deployment_scope"] == "project"
 
 
 def test_validate_plan_rejects_sensitive_content() -> None:

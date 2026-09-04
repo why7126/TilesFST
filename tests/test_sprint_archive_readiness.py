@@ -178,7 +178,7 @@ def test_stale_scan_blocker_blocks_sprint_archive_readiness(tmp_path: Path) -> N
     assert '"verdict": "blocked"' in payload
 
 
-def test_environment_evidence_blocker_blocks_sprint_archive_readiness(tmp_path: Path) -> None:
+def test_environment_evidence_diagnostics_do_not_block_sprint_archive_readiness(tmp_path: Path) -> None:
     write_sprint(tmp_path, "sprint-999", ["fix-env-claim"])
     write_tasks(tmp_path, "fix-env-claim", ["- [x] implement", "- [x] test"])
     change_dir = tmp_path / "openspec" / "changes" / "fix-env-claim"
@@ -190,5 +190,4 @@ def test_environment_evidence_blocker_blocks_sprint_archive_readiness(tmp_path: 
     readiness = validate_sprint_archive_readiness.evaluate_sprint(tmp_path, "sprint-999")
 
     assert readiness.blockers == []
-    assert readiness.has_blockers is True
-    assert readiness.environment_tiered_evidence.blockers[0].rule_id == "environment-claim-mismatch"
+    assert readiness.has_blockers is False

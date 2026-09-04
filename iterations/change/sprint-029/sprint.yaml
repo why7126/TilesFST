@@ -9,19 +9,25 @@ capacity:
 capacity_person_days: 30
 requirements: []
 bugs: []
-estimated_story_points: 1
-estimated_person_days: 1
-capacity_usage: 0.0333
-fix_buffer_person_days: 29
-fix_buffer_ratio: 0.9667
+estimated_story_points: 7
+estimated_person_days: 7
+capacity_usage: 0.2333
+fix_buffer_person_days: 23
+fix_buffer_ratio: 0.7667
 capacity_gate:
   capacity_person_days: 30
-  estimated_person_days: 1
-  capacity_usage: 0.0333
+  estimated_person_days: 7
+  capacity_usage: 0.2333
   result: pass
   note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。
 changes:
   - enforce-product-version-release-gates
+  - simplify-single-release-target-governance
+  - automate-product-version-release-prepare
+  - make-release-propose-next-step-prepare
+  - converge-release-prepare-automation
+  - deactivate-environment-tiered-evidence-gates
+  - rename-evidence-source-specs
 scope_estimates:
   - id: enforce-product-version-release-gates
     change: enforce-product-version-release-gates
@@ -29,3 +35,39 @@ scope_estimates:
     story_points: 1
     estimated_person_days: 1
     rationale: 纯治理 Change：强化发布流程产品版本号门禁，要求 Web 与小程序 PRODUCT_VERSION 对齐发布版本，发布确认阻断用户可见版本号不一致，并要求版本源变更后重跑 image-prepare/image-build；不修改业务 src。
+  - id: simplify-single-release-target-governance
+    change: simplify-single-release-target-governance
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：本项目不区分 development/production 发布目标，移除生产环境专属发布门禁和目标环境后缀升级计划命名；不修改业务 src。
+  - id: automate-product-version-release-prepare
+    change: automate-product-version-release-prepare
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：将 PRODUCT_VERSION 同步自动化前移到 release-prepare，发布确认只校验不写版本，image-prepare 前强制版本源对齐；不修改业务 src 实现。
+  - id: make-release-propose-next-step-prepare
+    change: make-release-propose-next-step-prepare
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：将 release-propose 主线下一步调整为 release-prepare，release-status 保留为只读状态面板与阻塞排查入口。
+  - id: converge-release-prepare-automation
+    change: converge-release-prepare-automation
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 收敛发布准备自动化策略：由 release-propose 声明产物决策，由 release-prepare 自动生成公告、按需 usage docs 与默认/显式升级计划。
+  - id: deactivate-environment-tiered-evidence-gates
+    change: deactivate-environment-tiered-evidence-gates
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：将环境分层 evidence 从默认 release/opsx-archive/sprint-archive 门禁降级为手动证据来源诊断工具，保留脚本能力但不再自动应用；不修改业务 src。
+  - id: rename-evidence-source-specs
+    change: rename-evidence-source-specs
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：重命名 OpenSpec 正式规格中的旧环境分层 requirement 标题，并将 media / miniapp 历史规格语义收敛为证据来源声明；不修改业务 src。

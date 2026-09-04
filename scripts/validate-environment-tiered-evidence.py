@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate environment-tiered evidence gates for changes, sprints, and releases."""
+"""Diagnose evidence source wording for changes, sprints, and releases."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def render_markdown(report: environment_tiered_evidence.EnvironmentEvidenceReport) -> str:
     lines = [
-        "## Environment Tiered Evidence Report",
+        "## Evidence Source Diagnostics Report",
         "",
         f"**Scope:** `{report.scope}`",
         f"**Target:** `{report.target}`",

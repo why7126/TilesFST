@@ -64,7 +64,7 @@ releases/
     │   └── miniapp/
     ├── image-build-plan.json  # 镜像构建计划；仅 image_required=true 或有镜像治理证据时生成
     ├── image-manifest.json    # 镜像构建结果 manifest；仅真实构建或受控外部证据完成后生成
-    └── upgrade-plans/         # 部署升级路径计划；仅 upgrade-plan 计划生成后存在
+    └── upgrade-plans/         # 部署升级路径计划；由 release-prepare 默认生成，或由显式 upgrade-plan 返修单条路径
         └── fresh-to-vX.Y.Z.json
 ```
 
@@ -140,10 +140,10 @@ deploy/
 
 1. `/release-propose <version>` 创建或更新产品版本发布对象。
 2. `/release-prepare <version>` 执行发布前校验并生成/更新公告源文件。
-3. 若用户确认需要产品使用文档，生成并校验 `usage-docs/`；若确认不需要，记录 skipped 且不创建空目录。
+3. `/release-prepare <version>` 按 release plan 自动同步版本源、生成或更新公告、按需生成 usage docs / Mintlify 投影，并生成校验默认与显式升级计划。
 4. `/image-prepare <version>` 在镜像治理适用时生成或更新镜像构建计划。
 5. `/image-build <version>` 在需要真实镜像交付时生成 manifest。
-6. `/release-publish <version>` 记录发布确认结果和最终公告位置。
+6. `/release-publish <version>` 只记录发布确认结果和最终公告位置，不生成主公告、usage docs 或 upgrade plan。
 
 命名：
 

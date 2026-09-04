@@ -164,6 +164,7 @@ def validate_screenshots(manifest: dict[str, Any], usage_dir: Path, pages: list[
         errors.append("manifest.screenshots must be a non-empty list for generated usage docs")
         return
 
+    release_root = usage_dir.parent.parent.parent
     declared_paths: set[str] = set()
     declared_pages: set[str] = set()
     for index, item in enumerate(screenshots):
@@ -194,7 +195,7 @@ def validate_screenshots(manifest: dict[str, Any], usage_dir: Path, pages: list[
             continue
         if path_value.startswith("/assets/screenshots/"):
             path_key = "mintlify" + path_value
-            screenshot_path = ROOT / path_key
+            screenshot_path = release_root / path_key
         else:
             path_key = path_value
             screenshot_path = usage_dir / path_value
@@ -212,7 +213,7 @@ def validate_screenshots(manifest: dict[str, Any], usage_dir: Path, pages: list[
         elif not site_asset.startswith("mintlify/assets/screenshots/"):
             errors.append(f"manifest.screenshots[{index}].site_asset must be under mintlify/assets/screenshots/: {site_asset}")
         else:
-            asset_path = ROOT / site_asset
+            asset_path = release_root / site_asset
             if not asset_path.exists() or asset_path.is_dir():
                 errors.append(f"manifest.screenshots[{index}].site_asset missing file: {site_asset}")
             elif content_hash and path_sha256(asset_path) != content_hash:
@@ -436,19 +437,24 @@ def validate_release_usage_docs(release_path: Path) -> list[str]:
         if isinstance(gate, dict) and not gate.get("rationale"):
             errors.append("gate usage_docs_preview na requires rationale")
         validate_skipped_usage_docs(release_path, usage_docs, errors)
+    elif status == "requested":
+        version = str(release_data.get("version", "<version>"))
+        decision = usage_docs.get("generation_decision")
+        if not isinstance(decision, dict) or decision.get("required") is not True:
+            errors.append("usage_docs.status requested requires generation_decision.required=true")
+        errors.append(
+            "usage_docs.status requested requires release preparation to generate and validate docs; "
+            f"run `python scripts/generate-usage-docs.py {version}` from /release-prepare."
+        )
     elif status == "pending_confirmation":
         version = str(release_data.get("version", "<version>"))
         errors.append(
             "usage_docs.status pending_confirmation blocks release readiness; "
-            "confirm whether current-version usage docs are required. "
-            f"If needed, set usage_docs.generation_decision.required=true and run "
-            f"`python scripts/generate-usage-docs.py {version}`; "
-            f"if not needed, run "
-            f"`python scripts/generate-usage-docs.py {version} --skip --confirmed-by operator "
-            f"--rationale \"<why usage docs are not needed for this release>\"`."
+            f"rerun `/release-propose {version} --usage-docs` or `/release-propose {version} --no-usage-docs` "
+            "so the decision is recorded before /release-prepare."
         )
     else:
-        errors.append("usage_docs.status must be generated, skipped, or pending_confirmation")
+        errors.append("usage_docs.status must be generated, skipped, requested, or pending_confirmation")
     return errors
 
 

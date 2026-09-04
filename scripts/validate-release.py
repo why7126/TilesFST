@@ -8,6 +8,7 @@ import importlib.util
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
-import environment_tiered_evidence
 RELEASES_DIR = ROOT / "releases"
 PRODUCT_VERSION_FILE = ROOT / "src" / "shared" / "product-version.ts"
 MINIAPP_PRODUCT_VERSION_FILES = (
@@ -23,12 +23,11 @@ MINIAPP_PRODUCT_VERSION_FILES = (
     ROOT / "src" / "miniapp" / "utils" / "product-version.js",
 )
 MINTLIFY_DIR = ROOT / "mintlify"
-DEPLOYMENT_TARGETS = {"development", "production"}
+PROJECT_RELEASE_TARGET = "project"
 RELEASE_STATUS_CLASSIFICATIONS = {
     "decision_missing",
     "prepare_evidence_missing",
     "publish_evidence_missing",
-    "production_only_pending",
     "input_drift",
     "environment_unavailable",
     "scope_incomplete",
@@ -73,6 +72,9 @@ SENSITIVE_PATTERNS = (
     re.compile(r"\bpassword\s*=", re.I),
 )
 HEX_SHA256_PATTERN = re.compile(r"\b[a-f0-9]{64}\b", re.I)
+PRODUCT_VERSION_ASSIGNMENT_RE = re.compile(
+    r"(?P<prefix>\bPRODUCT_VERSION\s*=\s*)(?P<quote>['\"])(?P<value>[^'\"]+)(?P=quote)"
+)
 
 NO_IMPACT_VALUES = {"", "none", "na", "n/a", "not_applicable", "not applicable", "无", "不涉及"}
 MYSQL_EVIDENCE_PATTERNS = (
@@ -98,6 +100,10 @@ IMAGE_GATE_EFFECTIVE_AT = "2026-07-29 15:51:41"
 USAGE_DOCS_GATE_EFFECTIVE_AT = "2026-08-01 10:35:08"
 MINTLIFY_SITE_GATE_EFFECTIVE_AT = "2026-08-03 18:45:00"
 RELEASE_TARGET_GATE_EFFECTIVE_AT = "2026-08-30 09:55:00"
+
+
+def now_text() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def load_image_validator() -> Any:
@@ -142,12 +148,33 @@ def load_json(path: Path) -> dict[str, Any]:
     return data
 
 
+def write_json(path: Path, data: dict[str, Any]) -> None:
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def extract_product_version(path: Path) -> str:
     text = path.read_text(encoding="utf-8")
     match = re.search(r"PRODUCT_VERSION\s*=\s*['\"]([^'\"]+)['\"]", text)
     if not match:
         raise ValueError(f"PRODUCT_VERSION not found in {path}")
     return match.group(1)
+
+
+def update_product_version_file(path: Path, version: str) -> bool:
+    text = path.read_text(encoding="utf-8")
+    if not PRODUCT_VERSION_ASSIGNMENT_RE.search(text):
+        raise ValueError(f"PRODUCT_VERSION not found in {path}")
+    updated, count = PRODUCT_VERSION_ASSIGNMENT_RE.subn(
+        lambda match: f"{match.group('prefix')}{match.group('quote')}{version}{match.group('quote')}",
+        text,
+        count=1,
+    )
+    if count == 0:
+        raise ValueError(f"PRODUCT_VERSION not found in {path}")
+    if updated == text:
+        return False
+    path.write_text(updated, encoding="utf-8")
+    return True
 
 
 def display_path(path: Path) -> str:
@@ -163,6 +190,89 @@ def product_version_file_candidates(product_version_file: Path) -> tuple[Path, .
     if resolved == PRODUCT_VERSION_FILE.resolve():
         candidates.extend(path.resolve() for path in MINIAPP_PRODUCT_VERSION_FILES if path.exists())
     return tuple(candidates)
+
+
+def refresh_announcement_version_status(announcement_path: Path, version: str, synced_at: str) -> bool:
+    if not announcement_path.exists():
+        return False
+    text = announcement_path.read_text(encoding="utf-8")
+    updated = re.sub(r"(?m)^title:\s*产品版本\s+v[0-9A-Za-z.-]+$", f"title: 产品版本 {version}", text)
+    updated = re.sub(r"(?m)^# 产品版本\s+v[0-9A-Za-z.-]+$", f"# 产品版本 {version}", updated)
+
+    bullet = f"- 产品版本号已由 release-prepare 自动同步为 `{version}`（{synced_at}）。"
+    lines = updated.splitlines()
+    replaced = False
+    for index, line in enumerate(lines):
+        if line.startswith("- 当前产品版本号仍需") or line.startswith("- 产品版本号已由 release-prepare 自动同步"):
+            lines[index] = bullet
+            replaced = True
+            break
+
+    if not replaced:
+        try:
+            heading_index = lines.index("## 发布注意事项")
+        except ValueError:
+            if lines and lines[-1] != "":
+                lines.append("")
+            lines.extend(["## 发布注意事项", "", bullet])
+        else:
+            insert_at = heading_index + 1
+            while insert_at < len(lines) and lines[insert_at] == "":
+                insert_at += 1
+            lines.insert(insert_at, bullet)
+
+    updated = "\n".join(lines) + "\n"
+    if updated == text:
+        return False
+    announcement_path.write_text(updated, encoding="utf-8")
+    return True
+
+
+def sync_release_product_versions(release_dir: Path, product_version_file: Path = PRODUCT_VERSION_FILE) -> dict[str, Any]:
+    data = load_json(release_dir / "release.json")
+    version = str(data.get("version") or release_dir.name)
+    if not re.fullmatch(r"v\d+\.\d+\.\d+(?:[-.][A-Za-z0-9.]+)?", version):
+        raise ValueError(f"release version must be SemVer-like before product version sync: {version or '<missing>'}")
+
+    synced_at = now_text()
+    files: list[dict[str, Any]] = []
+    for candidate in product_version_file_candidates(product_version_file):
+        if not candidate.exists():
+            continue
+        changed = update_product_version_file(candidate, version)
+        files.append({"path": display_path(candidate), "changed": changed, "version": version})
+
+    if not files:
+        raise ValueError("no PRODUCT_VERSION source files found to synchronize")
+
+    gates = data.setdefault("gates", {})
+    if not isinstance(gates, dict):
+        raise ValueError("release.json gates must be an object before product version sync")
+    gates["product_version"] = {
+        "status": "pass",
+        "evidence": (
+            f"{synced_at} release-prepare 自动同步 PRODUCT_VERSION 为 {version}："
+            + "、".join(item["path"] for item in files)
+        ),
+    }
+    data["product_version_sync"] = {
+        "status": "synced",
+        "synced_at": synced_at,
+        "version": version,
+        "files": files,
+        "source": "release-prepare",
+    }
+    write_json(release_dir / "release.json", data)
+
+    announcement_name = str(data.get("announcement") or "announcement.mdx")
+    announcement_changed = refresh_announcement_version_status(release_dir / announcement_name, version, synced_at)
+    return {
+        "version": version,
+        "synced_at": synced_at,
+        "files": files,
+        "release_json_changed": True,
+        "announcement_changed": announcement_changed,
+    }
 
 
 def require(condition: bool, message: str, errors: list[str]) -> None:
@@ -189,30 +299,13 @@ def impact_value_requires_gate(value: Any) -> bool:
 
 
 def release_target_environment(data: dict[str, Any], override: str | None = None) -> str:
-    if override:
-        return override
-    target = data.get("release_target")
-    if isinstance(target, dict):
-        value = str(target.get("environment") or "").strip().lower()
-        if value in DEPLOYMENT_TARGETS:
-            return value
-    return "production"
+    return PROJECT_RELEASE_TARGET
 
 
 def validate_release_target(data: dict[str, Any], errors: list[str]) -> None:
     target = data.get("release_target")
-    if target is None:
-        if str(data.get("release_time", "")) >= RELEASE_TARGET_GATE_EFFECTIVE_AT:
-            errors.append("release_target is required for releases after dev/prod target governance")
-        return
-    if not isinstance(target, dict):
-        errors.append("release_target must be an object")
-        return
-    environment = str(target.get("environment") or "").strip().lower()
-    scope = str(target.get("deployment_scope") or "").strip().lower()
-    require(environment in DEPLOYMENT_TARGETS, "release_target.environment must be development or production", errors)
-    require(scope in DEPLOYMENT_TARGETS, "release_target.deployment_scope must be development or production", errors)
-    require(bool(target.get("rationale")), "release_target.rationale is required", errors)
+    if target is not None and not isinstance(target, dict):
+        errors.append("release_target must be an object when present")
 
 
 def evidence_gate_is_satisfied(value: Any) -> bool:
@@ -226,27 +319,8 @@ def evidence_gate_is_satisfied(value: Any) -> bool:
     return False
 
 
-def validate_production_publish_gates(data: dict[str, Any], errors: list[str], *, stage: str, target_override: str | None = None) -> None:
-    if stage != "publish" or release_target_environment(data, target_override) != "production":
-        return
-    if str(data.get("release_time", "")) < RELEASE_TARGET_GATE_EFFECTIVE_AT and data.get("release_target") is None:
-        return
-    production = data.get("production_deployment")
-    if not isinstance(production, dict):
-        errors.append("production release publish requires production_deployment evidence object")
-        return
-    for key in (
-        "env_image_tag",
-        "backup_confirmation",
-        "public_api_consistency",
-        "media_no_fallback",
-        "runtime_smoke",
-        "rollback_readiness",
-    ):
-        if key not in production:
-            errors.append(f"production_deployment.{key} is required for production publish")
-        elif not evidence_gate_is_satisfied(production[key]):
-            errors.append(f"production_deployment.{key} must be pass with evidence or na with rationale")
+def validate_publish_environment_gates(data: dict[str, Any], errors: list[str], *, stage: str, target_override: str | None = None) -> None:
+    return
 
 
 def release_requires_image(data: dict[str, Any]) -> bool:
@@ -295,7 +369,7 @@ def validate_database_impact_gate(data: dict[str, Any], errors: list[str]) -> No
     )
 
 
-def expected_upgrade_sources(version: str) -> list[str]:
+def default_upgrade_sources(version: str) -> list[str]:
     upgrade_validator = load_upgrade_validator()
     sources = ["fresh"]
     try:
@@ -307,31 +381,52 @@ def expected_upgrade_sources(version: str) -> list[str]:
     return sources
 
 
+def expected_upgrade_sources(version: str, release_data: dict[str, Any] | None = None) -> list[str]:
+    sources = default_upgrade_sources(version)
+    if not isinstance(release_data, dict):
+        return sources
+    plans = release_data.get("upgrade_plans")
+    if not isinstance(plans, dict):
+        return sources
+    declared: list[Any] = []
+    for key in ("sources", "explicit_sources", "from_versions"):
+        value = plans.get(key)
+        if isinstance(value, list):
+            declared.extend(value)
+    try:
+        previous = load_upgrade_validator().previous_version(version, ROOT)
+    except Exception:
+        previous = None
+    for item in declared:
+        source = str(item).strip()
+        if not source:
+            continue
+        if source == "previous-release":
+            if previous:
+                source = previous
+            else:
+                continue
+        if source not in sources:
+            sources.append(source)
+    return sources
+
+
 def validate_upgrade_plan_gates(release_dir: Path, data: dict[str, Any], errors: list[str], *, stage: str, target_override: str | None = None) -> None:
     if stage != "publish":
         return
-    if str(data.get("release_time", "")) < RELEASE_TARGET_GATE_EFFECTIVE_AT and data.get("release_target") is None:
-        return
     version = str(data.get("version") or "")
-    target = release_target_environment(data, target_override)
     upgrade_validator = load_upgrade_validator()
-    for source in expected_upgrade_sources(version):
-        target_plan_name = upgrade_validator.safe_plan_name(source, version, target)
-        legacy_plan_name = upgrade_validator.safe_plan_name(source, version)
-        target_plan_path = release_dir / "upgrade-plans" / target_plan_name
-        legacy_plan_path = release_dir / "upgrade-plans" / legacy_plan_name
-        plan_path = target_plan_path if target_plan_path.exists() else legacy_plan_path
+    for source in expected_upgrade_sources(version, data):
+        plan_name = upgrade_validator.safe_plan_name(source, version)
+        plan_path = release_dir / "upgrade-plans" / plan_name
         if not plan_path.exists():
-            errors.append(f"release publish requires {target} upgrade plan: {target_plan_path}")
+            errors.append(f"release publish requires upgrade plan: {plan_path}")
             continue
         try:
             plan = load_json(plan_path)
         except ValueError as exc:
             errors.append(str(exc))
             continue
-        plan_target = str(plan.get("deployment_target") or "production").strip().lower()
-        if plan_target != target:
-            errors.append(f"upgrade plan {plan_path} deployment_target {plan_target} does not match release target {target}")
         errors.extend(f"{plan_path}: {error}" for error in upgrade_validator.validate_plan_data(plan))
 
 
@@ -486,20 +581,14 @@ def validate_release(
     validate_mintlify_site_gate(release_dir, data, errors, stage=stage)
     validate_database_impact_gate(data, errors)
     validate_upgrade_plan_gates(release_dir, data, errors, stage=stage, target_override=target_override)
-    validate_production_publish_gates(data, errors, stage=stage, target_override=target_override)
-    target = release_target_environment(data, target_override)
-    environment_report = environment_tiered_evidence.validate_release(ROOT, release_dir, target=target)
-    errors.extend(
-        f"environment tiered evidence: {blocker.file}:{blocker.line}: {blocker.message}"
-        for blocker in environment_report.blockers
-    )
-
+    validate_publish_environment_gates(data, errors, stage=stage, target_override=target_override)
     for candidate in product_version_file_candidates(product_version_file):
         product_version = extract_product_version(candidate)
         if version != product_version:
             errors.append(
                 f"product version mismatch blocks {stage}: {display_path(candidate)} has {product_version}, "
-                f"expected {version}; update PRODUCT_VERSION and rerun /image-prepare {version} && /image-build {version}"
+                f"expected {version}; run /release-prepare {version} to synchronize PRODUCT_VERSION, "
+                f"then rerun /image-prepare {version} && /image-build {version} when image evidence already exists"
             )
 
     mint_config = MINTLIFY_DIR / "docs.json" if MINTLIFY_DIR.exists() else release_dir.parent / "mint.json"
@@ -511,14 +600,10 @@ def validate_release(
 
 def classify_release_error(error: str) -> str:
     lowered = error.lower()
-    if "environment tiered evidence" in lowered and "production_only_pending" in lowered:
-        if "生产发布目标" in error or "production target" in lowered:
-            return "publish_evidence_missing"
-        return "production_only_pending"
-    if "environment tiered evidence" in lowered and ("devtools" in lowered or "development" in lowered or "开发环境" in error):
-        return "environment_unavailable"
     if "pending_confirmation" in lowered or "decision" in lowered:
         return "decision_missing"
+    if "usage_docs.status requested" in lowered or "release preparation to generate" in lowered:
+        return "prepare_evidence_missing"
     if "product version mismatch" in lowered or "product_version" in lowered or "product version" in lowered:
         return "prepare_evidence_missing"
     if "input hash drift" in lowered or "stable input drift" in lowered or "source_plan sha256" in lowered:
@@ -530,6 +615,20 @@ def classify_release_error(error: str) -> str:
     if "missing" in lowered or "required" in lowered or "requires" in lowered or "must" in lowered:
         return "publish_evidence_missing"
     return "schema_invalid"
+
+
+def release_error_safe_remediation(error: str, version: str, *, image_evidence_exists: bool = False) -> str:
+    lowered = error.lower()
+    if "product version mismatch" in lowered:
+        remediation = f"/release-prepare {version}"
+        if image_evidence_exists:
+            remediation += f"；随后重跑 /image-prepare {version} 与 /image-build {version}"
+        return remediation
+    if "input hash drift" in lowered or "stable input drift" in lowered or "source_plan sha256" in lowered:
+        return f"/image-prepare {version}；通过后执行 /image-build {version}"
+    if "usage_docs.status requested" in lowered or "release preparation to generate" in lowered:
+        return f"/release-prepare {version}"
+    return "按错误指向的 gate 补齐证据或修复 release.json"
 
 
 def release_status_item(
@@ -557,51 +656,23 @@ def release_status_item(
     }
 
 
-def expected_upgrade_plan_paths(release_dir: Path, version: str, target: str) -> list[dict[str, str]]:
+def expected_upgrade_plan_paths(release_dir: Path, version: str, target: str, release_data: dict[str, Any] | None = None) -> list[dict[str, str]]:
     upgrade_validator = load_upgrade_validator()
     paths: list[dict[str, str]] = []
-    for source in expected_upgrade_sources(version):
-        plan_name = upgrade_validator.safe_plan_name(source, version, target)
+    for source in expected_upgrade_sources(version, release_data):
+        plan_name = upgrade_validator.safe_plan_name(source, version)
         paths.append(
             {
                 "from_version": source,
                 "path": str(release_dir / "upgrade-plans" / plan_name),
-                "command": f"/upgrade-plan --from {source} --to {version} --target {target}",
+                "command": f"python scripts/validate-release-upgrade.py plan --from {source} --to {version}",
             }
         )
     return paths
 
 
-def production_only_followups(data: dict[str, Any], target: str) -> list[dict[str, str]]:
-    if target != "development":
-        return []
-    target_data = data.get("release_target") if isinstance(data.get("release_target"), dict) else {}
-    if target_data.get("production_release_required") is False:
-        return []
-    production = data.get("production_deployment")
-    keys = (
-        "env_image_tag",
-        "backup_confirmation",
-        "public_api_consistency",
-        "media_no_fallback",
-        "runtime_smoke",
-        "rollback_readiness",
-    )
-    missing = [key for key in keys if not isinstance(production, dict) or not evidence_gate_is_satisfied(production.get(key))]
-    if not missing:
-        return []
-    return [
-        release_status_item(
-            classification="production_only_pending",
-            phase="production_publish",
-            blocks_target="production",
-            message=f"生产发布证据待补齐：{', '.join(missing)}",
-            owner="operator",
-            current_evidence="development release does not require production-only evidence",
-            safe_remediation=f"准备生产发布时补齐 production_deployment，并生成 {release_target_environment(data)} 之外的 production upgrade plans",
-            rerun_check="python scripts/validate-release.py --release-dir <release-dir> --stage publish --target production",
-        )
-    ]
+def release_followups(data: dict[str, Any], target: str) -> list[dict[str, str]]:
+    return []
 
 
 def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSION_FILE, *, target_override: str | None = None) -> dict[str, Any]:
@@ -611,7 +682,7 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
         return {
             "release_dir": str(release_dir),
             "version": release_dir.name,
-            "target": target_override or "unknown",
+            "target": PROJECT_RELEASE_TARGET,
             "phase": "missing_release",
             "publish_ready": False,
             "next_command": "暂无可推进下一步",
@@ -620,13 +691,13 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
                 release_status_item(
                     classification="schema_invalid",
                     phase="propose",
-                    blocks_target=target_override or "unknown",
+                    blocks_target=PROJECT_RELEASE_TARGET,
                     message=str(exc),
                     safe_remediation=f"/release-propose {release_dir.name}",
                     rerun_check=f"python scripts/validate-release.py --release-dir {release_dir}",
                 )
             ],
-            "production_followups": [],
+            "followups": [],
             "default_upgrade_paths": [],
         }
 
@@ -636,6 +707,7 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
     publish_errors = validate_release(release_dir, product_version_file, stage="publish", target_override=target_override)
     blocking_decisions: list[dict[str, str]] = []
     blocking_evidence: list[dict[str, str]] = []
+    image_evidence_exists = (release_dir / str(data.get("image_manifest", "image-manifest.json"))).exists()
 
     usage_docs = data.get("usage_docs")
     if isinstance(usage_docs, dict) and str(usage_docs.get("status") or "").lower() == "pending_confirmation":
@@ -665,12 +737,12 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
                 blocks_target=target,
                 message=error,
                 current_evidence=f"python scripts/validate-release.py --release-dir releases/{version} --stage prepare",
-                safe_remediation="按错误指向的 gate 补齐证据或修复 release.json",
+                safe_remediation=release_error_safe_remediation(error, version, image_evidence_exists=image_evidence_exists),
                 rerun_check=f"python scripts/validate-release.py --release-dir releases/{version} --stage prepare",
             )
         )
 
-    default_paths = expected_upgrade_plan_paths(release_dir, version, target)
+    default_paths = expected_upgrade_plan_paths(release_dir, version, target, data)
     upgrade_missing = [item for item in default_paths if not Path(item["path"]).exists()]
     for item in upgrade_missing:
         blocking_evidence.append(
@@ -678,9 +750,9 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
                 classification="publish_evidence_missing",
                 phase="upgrade",
                 blocks_target=target,
-                message=f"缺少默认升级计划：{Path(item['path']).name}",
+                message=f"缺少默认或声明的升级计划：{Path(item['path']).name}",
                 current_evidence=f"expected target upgrade plan for {item['from_version']} -> {version}",
-                safe_remediation=item["command"],
+                safe_remediation=f"/release-prepare {version}",
                 rerun_check=f"python scripts/validate-release-upgrade.py validate-plan --plan {item['path']}",
             )
         )
@@ -708,13 +780,16 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
         next_command = "暂无可推进下一步"
     elif prepare_errors:
         phase = "prepare_blocked"
-        next_command = "暂无可推进下一步"
+        if any("product version mismatch" in error.lower() for error in prepare_errors):
+            next_command = f"/release-prepare {version}"
+        else:
+            next_command = "暂无可推进下一步"
     elif image_required and not (release_dir / str(data.get("image_manifest", "image-manifest.json"))).exists():
         phase = "image_pending"
         next_command = f"/image-build {version}"
     elif upgrade_missing:
         phase = "upgrade_pending"
-        next_command = upgrade_missing[0]["command"]
+        next_command = f"/release-prepare {version}"
     elif publish_errors:
         phase = "publish_blocked"
         next_command = "暂无可推进下一步"
@@ -723,7 +798,7 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
         next_command = "暂无可推进下一步"
     else:
         phase = "publish_ready"
-        next_command = f"/release-publish {version} --target {target}"
+        next_command = f"/release-publish {version}"
 
     return {
         "release_dir": str(release_dir),
@@ -734,7 +809,7 @@ def release_status(release_dir: Path, product_version_file: Path = PRODUCT_VERSI
         "next_command": next_command,
         "blocking_decisions": blocking_decisions,
         "blocking_evidence": blocking_evidence,
-        "production_followups": production_only_followups(data, target),
+        "followups": release_followups(data, target),
         "default_upgrade_paths": default_paths,
     }
 
@@ -746,13 +821,14 @@ def print_release_status(status: dict[str, Any], *, json_output: bool = False) -
     print("## Release Status")
     print()
     print(f"Version: {status['version']}")
-    print(f"Target: {status['target']}")
+    print(f"Scope: {status['target']}")
     print(f"Phase: {status['phase']}")
     print(f"Publish ready: {'yes' if status['publish_ready'] else 'no'}")
     print(f"Next command: {status['next_command']}")
     print(f"Blocking decisions: {len(status['blocking_decisions'])}")
     print(f"Blocking evidence: {len(status['blocking_evidence'])}")
-    print(f"Production follow-ups: {len(status['production_followups'])}")
+    followups = status.get("followups", status.get("production_followups", []))
+    print(f"Follow-ups: {len(followups)}")
     if status["blocking_decisions"]:
         print()
         print("Decision blockers:")
@@ -763,10 +839,10 @@ def print_release_status(status: dict[str, Any], *, json_output: bool = False) -
         print("Evidence blockers:")
         for item in status["blocking_evidence"]:
             print(f"- [{item['classification']}] {item['message']} -> {item['safe_remediation']}")
-    if status["production_followups"]:
+    if followups:
         print()
-        print("Production-only follow-ups:")
-        for item in status["production_followups"]:
+        print("Follow-ups:")
+        for item in followups:
             print(f"- [{item['classification']}] {item['message']}")
     if status["default_upgrade_paths"]:
         print()
@@ -794,8 +870,13 @@ def main() -> int:
         default="prepare",
         help="Validation stage. prepare requires a valid image plan; publish also requires a manifest.",
     )
-    parser.add_argument("--target", choices=sorted(DEPLOYMENT_TARGETS), help="Override release_target.environment for validation")
+    parser.add_argument("--target", help="Deprecated compatibility option; project releases no longer distinguish deployment targets")
     parser.add_argument("--status", action="store_true", help="Print a read-only release status decision panel")
+    parser.add_argument(
+        "--sync-product-version",
+        action="store_true",
+        help="Synchronize Web and miniapp PRODUCT_VERSION sources to release.json version before release-prepare validation.",
+    )
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON for --status")
     args = parser.parse_args()
 
@@ -806,6 +887,21 @@ def main() -> int:
 
     all_errors: list[str] = []
     product_version_file = Path(args.product_version_file).resolve()
+    if args.sync_product_version:
+        for release_dir in release_dirs:
+            try:
+                result = sync_release_product_versions(release_dir, product_version_file)
+            except ValueError as exc:
+                print(f"Product version sync failed for {release_dir}: {exc}")
+                return 1
+            print("Product version sync complete:")
+            print(f"- release: {release_dir}")
+            print(f"- version: {result['version']}")
+            print(f"- synced_at: {result['synced_at']}")
+            print(f"- files: {len(result['files'])}")
+            print(f"- announcement_changed: {str(result['announcement_changed']).lower()}")
+        if not args.status:
+            return 0
     if args.status:
         for release_dir in release_dirs:
             print_release_status(

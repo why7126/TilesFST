@@ -1,7 +1,7 @@
 ---
 name: "upgrade-validate"
 description: "校验版本部署升级与回滚计划"
-updated_at: 2026-08-30 09:55:00
+updated_at: 2026-08-30 22:01:44
 ---
 
 # upgrade-validate
@@ -38,26 +38,26 @@ python scripts/validate-release-upgrade.py validate-plan --plan <path>
 
 ## Boundaries
 
-- MUST NOT 自动执行生产升级。
+- MUST NOT 自动执行部署升级。
 - MUST NOT 自动修改真实 env。
 - MUST NOT 自动执行 DB restore、写入型 migration 或对象存储维护任务。
 
 ## Output
 
-报告 plan path、from version、to version、deployment target、support level、blocker/warning 数、校验结果、下一步和待用户决策/处理。新计划文件名应包含目标后缀，例如 `.development.json` 或 `.production.json`；历史无后缀计划仅在 `deployment_target` 匹配时兼容。
+报告 plan path、from version、to version、deployment scope、support level、blocker/warning 数、校验结果、下一步和待用户决策/处理。计划文件名不包含 `.development` 或 `.production` 后缀。
 
-当 `deployment_target=development` 时，必须说明该计划仅覆盖开发环境部署/回滚，不代表生产升级路径已验证。当 `deployment_target=production` 时，必须提醒生产实施前完成真实 env、备份、smoke 和回滚证据确认。
+旧 `deployment_target` 字段仅作为历史兼容信息，不再决定校验门禁。
 
 当 `support_level=cross-version-upgrade-requires-manual-review` 时，输出必须提醒人工复核中间版本 release 事实、env diff、DB drift/smoke、对象存储影响和回滚证据。
 
 ## Output Examples
 
-计划校验通过但需要人工生产实施确认时：
+计划校验通过但需要人工实施确认时：
 
 ```text
 下一步：暂无可推进下一步
 待用户决策/处理：
-- 请确认是否按已校验计划执行生产升级，并完成执行前备份确认。
+- 请确认是否按已校验计划执行项目交付升级，并完成执行前备份确认。
 ```
 
 跨版本升级需要人工复核，或 blocker 尚未清零时：
@@ -75,12 +75,12 @@ python scripts/validate-release-upgrade.py validate-plan --plan <path>
 输出必须包含两项：
 
 - `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
-- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、人工执行确认、阻塞项或人工处理事项。
 
 输出判定：
 
 - 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
-- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 下一步被用户选择、补证、验收、发布确认、人工执行确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

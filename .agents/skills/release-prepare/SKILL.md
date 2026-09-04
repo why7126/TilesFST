@@ -1,7 +1,7 @@
 ---
 name: "release-prepare"
 description: "执行发布前校验并生成或更新公开公告源文件"
-updated_at: 2026-08-30 15:36:34
+updated_at: 2026-08-31 09:10:00
 ---
 
 # release-prepare
@@ -42,6 +42,8 @@ releases/<version>/release.json
 releases/templates/announcement.mdx
 releases/templates/usage-docs/
 src/shared/product-version.ts
+src/miniapp/utils/product-version.ts（存在时）
+src/miniapp/utils/product-version.js（存在时）
 ```
 
 按发布对象范围分段读取：
@@ -57,7 +59,15 @@ issues/bugs/{archive,review,plan}/<BUG>/trace.md
 
 ## Gates
 
-Prepare MUST verify and record evidence for each applicable gate in `release.json`. Gate applicability follows `release_target.environment`; development releases do not require production-only env, MySQL/COS backup, public API, no-fallback media, production smoke evidence, trial-only miniapp Network evidence, or real-device evidence that can only be produced after upload. Preserve those gaps as `production_only_pending` or release-stage follow-up instead of development blockers.
+Prepare MUST verify and record evidence for each applicable gate in `release.json`. This project uses a single release target; do not create production-only evidence gates or `production_only_pending` follow-ups.
+
+Before validation, `/release-prepare` MUST automatically synchronize all existing user-visible `PRODUCT_VERSION` sources to `<version>` by running:
+
+```bash
+python scripts/validate-release.py --release-dir releases/<version> --sync-product-version
+```
+
+The sync step MUST update only the governed version source files, `release.json.gates.product_version`, `release.json.product_version_sync`, and release announcement version/status copy that can be derived from `release.json`. Operators MUST NOT be asked to hand-edit these files for normal version bumps.
 
 | Gate | Evidence |
 |---|---|
@@ -67,14 +77,14 @@ Prepare MUST verify and record evidence for each applicable gate in `release.jso
 | `docker_compose` | Deployment changes have Compose config/docs evidence, or `na` rationale. |
 | `database_migration` | DB changes have schema/migration/docs/rollback evidence plus MySQL schema drift or target MySQL smoke evidence, or `na` rationale. |
 | `env_example` | Env changes have `.env.example` evidence, or `na` rationale. |
-| `product_version` | `src/shared/product-version.ts`、`src/miniapp/utils/product-version.ts` 和 `src/miniapp/utils/product-version.js` 中存在的 `PRODUCT_VERSION` 均等于 release version；rationale 不得放行 prepare。 |
+| `product_version` | `release-prepare` 已自动同步 `src/shared/product-version.ts`、`src/miniapp/utils/product-version.ts` 和 `src/miniapp/utils/product-version.js` 中存在的 `PRODUCT_VERSION`，且均等于 release version；rationale 不得放行 prepare。 |
 | `mintlify_preview` | Mintlify build/preview or equivalent static MDX safety check evidence. |
-| `usage_docs_preview` | First confirm whether usage docs are required. If generated, validate manifest/navigation/safety/coverage. If skipped, record rationale and do not create an empty `usage-docs/` directory. Pending confirmation blocks readiness. |
+| `usage_docs_preview` | Follow `release.json.usage_docs.generation_decision`: if requested, generate docs and validate manifest/navigation/safety/coverage; if skipped, keep `usage_docs/` absent and record `na`; pending confirmation is legacy-only and blocks until `/release-propose --usage-docs` or `--no-usage-docs` rewrites the decision. |
 | `image_prepare` | When `image_required=true`, `releases/<version>/image-build-plan.json` exists, validates, and is referenced by release metadata. |
 | `image_build` | In prepare, record `na` with a blocker / next step when `releases/<version>/image-manifest.json` is not yet generated; publish is the stage that requires manifest or approved external build evidence. |
-| `upgrade_plans` | Normal releases require `fresh -> <version>` and previous release adjacent upgrade plans for the target environment before publish; development target plans do not prove production upgrade readiness. |
+| `upgrade_plans` | Generate and validate all default and explicitly declared paths in `release.json.upgrade_plans` before publish. Normal releases include `fresh -> <version>` and previous release adjacent upgrade plans when a previous release exists. Plan filenames do not use target suffixes. |
 
-Before reporting readiness, `/release-prepare` SHOULD reference the same release status taxonomy as `/release-status`: separate `decision_missing`, `prepare_evidence_missing`, `publish_evidence_missing`, `production_only_pending`, `input_drift`, `environment_unavailable`, `scope_incomplete`, `public_safety`, and `schema_invalid`. Missing default upgrade plans should be shown as exact `/upgrade-plan --from ... --to ... --target ...` commands rather than prose-only reminders.
+Before reporting readiness, `/release-prepare` SHOULD reference the same release status taxonomy as `/release-status`: separate `decision_missing`, `prepare_evidence_missing`, `publish_evidence_missing`, `input_drift`, `environment_unavailable`, `scope_incomplete`, `public_safety`, and `schema_invalid`. Missing default or declared upgrade plans MUST be generated by this command with `python scripts/validate-release-upgrade.py plan --from ... --to <version>`, then validated with `validate-plan`.
 
 Do not write `status: pass` without concrete command/path/time evidence.
 
@@ -91,8 +101,11 @@ When release scope includes backend runtime, Web build output, Dockerfile, Compo
 Required structural and safety validation:
 
 ```bash
+python scripts/validate-release.py --release-dir releases/<version> --sync-product-version
+python scripts/validate-release-upgrade.py plan --from fresh --to <version>
+python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/fresh-to-<version>.json
 python scripts/validate-release.py --release-dir releases/<version> --stage prepare
-python scripts/validate-usage-docs.py --release-dir releases/<version>  # only after usage_docs.status is generated or skipped
+python scripts/validate-usage-docs.py --release-dir releases/<version>  # after usage_docs.status is generated or skipped
 python scripts/validate-image-build.py validate-plan --release <version>
 ```
 
@@ -110,8 +123,6 @@ python scripts/check-mysql-schema-drift.py --database-url "$DATABASE_URL"
 Only run expensive or environment-dependent checks when they match release scope or user requested full validation. If a command cannot run locally, record the blocker; do not invent evidence.
 
 If `impact_scope.database` is not `none` / `na` / `不涉及`, `database_migration` MUST be `pass` and its evidence MUST explicitly mention MySQL or `schema.mysql.sql`, a schema drift / target MySQL smoke check, and database rollback or backup evidence. Do not paste raw `DATABASE_URL` or credentials into release artifacts.
-
-For `release_target.environment=production`, production deployment evidence such as explicit `TILESFST_IMAGE_TAG=<version>`, production backup confirmation, production public API consistency, production no-fallback media checks, and production smoke may be blockers. For `development`, record those items only as future production release follow-up when relevant.
 
 ## Actionable Blockers（MUST）
 
@@ -131,24 +142,31 @@ Examples:
 
 The final response MUST group blockers into `已解决`, `仍阻塞`, and `仅 warning` when more than one gate changed during the command.
 
-## Usage Docs Decision（MUST）
+## Usage Docs and Upgrade Decision（MUST）
 
-Before generating or validating current-version product usage docs, ask the user whether this release needs usage docs generation or update. Do not infer confirmation from the presence of user-visible changes alone.
+Before generating or validating current-version product usage docs, read `release.json.usage_docs.generation_decision`. Do not ask the user again when `/release-propose` already recorded the decision.
 
-- If user confirms **needed**:
+- If `generation_decision.required=true` or `usage_docs.status=requested`:
   - Ensure `release.json usage_docs.generation_decision.required=true`, `confirmed_at`, `confirmed_by`, and `rationale` are recorded.
   - Run `/usage-docs-generate <version>` or `python scripts/generate-usage-docs.py <version>`.
   - Update `releases/mint.json` navigation for the generated pages.
   - Run `/usage-docs-validate <version>` or `python scripts/validate-usage-docs.py --release-dir releases/<version>`.
   - Set `gates.usage_docs_preview.status=pass` only with concrete command/path/time evidence.
-- If user confirms **not needed**:
+- If `generation_decision.required=false` or `usage_docs.status=skipped`:
   - Run `python scripts/generate-usage-docs.py <version> --skip --rationale "<reason>" --confirmed-by "<source>"` or equivalent.
   - Keep `releases/<version>/usage-docs/` absent.
   - Set `gates.usage_docs_preview.status=na` with rationale.
-- If user has **not confirmed**:
+- If the legacy state has no decision:
   - Set or keep `usage_docs.status=pending_confirmation`.
   - Do not create `usage-docs/`.
-  - Record a blocker or pending item; do not mark publish ready.
+  - Record a blocker and ask the operator to rerun `/release-propose <version> --usage-docs` or `/release-propose <version> --no-usage-docs`; do not mark publish ready.
+
+For upgrade plans, read `release.json.upgrade_plans.sources` or equivalent fields. Always include `fresh` and the previous formal release when applicable, merge any explicit sources from `--upgrade-from`, remove duplicates, and for each source run:
+
+```bash
+python scripts/validate-release-upgrade.py plan --from <source> --to <version>
+python scripts/validate-release-upgrade.py validate-plan --plan releases/<version>/upgrade-plans/<source>-to-<version>.json
+```
 
 Usage docs and release metadata MUST be public-safe: no real `.env` content, database connection strings, secrets, Authorization headers, Cookies, object storage credentials, production private domains, local absolute paths, or real customer data.
 
@@ -159,24 +177,26 @@ Create or update:
 ```text
 releases/<version>/release.json
 releases/<version>/announcement.mdx
-releases/<version>/usage-docs/**  # only when user confirmed generation is needed
+releases/<version>/usage-docs/**  # only when release.json requested generation
+releases/<version>/upgrade-plans/*.json
 ```
 
 Announcement MUST include version, release time, related Sprint, new features, bug fixes, release notes, known issues, upgrade steps, rollback instructions, and impact scope. It MUST be public-safe.
 
 ## Output
 
-Report version, gate status summary, commands run, updated files, blockers, and whether publish is ready. If `usage_docs.status=pending_confirmation`, the output MUST explicitly list both unblock paths:
+Report version, gate status summary, commands run, updated files, blockers, and whether publish is ready. If `usage_docs.status=pending_confirmation`, the output MUST instruct the operator to rerun `/release-propose <version> --usage-docs` or `/release-propose <version> --no-usage-docs` so the decision is recorded in `release.json`.
+
+If ready and image build evidence is not complete, next command:
 
 ```text
-python scripts/generate-usage-docs.py <version>
-python scripts/generate-usage-docs.py <version> --skip --confirmed-by operator --rationale "<why usage docs are not needed for this release>"
+/image-prepare <version>
 ```
 
-If ready, next command:
+If image and publish evidence are ready, next command:
 
 ```text
-/release-status <version>
+/release-publish <version>
 ```
 
 ## Final Step — AI Usage Post-command Hook (MUST)
@@ -214,12 +234,12 @@ python scripts/extract-ai-usage.py \
 输出必须包含两项：
 
 - `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
-- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、人工执行确认、阻塞项或人工处理事项。
 
 输出判定：
 
 - 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
-- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 下一步被用户选择、补证、验收、发布确认、人工执行确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

@@ -4,7 +4,7 @@ content: 瓷砖图片、视频、封面、转码、上传、对象存储、前�
 source: AI自动生成初稿，项目团队确认
 update_method: 新增媒体类型、视频转码、封面生成、上传限制、对象存储策略时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-30 12:26:56
+updated_at: 2026-08-31 10:23:00
 note: 适用于Web展示端、微信小程序和管理端的媒体资产处理
 ---
 
@@ -93,7 +93,7 @@ original/              Deprecated，仅存量兼容
 
 小程序媒体相关需求、BUG、Sprint 验收和发布前检查必须优先引用 `docs/knowledge-base/best-practices/miniapp-media-four-part-acceptance-practice.md`。除静态测试外，还应记录 DevTools、真机或体验版 Network evidence，覆盖图片展示 URL、preview URL、视频 URL、poster/cover、fallback、lazy-load 和受控 `/media` URL。测试 helper 只能证明模板绑定与 URL 安全边界；审计 helper 只能证明历史对象和缩略图状态，二者均不得替代小程序 render evidence。
 
-开发阶段无法访问生产环境、体验版入口、真机设备、生产对象存储或生产公开域名时，媒体四联验收不得把这些生产专属证据缺口默认写为开发归档 blocker。应按 `docs/standards/media-bug-four-point-acceptance-template.md` 和 `docs/standards/miniapp-device-evidence-template.md` 记录 `target_environment`、`phase`、`blocking_scope` 与 `classification`，将仅生产可得的证据标记为 `production_only_pending`、`environment_unavailable`、`follow_up` 或 `not_applicable_for_development`。若 Change 目标明确是生产维护执行或生产发布确认，则生产对象、生产 URL、生产 no-fallback 媒体、备份、dry-run/apply 和二次审计证据按范围参与强门禁。
+开发阶段无法访问体验版入口、真机设备、线上对象存储或线上公开域名时，媒体四联验收不得把不可获得证据写为已经通过。应按 `docs/standards/media-bug-four-point-acceptance-template.md` 和 `docs/standards/miniapp-device-evidence-template.md` 记录 `evidence_source`、`verification_boundary`、`evidence_ref`、不可验证原因和后续承接方式。`production_only_pending` 仅作为历史兼容字段，不推荐新记录继续使用。
 
 涉及品牌证书时，四联验收必须明确区分图片类证书与 PDF/文档类证书：图片 key 与缩略图 key 使用 `images/`，PDF/文档 key 使用 `files/`；历史图片 key 迁移必须记录 dry-run/apply/幂等摘要。
 

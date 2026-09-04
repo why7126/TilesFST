@@ -4,38 +4,6 @@
   "owner": "product",
   "summary": "本版本汇总 sprint-028 的小程序证书媒体修复与发布治理交付：修复小程序证书列表图片类证书缩略图缺失问题，并补齐 AI Usage session 自动发现、发布状态决策面板和环境分层证据门禁治理。",
   "formal_scope_only": true,
-  "release_target": {
-    "environment": "development",
-    "deployment_scope": "development",
-    "production_release_required": true,
-    "rationale": "命令未显式传入 --target，按发布规范默认创建 development 发布计划；该发布确认仅覆盖开发环境部署与开发交付，生产发布需单独确认。"
-  },
-  "production_deployment": {
-    "env_image_tag": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 env 证据；production 发布必须证明 TILESFST_IMAGE_TAG 显式等于目标版本。"
-    },
-    "backup_confirmation": {
-      "status": "na",
-      "rationale": "development 发布不需要生产备份证据；production 发布必须记录 DB / 对象存储备份或明确不适用理由。"
-    },
-    "public_api_consistency": {
-      "status": "na",
-      "rationale": "development 发布不需要生产公开 API 证据；production 发布按范围记录证书列表接口字段一致性。"
-    },
-    "media_no_fallback": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 no-fallback 媒体证据；production 发布按证书缩略图范围记录。"
-    },
-    "runtime_smoke": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 smoke；production 发布必须记录运行时 smoke 证据。"
-    },
-    "rollback_readiness": {
-      "status": "na",
-      "rationale": "development 发布不需要生产回滚证据；production 发布必须记录回滚准备证据。"
-    }
-  },
   "version_change_rationale": "",
   "image_required": true,
   "image_required_rationale": "本版本包含后端 miniapp certificates API 媒体 URL / 缩略图回填修复、小程序端渲染验收相关交付，以及发布校验脚本治理更新；发布前需要执行 image-prepare 与 image-build 获取可追溯镜像证据。",
@@ -141,7 +109,7 @@
     },
     "product_version": {
       "status": "pass",
-      "evidence": "2026-08-30 15:20:00 发布返修已将 src/shared/product-version.ts、src/miniapp/utils/product-version.ts 与 src/miniapp/utils/product-version.js 的 PRODUCT_VERSION 对齐为 v1.2.2。"
+      "evidence": "2026-08-30 22:53:23 release-prepare 自动同步 PRODUCT_VERSION 为 v1.2.2：src/shared/product-version.ts、src/miniapp/utils/product-version.ts、src/miniapp/utils/product-version.js"
     },
     "mintlify_preview": {
       "status": "na",
@@ -162,13 +130,6 @@
   },
   "known_issues": [
     {
-      "id": "BUG-0147-production-device-network-evidence",
-      "type": "production_only_pending",
-      "status": "open",
-      "summary": "BUG-0147 开发验收已记录 DevTools Network 与模拟器渲染 evidence，用户确认开发环境不需要真机或体验版独立 Network evidence；生产发布时需按目标环境补充公开 API、媒体 no-fallback、端侧渲染或明确 N/A 证据。",
-      "source": "openspec/archive/2026-08-30-fix-miniapp-certificate-media-urls/trace.md"
-    },
-    {
       "id": "BUG-0147-backfill-pillow-test-gap",
       "type": "prepare_evidence_missing",
       "status": "open",
@@ -180,15 +141,14 @@
     "published_at": "2026-08-30 15:29:17",
     "announcement_url": "releases/v1.2.2/announcement.mdx",
     "confirmed_by": "operator",
-    "target": "development",
-    "notes": "development 发布确认已在 PRODUCT_VERSION 对齐 v1.2.2 后重新记录。最终镜像 sha256 以 releases/v1.2.2/image-manifest.json 和 tarball .sha256 sidecar 为准；生产发布需单独确认 production 目标环境、备份、公开 API、媒体 no-fallback、runtime smoke 与回滚准备证据。"
+    "notes": "发布确认已在 PRODUCT_VERSION 对齐 v1.2.2 后重新记录。最终镜像 sha256 以 releases/v1.2.2/image-manifest.json 和 tarball .sha256 sidecar 为准。"
   },
   "upgrade_steps": [
     "发布准备阶段更新 src/shared/product-version.ts 的 PRODUCT_VERSION 为 v1.2.2，并复跑发布校验。",
     "确认本版本 usage docs 是否需要生成或更新；若不需要，记录 skipped 决策并保持 usage-docs 目录不存在。",
     "执行 /release-prepare v1.2.2 完成公告公开安全、Mintlify 预览和发布前门禁整理。",
     "执行 /image-prepare v1.2.2 与 /image-build v1.2.2 生成镜像计划和 manifest。",
-    "生成 development 目标的 fresh -> v1.2.2 与 v1.2.1 -> v1.2.2 升级计划，并完成 smoke 与回归验证。"
+    "生成 fresh -> v1.2.2 与 v1.2.1 -> v1.2.2 升级计划，并完成 smoke 与回归验证。"
   ],
   "rollback": {
     "conditions": [
@@ -212,5 +172,28 @@
     "object_storage": "不新增存储结构；修复依赖既有证书媒体 key、公开 URL 和缩略图对象读取。",
     "docker": "发布需通过镜像治理生成 image-build-plan 与 image-manifest；本提案阶段尚未构建镜像。"
   },
-  "announcement": "announcement.mdx"
+  "announcement": "announcement.mdx",
+  "product_version_sync": {
+    "status": "synced",
+    "synced_at": "2026-08-30 22:53:23",
+    "version": "v1.2.2",
+    "files": [
+      {
+        "path": "src/shared/product-version.ts",
+        "changed": false,
+        "version": "v1.2.2"
+      },
+      {
+        "path": "src/miniapp/utils/product-version.ts",
+        "changed": false,
+        "version": "v1.2.2"
+      },
+      {
+        "path": "src/miniapp/utils/product-version.js",
+        "changed": false,
+        "version": "v1.2.2"
+      }
+    ],
+    "source": "release-prepare"
+  }
 }

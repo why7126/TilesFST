@@ -70,7 +70,7 @@ openspec status --change "<resolved-change-id>" --json
 | MODIFIED title | matching `openspec/specs/<capability>/spec.md` requirement title MUST exist |
 | Documentation sync | before archive, affected long-lived docs / README / `.env.example` / API index / DB design / Orval notes / release or deployment docs MUST be checked and updated or explicitly marked not applicable |
 | Product data observability | API / DB / audit log / usage event / Task Trace / Web / miniapp / App request wrapper changes MUST have `product_data_collection_observability` status, `affected_layers`, N/A reason and validation evidence; read `docs/standards/product-data-collection-observability.md` |
-| Environment-tiered evidence | Development archive MUST distinguish development, trial and production evidence. Production-only evidence that cannot exist before release MUST be recorded as `production_only_pending`, `environment_unavailable`, `follow_up` or `not_applicable_for_development`, and MUST NOT block `opsx.archive` unless the Change target is production execution or production publish. Run `python scripts/validate-environment-tiered-evidence.py --change <change-id>` or consume the same check through archive evidence validation. |
+| Evidence source diagnostics | Archive evidence SHOULD state evidence source and proof boundary. `python scripts/validate-environment-tiered-evidence.py --change <change-id>` is available for focused manual diagnostics, but is no longer a default `opsx.archive` blocking gate. |
 | Document language | active Change docs MUST pass `python scripts/validate-openspec-language.py` before archive |
 | Archive target | `openspec/archive/YYYY-MM-DD-<change-id>/` MUST NOT already exist |
 | Legacy archive root | `openspec/changes/archive/` MUST NOT exist before or after archive; if present, stop and migrate its children to `openspec/archive/` first |
@@ -103,6 +103,7 @@ Run these commands strictly sequentially. Do not use parallel execution or `mult
 ```bash
 python scripts/validate-openspec-language.py
 python scripts/validate-directory-structure.py
+# optional manual diagnostic only:
 python scripts/validate-environment-tiered-evidence.py --change <change-id>
 python scripts/validate-archive-evidence.py --change <change-id> --archive-path openspec/archive/YYYY-MM-DD-<change-id>
 python scripts/sync-workflow-status.py --event opsx.archive --change <change-id> --sprint auto

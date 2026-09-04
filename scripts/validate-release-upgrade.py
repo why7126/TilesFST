@@ -33,25 +33,7 @@ ENV_EXAMPLE_PATTERNS = (
     "deploy/**/*.env.example",
     "scripts/build-images.env.example",
 )
-DEPLOYMENT_TARGETS = {"development", "production"}
-PRODUCTION_REQUIRED_KEYS = {
-    "APP_ENV",
-    "APP_SECRET_KEY",
-    "DATABASE_URL",
-    "ADMIN_INITIAL_PASSWORD",
-    "OBJECT_STORAGE_PROVIDER",
-    "OBJECT_STORAGE_BUCKET",
-    "OBJECT_STORAGE_ACCESS_KEY",
-    "OBJECT_STORAGE_SECRET_KEY",
-    "TILESFST_IMAGE_TAG",
-}
-UNSAFE_VALUE_TOKENS = (
-    "change-me",
-    "replace-with",
-    "example.com",
-    "minioadmin",
-    "sqlite:",
-)
+PROJECT_DEPLOYMENT_SCOPE = "project"
 SENSITIVE_PATTERNS = (
     re.compile(r"\bAPP_SECRET_KEY\s*=", re.I),
     re.compile(r"\bDATABASE_URL\s*=\s*(?!<)", re.I),
@@ -174,13 +156,13 @@ def diff_env_snapshots(
     source: dict[str, dict[str, str]],
     target: dict[str, dict[str, str]],
     *,
-    deployment_target: str = "production",
+    deployment_target: str = PROJECT_DEPLOYMENT_SCOPE,
 ) -> dict[str, list[dict[str, str]]]:
     diff: dict[str, list[dict[str, str]]] = {
         "added": [],
         "removed": [],
         "changed_default": [],
-        "required_in_production": [],
+        "required_configuration": [],
         "unsafe_example_value": [],
         "manual_review": [],
     }
@@ -189,31 +171,26 @@ def diff_env_snapshots(
         before = source.get(path, {})
         after = target.get(path, {})
         for key in sorted(set(after) - set(before)):
-            diff["added"].append({"path": path, "key": key, "recommendation": "确认生产环境是否需要显式配置"})
+            diff["added"].append({"path": path, "key": key, "recommendation": "确认本项目交付环境是否需要显式配置"})
         for key in sorted(set(before) - set(after)):
-            diff["removed"].append({"path": path, "key": key, "recommendation": "确认生产环境是否仍残留废弃变量"})
+            diff["removed"].append({"path": path, "key": key, "recommendation": "确认交付环境是否仍残留废弃变量"})
         for key in sorted(set(before) & set(after)):
             if before[key] != after[key]:
                 diff["changed_default"].append({"path": path, "key": key, "recommendation": "复核默认值变化是否影响部署"})
-        for key, value in sorted(after.items()):
-            if deployment_target == "production" and key in PRODUCTION_REQUIRED_KEYS:
-                diff["required_in_production"].append({"path": path, "key": key, "recommendation": "生产环境必须显式配置，不得依赖示例值"})
-            if deployment_target == "production" and any(token in value.lower() for token in UNSAFE_VALUE_TOKENS):
-                diff["unsafe_example_value"].append({"path": path, "key": key, "recommendation": "生产环境不得使用该示例值"})
     return diff
 
 
-def current_env_diff(root: Path = ROOT, *, deployment_target: str = "production") -> dict[str, Any]:
+def current_env_diff(root: Path = ROOT, *, deployment_target: str = PROJECT_DEPLOYMENT_SCOPE) -> dict[str, Any]:
     snapshot = env_snapshot(root)
     return {
         "status": "manual_review",
         "source": "current-env-examples",
-        "deployment_target": deployment_target,
+        "deployment_scope": PROJECT_DEPLOYMENT_SCOPE,
         "summary": diff_env_snapshots({}, snapshot, deployment_target=deployment_target),
         "notes": [
             "当前仓库尚未保存历史版本 env 示例快照；跨版本 env diff 需结合 Git tag、release 归档或人工快照复核。",
             "输出仅包含变量名、分类和建议，不包含真实 env 值。",
-            "development 目标计划不把生产必填变量或示例值作为 blocker；production 目标计划必须复核生产必填变量和示例值风险。",
+            "本项目不区分 development/production 发布目标；env diff 只作为项目交付环境人工复核输入。",
         ],
     }
 
@@ -272,25 +249,14 @@ def classify_support(from_version: str, to_version: str, root: Path, blockers: l
 
 
 def release_target_environment(release_data: dict[str, Any] | None, explicit_target: str | None) -> str:
-    if explicit_target:
-        return explicit_target
-    if isinstance(release_data, dict):
-        target = release_data.get("release_target")
-        if isinstance(target, dict):
-            value = str(target.get("environment") or "").strip().lower()
-            if value in DEPLOYMENT_TARGETS:
-                return value
-    return "production"
+    return PROJECT_DEPLOYMENT_SCOPE
 
 
 def build_plan(from_version: str, to_version: str, root: Path = ROOT, *, deployment_target: str | None = None) -> dict[str, Any]:
     target_release = release_fact(to_version, root)
     source_release = None if from_version == "fresh" else release_fact(from_version, root)
-    target = release_target_environment(target_release, deployment_target)
     blockers: list[str] = []
     warnings: list[str] = []
-    if target not in DEPLOYMENT_TARGETS:
-        blockers.append(f"unsupported deployment target: {target}")
     if target_release is None:
         blockers.append(f"target release missing: releases/{to_version}/release.json")
     elif target_release.get("version") != to_version:
@@ -310,7 +276,7 @@ def build_plan(from_version: str, to_version: str, root: Path = ROOT, *, deploym
     plan = {
         "schema_version": 1,
         "generated_at": now_text(),
-        "deployment_target": target,
+        "deployment_scope": PROJECT_DEPLOYMENT_SCOPE,
         "from_version": from_version,
         "to_version": to_version,
         "support_level": support_level,
@@ -320,26 +286,26 @@ def build_plan(from_version: str, to_version: str, root: Path = ROOT, *, deploym
             "target_image_manifest": path_exists_summary(target_dir / "image-manifest.json", root),
             "product_version": extract_product_version(root / "src" / "shared" / "product-version.ts"),
             "git_ref": {"status": "manual_review", "recommendation": "使用发布 tag 或 commit 补充源码快照锚点"},
-            "deployment_image_tag": {"key": "TILESFST_IMAGE_TAG", "expected": to_version, "target": target, "value": "<redacted-or-operator-confirmed>"},
+            "deployment_image_tag": {"key": "TILESFST_IMAGE_TAG", "expected": to_version, "scope": PROJECT_DEPLOYMENT_SCOPE, "value": "<redacted-or-operator-confirmed>"},
         },
         "impact_summary": {
             "database": "requires_mysql_evidence" if db_impact else "none",
-            "environment": f"{target}_manual_review",
+            "environment": "project_manual_review",
             "docker": "target image manifest required",
             "api": "manual_review_for_cross_version" if from_version != "fresh" else "none",
             "object_storage": "manual_review_for_cross_version" if from_version != "fresh" else "none",
             "maintenance_jobs": "dry_run_required_if_write_tasks_exist",
         },
-        "env_diff": current_env_diff(root, deployment_target=target),
+        "env_diff": current_env_diff(root),
         "required_checks": [
-            f"python scripts/validate-release-upgrade.py validate-plan --plan releases/{to_version}/upgrade-plans/{safe_plan_name(from_version, to_version, target)}",
+            f"python scripts/validate-release-upgrade.py validate-plan --plan releases/{to_version}/upgrade-plans/{safe_plan_name(from_version, to_version)}",
             f"python scripts/validate-image-build.py validate-manifest --release {to_version}",
             "docker compose config --quiet 或目标 deploy Compose config 校验",
             "若 database impact 非 none：python scripts/check-mysql-schema-drift.py --database-url \"$DATABASE_URL\"",
             "部署后 health/login/core API/Web/media smoke",
         ],
-        "steps": upgrade_steps(from_version, to_version, previous, deployment_target=target),
-        "rollback": rollback_steps(from_version, to_version, db_impact, deployment_target=target),
+        "steps": upgrade_steps(from_version, to_version, previous),
+        "rollback": rollback_steps(from_version, to_version, db_impact),
         "blockers": blockers,
         "warnings": warnings,
         "evidence": {
@@ -357,12 +323,11 @@ def build_plan(from_version: str, to_version: str, root: Path = ROOT, *, deploym
 
 def safe_plan_name(from_version: str, to_version: str, deployment_target: str | None = None) -> str:
     source = "fresh" if from_version == "fresh" else from_version
-    suffix = f".{deployment_target}" if deployment_target else ""
-    return f"{source}-to-{to_version}{suffix}.json"
+    return f"{source}-to-{to_version}.json"
 
 
-def upgrade_steps(from_version: str, to_version: str, previous: str | None, *, deployment_target: str) -> list[str]:
-    label = "生产" if deployment_target == "production" else "开发"
+def upgrade_steps(from_version: str, to_version: str, previous: str | None, *, deployment_target: str = PROJECT_DEPLOYMENT_SCOPE) -> list[str]:
+    label = "项目"
     if from_version == "fresh":
         return [
             f"确认 releases/{to_version}/release.json 与 image-manifest.json 存在且版本一致。",
@@ -374,7 +339,7 @@ def upgrade_steps(from_version: str, to_version: str, previous: str | None, *, d
     if previous == from_version:
         return [
             f"确认来源版本 {from_version} 和目标版本 {to_version} release 事实源存在。",
-            f"确认{label}数据库、对象存储影响范围和当前 env 摘要；生产目标必须完成备份。",
+            f"确认{label}数据库、对象存储影响范围、当前 env 摘要和备份策略。",
             f"加载或拉取目标镜像，将 TILESFST_IMAGE_TAG 更新为 {to_version}。",
             f"执行{label}目标 Compose config 校验并重启服务。",
             f"完成{label}升级后 health、login、核心 API、Web、小程序或媒体 smoke。",
@@ -387,9 +352,9 @@ def upgrade_steps(from_version: str, to_version: str, previous: str | None, *, d
     ]
 
 
-def rollback_steps(from_version: str, to_version: str, db_impact: bool, *, deployment_target: str) -> dict[str, Any]:
+def rollback_steps(from_version: str, to_version: str, db_impact: bool, *, deployment_target: str = PROJECT_DEPLOYMENT_SCOPE) -> dict[str, Any]:
     previous_label = "人工确认的上一稳定版本" if from_version == "fresh" else from_version
-    backup_requirement = "required" if deployment_target == "production" and (db_impact or from_version != "fresh") else "recommended"
+    backup_requirement = "recommended"
     return {
         "previous_image": previous_label,
         "target_image": to_version,
@@ -398,7 +363,7 @@ def rollback_steps(from_version: str, to_version: str, db_impact: bool, *, deplo
         "object_storage_backup": "只读确认；若执行写入型维护任务则必须备份或记录不可逆风险",
         "rollback_steps": [
             f"回退 TILESFST_IMAGE_TAG 或镜像包到 {previous_label}。",
-            f"恢复旧 env 摘要对应的真实 env，由运维在{('生产' if deployment_target == 'production' else '开发')}环境执行。",
+            "恢复旧 env 摘要对应的真实 env，由负责人在项目交付环境执行。",
             "如数据库已写入变更，根据备份恢复或已验证反向迁移执行。",
             "完成回滚后 health、login、核心 API、Web 和媒体 smoke。",
         ],
@@ -415,9 +380,6 @@ def assert_public_safe(data: Any, *, artifact: str) -> None:
 
 def validate_plan_data(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    target = str(data.get("deployment_target") or "production").lower()
-    if target not in DEPLOYMENT_TARGETS:
-        errors.append(f"invalid deployment_target: {data.get('deployment_target')}")
     for key in ("from_version", "to_version", "support_level", "source_confidence", "impact_summary", "required_checks", "steps", "rollback", "blockers", "warnings", "evidence"):
         if key not in data:
             errors.append(f"missing required field: {key}")
@@ -444,12 +406,11 @@ def write_plan(args: argparse.Namespace) -> int:
     plan = build_plan(args.from_version, args.to_version, root, deployment_target=args.target)
     output = args.output
     if output is None:
-        target = release_target_environment(release_fact(args.to_version, root), args.target)
-        output = root / "releases" / args.to_version / "upgrade-plans" / safe_plan_name(args.from_version, args.to_version, target)
+        output = root / "releases" / args.to_version / "upgrade-plans" / safe_plan_name(args.from_version, args.to_version)
     write_json(output, plan)
     print("升级计划已生成：")
     print(f"- path: {rel_path(output, root=root)}")
-    print(f"- deployment_target: {plan['deployment_target']}")
+    print(f"- deployment_scope: {plan['deployment_scope']}")
     print(f"- support_level: {plan['support_level']}")
     print(f"- blockers: {len(plan['blockers'])}")
     print(f"- warnings: {len(plan['warnings'])}")
@@ -466,7 +427,7 @@ def validate_plan(args: argparse.Namespace) -> int:
         return 1
     print("升级计划校验通过：")
     print(f"- plan: {args.plan}")
-    print(f"- deployment_target: {data.get('deployment_target') or 'production'}")
+    print(f"- deployment_scope: {data.get('deployment_scope') or PROJECT_DEPLOYMENT_SCOPE}")
     print(f"- support_level: {data.get('support_level')}")
     print(f"- blockers: {len(data.get('blockers') or [])}")
     print(f"- warnings: {len(data.get('warnings') or [])}")
@@ -489,7 +450,7 @@ def main() -> int:
     plan_parser = sub.add_parser("plan", help="Generate an upgrade plan")
     plan_parser.add_argument("--from", dest="from_version", required=True)
     plan_parser.add_argument("--to", dest="to_version", required=True)
-    plan_parser.add_argument("--target", choices=sorted(DEPLOYMENT_TARGETS), help="Deployment target for the upgrade plan")
+    plan_parser.add_argument("--target", help="Deprecated compatibility option; project upgrade plans no longer distinguish deployment targets")
     plan_parser.add_argument("--output", type=Path)
     plan_parser.set_defaults(func=write_plan)
 
@@ -500,7 +461,7 @@ def main() -> int:
     env_parser = sub.add_parser("env-diff", help="Diff env example files")
     env_parser.add_argument("--from-dir", type=Path)
     env_parser.add_argument("--to-dir", type=Path)
-    env_parser.add_argument("--target", choices=sorted(DEPLOYMENT_TARGETS), default="production")
+    env_parser.add_argument("--target", default=PROJECT_DEPLOYMENT_SCOPE, help="Deprecated compatibility option; ignored for project env diff")
     env_parser.set_defaults(func=print_env_diff)
 
     args = parser.parse_args()

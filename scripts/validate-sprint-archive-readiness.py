@@ -20,7 +20,6 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import sprint_change_batches
 import sprint_close_stale_scan
-import environment_tiered_evidence
 from archive_evidence import validate_archive_evidence
 
 
@@ -64,7 +63,6 @@ class SprintReadiness:
     changes: list[ChangeReadiness]
     change_batches: dict[str, object]
     stale_scan: sprint_close_stale_scan.SprintCloseStaleReport
-    environment_tiered_evidence: environment_tiered_evidence.EnvironmentEvidenceReport
 
     @property
     def blockers(self) -> list[ChangeReadiness]:
@@ -72,7 +70,7 @@ class SprintReadiness:
 
     @property
     def has_blockers(self) -> bool:
-        return bool(self.blockers) or not self.stale_scan.ok or not self.environment_tiered_evidence.ok
+        return bool(self.blockers) or not self.stale_scan.ok
 
 
 def read_text(path: Path) -> str:
@@ -221,8 +219,6 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
     ]
 
     stale_report = sprint_close_stale_scan.build_report(sprint_id, root=root)
-    environment_report = environment_tiered_evidence.validate_sprint(root, sprint_id, target="development")
-
     return SprintReadiness(
         sprint_id=sprint_id,
         sprint_path=str(sprint_dir.relative_to(root)),
@@ -232,7 +228,6 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
             ordering="archive-readiness queue",
         ),
         stale_scan=stale_report,
-        environment_tiered_evidence=environment_report,
     )
 
 
@@ -326,22 +321,6 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
             ]
         )
 
-    environment_report = readiness.environment_tiered_evidence
-    lines.extend(
-        [
-            "",
-            "## Environment Tiered Evidence",
-            "",
-            f"- Checked Files: {len(environment_report.checked_files)}",
-            f"- Blockers: {len(environment_report.blockers)}",
-            f"- Verdict: {'PASS' if environment_report.ok else 'BLOCKED'}",
-        ]
-    )
-    if environment_report.blockers:
-        lines.extend(["", "| Rule | File | Line | Message |", "|---|---|---:|---|"])
-        for blocker in environment_report.blockers:
-            lines.append(f"| `{blocker.rule_id}` | `{blocker.file}` | {blocker.line} | {blocker.message} |")
-
     blockers = readiness.blockers
     lines.append("")
     if readiness.has_blockers and not force:
@@ -351,8 +330,6 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
             lines.append("Complete remaining `tasks.md` items via `/sprint-apply` before `/sprint-archive`.")
         if not stale.ok:
             lines.append("Fix stale Sprint close facts before `/sprint-archive`.")
-        if not environment_report.ok:
-            lines.append("Fix environment-tiered evidence blockers before `/sprint-archive`.")
     elif readiness.has_blockers:
         lines.append("**Verdict:** FORCE-PROCEED")
         lines.append("")

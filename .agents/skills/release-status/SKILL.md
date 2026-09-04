@@ -2,12 +2,12 @@
 name: "release-status"
 description: "只读汇总 release / image / upgrade / publish 状态并输出用户决策面板"
 created_at: 2026-08-30 10:25:00
-updated_at: 2026-08-30 15:36:34
+updated_at: 2026-08-31 09:10:00
 ---
 
 # release-status
 
-Use this skill when the user asks `/release-status <version>` or wants to understand the current release, image, upgrade, and publish state before deciding the next action.
+Use this skill when the user asks `/release-status <version>` or wants to understand the current release, image, upgrade, and publish state before deciding the next action. This command is a read-only status panel and blocker troubleshooting entry, not the default mainline step between `/release-propose <version>` and `/release-prepare <version>`.
 
 ## Context Budget Guardrails（MUST）
 
@@ -25,7 +25,7 @@ Use this skill when the user asks `/release-status <version>` or wants to unders
 ## Input
 
 - `<version>`：必填，例如 `v1.2.1`。
-- Flags：`--target development|production` 可覆盖发布目标用于查看目标门禁；`--json` 可输出机器可读摘要。
+- Flags：`--json` 可输出机器可读摘要。旧 `--target` 入参仅为兼容，不再改变发布门禁。
 
 ## Must Read
 
@@ -50,37 +50,26 @@ releases/<version>/upgrade-plans/*.json
 
 ```bash
 python scripts/validate-release.py --release-dir releases/<version> --status
-python scripts/validate-release.py --release-dir releases/<version> --status --target production
-python scripts/validate-environment-tiered-evidence.py --release-dir releases/<version> --target production
 ```
 
 ## Output Contract
 
-`/release-status` is read-only. It MUST NOT create release artifacts, image plans, image manifests, upgrade plans, publish confirmation, production evidence, or documentation.
+`/release-status` is read-only. It MUST NOT create release artifacts, image plans, image manifests, upgrade plans, publish confirmation, or documentation.
 
 The output MUST include:
 
-- release target and deployment boundary
 - current phase
 - publish readiness
 - one next command when available
 - blocking decisions
 - blocking evidence
-- production-only follow-ups that do not block development releases
-- default upgrade path status and commands
+- default and declared upgrade path status
 
-Blocker classifications MUST use the release workflow taxonomy: `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`production_only_pending`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety`、`schema_invalid`。
+Blocker classifications MUST use the release workflow taxonomy: `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety`、`schema_invalid`。
 
-When upstream REQ / BUG / Change / Sprint evidence contains `production_only_pending`, `/release-status` MUST keep it non-blocking for `--target development` and reclassify it for `--target production` according to the concrete missing production gate. It MUST consume `validate-release.py --status` output, which includes the environment-tiered evidence validator, and MUST NOT claim production evidence from development-only tests, DevTools screenshots, DevTools Network, or local smoke results.
+When Web or miniapp user-visible `PRODUCT_VERSION` sources differ from the release version, `/release-status` MUST classify the blocker as `prepare_evidence_missing` and report the safe remediation as `/release-prepare <version>` so version source updates remain automated. If image evidence already exists, the follow-up remediation MUST include rerunning `/image-prepare <version>` and `/image-build <version>` before publish.
 
-When Web or miniapp user-visible `PRODUCT_VERSION` sources differ from the release version, `/release-status` MUST classify the blocker as `prepare_evidence_missing` and report the safe remediation as updating the version sources, then rerunning `/image-prepare <version>` and `/image-build <version>` before publish.
-
-If the status panel exposes missing default upgrade paths, output exact commands such as:
-
-```text
-/upgrade-plan --from fresh --to v1.2.1 --target development
-/upgrade-plan --from v1.2.0 --to v1.2.1 --target development
-```
+If the status panel exposes missing default or declared upgrade paths, it MUST report `/release-prepare <version>` as the safe mainline remediation because prepare owns automatic generation and validation of release-planned artifacts. It MAY include the underlying `python scripts/validate-release-upgrade.py plan --from ... --to <version>` command as diagnostic detail, but SHOULD NOT make standalone `/upgrade-plan` the next mainline action unless the operator explicitly asked to generate one specific extra path.
 
 ## Final Output Contract（MUST）
 
@@ -89,12 +78,12 @@ If the status panel exposes missing default upgrade paths, output exact commands
 输出必须包含两项：
 
 - `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
-- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、人工执行确认、阻塞项或人工处理事项。
 
 输出判定：
 
 - 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
-- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 下一步被用户选择、补证、验收、发布确认、人工执行确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

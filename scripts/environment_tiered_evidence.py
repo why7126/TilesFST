@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared environment-tiered evidence validation helpers."""
+"""Shared evidence source diagnostics helpers."""
 
 from __future__ import annotations
 

@@ -405,6 +405,11 @@ def update_mintlify_navigation(version: str, pages: list[str], *, has_usage_docs
 def project_usage_docs_to_mintlify(version: str, rdir: Path, usage_dir: Path, manifest: dict[str, Any], generated_at: str) -> None:
     ensure_mintlify_base()
     pages = [str(page) for page in manifest.get("pages", []) if isinstance(page, str)]
+    screenshot_original_paths = [
+        str(item.get("path", "")).strip()
+        for item in manifest.get("screenshots", [])
+        if isinstance(item, dict) and str(item.get("path", "")).strip()
+    ]
     target_root = MINTLIFY_DIR / "docs" / version
     latest_root = MINTLIFY_DIR / "docs" / "latest"
     for target in (target_root, latest_root):
@@ -423,6 +428,19 @@ def project_usage_docs_to_mintlify(version: str, rdir: Path, usage_dir: Path, ma
         content_hashes[page] = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
     copy_release_announcement(version, rdir)
     projected_screenshots = copy_shared_screenshots(manifest, usage_dir, version)
+    for original_path, projected in zip(screenshot_original_paths, projected_screenshots):
+        public_path = str(projected.get("path", "")).strip()
+        if not original_path or not public_path or original_path == public_path:
+            continue
+        for page in pages:
+            page_path = usage_dir / page
+            if not page_path.exists():
+                continue
+            text = page_path.read_text(encoding="utf-8")
+            text = text.replace(f"]({original_path})", f"]({public_path})")
+            text = text.replace(f"](../{original_path})", f"]({public_path})")
+            text = text.replace(f"](/assets/screenshots/{Path(original_path).name})", f"]({public_path})")
+            page_path.write_text(text, encoding="utf-8")
     projection = {
         "status": "synced",
         "source_release": repo_relative(rdir),
@@ -437,6 +455,9 @@ def project_usage_docs_to_mintlify(version: str, rdir: Path, usage_dir: Path, ma
     manifest["site_projection"] = projection
     manifest["screenshots"] = projected_screenshots or manifest.get("screenshots", [])
     write_json(usage_dir / "manifest.json", manifest)
+    legacy_assets = usage_dir / "assets"
+    if legacy_assets.exists():
+        shutil.rmtree(legacy_assets)
     write_json(
         MINTLIFY_DIR / "site-manifest.json",
         {

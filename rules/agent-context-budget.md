@@ -4,7 +4,7 @@ content: 约束AI读取范围、搜索排除、Harness/模板工程噪音、生�
 source: BUG-0061会话token复盘后由AI生成，项目团队Review
 update_method: Agent工作流、Harness模板、技能命令或上下文预算策略变化时更新
 created_at: 2026-07-08 09:26:36
-updated_at: 2026-08-30 15:36:34
+updated_at: 2026-08-31 10:23:00
 note: 所有命令技能与普通开发任务均应遵守，优先级高于单个技能中的宽泛读取建议
 ---
 
@@ -136,11 +136,11 @@ API 变更仍 MUST 同步 OpenAPI / Orval / docs / tests，但复核方式应节
 - 对 `/spec-study` 跨项目 Harness 学习，若学习对象存在 `docs/spec-logs/CHANGELOG.md`，MUST 日志优先：先读治理变更历史总账，再按主题读取相关单次 `study` / `governance` 日志，再横向校验真实治理资产，最后仅在证据不足时补读脚本或配置片段；日志只作为入口地图，不替代当前资产事实源。
 - 对新增或高频命令技能，MUST 明确引导式反馈契约；需要用户决策时优先使用原生交互卡片，无法支持时降级为文本结构化选项。
 - 对 AI usage post-command hook，MUST 明确默认 session 发现顺序：显式 `--session-jsonl`、`AI_USAGE_SESSION_JSONL`、`CODEX_SESSION_JSONL`、`AI_USAGE_SESSIONS_DIR`、`~/.codex/sessions/**/*.jsonl` 自动发现；常规 workflow 命令不得在尝试默认发现前声称无法做成本分析，历史回溯或自动发现失败时再要求显式 session 输入。
-- 对发布命令族，MUST 从 `releases/<version>/release.json`、`announcement.mdx`、`image-build-plan.json`、`image-manifest.json`、`upgrade-plans/`、Web / 小程序 `PRODUCT_VERSION` 源和 validator 摘要定位当前状态；不得为了确认 usage docs、公告、镜像或升级状态全量展开历史 Sprint、Issue、Change 或 `releases/**`。命令输出 MUST 回显发布目标环境、usage docs、公开公告和镜像构建四类发布决策摘要，并将阻塞项按 `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`production_only_pending`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety`、`schema_invalid` 分类写成可执行修复路径。产品版本号不一致归类为 `prepare_evidence_missing`，修复后必须重跑 `/image-prepare <version>` 与 `/image-build <version>`。开发环境发布不得把生产 env、生产备份、生产 no-fallback/API/smoke 证据作为阻塞项；生产发布必须单独读取和校验生产门禁证据。`/release-status` 是只读状态面板入口，应用于用户需要理解当前阶段、默认 upgrade 路径和下一步时。
-- 对 `/opsx-archive`、`/sprint-archive`、`/release-status` 和 `/release-publish`，MUST 通过 `scripts/validate-environment-tiered-evidence.py` 或已接入该模块的上层 validator 执行环境分层 evidence 门禁，阻断开发证据冒充生产、体验版 / 真机 Network 无证据却标 passed，以及生产发布前未重新判定的 `production_only_pending`。
+- 对发布命令族，MUST 从 `releases/<version>/release.json`、`announcement.mdx`、`image-build-plan.json`、`image-manifest.json`、`upgrade-plans/`、Web / 小程序 `PRODUCT_VERSION` 源和 validator 摘要定位当前状态；不得为了确认 usage docs、公告、镜像或升级状态全量展开历史 Sprint、Issue、Change 或 `releases/**`。命令输出 MUST 回显 usage docs、公开公告、镜像构建和升级计划四类发布决策摘要，并将阻塞项按 `decision_missing`、`prepare_evidence_missing`、`publish_evidence_missing`、`input_drift`、`environment_unavailable`、`scope_incomplete`、`public_safety`、`schema_invalid` 分类写成可执行修复路径。`/release-propose <version>` 创建或更新发布计划后的默认下一步必须是 `/release-prepare <version>`；propose 默认声明公告必生成/更新、usage docs 默认 skipped、默认 upgrade paths 为 fresh 和上一正式版本，`--usage-docs` / `--no-usage-docs` 与 `--upgrade-from <fresh|version>` 只写入 release 决策。产品版本号不一致或 release-planned 产物缺失归类为 `prepare_evidence_missing` 或 `publish_evidence_missing`，主线修复路径必须指向 `/release-prepare <version>` 自动同步或生成；若已有镜像证据，随后必须重跑 `/image-prepare <version>` 与 `/image-build <version>`。`/release-status` 是只读状态面板和阻塞排查入口，不作为 propose 到 prepare 之间的主线必经步骤；`/release-publish` 只确认，不生成公告、usage docs 或 upgrade plan。
+- 对 evidence 来源容易混淆的验收、归档或发布材料，SHOULD 使用 `scripts/validate-environment-tiered-evidence.py` 作为手动证据来源诊断工具；该脚本不再作为 `/opsx-archive`、`/sprint-archive`、`/release-status` 或 `/release-publish` 默认阻断门禁自动应用。
 - 对 `/git-check` 推送前安全检测命令，MUST 默认扫描 staged、modified tracked 和 untracked 文件，检测真实环境文件、运行时数据、数据库、大文件、密钥/Token/连接串、本机绝对路径和不应进入 Git 的本地数据；`--all` 可用于深度扫描全仓当前文件；输出必须脱敏，且不得自动删除文件、修改 `.gitignore` 或 unstage。
 - 对 `/spec-opt` 规范优化命令，MUST 在完成本项目规范、技能、脚本、目录边界或校验规则迭代后写入 `docs/spec-logs/YYYYMMDDhhmmss-governance-xxx.md` 治理迭代日志，且不得包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志、订单原文、聊天原文、工单原文、截图中的个人信息或学习对象源码。
-- 在最终输出契约中区分「下一步」与「待用户决策/处理」：技能文件不得提供可被原样输出的尖括号占位模板或与当前命令无关的通用示例；已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」；后者只列缺失输入、范围/策略选择、证据补充、验收/发布确认、生产实施确认、阻塞项或人工处理事项，没有则写“无”。
+- 在最终输出契约中区分「下一步」与「待用户决策/处理」：技能文件不得提供可被原样输出的尖括号占位模板或与当前命令无关的通用示例；已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」；后者只列缺失输入、范围/策略选择、证据补充、验收/发布确认、人工执行确认、阻塞项或人工处理事项，没有则写“无”。
 
 ## 8. 校验
 

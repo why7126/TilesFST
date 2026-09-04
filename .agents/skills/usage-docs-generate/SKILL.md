@@ -1,6 +1,8 @@
 ---
 name: "usage-docs-generate"
 description: "确认需要后生成当前版本产品使用文档和 manifest"
+created_at: 2026-08-31 09:10:00
+updated_at: 2026-08-31 09:10:00
 ---
 
 # usage-docs-generate
@@ -60,7 +62,7 @@ python scripts/generate-usage-docs.py <version>
 python scripts/generate-usage-docs.py <version> --skip --confirmed-by operator --rationale "<why usage docs are not needed for this release>"
 ```
 
-The final response MUST say whether `usage_docs.status` is `generated`, `skipped`, or `pending_confirmation`, and whether this blocks `/release-publish`.
+The final response MUST say whether `usage_docs.status` is `generated`, `requested`, `skipped`, or `pending_confirmation`, and whether this blocks `/release-publish`.
 
 ## Steps
 

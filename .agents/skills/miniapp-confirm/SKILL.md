@@ -23,7 +23,7 @@ Recommended flags:
 --notes <text>
 ```
 
-`--notes` 建议包含 DevTools Network 结论、体验版 Network 结论、失败项、阻塞项、剩余风险和下一步。缺少体验版 Network evidence 时，不得写作体验版或生产 `passed`；若当前确认仅覆盖开发阶段，可将体验版或生产证据缺口记录为 `production_only_pending`、`follow_up` 或明确的 `not_applicable_for_development`，并说明后续承接阶段。
+`--notes` 建议包含 DevTools Network 结论、体验版 Network 结论、失败项、阻塞项、剩余风险和下一步。缺少体验版 Network evidence 时，不得写作体验版或线上 `passed`；若当前确认仅覆盖开发阶段，应记录当前证据来源、不可验证原因、后续承接方式或明确 N/A 理由。`production_only_pending` 仅作为历史兼容字段，不推荐新记录继续使用。
 
 ## Steps
 

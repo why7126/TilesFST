@@ -1,7 +1,7 @@
 ---
 name: "release-propose"
 description: "创建或更新产品版本发布计划"
-updated_at: 2026-08-30 15:36:34
+updated_at: 2026-08-31 09:10:00
 ---
 
 # release-propose
@@ -24,7 +24,7 @@ Use this skill when the user asks `/release-propose <version>` or wants to creat
 ## Input
 
 - `<version>`：必填，SemVer 风格，如 `v0.1.0`。
-- Flags：`--sprint <sprint-id>`、`--req <REQ-id>`、`--bug <BUG-id>`、`--change <change-id>`、`--target <development|production>`、`--dry-run`。
+- Flags：`--sprint <sprint-id>`、`--req <REQ-id>`、`--bug <BUG-id>`、`--change <change-id>`、`--usage-docs`、`--no-usage-docs`、`--upgrade-from <fresh|version>`（可重复）、`--dry-run`。旧 `--target` 入参仅为兼容，不再区分发布目标。
 
 ## Must Read
 
@@ -70,12 +70,12 @@ src/shared/product-version.ts
 
 | Decision | Required output |
 |---|---|
-| Release target | `development/production` plus deployment boundary and whether a separate production release is required. |
-| Usage docs | `required=true/false/pending` plus confirmation source and rationale when known. |
-| Public announcement | `generated/skipped/pending` plus whether `announcement.mdx` is final copy or placeholder. |
+| Usage docs | 默认 `required=false` / `status=skipped`；`--usage-docs` 改为 `required=true` / `status=requested`；`--no-usage-docs` 显式保持 skipped，并记录来源和理由。 |
+| Public announcement | 默认 `required=true` / `status=required`，声明 `/release-prepare` 每次必须生成或更新 `announcement.mdx`。 |
 | Image build | `image_required=true/false` plus whether `/image-prepare` and `/image-build` are expected. |
+| Upgrade plans | 默认声明 `fresh -> <version>` 和上一正式版本到 `<version>`；`--upgrade-from <fresh|version>` 追加显式路径，去重后写入 release plan。 |
 
-If any decision is unknown, keep the release as a draft plan and list the missing decision under `待用户决策/处理` with 2-3 structured choices. If the user did not supply a target, default to `development` for local/dev deployment confirmation and require an explicit production release later. If the user supplied these decisions in the command text, record them in `release.json` and echo them in the final response; do not ask again. The output SHOULD point to `/release-status <version>` when the operator needs a consolidated read-only view before the next mutating command.
+Usage docs is no longer an implicit prepare-time decision: absence of `--usage-docs` means this version does not generate or update usage docs. If the user supplied `--usage-docs`, record that explicit request and let `/release-prepare <version>` generate and validate the docs. The default next command after a written release proposal is `/release-prepare <version>`. `/release-status <version>` is an optional read-only panel for operators who want to inspect current blockers, declared upgrade paths, or the safe next command before mutating artifacts.
 
 ## Artifacts（非 `--dry-run` MUST）
 
@@ -91,7 +91,6 @@ Use `releases/templates/release.json` as the base shape. The release object MUST
 - `release_time` in `YYYY-MM-DD HH:mm:ss`
 - `summary`
 - `formal_scope_only: true`
-- `release_target`
 - `sprints`
 - `requirements`
 - `bugs`
@@ -102,6 +101,9 @@ Use `releases/templates/release.json` as the base shape. The release object MUST
 - `rollback`
 - `impact_scope`
 - `announcement`
+- `announcement_decision`
+- `usage_docs`
+- `upgrade_plans`
 
 For propose, unknown gates MAY remain `na` with clear `rationale`, or `blocked` only if a later validator/script supports it. Do not mark a gate `pass` without concrete evidence.
 
@@ -117,13 +119,13 @@ If validation fails because expected publish-time evidence is still missing, rep
 
 ## Output
 
-Report version, release target, selected Sprint / REQ / BUG / Change counts, created/updated path, current gate gaps, validation result, and next command:
+Report version, selected Sprint / REQ / BUG / Change counts, created/updated path, current gate gaps, validation result, and next command:
 
 ```text
-/release-status <version>
+/release-prepare <version>
 ```
 
-Output MUST include a `发布决策摘要` section covering release target, usage docs, announcement, and image build. Gate gaps MUST distinguish `missing_decision`, `prepare_evidence_missing`, `publish_evidence_missing`, and `production_only_evidence_pending` where applicable.
+Output MUST include a `发布决策摘要` section covering usage docs, announcement, image build, and declared upgrade plans. Gate gaps MUST distinguish `decision_missing`, `prepare_evidence_missing`, `publish_evidence_missing`, `input_drift`, `environment_unavailable`, `scope_incomplete`, `public_safety`, and `schema_invalid` where applicable.
 
 ## Final Step — AI Usage Post-command Hook (MUST)
 
@@ -156,12 +158,12 @@ python scripts/extract-ai-usage.py \
 输出必须包含两项：
 
 - `下一步`：写真实、可复制的下一条命令；若当前没有可推进动作，写“暂无可推进下一步”。
-- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、生产实施确认、阻塞项或人工处理事项。
+- `待用户决策/处理`：没有额外人工事项时写“无”；否则只列具体的缺失输入、范围/策略选择、证据补充、验收确认、发布确认、人工执行确认、阻塞项或人工处理事项。
 
 输出判定：
 
 - 有唯一可执行下一步时，`下一步` 写真实命令；若无额外人工事项，`待用户决策/处理` 写“无”。
-- 下一步被用户选择、补证、验收、发布确认、生产实施确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
+- 下一步被用户选择、补证、验收、发布确认、人工执行确认或阻塞项卡住时，`下一步` 写“暂无可推进下一步”，并在 `待用户决策/处理` 列出具体阻塞事项。
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。

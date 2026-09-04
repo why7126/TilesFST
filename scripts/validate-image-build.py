@@ -66,6 +66,11 @@ INPUT_FILE_CANDIDATES = (
     "src/backend/app/db/migrations.py",
     "src/backend/app/db/mysql_migrations.py",
 )
+PRODUCT_VERSION_FILES = (
+    "src/shared/product-version.ts",
+    "src/miniapp/utils/product-version.ts",
+    "src/miniapp/utils/product-version.js",
+)
 DEPLOY_INPUT_PATTERNS = (
     "deploy/**/*.yml",
     "deploy/**/*.env.example",
@@ -179,6 +184,23 @@ def safe_env_summary(path: Path) -> dict[str, Any]:
         else:
             sanitized[key] = value
     return {"path": rel_path(path), "exists": path.exists(), "safe_values": sanitized}
+
+
+def extract_product_version(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    match = re.search(r"PRODUCT_VERSION\s*=\s*['\"]([^'\"]+)['\"]", path.read_text(encoding="utf-8"))
+    return match.group(1) if match else None
+
+
+def product_version_alignment(version: str) -> list[dict[str, str]]:
+    mismatches: list[dict[str, str]] = []
+    for relative in PRODUCT_VERSION_FILES:
+        path = ROOT / relative
+        found = extract_product_version(path)
+        if found is not None and found != version:
+            mismatches.append({"path": relative, "found": found, "expected": version})
+    return mismatches
 
 
 def impact_requires_image(release_data: dict[str, Any]) -> bool:
@@ -334,6 +356,17 @@ def prepare_plan(version: str, release_dir: Path | None = None, env_file: Path =
                         "message": f"{compose_file} fallback TILESFST_IMAGE_TAG is {tag}; release deploy env must set TILESFST_IMAGE_TAG={version}.",
                     }
                 )
+
+    for mismatch in product_version_alignment(version):
+        blockers.append(
+            {
+                "code": "product_version_mismatch",
+                "message": (
+                    f"{mismatch['path']} PRODUCT_VERSION is {mismatch['found']}; "
+                    f"run /release-prepare {version} to synchronize version sources before image-prepare."
+                ),
+            }
+        )
 
     input_files = input_files_for_release(release_dir)
     plan = {

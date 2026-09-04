@@ -2,7 +2,7 @@
 name: "image-prepare"
 description: "生成或校验发布镜像构建计划"
 created_at: "2026-07-29 15:51:41"
-updated_at: 2026-08-30 15:36:34
+updated_at: 2026-08-30 22:41:57
 ---
 
 # image-prepare
@@ -65,7 +65,7 @@ docs/08-production-image-release.md
 
 - 读取 `releases/<version>/release.json`，缺失时阻断。
 - 判断 `image_required`，或在发布对象缺少显式值时按 backend、database、docker、object storage 影响推断。
-- 校验 Web 与小程序 `PRODUCT_VERSION`、`TILESFST_IMAGE_TAG`、`IMAGE_BUILD_TAG`、Compose image 引用和构建 env 示例；默认构建 env 缺失或 `IMAGE_BUILD_TAG` 与发布版本不一致时，可以只自动创建/更新安全白名单变量并记录 `auto_actions`。
+- 校验 Web 与小程序 `PRODUCT_VERSION`、`TILESFST_IMAGE_TAG`、`IMAGE_BUILD_TAG`、Compose image 引用和构建 env 示例；若 `PRODUCT_VERSION` 未对齐发布版本，必须阻断并要求先运行 `/release-prepare <version>` 自动同步，不能在 image-prepare 中代写版本源。默认构建 env 缺失或 `IMAGE_BUILD_TAG` 与发布版本不一致时，可以只自动创建/更新安全白名单变量并记录 `auto_actions`。
 - 将 release 的稳定输入字段（版本、scope、impact、image 配置）、Dockerfile、Compose、构建脚本、构建 env 示例、Nginx、schema、migration 和 deploy 脚本纳入 input hash；release gate evidence、prepare status、生产证据叙述、公告状态和长期运维/部署说明文档不得造成 plan hash drift。
 - 生成或更新 `releases/<version>/image-build-plan.json`。
 - 产品版本源属于镜像稳定输入；若版本源在 manifest 生成后变更，后续发布前必须重新执行 `/image-prepare <version>` 和 `/image-build <version>`。

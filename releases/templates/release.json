@@ -4,38 +4,6 @@
   "owner": "product",
   "summary": "产品版本发布摘要",
   "formal_scope_only": true,
-  "release_target": {
-    "environment": "development",
-    "deployment_scope": "development",
-    "production_release_required": true,
-    "rationale": "模板文件；开发环境发布确认不代表生产发布，生产发布需单独确认。"
-  },
-  "production_deployment": {
-    "env_image_tag": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 env 证据；production 发布必须证明 TILESFST_IMAGE_TAG 显式等于目标版本。"
-    },
-    "backup_confirmation": {
-      "status": "na",
-      "rationale": "development 发布不需要生产备份证据；production 发布必须记录 DB / 对象存储备份或明确不适用理由。"
-    },
-    "public_api_consistency": {
-      "status": "na",
-      "rationale": "development 发布不需要生产公开 API 证据；production 发布按范围记录。"
-    },
-    "media_no_fallback": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 no-fallback 媒体证据；production 发布按范围记录。"
-    },
-    "runtime_smoke": {
-      "status": "na",
-      "rationale": "development 发布不需要生产 smoke；production 发布必须记录运行时 smoke 证据。"
-    },
-    "rollback_readiness": {
-      "status": "na",
-      "rationale": "development 发布不需要生产回滚证据；production 发布必须记录回滚准备证据。"
-    }
-  },
   "version_change_rationale": "",
   "image_required": false,
   "image_required_rationale": "模板文件，正式发布时按 backend / Web build / Dockerfile / Compose / 构建脚本 / env / DB / Orval / 离线镜像交付影响判断",
@@ -46,19 +14,35 @@
     "status": "na",
     "rationale": "模板文件；仅 Docker 或外部构建系统场景使用，必须记录来源、校验方式、sha256、负责人确认和风险说明"
   },
+  "announcement_decision": {
+    "status": "required",
+    "required": true,
+    "artifact": "announcement.mdx",
+    "owner": "release-prepare",
+    "rationale": "每次产品发布必须由 release-prepare 生成或更新公开公告源文件"
+  },
   "usage_docs": {
-    "status": "pending_confirmation",
+    "status": "skipped",
     "root": "usage-docs",
     "manifest": "usage-docs/manifest.json",
     "source_version": null,
     "manual_overrides_allowed": true,
     "overwrite_policy": "current-version-only-by-default",
     "generation_decision": {
-      "required": null,
-      "confirmed_at": null,
-      "confirmed_by": null,
-      "rationale": "模板文件；/release-prepare 阶段必须先确认本次是否需要生成或更新产品使用文档"
+      "required": false,
+      "confirmed_at": "2026-07-02 14:56:58",
+      "confirmed_by": "release-propose-default",
+      "rationale": "默认不生成或更新产品使用文档；仅在 /release-propose 显式传入 --usage-docs 时生成"
     }
+  },
+  "upgrade_plans": {
+    "owner": "release-prepare",
+    "sources": [
+      "fresh",
+      "previous-release"
+    ],
+    "explicit_sources": [],
+    "rationale": "每次正常发布默认生成首次部署与上一正式版本相邻升级计划；显式 --upgrade-from 追加额外来源版本"
   },
   "sprints": [
     "sprint-004"
@@ -114,7 +98,7 @@
     },
     "usage_docs_preview": {
       "status": "na",
-      "rationale": "模板文件；正式发布时必须记录 generated/pass、skipped/na 或 pending_confirmation blocker"
+      "rationale": "模板文件；正式发布时必须记录 generated/pass、requested/prepare blocker、skipped/na 或 legacy pending_confirmation blocker"
     },
     "image_prepare": {
       "status": "na",

@@ -1,6 +1,8 @@
 ---
 name: "usage-docs-validate"
 description: "校验版本化产品使用文档、manifest、Mintlify 导航和公开安全"
+created_at: 2026-08-31 09:10:00
+updated_at: 2026-08-31 09:10:00
 ---
 
 # usage-docs-validate
@@ -57,8 +59,8 @@ python scripts/validate-release.py --release-dir releases/<version> --stage publ
 
 The validator checks:
 
-- `usage_docs.status` is `generated`, `skipped`, or `pending_confirmation`.
-- `pending_confirmation` blocks readiness.
+- `usage_docs.status` is `generated`, `requested`, `skipped`, or `pending_confirmation`.
+- `requested` means `/release-prepare` still needs to generate and validate docs; `pending_confirmation` is legacy and blocks readiness until release-propose records a decision.
 - `skipped` has confirmation source, time, rationale, and no empty `usage-docs/`.
 - `generated` has valid `usage-docs/manifest.json`.
 - Manifest pages match actual `.mdx` files.
@@ -93,4 +95,3 @@ Report version, `usage_docs.status`, `usage_docs_preview` gate, validation comma
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
-
