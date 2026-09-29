@@ -1,4 +1,4 @@
-import { colorCssVariables, getColorTokens } from '@shared/design-system/tokens/colors';
+import { colorCssVariables, getColorTokens, miniappPriceTokens } from '@shared/design-system/tokens/colors';
 import { layoutSpacing, spacingScale } from '@shared/design-system/tokens/spacing';
 import { radius } from '@shared/design-system/tokens/radius';
 import {
@@ -18,6 +18,8 @@ const requiredSemanticClasses = [
   'text-secondary',
   'text-brand-gold',
 ] as const;
+
+const miniappPriceRows = Object.entries(miniappPriceTokens).map(([key, value]) => ({ token: `小程序价格 / ${key}`, cssVar: `--price-${key}`, value }));
 
 const colors = getColorTokens('dark');
 
@@ -102,6 +104,9 @@ export function TokensSection() {
                 </code>
               ))}
             </div>
+          </DesignSubSection>
+          <DesignSubSection title="小程序价格语义色（不改变 Web 报价）">
+            <TokenTable rows={miniappPriceRows} />
           </DesignSubSection>
           <DesignSubSection title="背景色">
             <SwatchGrid items={backgroundSwatches} type="bg" />

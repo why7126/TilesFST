@@ -11,6 +11,33 @@ import type {
   AxiosResponse
 } from 'axios';
 
+
+// https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <
+T,
+>() => T extends Y ? 1 : 2
+? A
+: B;
+
+type WritableKeys<T> = {
+[P in keyof T]-?: IfEquals<
+  { [Q in P]: T[P] },
+  { -readonly [Q in P]: T[P] },
+  P
+>;
+}[keyof T];
+
+type UnionToIntersection<U> =
+  (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
+type DistributeReadOnlyOverUnions<T> = T extends any ? NonReadonly<T> : never;
+
+type Writable<T> = Pick<T, WritableKeys<T>>;
+type NonReadonly<T> = [T] extends [UnionToIntersection<T>] ? {
+  [P in keyof Writable<T>]: T[P] extends object
+    ? NonReadonly<NonNullable<T[P]>>
+    : T[P];
+} : DistributeReadOnlyOverUnions<T>;
+
 export interface AdminDashboardMetric {
   value: number;
   description: string;
@@ -208,6 +235,7 @@ export interface BrandCertificateImage {
   file_mime_type: string;
   /** @minimum 1 */
   file_size_bytes: number;
+  readonly media_id?: number | null;
   is_main?: boolean;
   /** @minimum 0 */
   sort_order: number;
@@ -603,6 +631,103 @@ export interface ApiResponseLogoutData {
   code?: number;
   message?: string;
   data?: LogoutData | null;
+}
+
+export type MediaReadReferenceResourceType = typeof MediaReadReferenceResourceType[keyof typeof MediaReadReferenceResourceType];
+
+
+export const MediaReadReferenceResourceType = {
+  sku_image: 'sku_image',
+  sku_video: 'sku_video',
+  brand_logo: 'brand_logo',
+  banner_image: 'banner_image',
+  certificate: 'certificate',
+  avatar: 'avatar',
+  upload_session: 'upload_session',
+  store_logo: 'store_logo',
+} as const;
+
+export type MediaReadReferenceVariant = typeof MediaReadReferenceVariant[keyof typeof MediaReadReferenceVariant];
+
+
+export const MediaReadReferenceVariant = {
+  thumbnail: 'thumbnail',
+  display: 'display',
+  original: 'original',
+} as const;
+
+export interface MediaReadReference {
+  resource_type: MediaReadReferenceResourceType;
+  /**
+     * @minLength 1
+     * @maxLength 64
+     * @pattern ^[a-zA-Z0-9_-]+$
+     */
+  resource_id: string;
+  media_id?: number | null;
+  variant?: MediaReadReferenceVariant;
+}
+
+export type MediaReadItemStatus = typeof MediaReadItemStatus[keyof typeof MediaReadItemStatus];
+
+
+export const MediaReadItemStatus = {
+  ready: 'ready',
+  unavailable: 'unavailable',
+  failed: 'failed',
+} as const;
+
+export type MediaReadDescriptorVariant = typeof MediaReadDescriptorVariant[keyof typeof MediaReadDescriptorVariant];
+
+
+export const MediaReadDescriptorVariant = {
+  thumbnail: 'thumbnail',
+  display: 'display',
+  original: 'original',
+} as const;
+
+export type MediaReadDescriptorReadMode = typeof MediaReadDescriptorReadMode[keyof typeof MediaReadDescriptorReadMode];
+
+
+export const MediaReadDescriptorReadMode = {
+  direct: 'direct',
+  external: 'external',
+  proxy: 'proxy',
+} as const;
+
+export interface MediaReadDescriptor {
+  media_ref: string;
+  variant: MediaReadDescriptorVariant;
+  url: string;
+  head_url?: string | null;
+  expires_at?: string | null;
+  read_mode: MediaReadDescriptorReadMode;
+  degraded?: boolean;
+  content_type?: string | null;
+  size_bytes?: number | null;
+}
+
+export interface MediaReadError {
+  code: number;
+  message: string;
+}
+
+export interface MediaReadItem {
+  reference: MediaReadReference;
+  status: MediaReadItemStatus;
+  descriptor?: MediaReadDescriptor | null;
+  error?: MediaReadError | null;
+}
+
+export interface MediaReadData {
+  server_time: string;
+  items: MediaReadItem[];
+}
+
+export interface ApiResponseMediaReadData {
+  code?: number;
+  message?: string;
+  data?: MediaReadData | null;
 }
 
 export interface MiniappBrandCertificateItem {
@@ -1646,6 +1771,20 @@ export interface ApiResponseTopicAdminListData {
   data?: TopicAdminListData | null;
 }
 
+export interface UploadAuthorization {
+  url: string;
+  method?: 'PUT';
+  expires_at: string;
+  length: number;
+  part_number?: number | null;
+}
+
+export interface ApiResponseUploadAuthorization {
+  code?: number;
+  message?: string;
+  data?: UploadAuthorization | null;
+}
+
 export interface UploadResult {
   object_key: string;
   url: string;
@@ -1667,6 +1806,67 @@ export interface ApiResponseUploadResult {
   code?: number;
   message?: string;
   data?: UploadResult | null;
+}
+
+export type UploadSessionCreatedMode = typeof UploadSessionCreatedMode[keyof typeof UploadSessionCreatedMode];
+
+
+export const UploadSessionCreatedMode = {
+  cos_direct: 'cos_direct',
+  proxy: 'proxy',
+} as const;
+
+export interface UploadSessionMedia {
+  thumbnail_url?: string | null;
+  display_url?: string | null;
+  original_url?: string | null;
+  processing_warning?: boolean;
+  object_key: string;
+  url: string;
+  mime_type: string;
+  size: number;
+}
+
+export interface UploadSessionStatus {
+  session_id: string;
+  state: string;
+  expires_at: string;
+  retryable?: boolean;
+  error_code?: number | null;
+  task_trace_id?: string | null;
+  mode?: 'cos_direct';
+  part_size: number;
+  part_count: number;
+  media?: UploadSessionMedia | null;
+}
+
+export interface UploadSessionCreated {
+  mode: UploadSessionCreatedMode;
+  reason?: string | null;
+  session?: UploadSessionStatus | null;
+}
+
+export interface ApiResponseUploadSessionCreated {
+  code?: number;
+  message?: string;
+  data?: UploadSessionCreated | null;
+}
+
+export interface UploadSessionRenewed {
+  session: UploadSessionStatus;
+  authorization?: UploadAuthorization | null;
+}
+
+export interface ApiResponseUploadSessionRenewed {
+  code?: number;
+  message?: string;
+  data?: UploadSessionRenewed | null;
+}
+
+export interface ApiResponseUploadSessionStatus {
+  code?: number;
+  message?: string;
+  data?: UploadSessionStatus | null;
 }
 
 export interface UsageEventData {
@@ -2060,6 +2260,23 @@ export interface LoginRequest {
   remember_me?: boolean;
 }
 
+export type MediaReadRequestMode = typeof MediaReadRequestMode[keyof typeof MediaReadRequestMode];
+
+
+export const MediaReadRequestMode = {
+  auto: 'auto',
+  proxy: 'proxy',
+} as const;
+
+export interface MediaReadRequest {
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  items: MediaReadReference[];
+  mode?: MediaReadRequestMode;
+}
+
 export interface MiniappSkuFavoriteRequest {
   /**
      * @minLength 1
@@ -2293,6 +2510,36 @@ export interface TileSpecUpdateRequest {
   /** @minimum 1 */
   sort_order: number;
   remark?: string | null;
+}
+
+export type UploadSessionCreateMediaKind = typeof UploadSessionCreateMediaKind[keyof typeof UploadSessionCreateMediaKind];
+
+
+export const UploadSessionCreateMediaKind = {
+  avatar: 'avatar',
+  brand_logo: 'brand_logo',
+  banner: 'banner',
+  sku_image: 'sku_image',
+  sku_video: 'sku_video',
+  certificate: 'certificate',
+} as const;
+
+export interface UploadSessionCreate {
+  media_kind: UploadSessionCreateMediaKind;
+  business_id?: number | null;
+  /** @exclusiveMinimum 0 */
+  expected_size: number;
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  mime_type: string;
+  /**
+     * @minLength 1
+     * @maxLength 128
+     * @pattern ^[A-Za-z0-9_-]+$
+     */
+  client_idempotency_key: string;
 }
 
 export type UsageEventCreateProperties = { [key: string]: unknown };
@@ -2779,6 +3026,30 @@ certificate_id?: number | null;
 export type HealthCheckHealthGet200 = {[key: string]: string};
 
 export const getTilesFSTAPI = (axiosInstance: AxiosInstance = axios) => {
+/**
+ * @summary 公开媒体读取授权
+ */
+const authorizePublicMediaApiV1MediaReadAuthorizationsPost = (
+    mediaReadRequest: MediaReadRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMediaReadData>> => {
+    return axiosInstance.post(
+      `/api/v1/media/read-authorizations`,
+      mediaReadRequest,options
+    );
+  }
+
+/**
+ * @summary 管理媒体读取授权
+ */
+const authorizeAdminMediaApiV1AdminMediaReadAuthorizationsPost = (
+    mediaReadRequest: MediaReadRequest, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseMediaReadData>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/media/read-authorizations`,
+      mediaReadRequest,options
+    );
+  }
+
 /**
  * @summary 用户登录
  */
@@ -3443,7 +3714,7 @@ const listBrandCertificatesApiV1AdminBrandCertificatesGet = (
  * @summary 创建品牌证书
  */
 const createBrandCertificateApiV1AdminBrandCertificatesPost = (
-    brandCertificateCreateRequest: BrandCertificateCreateRequest, options?: AxiosRequestConfig
+    brandCertificateCreateRequest: NonReadonly<BrandCertificateCreateRequest>, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
     return axiosInstance.post(
       `/api/v1/admin/brand-certificates`,
@@ -3467,7 +3738,7 @@ const getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet = (
  */
 const updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut = (
     certificateId: number,
-    brandCertificateUpdateRequest: BrandCertificateUpdateRequest, options?: AxiosRequestConfig
+    brandCertificateUpdateRequest: NonReadonly<BrandCertificateUpdateRequest>, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<ApiResponseBrandCertificateItem>> => {
     return axiosInstance.put(
       `/api/v1/admin/brand-certificates/${certificateId}`,
@@ -3970,6 +4241,90 @@ formData.append(`file`, bodyUploadBrandCertificateApiV1AdminUploadsBrandCertific
   }
 
 /**
+ * @summary 申请媒体上传会话
+ */
+const createUploadSessionApiV1AdminUploadsSessionsPost = (
+    uploadSessionCreate: UploadSessionCreate, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionCreated>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions`,
+      uploadSessionCreate,options
+    );
+  }
+
+/**
+ * @summary 查询媒体上传状态
+ */
+const queryUploadSessionApiV1AdminUploadsSessionsSessionIdGet = (
+    sessionId: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionStatus>> => {
+    return axiosInstance.get(
+      `/api/v1/admin/uploads/sessions/${sessionId}`,options
+    );
+  }
+
+/**
+ * @summary 续签媒体上传授权
+ */
+const renewUploadSessionApiV1AdminUploadsSessionsSessionIdRenewPost = (
+    sessionId: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionRenewed>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions/${sessionId}/renew`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 签发单片上传授权
+ */
+const authorizeUploadPartApiV1AdminUploadsSessionsSessionIdPartsPartNumberAuthorizePost = (
+    sessionId: string,
+    partNumber: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadAuthorization>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions/${sessionId}/parts/${partNumber}/authorize`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 校验并确认媒体上传
+ */
+const confirmUploadSessionApiV1AdminUploadsSessionsSessionIdConfirmPost = (
+    sessionId: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionStatus>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions/${sessionId}/confirm`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 取消未绑定媒体上传
+ */
+const cancelUploadSessionApiV1AdminUploadsSessionsSessionIdCancelPost = (
+    sessionId: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionStatus>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions/${sessionId}/cancel`,
+      undefined,options
+    );
+  }
+
+/**
+ * @summary 重试失败的图片派生
+ */
+const retryUploadProcessingApiV1AdminUploadsSessionsSessionIdRetryProcessingPost = (
+    sessionId: string, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<ApiResponseUploadSessionStatus>> => {
+    return axiosInstance.post(
+      `/api/v1/admin/uploads/sessions/${sessionId}/retry-processing`,
+      undefined,options
+    );
+  }
+
+/**
  * @summary 健康检查
  */
 const healthCheckHealthGet = (
@@ -3980,7 +4335,9 @@ const healthCheckHealthGet = (
     );
   }
 
-return {loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getCertificateDetailApiV1MiniappCertificatesCertificateIdGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,ingestPerformanceEventsApiV1PerformanceEventsPost,listPerformanceFilterOptionsApiV1AdminPerformanceEventsFilterOptionsGet,summarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGet,listPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGet,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,healthCheckHealthGet}};
+return {authorizePublicMediaApiV1MediaReadAuthorizationsPost,authorizeAdminMediaApiV1AdminMediaReadAuthorizationsPost,loginApiV1AuthLoginPost,meApiV1AuthMeGet,updateThemePreferenceApiV1AuthMeThemePatch,logoutApiV1AuthLogoutPost,getProfileMeApiV1ProfileMeGet,patchProfileMeApiV1ProfileMePatch,getProfileActivitiesApiV1ProfileMeActivitiesGet,getHomeApiV1MiniappHomeGet,searchProductsApiV1MiniappProductsGet,listBrandsApiV1MiniappBrandsGet,getBrandDetailApiV1MiniappBrandsBrandIdGet,listBrandCertificatesApiV1MiniappBrandsBrandIdCertificatesGet,listCertificatesApiV1MiniappCertificatesGet,getCertificateDetailApiV1MiniappCertificatesCertificateIdGet,getSearchHomeApiV1MiniappSearchHomeGet,suggestSearchApiV1MiniappSearchSuggestionsGet,searchAllApiV1MiniappSearchGet,getCategoryTreeApiV1MiniappCategoriesTreeGet,getProductDetailApiV1MiniappProductsProductIdGet,getSkuDetailApiV1MiniappSkusSkuIdGet,setSkuFavoriteApiV1MiniappSkusSkuIdFavoritePut,changePasswordApiV1AdminProfilePasswordPost,listTilesApiV1TilesGet,getTileApiV1TilesTileIdGet,createTileApiV1AdminTilesPost,listUsersApiV1AdminUsersGet,createUserApiV1AdminUsersPost,getUserApiV1AdminUsersUserIdGet,updateUserApiV1AdminUsersUserIdPatch,resetPasswordApiV1AdminUsersUserIdResetPasswordPost,updateUserStatusApiV1AdminUsersUserIdStatusPatch,getRecentAuditApiV1AdminSystemSettingsAuditRecentGet,getSettingsGroupApiV1AdminSystemSettingsGroupGet,patchSettingsGroupApiV1AdminSystemSettingsGroupPatch,resetSettingsGroupApiV1AdminSystemSettingsGroupResetPost,getApiDocsApiV1AdminApiDocsGet,getAdminDashboardSummaryApiV1AdminDashboardSummaryGet,listLogsApiV1AdminLogsGet,getLogObservabilityApiV1AdminLogsObservabilityGet,getLogDetailApiV1AdminLogsLogIdGet,createUsageEventApiV1UsageEventsPost,ingestPerformanceEventsApiV1PerformanceEventsPost,listPerformanceFilterOptionsApiV1AdminPerformanceEventsFilterOptionsGet,summarizePerformanceEventsApiV1AdminPerformanceEventsSummaryGet,listPerformanceEventSamplesApiV1AdminPerformanceEventsSamplesGet,listBrandsApiV1AdminBrandsGet,createBrandApiV1AdminBrandsPost,getBrandApiV1AdminBrandsBrandIdGet,updateBrandApiV1AdminBrandsBrandIdPut,deleteBrandApiV1AdminBrandsBrandIdDelete,enableBrandApiV1AdminBrandsBrandIdEnablePost,disableBrandApiV1AdminBrandsBrandIdDisablePost,listBrandCertificatesApiV1AdminBrandCertificatesGet,createBrandCertificateApiV1AdminBrandCertificatesPost,getBrandCertificateApiV1AdminBrandCertificatesCertificateIdGet,updateBrandCertificateApiV1AdminBrandCertificatesCertificateIdPut,deleteBrandCertificateApiV1AdminBrandCertificatesCertificateIdDelete,showBrandCertificateApiV1AdminBrandCertificatesCertificateIdShowPost,hideBrandCertificateApiV1AdminBrandCertificatesCertificateIdHidePost,listBannersApiV1AdminBannersGet,createBannerApiV1AdminBannersPost,getBannerApiV1AdminBannersBannerIdGet,updateBannerApiV1AdminBannersBannerIdPut,deleteBannerApiV1AdminBannersBannerIdDelete,onlineBannerApiV1AdminBannersBannerIdOnlinePost,offlineBannerApiV1AdminBannersBannerIdOfflinePost,listTopicsApiV1AdminTopicsGet,getCategoryTreeApiV1AdminTileCategoriesTreeGet,listCategoriesApiV1AdminTileCategoriesGet,createCategoryApiV1AdminTileCategoriesPost,getCategoryApiV1AdminTileCategoriesCategoryIdGet,updateCategoryApiV1AdminTileCategoriesCategoryIdPut,deleteCategoryApiV1AdminTileCategoriesCategoryIdDelete,enableCategoryApiV1AdminTileCategoriesCategoryIdEnablePost,disableCategoryApiV1AdminTileCategoriesCategoryIdDisablePost,listTileSkusApiV1AdminTileSkusGet,createTileSkuApiV1AdminTileSkusPost,getTileSkuApiV1AdminTileSkusTileIdGet,updateTileSkuApiV1AdminTileSkusTileIdPut,deleteTileSkuApiV1AdminTileSkusTileIdDelete,publishTileSkuApiV1AdminTileSkusTileIdPublishPost,unpublishTileSkuApiV1AdminTileSkusTileIdUnpublishPost,listTileSpecsApiV1AdminTileSpecsGet,createTileSpecApiV1AdminTileSpecsPost,getTileSpecApiV1AdminTileSpecsSpecIdGet,updateTileSpecApiV1AdminTileSpecsSpecIdPut,deleteTileSpecApiV1AdminTileSpecsSpecIdDelete,enableTileSpecApiV1AdminTileSpecsSpecIdEnablePost,disableTileSpecApiV1AdminTileSpecsSpecIdDisablePost,uploadImageApiV1AdminUploadsPost,uploadBrandLogoApiV1AdminUploadsBrandLogosPost,uploadBannerImageApiV1AdminUploadsBannerImagesPost,uploadTileImageApiV1AdminUploadsTileImagesPost,uploadTileVideoApiV1AdminUploadsTileVideosPost,uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost,createUploadSessionApiV1AdminUploadsSessionsPost,queryUploadSessionApiV1AdminUploadsSessionsSessionIdGet,renewUploadSessionApiV1AdminUploadsSessionsSessionIdRenewPost,authorizeUploadPartApiV1AdminUploadsSessionsSessionIdPartsPartNumberAuthorizePost,confirmUploadSessionApiV1AdminUploadsSessionsSessionIdConfirmPost,cancelUploadSessionApiV1AdminUploadsSessionsSessionIdCancelPost,retryUploadProcessingApiV1AdminUploadsSessionsSessionIdRetryProcessingPost,healthCheckHealthGet}};
+export type AuthorizePublicMediaApiV1MediaReadAuthorizationsPostResult = AxiosResponse<ApiResponseMediaReadData>
+export type AuthorizeAdminMediaApiV1AdminMediaReadAuthorizationsPostResult = AxiosResponse<ApiResponseMediaReadData>
 export type LoginApiV1AuthLoginPostResult = AxiosResponse<ApiResponseLoginData>
 export type MeApiV1AuthMeGetResult = AxiosResponse<ApiResponseUserProfile>
 export type UpdateThemePreferenceApiV1AuthMeThemePatchResult = AxiosResponse<ApiResponseUserProfile>
@@ -4076,4 +4433,11 @@ export type UploadBannerImageApiV1AdminUploadsBannerImagesPostResult = AxiosResp
 export type UploadTileImageApiV1AdminUploadsTileImagesPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadTileVideoApiV1AdminUploadsTileVideosPostResult = AxiosResponse<ApiResponseUploadResult>
 export type UploadBrandCertificateApiV1AdminUploadsBrandCertificatesPostResult = AxiosResponse<ApiResponseUploadResult>
+export type CreateUploadSessionApiV1AdminUploadsSessionsPostResult = AxiosResponse<ApiResponseUploadSessionCreated>
+export type QueryUploadSessionApiV1AdminUploadsSessionsSessionIdGetResult = AxiosResponse<ApiResponseUploadSessionStatus>
+export type RenewUploadSessionApiV1AdminUploadsSessionsSessionIdRenewPostResult = AxiosResponse<ApiResponseUploadSessionRenewed>
+export type AuthorizeUploadPartApiV1AdminUploadsSessionsSessionIdPartsPartNumberAuthorizePostResult = AxiosResponse<ApiResponseUploadAuthorization>
+export type ConfirmUploadSessionApiV1AdminUploadsSessionsSessionIdConfirmPostResult = AxiosResponse<ApiResponseUploadSessionStatus>
+export type CancelUploadSessionApiV1AdminUploadsSessionsSessionIdCancelPostResult = AxiosResponse<ApiResponseUploadSessionStatus>
+export type RetryUploadProcessingApiV1AdminUploadsSessionsSessionIdRetryProcessingPostResult = AxiosResponse<ApiResponseUploadSessionStatus>
 export type HealthCheckHealthGetResult = AxiosResponse<HealthCheckHealthGet200>

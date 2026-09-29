@@ -4,7 +4,7 @@ content: SQLite 表结构、约束、种子数据与迁移说明
 source: src/backend/app/db/schema.sql / Sprint 001 auth
 update_method: schema 变更时同步更新 schema.sql 与本文件
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 23:20:00
+updated_at: 2026-09-08 15:17:46
 note: 运行时数据库路径见 DATABASE_URL / .env.example
 ---
 
@@ -719,3 +719,26 @@ Schema 变更时 MUST：
 2. 更新 ORM `src/backend/app/models/`
 3. 更新本文件
 4. 通过 OpenSpec change 进入开发（`rules/database.md`）
+
+
+## 媒体上传会话 media_upload_sessions
+
+REQ-0135新增持久化控制表，由SQLite/MySQL幂等迁移创建，使用对象存储适配层完成外部动作；表存在不代表直传入口已经启用。
+
+| 字段组 | 用途 |
+|---|---|
+| id、owner_id、idempotency_key、request_hash | 服务端会话标识、用户隔离与相同申请幂等；owner/idempotency唯一，相同标识但业务输入不符拒绝 |
+| media_kind、business_id、expected_size、mime_type、part_size、mode | 上传类型与归属、声明内容及会话传输配置快照 |
+| state、version | 持久状态及CAS竞争控制，bound/cleaned为终态 |
+| temporary_key、stable_key、upload_id | 隔离临时与稳定对象、受控分片标识；不返回内部Key至日志 |
+| source_version_id、stable_version_id、source_etag、object_versions_json | 固定COS版本校验/复制及按版本清理依据；ETag不当作内容MD5 |
+| actual_size、actual_mime_type、integrity_hash、variants_json | 校验后的内容与派生处理结果 |
+| bound_business_id、error_code、task_trace_id | 业务关联、可诊断失败及链路关联 |
+| lease_token、lease_expires_at | 工作者租约、心跳与旧工作者隔离 |
+| expires_at、created_at、updated_at | UTC带时区字符串；会话绝对有效期与审计时间 |
+
+索引：唯一(owner_id,idempotency_key)，普通(state,expires_at)、(media_kind,business_id)、task_trace_id。跨业务类型归属由服务层验证，因此不设置指向单一业务表的错误外键。表中禁止凭证、签名URL或原始文件。SQLite使用ON CONFLICT，MySQL使用ON DUPLICATE KEY实现申请幂等，调用方控制提交/回滚；不使用可能提前提交的SQLite最外层SAVEPOINT。
+
+首次创建为加法迁移，可重复执行；回滚应用版本时保留会话表及对象版本，禁止直接DROP或删除已绑定媒体。迁移脚本通过初始化入口调用ensure_upload_sessions；生产升级仍须数据库备份及目标MySQL路径验证。
+
+图片异步队列复用本表，无新增表或列：`state=processing` 与已到期 `lease_expires_at` 表示可领取；CAS领取后由30秒心跳维持120秒租约。`variants_json` 持久化 attempt、planned_keys、目标体积快照、failure、outputs与阶段耗时；planned_keys在对象写入前落库，outputs记录固定版本与规格。只有两份必要派生均就绪才进入ready；失败可受控重排队，不延长会话绝对期限。`object_versions_json`保存正式派生Key与VersionId，和业务引用、bound状态同事务完成。字段内容不包含签名或凭证，不向日志透传。

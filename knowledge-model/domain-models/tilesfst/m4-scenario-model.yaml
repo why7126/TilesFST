@@ -1,0 +1,24 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: SCENARIO
+coverage: covered
+elements:
+- id: model:PublishScenario
+  type: meta:Scenario
+  layer: domain
+  attributes:
+    name: SKU上架场景
+    bindings:
+      tile_id: integer
+    steps:
+    - 核对管理权限
+    - 验证名称、规格与主图
+    - 读取对应API成功或失败契约
+    failure_outcome: HTTP 409，不推断 PUBLISHED
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: 管理端 SKU 上下架 API'
+  review_status: confirmed
+  refs:
+    behavior:
+    - model:PublishTileSKU

@@ -6,18 +6,23 @@ end_date:
 capacity:
   developers: 2
   testers: 1
+requirements:
+  - REQ-0132-workbuddy-custom-connector
+  - REQ-0133-miniapp-price-red-display
+  - REQ-0134-miniapp-public-page-sharing
+  - REQ-0135-authorized-cos-direct-upload
+bugs:
+  - BUG-0148-miniapp-product-list-card-image-fit
 capacity_person_days: 30
-requirements: []
-bugs: []
-estimated_story_points: 7
-estimated_person_days: 7
-capacity_usage: 0.2333
-fix_buffer_person_days: 23
-fix_buffer_ratio: 0.7667
+estimated_story_points: 35
+estimated_person_days: 35
+capacity_usage: 1.1667
+fix_buffer_person_days: 0
+fix_buffer_ratio: 0
 capacity_gate:
   capacity_person_days: 30
-  estimated_person_days: 7
-  capacity_usage: 0.2333
+  estimated_person_days: 35
+  capacity_usage: 1.1667
   result: pass
   note: project.yaml 未提供显式 Sprint 容量，沿用最近已归档 Sprint 的确认容量基线：2 dev + 1 tester / 30 人天。
 changes:
@@ -28,6 +33,12 @@ changes:
   - converge-release-prepare-automation
   - deactivate-environment-tiered-evidence-gates
   - rename-evidence-source-specs
+  - define-connector-directory-boundaries
+  - add-workbuddy-custom-connector
+  - fix-miniapp-product-grid-image-fit
+  - update-miniapp-price-red-display
+  - add-miniapp-public-page-sharing
+  - add-authorized-cos-direct-upload
 scope_estimates:
   - id: enforce-product-version-release-gates
     change: enforce-product-version-release-gates
@@ -71,3 +82,44 @@ scope_estimates:
     story_points: 1
     estimated_person_days: 1
     rationale: 纯治理 Change：重命名 OpenSpec 正式规格中的旧环境分层 requirement 标题，并将 media / miniapp 历史规格语义收敛为证据来源声明；不修改业务 src。
+  - id: define-connector-directory-boundaries
+    change: define-connector-directory-boundaries
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 纯治理 Change：明确 WorkBuddy 等外部连接器目录边界，约定 src/mcp/<connector>/ 承载 MCP 运行时代码，connectors/<connector>/ 承载 manifest、mcp 配置、外部 Skill、图标与打包说明；同步目录校验，不修改业务 src。
+  - id: REQ-0132-workbuddy-custom-connector
+    change: add-workbuddy-custom-connector
+    requirement: REQ-0132-workbuddy-custom-connector
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1 集成主能力：WorkBuddy 自定义连接器覆盖本地 stdio 只读 PoC、MCP + Skill 交付、目录摘要、管理端写操作 dry-run，并为后续 HTTPS 远程 MCP、企业鉴权审计、真实写操作和媒体上传铺设范围；跨后端 API、连接器、观测、安全与部署边界，估算 L/5 人天。
+  - id: BUG-0148-miniapp-product-list-card-image-fit
+    change: fix-miniapp-product-grid-image-fit
+    bug: BUG-0148-miniapp-product-list-card-image-fit
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 小程序 grid 商品卡片展示缺陷，范围仅限 grid 复用场景，无 API/DB/对象存储变更，按 S 级 UI 修复纳入当前 Sprint 修复缓冲。
+  - id: REQ-0133-miniapp-price-red-display
+    change: update-miniapp-price-red-display
+    requirement: REQ-0133-miniapp-price-red-display
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: 小程序共享卡片及详情推荐收藏价格状态统一、独立价格token与规范同步、静态回归和视觉取证；无API或DB改动，M估算3人天，保持BUG-0148图片适配成果。
+  - id: REQ-0134-miniapp-public-page-sharing
+    change: add-miniapp-public-page-sharing
+    requirement: REQ-0134-miniapp-public-page-sharing
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1公开页面双渠道分享：11页回调与安全卡片、完整筛选恢复、发现页JS同步、事件语义和iOS/Android接收验证；复用API与导航，估算L/5人天（实现3、回归及证据2）。追加后22/30人天，fix缓冲8人天26.67%，低于30%建议，优先P1并限制新增范围。
+  - id: REQ-0135-authorized-cos-direct-upload
+    change: add-authorized-cos-direct-upload
+    requirement: REQ-0135-authorized-cos-direct-upload
+    size: XXL
+    story_points: 13
+    estimated_person_days: 13
+    rationale: P1完整两阶段：授权会话、确认与稳定对象保护4人天，视频分片及Web状态2人天，图片派生及多入口适配3人天，竞态/安全/Compose与展示兼容验证4人天，共13人天。加入后35/30=116.67%，低于120%硬线但超容量5人天，无剩余fix缓冲；C-001至005按阶段关闭，不以只做视频关闭整REQ。

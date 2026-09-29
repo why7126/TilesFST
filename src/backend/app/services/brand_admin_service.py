@@ -9,6 +9,7 @@ from app.core.exceptions import (
     BrandNameDuplicatedError,
     BrandNotFoundError,
 )
+from app.modules.media.upload_binding import VideoUploadBinding
 from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRecord, BrandRepository
 from app.modules.media.business_media import formalize_business_media_object, is_pending_business_media_key
@@ -50,9 +51,11 @@ class BrandAdminService:
         self,
         repo: BrandRepository,
         certificate_repo: BrandCertificateRepository | None = None,
+        actor_id: str | None = None,
     ) -> None:
         self._repo = repo
         self._certificate_repo = certificate_repo
+        self._logo_binding = VideoUploadBinding(repo.db, actor_id)
 
     @staticmethod
     def to_item(brand: BrandRecord) -> BrandAdminItem:
@@ -128,6 +131,8 @@ class BrandAdminService:
         return self.to_item(brand)
 
     def create_brand(self, payload: BrandCreateRequest) -> BrandAdminItem:
+        if payload.logo_object_key and "/direct-upload/" in payload.logo_object_key:
+            return self._save_direct_logo(payload)
         name = self._validate_name(payload.name)
         self._validate_sort_order(payload.sort_order)
         if self._repo.get_by_name(name):
@@ -145,6 +150,8 @@ class BrandAdminService:
         return self.to_item(brand)
 
     def update_brand(self, brand_id: int, payload: BrandUpdateRequest) -> BrandAdminItem:
+        if payload.logo_object_key and "/direct-upload/" in payload.logo_object_key:
+            return self._save_direct_logo(payload, brand_id)
         brand = self._repo.get_by_id(brand_id)
         if brand is None:
             raise BrandNotFoundError()
@@ -167,6 +174,46 @@ class BrandAdminService:
         assert updated is not None
         updated = self._formalize_logo_if_needed(updated)
         return self.to_item(updated)
+
+    def _save_direct_logo(self, payload, brand_id=None):
+        name = self._validate_name(payload.name)
+        self._validate_sort_order(payload.sort_order)
+        binding = self._logo_binding
+        media = [{"object_key": payload.logo_object_key}]
+        rows = binding.resolve(media, brand_id, media_kind="brand_logo")
+        row = rows[0]
+        creating = brand_id is None
+        if creating and row["bound_business_id"]:
+            brand_id = int(row["bound_business_id"])
+            if row["state"] == "bound":
+                return self.get_brand(brand_id)
+        if brand_id is not None and self._repo.get_by_id(brand_id) is None:
+            raise BrandNotFoundError()
+        if self._repo.get_by_name(name, exclude_id=brand_id):
+            raise BrandNameDuplicatedError()
+        values = dict(name=name, sort_order=payload.sort_order,
+                      short_name=_normalize_optional(payload.short_name, max_len=30),
+                      english_name=_normalize_optional(payload.english_name, max_len=80),
+                      description=_normalize_optional(payload.description, max_len=500))
+        with self._repo.atomic():
+            if brand_id is None:
+                # A failed copy leaves a disabled reservation with no media reference.
+                brand_id = self._repo.create(**values, logo_object_key=None, status="DISABLED").id
+            rows = binding.claim(rows, brand_id)
+        try:
+            rows = binding.copy(rows)
+            with self._repo.atomic():
+                key = binding.finish(rows, media)[0]["object_key"]
+                updated = self._repo.update(brand_id, **values, logo_object_key=key)
+                if updated is None:
+                    raise BrandNotFoundError()
+                if creating:
+                    self._repo.update_status(brand_id, "ENABLED")
+            binding.record_bound(rows)
+            return self.get_brand(brand_id)
+        except Exception:
+            binding.release(rows)
+            raise
 
     def _formalize_logo_if_needed(self, brand: BrandRecord) -> BrandRecord:
         object_key = brand.logo_object_key

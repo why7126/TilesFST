@@ -15,24 +15,22 @@
   <view wx:else>
     <view class="brand-hero">
       <view class="brand-logo-frame {{heroThumbnailFailed || (!brand.brand_hero_display_url && !brand.brand_hero_thumbnail_url) ? 'fallback' : ''}}">
-        <image
+        <authorized-image resource-type="brand_logo" resource-id="{{brand.brand_id}}" variant="display"
           wx:if="{{brand.brand_hero_display_url && !heroDisplayFailed}}"
           class="brand-logo"
           src="{{brand.brand_hero_display_url}}"
           mode="aspectFill"
           lazy-load="{{false}}"
           data-variant="display"
-          binderror="onBrandHeroImageError"
-        ></image>
-        <image
+        ></authorized-image>
+        <authorized-image resource-type="brand_logo" resource-id="{{brand.brand_id}}" variant="display"
           wx:elif="{{brand.brand_hero_thumbnail_url && !heroThumbnailFailed}}"
           class="brand-logo"
           src="{{brand.brand_hero_thumbnail_url}}"
           mode="aspectFill"
           lazy-load="{{false}}"
           data-variant="thumbnail"
-          binderror="onBrandHeroImageError"
-        ></image>
+        ></authorized-image>
         <view wx:else class="brand-logo-empty">{{brand.brand_short_name || brand.brand_name}}</view>
         <view class="brand-overlay">
           <view class="brand-copy">
@@ -95,7 +93,7 @@
           hover-class="card-press"
         >
           <view class="file-frame {{item.file_kind}}">
-            <image
+            <authorized-image resource-type="certificate" resource-id="{{item.certificate_id}}" variant="thumbnail"
               wx:if="{{item.file_kind === 'image' && item.thumbnail_url && !item.image_failed}}"
               class="file-image"
               src="{{item.thumbnail_url}}"
@@ -103,7 +101,7 @@
               lazy-load="{{index > 1}}"
               binderror="onCertificateImageError"
               data-index="{{index}}"
-            ></image>
+            ></authorized-image>
             <view wx:elif="{{item.file_kind === 'pdf'}}" class="file-placeholder pdf">PDF</view>
             <view wx:else class="file-placeholder">证书</view>
           </view>

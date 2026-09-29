@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -63,6 +63,11 @@ class SprintReadiness:
     changes: list[ChangeReadiness]
     change_batches: dict[str, object]
     stale_scan: sprint_close_stale_scan.SprintCloseStaleReport
+    knowledge_model: dict | None = None
+
+    @property
+    def knowledge_blocked(self) -> bool:
+        return bool(self.knowledge_model and self.knowledge_model.get("status") == "blocked")
 
     @property
     def blockers(self) -> list[ChangeReadiness]:
@@ -70,7 +75,7 @@ class SprintReadiness:
 
     @property
     def has_blockers(self) -> bool:
-        return bool(self.blockers) or not self.stale_scan.ok
+        return bool(self.blockers) or not self.stale_scan.ok or self.knowledge_blocked
 
 
 def read_text(path: Path) -> str:
@@ -205,6 +210,32 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
             )
         )
 
+    # Before archive, active Changes can still generate knowledge. Archived covered
+    # Changes must already be synced before the final Sprint close gate can pass.
+    from knowledge_model.hooks import enabled
+    knowledge_report = None
+    if enabled(root):
+        from knowledge_model.store import Store
+        from knowledge_model.core import KnowledgeError
+        try:
+            store = Store(root)
+            covered = [r.change_id for r in records if r.location == "archived"]
+            report = store.check(covered)
+            knowledge_report = report
+            knowledge_report["changes"] += [
+                {"change": r.change_id, "status": "pending_archive", "reason": "active Change awaits archive-triggered sync"}
+                if r.change_id in store.model.registry["coverage"] else
+                {"change": r.change_id, "status": "out_of_scope", "reason": store.model.registry["out_of_scope_reason"]}
+                for r in records if r.location == "active"]
+            failed = {r["change"]: r.get("reason", "knowledge_blocked") for r in report["changes"] if r["status"] not in {"synced", "out_of_scope", "pending_archive"}}
+            if report["status"] == "blocked" and not failed:
+                failed = {c: "high_risk_unresolved" for c in covered}
+            records = [replace(r, blocker=r.blocker or ("knowledge-model: " + failed[r.change_id] if r.change_id in failed else None)) for r in records]
+        except (KnowledgeError, OSError, ValueError, KeyError) as exc:
+            reason = exc.code if isinstance(exc, KnowledgeError) else "invalid_input_or_io"
+            knowledge_report = {"status": "blocked", "reason": reason, "details": exc.details if isinstance(exc, KnowledgeError) else None}
+            records = [replace(r, blocker=r.blocker or "knowledge-model: " + reason) for r in records]
+
     change_batch_rows = [
         {
             "change_id": record.change_id,
@@ -228,6 +259,7 @@ def evaluate_sprint(root: Path, sprint_id: str, *, only_change: str | None = Non
             ordering="archive-readiness queue",
         ),
         stale_scan=stale_report,
+        knowledge_model=knowledge_report,
     )
 
 
@@ -321,9 +353,11 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
             ]
         )
 
+    if readiness.knowledge_model:
+        lines.extend(["", "### Knowledge Model", "", json.dumps(readiness.knowledge_model, ensure_ascii=False), ""])
     blockers = readiness.blockers
     lines.append("")
-    if readiness.has_blockers and not force:
+    if (readiness.has_blockers and not force) or readiness.knowledge_blocked:
         lines.append("**Verdict:** BLOCKED")
         lines.append("")
         if blockers:
@@ -343,7 +377,7 @@ def render_markdown(readiness: SprintReadiness, *, force: bool) -> str:
 def readiness_to_json(readiness: SprintReadiness, *, force: bool) -> str:
     payload = asdict(readiness)
     payload["mode"] = "force" if force else "strict"
-    payload["verdict"] = "blocked" if readiness.has_blockers and not force else "pass"
+    payload["verdict"] = "blocked" if (readiness.has_blockers and not force) or readiness.knowledge_blocked else "pass"
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
@@ -370,7 +404,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(render_markdown(readiness, force=args.force))
 
-    if readiness.has_blockers and not args.force:
+    if (readiness.has_blockers and not args.force) or readiness.knowledge_blocked:
         return 1
     return 0
 

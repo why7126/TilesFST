@@ -1,0 +1,406 @@
+{
+  "source": "Local public API with wechat_miniapp header and independent COS HEAD requests",
+  "sample_count": 38,
+  "results": [
+    {
+      "resource_type": "sku_image",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 5600,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 26616,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 1189508,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 9146,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 101230,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 9674697,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 8256,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 82522,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "sku_image",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 773016,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 9512,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 241070,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 6191144,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "unavailable"
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "unavailable"
+    },
+    {
+      "resource_type": "banner_image",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "unavailable"
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 10072,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 13126,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 86710,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 6648,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 7816,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 150187,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 9430,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 16612,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 260433,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 2778,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 3170,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "brand_logo",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 21486,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 9698,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 106654,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 1980844,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": true,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 351020,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": true,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 328802,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "thumbnail",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 10016,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 78900,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": false,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 2998834,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": true,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 183892,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "certificate",
+      "variant": "original",
+      "has_media_id": true,
+      "status": "ready",
+      "mode": "direct",
+      "degraded": false,
+      "bytes": 233622,
+      "head_status": 200,
+      "head_body_bytes": 0
+    },
+    {
+      "resource_type": "store_logo",
+      "variant": "display",
+      "has_media_id": false,
+      "status": "unavailable"
+    }
+  ],
+  "render_proof": false,
+  "runtime_at": 1788966295.712915
+}

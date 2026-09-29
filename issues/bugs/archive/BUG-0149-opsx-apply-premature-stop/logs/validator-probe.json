@@ -1,0 +1,88 @@
+{
+  "executed_at": "2026-09-10 10:13:11",
+  "evidence_source": "local_python_in_memory_validator_probe",
+  "scope": "static validator detection only; no Agent behavior run",
+  "source_hashes": {
+    "scripts/validate-agent-context-budget.py": "04a5901089ebfc0419ea3932e7d946af7b223bb582736420997b5d62e5fe2dd9",
+    "tests/test_validate_agent_context_budget.py": "7d964e5ef8fb32a8241712f12f9251614b91a5bbb1428669a7bfb60484ea8021",
+    ".agents/skills/openspec-apply-change/SKILL.md": "5c155b9dde3c6249b4dbd3ac906f78bc697734a122ba58261c8a5a41e03f7c9f",
+    ".agents/skills/opsx-apply/SKILL.md": "9b176eb541b94cd10eb16018b505a0026a6f007985f3b1ccbc45c8c88ef10a8c"
+  },
+  "cases": {
+    "early_final": "每完成一个任务就发送最终回复，等用户再次调用后再处理其余任务。",
+    "blocked_global": "一个任务等待人工回答时立即结束全部工作，即使其他任务可以执行。",
+    "progress_stop": "用户询问进度时仅回复当前进度，然后结束当前执行。"
+  },
+  "results": [
+    {
+      "entry": "openspec-apply-change",
+      "case": "baseline",
+      "error_count": 0,
+      "expected_detection": false,
+      "detected": false
+    },
+    {
+      "entry": "openspec-apply-change",
+      "case": "early_final",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "openspec-apply-change",
+      "case": "blocked_global",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "openspec-apply-change",
+      "case": "progress_stop",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "openspec-apply-change",
+      "case": "known_pause_control",
+      "error_count": 1,
+      "expected_detection": true,
+      "detected": true
+    },
+    {
+      "entry": "opsx-apply",
+      "case": "baseline",
+      "error_count": 0,
+      "expected_detection": false,
+      "detected": false
+    },
+    {
+      "entry": "opsx-apply",
+      "case": "early_final",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "opsx-apply",
+      "case": "blocked_global",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "opsx-apply",
+      "case": "progress_stop",
+      "error_count": 0,
+      "expected_detection": true,
+      "detected": false
+    },
+    {
+      "entry": "opsx-apply",
+      "case": "known_pause_control",
+      "error_count": 1,
+      "expected_detection": true,
+      "detected": true
+    }
+  ]
+}

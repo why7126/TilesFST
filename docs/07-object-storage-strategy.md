@@ -4,7 +4,7 @@ content: 说明 MinIO/S3兼容对象存储/腾讯 COS 单桶策略、目录前�
 source: AI自动生成，人工确认
 update_method: 对象存储策略或媒体资源类型变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-30 08:10:01
+updated_at: '2026-09-09 08:13:55'
 note: V5 从多桶策略调整为单桶 + 前缀策略；支持 MinIO、S3 兼容云对象存储与腾讯 COS
 ---
 
@@ -162,3 +162,11 @@ python scripts/clean_legacy_uploads.py --check-only
 ## 7. 何时考虑多桶
 
 只有在生命周期策略、权限隔离、合规要求或资源规模明确要求时，才通过 OpenSpec Change 引入多桶。
+
+## 8. 业务媒体授权读取
+
+REQ-0136读取接口、票据、TTL与限额事实见 [API索引§11](03-api-index.md#11-业务媒体读取授权req-0136)。授权只探测对象元信息；已登记外域URL不由后端抓取。GET与HEAD分别签名，不能互换。直读开关关闭时，新授权接口返回有界代理能力，不改变桶权限。
+
+`MEDIA_READ_CLIENTS`、`MEDIA_READ_KINDS` 是端和媒体灰度白名单，仍受 `OBJECT_STORAGE_DIRECT_READ_ENABLED` 总开关控制；显式回退另由 `MEDIA_READ_PROXY_FALLBACK_ENABLED=false` 默认禁用。配置通过既有Compose env_file注入，无需新增容器端口。`MEDIA_READ_PROXY_BUDGET_DIR` 默认 `/app/data/tmp/media-read-budget`，利用现有data/tmp本地卷跨工作进程/同宿主机副本共享两枚文件锁与持久字节账本；禁止在线删除/替换，目录不可写或账本损坏时拒绝代理。跨宿主机/NFS不支持，不能将本地文件锁当作跨机集群限额。旧 `/media/` 已改为当前公开业务归属校验，私有媒体必须使用业务授权；历史路径仅解析同一媒体的有限候选。线上启用仍需独立发布和端侧域名验证。
+
+COS签名读取要求客户端能访问配置的HTTPS存储域名；浏览器需按实际站点设置GET/HEAD及Range相关CORS，小程序需配置合法request/download域名。SDK HTTP合成测试不能证明CORS、小程序合法域名或真机播放器行为。回滚关闭灰度后新请求走代理，但已发出的300秒能力与客户端已有内容不会立即失效。

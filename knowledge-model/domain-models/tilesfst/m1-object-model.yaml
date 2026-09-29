@@ -1,0 +1,256 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: OBJECT
+coverage: covered
+types:
+- id: tiles:TileSKU
+  label: 瓷砖SKU
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:Brand
+  label: 品牌
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:TileCategory
+  label: 瓷砖类目
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:TileSpec
+  label: 瓷砖规格
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:BrandCertificate
+  label: 品牌证书
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:TileImage
+  label: 瓷砖图片
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:TileVideo
+  label: 瓷砖视频
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:Banner
+  label: 轮播配置
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:AdminUser
+  label: 管理账户
+  parents:
+  - pd:BusinessObject
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+- id: tiles:Employee
+  label: 员工角色
+  parents:
+  - pd:UserRole
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+relation_types:
+- id: tiles:belongsToBrand
+  subject_types:
+  - tiles:TileSKU
+  object_types:
+  - tiles:Brand
+  min: 1
+  max: 1
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+- id: tiles:belongsToCategory
+  subject_types:
+  - tiles:TileSKU
+  object_types:
+  - tiles:TileCategory
+  min: 1
+  max: 1
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+- id: tiles:usesSpec
+  subject_types:
+  - tiles:TileSKU
+  object_types:
+  - tiles:TileSpec
+  min: 1
+  max: 1
+  legacy_min: 0
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+- id: tiles:hasImage
+  subject_types:
+  - tiles:TileSKU
+  object_types:
+  - tiles:TileImage
+  min: 0
+  max: 999
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+- id: tiles:hasVideo
+  subject_types:
+  - tiles:TileSKU
+  object_types:
+  - tiles:TileVideo
+  min: 0
+  max: 999
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+- id: tiles:hasCertificate
+  subject_types:
+  - tiles:Brand
+  object_types:
+  - tiles:BrandCertificate
+  min: 0
+  max: 999
+  source:
+    path: openspec/specs/brand-certificate-management/spec.md
+    locator: '### Requirement: 管理端品牌证书数据模型'
+- id: tiles:hasParent
+  subject_types:
+  - tiles:TileCategory
+  object_types:
+  - tiles:TileCategory
+  min: 0
+  max: 1
+  acyclic: true
+  source:
+    path: openspec/specs/tile-category-management/spec.md
+    locator: '### Requirement: 瓷砖类目数据模型'
+- id: tiles:hasRole
+  subject_types:
+  - tiles:AdminUser
+  object_types:
+  - pd:UserRole
+  min: 0
+elements:
+- id: model:TileSKU
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: TileSKU
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+  review_status: confirmed
+- id: model:Brand
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: Brand
+  source:
+    path: openspec/specs/brand-management/spec.md
+    locator: '### Requirement: 品牌 Logo 上传'
+  review_status: confirmed
+- id: model:TileCategory
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: TileCategory
+  source:
+    path: openspec/specs/tile-category-management/spec.md
+    locator: '### Requirement: 瓷砖类目数据模型'
+  review_status: confirmed
+- id: model:TileSpec
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: TileSpec
+  source:
+    path: openspec/specs/tile-spec-management/spec.md
+    locator: '### Requirement: 瓷砖规格数据模型'
+  review_status: confirmed
+- id: model:BrandCertificate
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: BrandCertificate
+  source:
+    path: openspec/specs/brand-certificate-management/spec.md
+    locator: '### Requirement: 管理端品牌证书数据模型'
+  review_status: confirmed
+- id: model:TileImage
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: TileImage
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+  review_status: confirmed
+- id: model:TileVideo
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: TileVideo
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: SKU 管理视觉验收 Gate'
+  review_status: confirmed
+- id: model:Banner
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: Banner
+  source:
+    path: openspec/specs/banner-management/spec.md
+    locator: '### Requirement: Banner 数据模型与业务规则'
+  review_status: confirmed
+- id: model:AdminUser
+  type: meta:Entity
+  layer: domain
+  attributes:
+    name: AdminUser
+  source:
+    path: openspec/specs/auth/spec.md
+    locator: '### Requirement: 用户账号密码登录'
+  review_status: confirmed

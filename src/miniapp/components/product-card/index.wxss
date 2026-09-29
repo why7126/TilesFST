@@ -1,3 +1,5 @@
+@import "../../styles/price.generated.wxss";
+
 .product-card {
   min-height: 188rpx;
   display: flex;
@@ -31,6 +33,7 @@
 
 .product-image,
 .product-image-empty {
+  display: block;
   width: 100%;
   height: 100%;
 }
@@ -101,15 +104,15 @@
 
 .product-price {
   margin-top: 10rpx;
-  color: #C8A055;
+  color: var(--price-placeholder);
   font-size: 26rpx;
   font-weight: 800;
   line-height: 1.3;
 }
 
-.product-price text {
+.product-price .price-label {
   margin-right: 8rpx;
-  color: rgba(237,232,223,0.56);
+  color: var(--price-label);
   font-size: 20rpx;
   font-weight: 400;
 }
@@ -125,8 +128,16 @@
 .product-card.grid .product-image-frame {
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 0.86;
   border-radius: 0;
+}
+
+.product-card.compact .product-image-frame {
+  aspect-ratio: 1 / 0.86;
+}
+
+.product-card.grid .product-image-frame {
+  aspect-ratio: 1 / 1.28;
+  background: #252116;
 }
 
 .product-card.compact .product-content,
@@ -144,3 +155,6 @@
 .product-card.grid {
   width: 100%;
 }
+
+.price-valid { color: var(--price-amount); }
+.price-placeholder { color: var(--price-placeholder); }

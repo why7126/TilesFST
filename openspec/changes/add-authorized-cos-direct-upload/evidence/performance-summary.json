@@ -1,0 +1,154 @@
+{
+  "source": "Real isolated Compose Web/API/SQLite and Chromium against COS from this Mac network; not Beijing 3Mbps production",
+  "percentile": "nearest-rank p95; arithmetic median p50",
+  "groups": [
+    {
+      "mib": 19,
+      "integrated": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 2567.5,
+        "p95_ms": 3681,
+        "min_ms": 2102,
+        "max_ms": 4477
+      },
+      "reference": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 2303.5,
+        "p95_ms": 3679,
+        "min_ms": 1932,
+        "max_ms": 4335
+      },
+      "p95_ratio": 1.0005,
+      "target_ratio": 1.25,
+      "passed": true
+    },
+    {
+      "mib": 59,
+      "integrated": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 7318.5,
+        "p95_ms": 8687,
+        "min_ms": 6010,
+        "max_ms": 8703
+      },
+      "reference": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 6656.0,
+        "p95_ms": 7703,
+        "min_ms": 5954,
+        "max_ms": 9449
+      },
+      "p95_ratio": 1.1277,
+      "target_ratio": 1.25,
+      "passed": true
+    },
+    {
+      "mib": 63,
+      "integrated": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 9269.0,
+        "p95_ms": 10873,
+        "min_ms": 6949,
+        "max_ms": 10969
+      },
+      "reference": {
+        "n": 20,
+        "failures": 0,
+        "p50_ms": 8657.5,
+        "p95_ms": 11966,
+        "min_ms": 6549,
+        "max_ms": 12035
+      },
+      "p95_ratio": 0.9087,
+      "target_ratio": 1.25,
+      "passed": true
+    }
+  ],
+  "controls": {
+    "authorize": {
+      "n": 60,
+      "p95_ms": 364,
+      "target_ms": 1000,
+      "passed": true
+    },
+    "query": {
+      "n": 60,
+      "p95_ms": 28,
+      "target_ms": 1000,
+      "passed": true
+    },
+    "confirm": {
+      "n": 60,
+      "p95_ms": 1652,
+      "target_ms": 5000,
+      "passed": true
+    }
+  },
+  "proxy_small_sample": [
+    {
+      "mib": 19,
+      "n_per_mode": 3,
+      "integrated": {
+        "median_end_to_end_ms": 4971,
+        "range_ms": [
+          3893,
+          5108
+        ],
+        "failures": 0
+      },
+      "proxy": {
+        "median_end_to_end_ms": 3083,
+        "range_ms": [
+          2663,
+          3175
+        ],
+        "failures": 0
+      }
+    },
+    {
+      "mib": 59,
+      "n_per_mode": 3,
+      "integrated": {
+        "median_end_to_end_ms": 10493,
+        "range_ms": [
+          8478,
+          10780
+        ],
+        "failures": 0
+      },
+      "proxy": {
+        "median_end_to_end_ms": 11590,
+        "range_ms": [
+          9281,
+          12393
+        ],
+        "failures": 0
+      }
+    },
+    {
+      "mib": 63,
+      "n_per_mode": 3,
+      "integrated": {
+        "median_end_to_end_ms": 9011,
+        "range_ms": [
+          8491,
+          9048
+        ],
+        "failures": 0
+      },
+      "proxy": {
+        "median_end_to_end_ms": 6683,
+        "range_ms": [
+          6489,
+          6898
+        ],
+        "failures": 0
+      }
+    }
+  ]
+}

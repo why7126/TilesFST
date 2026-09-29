@@ -328,7 +328,20 @@ def main() -> int:
         print_residual_blockers(blockers)
         return 1
     sys.stdout.flush()
-    return run_promotions(candidates, dry_run=args.dry_run, reason=reason)
+    code = run_promotions(candidates, dry_run=args.dry_run, reason=reason)
+    if code or args.dry_run:
+        return code
+    from knowledge_model.hooks import archive_sync
+    from knowledge_model.core import safe_load
+    import json
+    changes = [args.change] if args.change else []
+    if args.sprint:
+        sprint_dir = resolve_sprint_dir(args.sprint)
+        data = safe_load((sprint_dir / "sprint.yaml").read_bytes())
+        changes = [item if isinstance(item, str) else item["id"] for item in data["changes"]]
+    results = archive_sync(ROOT, changes)
+    if results: print(json.dumps({"knowledge_model": results}, ensure_ascii=False))
+    return 1 if any(r["status"] == "failed" for r in results) else 0
 
 
 if __name__ == "__main__":

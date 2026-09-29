@@ -482,7 +482,7 @@ export function TileSkuManagementPage() {
                   <td>
                     <div className="sku-cell">
                       <div className="sku-thumb">
-                        <FallbackListImage
+                        <FallbackListImage reference={{ resource_type: 'sku_image', resource_id: String(item.id), variant: 'thumbnail' }}
                           thumbnailUrl={item.main_image_thumbnail_url}
                           displayUrl={item.main_image_display_url}
                           originalUrl={item.main_image_url}

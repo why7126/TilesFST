@@ -1,0 +1,643 @@
+{
+  "source": "Real isolated Compose Web/API/SQLite and Chromium against COS from this Mac network; not Beijing 3Mbps production",
+  "sampleScope": "Same synthetic padded WebM per size; transport fixture, not full video decode",
+  "protocol": "19/59/63MiB, 3 alternating pairs each; integrated direct versus retained proxy; compare elapsed_ms end to end, not proxy transfer_ms against direct transfer_ms",
+  "records": [
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3004,
+      "elapsed_ms": 5108,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 589,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1497,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 151,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 19,
+      "transfer_ms": 3083,
+      "elapsed_ms": 3083,
+      "controls": [],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 19,
+      "transfer_ms": 3174,
+      "elapsed_ms": 3175,
+      "controls": [],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2555,
+      "elapsed_ms": 3893,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 284,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1034,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 128,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3158,
+      "elapsed_ms": 4971,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 286,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1501,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 112,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "proxy",
+      "mib": 19,
+      "transfer_ms": 2663,
+      "elapsed_ms": 2663,
+      "controls": [],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 9076,
+      "elapsed_ms": 10780,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 320,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 57,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1368,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 133,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 59,
+      "transfer_ms": 9281,
+      "elapsed_ms": 9281,
+      "controls": [],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 59,
+      "transfer_ms": 11590,
+      "elapsed_ms": 11590,
+      "controls": [],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6747,
+      "elapsed_ms": 8478,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 305,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1397,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 170,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8754,
+      "elapsed_ms": 10493,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 260,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1462,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 117,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "proxy",
+      "mib": 59,
+      "transfer_ms": 12393,
+      "elapsed_ms": 12393,
+      "controls": [],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 6923,
+      "elapsed_ms": 9048,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 257,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 160,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 67,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1848,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 392,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 63,
+      "transfer_ms": 6898,
+      "elapsed_ms": 6898,
+      "controls": [],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "proxy",
+      "mib": 63,
+      "transfer_ms": 6683,
+      "elapsed_ms": 6683,
+      "controls": [],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 6837,
+      "elapsed_ms": 8491,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 287,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1350,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 121,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7368,
+      "elapsed_ms": 9011,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 274,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1339,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 107,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "proxy",
+      "mib": 63,
+      "transfer_ms": 6489,
+      "elapsed_ms": 6489,
+      "controls": [],
+      "error": null,
+      "pair": 3
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { AuthorizedImage } from '@/features/media/authorized-media';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
@@ -14,7 +15,8 @@ import { getUserInitials } from '@/features/admin/lib/user-display';
 import { roleLabel, statusLabel } from '@/features/admin/lib/user-labels';
 import '@/features/admin/styles/profile-page.css';
 
-type AvatarUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+import { useImageUpload } from '@/features/media/use-image-upload';
+import { MediaUploadStatus } from '@/features/media/media-upload-status';
 
 interface ProfileOutletContext {
   onOpenPasswordChange?: () => void;
@@ -83,9 +85,11 @@ export function ProfilePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveTip, setSaveTip] = useState<string | null>(null);
-  const [avatarUploadState, setAvatarUploadState] = useState<AvatarUploadState>('idle');
-  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
-  const [avatarImageFailed, setAvatarImageFailed] = useState(false);
+  const upload = useImageUpload(uploadAvatar);
+  const [avatarSaving, setAvatarSaving] = useState(false);
+  const [avatarSaveError, setAvatarSaveError] = useState<string | null>(null);
+  const avatarUploadError = avatarSaveError ?? upload.snapshot.error;
+  const avatarBusy = upload.busy || avatarSaving;
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -109,9 +113,6 @@ export function ProfilePage() {
     void loadProfile();
   }, [loadProfile]);
 
-  useEffect(() => {
-    setAvatarImageFailed(false);
-  }, [profile?.avatar_url]);
 
   const initials = useMemo(
     () => getUserInitials(profile?.display_name, profile?.username),
@@ -131,7 +132,7 @@ export function ProfilePage() {
       setError(validationError);
       return;
     }
-    if (avatarUploadState === 'uploading') {
+    if (avatarBusy) {
       setError('头像上传中，请稍后保存');
       return;
     }
@@ -157,26 +158,22 @@ export function ProfilePage() {
     }
   };
 
-  const handleAvatarChange = async (file: File | undefined) => {
-    if (!file) return;
-    setAvatarUploadError(null);
-    setAvatarUploadState('uploading');
+  const handleAvatarChange = async (file: File | undefined, retry = false) => {
+    if (avatarSaving) return;
+    setAvatarSaveError(null); setError(null);
+    const result = await upload.start(file, retry);
+    if (!result) return;
+    setAvatarSaving(true);
     try {
-      const result = await uploadAvatar(file);
       const updated = await patchProfileMe({ avatar_object_key: result.object_key });
-      setProfile(updated);
-      setForm(toFormState(updated));
-      setAvatarUploadState('uploaded');
+      upload.saved();
+      setProfile(updated); setForm(toFormState(updated));
       setSaveTip(`资料已更新 · ${formatDisplayTimestamp(updated.updated_at)}`);
-      const activityItems = await fetchProfileActivities();
-      setActivities(activityItems);
-      await refetchProfileShell?.();
+      const results = await Promise.allSettled([fetchProfileActivities(), refetchProfileShell?.()]);
+      if (results[0].status === 'fulfilled') setActivities(results[0].value);
     } catch (err) {
-      const message = getErrorMessage(err, '头像上传失败');
-      setAvatarUploadState('failed');
-      setAvatarUploadError(message);
-      setError(message);
-    }
+      setAvatarSaveError(getErrorMessage(err, '头像保存失败，请重试'));
+    } finally { setAvatarSaving(false); }
   };
 
   if (loading) {
@@ -189,7 +186,7 @@ export function ProfilePage() {
 
   const roleText = roleLabel(profile.role);
   const statusText = statusLabel(profile.status);
-  const showAvatarImage = Boolean(profile.avatar_url) && !avatarImageFailed;
+  const showAvatarImage = Boolean(profile.avatar_url);
   const identityMetaParts = [
     roleText,
     profile.email?.trim() || null,
@@ -219,12 +216,9 @@ export function ProfilePage() {
             <div className="identity-strip">
               <div className={`profile-avatar${showAvatarImage ? '' : ' is-fallback'}`} aria-hidden>
                 {showAvatarImage ? (
-                  <img
+                  <AuthorizedImage reference={{ resource_type: 'avatar', resource_id: String(profile.id), variant: 'thumbnail' }}
                     src={profile.avatar_url ?? ''}
                     alt=""
-                    onError={() => {
-                      setAvatarImageFailed(true);
-                    }}
                   />
                 ) : (
                   initials
@@ -239,13 +233,13 @@ export function ProfilePage() {
                   <span className="mini-badge">安全验证正常</span>
                 </div>
               </div>
-              <label className={`btn${avatarUploadState === 'uploading' ? ' disabled' : ''}`}>
-                {avatarUploadState === 'uploading' ? '上传中' : '更换头像'}
+              <label className={`btn${avatarBusy ? ' disabled' : ''}`}>
+                {avatarBusy ? '上传中' : '更换头像'}
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   hidden
-                  disabled={avatarUploadState === 'uploading'}
+                  disabled={avatarBusy}
                   onChange={(event) => {
                     const input = event.currentTarget;
                     void handleAvatarChange(input.files?.[0]).finally(() => {
@@ -309,11 +303,12 @@ export function ProfilePage() {
               </div>
             </div>
 
-            {avatarUploadError ? (
-              <p className="profile-error" role="alert">
-                {avatarUploadError}
-              </p>
-            ) : null}
+            <MediaUploadStatus mediaKind="image"
+              stage={avatarSaving ? 'saving' : avatarSaveError ? 'failed' : upload.snapshot.stage}
+              progress={upload.snapshot.progress} fileName={upload.file?.name} error={avatarUploadError}
+              onCancel={avatarSaving ? undefined : () => void upload.cancel().then(ok => { if(ok) setAvatarSaveError(null); })}
+              onRetry={avatarSaveError || upload.snapshot.retryable ? () => void handleAvatarChange(upload.file, true) : undefined} />
+            {upload.snapshot.warning ? <p className="text-brand-gold">{upload.snapshot.warning}</p> : null}
             {error ? (
               <p className="profile-error" role="alert">
                 {error}
@@ -329,7 +324,7 @@ export function ProfilePage() {
                 <button
                   type="button"
                   className="btn primary"
-                  disabled={submitting || avatarUploadState === 'uploading'}
+                  disabled={submitting || avatarBusy}
                   onClick={() => void handleSave()}
                 >
                   保存修改

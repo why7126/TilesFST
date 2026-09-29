@@ -1,0 +1,40 @@
+{
+  "evidence_source": "local controlled HTTPS fixture server, invoked by DevTools native image/download APIs",
+  "requests": [
+    {
+      "time": "2026-09-07T22:59:48.046945+08:00",
+      "case": "/missing.png",
+      "status": 404,
+      "type": "text/plain",
+      "bytes": 8
+    },
+    {
+      "time": "2026-09-07T23:01:40.843082+08:00",
+      "case": "/expired.png",
+      "status": 403,
+      "type": "text/plain",
+      "bytes": 20
+    },
+    {
+      "time": "2026-09-07T23:03:20.960074+08:00",
+      "case": "/broken.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 20
+    },
+    {
+      "time": "2026-09-07T23:05:03.039920+08:00",
+      "case": "/short-lived.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 366
+    },
+    {
+      "time": "2026-09-07T23:06:48.946959+08:00",
+      "case": "/short-lived.png",
+      "status": 403,
+      "type": "text/plain",
+      "bytes": 20
+    }
+  ]
+}

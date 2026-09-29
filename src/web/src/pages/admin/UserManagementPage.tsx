@@ -1,3 +1,4 @@
+import { AuthorizedImage } from '@/features/media/authorized-media';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
@@ -320,7 +321,7 @@ export function UserManagementPage() {
                     <div className="user-cell">
                       <span className="avatar">
                         {user.avatar_url ? (
-                          <img
+                          <AuthorizedImage reference={{ resource_type: 'avatar', resource_id: String(user.id), variant: 'thumbnail' }}
                             src={user.avatar_url}
                             alt=""
                             onError={(event) => {

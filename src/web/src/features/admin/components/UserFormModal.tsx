@@ -1,3 +1,5 @@
+import { useModalReturnFocus } from './use-modal-return-focus';
+import { AuthorizedImage } from '@/features/media/authorized-media';
 import { useEffect, useState } from 'react';
 
 import { createUser, updateUser, uploadAvatar, type UserAdminItem } from '../api/users-api';
@@ -5,7 +7,8 @@ import { getErrorMessage } from '@/features/auth/api/auth-api';
 import { getUserInitials } from '../lib/user-display';
 import { ROLE_FORM_OPTIONS } from '../lib/user-labels';
 
-type AvatarUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+import { useImageUpload } from '@/features/media/use-image-upload';
+import { MediaUploadStatus } from '@/features/media/media-upload-status';
 
 interface UserFormModalProps {
   open: boolean;
@@ -16,6 +19,7 @@ interface UserFormModalProps {
 }
 
 export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserFormModalProps) {
+  useModalReturnFocus(open);
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,18 +27,17 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
   const [role, setRole] = useState('store_owner');
   const [avatarKey, setAvatarKey] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarUploadState, setAvatarUploadState] = useState<AvatarUploadState>('idle');
-  const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
-  const [avatarUploadError, setAvatarUploadError] = useState<string | null>(null);
+  const upload = useImageUpload(uploadAvatar);
+  const avatarUploadState = upload.snapshot.stage;
+  const avatarUploadError = upload.snapshot.error ?? null;
+  const [leavePrompt, setLeavePrompt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setError(null);
-    setAvatarUploadState('idle');
-    setAvatarUploadProgress(0);
-    setAvatarUploadError(null);
+    upload.reset(); setLeavePrompt(false);
     if (mode === 'edit' && user) {
       setUsername(user.username);
       setDisplayName(user.display_name ?? '');
@@ -57,34 +60,25 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
   if (!open) return null;
 
   const initials = getUserInitials(displayName, username);
-  const isAvatarUploading = avatarUploadState === 'uploading';
+  const isAvatarUploading = upload.busy || submitting;
   const isAvatarError = avatarUploadState === 'failed' && error === avatarUploadError;
 
-  const handleAvatarChange = async (file: File | undefined) => {
-    if (!file) return;
+  const handleAvatarChange = async (file: File | undefined, retry = false) => {
+    if (submitting) return;
     setError(null);
-    setAvatarUploadError(null);
-    setAvatarUploadState('uploading');
-    setAvatarUploadProgress(8);
-    try {
-      const result = await uploadAvatar(file, (progress) => {
-        setAvatarUploadProgress(progress);
-      });
-      setAvatarKey(result.object_key);
-      setAvatarUrl(result.url);
-      setAvatarUploadProgress(100);
-      setAvatarUploadState('uploaded');
-    } catch (err) {
-      const message = getErrorMessage(err, '头像上传失败');
-      setAvatarUploadState('failed');
-      setAvatarUploadProgress(0);
-      setAvatarUploadError(message);
-      setError(message);
-    }
+    const result = await upload.start(file, retry);
+    if (result) { setAvatarKey(result.object_key); setAvatarUrl(result.thumbnail_url ?? result.url); }
   };
+  const cancelUpload = async () => {
+    if (submitting) return false;
+    if (!await upload.cancel()) return false;
+    setAvatarKey(user?.avatar_object_key ?? null); setAvatarUrl(user?.avatar_url ?? null);
+    return true;
+  };
+  const close = () => { if (submitting) return; if (upload.pending || upload.busy) setLeavePrompt(true); else onClose(); };
 
   const handleSubmit = async () => {
-    if (avatarUploadState === 'uploading') {
+    if (upload.busy || avatarUploadState === 'failed') {
       setError('头像上传中，请稍后保存');
       return;
     }
@@ -111,6 +105,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
         });
         onSuccess('用户信息已更新');
       }
+      upload.saved();
       onClose();
     } catch (err) {
       setError(getErrorMessage(err, '保存失败'));
@@ -132,7 +127,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
           <span id="user-form-title" className="modal-title">
             {mode === 'create' ? '添加用户' : '编辑用户'}
           </span>
-          <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
+          <button type="button" className="modal-close" aria-label="关闭" onClick={close}>
             ×
           </button>
         </div>
@@ -157,7 +152,7 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
               <div className="brand-logo-meta">
                 <span className="brand-logo-preview">
                   {avatarUrl ? (
-                    <img
+                    <AuthorizedImage file={upload.snapshot.stage === 'failed' ? undefined : upload.file} reference={upload.snapshot.stage !== 'failed' && upload.sessionId ? {resource_type: 'upload_session', resource_id: upload.sessionId, variant: 'display'} : user && avatarKey === user.avatar_object_key ? {resource_type: 'avatar', resource_id: user.id, variant: 'display'} : undefined}
                       src={avatarUrl}
                       alt=""
                       onError={(event) => {
@@ -174,38 +169,12 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
                   ) : null}
                   <span className="brand-logo-fallback">{initials}</span>
                 </span>
-                <span>
+                <span className="flex flex-col">
                   <span className="user-main">
                     {avatarUrl ? '已上传头像' : '默认头像'}
                   </span>
                   <span className="user-sub">支持 JPG / PNG / WebP，建议 1:1 图片</span>
-                  {isAvatarUploading ? (
-                    <span className="brand-logo-status">
-                      <span
-                        className="brand-logo-progress"
-                        role="progressbar"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={avatarUploadProgress}
-                      >
-                        <span
-                          className="brand-logo-progress-bar"
-                          style={{ width: `${avatarUploadProgress}%` }}
-                        />
-                      </span>
-                      <span className="brand-logo-progress-text">
-                        上传中 {avatarUploadProgress}%
-                      </span>
-                    </span>
-                  ) : null}
-                  {avatarUploadState === 'uploaded' ? (
-                    <span className="brand-logo-upload-success">头像已更新</span>
-                  ) : null}
-                  {avatarUploadState === 'failed' && avatarUploadError ? (
-                    <span className="brand-logo-upload-error" role="alert">
-                      {avatarUploadError}
-                    </span>
-                  ) : null}
+
                 </span>
               </div>
               <label
@@ -227,6 +196,10 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
                 />
               </label>
             </div>
+            <MediaUploadStatus mediaKind="image" stage={avatarUploadState} progress={upload.snapshot.progress}
+              fileName={upload.file?.name} error={avatarUploadError} onCancel={() => void cancelUpload()}
+              onRetry={upload.snapshot.retryable ? () => void handleAvatarChange(upload.file, true) : undefined} />
+            {upload.snapshot.warning ? <p className="text-brand-gold">{upload.snapshot.warning}</p> : null}
           </div>
           <div className="form-row">
             <label className="field-label" htmlFor="um-nickname">
@@ -296,14 +269,20 @@ export function UserFormModal({ open, mode, user, onClose, onSuccess }: UserForm
             </p>
           ) : null}
         </div>
+        {leavePrompt ? <div role="alertdialog" aria-label="离开上传" className="modal-body">
+          <p>离开将取消未保存的头像上传。</p>
+          <button type="button" className="btn" onClick={() => setLeavePrompt(false)}>继续编辑</button>
+          <button type="button" className="btn" disabled={avatarUploadState === 'cancelling'}
+            onClick={() => void cancelUpload().then(ok => { if (ok) onClose(); })}>取消上传并离开</button>
+        </div> : null}
         <div className="modal-footer">
-          <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+          <button type="button" className="btn" onClick={close} disabled={submitting}>
             取消
           </button>
           <button
             type="button"
             className="btn primary"
-            disabled={submitting || isAvatarUploading}
+            disabled={submitting || isAvatarUploading || avatarUploadState === 'failed'}
             onClick={() => void handleSubmit()}
           >
             {mode === 'create' ? '创建用户' : '保存'}

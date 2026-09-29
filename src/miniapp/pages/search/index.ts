@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 
 type ProductCard = {
@@ -92,6 +93,12 @@ function writeStringList(key: string, values: string[]) {
 }
 
 Page({
+  onShareTimeline() {
+    return sharePage('search', this, 'wechat_timeline');
+  },
+  onShareAppMessage() {
+    return sharePage('search', this, 'wechat_friend');
+  },
   suggestionTimer: 0 as unknown as number,
   inputTrackTimer: 0 as unknown as number,
   suggestionSeq: 0,
@@ -139,13 +146,15 @@ Page({
   },
 
   onLoad(query: Record<string, string>) {
-    const keyword = normalizeKeyword(decodeURIComponent(query.keyword || ''));
-    const scope = decodeURIComponent(query.scope || query.categoryName || DEFAULT_SCOPE);
-    const sourcePage = decodeURIComponent(query.sourcePage || 'direct');
+    query = receiveShare('search', query);
+    const keyword = normalizeKeyword((query.keyword || ''));
+    const scope = (query.scope || query.categoryName || DEFAULT_SCOPE);
+    const sourcePage = (query.sourcePage || 'direct');
     this.setData({
       keyword,
       normalizedKeyword: keyword,
       scope: scope || DEFAULT_SCOPE,
+      filterSnapshot: scope && scope !== DEFAULT_SCOPE ? { category: scope } : {},
       sourcePage,
       searchMode: keyword ? 'result' : 'home',
       activeTab: query.tab || 'all',
@@ -157,7 +166,7 @@ Page({
     }
     track('search_page_view', this.trackBase({ page_path: '/pages/search/index' }));
     if (keyword) {
-      this.submitSearch();
+      this.submitSearch(query.source === 'share');
     }
   },
 
@@ -308,7 +317,7 @@ Page({
     }, DEBOUNCE_MS) as unknown as number;
   },
 
-  submitSearch() {
+  submitSearch(restore = false) {
     const keyword = normalizeKeyword(this.data.keyword);
     if (!keyword) return;
     if (this.inputTrackTimer) {
@@ -316,12 +325,12 @@ Page({
       this.inputTrackTimer = 0 as unknown as number;
     }
     const history = [keyword].concat(this.data.recentSearches.filter((item) => item !== keyword)).slice(0, 20);
-    writeStringList(HISTORY_KEY, history);
+    if (!restore) writeStringList(HISTORY_KEY, history);
     this.setData({
       keyword,
       normalizedKeyword: keyword,
       searchMode: 'result',
-      recentSearches: history,
+      recentSearches: restore ? this.data.recentSearches : history,
       suggestions: [],
       brandSuggestions: [],
       skuSuggestions: [],
@@ -332,7 +341,7 @@ Page({
       loadingMore: false,
       requestId: this.nextRequestId(keyword),
     });
-    track('search_submit', this.trackBase({ module: 'miniapp_search', keyword, normalizedKeyword: keyword }));
+    if (!restore) track('search_submit', this.trackBase({ module: 'miniapp_search', keyword, normalizedKeyword: keyword }));
     this.loadResults(true);
   },
 

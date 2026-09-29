@@ -1,0 +1,12 @@
+cases:
+- id: domain-bindings
+  expect: valid-model
+- id: published-delete-denied
+  rule: model:PublishedDeleteDenied
+  input:
+    status: PUBLISHED
+  expect: deny
+- id: unknown-status
+  rule: model:PublishedDeleteDenied
+  input: {}
+  expect: unknown

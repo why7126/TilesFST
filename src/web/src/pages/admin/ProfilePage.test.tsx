@@ -1,3 +1,8 @@
+const { authorizeMedia } = vi.hoisted(() => ({authorizeMedia: vi.fn()}));
+vi.mock('@/features/media/media-read-api', async () => {
+  const {MediaReadController} = await import('@/features/media/read-controller');
+  return {createMediaReadController: () => new MediaReadController(authorizeMedia)};
+});
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -51,6 +56,7 @@ describe('ProfilePage', () => {
   }
 
   beforeEach(async () => {
+    authorizeMedia.mockReset().mockImplementation(async items => ({server_time:new Date().toISOString(),items:items.map((reference: unknown)=>({reference,status:'ready',descriptor:{url:'https://storage.example.test/authorized-avatar',variant:'thumbnail',read_mode:'direct',media_ref:'avatar:1',expires_at:new Date(Date.now()+300000).toISOString()}}))}));
     const api = await import('@/features/admin/api/profile-api');
     vi.mocked(api.fetchProfileMe).mockResolvedValue(profile);
     vi.mocked(api.fetchProfileActivities).mockResolvedValue(activities);
@@ -97,7 +103,7 @@ describe('ProfilePage', () => {
     expect(screen.getByLabelText('联系邮箱')).toHaveValue('');
   });
 
-  it('falls back to initials when profile avatar image fails to load', async () => {
+  it('shows unavailable media without losing profile fields when renewed access is denied', async () => {
     const api = await import('@/features/admin/api/profile-api');
     vi.mocked(api.fetchProfileMe).mockResolvedValue({
       ...profile,
@@ -109,12 +115,13 @@ describe('ProfilePage', () => {
 
     await screen.findByDisplayValue('Admin User');
     const avatar = document.querySelector('.profile-avatar');
+    await waitFor(() => expect(avatar?.querySelector('img')).toBeTruthy());
     const img = avatar?.querySelector('img') as HTMLImageElement;
-    expect(img).toBeTruthy();
+    authorizeMedia.mockImplementation(async items => ({server_time:new Date().toISOString(),items:items.map((reference:unknown)=>({reference,status:'unavailable'}))}));
     fireEvent.error(img);
 
-    expect(document.querySelector('.profile-avatar.is-fallback')).toBeTruthy();
-    expect(avatar).toHaveTextContent('AU');
+    await waitFor(() => expect(avatar?.querySelector('[data-media-state=unavailable]')).toBeTruthy(),{timeout:2000});
+    expect(screen.getByDisplayValue('Admin User')).toBeInTheDocument();
     expect(avatar?.querySelector('img')).toBeNull();
   });
 
@@ -189,4 +196,21 @@ describe('ProfilePage', () => {
     expect(screen.getAllByRole('button', { name: '保存修改' })).toHaveLength(1);
     expect(document.querySelector('.profile-page-head .btn.primary')).toBeNull();
   });
+  it('retries a failed avatar binding without uploading the file again', async () => {
+    const api = await import('@/features/admin/api/profile-api');
+    vi.mocked(api.uploadAvatar).mockReset();
+    vi.mocked(api.uploadAvatar).mockResolvedValue({object_key:'images/avatar-ready.png',url:'/media/avatar-ready.png'});
+    vi.mocked(api.patchProfileMe).mockRejectedValueOnce(new Error('binding failed')).mockResolvedValueOnce({
+      ...profile, avatar_object_key:'images/avatar-ready.png',avatar_url:'/media/avatar-ready.png',
+    });
+    renderProfilePage();
+    await screen.findByText('个人资料');
+    fireEvent.change(screen.getByLabelText('更换头像'), {target:{files:[new File(['image'],'avatar.png',{type:'image/png'})]}});
+    await screen.findByText('头像保存失败，请重试');
+    fireEvent.click(screen.getByRole('button',{name:'重试上传'}));
+    await waitFor(()=>expect(api.patchProfileMe).toHaveBeenCalledWith({avatar_object_key:'images/avatar-ready.png'}));
+    await waitFor(()=>expect(document.querySelector('.profile-avatar img')).toHaveAttribute('src','https://storage.example.test/authorized-avatar'));
+    expect(api.uploadAvatar).toHaveBeenCalledOnce();
+  });
+
 });

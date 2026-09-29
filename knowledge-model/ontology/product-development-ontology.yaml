@@ -1,0 +1,263 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: DEVELOPMENT
+coverage: covered
+types:
+- id: pd:Product
+  label: 产品
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:ProductModule
+  label: 产品模块
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:ProductCapability
+  label: 产品能力
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Requirement
+  label: 需求
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Bug
+  label: 缺陷
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Change
+  label: 变更
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Page
+  label: 页面
+  parents:
+  - meta:UIPage
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:UIComponent
+  label: 界面组件
+  parents:
+  - meta:UIComponent
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:API
+  label: 接口
+  parents: []
+  attributes:
+    name: string
+    operation_id: string
+    method: string
+    path: string
+  required:
+  - name
+- id: pd:BusinessObject
+  label: 业务对象
+  parents:
+  - meta:Entity
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:DataField
+  label: 数据字段
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:BusinessRule
+  label: 业务规则
+  parents:
+  - meta:Rule
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:UserRole
+  label: 用户角色
+  parents:
+  - meta:Role
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:TestCase
+  label: 测试用例
+  parents: []
+  attributes:
+    name: string
+    symbol: string
+  required:
+  - name
+- id: pd:Sprint
+  label: 迭代
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Release
+  label: 产品发布
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Evidence
+  label: 证据
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:UserAction
+  label: 用户动作
+  parents:
+  - meta:Behavior
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Permission
+  label: 权限
+  parents:
+  - meta:Permission
+  attributes:
+    name: string
+  required:
+  - name
+- id: pd:Artifact
+  label: 来源制品
+  parents:
+  - pd:Evidence
+  attributes:
+    name: string
+    symbol: string
+  required:
+  - name
+relation_types:
+- id: pd:containsModule
+  subject_types:
+  - pd:Product
+  object_types:
+  - pd:ProductModule
+  min: 0
+- id: pd:provides
+  subject_types:
+  - pd:ProductModule
+  object_types:
+  - pd:ProductCapability
+  min: 0
+- id: pd:presents
+  subject_types:
+  - pd:Page
+  object_types:
+  - pd:ProductCapability
+  min: 0
+- id: pd:containsComponent
+  subject_types:
+  - pd:Page
+  object_types:
+  - pd:UIComponent
+  min: 0
+- id: pd:triggers
+  subject_types:
+  - pd:UIComponent
+  object_types:
+  - pd:UserAction
+  min: 0
+- id: pd:calls
+  subject_types:
+  - pd:UserAction
+  object_types:
+  - pd:API
+  min: 0
+- id: pd:reads
+  subject_types:
+  - pd:API
+  object_types:
+  - pd:BusinessObject
+  min: 0
+- id: pd:writes
+  subject_types:
+  - pd:API
+  object_types:
+  - pd:BusinessObject
+  min: 0
+- id: pd:changes
+  subject_types:
+  - pd:Requirement
+  object_types:
+  - pd:ProductCapability
+  min: 0
+- id: pd:validates
+  subject_types:
+  - pd:TestCase
+  object_types:
+  - pd:BusinessRule
+  min: 0
+- id: pd:includesChange
+  subject_types:
+  - pd:Sprint
+  object_types:
+  - pd:Change
+  min: 0
+- id: pd:includesSprint
+  subject_types:
+  - pd:Release
+  object_types:
+  - pd:Sprint
+  min: 0
+- id: pd:releaseChange
+  subject_types:
+  - pd:Release
+  object_types:
+  - pd:Change
+  min: 0
+- id: pd:modifies
+  subject_types:
+  - pd:Change
+  object_types:
+  - pd:Artifact
+  min: 0
+- id: pd:evidencedBy
+  subject_types:
+  - pd:Change
+  object_types:
+  - pd:Evidence
+  min: 0
+- id: pd:tracks
+  subject_types:
+  - pd:Change
+  object_types:
+  - pd:Requirement
+  - pd:Bug
+  min: 0
+- id: pd:implementsBehavior
+  subject_types:
+  - pd:API
+  object_types:
+  - meta:Behavior
+  cross_layer: true
+  min: 0

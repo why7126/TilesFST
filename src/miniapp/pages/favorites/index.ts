@@ -1,3 +1,4 @@
+import { pricePresentation, type PricePresentation } from '../../utils/price';
 import { request, track } from '../../services/api';
 
 type FavoriteItem = {
@@ -12,6 +13,7 @@ type FavoriteItem = {
   brand_name?: string;
   category_name?: string;
   price_display: string;
+  priceView?: PricePresentation;
   status: 'available' | 'unavailable';
   favorited_at: number;
 };
@@ -44,6 +46,7 @@ function normalizeFavoriteItem(item: Partial<FavoriteItem> | null | undefined): 
     brand_name: item.brand_name || '',
     category_name: item.category_name || '',
     price_display: item.price_display || '暂无',
+    priceView: pricePresentation(item.price_display, !item.status || item.status === 'available'),
     status: item.status || 'available',
     favorited_at: Number(item.favorited_at || 0),
   };
@@ -63,7 +66,8 @@ function readFavorites(): FavoriteItem[] {
 
 function writeFavorites(items: FavoriteItem[]): boolean {
   try {
-    wx.setStorageSync(FAVORITE_STORAGE_KEY, items);
+    // priceView is derived UI state, never persist it into favorite snapshots.
+    wx.setStorageSync(FAVORITE_STORAGE_KEY, items.map(({ priceView, ...snapshot }) => snapshot));
     return true;
   } catch (_error) {
     return false;

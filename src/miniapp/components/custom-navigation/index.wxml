@@ -5,7 +5,8 @@
   </view>
 
   <view wx:if="{{variant === 'home'}}" class="brand-identity">
-    <image class="store-logo" src="{{logoSrc || '/assets/logos/product-logo.png'}}" mode="aspectFill"></image>
+    <authorized-image wx:if="{{logoSrc && logoSrc !== '/assets/logos/product-logo.png'}}" class="store-logo" resource-type="store_logo" resource-id="store" variant="thumbnail" src="{{logoSrc}}" mode="aspectFill"></authorized-image>
+    <image wx:else class="store-logo" src="/assets/logos/product-logo.png" mode="aspectFill"></image>
     <view class="store-copy">
       <view class="store-name">菲尚特瓷砖馆</view>
       <view class="store-subtitle">质感空间，由砖而生</view>

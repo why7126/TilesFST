@@ -1,0 +1,122 @@
+schema_dialect: tilesfst-structural-v1
+supported_keywords:
+- type
+- required
+- properties
+- items
+- enum
+- additionalProperties
+model:
+  type: object
+  required:
+  - schema_version
+  - version
+  - model_type
+  - coverage
+  properties:
+    schema_version:
+      type: string
+    version:
+      type: string
+    model_type:
+      type: string
+      enum:
+      - META
+      - DEVELOPMENT
+      - OBJECT
+      - BEHAVIOR
+      - RULE
+      - SCENARIO
+      - ACTOR
+      - COMPENSATION
+      - QUALITY
+      - EVENT
+      - UI
+    coverage:
+      type: string
+      enum:
+      - covered
+      - out_of_scope
+    types:
+      type: array
+    relation_types:
+      type: array
+    elements:
+      type: array
+element:
+  type: object
+  required:
+  - id
+  - type
+  - layer
+  - attributes
+  - source
+  - review_status
+  properties:
+    id:
+      type: string
+    type:
+      type: string
+    layer:
+      type: string
+      enum:
+      - domain
+      - fact
+    attributes:
+      type: object
+    source:
+      type: object
+      required:
+      - path
+      - locator
+      properties:
+        path:
+          type: string
+        locator:
+          type: string
+        git_commit:
+          type: string
+        sha256:
+          type: string
+    review_status:
+      type: string
+      enum:
+      - candidate
+      - confirmed
+    refs:
+      type: object
+    premise_refs:
+      type: array
+      items:
+        type: string
+relation:
+  type: object
+  required:
+  - id
+  - predicate
+  - subject
+  - object
+  - source
+  properties:
+    id:
+      type: string
+    predicate:
+      type: string
+    subject:
+      type: string
+    object:
+      type: string
+    source:
+      type: object
+      required:
+      - path
+      - locator
+      properties:
+        path:
+          type: string
+        locator:
+          type: string
+        git_commit:
+          type: string
+        sha256:
+          type: string

@@ -3,6 +3,35 @@
 name: tilesfst
 
 services:
+  # 图片异步派生专用进程；仅启用image-processing profile后运行，不承担HTTP流量。
+  tilesfst-image-worker:
+    profiles: [image-processing]
+    # 与API使用同一发布镜像，保持算法和schema版本一致。
+    image: ${TILESFST_BACKEND_IMAGE_REPOSITORY:-tilesfst-backend}:${TILESFST_IMAGE_TAG:-v0.0.1}
+    # 仅允许一个工作者实例；进程内顺序执行持久队列任务。
+    command: ["/app/.venv/bin/python", "-m", "app.modules.media.image_worker"]
+    restart: unless-stopped
+    # 资源上限面向2核2GB宿主机；总内存与swap合计不超过512MiB。
+    cpus: 1.0
+    mem_limit: 512m
+    memswap_limit: 512m
+    # 业务数据库和对象存储凭据通过现有env注入，不新增云处理服务凭据。
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:?Set TILESFST_DEPLOY_ENV_FILE to production env}
+    environment:
+      # 生产工作者同样强制MySQL并关闭调试。
+      APP_ENV: production
+      APP_DEBUG: "false"
+    # SQLite与临时处理目录和API保持一致；生产MySQL无需共享SQLite文件。
+    volumes:
+      - ../../data/processed:/app/data/processed
+      - ../../data/tmp:/app/data/tmp
+    # API先完成启动迁移；初始数据库未就绪时工作者由restart策略重试。
+    depends_on:
+      - tilesfst-backend
+    networks:
+      - tilesfst
+
   # 生产后端服务，结构化数据写入外部 MySQL，媒体对象写入腾讯云 COS。
   tilesfst-backend:
     # 生产镜像仓库名与统一 tag 由 env 控制。

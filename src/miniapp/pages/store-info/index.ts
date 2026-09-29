@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 
 type HomeData = {
@@ -12,6 +13,12 @@ type HomeData = {
 };
 
 Page({
+  onShareTimeline() {
+    return sharePage('store-info', this, 'wechat_timeline');
+  },
+  onShareAppMessage() {
+    return sharePage('store-info', this, 'wechat_friend');
+  },
   data: {
     loading: true,
     error: '',
@@ -19,7 +26,8 @@ Page({
     services: [] as HomeData['services'],
   },
 
-  onLoad() {
+  onLoad(query: Record<string, string>) {
+    query = receiveShare('store-info', query);
     this.loadStore();
   },
 

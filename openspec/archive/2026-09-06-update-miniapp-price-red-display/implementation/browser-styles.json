@@ -1,0 +1,83 @@
+[
+  {
+    "viewport": 320,
+    "source": "Chromium adaptation of actual WXML/WXSS with synthetic data; not WeChat",
+    "colors": [
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "11.0933px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-placeholder",
+        "color": "rgb(175, 165, 142)",
+        "fontSize": "11.0933px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "11.0933px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "viewport": 375,
+    "source": "Chromium adaptation of actual WXML/WXSS with synthetic data; not WeChat",
+    "colors": [
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "13px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-placeholder",
+        "color": "rgb(175, 165, 142)",
+        "fontSize": "13px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "13px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "viewport": 430,
+    "source": "Chromium adaptation of actual WXML/WXSS with synthetic data; not WeChat",
+    "colors": [
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "14.9067px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-placeholder",
+        "color": "rgb(175, 165, 142)",
+        "fontSize": "14.9067px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      },
+      {
+        "class": "product-price price-valid",
+        "color": "rgb(248, 113, 113)",
+        "fontSize": "14.9067px",
+        "background": "rgb(33, 30, 22)",
+        "overflow": false
+      }
+    ]
+  }
+]

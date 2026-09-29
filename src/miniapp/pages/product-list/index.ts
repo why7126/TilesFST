@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 import { navigateToSearch } from '../../utils/search-navigation';
 
@@ -43,6 +44,9 @@ function encodeShareValue(value: unknown): string {
 
 Page({
   data: {
+    spec: '',
+    priceRange: '',
+    sort: 'default',
     categoryId: 0,
     categoryName: '',
     categoryLevel: '',
@@ -68,10 +72,11 @@ Page({
   },
 
   onLoad(query: Record<string, string>) {
-    const categoryName = decodeURIComponent(query.categoryName || '');
+    query = receiveShare('product-list', query);
+    const categoryName = (query.categoryName || '');
     const rawCategoryLevel = String(query.categoryLevel || '');
     const categoryLevel = CATEGORY_LEVELS.has(rawCategoryLevel) ? rawCategoryLevel : '';
-    const keyword = decodeURIComponent(query.keyword || '');
+    const keyword = (query.keyword || '');
     const sourcePage = query.sourcePage || query.source || 'direct';
     const section = query.section || '';
     const brandId = Number(query.brandId || 0);
@@ -81,6 +86,9 @@ Page({
       : categoryName || (brandId ? '品牌商品' : section === 'new' ? '新品榜' : section === 'hot' ? '热销榜' : '全部商品');
 
     this.setData({
+      spec: query.spec || '',
+      priceRange: query.priceRange || '',
+      sort: query.sort || 'default',
       categoryId,
       categoryName,
       categoryLevel,
@@ -106,21 +114,11 @@ Page({
   },
 
   onShareAppMessage() {
-    this.trackShare('wechat_friend');
-    return {
-      title: this.shareTitle(),
-      path: `/pages/product-list/index?${this.buildShareQuery()}`,
-      imageUrl: this.data.items[0]?.cover_image || this.data.imageFallback,
-    };
+    return sharePage('product-list', this, 'wechat_friend');
   },
 
   onShareTimeline() {
-    this.trackShare('wechat_timeline');
-    return {
-      title: this.shareTitle(),
-      query: this.buildShareQuery(),
-      imageUrl: this.data.items[0]?.cover_image || this.data.imageFallback,
-    };
+    return sharePage('product-list', this, 'wechat_timeline');
   },
 
   loadProducts(options: { reset: boolean; eventName?: string }) {
@@ -178,7 +176,9 @@ Page({
     const params = [
       `page=${page}`,
       `pageSize=${this.data.pageSize}`,
-      'sort=default',
+      `sort=${encodeURIComponent(this.data.sort)}`,
+      this.data.spec ? `spec=${encodeURIComponent(this.data.spec)}` : '',
+      this.data.priceRange ? `priceRange=${encodeURIComponent(this.data.priceRange)}` : '',
       this.data.keyword ? `keyword=${encodeURIComponent(this.data.keyword)}` : '',
       this.data.section ? `section=${encodeURIComponent(this.data.section)}` : '',
       this.data.categoryId ? `categoryId=${encodeURIComponent(String(this.data.categoryId))}` : '',
@@ -357,7 +357,7 @@ Page({
       categoryLevel: this.data.categoryLevel || undefined,
       brandId: this.data.brandId || undefined,
       keyword: this.data.keyword || undefined,
-      sort: 'default',
+      sort: this.data.sort,
       page: this.data.page,
       pageSize: this.data.pageSize,
       resultCount: this.data.total,

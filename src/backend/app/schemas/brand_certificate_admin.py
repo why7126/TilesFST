@@ -33,6 +33,7 @@ class BrandCertificateFile(BaseModel):
 
 
 class BrandCertificateImage(BrandCertificateFile):
+    media_id: int | None = Field(default=None, gt=0, json_schema_extra={"readOnly": True})
     is_main: bool = False
     sort_order: int = Field(..., ge=0)
 

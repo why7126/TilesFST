@@ -529,7 +529,7 @@ def test_media_head_response_returns_video_metadata_without_body() -> None:
     assert storage.requested_keys == []
 
 
-def test_media_head_route_allows_video_metadata_probe() -> None:
+def test_media_head_route_rejects_unowned_video(api_client) -> None:
     storage = _MemoryMediaStorageClient.from_objects(
         {
             "videos/default/tiles/1/demo.mp4": StoredMediaObject(
@@ -540,15 +540,15 @@ def test_media_head_route_allows_video_metadata_probe() -> None:
     )
     set_media_storage_client(storage)
     try:
-        response = TestClient(app).head("/media/videos/default/tiles/1/demo.mp4")
+        response = api_client.head("/media/videos/default/tiles/1/demo.mp4")
     finally:
         set_media_storage_client(None)
 
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert response.content == b""
-    assert response.headers["content-type"].startswith("video/mp4")
-    assert response.headers["content-length"] == "16"
-    assert response.headers["accept-ranges"] == "bytes"
+    assert response.headers["cache-control"] == "no-store"
+    assert storage.info_keys == []
+    assert storage.requested_keys == []
 
 
 def test_media_file_response_returns_416_for_invalid_video_range() -> None:

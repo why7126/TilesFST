@@ -1,0 +1,6 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: EVENT
+coverage: out_of_scope
+reason: 现有试点未确认领域事件生产订阅契约，不将示例事件视为实现。
+elements: []

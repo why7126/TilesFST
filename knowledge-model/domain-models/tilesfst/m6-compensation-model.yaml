@@ -1,0 +1,6 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: COMPENSATION
+coverage: out_of_scope
+reason: 试点为只读SKU上架模型，未确认业务补偿契约；工具同步恢复独立实现。
+elements: []

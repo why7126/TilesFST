@@ -1,0 +1,272 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: META
+coverage: covered
+types:
+- id: meta:AggregateObject
+  label: 聚合对象
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Entity
+  label: 实体
+  parents: []
+  attributes:
+    name: string
+    legacy: boolean
+  required:
+  - name
+  refs:
+    refEntity:
+    - meta:Entity
+- id: meta:Attribute
+  label: 属性
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Behavior
+  label: 行为
+  parents: []
+  attributes:
+    name: string
+    parameters: object
+    success_state: string
+    failure_code: string
+    http_method: string
+    http_path: string
+    precondition: object
+    bindings: object
+  required:
+  - name
+  refs:
+    ownerEntity:
+    - meta:Entity
+    permission:
+    - meta:Permission
+    event:
+    - meta:Event
+    rules:
+    - meta:Rule
+- id: meta:Rule
+  label: 规则
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs:
+    ownerEntity:
+    - meta:Entity
+- id: meta:Scenario
+  label: 场景
+  parents: []
+  attributes:
+    name: string
+    bindings: object
+    steps: array
+    failure_outcome: string
+  required:
+  - name
+  refs:
+    behavior:
+    - meta:Behavior
+- id: meta:Actor
+  label: 主体
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs:
+    roles:
+    - meta:Role
+- id: meta:Role
+  label: 角色
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs:
+    permissions:
+    - meta:Permission
+- id: meta:Permission
+  label: 权限
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Event
+  label: 事件
+  parents: []
+  attributes:
+    name: string
+    payload: object
+    bindings: object
+  required:
+  - name
+  refs:
+    producer:
+    - meta:Behavior
+    subscribers:
+    - meta:Actor
+- id: meta:Compensation
+  label: 业务补偿
+  parents: []
+  attributes:
+    name: string
+    bindings: object
+  required:
+  - name
+  refs:
+    behavior:
+    - meta:Behavior
+- id: meta:QualityConstraint
+  label: 质量约束
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs:
+    target:
+    - meta:Entity
+    - meta:Behavior
+- id: meta:UIPage
+  label: 页面模型
+  parents: []
+  attributes:
+    name: string
+    bindings: object
+  required:
+  - name
+  refs:
+    template:
+    - meta:Template
+    behavior:
+    - meta:Behavior
+- id: meta:UIComponent
+  label: 界面组件
+  parents: []
+  attributes:
+    name: string
+    bindings: object
+  required:
+  - name
+  refs:
+    behavior:
+    - meta:Behavior
+    template:
+    - meta:Template
+- id: meta:AgentAction
+  label: Agent动作
+  parents:
+  - meta:Behavior
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+  domain_required_refs:
+  - ownerEntity
+  - permission
+- id: meta:Tool
+  label: 工具
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:InputParameter
+  label: 输入参数
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Precondition
+  label: 前置条件
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Postcondition
+  label: 后置条件
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:RequiredPermission
+  label: 所需权限
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:FailureCondition
+  label: 失败条件
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:ConfirmationPolicy
+  label: 确认策略
+  parents: []
+  attributes:
+    name: string
+  required:
+  - name
+  refs: {}
+- id: meta:Template
+  label: 模板
+  parents: []
+  attributes:
+    name: string
+    parameters: object
+  required:
+  - name
+  refs: {}
+model_types:
+  META: []
+  DEVELOPMENT: []
+  OBJECT:
+  - meta:Entity
+  - meta:AggregateObject
+  - meta:Attribute
+  BEHAVIOR:
+  - meta:Behavior
+  RULE:
+  - meta:Rule
+  SCENARIO:
+  - meta:Scenario
+  ACTOR:
+  - meta:Actor
+  - meta:Role
+  - meta:Permission
+  COMPENSATION:
+  - meta:Compensation
+  QUALITY:
+  - meta:QualityConstraint
+  EVENT:
+  - meta:Event
+  UI:
+  - meta:UIPage
+  - meta:UIComponent
+  - meta:Template

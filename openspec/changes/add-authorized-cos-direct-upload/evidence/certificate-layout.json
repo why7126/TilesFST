@@ -1,0 +1,22 @@
+{
+  "source": "Local Vite real CertificateFormModal and CSS; synthetic API and object responses, no COS or production",
+  "viewport": {
+    "width": 1440,
+    "height": 620
+  },
+  "layout": {
+    "width": 760,
+    "top": 40,
+    "bottom": 580,
+    "maxHeight": "540px",
+    "overflow": "hidden",
+    "bg": "color(srgb 0.129412 0.117647 0.0862745 / 0.98)"
+  },
+  "footer": {
+    "x": 1002.9375,
+    "y": 527.5,
+    "width": 76.0625,
+    "height": 40
+  },
+  "processingSaveBlocked": true
+}

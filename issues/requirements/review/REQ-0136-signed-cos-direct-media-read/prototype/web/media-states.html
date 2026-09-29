@@ -1,0 +1,38 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>REQ-0136 · 媒体状态原型</title><style>
+:root {   /* ── Background ── */
+  --color-page: #18160f;
+  --color-surface: #211e16;
+  --color-secondary: #211e16;
+  --color-deep: #100f0a;
+  --color-bg-overlay: rgb(255 255 255 / 0.04);
+  --color-bg-badge-neutral: rgb(255 255 255 / 0.07);
+
+  /* ── Text ── */
+  --color-text-primary: #ede8df;
+  --color-text-secondary: rgb(237 232 223 / 0.5);
+  --color-text-muted: rgb(237 232 223 / 0.3);
+  --color-text-subtle: rgb(237 232 223 / 0.25);
+  --color-text-nav-link: rgb(237 232 223 / 0.45);
+  --color-text-brand: #c8a055;
+  --color-text-hot-sale: #e07050;
+  --color-text-on-brand: #18160f;
+
+  /* ── Brand (gold) ── */
+  --color-brand-gold: #c8a055;
+  --color-brand-gold-muted: rgb(200 160 85 / 0.12);
+  --color-brand-gold-border: rgb(200 160 85 / 0.5);
+  --color-brand-gold-badge: rgb(200 160 85 / 0.15);
+
+  /* ── Semantic ── */
+  --color-error: #e07050;
+  --color-hot-sale: #e07050;
+  --color-hot-sale-muted: rgb(196 80 50 / 0.15);
+
+ --line:var(--color-text-muted); }
+*{box-sizing:border-box}body{margin:0;background:var(--color-page);color:var(--color-text-primary);font:16px/1.6 system-ui,sans-serif}main{max-width:1120px;margin:0 auto;padding:48px 24px}header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:28px}small,.muted{color:var(--color-text-secondary)}h1{font-size:30px;letter-spacing:.04em;margin:8px 0}h2{font-size:20px;margin:0 0 16px}.controls{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}select,button{font:inherit;color:var(--color-text-primary);background:var(--color-surface);border:1px solid var(--line);padding:10px 16px;border-radius:3px}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}:focus-visible{outline:2px solid var(--color-brand-gold);outline-offset:3px}.grid{display:grid;grid-template-columns:2fr 1fr;gap:24px}.panel{padding:24px;background:var(--color-surface);border:1px solid var(--line)}.stage{aspect-ratio:16/9;background:var(--color-deep);display:grid;place-content:center;text-align:center;padding:24px;border:1px solid var(--line)}.symbol{font-size:44px;color:var(--color-brand-gold)}#message{min-height:28px}#retry{background:var(--color-brand-gold);color:var(--color-text-on-brand)}.actions{min-height:52px;margin-top:18px}dl{margin:0}dt{color:var(--color-text-secondary);font-size:14px;margin-top:14px}dd{margin:2px 0 0}footer{margin-top:30px;color:var(--color-text-secondary);font-size:14px}body[data-terminal="miniapp"] .grid{max-width:390px;grid-template-columns:1fr;margin:auto}body[data-terminal="miniapp"] .stage{aspect-ratio:4/3}@media(max-width:700px){main{padding:24px 16px}.grid{grid-template-columns:1fr}h1{font-size:24px}}
+</style></head><body><main><header><small>REQ-0136 / 交互评审样例</small><h1>媒体加载与恢复</h1><p class="muted">预览状态示意 · 未连接真实媒体或服务</p></header><section class="controls" aria-label="原型演示控制"><label>端 <select id="terminal"><option value="admin">管理端</option><option value="catalog">店主 Web</option><option value="miniapp">小程序示意</option></select></label><label>状态 <select id="state"><option value="ready">正常</option><option value="loading">加载中</option><option value="recovering">恢复中</option><option value="failed">重试耗尽</option><option value="denied">不可访问</option><option value="degraded">规格降级</option><option value="offline">网络中断</option></select></label></section><section class="grid"><article class="panel"><h2>产品视频</h2><div class="stage" id="media-stage"><div class="symbol" aria-hidden="true">▷</div><p id="message" role="status" aria-live="polite">点击播放查看产品细节</p><small id="position">播放位置 01:24 / 03:20（示意）</small></div><div class="actions"><button id="play">播放</button> <button id="retry" hidden>重新加载</button></div></article><aside class="panel"><h2>状态核对</h2><dl><dt>当前状态</dt><dd id="state-label">正常</dd><dt>播放意图</dt><dd id="intent">暂停</dd><dt>媒体区域</dt><dd>保持原尺寸，避免页面跳动</dd><dt>失败反馈</dt><dd>区域内提示；禁止无限重试</dd></dl></aside></section><footer>演示控件不进入产品页面。图片和附件采用同样的加载、失败和重试反馈，保留各端现有展示与打开方式。</footer></main><script>
+const state=document.querySelector('#state'),message=document.querySelector('#message'),retry=document.querySelector('#retry'),play=document.querySelector('#play');let playing=false,timer;
+const messages={ready:'点击播放查看产品细节',loading:'正在加载…',recovering:'正在恢复播放…',failed:'暂时无法加载，请重试',denied:'该内容暂不可访问',degraded:'当前显示可用图片',offline:'网络已断开，请连接后重试'};
+function render(){clearTimeout(timer);const s=state.value;message.textContent=messages[s];document.querySelector('#state-label').textContent=state.options[state.selectedIndex].text;retry.hidden=!['failed','offline'].includes(s);retry.disabled=false;play.hidden=!['ready'].includes(s);play.textContent=playing?'暂停':'播放';document.querySelector('#intent').textContent=playing?'播放':'暂停';document.querySelector('#position').hidden=s==='degraded'||s==='denied';document.querySelector('#media-stage').setAttribute('aria-busy',String(['loading','recovering'].includes(s)));}
+state.addEventListener('change',render);document.querySelector('#terminal').addEventListener('change',e=>document.body.dataset.terminal=e.target.value);play.addEventListener('click',()=>{playing=!playing;render();message.textContent=playing?'正在播放（示意）':'已暂停';});retry.addEventListener('click',()=>{state.value='recovering';render();timer=setTimeout(()=>{state.value='ready';render();message.textContent=playing?'已恢复播放（示意）':'已恢复，点击继续播放';},800);});render();
+</script></body></html>

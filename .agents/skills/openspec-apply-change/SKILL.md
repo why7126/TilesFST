@@ -7,6 +7,8 @@ metadata:
   author: openspec
   version: "1.0"
   generatedBy: "1.3.1"
+created_at: 2026-09-08 17:17:14
+updated_at: 2026-09-10 10:31:52
 ---
 
 Implement tasks from an OpenSpec change.
@@ -46,7 +48,7 @@ Implement tasks from an OpenSpec change.
 
    **Handle states:**
    - If `state: "blocked"` (missing artifacts): show message, suggest using openspec-continue-change
-   - If `state: "all_done"`: congratulate, suggest archive
+   - If `state: "all_done"`: 核对必需验证、同步与人工验收门禁，按 §5.5 完成收尾；不得仅凭任务勾选数宣布可归档。
    - Otherwise: proceed to implementation
 
 4. **Read context files**
@@ -76,28 +78,28 @@ Implement tasks from an OpenSpec change.
    - Remaining tasks overview
    - Dynamic instruction from CLI
 
-7. **Implement tasks (loop until done or blocked)**
+7. **持续执行当前 Change**
 
-   For each pending task:
-   - Show which task is being worked on
-   - Make the code changes required
-   - Keep changes minimal and focused
-   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
-   - Continue to next task
+   MUST 读取并执行 `docs/standards/command-execution-order.md` §5 Apply 持续执行契约。
+   - 持续推进依赖满足的任务；任务分组、进度汇报、上下文压缩不是停止理由。
+   - 可恢复错误先定位、修复并聚焦复测；验证通过后才勾选并继续下一项。
+   - 真正阻塞记录证据、已尝试处理和恢复条件，继续独立任务；必要人工确认只暂停相关依赖，用户明确停止则停止全部工作。
+   - 上下文恢复承接已有任务、验证和决策，不重复请求继续授权。
 
-   **Pause if:**
-   - Task is unclear → ask for clarification
-   - Implementation reveals a design issue → suggest updating artifacts
-   - Error or blocker encountered → report and wait for guidance
-   - User interrupts
+## 收尾前执行核对
 
-8. **On completion or pause, show status**
+MUST 执行共享契约§5.6–5.8：收尾前逐项检查剩余任务的授权、依赖、资源和必需验证，仍有可执行任务即继续，不发最终回复等待“继续”。集中已知人工问题并映射受阻项，承接已有答复；进度问询用中间消息回答后继续实际工作。
 
-   Display:
-   - Tasks completed this session
-   - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive
-   - If paused: explain why and wait for guidance
+分别展示实现完成、自动验证通过、人工待验、外部阻塞。连续两次同类失败且无进展时记录失败签名、次数及恢复条件并切换独立任务，新条件可验证后才恢复，保留累计历史。不要删除或放宽验收项。
+
+持续执行治理的验收必须运行实际行为场景；通过 `scripts/validate-apply-behavior.py` 检查脱敏证据，不把关键词检查或理想夹具当实际Agent通过。执行入口为 `scripts/run-apply-behavior.py`，环境受阻仅保留相关任务待验，继续其他工作。
+
+8. **完成或部分完成收尾**
+
+   MUST 按详细契约 §5.4–5.5 选择同步分支：部分完成使用无完成事件的事实刷新，先 dry-run，禁止发送 opsx.apply 完成事件；全部适用任务和必需验证完成后才发送完成事件。状态同步和 AI Usage hook 使用 `.agents/skills/opsx-apply/SKILL.md` 对应收尾步骤。
+   - 部分完成报告真实进度、阻塞及恢复条件，archive_ready 为 false，不建议归档。
+   - 全部完成报告验证及同步结果，归档就绪还需检查人工验收等门禁。
+   - 归档、发布、其他 Change 和 follow-up 不属于自动连续执行范围。
 
 **Output During Implementation**
 
@@ -113,59 +115,19 @@ Working on task 4/7: <task description>
 ✓ Task complete
 ```
 
-**Output On Completion**
+**收尾输出与守则**
 
-```
-## Implementation Complete
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 7/7 tasks complete ✓
-
-### Completed This Session
-- [x] Task 1
-- [x] Task 2
-...
-
-All tasks complete! Ready to archive this change.
-```
-
-**Output On Pause (Issue Encountered)**
-
-```
-## Implementation Paused
-
-**Change:** <change-name>
-**Schema:** <schema-name>
-**Progress:** 4/7 tasks complete
-
-### Issue Encountered
-<description of the issue>
-
-**Options:**
-1. <option 1>
-2. <option 2>
-3. Other approach
-
-What would you like to do?
-```
-
-**Guardrails**
-- Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
-- If task is ambiguous, pause and ask before implementing
-- If implementation reveals issues, pause and suggest artifact updates
-- Keep code changes minimal and scoped to each task
-- Update task checkbox immediately after completing each task
-- Pause on errors, blockers, or unclear requirements - don't guess
-- Use contextFiles from CLI output, don't assume specific file names
+- 按上文分支报告完成或部分完成，不输出无依据的“Ready to archive”。
+- 实施前读取 CLI contextFiles；读取预算遵守 `rules/agent-context-budget.md`。
+- 保持任务范围，当前范围内修复和文档同步自主推进；关键范围变化或缺少必要人工确认按详细契约处理。
+- 每项必需验证通过才勾选；未完成任务和阻塞保持真实，持续推进其余可执行任务。
 
 **Fluid Workflow Integration**
 
 This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
-- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
+- **文档同步**：范围内可推导的实现说明自主同步；改变已批准边界时按详细契约暂停相关任务并请求必要决策。
 
 ## Final Output Contract（MUST）
 

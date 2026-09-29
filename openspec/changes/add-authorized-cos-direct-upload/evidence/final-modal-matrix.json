@@ -1,0 +1,306 @@
+{
+  "source": "Real isolated Compose Web/API/COS, previously saved synthetic media reopened; current production CSS build",
+  "results": [
+    {
+      "kind": "brand",
+      "decoded": {
+        "width": 2400,
+        "height": 1800
+      },
+      "sizes": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "geometry": {
+            "left": 360,
+            "right": 1080,
+            "top": 158,
+            "bottom": 842,
+            "width": 720,
+            "computedWidth": "720px",
+            "classes": "brand-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 981,
+            "y": 789.5,
+            "width": 78,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 620
+          },
+          "geometry": {
+            "left": 360,
+            "right": 1080,
+            "top": 48,
+            "bottom": 572,
+            "width": 720,
+            "computedWidth": "720px",
+            "classes": "brand-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 981,
+            "y": 519.5,
+            "width": 78,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "geometry": {
+            "left": 24,
+            "right": 366,
+            "top": 48,
+            "bottom": 796,
+            "width": 342,
+            "computedWidth": "342px",
+            "classes": "brand-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 39,
+            "y": 693,
+            "width": 312,
+            "height": 40
+          }
+        }
+      ]
+    },
+    {
+      "kind": "banner",
+      "decoded": {
+        "width": 2400,
+        "height": 1800
+      },
+      "sizes": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "geometry": {
+            "left": 280,
+            "right": 1160,
+            "top": 128.5,
+            "bottom": 871.5,
+            "width": 880,
+            "computedWidth": "880px",
+            "classes": "banner-modal-card",
+            "background": "color(srgb 1 1 1 / 0.96)"
+          },
+          "footer": {
+            "x": 1040.796875,
+            "y": 819,
+            "width": 98.203125,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 620
+          },
+          "geometry": {
+            "left": 280,
+            "right": 1160,
+            "top": 24.796875,
+            "bottom": 595.1875,
+            "width": 880,
+            "computedWidth": "880px",
+            "classes": "banner-modal-card",
+            "background": "color(srgb 1 1 1 / 0.96)"
+          },
+          "footer": {
+            "x": 1040.796875,
+            "y": 542.6875,
+            "width": 98.203125,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "geometry": {
+            "left": 24,
+            "right": 366,
+            "top": 12,
+            "bottom": 832,
+            "width": 342,
+            "computedWidth": "342px",
+            "classes": "banner-modal-card",
+            "background": "color(srgb 1 1 1 / 0.96)"
+          },
+          "footer": {
+            "x": 39,
+            "y": 729,
+            "width": 312,
+            "height": 40
+          }
+        }
+      ]
+    },
+    {
+      "kind": "avatar",
+      "decoded": {
+        "width": 2400,
+        "height": 1800
+      },
+      "sizes": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "geometry": {
+            "left": 460,
+            "right": 980,
+            "top": 110,
+            "bottom": 890,
+            "width": 520,
+            "computedWidth": "520px",
+            "classes": "modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 885,
+            "y": 817.5,
+            "width": 54,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 620
+          },
+          "geometry": {
+            "left": 460,
+            "right": 980,
+            "top": 24,
+            "bottom": 596,
+            "width": 520,
+            "computedWidth": "520px",
+            "classes": "modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 885,
+            "y": 523.5,
+            "width": 54,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "geometry": {
+            "left": 24,
+            "right": 366,
+            "top": 12,
+            "bottom": 832,
+            "width": 342,
+            "computedWidth": "342px",
+            "classes": "modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 59,
+            "y": 709,
+            "width": 272,
+            "height": 40
+          }
+        }
+      ]
+    },
+    {
+      "kind": "certificate",
+      "decoded": {
+        "width": 480,
+        "height": 360
+      },
+      "sizes": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "geometry": {
+            "left": 340,
+            "right": 1100,
+            "top": 40,
+            "bottom": 960,
+            "width": 760,
+            "computedWidth": "760px",
+            "classes": "certificate-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 1001,
+            "y": 907.5,
+            "width": 78,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 620
+          },
+          "geometry": {
+            "left": 340,
+            "right": 1100,
+            "top": 40,
+            "bottom": 580,
+            "width": 760,
+            "computedWidth": "760px",
+            "classes": "certificate-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 1001,
+            "y": 527.5,
+            "width": 78,
+            "height": 40
+          }
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "geometry": {
+            "left": 24,
+            "right": 366,
+            "top": 40,
+            "bottom": 804,
+            "width": 342,
+            "computedWidth": "342px",
+            "classes": "certificate-modal-card",
+            "background": "color(srgb 1 1 1 / 0.98)"
+          },
+          "footer": {
+            "x": 39,
+            "y": 701,
+            "width": 312,
+            "height": 40
+          }
+        }
+      ]
+    }
+  ],
+  "productionVerified": false
+}

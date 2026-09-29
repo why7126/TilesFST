@@ -27,8 +27,9 @@ router = APIRouter(dependencies=[Depends(require_system_admin)])
 def get_user_admin_service(
     repo: Annotated[UserRepository, Depends(get_user_repository)],
     effective: Annotated[EffectiveSettingsService, Depends(get_effective_settings_service)],
+    actor: Annotated[UserRecord, Depends(require_system_admin)],
 ) -> UserAdminService:
-    return UserAdminService(repo, effective)
+    return UserAdminService(repo, effective, actor_id=actor.id)
 
 
 @router.get("", response_model=ApiResponse[UserAdminListData], summary="用户列表")

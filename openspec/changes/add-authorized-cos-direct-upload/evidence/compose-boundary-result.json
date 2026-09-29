@@ -1,0 +1,23 @@
+{
+  "source": "Isolated Compose via Web loopback 13000; requests client; effective limit temporarily 1MiB then restored",
+  "original_limit_mib": 500,
+  "results": [
+    {
+      "bytes": 1048576,
+      "direct_status": 200,
+      "direct_code": 0,
+      "direct_confirm_ready": true,
+      "proxy_status": 200,
+      "proxy_code": 0
+    },
+    {
+      "bytes": 1048577,
+      "direct_status": 400,
+      "direct_code": 50003,
+      "proxy_status": 400,
+      "proxy_code": 50003
+    }
+  ],
+  "nginx_413": false,
+  "productionVerified": false
+}

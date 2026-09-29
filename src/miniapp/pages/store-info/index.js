@@ -1,6 +1,13 @@
+const { sharePage, receiveShare } = require('../../utils/public-sharing');
 const { request, track } = require('../../services/api');
 
 Page({
+  onShareTimeline() {
+    return sharePage('store-info', this, 'wechat_timeline');
+  },
+  onShareAppMessage() {
+    return sharePage('store-info', this, 'wechat_friend');
+  },
   data: {
     loading: true,
     error: '',
@@ -8,7 +15,8 @@ Page({
     services: [],
   },
 
-  onLoad() {
+  onLoad(query) {
+    query = receiveShare('store-info', query);
     this.loadStore();
   },
 

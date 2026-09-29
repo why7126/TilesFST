@@ -52,13 +52,12 @@
         hover-class="card-press"
       >
         <view class="file-frame {{item.file_kind}}">
-          <image
+          <authorized-image resource-type="certificate" resource-id="{{item.certificate_id}}" variant="thumbnail"
             wx:if="{{item.file_kind == 'image' && item.thumbnail_url && !item.image_failed}}"
             class="file-image"
             src="{{item.thumbnail_url}}"
             mode="aspectFill"
             data-index="{{index}}"
-            binderror="onImageError"
           />
           <view wx:elif="{{item.file_kind == 'pdf'}}" class="file-placeholder pdf">PDF</view>
           <view wx:else class="file-placeholder">证书</view>

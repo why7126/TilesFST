@@ -1,0 +1,6807 @@
+{
+  "source": "Real isolated Compose Web/API/SQLite and Chromium against COS from this Mac network; not Beijing 3Mbps production",
+  "sampleScope": "Same synthetic padded WebM per size; transport fixture, not full video decode",
+  "protocol": "19/59/63MiB, 20 pairs each, alternating integrated controller and minimal pre-authorized browser probe; 8MiB/2 parts concurrency",
+  "records": [
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2290,
+      "elapsed_ms": 4357,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 623,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1420,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 144,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 1945,
+      "elapsed_ms": 2271,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 269,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 1992,
+      "elapsed_ms": 2293,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 252,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 105,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2115,
+      "elapsed_ms": 3411,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 301,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 967,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 85,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2102,
+      "elapsed_ms": 3326,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 234,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 967,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 192,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 1932,
+      "elapsed_ms": 2233,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 241,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 128,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 1934,
+      "elapsed_ms": 2270,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 279,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 147,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2583,
+      "elapsed_ms": 3832,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 237,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 13,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 998,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 115,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2423,
+      "elapsed_ms": 3734,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 256,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1038,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 113,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2334,
+      "elapsed_ms": 2698,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 311,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 11,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 176,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2039,
+      "elapsed_ms": 2357,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 263,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 136,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 4477,
+      "elapsed_ms": 5802,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 278,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1016,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 101,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3266,
+      "elapsed_ms": 5037,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 277,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1468,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 91,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2303,
+      "elapsed_ms": 2619,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 259,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 139,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2321,
+      "elapsed_ms": 2648,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 272,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 146,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2745,
+      "elapsed_ms": 4028,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 279,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 981,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 108,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2967,
+      "elapsed_ms": 4633,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 287,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1355,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 99,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2792,
+      "elapsed_ms": 3137,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 283,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 161,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2316,
+      "elapsed_ms": 2650,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 274,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 124,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3681,
+      "elapsed_ms": 4914,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 258,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 954,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 94,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2433,
+      "elapsed_ms": 4070,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 251,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1370,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 115,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2304,
+      "elapsed_ms": 2687,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 318,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 228,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2174,
+      "elapsed_ms": 2516,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 276,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 127,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2397,
+      "elapsed_ms": 3848,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 249,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1177,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 108,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3172,
+      "elapsed_ms": 5056,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 508,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1357,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 121,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 3679,
+      "elapsed_ms": 3987,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 253,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 133,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2950,
+      "elapsed_ms": 3272,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 259,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 139,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2627,
+      "elapsed_ms": 3974,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 277,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1047,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2127,
+      "elapsed_ms": 3864,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 323,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1388,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 102,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2236,
+      "elapsed_ms": 2559,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 269,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 121,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 1978,
+      "elapsed_ms": 2307,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 263,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 118,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2334,
+      "elapsed_ms": 3755,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 358,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1043,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 117,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2683,
+      "elapsed_ms": 4524,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 277,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1546,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 97,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 3079,
+      "elapsed_ms": 3395,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 255,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 131,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 4335,
+      "elapsed_ms": 4698,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 302,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 115,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2701,
+      "elapsed_ms": 3971,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 242,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1010,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 110,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2328,
+      "elapsed_ms": 3706,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 259,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1096,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 105,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2111,
+      "elapsed_ms": 2423,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 259,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 136,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 19,
+      "transfer_ms": 2569,
+      "elapsed_ms": 2896,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 274,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 148,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    },
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 2552,
+      "elapsed_ms": 3838,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 252,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1009,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 118,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8056,
+      "elapsed_ms": 10006,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 328,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 63,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1593,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 108,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6479,
+      "elapsed_ms": 6913,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 283,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 135,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 7528,
+      "elapsed_ms": 7981,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 323,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 150,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8107,
+      "elapsed_ms": 10400,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 295,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1983,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 131,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7672,
+      "elapsed_ms": 9931,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 405,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 33,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1835,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6689,
+      "elapsed_ms": 7394,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 574,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 134,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 7032,
+      "elapsed_ms": 7476,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 299,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 137,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6010,
+      "elapsed_ms": 7413,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 33,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1108,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 112,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7303,
+      "elapsed_ms": 9262,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 268,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1664,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 106,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 9449,
+      "elapsed_ms": 9902,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 297,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 128,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6210,
+      "elapsed_ms": 6666,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 304,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 144,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8687,
+      "elapsed_ms": 10449,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 291,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 82,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1446,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 154,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6399,
+      "elapsed_ms": 8115,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 276,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1414,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 100,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 7075,
+      "elapsed_ms": 7488,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 282,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 302,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6996,
+      "elapsed_ms": 7442,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 291,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 158,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7047,
+      "elapsed_ms": 8741,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 264,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 33,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1406,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 105,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8703,
+      "elapsed_ms": 10398,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 268,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 81,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 301,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 114,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1409,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 128,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6809,
+      "elapsed_ms": 7189,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 260,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 13,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 154,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6040,
+      "elapsed_ms": 6424,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 275,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 128,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6836,
+      "elapsed_ms": 8184,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 273,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1060,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 98,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7191,
+      "elapsed_ms": 8916,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 291,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 63,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1411,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 124,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6364,
+      "elapsed_ms": 6830,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 324,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 13,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 157,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6339,
+      "elapsed_ms": 6789,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 306,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 160,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6724,
+      "elapsed_ms": 8452,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 298,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1406,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 94,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6887,
+      "elapsed_ms": 8534,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 264,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 33,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 37,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1366,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 93,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 7488,
+      "elapsed_ms": 7884,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 266,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 124,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6623,
+      "elapsed_ms": 7043,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 286,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 200,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7334,
+      "elapsed_ms": 9190,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 293,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 89,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 57,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1539,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 111,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6686,
+      "elapsed_ms": 8024,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 284,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 60,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1027,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 105,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 5954,
+      "elapsed_ms": 6394,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 280,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 157,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6282,
+      "elapsed_ms": 6722,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 278,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 156,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 6434,
+      "elapsed_ms": 8230,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 284,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 60,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1494,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 100,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7457,
+      "elapsed_ms": 9176,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 287,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1406,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 113,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6577,
+      "elapsed_ms": 7040,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 283,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 153,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6101,
+      "elapsed_ms": 6601,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 350,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 142,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8154,
+      "elapsed_ms": 9877,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 283,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 61,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1401,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 112,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 8167,
+      "elapsed_ms": 9805,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 241,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1381,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 111,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 7703,
+      "elapsed_ms": 8129,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 278,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 157,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 59,
+      "transfer_ms": 6789,
+      "elapsed_ms": 7194,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 129,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    },
+    {
+      "mode": "integrated",
+      "mib": 59,
+      "transfer_ms": 7704,
+      "elapsed_ms": 9475,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 277,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 57,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1476,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 139,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 9432,
+      "elapsed_ms": 11246,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 295,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 57,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1499,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 92,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 7409,
+      "elapsed_ms": 7828,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 288,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 14,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 12,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 13,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 144,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 11966,
+      "elapsed_ms": 12423,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 289,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 165,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 9655,
+      "elapsed_ms": 11369,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 280,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1409,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 122,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 2
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10969,
+      "elapsed_ms": 12664,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 314,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 120,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 60,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1365,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 99,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 8974,
+      "elapsed_ms": 9403,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 263,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 169,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 3
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 9197,
+      "elapsed_ms": 9635,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 276,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 151,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7574,
+      "elapsed_ms": 9615,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 356,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 30,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 58,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1652,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 132,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 4
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 8372,
+      "elapsed_ms": 10178,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 324,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 33,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1463,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 6795,
+      "elapsed_ms": 7246,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 294,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 164,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 5
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 6746,
+      "elapsed_ms": 7243,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 340,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 15,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 146,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7182,
+      "elapsed_ms": 8880,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 313,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 144,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1368,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 6
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7918,
+      "elapsed_ms": 9600,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 286,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 66,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1369,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 133,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 6549,
+      "elapsed_ms": 7050,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 351,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 163,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 7
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 7269,
+      "elapsed_ms": 7729,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 300,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 143,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7657,
+      "elapsed_ms": 9514,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 364,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 58,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1467,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 106,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 8
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 9106,
+      "elapsed_ms": 10735,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1335,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 117,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 7340,
+      "elapsed_ms": 7817,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 319,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 167,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 9
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 6993,
+      "elapsed_ms": 7470,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 311,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 162,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10383,
+      "elapsed_ms": 12050,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 284,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1358,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 133,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 10
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 8561,
+      "elapsed_ms": 10203,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 58,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1347,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 108,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 7612,
+      "elapsed_ms": 8046,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 272,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 165,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 11
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 6869,
+      "elapsed_ms": 7295,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 267,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 167,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 6949,
+      "elapsed_ms": 8723,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 280,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 47,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 38,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1467,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 118,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 12
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 7228,
+      "elapsed_ms": 8582,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 273,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 36,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1054,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 123,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 8341,
+      "elapsed_ms": 8807,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 293,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 127,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 13
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 12035,
+      "elapsed_ms": 12471,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 273,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 135,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 9906,
+      "elapsed_ms": 11562,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 271,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 64,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 51,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1364,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 124,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 14
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10850,
+      "elapsed_ms": 12569,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 328,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 32,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 60,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 59,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1370,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 106,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 11241,
+      "elapsed_ms": 11676,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 274,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 16,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 167,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 15
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 9701,
+      "elapsed_ms": 10151,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 285,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 196,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10873,
+      "elapsed_ms": 12582,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 309,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 55,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 50,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1379,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 114,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 16
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10196,
+      "elapsed_ms": 11809,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 283,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 54,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 39,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 52,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1311,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 119,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 9785,
+      "elapsed_ms": 10243,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 285,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 40,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 185,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 17
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 9427,
+      "elapsed_ms": 9855,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 269,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 170,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 9871,
+      "elapsed_ms": 11562,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 287,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 25,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 69,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 53,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 45,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1382,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 219,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 18
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 8746,
+      "elapsed_ms": 10030,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 288,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 28,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 34,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 44,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 35,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 48,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 77,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 41,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 967,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 99,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 9546,
+      "elapsed_ms": 9988,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 287,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 17,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 192,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 19
+    },
+    {
+      "mode": "reference",
+      "mib": 63,
+      "transfer_ms": 10044,
+      "elapsed_ms": 10506,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 294,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 26,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 21,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 22,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 24,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 19,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 18,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 191,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    },
+    {
+      "mode": "integrated",
+      "mib": 63,
+      "transfer_ms": 10480,
+      "elapsed_ms": 12148,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 281,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 20,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 29,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 43,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 58,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 46,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 31,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 56,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1366,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 102,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 20
+    }
+  ]
+}

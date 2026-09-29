@@ -1,0 +1,38 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: BEHAVIOR
+coverage: covered
+elements:
+- id: model:PublishTileSKU
+  type:
+  - meta:AgentAction
+  - pd:UserAction
+  layer: domain
+  attributes:
+    name: 上架SKU
+    parameters:
+      tile_id: integer
+    success_state: PUBLISHED
+    failure_code: TILE_SKU_PUBLISH_FORBIDDEN
+    http_method: POST
+    http_path: /api/v1/admin/tile-skus/{tile_id}/publish
+    precondition:
+      op: all
+      conditions:
+      - op: exists
+        field: name
+      - op: exists
+        field: spec_id
+      - op: exists
+        field: size
+      - op: exists
+        field: main_image
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: 管理端 SKU 上下架 API'
+  review_status: confirmed
+  refs:
+    ownerEntity:
+    - model:TileSKU
+    permission:
+    - model:ManageTileSKU

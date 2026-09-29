@@ -198,14 +198,15 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "certificate_detail_brand_click" not in certificate_detail_ts
     assert "certificate_detail_brand_click" not in certificate_detail_js
     assert '"brand-card": "../../components/brand-card/index"' in _read("pages/certificate-detail/index.json")
-    assert "certificate_detail_share_click" in certificate_detail_ts
+    assert "certificate_detail_share_click" in _read("utils/public-sharing.ts")
     assert "certificate_detail_load_failed" in certificate_detail_ts
     assert "title: '证书详情'" in certificate_detail_ts
     assert "safeText(detail.certificate_name, '证书详情')" not in certificate_detail_ts
     assert "备注说明" in certificate_detail_ts
     assert "有效期" not in certificate_detail_ts
     assert "wx.previewImage" in certificate_detail_js
-    assert "wx.downloadFile" in certificate_detail_js
+    assert "preparePageFiles" in certificate_detail_js
+    assert "wx.downloadFile" in _read("utils/page-media.js")
     assert "wx.openDocument" in certificate_detail_js
     assert_image_media_binding(
         certificate_detail_wxml,
@@ -215,11 +216,11 @@ def test_miniapp_home_detail_search_smoke_contracts() -> None:
     assert "item.thumbnail_url || item.url" not in certificate_detail_wxml
     assert "display_url?: string | null" in certificate_detail_ts
     assert "original_url?: string | null" in certificate_detail_ts
-    assert "function previewUrlForMedia(item: CertificateMediaItem): string" in certificate_detail_ts
-    assert "return item.original_url || item.preview_url || item.url || ''" in certificate_detail_ts
-    assert "function previewUrlForMedia(item)" in certificate_detail_js
-    assert ".map((item) => previewUrlForMedia(item))" in certificate_detail_ts
-    assert "const current = previewUrlForMedia(media) || urls[0]" in certificate_detail_ts
+    assert "preparePageImages(this, images.map(item => ({resource_type:'certificate'" in certificate_detail_ts
+    assert "variant:'original'" in certificate_detail_ts
+    assert "const urls = await preparePageImages" in certificate_detail_ts
+    assert "isPageMediaActive(this)" in certificate_detail_ts
+    assert "readPageMedia" in _read("utils/page-media.js")
     assert "wx.setClipboardData" not in certificate_detail_js
     assert "文件链接已复制" not in certificate_detail_js
     assert "wx.switchTab" in certificate_detail_js
@@ -1218,14 +1219,14 @@ def test_miniapp_product_list_page_carries_category_navigation() -> None:
     assert "CATEGORY_LEVELS" in product_list_js
     assert "brandId" in product_list_js
     assert "keyword" in product_list_js
-    assert "priceRange" not in product_list_js
+    assert "priceRange" not in product_list_wxml
     assert "filter_type=category" in product_list_js
     assert "filter_value=" in product_list_js
     assert "this.data.categoryName && !this.data.categoryId ? 'filter_type=category'" in product_list_js
     assert "this.data.categoryName && !this.data.categoryId ? `filter_value=${encodeURIComponent(this.data.categoryName)}`" in product_list_js
     assert "shouldKeepCategoryLevel" in product_list_js
     assert "categoryLevel=" in product_list_ts
-    assert "sort=default" in product_list_js
+    assert "sort=${encodeURIComponent(this.data.sort)}" in product_list_js
     assert "pageSize" in product_list_js
     assert "product_list_page_view" in product_list_js
     assert "product_list_item_exposure" not in product_list_js
@@ -1318,63 +1319,16 @@ def test_miniapp_wechat_share_pages_cover_friend_timeline_and_runtime_sync() -> 
         assert "raw_payload" not in ts_source
         assert "raw_object_key" not in ts_source
 
-    home_ts = _read("pages/index/index.ts")
-    home_js = _read("pages/index/index.js")
-    detail_ts = _read("pages/tile-detail/index.ts")
-    detail_js = _read("pages/tile-detail/index.js")
-    product_list_ts = _read("pages/product-list/index.ts")
-    product_list_js = _read("pages/product-list/index.js")
-    brand_detail_ts = _read("pages/brand-detail/index.ts")
-    brand_detail_js = _read("pages/brand-detail/index.js")
-
-    for source in [home_ts, home_js]:
-        assert "HOME_SHARE_PATH = '/pages/index/index?source=share'" in source
-        assert "trackHomeShare" in source
-        assert "query: 'source=share'" in source
-
-    for source in [detail_ts, detail_js]:
-        assert "trackSkuShare" in source
-        assert "skuShareTitle" in source
-        assert "skuShareImage" in source
-        assert "skuId=${encodeURIComponent(String(skuId || 0))}&source=share" in source
-        assert "pagePath(skuId, 'share')" in source
-        assert "this.data.imageFallback" in source
-
-    for source in [product_list_ts, product_list_js]:
-        assert "PRODUCT_LIST_SHARE_KEYS" in source
-        assert "buildShareQuery" in source
-        assert "encodeShareValue" in source
-        assert "sourcePage: 'share'" in source
-        assert "product_list_share_click" in source
-        assert "share_path" in source
-        assert "categoryName" in source
-        assert "keyword" in source
-        assert "section" in source
-        assert "requestId" in source
-
-    expected_order = [
-        "'categoryId'",
-        "'categoryLevel'",
-        "'categoryName'",
-        "'brandId'",
-        "'keyword'",
-        "'section'",
-        "'sourcePage'",
-    ]
-    last_index = -1
-    for token in expected_order:
-        index = product_list_js.index(token)
-        assert index > last_index
-        last_index = index
-    assert "page=" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
-    assert "pageSize" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
-    assert "requestId" not in product_list_js[product_list_js.index("PRODUCT_LIST_SHARE_KEYS"):product_list_js.index("function requestId")]
-
-    for source in [brand_detail_ts, brand_detail_js]:
-        assert "brandSharePath" in source
-        assert "brand_detail_share_click" in source
-        assert "brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share" in source
-        assert "this.data.imageFallback" in source
+    for page in ["index", "tile-detail", "product-list", "brand-detail", "certificate-detail",
+                 "brand-list", "certificates", "search", "category", "store-info", "find"]:
+        for extension in ["ts", "js"]:
+            source = _read(f"pages/{page}/index.{extension}")
+            # CommonJS transpilation wraps imported calls; preserve argument contracts.
+            assert f"('{page}', this, 'wechat_friend')" in source
+            assert f"('{page}', this, 'wechat_timeline')" in source
+            assert f"('{page}', query)" in source
+            assert "sharePage" in source and "receiveShare" in source
+    assert "public-sharing" not in _read("pages/favorites/index.js")
 
 
 def test_miniapp_wechat_share_evidence_records_static_and_follow_up_boundaries() -> None:
@@ -1456,7 +1410,8 @@ def test_miniapp_certificate_list_page_replaces_placeholder_with_public_list() -
     assert "wx.setClipboardData" not in certificate_js
     assert 'src="{{item.thumbnail_url}}"' in certificate_wxml
     assert "item.thumbnail_url || item.file_url" not in certificate_wxml
-    assert 'binderror="onImageError"' in certificate_wxml
+    assert '<authorized-image' in certificate_wxml
+    assert 'resource-type="certificate"' in certificate_wxml
     assert "image_failed" in certificate_js
     assert "certificate_list_page_view" in certificate_js
     assert "certificate_search" not in certificate_js
@@ -1512,10 +1467,10 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "未命名商品" in card_js
     assert "品牌待确认" in card_js
     assert "规格待补充" in card_js
-    assert "暂无" in card_js
+    assert "暂无" in _read("utils/price.js")
     assert "暂无参考价" not in card_js
     assert "function priceText" in card_js
-    assert "value === 0" in card_js
+    assert "pricePresentation(product.price_display" in card_js
     assert "is_recall_pinned?: boolean" in card_ts
     assert "product.is_recall_pinned" in card_ts
     assert "product.thumbnail_url || product.cover_image" in card_ts
@@ -1524,7 +1479,7 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "'置顶'" in card_js
     assert "product.is_new" in card_ts
     assert card_ts.index("product.is_recall_pinned") < card_ts.index("product.is_new")
-    assert "legacyNoPriceText" in card_js
+    assert "../../utils/price" in card_js
     assert "点击进入 SKU 详情" not in card_js
     assert "product_card_exposure" in card_js
     assert "product_card_click" in card_js
@@ -1549,7 +1504,8 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "queryPair('sourcePage'" in card_js
     assert "queryPair('sourceModule'" in card_js
     assert "queryPair('requestId'" in card_js
-    assert 'binderror="onImageError"' in card_wxml
+    assert '<authorized-image' in card_wxml
+    assert 'resource-type="sku_image"' in card_wxml
     assert 'lazy-load="{{imageLazyLoad}}"' in card_wxml
     assert "{{normalized.productName}}" in card_wxml
     assert "{{normalized.brandName}}" in card_wxml
@@ -1559,8 +1515,13 @@ def test_miniapp_product_card_component_contract_and_reuse() -> None:
     assert "product-status" not in card_wxml
     assert "product-tags" not in card_wxml
     assert "-webkit-line-clamp: 2" in card_wxss
-    assert "aspect-ratio: 1 / 0.86" in card_wxss
+    assert 'mode="{{density === \'grid\' ? \'aspectFit\' : \'aspectFill\'}}"' in card_wxml
+    assert ".product-card.grid .product-image-frame {\n  aspect-ratio: 1 / 1.28;" in card_wxss
+    assert ".product-card.compact .product-image-frame {\n  aspect-ratio: 1 / 0.86;" in card_wxss
     assert "min-height: 188rpx" in card_wxss
+    assert "aspect-ratio: 1 / 1.28" in _read("pages/product-list/index.wxss")
+    assert "min-height: 548rpx" in _read("pages/product-list/index.wxss")
+    assert "min-height: 548rpx" in _read("pages/brand-detail/index.wxss")
 
     assert product_list_wxml.count("<product-card") == 1
     assert 'density="grid"' in product_list_wxml
@@ -1579,7 +1540,8 @@ def test_miniapp_home_images_have_runtime_fallback_handlers() -> None:
     home_wxml = _read("pages/index/index.wxml")
     home_js = _read("pages/index/index.js")
 
-    assert 'binderror="onImageError"' in home_wxml
+    assert '<authorized-image' in home_wxml
+    assert 'resource-type="banner_image"' in home_wxml
     assert "<swiper" in home_wxml
     assert 'wx:for="{{home.banners}}"' in home_wxml
     assert 'wx:if="{{item.display_url}}"' in home_wxml
@@ -1648,30 +1610,30 @@ def test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states() 
     assert ": this.data.mediaIndex || 0" in detail_ts
     assert ".map((item, index) => ({ item, index, url: previewUrlForMedia(item) }))" in detail_ts
     assert "entry.index === mediaIndex" in detail_ts
-    assert "const current = matched?.url || urls[0]" in detail_ts
-    assert "wx.getImageInfo({" in detail_ts
-    assert "src: current" in detail_ts
-    assert "complete: () => {" in detail_ts
-    assert "wx.previewImage({ urls, current })" in detail_ts
-    assert "function previewUrlForMedia(item)" in detail_js
-    assert "const current = (matched && matched.url) || urls[0]" in detail_js
-    assert "wx.getImageInfo({" in detail_js
+    assert "preparePageImages(this, imageMedia.map(({item}) => ({resource_type:'sku_image'" in detail_ts
+    assert "variant:'original'" in detail_ts
+    assert "wx.previewImage({ urls, current: urls[selected] })" in detail_ts
+    assert "isPageMediaActive(this)" in detail_ts
+    assert "readPageMedia" in detail_js
+    assert "wx.previewImage" in detail_js
     assert_video_media_binding(
         detail_wxml,
         src_expr="item.url",
-        poster_expr="item.cover_url || product.cover_image || imageFallback",
+        poster_expr="item.cover_url || product.cover_image || ''",
         play_handler="onVideoPlay",
         error_handler="onMediaError",
     )
     assert_wxml_uses_safe_media_bindings(detail_wxml)
     assert "poster=\"{{item.cover_url || ''}}\"" not in detail_wxml
+    # Native video posters only accept network URLs; no cover uses the video frame.
+    assert 'poster="{{item.cover_url || product.cover_image || imageFallback}}"' not in detail_wxml
     assert 'bindplay="onVideoPlay"' in detail_wxml
     assert 'binderror="onMediaError"' in detail_wxml
     assert 'autoplay="{{false}}"' in detail_wxml
     assert 'autoplay="{{!mediaPaused}}"' in detail_wxml
     assert "this.setData({ mediaPaused: true })" in detail_js
     assert "wx.createVideoContext(`sku-video-${item.media_id}`, this).pause()" in detail_js
-    assert "视频暂时无法播放" in detail_js
+    assert "视频暂不可播放，请稍后重试" in detail_js
     assert "media-count" in detail_wxml
     assert "normalizeRemark" in detail_ts
     assert "normalizeRemark" in detail_js
@@ -2045,7 +2007,8 @@ def test_miniapp_brand_card_component_contract_and_states() -> None:
         assert "request(" not in source
 
     assert 'bindtap="openBrand"' in brand_wxml
-    assert 'binderror="onImageError"' in brand_wxml
+    assert '<authorized-image' in brand_wxml
+    assert 'resource-type="brand_logo"' in brand_wxml
     assert "brand-logo-empty" in brand_wxml
     assert "normalized.fallbackText" in brand_wxml
     assert "normalized.brandName" in brand_wxml

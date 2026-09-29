@@ -1,0 +1,65 @@
+{
+  "source": "Real isolated Compose Web/API/SQLite and Chromium against COS from this Mac network; not Beijing 3Mbps production",
+  "sampleScope": "Same synthetic padded WebM per size; transport fixture, not full video decode",
+  "protocol": "One 19MiB integrated/proxy pair; backend eth0 byte counters before/after each whole call; includes control and protocol overhead; illustrative egress proof, not p95",
+  "records": [
+    {
+      "mode": "integrated",
+      "mib": 19,
+      "transfer_ms": 3497,
+      "elapsed_ms": 5174,
+      "controls": [
+        {
+          "action": "authorize",
+          "duration_ms": 590,
+          "status": 200
+        },
+        {
+          "action": "query",
+          "duration_ms": 23,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 27,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 49,
+          "status": 200
+        },
+        {
+          "action": "part_authorize",
+          "duration_ms": 42,
+          "status": 200
+        },
+        {
+          "action": "confirm",
+          "duration_ms": 1062,
+          "status": 200
+        },
+        {
+          "action": "cancel",
+          "duration_ms": 150,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "pair": 1,
+      "backend_rx_bytes": 93624,
+      "backend_tx_bytes": 17395
+    },
+    {
+      "mode": "proxy",
+      "mib": 19,
+      "transfer_ms": 2777,
+      "elapsed_ms": 2778,
+      "controls": [],
+      "error": null,
+      "pair": 1,
+      "backend_rx_bytes": 19988562,
+      "backend_tx_bytes": 19983931
+    }
+  ]
+}

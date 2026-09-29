@@ -1,0 +1,24 @@
+{
+  "evidence_source": "live COS synthetic object via SDK and HTTP; not browser/device/player evidence",
+  "started_at": "2026-09-08T18:55:23",
+  "checks": {
+    "get": {
+      "status": 200,
+      "body_bytes": 4096
+    },
+    "head": {
+      "status": 200,
+      "body_bytes": 0
+    },
+    "range": {
+      "status": 206,
+      "body_bytes": 128
+    },
+    "wrong_method": {
+      "status": 403,
+      "body_bytes": 0
+    }
+  },
+  "cleanup": true,
+  "passed": true
+}

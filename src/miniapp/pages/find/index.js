@@ -1,5 +1,12 @@
+const { sharePage, receiveShare } = require('../../utils/public-sharing');
 // pages/find/index.js
 Page({
+  openSearch() {
+    wx.navigateTo({ url: '/pages/search/index' });
+  },
+  onShareTimeline() {
+    return sharePage('find', this, 'wechat_timeline');
+  },
 
   /**
    * 页面的初始数据
@@ -11,7 +18,8 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad(options) {
+  onLoad(query) {
+    query = receiveShare('find', query);
 
   },
 
@@ -61,6 +69,6 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage() {
-
+    return sharePage('find', this, 'wechat_friend');
   }
 })

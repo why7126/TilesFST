@@ -1,0 +1,186 @@
+{
+  "executed_at": "2026-09-11 09:14:44",
+  "source": "isolated local API SQLite; real COS authorized PUT; backend Python image worker; native WeChat DevTools 2.02.2608060/library3.17.1",
+  "real_device": false,
+  "production_deployed": false,
+  "records": [
+    {
+      "media_kind": "sku_image",
+      "session_bound": true,
+      "variants": [
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "original",
+          "key_fingerprint": "a29d403f13dbca05",
+          "fixed_version_exists": true,
+          "object_bytes": 11405,
+          "http_status": 200,
+          "content_type": "image/png",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "thumbnail",
+          "key_fingerprint": "6620bce714df72d9",
+          "fixed_version_exists": true,
+          "object_bytes": 1084,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "display",
+          "key_fingerprint": "4ba0b01f4e8dc712",
+          "fixed_version_exists": true,
+          "object_bytes": 5754,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        }
+      ]
+    },
+    {
+      "media_kind": "brand_logo",
+      "session_bound": true,
+      "variants": [
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "original",
+          "key_fingerprint": "bb2be7acbf960d05",
+          "fixed_version_exists": true,
+          "object_bytes": 10864,
+          "http_status": 200,
+          "content_type": "image/png",
+          "api_reference_present": false
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "thumbnail",
+          "key_fingerprint": "6abf877f463ffb14",
+          "fixed_version_exists": true,
+          "object_bytes": 1084,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "display",
+          "key_fingerprint": "53bb41003061df86",
+          "fixed_version_exists": true,
+          "object_bytes": 6262,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        }
+      ]
+    },
+    {
+      "media_kind": "banner",
+      "session_bound": true,
+      "variants": [
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "original",
+          "key_fingerprint": "a1600c40a3506eb5",
+          "fixed_version_exists": true,
+          "object_bytes": 10616,
+          "http_status": 200,
+          "content_type": "image/png",
+          "api_reference_present": false
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "thumbnail",
+          "key_fingerprint": "a846ec32fdd05cb4",
+          "fixed_version_exists": true,
+          "object_bytes": 1168,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "display",
+          "key_fingerprint": "39846fe69f61136b",
+          "fixed_version_exists": true,
+          "object_bytes": 5900,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        }
+      ]
+    },
+    {
+      "media_kind": "certificate",
+      "session_bound": true,
+      "variants": [
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "original",
+          "key_fingerprint": "94574fb6d2716cfe",
+          "fixed_version_exists": true,
+          "object_bytes": 10776,
+          "http_status": 200,
+          "content_type": "image/png",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "thumbnail",
+          "key_fingerprint": "2a763d1f4368c217",
+          "fixed_version_exists": true,
+          "object_bytes": 1186,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        },
+        {
+          "legacy_authorized_http_status": 200,
+          "variant": "display",
+          "key_fingerprint": "a9d06cbc78187056",
+          "fixed_version_exists": true,
+          "object_bytes": 6122,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "api_reference_present": true
+        }
+      ]
+    },
+    {
+      "media_kind": "sku_video",
+      "session_bound": true,
+      "variants": [
+        {
+          "legacy_authorized_http_status": 206,
+          "variant": "original",
+          "key_fingerprint": "77dd33dd16f4d03e",
+          "fixed_version_exists": true,
+          "object_bytes": 20671864,
+          "http_status": 206,
+          "content_type": "video/mp4",
+          "api_reference_present": true
+        }
+      ]
+    }
+  ],
+  "public_api_status": {
+    "/api/v1/miniapp/home": 200,
+    "/api/v1/miniapp/products/1": 200,
+    "/api/v1/miniapp/brands/1": 200,
+    "/api/v1/miniapp/certificates/1": 200
+  },
+  "render_evidence": [
+    "sept11-miniapp-home.png",
+    "sept11-miniapp-detail.png",
+    "sept11-miniapp-banner.png",
+    "sept11-miniapp-logo.png",
+    "sept11-miniapp-certificate-list.png",
+    "sept11-miniapp-certificate-detail.png",
+    "sept11-miniapp-video.png"
+  ],
+  "video_observed_seconds": 43,
+  "public_original_omission": "Banner and brand logo public APIs intentionally expose derived variants rather than original URL",
+  "proxy_environment": "Host API configured with isolated writable budget directory; container default /app directory had returned 429 before correction"
+}

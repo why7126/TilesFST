@@ -41,8 +41,9 @@ def get_tile_sku_admin_service(
     repo: Annotated[TileSkuRepository, Depends(get_tile_sku_repository)],
     spec_repo: Annotated[TileSpecRepository, Depends(get_tile_spec_repository)],
     effective: Annotated[EffectiveSettingsService, Depends(get_effective_settings_service)],
+    actor: Annotated[UserRecord, Depends(require_admin_user)],
 ) -> TileSkuAdminService:
-    return TileSkuAdminService(repo, spec_repo, effective)
+    return TileSkuAdminService(repo, spec_repo, effective, actor_id=actor.id)
 
 
 def _request_id(request: Request) -> str | None:

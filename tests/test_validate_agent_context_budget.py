@@ -158,3 +158,39 @@ name: req-demo
     )
 
     assert validator.validate_skill(path) == []
+
+
+def test_apply_contract_accepts_both_project_entrypoints() -> None:
+    for name in validator.APPLY_SKILLS:
+        path = ROOT / ".agents" / "skills" / name / "SKILL.md"
+        assert validator.validate_apply_execution_contract(path) == []
+
+
+def test_apply_contract_rejects_legacy_pause_even_with_shared_reference(tmp_path, monkeypatch) -> None:
+    source = (ROOT / ".agents/skills/openspec-apply-change/SKILL.md").read_text()
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    target = tmp_path / ".agents/skills/openspec-apply-change/SKILL.md"
+    target.parent.mkdir(parents=True)
+    for regression in validator.APPLY_PAUSE_REGRESSIONS:
+        target.write_text(source + "\n- " + regression)
+        assert any("宽泛暂停回退" in e for e in validator.validate_apply_execution_contract(target))
+
+
+def test_apply_contract_rejects_missing_partial_sync_branch(tmp_path, monkeypatch) -> None:
+    source = (ROOT / ".agents/skills/opsx-apply/SKILL.md").read_text()
+    source = source.replace("无完成事件", "完成事件")
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    target = tmp_path / ".agents/skills/opsx-apply/SKILL.md"
+    target.parent.mkdir(parents=True)
+    target.write_text(source)
+    assert any("无完成事件刷新分支" in e for e in validator.validate_apply_execution_contract(target))
+
+
+def test_apply_contract_rejects_missing_execution_dimensions(tmp_path, monkeypatch) -> None:
+    source = (ROOT / ".agents/skills/opsx-apply/SKILL.md").read_text()
+    monkeypatch.setattr(validator, "ROOT", tmp_path)
+    target = tmp_path / ".agents/skills/opsx-apply/SKILL.md"
+    target.parent.mkdir(parents=True)
+    for term in (validator.APPLY_CONTRACT_REF, *validator.APPLY_REQUIRED_TERMS):
+        target.write_text(source.replace(term, ""))
+        assert any("缺少 apply 持续执行契约" in e for e in validator.validate_apply_execution_contract(target))

@@ -1797,3 +1797,94 @@ workflow 治理 SHALL 保留证据来源诊断脚本作为手动排查工具，�
 - **THEN** they SHALL prefer evidence source fields such as `evidence_source`、`verification_boundary`、`evidence_ref`、`network_summary` and `executed_at`
 - **AND** they SHALL treat `production_only_pending` as historical compatibility wording only, not a recommended new-flow classification.
 
+### Requirement: 外部连接器目录边界
+
+系统 SHALL 为 WorkBuddy 等外部连接器维护清晰的仓库目录边界：`src/mcp/<connector>/` 承载 MCP 运行时代码，`connectors/<connector>/` 承载连接器交付包资产，`.agents/skills/` 仅承载本项目内部 Codex 工作流命令。
+
+#### Scenario: 新增 MCP 运行时代码
+- **WHEN** 变更为 WorkBuddy 或其他外部连接器新增 MCP server、tool registry、schema adapter、auth/audit adapter 或 runtime entrypoint
+- **THEN** 运行时代码 SHALL 位于 `src/mcp/<connector>/`
+- **AND** 不得将业务运行时代码直接放在仓库根目录或 `connectors/` 交付包目录中。
+
+#### Scenario: 新增外部连接器交付包
+- **WHEN** 变更新增 WorkBuddy manifest、`mcp.json`、外部 Skill、图标、打包说明或平台适配 README
+- **THEN** 交付包资产 SHALL 位于 `connectors/<connector>/`
+- **AND** 外部 Skill SHALL NOT 放入 `.agents/skills/`。
+
+#### Scenario: 更新内部 Codex 工作流 Skill
+- **WHEN** 变更新增或修改本项目 `/req-*`、`/opsx-*`、`/sprint-*`、`/spec-*` 等 AI 工作流命令入口
+- **THEN** 这些内部 Skill SHALL 继续位于 `.agents/skills/`
+- **AND** 不得以 WorkBuddy 连接器交付为理由恢复 `.codex/`、`.cursor/`、`.claude/`、`.opencode/` 或 `.kiro/` 工具入口目录。
+
+### Requirement: Apply 当前 Change 持续执行
+
+两个 apply 入口 MUST 持续完成当前 Change 中依赖满足且已获授权的任务，修复范围内可恢复错误，保留必要确认及归档发布边界。
+
+#### Scenario: 任务分组完成或测试失败
+- **WHEN** 已完成一组任务或出现范围内可修复错误
+- **THEN** Agent MUST 继续后续任务或修复复测，不因阶段汇报而等待继续指令
+
+#### Scenario: 局部阻塞与人工确认
+- **WHEN** 某任务缺少必要授权、资源或关键决策
+- **THEN** Agent MUST 记录阻塞证据和恢复条件，暂停相关依赖并继续其他可执行任务；用户明确停止时停止全部工作
+
+#### Scenario: 部分完成与恢复
+- **WHEN** 仍有未完成任务或必需验证未通过
+- **THEN** Agent MUST 保留真实未完成状态，不声称 applied 或可归档，恢复时承接已完成工作和已确认决策
+
+#### Scenario: 完成收尾
+- **WHEN** 所有适用任务与必需验证已完成
+- **THEN** Agent MUST 同步真实状态并报告结果，不自动执行归档、发布或其他 Change
+
+#### Scenario: 收尾前仍有独立工作
+- **WHEN** Agent准备最终回复且存在已授权、依赖满足、资源可用的未完成任务
+- **THEN** Agent MUST 核对剩余工作后继续该任务，使用中间消息报告进度，不要求再次调用apply
+
+#### Scenario: 用户询问进度
+- **WHEN** 执行中用户仅询问进度或补充信息而未要求停止
+- **THEN** Agent MUST 在中间消息答复后继续当前已授权工作，承接既有授权
+
+#### Scenario: 集中人工问题
+- **WHEN** 已知多个问题需要人工回答且存在独立工作
+- **THEN** Agent MUST 集中提出当前已知问题并映射受阻任务，沿用已有答复，等待期间继续独立项，未答复不得视为同意
+
+#### Scenario: 四类进度
+- **WHEN** 汇报进度或收尾
+- **THEN** Agent MUST 分别说明实现完成、自动验证通过、人工待验和外部阻塞，不删除验收要求或把实现完成视为全部验收通过
+
+#### Scenario: 同类失败有限重试
+- **WHEN** 同工具目标及规范化错误签名连续两次失败且无进展
+- **THEN** Agent MUST 记录失败次数、证据和恢复条件并切换独立任务；第一次失败后也不得无依据重试，仅出现可验证新条件才能恢复，保留累计历史
+
+### Requirement: Apply 持续执行实际行为验收
+
+两个apply入口 MUST 分别以真实Agent及工具执行验证持续执行行为，静态关键词、理想事件夹具和任务勾选数不得替代行为证据。
+
+#### Scenario: 首次失败后自主修复
+- **WHEN** 受控场景的范围内测试首次失败且后续任务可执行
+- **THEN** 运行证据 MUST 显示定位、有效修复、原断言复测通过及后续任务继续，无额外继续请求
+
+#### Scenario: 阻塞与进度场景
+- **WHEN** 分别设置单项阻塞和执行中用户进度问询
+- **THEN** 两入口 MUST 有独立任务继续与中间回复后继续的实际工具证据，并保留受阻项门禁
+
+#### Scenario: 合法暂停与重试恢复
+- **WHEN** 所有剩余任务真实受阻、用户明确停止或同类失败达到阈值
+- **THEN** 验收 MUST 检查合法暂停、停止及新条件恢复的边界，不能奖励绕过必要确认或盲重试
+
+#### Scenario: 缺少真实执行环境
+- **WHEN** 某行为场景无法取得真实Agent执行证据
+- **THEN** Agent MUST 标记该场景待验及具体恢复条件，继续独立工作，不以静态通过或模拟理想序列勾选该场景
+
+### Requirement: Apply 行为证据校验与来源边界
+
+行为证据 MUST 能定位入口、运行、规则版本、任务依赖、授权、工具结果、重试与最终回复时机；校验 MUST 拒绝缺少必要证据或仍有可执行任务时提前结束的记录。
+
+#### Scenario: 反例与完整性校验
+- **WHEN** 校验输入缺少必要事件、记录提前最终回复、无变化重试或将人工门禁扩大到独立任务
+- **THEN** 校验器 MUST 返回可定位失败项，不因技能文本存在持续执行关键词而通过
+
+#### Scenario: 证据脱敏与结果分离
+- **WHEN** 持久化或报告治理验证结果
+- **THEN** Agent MUST 区分静态检查与真实行为，保留脱敏事件摘要及来源，不保存原始会话、提示词、秘密或本机绝对路径
+

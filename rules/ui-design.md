@@ -4,7 +4,7 @@ content: Web / 管理端 / 店主端 UI 方向、Design Token、组件复用与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-07-15 09:30:00
+updated_at: 2026-09-05 22:32:43
 note: UI、Design System、前端样式任务必须读取
 version: 1.0
 ---
@@ -13,7 +13,7 @@ version: 1.0
 
 Web 使用 React + Tailwind + shadcn/ui。管理端强调表格、筛选、表单效率；店主端强调图片浏览、移动端体验和询价转化。
 
-视觉方向：**工业石材 · 暗色旗舰风**。关键词：工业感、克制、精密、高端。深色背景衬托材质纹理；品牌金只用于价格、强调词、主 CTA 和激活态；圆角接近直角。
+视觉方向：**工业石材 · 暗色旗舰风**。关键词：工业感、克制、精密、高端。深色背景衬托材质纹理；品牌金用于 Web 价格、强调词、主 CTA 和激活态；小程序有效金额使用独立价格红色；圆角接近直角。
 
 ## 1. Token 与资源地图
 
@@ -73,7 +73,7 @@ Web 使用 React + Tailwind + shadcn/ui。管理端强调表格、筛选、表�
 | 页脚/深色底 | `#100F0A`，通过 token 使用 |
 | 主文字 | `#EDE8DF`，通过 token 使用 |
 | 次/弱文字 | 主文字 alpha 0.5 / 0.3 / 0.25，通过 token 使用 |
-| 品牌金 | `#C8A055`，仅用于价格、主 CTA、强调、激活态 |
+| 品牌金 | `#C8A055`，用于 Web 价格、主 CTA、强调、激活态 |
 | 热销/警示 | 红橙语义 token |
 | 分割线 | 白色 alpha 0.07 / 0.1 / 0.18，通过 token 使用 |
 
@@ -151,3 +151,7 @@ src/web/src/features/auth/styles/login-page.css
 - 带 `prototype/`、`prototype_refs`、`AC-PROTOTYPE-*`、UI Skeleton 或明确引用既有页面视觉的 UI Change MUST 同步遵守 `docs/standards/prototype-ui-acceptance.md`：`/req-opsx` 写入 UI Contract，`/opsx-apply` 先完成 Skeleton 与 1440px 视觉证据，必要时记录 computed style，`/opsx-archive` 复核最终一致性。
 - UI 型 `/opsx-modify` 若验收反馈包含附件截图、标注图、原型截图或实际截图，返修前 MUST 建立逐项视觉对照表；证据不足先补证，不得直接修改实现。
 - Change 输出需说明是否影响 Web / 管理端 / 小程序、是否修改 token、是否运行 `pnpm sync:tokens`、是否存在裸 Hex。
+
+## 小程序价格语义
+
+小程序有效正数金额使用 `miniappPriceTokens.amount`，无价／失效采用 `placeholder`，辅助说明采用 `label`。token 位于 `src/shared/design-system/tokens/colors.ts`，由 `pnpm sync:tokens` 生成 `src/miniapp/styles/price.generated.wxss`；页面及隔离组件分别导入，并在价格节点或其祖先使用 `price-theme`。不得改写品牌金或错误色，Web 价格维持原样。实际金额背景对比度至少4.5:1，状态变化与价格helper同步。

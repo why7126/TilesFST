@@ -1,0 +1,108 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "openspec-apply-change",
+  "scenario": "B3",
+  "run_id": "a2eb8231-b96e-48b6-b0bd-a7d684e926eb",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:44:35.117947+00:00",
+  "policy_sha256": "36b3079e9537fdc56bff3b80c62c029b5fd3211839a3daad7acb1a78bb940c8f",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "B",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:44:35.257013+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:44:42.039131+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:44:42.541871+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:44:46.396933+00:00",
+      "kind": "progress_query"
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-10T02:44:46.397804+00:00",
+      "kind": "test",
+      "task": "A",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 5,
+      "at": "2026-09-10T02:44:46.400378+00:00",
+      "kind": "test",
+      "task": "B",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 6,
+      "at": "2026-09-10T02:44:50.283914+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 7,
+      "at": "2026-09-10T02:44:51.532506+00:00",
+      "kind": "complete",
+      "task": "A"
+    },
+    {
+      "seq": 8,
+      "at": "2026-09-10T02:44:51.533255+00:00",
+      "kind": "complete",
+      "task": "B"
+    },
+    {
+      "seq": 9,
+      "at": "2026-09-10T02:44:51.533672+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 10,
+      "at": "2026-09-10T02:44:54.571448+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [
+          "A",
+          "B"
+        ],
+        "verified": [
+          "A",
+          "B"
+        ],
+        "manual_pending": [],
+        "external_blocked": [],
+        "completion_event": true,
+        "archive_ready": false
+      }
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "passed",
+    "errors": []
+  }
+}

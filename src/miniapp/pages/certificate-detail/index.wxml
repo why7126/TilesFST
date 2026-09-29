@@ -28,7 +28,7 @@
         indicator-active-color="#C8A055"
       >
         <swiper-item wx:for="{{detail.media}}" wx:key="media_id">
-          <image
+          <authorized-image resource-type="certificate" resource-id="{{detail.certificate_id}}" media-id="{{item.media_id}}" variant="display"
             wx:if="{{item.media_type == 'image' && !item.image_failed && (item.display_url || item.thumbnail_url)}}"
             class="gallery-image"
             src="{{item.display_url || item.thumbnail_url}}"
@@ -36,8 +36,7 @@
             data-index="{{index}}"
             data-url="{{item.original_url || item.preview_url || item.url}}"
             bindtap="previewCurrentMedia"
-            binderror="onMediaError"
-          ></image>
+          ></authorized-image>
           <view wx:elif="{{item.media_type == 'pdf'}}" class="gallery-file pdf" bindtap="previewCurrentMedia">
             <view class="file-mark">PDF</view>
             <view class="file-name">{{item.file_name || '证书文件'}}</view>

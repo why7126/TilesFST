@@ -324,6 +324,38 @@ def is_command_skill(path: Path) -> bool:
     return name in COMMAND_SKILL_NAMES or name.startswith(COMMAND_SKILL_PREFIXES)
 
 
+APPLY_SKILLS = {"opsx-apply", "openspec-apply-change"}
+APPLY_CONTRACT_REF = "docs/standards/command-execution-order.md"
+APPLY_REQUIRED_TERMS = ("持续", "可恢复错误", "独立任务", "上下文恢复", "部分完成", "archive_ready", "人工确认",
+                        "收尾前", "自动验证通过", "失败签名", "两次",
+                        "scripts/validate-apply-behavior.py", "scripts/run-apply-behavior.py")
+APPLY_PAUSE_REGRESSIONS = (
+    "Error or blocker encountered → report and wait for guidance",
+    "Pause on errors, blockers, or unclear requirements",
+    "Stop and ask if task is ambiguous",
+    "If task is ambiguous, pause and ask before implementing",
+    "If implementation reveals issues, pause and suggest artifact updates",
+)
+
+
+def validate_apply_execution_contract(path: Path) -> list[str]:
+    """Catch known early-stop instructions and missing shared execution contracts."""
+    if path.parent.name not in APPLY_SKILLS:
+        return []
+    text = path.read_text(encoding="utf-8")
+    rel = path.relative_to(ROOT)
+    errors = []
+    for term in (APPLY_CONTRACT_REF, *APPLY_REQUIRED_TERMS):
+        if term not in text:
+            errors.append(f"{rel}: 缺少 apply 持续执行契约 `{term}`")
+    for term in APPLY_PAUSE_REGRESSIONS:
+        if term in text:
+            errors.append(f"{rel}: 存在 apply 宽泛暂停回退 `{term}`")
+    if not re.search(r"部分完成[^\n]*(?:无完成事件|无事件)", text):
+        errors.append(f"{rel}: 缺少部分完成无完成事件刷新分支")
+    return errors
+
+
 def main() -> int:
     all_skill_paths = sorted(SKILLS_DIR.glob("*/SKILL.md"))
     skill_paths = [path for path in all_skill_paths if is_command_skill(path)]
@@ -339,6 +371,7 @@ def main() -> int:
         errors.extend(validate_output_contract_hygiene(path))
         errors.extend(validate_sprint_gate_no_bypass(path))
         errors.extend(validate_issue_target_contract(path))
+        errors.extend(validate_apply_execution_contract(path))
 
     if errors:
         print("Agent 上下文预算校验失败：")

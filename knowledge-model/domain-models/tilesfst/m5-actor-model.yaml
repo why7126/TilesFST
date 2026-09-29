@@ -1,0 +1,38 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: ACTOR
+coverage: covered
+elements:
+- id: model:ManageTileSKU
+  type: meta:Permission
+  layer: domain
+  attributes:
+    name: SKU管理权限语义
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: admin` 与 `employee` 可调用
+  review_status: confirmed
+- id: model:Employee
+  type: meta:Role
+  layer: domain
+  attributes:
+    name: 员工角色
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: 管理端 SKU 上下架 API'
+  review_status: confirmed
+  refs:
+    permissions:
+    - model:ManageTileSKU
+- id: model:Admin
+  type: meta:Role
+  layer: domain
+  attributes:
+    name: 管理员角色
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: 管理端 SKU 上下架 API'
+  review_status: confirmed
+  refs:
+    permissions:
+    - model:ManageTileSKU

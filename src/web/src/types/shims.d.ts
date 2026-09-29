@@ -1,8 +1,14 @@
 declare module '*.css';
 
 declare module 'node:fs' {
+  export function existsSync(path: string): boolean;
   export function readFileSync(path: string): { byteLength: number };
   export function readFileSync(path: string, encoding: BufferEncoding): string;
+}
+
+declare module 'node:vm' {
+  const vm: { runInNewContext(code: string, context: Record<string, unknown>): unknown };
+  export default vm;
 }
 
 declare module 'node:path' {

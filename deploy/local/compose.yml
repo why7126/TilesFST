@@ -3,6 +3,34 @@
 name: tilesfst
 
 services:
+  # 图片异步派生专用进程；仅启用image-processing profile后运行，不承担HTTP流量。
+  tilesfst-image-worker:
+    profiles: [image-processing]
+    # 复用后端Dockerfile和锁定依赖。
+    build:
+      context: ../../src/backend
+      dockerfile: Dockerfile
+    # 仅允许一个工作者实例；进程内顺序执行持久队列任务。
+    command: ["/app/.venv/bin/python", "-m", "app.modules.media.image_worker"]
+    restart: unless-stopped
+    # 资源上限面向2核2GB宿主机；总内存与swap合计不超过512MiB。
+    cpus: 1.0
+    mem_limit: 512m
+    memswap_limit: 512m
+    # 业务数据库和对象存储凭据通过现有env注入，不新增云处理服务凭据。
+    env_file:
+      - ${TILESFST_DEPLOY_ENV_FILE:-../../.env}
+    # SQLite与临时处理目录和API保持一致；生产MySQL无需共享SQLite文件。
+    volumes:
+      - ../../data/sqlite:/app/data/sqlite
+      - ../../data/processed:/app/data/processed
+      - ../../data/tmp:/app/data/tmp
+    # API先完成启动迁移；初始数据库未就绪时工作者由restart策略重试。
+    depends_on:
+      - tilesfst-backend
+    networks:
+      - tilesfst
+
   # FastAPI 后端服务，负责 API、认证、媒体元数据与受控对象存储读取。
   tilesfst-backend:
     # 后端镜像构建上下文限定在 src/backend；与根目录 docker-compose.yml 保持一致。

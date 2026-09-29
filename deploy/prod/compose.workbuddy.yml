@@ -1,0 +1,52 @@
+# Standalone single-instance MCP behind a host HTTPS gateway; no business services managed.
+services:
+  workbuddy-mcp:
+    image: ${WORKBUDDY_MCP_IMAGE:?Set the built MCP image reference}
+    build:
+      context: ../..
+      dockerfile: src/mcp/workbuddy/Dockerfile
+      args:
+        WORKBUDDY_BASE_IMAGE: ${WORKBUDDY_BASE_IMAGE:?Set the reviewed backend image digest}
+    restart: unless-stopped
+    read_only: true
+    init: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    ports:
+      - "127.0.0.1:${HOST_PORT_WORKBUDDY_MCP:-8010}:8010"
+    environment:
+      TILESFST_API_BASE_URL: ${TILESFST_API_BASE_URL:?Set reachable backend API URL}
+      TILESFST_CONNECTOR_TRANSPORT: streamable-http
+      TILESFST_CONNECTOR_REMOTE_CREDENTIALS_FILE: /run/secrets/workbuddy-credentials.json
+      TILESFST_CONNECTOR_IDEMPOTENCY_DIR: /app/data/workbuddy/idempotency
+      TILESFST_CONNECTOR_ENABLE_WRITE_TOOLS: ${TILESFST_CONNECTOR_ENABLE_WRITE_TOOLS:-false}
+      TILESFST_CONNECTOR_WRITE_SCOPES: ${TILESFST_CONNECTOR_WRITE_SCOPES:-}
+      TILESFST_CONNECTOR_TIMEOUT_SECONDS: ${TILESFST_CONNECTOR_TIMEOUT_SECONDS:-10}
+      TILESFST_CONNECTOR_RATE_LIMIT_PER_MINUTE: ${TILESFST_CONNECTOR_RATE_LIMIT_PER_MINUTE:-60}
+      TILESFST_CONNECTOR_MAX_REQUEST_BYTES: ${TILESFST_CONNECTOR_MAX_REQUEST_BYTES:-8388608}
+    volumes:
+      - journal:/app/data/workbuddy/idempotency
+      - type: bind
+        source: ${WORKBUDDY_SECRET_DIR:?Set existing protected credentials directory}
+        target: /run/secrets
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    healthcheck:
+      test: [CMD, /app/.venv/bin/python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  journal:

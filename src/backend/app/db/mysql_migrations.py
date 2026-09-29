@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from app.modules.media.upload_sessions import ensure_upload_sessions
 from sqlalchemy.engine import Connection
 
 logger = logging.getLogger(__name__)
@@ -177,6 +178,7 @@ def _dirty_banner_fk_rows(connection: Connection, column_name: str, target_table
 
 def apply_mysql_compat_migrations(connection: Connection) -> list[BannerBrandMigrationReport]:
     """Apply MySQL-only migrations that CREATE TABLE IF NOT EXISTS cannot cover."""
+    ensure_upload_sessions(connection)
     reports = [_ensure_banner_brand_id(connection)]
     _ensure_task_trace_support(connection)
     _ensure_brand_certificate_images_support(connection)

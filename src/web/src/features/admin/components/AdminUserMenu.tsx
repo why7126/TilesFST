@@ -1,3 +1,4 @@
+import { AuthorizedImage } from '@/features/media/authorized-media';
 import { useEffect, useId, useRef, useState } from 'react';
 import { KeyRound, LogOut, SunMoon, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -127,7 +128,7 @@ export function AdminUserMenu({
       >
         <span className={`avatar${showAvatarImage ? '' : ' is-fallback'}`}>
           {avatarUrl ? (
-            <img
+            <AuthorizedImage reference={user ? {resource_type:'avatar',resource_id:user.id,variant:'thumbnail'} : undefined}
               src={avatarUrl}
               alt=""
               onError={() => {

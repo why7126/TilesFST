@@ -112,7 +112,7 @@
         />
         <view wx:else class="section-result-product-card" bindtap="openSectionItem" data-item="{{bestMatch}}">
           <view class="section-card-image-frame">
-            <image wx:if="{{bestMatch.image_url}}" class="section-card-image" src="{{bestMatch.image_url}}" mode="aspectFill" />
+            <authorized-image resource-type="{{bestMatch.entity_type == 'brand' ? 'brand_logo' : 'certificate'}}" resource-id="{{bestMatch.entity_type == 'brand' ? (bestMatch.brand_id || bestMatch.id) : (bestMatch.certificate_id || bestMatch.id)}}" variant="thumbnail" wx:if="{{bestMatch.image_url}}" class="section-card-image" src="{{bestMatch.image_url}}" mode="aspectFill" />
             <text wx:else>{{bestMatch.image_label}}</text>
           </view>
           <view class="section-card-content">
@@ -148,7 +148,7 @@
           <block wx:else>
             <view wx:for="{{item.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
               <view class="section-card-image-frame">
-                <image wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
+                <authorized-image resource-type="{{sectionItem.entity_type == 'brand' ? 'brand_logo' : 'certificate'}}" resource-id="{{sectionItem.entity_type == 'brand' ? (sectionItem.brand_id || sectionItem.id) : (sectionItem.certificate_id || sectionItem.id)}}" variant="thumbnail" wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
                 <text wx:else>{{sectionItem.image_label}}</text>
               </view>
               <view class="section-card-content">
@@ -181,7 +181,7 @@
         <block wx:else>
           <view wx:for="{{activeDisplaySection.items}}" wx:for-item="sectionItem" wx:key="id" class="section-result-product-card" bindtap="openSectionItem" data-item="{{sectionItem}}">
             <view class="section-card-image-frame">
-              <image wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
+              <authorized-image resource-type="{{sectionItem.entity_type == 'brand' ? 'brand_logo' : 'certificate'}}" resource-id="{{sectionItem.entity_type == 'brand' ? (sectionItem.brand_id || sectionItem.id) : (sectionItem.certificate_id || sectionItem.id)}}" variant="thumbnail" wx:if="{{sectionItem.image_url}}" class="section-card-image" src="{{sectionItem.image_url}}" mode="aspectFill" />
               <text wx:else>{{sectionItem.image_label}}</text>
             </view>
             <view class="section-card-content">

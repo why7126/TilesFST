@@ -3,10 +3,12 @@ purpose: 生产部署矩阵
 content: prod-mysql-tencent-cos 前置条件、启动方式和安全边界
 source: REQ-0093 standardize-deployment-environment-matrix
 created_at: 2026-08-03 19:10:00
-updated_at: 2026-08-25 11:18:08
+updated_at: 2026-09-11 09:12:44
 ---
 
 # 生产部署矩阵
+
+WorkBuddy 远程 MCP 使用独立 [单实例部署手册](workbuddy.md) 与 `compose.workbuddy.yml`，不改变业务部署矩阵；真实 HTTPS 原生验收仍需单独完成。
 
 当前生产目标环境为 `prod-mysql-tencent-cos`：
 
@@ -66,3 +68,7 @@ cp deploy/prod/mysql-tencent-cos.env.example deploy/prod/mysql-tencent-cos.env
 ```bash
 TILESFST_DEPLOY_ENV_FILE=mysql-tencent-cos.env.example docker compose --project-name tilesfst --env-file deploy/prod/mysql-tencent-cos.env.example --profile docs-site -f deploy/prod/compose.tencent-cos.yml config --quiet
 ```
+
+## 图片异步工作者
+
+可选`image-processing` profile提供`tilesfst-image-worker`，默认不启动。JPEG/PNG/WebP业务图片直传启用前需运行一个同版本worker，限制1CPU、512MiB并顺序处理持久任务；不开通云端图片处理。启动方式、灰度范围及排空回滚步骤以[部署说明](../../docs/02-deployment.md#sku-图片后端异步派生req-0135)为准。

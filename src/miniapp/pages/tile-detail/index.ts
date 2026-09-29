@@ -1,7 +1,11 @@
+import { beginPageMedia, endPageMedia, readPageMedia, isPageMediaActive, reportPageMedia, preparePageImages } from '../../utils/page-media';
+import { sharePage, receiveShare } from '../../utils/public-sharing';
+import { pricePresentation, type PricePresentation } from '../../utils/price';
 import { request, track } from '../../services/api';
 
 type MediaItem = {
   media_id: number;
+  render_key?: string;
   media_type: 'image' | 'video';
   url: string;
   preview_url?: string;
@@ -26,6 +30,7 @@ type ProductCard = {
   brand_name?: string;
   color_family?: string;
   price_display: string;
+  priceView?: PricePresentation;
   is_recall_pinned?: boolean;
 };
 
@@ -63,6 +68,10 @@ type SkuDetail = ProductCard & {
     summary: string;
   };
 };
+
+const videoIntent = new WeakMap<object, Record<number,boolean>>();
+const videoRecovering = new WeakMap<object, Record<number,boolean>>();
+const videoPositions = new WeakMap<object, Record<number,number>>();
 
 const FAVORITE_STORAGE_KEY = 'miniapp_favorite_skus_v1';
 
@@ -107,12 +116,15 @@ function normalizeSkuDetail(product: SkuDetail): SkuDetail {
   const parameters = (product.parameters || []).filter((item) => item.label !== '备注说明');
   return {
     ...product,
+    priceView: pricePresentation(product.price_display),
+    same_series_recommendations: (product.same_series_recommendations || []).map((item) => ({ ...item, priceView: pricePresentation(item.price_display) })),
+    same_brand_recommendations: (product.same_brand_recommendations || []).map((item) => ({ ...item, priceView: pricePresentation(item.price_display) })),
     cover_image: product.thumbnail_url || product.cover_image,
     media: (product.media || []).map((item) => item.media_type === 'image' ? {
       ...item,
       display_url: item.display_url || item.thumbnail_url,
       preview_url: item.original_url || item.preview_url || item.url,
-    } : item),
+    } : item).map(item => ({...item, render_key: `${item.media_type}:${item.media_id}`})),
     remark,
     parameters: remark ? [...parameters, { label: '备注说明', value: remark }] : parameters,
   };
@@ -268,6 +280,7 @@ Page({
     fullscreenVideoId: 0,
     fullscreenSwitching: false,
     mediaError: '',
+    failedVideoId: 0,
     error: '',
     errorDetail: '',
     product: null as SkuDetail | null,
@@ -275,6 +288,8 @@ Page({
   },
 
   onLoad(query: Record<string, string>) {
+    beginPageMedia(this);
+    query = receiveShare('tile-detail', query);
     const id = Number(query.skuId || query.id || 0);
     const source = safeRouteParam(query.source || query.sourcePage || 'direct') || 'direct';
     const routeContext = {
@@ -292,34 +307,27 @@ Page({
     this.loadProduct(id, source, storedClientId);
   },
 
+  onShow() {
+    beginPageMedia(this);
+    if (this.data.product) this.refreshVideoMedia();
+  },
+
   onHide() {
+    endPageMedia(this);
     this.pauseVideo();
   },
 
   onUnload() {
+    endPageMedia(this);
     this.pauseVideo();
   },
 
   onShareAppMessage() {
-    this.trackSkuShare('wechat_friend');
-    const product = this.data.product;
-    const skuId = product?.product_id || this.data.id;
-    return {
-      title: skuShareTitle(product),
-      path: pagePath(skuId, 'share'),
-      imageUrl: skuShareImage(product, this.data.imageFallback),
-    };
+    return sharePage('tile-detail', this, 'wechat_friend');
   },
 
   onShareTimeline() {
-    this.trackSkuShare('wechat_timeline');
-    const product = this.data.product;
-    const skuId = product?.product_id || this.data.id;
-    return {
-      title: skuShareTitle(product),
-      query: `skuId=${encodeURIComponent(String(skuId || 0))}&source=share`,
-      imageUrl: skuShareImage(product, this.data.imageFallback),
-    };
+    return sharePage('tile-detail', this, 'wechat_timeline');
   },
 
   trackSkuShare(shareChannel: 'wechat_friend' | 'wechat_timeline') {
@@ -347,7 +355,8 @@ Page({
     request<SkuDetail>(`/api/v1/miniapp/skus/${id}?client_id=${encodeURIComponent(clientIdValue)}`)
       .catch(() => request<LegacyProductDetail>(`/api/v1/miniapp/products/${id}`).then(legacyToSkuDetail))
       .then((product) => {
-        this.setData({ product: normalizeSkuDetail(product), loading: false, mediaIndex: 0, mediaPaused: false });
+        this.setData({ product: {...normalizeSkuDetail(product), cover_image: '', media: normalizeSkuDetail(product).media.map(item => item.media_type === 'video' ? {...item,url:'',cover_url:''} : item)}, loading: false, mediaIndex: 0, mediaPaused: false });
+        this.refreshVideoMedia();
         if (product.favorite) {
           syncLocalFavorite(product, true);
         }
@@ -421,25 +430,56 @@ Page({
     const imageMedia = product.media
       .map((item, index) => ({ item, index, url: previewUrlForMedia(item) }))
       .filter((entry) => entry.item.media_type === 'image' && entry.url);
-    const urls = imageMedia.map((entry) => entry.url);
-    const matched = imageMedia.find((entry) => entry.index === mediaIndex);
-    const current = matched?.url || urls[0];
-    if (!current || !urls.length) {
-      return;
-    }
-    wx.getImageInfo({
-      src: current,
-      complete: () => {
-        wx.previewImage({ urls, current });
-        track('sku_image_preview', {
-          sku_id: product.product_id,
-          page_path: pagePath(product.product_id, this.data.source),
-        });
-      },
-    });
+    const selected = Math.max(0, imageMedia.findIndex(entry => entry.index === mediaIndex));
+    preparePageImages(this, imageMedia.map(({item}) => ({resource_type:'sku_image',resource_id:String(product.product_id),media_id:item.media_id,variant:'original'})))
+      .then(urls => {
+        if (!urls.length || !isPageMediaActive(this) || this.data.product?.product_id !== product.product_id) return;
+        wx.previewImage({ urls, current: urls[selected] });
+        track('sku_image_preview', {sku_id:product.product_id,page_path:pagePath(product.product_id,this.data.source)});
+      }).catch(() => { if (isPageMediaActive(this)) this.setData({mediaError:'图片暂不可预览，请稍后重试'}); });
   },
 
-  onVideoPlay() {
+  refreshVideoMedia() {
+    const product = this.data.product;
+    if (!product) return;
+    readPageMedia(this,{resource_type:'sku_image',resource_id:String(product.product_id),variant:'thumbnail'})
+      .then(value => { if (this.data.product === product) this.setData({'product.cover_image':value.url}); }).catch(() => {});
+    product.media.forEach((item,index) => {
+      if (item.media_type !== 'video') return;
+      readPageMedia(this,{resource_type:'sku_video',resource_id:String(product.product_id),media_id:item.media_id,variant:'original'})
+        .then(value => { if (isPageMediaActive(this) && this.data.product?.product_id === product.product_id && this.data.product.media[index]?.media_id === item.media_id) this.setData({[`product.media[${index}].url`]:value.url}); })
+        .catch(() => { if (isPageMediaActive(this)) this.setData({mediaError:'视频暂不可播放，请稍后重试',failedVideoId:item.media_id}); });
+    });
+  },
+  onVideoTimeUpdate(event: WechatMiniprogram.CustomEvent<{currentTime:number}>) {
+    const id = Number(event.currentTarget.dataset.id);
+    const target = videoPositions.get(this)?.[id];
+    if (videoRecovering.get(this)?.[id]) {
+      if (target !== undefined && Math.abs(event.detail.currentTime-target)<=2) {
+        videoRecovering.set(this,{...videoRecovering.get(this),[id]:false});
+        if (this.data.product) reportPageMedia(this,{resource_type:'sku_video',resource_id:String(this.data.product.product_id),media_id:id,variant:'original'},'recovery','success');
+      }
+      return;
+    }
+    videoPositions.set(this, {...videoPositions.get(this), [id]: event.detail.currentTime});
+  },
+  onVideoMetadata(event: WechatMiniprogram.BaseEvent) {
+    const id = Number(event.currentTarget.dataset.id);
+    const position = videoPositions.get(this)?.[id];
+    const context = wx.createVideoContext(`sku-video-${id}`,this);
+    if (position) context.seek(position);
+    if (videoRecovering.get(this)?.[id] && videoIntent.get(this)?.[id]) context.play();
+  },
+
+  onVideoPause(event: WechatMiniprogram.BaseEvent) {
+    const id = Number(event.currentTarget.dataset.id);
+    if (!videoRecovering.get(this)?.[id]) videoIntent.set(this,{...videoIntent.get(this),[id]:false});
+  },
+
+  onVideoPlay(event: WechatMiniprogram.BaseEvent) {
+    const id = Number(event.currentTarget.dataset.id);
+    videoIntent.set(this,{...videoIntent.get(this),[id]:true});
+    if (this.data.product) reportPageMedia(this,{resource_type:'sku_video',resource_id:String(this.data.product.product_id),media_id:id,variant:'original'},'play','started');
     const product = this.data.product;
     this.setData({ mediaPaused: true });
     if (product) {
@@ -523,6 +563,7 @@ Page({
     }
     product.media.forEach((item) => {
       if (item.media_type === 'video') {
+        videoIntent.set(this,{...videoIntent.get(this),[item.media_id]:false});
         wx.createVideoContext(`sku-video-${item.media_id}`, this).pause();
       }
     });
@@ -530,10 +571,28 @@ Page({
   },
 
   onMediaError(event: WechatMiniprogram.BaseEvent) {
-    const mediaType = String(event.currentTarget.dataset.type || 'media');
-    this.setData({
-      mediaError: mediaType === 'video' ? '视频暂时无法播放' : '图片加载失败，可稍后重试',
-    });
+    const product = this.data.product;
+    const id = Number(event.currentTarget.dataset.id);
+    if (!product || !id) return;
+    const index = product.media.findIndex(item => item.media_type === 'video' && item.media_id === id);
+    if (index < 0 || !product.media[index].url || !isPageMediaActive(this)) return;
+    this.retryVideoReference(id, 'recover');
+  },
+
+  retryVideoMedia() {
+    this.retryVideoReference(this.data.failedVideoId, 'manual');
+  },
+
+  retryVideoReference(id: number, mode: 'recover' | 'manual') {
+    const product = this.data.product;
+    if (!product || !isPageMediaActive(this)) return;
+    const index = product.media.findIndex(item => item.media_type === 'video' && item.media_id === id);
+    if (index < 0) return;
+    videoRecovering.set(this,{...videoRecovering.get(this),[id]:true});
+    this.setData({mediaError:'视频正在恢复…',failedVideoId:0});
+    readPageMedia(this,{resource_type:'sku_video',resource_id:String(product.product_id),media_id:id,variant:'original'},mode)
+      .then(value => { if (isPageMediaActive(this) && this.data.product?.product_id === product.product_id && this.data.product.media[index]?.media_id === id) this.setData({[`product.media[${index}].url`]:value.url,mediaError:''}); })
+      .catch(error => { if (error?.name !== 'AbortError' && isPageMediaActive(this) && this.data.product?.product_id === product.product_id) this.setData({mediaError:'视频暂不可播放，请稍后重试',failedVideoId:id}); });
   },
 
   toggleFavorite() {

@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useModalReturnFocus } from '@/features/admin/components/use-modal-return-focus';
+import { MediaUploadStatus } from '@/features/media/media-upload-status';
+import type { MediaUploadTask, UploadSnapshot } from '@/features/media/media-upload-controller';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
@@ -204,7 +207,7 @@ function validateForm(form: CertificateFormState): {
   };
 }
 
-function CertificateFormModal({
+export function CertificateFormModal({
   open,
   mode,
   certificate,
@@ -223,6 +226,7 @@ function CertificateFormModal({
   onClose: () => void;
   onSuccess: (message: string) => void;
 }) {
+  useModalReturnFocus(open);
   const [form, setForm] = useState<CertificateFormState>(emptyForm);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -252,6 +256,53 @@ function CertificateFormModal({
     setSubmitting(false);
   }, [open, certificate, initialBrandId]);
 
+  const tasks = useRef(new Map<string, MediaUploadTask>());
+  const previewFiles = useRef(new Map<string, File>());
+  const active = useRef<MediaUploadTask | undefined>(undefined);
+  const selected = useRef<{file: File; image: boolean} | null>(null);
+  const epoch = useRef(0);
+  const running = useRef(false);
+  const [snapshot, setSnapshot] = useState<UploadSnapshot>({stage:'idle', progress:0});
+  const [leavePrompt, setLeavePrompt] = useState(false);
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (active.current || tasks.current.size) { event.preventDefault(); event.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => {
+      window.removeEventListener('beforeunload', warn); epoch.current++;
+      for (const task of new Set([...tasks.current.values(), ...(active.current ? [active.current] : [])])) void task.cancel().catch(() => {});
+    };
+  }, []);
+  const discard = async (key?: string) => {
+    const task = key ? tasks.current.get(key) : active.current;
+    if (task) await task.cancel();
+    if (key) { tasks.current.delete(key); previewFiles.current.delete(key); }
+  };
+  const cancelCurrent = async () => {
+    epoch.current++; running.current = true;
+    setSnapshot({stage:'cancelling', progress:0});
+    try {
+      await discard(); active.current = undefined; selected.current = null;
+      setUploadState(form.file ? 'done' : 'idle'); setImageUploadState('idle');
+      setUploadError(null); setImageUploadError(null);
+      setFieldErrors(current => ({...current, file:undefined}));
+      setSnapshot({stage:'cancelled', progress:0});
+    } catch (err) { setSnapshot({stage:'failed', progress:0, error:getErrorMessage(err, '取消失败，请重试')}); }
+    finally { running.current = false; }
+  };
+  const close = () => { if (submitting) return; if (active.current || tasks.current.size) setLeavePrompt(true); else onClose(); };
+  const leave = async () => {
+    if (submitting) return;
+    epoch.current++; running.current = true;
+    setSnapshot({stage:'cancelling',progress:0});
+    try {
+      await discard();
+      for (const key of tasks.current.keys()) await discard(key);
+      active.current = undefined; setLeavePrompt(false); onClose();
+    } catch (err) { setError(getErrorMessage(err, '取消未完成，请重试')); setSnapshot({stage:'failed',progress:0}); }
+    finally { running.current=false; }
+  };
   if (!open) return null;
 
   const updateForm = (patch: Partial<CertificateFormState>) => {
@@ -272,70 +323,53 @@ function CertificateFormModal({
     });
   };
 
-  const handleFileChange = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    setFieldErrors((current) => ({ ...current, file: undefined }));
-    setUploadError(null);
-    setUploadState('uploading');
-    setUploadProgress(8);
+  const upload = async (file: File | undefined, image: boolean, retry = false) => {
+    if (!file || running.current || submitting) return;
+    running.current = true;
+    const current = ++epoch.current;
+    selected.current = {file, image};
+    const state = image ? setImageUploadState : setUploadState;
+    const progress = image ? setImageUploadProgress : setUploadProgress;
+    const uploadError = image ? setImageUploadError : setUploadError;
+    setError(null); uploadError(null); state('uploading'); progress(0);
+    setFieldErrors(value => ({...value, file:undefined}));
+    setSnapshot({stage:'authorizing', progress:0});
     try {
-      const result = await uploadBrandCertificateFile(file, setUploadProgress);
-      updateForm({
-          file: {
-            file_url: result.file_url ?? result.url,
-            file_key: result.file_key ?? result.object_key,
-            thumbnail_url: result.thumbnail_url,
-            file_name: result.file_name ?? file.name,
-          file_mime_type: result.mime_type ?? file.type,
-          file_size_bytes: result.size ?? file.size,
-        },
+      if (!retry && active.current) { await active.current.cancel(); active.current = undefined; }
+      const result = await uploadBrandCertificateFile(file, value => {
+        if (current === epoch.current) { progress(value); setSnapshot({stage:'transferring', progress:value}); }
+      }, {task:retry ? active.current : undefined,
+        onTask:task => { if(current === epoch.current) active.current = task; else void task.cancel().catch(() => {}); },
+        onUpdate:value => { if(current === epoch.current) setSnapshot(value); },
       });
-      setUploadProgress(100);
-      setUploadState('done');
-    } catch (err) {
-      const message = getErrorMessage(err, '证书文件上传失败');
-      setUploadState('failed');
-      setUploadProgress(0);
-      setUploadError(message);
-      setFieldErrors((current) => ({ ...current, file: message }));
-    }
-  };
-
-  const handleImageChange = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    setFieldErrors((current) => ({ ...current, file: undefined }));
-    setImageUploadError(null);
-    setImageUploadState('uploading');
-    setImageUploadProgress(8);
-    try {
-      const result = await uploadBrandCertificateFile(file, setImageUploadProgress);
-      const nextImage: BrandCertificateImage = {
-        file_url: result.file_url ?? result.url,
-        file_key: result.file_key ?? result.object_key,
-        thumbnail_url: result.thumbnail_url,
-        file_name: result.file_name ?? file.name,
-        file_mime_type: result.mime_type ?? file.type,
-        file_size_bytes: result.size ?? file.size,
-        is_main: form.images.length === 0,
-        sort_order: form.images.length,
+      if (current !== epoch.current) return;
+      const entry = {
+        file_url:result.file_url ?? result.url, file_key:result.file_key ?? result.object_key,
+        thumbnail_url:result.thumbnail_url, file_name:result.file_name ?? file.name,
+        file_mime_type:result.mime_type ?? file.type, file_size_bytes:result.size ?? file.size,
       };
-      updateForm({
-        images: normalizeImages([...form.images, nextImage]),
-      });
-      setImageUploadProgress(100);
-      setImageUploadState('done');
+      previewFiles.current.set(entry.file_key,file);
+      // Keep ownership of every ready file until the business save commits.
+      if(active.current) tasks.current.set(entry.file_key, active.current);
+      if (image) updateForm({images:normalizeImages([...form.images, {...entry, is_main:!form.images.length, sort_order:form.images.length}])});
+      else {
+        if (form.file?.file_key && form.file.file_key !== entry.file_key) await discard(form.file.file_key);
+        updateForm({file:entry});
+      }
+      active.current = undefined; state('done'); progress(100);
+      setSnapshot(value => ({...value,stage:'uploaded', progress:100}));
     } catch (err) {
-      const message = getErrorMessage(err, '证书图片上传失败');
-      setImageUploadState('failed');
-      setImageUploadProgress(0);
-      setImageUploadError(message);
-      setFieldErrors((current) => ({ ...current, file: message }));
-    }
+      if (current !== epoch.current) return;
+      const message = getErrorMessage(err, '证书文件上传失败');
+      state('failed'); uploadError(message);
+      setSnapshot({stage:'failed', progress:0, error:message, retryable:true});
+    } finally { if (current === epoch.current) running.current = false; }
   };
+  const handleFileChange = (file: File | undefined) => upload(file, false);
+  const handleImageChange = (file: File | undefined) => upload(file, true);
 
   const setMainImage = (targetIndex: number) => {
+    if (running.current) return;
     const target = form.images[targetIndex];
     if (!target) return;
     updateForm({
@@ -348,8 +382,12 @@ function CertificateFormModal({
     });
   };
 
-  const removeImage = (targetIndex: number) => {
+  const removeImage = async (targetIndex: number) => {
+    if (running.current) return;
     const removed = form.images[targetIndex];
+    if (!removed) return;
+    try { await discard(removed?.file_key); }
+    catch (err) { setError(getErrorMessage(err, '取消图片失败，请重试')); return; }
     const remaining = form.images.filter((_, index) => index !== targetIndex);
     if (remaining.length === 0) {
       updateForm({ images: [] });
@@ -368,7 +406,7 @@ function CertificateFormModal({
   };
 
   const handleSubmit = async () => {
-    if (uploadState === 'uploading' || imageUploadState === 'uploading') {
+    if (running.current || snapshot.stage === 'failed') {
       setError(null);
       setFieldErrors((current) => ({ ...current, file: '证书文件或图片上传中，请稍后保存' }));
       return;
@@ -389,6 +427,8 @@ function CertificateFormModal({
         await updateBrandCertificate(certificate.id, payload);
         onSuccess('证书已更新');
       }
+      for (const task of tasks.current.values()) task.markSaved?.();
+      tasks.current.clear(); active.current = undefined;
       onClose();
     } catch (err) {
       setError(getErrorMessage(err, '保存证书失败'));
@@ -397,7 +437,7 @@ function CertificateFormModal({
     }
   };
 
-  const isUploading = uploadState === 'uploading' || imageUploadState === 'uploading';
+  const isUploading = ['authorizing','transferring','saving','verifying','processing','cancelling'].includes(snapshot.stage);
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -415,7 +455,7 @@ function CertificateFormModal({
             </span>
             <p className="modal-desc">维护证书文件、有效期、展示状态与品牌归属。</p>
           </div>
-          <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
+          <button type="button" className="modal-close" aria-label="关闭" onClick={close}>
             ×
           </button>
         </div>
@@ -526,9 +566,11 @@ function CertificateFormModal({
               <span className="field-label">
                 证书图片 <span className="req">*</span>
               </span>
-              <CertificateImageGrid
+              <CertificateImageGrid previewFile={image => previewFiles.current.get(image.file_key)}
+                mediaReference={image => tasks.current.get(image.file_key)?.sessionId ? {resource_type: 'upload_session', resource_id: tasks.current.get(image.file_key)!.sessionId!, variant: 'display'} : certificate ? {resource_type: 'certificate', resource_id: String(certificate.id), media_id: image.media_id, variant: 'display'} : undefined}
                 images={form.images}
                 state={imageUploadState}
+                disabled={isUploading || submitting}
                 progress={imageUploadProgress}
                 error={imageUploadError}
                 onSelectFile={(selectedFile) => void handleImageChange(selectedFile)}
@@ -547,13 +589,16 @@ function CertificateFormModal({
                 PDF / 兼容文件
               </span>
               <CertificateFileCard
+                previewFile={form.file ? previewFiles.current.get(form.file.file_key) : undefined}
+                reference={form.file && tasks.current.get(form.file.file_key)?.sessionId ? {resource_type:'upload_session',resource_id:tasks.current.get(form.file.file_key)!.sessionId!,variant:'original'} : certificate ? {resource_type:'certificate',resource_id:String(certificate.id),variant:'original'} : undefined}
                 file={form.file}
                 state={uploadState}
+                disabled={isUploading || submitting}
                 progress={uploadProgress}
                 error={uploadError}
                 showReadyText={mode === 'create' || uploadState === 'uploading'}
                 maxFileSizeMb={maxFileSizeMb}
-                onRemove={() => updateForm({ file: null })}
+                onRemove={() => { if (!running.current) void discard(form.file?.file_key).then(() => updateForm({file:null})).catch(err => setError(getErrorMessage(err, '取消文件失败，请重试'))); }}
                 onSelectFile={(selectedFile) => void handleFileChange(selectedFile)}
               />
             </div>
@@ -622,17 +667,25 @@ function CertificateFormModal({
               <p className="form-help">{form.remark.length} / 500</p>
             </div>
           </div>
+          <MediaUploadStatus mediaKind={selected.current?.file.type === 'application/pdf' ? 'document' : 'image'}
+            stage={snapshot.stage} progress={snapshot.progress} fileName={snapshot.stage === 'uploaded' ? undefined : selected.current?.file.name} error={snapshot.error}
+            onCancel={() => void cancelCurrent()}
+            onRetry={snapshot.retryable && selected.current ? () => void upload(selected.current!.file, selected.current!.image, true) : undefined} />
+          {snapshot.warning ? <p className="text-brand-gold">{snapshot.warning}</p> : null}
+          {leavePrompt ? <div role="alert"><p>离开会取消尚未保存的证书上传。</p>
+            <button type="button" className="btn" onClick={() => setLeavePrompt(false)}>继续编辑</button>
+            <button type="button" className="btn" onClick={() => void leave()}>取消上传并离开</button></div> : null}
           {error ? <p className="form-error">{error}</p> : null}
         </div>
 
         <div className="modal-footer">
-          <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+          <button type="button" className="btn" onClick={close} disabled={submitting}>
             取消
           </button>
           <button
             type="button"
             className="btn primary"
-            disabled={submitting || isUploading}
+            disabled={submitting || isUploading || snapshot.stage === 'failed'}
             onClick={() => void handleSubmit()}
           >
             保存证书

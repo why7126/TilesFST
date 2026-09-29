@@ -1,0 +1,9 @@
+{
+  "source": "Isolated acceptance SQLite session-owned exact keys only",
+  "sessions": 3,
+  "exactKeys": 7,
+  "deletedVersions": 7,
+  "abortedMultipartUploads": 0,
+  "remaining": 0,
+  "productionBusinessObjectsTouched": false
+}

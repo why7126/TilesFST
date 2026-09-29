@@ -1,0 +1,7 @@
+<view class="read-frame">
+  <image wx:if="{{signedUrl}}" class="read-image" src="{{signedUrl}}" mode="{{mode}}" lazy-load="{{lazyLoad}}" binderror="onImageError" bindload="onImageLoad" />
+  <view wx:if="{{readState !== 'ready' && readState !== 'degraded'}}" class="read-state">
+    <text>{{readState === 'loading' ? '…' : readState === 'refreshing' ? '恢复中' : readState === 'unavailable' ? '不可用' : '加载失败'}}</text>
+    <button class="read-retry" wx:if="{{readState === 'failed'}}" size="mini" catchtap="retryMedia">重试</button>
+  </view>
+</view>

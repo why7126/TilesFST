@@ -1,0 +1,228 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "openspec-apply-change",
+  "scenario": "B6",
+  "run_id": "acc22e5d-f1f4-48b2-98f0-b286a277fd4e",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:46:16.137844+00:00",
+  "policy_sha256": "36b3079e9537fdc56bff3b80c62c029b5fd3211839a3daad7acb1a78bb940c8f",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "B",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "C",
+      "authorized": false,
+      "deps": [],
+      "blocked": "manual"
+    },
+    {
+      "id": "D",
+      "authorized": false,
+      "deps": [],
+      "blocked": "manual"
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:46:16.312714+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:46:23.045210+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:46:23.519637+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:46:27.946579+00:00",
+      "kind": "question",
+      "tasks": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-10T02:46:30.079368+00:00",
+      "kind": "test",
+      "task": "A",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 5,
+      "at": "2026-09-10T02:46:32.269407+00:00",
+      "kind": "complete",
+      "task": "A"
+    },
+    {
+      "seq": 6,
+      "at": "2026-09-10T02:46:34.102829+00:00",
+      "kind": "test",
+      "task": "B",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 7,
+      "at": "2026-09-10T02:46:36.570724+00:00",
+      "kind": "complete",
+      "task": "B"
+    },
+    {
+      "seq": 8,
+      "at": "2026-09-10T02:46:40.430671+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 9,
+      "at": "2026-09-10T02:46:40.833107+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 10,
+      "at": "2026-09-10T02:46:43.896877+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [
+          "A",
+          "B"
+        ],
+        "verified": [
+          "A",
+          "B"
+        ],
+        "manual_pending": [
+          "C",
+          "D"
+        ],
+        "external_blocked": [],
+        "completion_event": false,
+        "archive_ready": false
+      }
+    },
+    {
+      "seq": 11,
+      "at": "2026-09-10T02:47:02.323825+00:00",
+      "kind": "restore"
+    },
+    {
+      "seq": 12,
+      "at": "2026-09-10T02:47:02.324070+00:00",
+      "kind": "answer",
+      "tasks": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "seq": 13,
+      "at": "2026-09-10T02:47:02.324108+00:00",
+      "kind": "condition",
+      "task": "C",
+      "evidence": "approved_answer",
+      "generation": "answer-1"
+    },
+    {
+      "seq": 14,
+      "at": "2026-09-10T02:47:02.324118+00:00",
+      "kind": "condition",
+      "task": "D",
+      "evidence": "approved_answer",
+      "generation": "answer-1"
+    },
+    {
+      "seq": 15,
+      "at": "2026-09-10T02:47:02.324135+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 16,
+      "at": "2026-09-10T02:47:05.880984+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 17,
+      "at": "2026-09-10T02:47:06.280270+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 18,
+      "at": "2026-09-10T02:47:08.521651+00:00",
+      "kind": "test",
+      "task": "C",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 19,
+      "at": "2026-09-10T02:47:08.522986+00:00",
+      "kind": "test",
+      "task": "D",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 20,
+      "at": "2026-09-10T02:47:11.577974+00:00",
+      "kind": "complete",
+      "task": "C"
+    },
+    {
+      "seq": 21,
+      "at": "2026-09-10T02:47:11.579089+00:00",
+      "kind": "complete",
+      "task": "D"
+    },
+    {
+      "seq": 22,
+      "at": "2026-09-10T02:47:11.579880+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 23,
+      "at": "2026-09-10T02:47:14.675097+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "verified": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "manual_pending": [],
+        "external_blocked": [],
+        "completion_event": true,
+        "archive_ready": false
+      }
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "passed",
+    "errors": []
+  }
+}

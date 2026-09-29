@@ -1,6 +1,24 @@
 # BUG 序号注册表（/bug-capture 维护）
-next_id: 148
+next_id: 150
 entries:
+  - id: BUG-0149-opsx-apply-premature-stop
+    title: opsx-apply 持续执行缺少行为验收，提前结束无法有效检出
+    status: done
+    severity: high
+    created: "2026-09-10 08:54:58"
+    related_requirement: null
+    related_bug: null
+    iteration: null
+    related_change: fix-apply-continuous-execution-behavior
+  - id: BUG-0148-miniapp-product-list-card-image-fit
+    title: 小程序商品列表卡片图片无法完整显示
+    status: done
+    severity: medium
+    created: "2026-09-04 16:52:03"
+    related_requirement: REQ-0049-miniapp-product-card-component
+    related_bug: null
+    related_change: fix-miniapp-product-grid-image-fit
+    iteration: null
   - id: BUG-0147-miniapp-certificate-list-images-missing
     title: 小程序证书列表页图片不显示
     status: done

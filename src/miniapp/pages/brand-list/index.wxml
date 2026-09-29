@@ -58,26 +58,26 @@
     >
       <swiper-item wx:for="{{banners}}" wx:key="id">
         <view class="brand-slide" bindtap="openBanner" data-banner="{{item}}" data-index="{{index}}">
-          <image
+          <authorized-image resource-type="banner_image" resource-id="{{item.id}}" variant="display"
             wx:if="{{item.display_url}}"
             class="brand-hero-image"
             src="{{item.display_url}}"
-            mode="aspectFill"
+            mode="aspectFit"
             lazy-load="{{index > 0}}"
             binderror="onImageError"
             data-index="{{index}}"
             data-variant="display_url"
-          ></image>
-          <image
+          ></authorized-image>
+          <authorized-image resource-type="banner_image" resource-id="{{item.id}}" variant="display"
             wx:elif="{{item.thumbnail_url}}"
             class="brand-hero-image"
             src="{{item.thumbnail_url}}"
-            mode="aspectFill"
+            mode="aspectFit"
             lazy-load="{{index > 0}}"
             binderror="onImageError"
             data-index="{{index}}"
             data-variant="thumbnail_url"
-          ></image>
+          ></authorized-image>
           <view wx:else class="brand-hero-copy">
             <view class="brand-hero-title">{{item.title || '全球严选瓷砖品牌'}}</view>
             <view class="brand-hero-subtitle">{{item.subtitle || '认证品牌 · 真实产品 · 品质可追溯'}}</view>
@@ -107,7 +107,7 @@
       >
         <view class="brand-entry" data-index="{{brandIndex}}" catchtap="onBrandInfoTap" hover-class="brand-entry-press">
           <view class="brand-logo">
-            <image
+            <authorized-image resource-type="brand_logo" resource-id="{{item.brand_id}}" variant="thumbnail"
               wx:if="{{item.brand_logo_thumbnail_url}}"
               class="brand-logo-image"
               src="{{item.brand_logo_thumbnail_url}}"
@@ -115,7 +115,7 @@
               lazy-load="{{brandIndex > 1}}"
               binderror="onLogoError"
               data-index="{{brandIndex}}"
-            ></image>
+            ></authorized-image>
             <text wx:else class="brand-logo-fallback">{{item.fallback_text}}</text>
           </view>
           <view class="brand-copy">

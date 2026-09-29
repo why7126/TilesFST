@@ -1,0 +1,55 @@
+{
+  "executed_at": "2026-09-09 10:37:03",
+  "source": "CUA in-app browser DOM and read-only usage-event summaries from user local Compose backend",
+  "sample": {
+    "bytes": 62013904,
+    "duration_seconds": 990,
+    "status": "DRAFT",
+    "synthetic": true
+  },
+  "browser_final": {
+    "current_time": 990,
+    "ended": true,
+    "paused": true,
+    "ready_state": 4
+  },
+  "observed_start": {
+    "duration": 990,
+    "ready_state": 4,
+    "paused": false,
+    "signature_remaining_seconds": 268.356
+  },
+  "events_utc": [
+    {
+      "time": "2026-09-09T02:08:18.711296+00:00",
+      "phase": "play",
+      "outcome": "started"
+    },
+    {
+      "time": "2026-09-09T02:16:35.189883+00:00",
+      "phase": "load",
+      "outcome": "failed"
+    },
+    {
+      "time": "2026-09-09T02:16:36.471926+00:00",
+      "phase": "authorization",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-09-09T02:16:36.794269+00:00",
+      "phase": "play",
+      "outcome": "started"
+    },
+    {
+      "time": "2026-09-09T02:16:37.122120+00:00",
+      "phase": "recovery",
+      "outcome": "success"
+    }
+  ],
+  "position_evidence": "Recovery success emitted by component only when saved position difference <=2 seconds; no continuous visual sample during native tool timeout. Earlier paused-state recovery has independent exact DOM evidence.",
+  "limits": [
+    "Native PDF reader tool timed out while video continued; not a continuous visual observation",
+    "One observed renewal, not proof of two or more renewal cycles",
+    "Not real-device proof or a latency benchmark"
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "openspec-apply-change",
+  "scenario": "B6",
+  "run_id": "88ec2711-31f0-45c3-968d-1097022094aa",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:41:51.617178+00:00",
+  "policy_sha256": "36b3079e9537fdc56bff3b80c62c029b5fd3211839a3daad7acb1a78bb940c8f",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "B",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "C",
+      "authorized": false,
+      "deps": [],
+      "blocked": "manual"
+    },
+    {
+      "id": "D",
+      "authorized": false,
+      "deps": [],
+      "blocked": "manual"
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:41:53.111391+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:41:59.387836+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:41:59.534433+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:42:03.002503+00:00",
+      "kind": "question",
+      "tasks": [
+        "invalid-task",
+        "invalid-task"
+      ]
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-10T02:42:05.964235+00:00",
+      "kind": "question",
+      "tasks": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "seq": 5,
+      "at": "2026-09-10T02:42:08.073142+00:00",
+      "kind": "test",
+      "task": "A",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 6,
+      "at": "2026-09-10T02:42:11.423410+00:00",
+      "kind": "complete",
+      "task": "A"
+    },
+    {
+      "seq": 7,
+      "at": "2026-09-10T02:42:13.833497+00:00",
+      "kind": "test",
+      "task": "B",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 8,
+      "at": "2026-09-10T02:42:16.577344+00:00",
+      "kind": "complete",
+      "task": "B"
+    },
+    {
+      "seq": 9,
+      "at": "2026-09-10T02:42:22.336016+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 10,
+      "at": "2026-09-10T02:42:22.759140+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 11,
+      "at": "2026-09-10T02:42:25.538310+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [
+          "A",
+          "B"
+        ],
+        "verified": [
+          "A",
+          "B"
+        ],
+        "manual_pending": [
+          "C",
+          "D"
+        ],
+        "external_blocked": [],
+        "completion_event": false,
+        "archive_ready": false
+      }
+    },
+    {
+      "seq": 12,
+      "at": "2026-09-10T02:42:47.225936+00:00",
+      "kind": "restore"
+    },
+    {
+      "seq": 13,
+      "at": "2026-09-10T02:42:47.226017+00:00",
+      "kind": "answer",
+      "tasks": [
+        "C",
+        "D"
+      ]
+    },
+    {
+      "seq": 14,
+      "at": "2026-09-10T02:42:47.226048+00:00",
+      "kind": "condition",
+      "task": "C",
+      "evidence": "approved_answer",
+      "generation": "answer-1"
+    },
+    {
+      "seq": 15,
+      "at": "2026-09-10T02:42:47.226056+00:00",
+      "kind": "condition",
+      "task": "D",
+      "evidence": "approved_answer",
+      "generation": "answer-1"
+    },
+    {
+      "seq": 16,
+      "at": "2026-09-10T02:42:47.226070+00:00",
+      "kind": "turn_start"
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "failed",
+    "errors": [
+      "3: fragmented/repeated/irrelevant question",
+      "B6 missing grouped questions/restore/completion"
+    ]
+  }
+}

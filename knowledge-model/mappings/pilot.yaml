@@ -1,0 +1,28 @@
+version: 0.1.0
+sources:
+- path: openspec/specs/tile-sku-management/spec.md
+  locator: '### Requirement: 管理端 SKU 上下架 API'
+- path: src/backend/app/api/v1/admin_tile_skus.py
+  locator: def publish_tile_sku(
+- path: src/web/openapi.json
+  locator: /api/v1/admin/tile-skus/{tile_id}/publish
+entities:
+- id: api:sku-publish
+  type: pd:API
+  source_index: 2
+  selector:
+    kind: openapi
+    path: /api/v1/admin/tile-skus/{tile_id}/publish
+    method: post
+- id: artifact:sku-publish-router
+  type: pd:Artifact
+  source_index: 1
+  selector:
+    kind: python_symbol
+    name: publish_tile_sku
+relations:
+- id: edge:sku-api-behavior
+  predicate: pd:implementsBehavior
+  subject: api:sku-publish
+  object: model:PublishTileSKU
+  source_index: 2

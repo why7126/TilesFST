@@ -1,0 +1,21 @@
+{
+  "source": "live_normalized_events",
+  "status": "passed",
+  "runs": 14,
+  "entries": [
+    "opsx-apply",
+    "openspec-apply-change"
+  ],
+  "scenarios": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B4-stop",
+    "B5",
+    "B6"
+  ],
+  "errors": [],
+  "unit_tests_passed": 48,
+  "policy_hashes_match_current_files": true
+}

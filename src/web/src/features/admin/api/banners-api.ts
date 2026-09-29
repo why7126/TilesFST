@@ -1,3 +1,5 @@
+import { createImageUploadTask } from '@/features/media/media-upload-api';
+import type { MediaUploadTask, UploadSnapshot } from '@/features/media/media-upload-controller';
 import { api } from '@/features/auth/api/auth-api';
 import type {
   BannerAdminItem,
@@ -42,22 +44,22 @@ export async function deleteBanner(bannerId: number) {
   await api.deleteBannerApiV1AdminBannersBannerIdDelete(bannerId);
 }
 
-export async function uploadBannerImage(file: File, onProgress?: UploadProgressHandler) {
-  const response = await api.uploadBannerImageApiV1AdminUploadsBannerImagesPost(
-    { file },
-    {
-      onUploadProgress: (event) => {
-        if (!onProgress) return;
-        const total = event.total ?? 0;
-        if (total <= 0) {
-          onProgress(50);
-          return;
-        }
-        onProgress(Math.min(99, Math.max(1, Math.round((event.loaded / total) * 100))));
+export async function uploadBannerImage(file: File, onProgress?: UploadProgressHandler, options?: {
+  bannerId?: number; task?: MediaUploadTask; onTask?: (task: MediaUploadTask) => void;
+  onUpdate?: (value: UploadSnapshot) => void;
+}) {
+  const update = (value: UploadSnapshot) => { onProgress?.(value.progress); options?.onUpdate?.(value); };
+  const task = options?.task ?? createImageUploadTask(file, options?.bannerId, update, async (signal, progress) => {
+    const response = await api.uploadBannerImageApiV1AdminUploadsBannerImagesPost({ file }, undefined, {
+      signal, onUploadProgress: event => {
+        if (event.total && event.total > 0) progress(Math.min(100, event.loaded / event.total * 100));
       },
-    },
-  );
-  return response.data.data!;
+    });
+    return response.data.data!;
+  }, 'banner');
+  task.setListener(update);
+  options?.onTask?.(task);
+  return task.run();
 }
 
 export type { BannerAdminItem };

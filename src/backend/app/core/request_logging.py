@@ -28,7 +28,9 @@ BEHAVIOR_TRACE_ID_HEADER = "x-behavior-trace-id"
 BEHAVIOR_EVENT_ID_HEADER = "x-behavior-event-id"
 BEHAVIOR_ID_MAX_LENGTH = 128
 BEHAVIOR_ID_ALLOWED_CHARS = CLIENT_REQUEST_ID_ALLOWED_CHARS
-ALLOWED_CLIENT_TYPES = frozenset({"web_admin", "web_catalog", "wechat_miniapp"})
+ALLOWED_CLIENT_TYPES = frozenset(
+    {"web_admin", "web_catalog", "wechat_miniapp", "workbuddy_connector"}
+)
 
 EXCLUDED_PREFIXES = (
     "/health",
@@ -86,6 +88,7 @@ BODY_VALUE_ALLOWLIST = {
     "resource_id",
 }
 SENSITIVE_KEYS = {
+    "ticket", "head_url", "signature", "q-signature", "x-amz-signature",
     "authorization",
     "cookie",
     "password",
@@ -134,6 +137,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             finished_at = datetime.now(UTC)
             if response is not None:
                 response.headers["x-request-id"] = request_id
+                if request.url.path.startswith("/api/v1/admin/uploads/sessions"):
+                    response.headers["Cache-Control"] = "no-store"
             if _should_log_request(request.url.path):
                 _record_request_log(
                     request,

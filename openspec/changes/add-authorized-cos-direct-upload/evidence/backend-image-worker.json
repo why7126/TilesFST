@@ -1,0 +1,103 @@
+{
+  "source": "Real COS plus isolated current-source Docker image processing, 1CPU/512MiB, synthetic media; not production Beijing host",
+  "cases": [
+    {
+      "case": "transparent",
+      "sourceBytes": 10292,
+      "containerWallSeconds": 2.58,
+      "passed": true,
+      "downloadMs": 101.3,
+      "variants": {
+        "thumbnail": {
+          "width": 480,
+          "height": 360,
+          "size": 508,
+          "mime_type": "image/webp",
+          "quality_start": 82,
+          "target_kib": 0,
+          "warning": false,
+          "duration_ms": 54.74,
+          "put_ms": 165.67
+        },
+        "display": {
+          "width": 1600,
+          "height": 1200,
+          "size": 3660,
+          "mime_type": "image/webp",
+          "quality_start": 86,
+          "target_kib": 768,
+          "warning": false,
+          "duration_ms": 52.16,
+          "put_ms": 179.57
+        }
+      }
+    },
+    {
+      "case": "noise",
+      "sourceBytes": 5071313,
+      "containerWallSeconds": 3.583,
+      "passed": true,
+      "downloadMs": 635.96,
+      "variants": {
+        "thumbnail": {
+          "width": 480,
+          "height": 360,
+          "size": 46364,
+          "mime_type": "image/webp",
+          "quality_start": 82,
+          "target_kib": 0,
+          "warning": false,
+          "duration_ms": 66.05,
+          "put_ms": 179.92
+        },
+        "display": {
+          "width": 1600,
+          "height": 1200,
+          "size": 782256,
+          "mime_type": "image/webp",
+          "quality_start": 86,
+          "target_kib": 768,
+          "warning": false,
+          "duration_ms": 432.58,
+          "put_ms": 322.23
+        }
+      }
+    },
+    {
+      "case": "small",
+      "sourceBytes": 102,
+      "containerWallSeconds": 2.301,
+      "passed": true,
+      "downloadMs": 75.86,
+      "variants": {
+        "thumbnail": {
+          "width": 120,
+          "height": 80,
+          "size": 118,
+          "mime_type": "image/webp",
+          "quality_start": 82,
+          "target_kib": 0,
+          "warning": false,
+          "duration_ms": 0.4,
+          "put_ms": 129.05
+        },
+        "display": {
+          "width": 120,
+          "height": 80,
+          "size": 116,
+          "mime_type": "image/webp",
+          "quality_start": 86,
+          "target_kib": 768,
+          "warning": false,
+          "duration_ms": 0.35,
+          "put_ms": 137.55
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "deletedVersions": 9,
+    "remainingVersions": 0
+  },
+  "cloudImageProcessingUsed": false
+}

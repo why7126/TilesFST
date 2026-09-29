@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.repositories.user_repository import UserRecord
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -24,8 +26,9 @@ router = APIRouter(dependencies=[Depends(require_admin_user)])
 def get_banner_admin_service(
     banner_repo: Annotated[BannerRepository, Depends(get_banner_repository)],
     topic_repo: Annotated[TopicRepository, Depends(get_topic_repository)],
+    actor: Annotated[UserRecord, Depends(require_admin_user)],
 ) -> BannerAdminService:
-    return BannerAdminService(banner_repo, topic_repo)
+    return BannerAdminService(banner_repo, topic_repo, actor_id=actor.id)
 
 
 @router.get("", response_model=ApiResponse[BannerAdminListData], summary="Banner 列表")

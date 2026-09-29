@@ -1,17 +1,16 @@
 <view
-  class="product-card {{density}} {{normalized.available ? '' : 'disabled'}}"
+  class="product-card price-theme {{density}} {{normalized.available ? '' : 'disabled'}}"
   hover-class="card-press"
   bindtap="openDetail"
 >
   <view class="product-image-frame {{imageFailed || !normalized.imageSrc ? 'fallback' : ''}}">
-    <image
+    <authorized-image resource-type="sku_image" resource-id="{{normalized.skuId}}"
       wx:if="{{normalized.imageSrc && !imageFailed}}"
       class="product-image"
       src="{{normalized.imageSrc}}"
-      mode="aspectFill"
+      mode="{{density === 'grid' ? 'aspectFit' : 'aspectFill'}}"
       lazy-load="{{imageLazyLoad}}"
-      binderror="onImageError"
-    ></image>
+    ></authorized-image>
     <view wx:else class="product-image-empty">暂无图片</view>
     <view wx:if="{{normalized.badge}}" class="product-badge">{{normalized.badge}}</view>
   </view>
@@ -19,6 +18,6 @@
     <view class="product-name">{{normalized.productName}}</view>
     <view class="product-brand">{{normalized.brandName}}</view>
     <view class="product-spec">{{normalized.specification}}</view>
-    <view class="product-price"><text>参考价格</text>{{normalized.priceText}}</view>
+    <view class="product-price {{normalized.priceState === 'valid' ? 'price-valid' : 'price-placeholder'}}"><text class="price-label">参考价格</text>{{normalized.priceText}}</view>
   </view>
 </view>

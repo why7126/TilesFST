@@ -1,0 +1,49 @@
+{
+  "source": "Isolated Docker Web Nginx + FastAPI + SQLite + actual COS; generated WebM, no production business records",
+  "sampleBytes": 11921,
+  "network": [
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 11921,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    }
+  ],
+  "states": [
+    {
+      "state": "authorizing",
+      "at": 1290.5999999642372
+    },
+    {
+      "state": "transferring",
+      "at": 1879.0999999642372
+    },
+    {
+      "state": "verifying",
+      "at": 2214.399999976158
+    },
+    {
+      "state": "uploaded",
+      "at": 2806.699999988079
+    }
+  ],
+  "preview": {
+    "width": 160,
+    "height": 90,
+    "currentTime": 0.115856,
+    "localPreview": true
+  },
+  "savedVideoCount": 1,
+  "formalized": true,
+  "readStatus": 206,
+  "readContentType": "video/webm",
+  "layout": {
+    "width": 880,
+    "top": 32,
+    "bottom": 588,
+    "viewport": 620
+  },
+  "productionVerified": false
+}

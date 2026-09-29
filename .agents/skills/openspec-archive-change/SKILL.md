@@ -7,6 +7,8 @@ metadata:
   author: openspec
   version: "1.0"
   generatedBy: "1.3.1"
+created_at: 2026-06-13 13:29:52
+updated_at: 2026-09-10 23:03:12
 ---
 
 Archive a completed change in the experimental workflow.
@@ -133,3 +135,9 @@ All artifacts complete. All tasks complete.
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
 
+
+## Knowledge Model Archive Completion
+
+归档前若存在 knowledge-model/registry.yaml，先运行 `python scripts/validate-knowledge-model.py` 预检定义和映射；预检失败需修复后继续。
+
+归档与 Workflow Sync 后运行 `python scripts/promote-issues-for-archive.py --change <change-id>`，其成功 promotion 后自动调用知识同步，独立 Change 也不跳过。范围外报告 out_of_scope。若返回 source_revision_pending，归档已成功但知识同步待恢复，不能宣称生命周期全部完成；按 Git 流程提交已归档来源后运行 `python scripts/sync-knowledge-model.py sync --change <change-id> --revision HEAD`。已归档恢复直接运行 sync，不重复 OpenSpec archive。冻结后的 trace 不回写，恢复回执保存在 data/knowledge-model。

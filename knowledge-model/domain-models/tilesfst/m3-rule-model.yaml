@@ -1,0 +1,25 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: RULE
+coverage: covered
+elements:
+- id: model:PublishedDeleteDenied
+  type: pd:BusinessRule
+  layer: domain
+  attributes:
+    name: 已上架SKU不得删除
+  source:
+    path: openspec/specs/tile-sku-management/spec.md
+    locator: '### Requirement: 管理端 SKU 条件删除 API'
+  review_status: confirmed
+  refs:
+    ownerEntity:
+    - model:TileSKU
+  condition:
+    op: eq
+    field: status
+    value: PUBLISHED
+  effect: deny
+  scope:
+    action: DeleteTileSKU
+    version: current-spec

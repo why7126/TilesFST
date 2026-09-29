@@ -25,6 +25,7 @@ export type UsageTrackingEventName =
   | 'entity_delete'
   | 'status_change'
   | 'media_upload'
+  | 'media_read'
   | 'login_success'
   | 'login_failed'
   | 'api_error';
@@ -37,6 +38,8 @@ interface TrackUsageEventOptions {
   pagePath?: string;
   requestId?: string | null;
   summary?: string;
+  taskTraceId?: string | null;
+  taskType?: string;
 }
 
 export function getUsageTrackingSessionId(): string {
@@ -86,6 +89,8 @@ export async function trackUsageEvent(
       session_id: getUsageTrackingSessionId(),
       duration_ms: normalizeDurationMs(options.durationMs),
       summary: options.summary,
+      task_trace_id: options.taskTraceId ?? undefined,
+      task_type: options.taskType,
     };
     await api.createUsageEventApiV1UsageEventsPost(payload);
   } catch {

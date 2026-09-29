@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 import { navigateToSearch } from '../../utils/search-navigation';
 
@@ -97,6 +98,9 @@ function normalizeBrandItem(item: BrandItem): BrandListItem {
 }
 
 Page({
+  onShareTimeline() {
+    return sharePage('brand-list', this, 'wechat_timeline');
+  },
   data: {
     title: '品牌',
     status: 'loading',
@@ -110,12 +114,14 @@ Page({
     loadMoreError: '',
     requestId: '',
     sourcePage: 'tabbar',
+    shareKeyword: '',
     keyword: '',
     imageFallback: '',
     skeletons: [1, 2, 3, 4],
   },
 
   onLoad(query: Record<string, string>) {
+    query = receiveShare('brand-list', query);
     this.setCurrentTab();
     this.setData({
       sourcePage: query.sourcePage || query.source || 'tabbar',
@@ -139,10 +145,7 @@ Page({
   },
 
   onShareAppMessage() {
-    return {
-      title: '菲尚特品牌列表',
-      path: '/pages/brand-list/index?sourcePage=share',
-    };
+    return sharePage('brand-list', this, 'wechat_friend');
   },
 
   setCurrentTab() {
@@ -176,6 +179,7 @@ Page({
         const status = merged.length ? 'ready' : 'empty';
         this.setData({
           status,
+          shareKeyword: keyword,
           banners: keyword ? [] : data.banners || [],
           items: merged,
           page: data.page || nextPage,

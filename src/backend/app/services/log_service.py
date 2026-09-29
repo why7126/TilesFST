@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
+from app.core.media_redaction import redact_media_text
 from app.core.exceptions import AuthInvalidRequestError
 from app.repositories.log_repository import LogRecord, LogRepository
 from app.repositories.task_trace_repository import TaskTraceRepository
@@ -42,6 +43,7 @@ from app.schemas.logs import (
 from app.services.task_trace_service import TaskTraceService
 
 SENSITIVE_KEYS = {
+    "ticket", "head_url", "signature", "q-signature", "x-amz-signature",
     "authorization",
     "cookie",
     "password",
@@ -129,6 +131,11 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "required": {"entity_type", "entity_id", "from_status", "to_status"},
         "forbidden": {"raw_payload", "token"},
     },
+    "media_read": {
+        "category": "media",
+        "required": {"resource_type", "variant", "phase", "result"},
+        "forbidden": {"url", "head_url", "object_key", "ticket", "token", "signature"},
+    },
     "media_upload": {
         "category": "media",
         "required": {"media_type", "business_type", "file_size", "result"},
@@ -153,6 +160,41 @@ EVENT_DEFINITIONS: dict[str, dict[str, Any]] = {
         "category": "miniapp_engagement",
         "required": {"product_id", "page_path", "client_type"},
         "forbidden": {"authorization", "cookie", "raw_payload", "raw_filename"},
+    },
+    "share_page_open": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "brand_list_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "certificate_list_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "store_info_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "category_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "search_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
+    },
+    "find_share_click": {
+        "category": "miniapp_public_sharing",
+        "required": {"page_path", "share_channel", "client_type"},
+        "forbidden": {"authorization", "cookie", "raw_payload", "raw_object_key", "object_key", "internal_remark", "phone", "keyword", "normalizedkeyword", "url", "share_url", "query", "history"},
     },
     "home_share": {
         "category": "miniapp_engagement",
@@ -908,6 +950,9 @@ class LogService:
         if forbidden_present:
             raise AuthInvalidRequestError(f"埋点事件包含禁止属性：{', '.join(forbidden_present)}")
 
+        if payload.event_name == "media_read" and properties.get("result") not in {"success", "failed"}:
+            raise AuthInvalidRequestError("媒体事件 result 必须为 success 或 failed")
+
         sanitized = sanitize_metadata(properties)
         effective_client_request_id = truncate_text(payload.client_request_id or client_request_id, 128)
         if effective_client_request_id:
@@ -1225,9 +1270,9 @@ def sanitize_metadata(value: dict[str, Any]) -> dict[str, Any]:
         if isinstance(item, dict):
             sanitized[key] = sanitize_metadata(item)
         elif isinstance(item, list):
-            sanitized[key] = [sanitize_metadata(x) if isinstance(x, dict) else x for x in item[:20]]
+            sanitized[key] = [sanitize_metadata({"value": x})["value"] for x in item[:20]]
         elif isinstance(item, str):
-            sanitized[key] = truncate_text(item, 300)
+            sanitized[key] = truncate_text(redact_media_text(item), 300)
         else:
             sanitized[key] = item
     return sanitized

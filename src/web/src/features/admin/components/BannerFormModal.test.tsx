@@ -1,3 +1,8 @@
+import type { ImgHTMLAttributes } from 'react';
+// Form tests verify stable business values; authorization/blob lifecycle has independent tests.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+}));
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -291,4 +296,47 @@ describe('BannerFormModal', () => {
       /\.admin-shell \.banner-source-thumb img\s*\{[^}]*object-fit:\s*contain;/s,
     );
   });
+  it('blocks processing saves and cancels the session before leaving', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    uploadBannerImageMock.mockImplementation((_file, _progress, options) => {
+      options.onTask({ cancel });
+      options.onUpdate({ stage: 'processing', progress: 100 });
+      return new Promise(() => undefined);
+    });
+    const onClose = vi.fn();
+    render(<BannerFormModal open mode="create" banner={null} onClose={onClose} onSuccess={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('选择'), {
+      target: { files: [new File(['test'], 'banner.png', { type: 'image/png' })] },
+    });
+    expect(await screen.findByText('正在生成图片展示版本')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '保存 Banner' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '取消上传并离开' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(createBannerMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps ready custom image and task when a business save fails', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    uploadBannerImageMock.mockImplementation(async (_file, _progress, options) => {
+      options.onTask({ cancel });
+      return { object_key: 'images/direct-upload/ready.png', url: '/media/ready.png' };
+    });
+    createBannerMock.mockRejectedValueOnce(new Error('save failed')).mockResolvedValueOnce({ id: 5 });
+    const { container } = renderBannerModal();
+    fireEvent.change(screen.getByLabelText('选择'), {
+      target: { files: [new File(['test'], 'banner.png', { type: 'image/png' })] },
+    });
+    await screen.findByText('图片已添加');
+    fireEvent.click(screen.getByRole('button', { name: '保存 Banner' }));
+    await screen.findByText('保存失败');
+    expect(container.querySelector('.banner-upload-preview img')).toHaveAttribute('src', '/media/ready.png');
+    expect(cancel).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '保存 Banner' }));
+    await waitFor(() => expect(createBannerMock).toHaveBeenCalledTimes(2));
+    expect(uploadBannerImageMock).toHaveBeenCalledOnce();
+  });
+
 });

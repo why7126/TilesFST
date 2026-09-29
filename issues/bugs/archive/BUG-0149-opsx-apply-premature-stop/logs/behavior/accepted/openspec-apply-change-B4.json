@@ -1,0 +1,60 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "openspec-apply-change",
+  "scenario": "B4",
+  "run_id": "732d59d6-03c7-4434-b196-1e93129f6312",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:44:54.661845+00:00",
+  "policy_sha256": "36b3079e9537fdc56bff3b80c62c029b5fd3211839a3daad7acb1a78bb940c8f",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": "external"
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:44:54.804499+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:45:01.814838+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:45:02.041744+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:45:09.597005+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-10T02:45:10.232228+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [],
+        "verified": [],
+        "manual_pending": [],
+        "external_blocked": [
+          "A"
+        ],
+        "completion_event": false,
+        "archive_ready": false
+      }
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "passed",
+    "errors": []
+  }
+}

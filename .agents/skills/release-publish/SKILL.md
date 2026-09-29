@@ -2,7 +2,7 @@
 name: "release-publish"
 description: "记录产品版本发布确认结果和最终公告位置"
 created_at: "2026-07-02 14:56:58"
-updated_at: 2026-08-31 10:23:00
+updated_at: 2026-09-10 23:03:12
 ---
 
 # release-publish
@@ -147,3 +147,7 @@ python scripts/extract-ai-usage.py \
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
+
+## Knowledge Model Publish Binding
+
+在写 publish_confirmation 之前运行 `python scripts/sync-knowledge-model.py bind --release <version>`，检查候选范围、依赖和内容摘要并登记 release.json knowledge_model。禁止在 publish 创建或重建知识快照；缺失或漂移回到 release-prepare。bind 不是发布成功证据。历史快照以其冻结依赖校验。

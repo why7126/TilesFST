@@ -4,7 +4,7 @@ content: 约束AI与开发人员遵循当前项目目录边界、文件归属和
 source: AI自动生成初稿，项目团队确认
 update_method: 目录结构调整时由架构负责人确认后更新；AI只能提出建议，不得擅自放宽规则
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-22 08:13:49
+updated_at: 2026-09-10 22:51:56
 note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录或把文件放错位置
 ---
 
@@ -32,6 +32,7 @@ note: AGENTS.md 必须强制引用本文档；用于防止AI随意新增目录�
 | `releases/` | 产品版本发布对象、公开发布公告源文件与发布校验材料 | 否 |
 | `mintlify/` | 公开 Mintlify 文档站源目录、多版本文档投影、公告投影和共享截图资产 | 否 |
 | `deploy/` | 部署环境矩阵、环境化 Compose、env 示例、部署脚本和校验工具 | 否 |
+| `connectors/` | WorkBuddy 等外部连接器交付包：manifest、mcp 配置、外部 Skill、图标和打包说明 | 否 |
 | `compatibility/` | 兼容性说明 | 否 |
 | `.agents/` | Codex 技能与项目级 Agent 能力（唯一 AI 工具入口） | 否 |
 | `src/` | 源码 | 否 |
@@ -214,7 +215,32 @@ src/miniapp/services/             # API调用
 src/miniapp/utils/                # 工具函数
 ```
 
-### 3.4 共享代码
+### 3.4 MCP 连接器运行时代码
+
+MCP 连接器运行时代码必须放在：
+
+```text
+src/mcp/<connector>/
+```
+
+推荐归属：
+
+```text
+src/mcp/<connector>/server.py           # MCP server 入口
+src/mcp/<connector>/tools/              # MCP tools 与 tool registry
+src/mcp/<connector>/schemas/            # MCP 输入输出 schema 与 API adapter schema
+src/mcp/<connector>/adapters/           # 后端 API、鉴权、审计、媒体上传等适配层
+src/mcp/<connector>/tests/              # 连接器运行时聚焦测试；也可按项目测试规范放入 tests/
+```
+
+边界：
+
+- `src/mcp/<connector>/` 承载 MCP server、tool registry、schema adapter、auth/audit adapter 和 runtime entrypoint 等运行时代码。
+- 外部平台交付包资产不得放入 `src/mcp/`；WorkBuddy manifest、`mcp.json`、外部 Skill、图标和打包说明放入 `connectors/<connector>/`。
+- MCP 工具调用 ProjectTilesFST 后端能力时，必须通过后端 API、服务层或经 OpenSpec Change 批准的适配边界，禁止绕过鉴权、审计、MinIO 适配层或管理端权限边界。
+- 涉及 API、DB、请求日志、Task Trace、媒体上传或管理端写操作时，必须按对应规则同步 OpenAPI / Orval / docs / tests，并声明产品数据采集与链路观测适用性。
+
+### 3.5 共享代码
 
 跨端共享类型、常量、错误码应放在：
 
@@ -235,6 +261,7 @@ src/shared/
 - 迭代文档放入 `iterations/{change|archive}/sprint-xxx/`（**MUST** 含 `sprint.yaml` 四件套，见 `rules/document-governance.md` §4.1、`rules/iterations-lifecycle.md`）；禁止 `docs/iterations/`。
 - 产品版本发布对象和公开发布公告源文件放入 `releases/`；禁止用 `docs/` 或 `iterations/` 临时代替产品发布目录。
 - Mintlify 公开文档站源文件、多版本使用文档投影、`latest` 指针、公告投影和共享截图资产放入 `mintlify/`；禁止直接绕过 release 快照改写历史产品语义。
+- WorkBuddy 等外部连接器交付包资产放入 `connectors/<connector>/`；外部 Skill 不得放入 `.agents/skills/`，MCP 运行时代码不得放入 `connectors/`。
 - 正式系统能力放入 `openspec/specs/`。
 - 开发中的变更放入 `openspec/changes/`。
 - 已完成变更放入 `openspec/archive/`。
@@ -281,3 +308,7 @@ AI 在新增文件前必须回答：
 - 禁止把 Docker 环境变量硬编码到代码中。
 - 禁止用临时目录替代正式目录结构。
 - 禁止把已归档 OpenSpec Change 放入 `openspec/changes/archive/`。
+
+### 知识模型目录
+
+`knowledge-model/` 经 Change `add-knowledge-model-lifecycle-sync` 引入，承载本体定义、领域模型、来源映射、生成知识与版本快照。定义、映射和覆盖由人工评审维护；generated 工具独占，snapshots 由发布准备生成；运行锁及短期回执放在被忽略的 data/knowledge-model。目录及职责以 [knowledge-model README](../knowledge-model/README.md) 为入口。

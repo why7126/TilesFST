@@ -1,7 +1,8 @@
 ---
 name: "release-prepare"
 description: "执行发布前校验并生成或更新公开公告源文件"
-updated_at: 2026-08-31 09:10:00
+updated_at: 2026-09-10 23:03:12
+created_at: 2026-07-15 18:48:30
 ---
 
 # release-prepare
@@ -243,3 +244,7 @@ python scripts/extract-ai-usage.py \
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
+
+## Knowledge Model Candidate
+
+正式 release 校验之前运行 `python scripts/sync-knowledge-model.py prepare --release <version>`。覆盖范围相关的 Change 必须已同步；生成完整小快照及依赖内容，并将四个快照文件列入本次发布准备的 Git 交付清单。超限或输入漂移阻断，不静默省略图谱。未发布候选需要重建时先审核其漂移并移除旧候选；已发布版本不可替换。范围外保留明确 out_of_scope。

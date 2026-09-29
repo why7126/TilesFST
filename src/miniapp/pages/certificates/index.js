@@ -1,3 +1,4 @@
+const { sharePage, receiveShare } = require('../../utils/public-sharing');
 const { request, track } = require('../../services/api');
 
 const PAGE_SIZE = 12;
@@ -12,6 +13,9 @@ function normalizeKeyword(value) {
 }
 
 Page({
+  onShareTimeline() {
+    return sharePage('certificates', this, 'wechat_timeline');
+  },
   lastPreviewAt: 0,
   data: {
     title: '证书列表',
@@ -25,14 +29,16 @@ Page({
     error: '',
     loadMoreError: '',
     requestId: '',
+    shareKeyword: '',
     keyword: '',
     skeletons: [1, 2, 3, 4],
     items: [],
   },
 
-  onLoad() {
+  onLoad(query) {
+    query = receiveShare('certificates', query);
     this.setCurrentTab();
-    this.setData({ requestId: requestId() });
+    this.setData({ keyword: query.keyword || '', requestId: requestId() });
     this.trackListEvent('certificate_list_page_view', {});
     this.loadCertificates({ reset: true, eventName: 'certificate_list_load' });
   },
@@ -51,10 +57,7 @@ Page({
   },
 
   onShareAppMessage() {
-    return {
-      title: '菲尚特证书',
-      path: '/pages/certificates/index',
-    };
+    return sharePage('certificates', this, 'wechat_friend');
   },
 
   setCurrentTab() {
@@ -67,6 +70,7 @@ Page({
   loadCertificates(options) {
     if (this.data.loadingMore || (!options.reset && this.data.loading)) return;
     if (!options.reset && !this.data.hasMore) return;
+    const submittedKeyword = normalizeKeyword(this.data.keyword);
     const nextPage = options.reset ? 1 : this.data.page + 1;
     this.setData({
       loading: options.reset,
@@ -81,6 +85,7 @@ Page({
         const incoming = data.items || [];
         const merged = options.reset ? incoming : this.mergeCertificates(this.data.items, incoming);
         this.setData({
+          shareKeyword: submittedKeyword,
           items: merged,
           total: data.total || merged.length,
           page: data.page || nextPage,

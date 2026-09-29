@@ -1,6 +1,9 @@
+import { AuthorizedImage } from '@/features/media/authorized-media';
+import type { MediaReadReference } from '@/shared/api/generated';
 import { useEffect, useMemo, useState } from 'react';
 
 type FallbackListImageProps = {
+  reference?: MediaReadReference;
   thumbnailUrl?: string | null;
   displayUrl?: string | null;
   originalUrl?: string | null;
@@ -8,6 +11,7 @@ type FallbackListImageProps = {
 };
 
 export function FallbackListImage({
+  reference,
   thumbnailUrl,
   displayUrl,
   originalUrl,
@@ -28,6 +32,7 @@ export function FallbackListImage({
   }, [sourceKey]);
 
   const src = sources[sourceIndex];
+  if (reference) return <AuthorizedImage reference={reference} src={src} alt={alt} />;
   if (!src) return null;
 
   return <img src={src} alt={alt} onError={() => setSourceIndex((index) => index + 1)} />;

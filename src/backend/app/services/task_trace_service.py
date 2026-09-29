@@ -10,11 +10,13 @@ from time import perf_counter
 from typing import Any
 from uuid import uuid4
 
+from app.core.media_redaction import redact_media_text
 from app.repositories.task_trace_repository import TaskSpanRecord, TaskTraceRecord, TaskTraceRepository
 
 TASK_TRACE_ID_PATTERN = re.compile(r"^task_[a-z0-9_]{12,64}$")
 
 SENSITIVE_KEYS = {
+    "ticket", "head_url", "signature", "q-signature", "x-amz-signature", "object_key",
     "authorization",
     "cookie",
     "password",
@@ -360,7 +362,7 @@ def _safe_scalar(value: Any) -> Any:
     if isinstance(value, str):
         if _looks_like_internal_path(value):
             return "******"
-        return truncate_text(value, 300)
+        return truncate_text(redact_media_text(value), 300)
     return value
 
 

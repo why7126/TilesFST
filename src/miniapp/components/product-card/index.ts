@@ -1,3 +1,4 @@
+import { pricePresentation, type PricePresentation } from '../../utils/price';
 import { track } from '../../services/api';
 
 type ProductCardInput = {
@@ -34,6 +35,7 @@ type NormalizedProductCard = {
   skuCode: string;
   specification: string;
   priceText: string;
+  priceState: PricePresentation['state'];
   imageSrc: string;
   badge: string;
   available: boolean;
@@ -78,13 +80,7 @@ function safeText(value: unknown, fallback: string): string {
 }
 
 function priceText(value: unknown): string {
-  if (value === 0) return '暂无';
-  const text = safeText(value, '暂无');
-  const legacyNoPriceText = ['暂无', '参考价'].join('');
-  const pendingPriceText = ['价格', '待维护'].join('');
-  if (text === legacyNoPriceText || text === pendingPriceText) return '暂无';
-  const numeric = Number(text.replace(/[¥￥,\s]/g, ''));
-  return Number.isFinite(numeric) && numeric === 0 ? '暂无' : text;
+  return pricePresentation(value).text;
 }
 
 function numberValue(value: unknown): number {
@@ -178,7 +174,8 @@ function normalizeProduct(product: ProductCardInput): NormalizedProductCard {
     brandName: safeText(product.brand_name, '品牌待确认'),
     skuCode: safeText(product.sku_code, 'SKU 待补充'),
     specification: safeText(product.specification, '规格待补充'),
-    priceText: priceText(product.price_display),
+    priceText: available && product.status !== 'unavailable' ? priceText(product.price_display) : '暂不可查看',
+    priceState: pricePresentation(product.price_display, available && product.status !== 'unavailable').state,
     imageSrc: safeText(product.thumbnail_url || product.cover_image, ''),
     badge,
     available,

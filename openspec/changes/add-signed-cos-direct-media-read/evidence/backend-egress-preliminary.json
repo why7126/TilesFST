@@ -1,0 +1,22 @@
+{
+  "source": "Local backend container non-loopback /proc/net/dev TX counters around authorization plus full GET",
+  "sample_bytes": 20671864,
+  "idle_3sec_tx_bytes": 2367,
+  "rows": [
+    {
+      "mode": "direct",
+      "status": 200,
+      "body_bytes": 20671864,
+      "backend_interface_tx_delta_bytes": 2367
+    },
+    {
+      "mode": "proxy",
+      "status": 200,
+      "body_bytes": 20671864,
+      "backend_interface_tx_delta_bytes": 20748556
+    }
+  ],
+  "whole_matrix_complete": false,
+  "limitations": "Container-wide counters include TCP overhead and any unrelated traffic; one pair, not statistical matrix; COS direct response body bypasses backend",
+  "observed_tx_reduction_percent": 99.9886
+}

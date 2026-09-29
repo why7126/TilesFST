@@ -9,8 +9,8 @@ export type MiniappApiConfig = {
 export const MINIAPP_API_CONFIGS: Record<MiniappEnvironment, MiniappApiConfig> = {
   development: {
     environment: 'development',
-    apiBaseUrl: 'http://127.0.0.1:8000',
-    apiFallbackBaseUrls: ['http://localhost:8000'],
+    apiBaseUrl: 'http://127.0.0.1:8010',
+    apiFallbackBaseUrls: ['http://localhost:8010'],
   },
   production: {
     environment: 'production',
@@ -20,7 +20,7 @@ export const MINIAPP_API_CONFIGS: Record<MiniappEnvironment, MiniappApiConfig> =
 };
 
 export function resolveMiniappEnvironment(): MiniappEnvironment {
-  return 'production';
+  return 'development';
 }
 
 export function resolveMiniappApiConfig(environment = resolveMiniappEnvironment()): MiniappApiConfig {

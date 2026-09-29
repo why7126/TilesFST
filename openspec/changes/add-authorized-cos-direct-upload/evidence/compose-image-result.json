@@ -1,0 +1,56 @@
+{
+  "source": "Isolated Compose Web/API/SQLite and 1CPU 512MiB persistent image worker against real COS; synthetic PNG only",
+  "sampleBytes": 21083,
+  "network": [
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 21083,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    }
+  ],
+  "states": [
+    {
+      "state": "authorizing",
+      "at": 109.5
+    },
+    {
+      "state": "transferring",
+      "at": 538.5
+    },
+    {
+      "state": "verifying",
+      "at": 884
+    },
+    {
+      "state": "processing",
+      "at": 1375.1000000238419
+    },
+    {
+      "state": "uploaded",
+      "at": 4467.899999976158
+    }
+  ],
+  "preview": {
+    "width": 1600,
+    "height": 1200,
+    "isDerived": true
+  },
+  "reopened": {
+    "width": 1600,
+    "height": 1200,
+    "isDerived": true
+  },
+  "savedImageCount": 1,
+  "formalized": true,
+  "layout": {
+    "width": 880,
+    "top": 32,
+    "bottom": 588,
+    "viewport": 620
+  },
+  "productionVerified": false,
+  "cloudImageProcessingUsed": false
+}

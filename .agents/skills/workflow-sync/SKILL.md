@@ -1,6 +1,8 @@
 ---
 name: workflow-sync
 description: Sync REQ/BUG/Sprint/OpenSpec workflow status after req/bug/sprint/opsx commands
+created_at: 2026-09-08 17:17:14
+updated_at: 2026-09-10 10:31:52
 ---
 
 # workflow-sync
@@ -95,6 +97,13 @@ When sprint sync is skipped, the script still updates the target issue `trace.md
 For `opsx.apply`, sprint sync skipped/unresolved is a **blocking precondition failure** for all Changes, including non-REQ/BUG pure technical governance Changes. The parent command MUST stop before implementation and ask to run `/sprint-propose` first, or repair a known Sprint scope with `scripts/add-sprint-scope-item.py --change <change-id> ...`.
 
 If the user already selected a target Sprint or previously ran `/sprint-propose`, skipped/unresolved sync usually means `sprint.yaml` machine scope was not persisted or lacks the Change. Repair with `scripts/add-sprint-scope-item.py`, then rerun Workflow Sync and `validate-sprint-scope.py`; do not rely on `sprint.md` Scope text alone.
+
+### Apply 部分完成
+
+执行同步前仍需按 `docs/standards/command-execution-order.md` §5.6核对剩余可执行任务；同步进度不构成提前结束依据。四类进度和行为证据不得因派生状态刷新而合并为已验收。
+
+
+Apply 按 `docs/standards/command-execution-order.md` §5.4–5.5 区分部分完成与完成事件：部分完成先预览并运行无事件事实刷新，禁止发送 `opsx.apply` 完成事件；仅在全部适用任务及必需验证完成后发送完成事件。不得无条件要求 linked Change 为 applied。
 
 ### Issue subdocument sync / drift check
 

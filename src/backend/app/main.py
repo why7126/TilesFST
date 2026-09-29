@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -6,10 +6,11 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.error_codes import INVALID_PARAMETER
 from app.core.exceptions import AppError
+from app.core.media_redaction import install_media_access_log_filter
 from app.core.request_logging import RequestLoggingMiddleware
 from app.db.seed import seed_admin_user
-from app.db.session import get_session_factory, init_database
-from app.modules.media.storage import get_media_file_response, get_media_head_response
+from app.db.session import get_db, get_session_factory, init_database
+from app.services.media_legacy_service import read_legacy_media
 
 app = FastAPI(
     title="TilesFST API",
@@ -17,7 +18,20 @@ app = FastAPI(
     swagger_ui_parameters={"tryItOutEnabled": settings.allow_swagger_try_it_out()},
 )
 app.add_middleware(RequestLoggingMiddleware)
+install_media_access_log_filter()
 app.include_router(api_router, prefix="/api/v1")
+
+
+@app.middleware("http")
+async def media_capability_cache_policy(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/media/") or request.url.path in {
+        "/api/v1/media/read", "/api/v1/media/read-authorizations",
+        "/api/v1/admin/media/read-authorizations",
+    }:
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @app.exception_handler(AppError)
@@ -85,10 +99,10 @@ def health_check() -> dict[str, str]:
 
 
 @app.get("/media/{object_key:path}", include_in_schema=False)
-def read_media_file(object_key: str, request: Request):
-    return get_media_file_response(object_key, request.headers.get("range"))
+def read_media_file(object_key: str, request: Request, db=Depends(get_db)):
+    return read_legacy_media(db, object_key, "GET", request.headers.get("range"))
 
 
 @app.head("/media/{object_key:path}", include_in_schema=False)
-def head_media_file(object_key: str, request: Request):
-    return get_media_head_response(object_key, request.headers.get("range"))
+def head_media_file(object_key: str, request: Request, db=Depends(get_db)):
+    return read_legacy_media(db, object_key, "HEAD", request.headers.get("range"))

@@ -1,3 +1,10 @@
+import type { ImgHTMLAttributes, VideoHTMLAttributes } from 'react';
+// Authorization/recovery behavior is covered by authorized-media.test.tsx.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+  AuthorizedVideo: ({reference: _reference, ...props}: VideoHTMLAttributes<HTMLVideoElement> & {reference?: unknown}) => <video {...props} />,
+  MediaPreviewButton: () => <button type="button">预览</button>,
+}));
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 

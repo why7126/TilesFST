@@ -1,0 +1,6 @@
+**
+!src/
+!src/mcp/
+!src/mcp/**
+**/__pycache__/
+**/*.pyc

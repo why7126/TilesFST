@@ -1,0 +1,61 @@
+{
+  "source": "Isolated Docker API + actual Chromium/COS, synthetic padded 19MiB WebM transport fixture; one browser-intercepted 403, no production records",
+  "sampleBytes": 19922944,
+  "network": [
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 8388608,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    },
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 8388608,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    },
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 3145728,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    },
+    {
+      "destination": "COS",
+      "method": "PUT",
+      "bytes": 8388608,
+      "application_auth_present": false,
+      "application_trace_present": false,
+      "origin": "http://localhost:13000"
+    }
+  ],
+  "states": [
+    {
+      "state": "authorizing",
+      "at": 1463.4000000357628
+    },
+    {
+      "state": "transferring",
+      "at": 1750.6000000238419
+    },
+    {
+      "state": "verifying",
+      "at": 5430.100000023842
+    },
+    {
+      "state": "uploaded",
+      "at": 6365.699999988079
+    }
+  ],
+  "injected403": 1,
+  "completed": true,
+  "leaveCancelledUnbound": true,
+  "productionVerified": false,
+  "performanceAcceptance": false
+}

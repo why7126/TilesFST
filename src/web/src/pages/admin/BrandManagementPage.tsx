@@ -1,3 +1,4 @@
+import { AuthorizedImage } from '@/features/media/authorized-media';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -200,7 +201,7 @@ export function BrandManagementPage() {
                 <div className="brand-cell">
                   <div className="brand-logo" aria-label={`${brand.name} Logo`}>
                     {logoSrc ? (
-                      <img
+                      <AuthorizedImage reference={{ resource_type: 'brand_logo', resource_id: String(brand.id), variant: 'thumbnail' }}
                         src={logoSrc}
                         alt=""
                         aria-hidden="true"

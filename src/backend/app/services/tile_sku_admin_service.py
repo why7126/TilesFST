@@ -10,6 +10,7 @@ from app.core.exceptions import (
     TileSkuNotFoundError,
     TileSkuPublishForbiddenError,
 )
+from app.modules.media.upload_binding import VideoUploadBinding
 from app.modules.media.storage import media_variant_urls, same_directory_thumbnail_object_key
 from app.modules.media.tile_images import formalize_tile_image_object, is_pending_tile_image_key
 from app.repositories.tile_sku_repository import TileSkuRecord, TileSkuRepository
@@ -71,10 +72,12 @@ class TileSkuAdminService:
         repo: TileSkuRepository,
         spec_repo: TileSpecRepository,
         effective_settings: EffectiveSettingsService | None = None,
+        actor_id: str | None = None,
     ) -> None:
         self._repo = repo
         self._spec_repo = spec_repo
         self._effective_settings = effective_settings
+        self._video_binding = VideoUploadBinding(repo.db, actor_id)
 
     @staticmethod
     def _normalize_optional(value: str | None, *, max_len: int) -> str | None:
@@ -144,7 +147,7 @@ class TileSkuAdminService:
         for image in images:
             item = dict(image)
             object_key = item["object_key"]
-            if is_pending_tile_image_key(object_key):
+            if is_pending_tile_image_key(object_key) and "/direct-upload/" not in object_key:
                 result = formalize_tile_image_object(
                     tile_id=tile_id,
                     object_key=object_key,
@@ -352,6 +355,16 @@ class TileSkuAdminService:
         return self.to_item(record, include_media=True)
 
     def create_sku(self, payload: TileSkuCreateRequest) -> TileSkuAdminItem:
+        direct_rows = self._video_binding.resolve(self._normalize_videos(payload.videos))
+        direct_rows += self._video_binding.resolve(self._normalize_images(payload.images), media_kind="sku_image")
+        reserved_ids = {row["bound_business_id"] for row in direct_rows if row["bound_business_id"]}
+        if reserved_ids:
+            if len(reserved_ids) != 1 or any(not row["bound_business_id"] for row in direct_rows):
+                raise AuthInvalidRequestError("上传媒体属于不同的保存任务")
+            reserved_id = int(next(iter(reserved_ids)))
+            if all(row["state"] == "bound" for row in direct_rows):
+                return self.get_sku(reserved_id)
+            return self.update_sku(reserved_id, TileSkuUpdateRequest(**payload.model_dump()))
         name = payload.name.strip()
         if not name:
             raise AuthInvalidRequestError("商品名称不能为空")
@@ -389,26 +402,40 @@ class TileSkuAdminService:
             has_main_image=has_main, save_mode=payload.save_mode
         )
 
-        record = self._repo.create_sku(
-            name=name,
-            sku_code=sku_code,
-            brand_id=brand_id,
-            category_id=category_id,
-            spec_id=spec_id,
-            size=size,
-            surface_finish=surface_finish,
-            color_family=self._normalize_optional(payload.color_family, max_len=50),
-            reference_price=reference_price,
-            remark=self._normalize_optional(payload.remark, max_len=500),
-            recall_pin_sort_order=recall_pin_sort_order,
-            recall_pin_starts_at=payload.recall_pin_starts_at,
-            recall_pin_ends_at=payload.recall_pin_ends_at,
-            status=status,
-        )
-        if images:
-            self._repo.replace_images(record.id, self._formalize_images(record.id, images))
-        if videos:
-            self._repo.replace_videos(record.id, videos)
+        claimed = []
+        with self._repo.atomic():
+            record = self._repo.create_sku(
+                name=name,
+                sku_code=sku_code,
+                brand_id=brand_id,
+                category_id=category_id,
+                spec_id=spec_id,
+                size=size,
+                surface_finish=surface_finish,
+                color_family=self._normalize_optional(payload.color_family, max_len=50),
+                reference_price=reference_price,
+                remark=self._normalize_optional(payload.remark, max_len=500),
+                recall_pin_sort_order=recall_pin_sort_order,
+                recall_pin_starts_at=payload.recall_pin_starts_at,
+                recall_pin_ends_at=payload.recall_pin_ends_at,
+                status=status,
+            )
+            claimed = self._video_binding.claim(direct_rows, record.id)
+        try:
+            claimed = self._video_binding.copy(claimed)
+            formal_images = self._formalize_images(record.id, images) if images else []
+            with self._repo.atomic():
+                bound_videos = self._video_binding.finish([r for r in claimed if r["media_kind"] == "sku_video"], videos)
+                if formal_images is not None:
+                    formal_images = self._video_binding.finish([r for r in claimed if r["media_kind"] == "sku_image"], formal_images)
+                if images:
+                    self._repo.replace_images(record.id, formal_images)
+                if videos:
+                    self._repo.replace_videos(record.id, bound_videos)
+            self._video_binding.record_bound(claimed)
+        except Exception:
+            self._video_binding.release(claimed)
+            raise
         return self.get_sku(record.id)
 
     def update_sku(self, tile_id: int, payload: TileSkuUpdateRequest) -> TileSkuAdminItem:
@@ -477,42 +504,55 @@ class TileSkuAdminService:
                 if any(img["is_main"] for img in normalized):
                     status = "DRAFT"
 
-        updated = self._repo.update_sku(
-            tile_id,
-            name=name,
-            sku_code=sku_code,
-            brand_id=brand_id,
-            category_id=category_id,
-            spec_id=resolved_spec_id,
-            size=size,
-            surface_finish=surface_finish,
-            color_family=(
-                self._normalize_optional(payload.color_family, max_len=50)
-                if payload.color_family is not None
-                else record.color_family
-            ),
-            reference_price=reference_price,
-            remark=(
-                self._normalize_optional(payload.remark, max_len=500)
-                if payload.remark is not None
-                else record.remark
-            ),
-            recall_pin_sort_order=recall_pin_sort_order,
-            recall_pin_starts_at=recall_pin_starts_at,
-            recall_pin_ends_at=recall_pin_ends_at,
-            status=status,
-            old_brand_id=record.brand_id,
-            old_category_id=record.category_id,
-            old_spec_id=record.spec_id,
-        )
-
-        if payload.images is not None:
-            self._repo.replace_images(
-                tile_id,
-                self._formalize_images(tile_id, self._normalize_images(payload.images)),
-            )
-        if payload.videos is not None:
-            self._repo.replace_videos(tile_id, self._normalize_videos(payload.videos))
+        videos = self._normalize_videos(payload.videos) if payload.videos is not None else []
+        direct_rows = self._video_binding.resolve(videos, tile_id)
+        direct_rows += self._video_binding.resolve(self._normalize_images(payload.images or []), tile_id, media_kind="sku_image")
+        claimed = []
+        with self._repo.atomic():
+            claimed = self._video_binding.claim(direct_rows, tile_id)
+        try:
+            claimed = self._video_binding.copy(claimed)
+            formal_images = self._formalize_images(tile_id, self._normalize_images(payload.images)) if payload.images is not None else None
+            with self._repo.atomic():
+                updated = self._repo.update_sku(
+                    tile_id,
+                    name=name,
+                    sku_code=sku_code,
+                    brand_id=brand_id,
+                    category_id=category_id,
+                    spec_id=resolved_spec_id,
+                    size=size,
+                    surface_finish=surface_finish,
+                    color_family=(
+                        self._normalize_optional(payload.color_family, max_len=50)
+                        if payload.color_family is not None
+                        else record.color_family
+                    ),
+                    reference_price=reference_price,
+                    remark=(
+                        self._normalize_optional(payload.remark, max_len=500)
+                        if payload.remark is not None
+                        else record.remark
+                    ),
+                    recall_pin_sort_order=recall_pin_sort_order,
+                    recall_pin_starts_at=recall_pin_starts_at,
+                    recall_pin_ends_at=recall_pin_ends_at,
+                    status=status,
+                    old_brand_id=record.brand_id,
+                    old_category_id=record.category_id,
+                    old_spec_id=record.spec_id,
+                )
+                bound_videos = self._video_binding.finish([r for r in claimed if r["media_kind"] == "sku_video"], videos)
+                if formal_images is not None:
+                    formal_images = self._video_binding.finish([r for r in claimed if r["media_kind"] == "sku_image"], formal_images)
+                if formal_images is not None:
+                    self._repo.replace_images(tile_id, formal_images)
+                if payload.videos is not None:
+                    self._repo.replace_videos(tile_id, bound_videos)
+            self._video_binding.record_bound(claimed)
+        except Exception:
+            self._video_binding.release(claimed)
+            raise
 
         return self.get_sku(updated.id)
 

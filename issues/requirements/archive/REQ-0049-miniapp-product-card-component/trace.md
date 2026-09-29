@@ -3,7 +3,7 @@ requirement_id: REQ-0049-miniapp-product-card-component
 status: done
 priority: P1
 created_at: 2026-07-19 12:04:38
-updated_at: 2026-07-31 21:31:51
+updated_at: 2026-09-07 22:58:19
 lifecycle:
   captured: 2026-07-19 12:04:38
   generated: 2026-07-19 12:30:20
@@ -14,7 +14,7 @@ iteration: sprint-009
 openspec_changes:
   - change_id: update-miniapp-product-card-component
     type: update
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0047-product-list-common-component-application
 knowledge_base_refs:
@@ -41,7 +41,7 @@ iteration: sprint-009
 openspec_changes:
   - change_id: update-miniapp-product-card-component
     type: update
-    status: archived
+    status: proposed
 related_requirements:
   - REQ-0047-product-list-common-component-application
 knowledge_base_refs:
@@ -85,4 +85,5 @@ lifecycle_stage: archive
 | BUG | 严重等级 | 状态 | 关联 Change | 说明 |
 |---|---|---|---|---|
 | BUG-0092-miniapp-card-images-slow-load | high | done | — | 小程序体验版商品卡片图片加载很慢 |
-| BUG-0094-miniapp-list-images-not-loading-after-speed-fix | high | done | fix-miniapp-product-card-thumbnails | 小程序商品列表图片加载优化后全部显示暂无图片 |
+| BUG-0094-miniapp-list-images-not-loading-after-speed-fix | high | done | — | 小程序商品列表图片加载优化后全部显示暂无图片 |
+| BUG-0148-miniapp-product-list-card-image-fit | medium | done | fix-miniapp-product-grid-image-fit | 小程序商品列表 grid 卡片图片无法完整显示 |

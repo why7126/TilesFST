@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 
 @dataclass
 class BrandCertificateImageRecord:
+    media_id: int
     file_url: str
     file_key: str
     file_name: str
@@ -57,6 +59,28 @@ class BrandCertificateListResult:
 class BrandCertificateRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+        self._atomic_depth = 0
+
+    @property
+    def db(self):
+        return self._db
+
+    def _commit(self):
+        if not self._atomic_depth:
+            self._db.commit()
+
+    @contextmanager
+    def atomic(self):
+        self._atomic_depth += 1
+        try:
+            yield
+            if self._atomic_depth == 1:
+                self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
+        finally:
+            self._atomic_depth -= 1
 
     @staticmethod
     def _to_record(row: dict[str, Any]) -> BrandCertificateRecord:
@@ -88,6 +112,7 @@ class BrandCertificateRepository:
     @staticmethod
     def _to_image_record(row: dict[str, Any]) -> BrandCertificateImageRecord:
         return BrandCertificateImageRecord(
+            media_id=int(row["id"]),
             file_url=row["file_url"],
             file_key=row["file_key"],
             file_name=row["file_name"],
@@ -318,7 +343,7 @@ class BrandCertificateRepository:
         )
         certificate_id = int(cursor.lastrowid)
         self._replace_images(certificate_id, images, now=now)
-        self._db.commit()
+        self._commit()
         record = self.get_by_id(certificate_id)
         assert record is not None
         return record
@@ -357,7 +382,7 @@ class BrandCertificateRepository:
             {**values, "id": certificate_id, "updated_at": now},
         )
         self._replace_images(certificate_id, images, now=now)
-        self._db.commit()
+        self._commit()
         return self.get_by_id(certificate_id)
 
     def set_visibility(self, certificate_id: int, is_visible: bool) -> BrandCertificateRecord | None:
@@ -372,7 +397,7 @@ class BrandCertificateRepository:
             ),
             {"id": certificate_id, "is_visible": int(is_visible), "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(certificate_id)
 
     def soft_delete(self, certificate_id: int) -> bool:
@@ -387,5 +412,5 @@ class BrandCertificateRepository:
             ),
             {"id": certificate_id, "deleted_at": now, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return result.rowcount > 0

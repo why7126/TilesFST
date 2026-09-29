@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -44,6 +45,28 @@ class UserListResult:
 class UserRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+        self._atomic_depth = 0
+
+    @property
+    def db(self):
+        return self._db
+
+    def _commit(self):
+        if not self._atomic_depth:
+            self._db.commit()
+
+    @contextmanager
+    def atomic(self):
+        self._atomic_depth += 1
+        try:
+            yield
+            if self._atomic_depth == 1:
+                self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
+        finally:
+            self._atomic_depth -= 1
 
     def _to_record(self, row: dict[str, Any]) -> UserRecord:
         return UserRecord(
@@ -89,7 +112,7 @@ class UserRepository:
             text("UPDATE users SET last_login_at = :now, updated_at = :now WHERE id = :id"),
             {"now": now, "id": user_id},
         )
-        self._db.commit()
+        self._commit()
 
     def create_user(
         self,
@@ -102,9 +125,10 @@ class UserRepository:
         avatar_object_key: str | None = None,
         email: str | None = None,
         phone: str | None = None,
+        user_id: str | None = None,
     ) -> UserRecord:
         now = datetime.now(UTC).isoformat()
-        user_id = str(uuid4())
+        user_id = user_id or str(uuid4())
         self._db.execute(
             text(
                 """
@@ -132,7 +156,7 @@ class UserRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         user = self.get_by_id(user_id)
         assert user is not None
         return user
@@ -294,7 +318,7 @@ class UserRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)
 
     def update_theme_mode(self, user_id: str, theme_mode: str) -> UserRecord | None:
@@ -313,7 +337,7 @@ class UserRepository:
             ),
             {"id": user_id, "theme_mode": theme_mode, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)
 
     def update_profile(
@@ -354,7 +378,7 @@ class UserRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)
 
     def change_password(self, user_id: str, password_hash: str) -> UserRecord | None:
@@ -380,7 +404,7 @@ class UserRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)
 
     def update_password(self, user_id: str, password: str) -> UserRecord | None:
@@ -402,7 +426,7 @@ class UserRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)
 
     def update_status(self, user_id: str, status: str) -> UserRecord | None:
@@ -418,5 +442,5 @@ class UserRepository:
             ),
             {"id": user_id, "status": status, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(user_id)

@@ -47,6 +47,7 @@ ALLOWED_ROOT_FILES = {
 }
 
 ALLOWED_ROOT_DIRS = {
+    "knowledge-model",
     "rules",
     "docs",
     "openspec",
@@ -61,6 +62,7 @@ ALLOWED_ROOT_DIRS = {
     "scripts",
     "data",
     "deploy",
+    "connectors",
 }
 
 IGNORED_ROOT_NAMES = {
@@ -112,6 +114,25 @@ DEPLOY_ALLOWED_TOP_LEVEL = {"README.md", "docs-site", "local", "prod", "scripts"
 DEPLOY_FORBIDDEN_EXTENSIONS = {".db", ".sqlite", ".sqlite3", ".tar"}
 DEPLOY_FORBIDDEN_SUFFIXES = (".tar.gz", ".env", ".env.local", ".env.prod")
 DEPLOY_FORBIDDEN_DIR_NAMES = {"__pycache__", "data", "minio", "runtime", "uploads", "images"}
+CONNECTORS_FORBIDDEN_NAMES = {
+    ".env",
+    ".env.local",
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    "coverage",
+    "__pycache__",
+}
+CONNECTORS_FORBIDDEN_SUFFIXES = {
+    ".sqlite",
+    ".sqlite3",
+    ".db",
+    ".log",
+    ".tar",
+    ".tar.gz",
+}
+CONNECTORS_SENSITIVE_PATTERNS = MINTLIFY_SENSITIVE_PATTERNS
 
 
 def _git_status_for_path(root: Path, rel: Path) -> str | None:
@@ -231,7 +252,40 @@ def validate(root: Path = ROOT) -> list[str]:
 
     errors.extend(validate_issue_stage_dirs(root))
     errors.extend(validate_deploy_dir(root))
+    errors.extend(validate_connectors_dir(root))
     errors.extend(validate_mintlify_dir(root))
+
+    return errors
+
+
+def validate_connectors_dir(root: Path) -> list[str]:
+    errors: list[str] = []
+    connectors_root = root / "connectors"
+    if not connectors_root.exists():
+        return errors
+    if not connectors_root.is_dir():
+        return [f"connectors 不是目录: {connectors_root.relative_to(root)}"]
+
+    for path in sorted(connectors_root.rglob("*")):
+        rel = path.relative_to(root)
+        if path.name in CONNECTORS_FORBIDDEN_NAMES:
+            errors.append(f"connectors 存在禁止提交路径: {rel}")
+            continue
+        if path.is_dir():
+            continue
+        if any(path.name.endswith(suffix) for suffix in CONNECTORS_FORBIDDEN_SUFFIXES):
+            errors.append(f"connectors 存在禁止提交的运行时或构建文件: {rel}")
+            continue
+        if path.suffix.lower() not in {".md", ".json", ".yaml", ".yml", ".svg", ".png", ".webp"}:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for pattern in CONNECTORS_SENSITIVE_PATTERNS:
+            if pattern.search(text):
+                errors.append(f"connectors 文件疑似包含敏感内容: {rel}")
+                break
 
     return errors
 

@@ -1,0 +1,55 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "opsx-apply",
+  "scenario": "B4",
+  "run_id": "e8fa5671-c036-4642-a4d4-4c96371f02ea",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:44:47.880966+00:00",
+  "policy_sha256": "a22c498cdc24d92d8bb591f75af38371b2c0116bf64593dee918817f00569386",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": "external"
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:44:48.036123+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:44:55.428541+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:44:56.049271+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:44:59.438675+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [],
+        "verified": [],
+        "manual_pending": [],
+        "external_blocked": [
+          "A"
+        ],
+        "completion_event": false,
+        "archive_ready": false
+      }
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "passed",
+    "errors": []
+  }
+}

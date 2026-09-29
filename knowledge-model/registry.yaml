@@ -1,0 +1,37 @@
+schema_version: 1.0.0
+knowledge_model_version: 0.1.0
+owner: project-maintainers
+versions:
+  meta: 0.1.0
+  development: 0.1.0
+  domain: 0.1.0
+compatible_versions:
+- meta: 0.1.0
+  development: 0.1.0
+  domain: 0.1.0
+model_files:
+- ontology/meta-ontology.yaml
+- ontology/product-development-ontology.yaml
+- domain-models/tilesfst/m1-object-model.yaml
+- domain-models/tilesfst/m2-behavior-model.yaml
+- domain-models/tilesfst/m3-rule-model.yaml
+- domain-models/tilesfst/m4-scenario-model.yaml
+- domain-models/tilesfst/m5-actor-model.yaml
+- domain-models/tilesfst/m6-compensation-model.yaml
+- domain-models/tilesfst/m7-quality-model.yaml
+- domain-models/tilesfst/m9-ui-model.yaml
+- domain-models/tilesfst/me-event-model.yaml
+mapping_files:
+- mappings/pilot.yaml
+override_files:
+- overrides/reviewed.yaml
+coverage:
+  add-knowledge-model-lifecycle-sync:
+    mapping: mappings/pilot.yaml
+    reason: REQ-0138真实Change自举试点
+out_of_scope_reason: 未纳入首版单Change试点
+limits:
+  max_files: 100
+  max_bytes: 10485760
+  max_file_bytes: 2097152
+  record_days: 30

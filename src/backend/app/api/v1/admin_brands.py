@@ -8,7 +8,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_admin_user
+from app.core.workbuddy_maintenance_trace import trace_workbuddy_maintenance
 from app.db.session import get_db
+from app.repositories.user_repository import UserRecord
 from app.repositories.brand_certificate_repository import BrandCertificateRepository
 from app.repositories.brand_repository import BrandRepository
 from app.schemas.brand_admin import (
@@ -20,13 +22,14 @@ from app.schemas.brand_admin import (
 from app.schemas.common import ApiResponse
 from app.services.brand_admin_service import BrandAdminService
 
-router = APIRouter(dependencies=[Depends(require_admin_user)])
+router = APIRouter(dependencies=[Depends(require_admin_user), Depends(trace_workbuddy_maintenance)])
 
 
 def get_brand_admin_service(
     db: Annotated[Session, Depends(get_db)],
+    actor: Annotated[UserRecord, Depends(require_admin_user)],
 ) -> BrandAdminService:
-    return BrandAdminService(BrandRepository(db), BrandCertificateRepository(db))
+    return BrandAdminService(BrandRepository(db), BrandCertificateRepository(db), actor_id=actor.id)
 
 
 @router.get("", response_model=ApiResponse[BrandAdminListData], summary="品牌列表")

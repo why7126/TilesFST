@@ -643,6 +643,7 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
     _seed_public_catalog(api_client)
     from app.db.session import get_session_factory
 
+    dates = {f'd{i}': (datetime.now(UTC) - timedelta(days=20-i)).isoformat() for i in range(8)}
     db = get_session_factory()()
     try:
         db.execute(
@@ -651,20 +652,20 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
                 UPDATE tiles
                 SET published_at = CASE id
                     WHEN 1 THEN NULL
-                    WHEN 2 THEN '2026-06-01T00:00:00+00:00'
-                    WHEN 4 THEN '2026-06-01T00:00:00+00:00'
+                    WHEN 2 THEN :d3
+                    WHEN 4 THEN :d3
                     ELSE published_at
                   END,
                   created_at = CASE id
-                    WHEN 1 THEN '2026-06-03T00:00:00+00:00'
-                    WHEN 2 THEN '2026-05-02T00:00:00+00:00'
-                    WHEN 4 THEN '2026-05-03T00:00:00+00:00'
+                    WHEN 1 THEN :d5
+                    WHEN 2 THEN :d1
+                    WHEN 4 THEN :d2
                     ELSE created_at
                   END,
                   updated_at = CASE id
-                    WHEN 1 THEN '2026-06-04T00:00:00+00:00'
-                    WHEN 2 THEN '2026-06-02T00:00:00+00:00'
-                    WHEN 4 THEN '2026-06-03T00:00:00+00:00'
+                    WHEN 1 THEN :d6
+                    WHEN 2 THEN :d4
+                    WHEN 4 THEN :d5
                     ELSE updated_at
                   END,
                   category_id = CASE id
@@ -674,7 +675,7 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
                   END
                 WHERE id IN (1, 2, 4)
                 """
-            )
+            ), dates
         )
         db.execute(
             text(
@@ -699,10 +700,10 @@ def test_miniapp_product_list_brand_default_sort_uses_published_at_and_id(
                 ) VALUES
                   (5, '其他品牌砖', 'OTH-001', 2, 1, 1, '800×800', '柔光',
                    '灰色', 118.0, NULL, 'PUBLISHED',
-                   '2026-05-01T00:00:00+00:00', '2026-05-01T00:00:00+00:00',
-                   '2026-07-01T00:00:00+00:00')
+                   :d0, :d0,
+                   :d7)
                 """
-            )
+            ), dates
         )
         db.commit()
     finally:

@@ -1,7 +1,56 @@
 # REQ 序号注册表（/req-capture 维护）
 # next_id: 分配新 REQ 时使用，分配后递增
-next_id: 132
+next_id: 139
 entries:
+  - id: REQ-0138-knowledge-model-lifecycle-sync
+    title: 建立 knowledge-model 基础结构与生命周期同步机制
+    status: in_sprint
+    iteration: null
+    created: '2026-09-10 17:22:01'
+    parent_requirement: null
+    related_change: add-knowledge-model-lifecycle-sync
+  - id: REQ-0137-miniapp-banner-image-aspect-fit
+    title: 小程序 Banner 图片完整适配展示
+    status: in_sprint
+    iteration: null
+    created: '2026-09-07 22:45:57'
+    parent_requirement: null
+    related_change: fix-miniapp-banner-image-aspect-fit
+  - id: REQ-0136-signed-cos-direct-media-read
+    title: Web 与小程序 COS 签名直读及过期恢复
+    status: in_sprint
+    iteration: null
+    created: '2026-09-07 22:38:57'
+    parent_requirement: null
+    related_change: add-signed-cos-direct-media-read
+  - id: REQ-0135-authorized-cos-direct-upload
+    title: 后端授权的 COS 媒体直传与上传确认
+    status: in_sprint
+    iteration: null
+    created: '2026-09-07 22:38:57'
+    parent_requirement: null
+    related_change: add-authorized-cos-direct-upload
+  - id: REQ-0134-miniapp-public-page-sharing
+    title: 补齐小程序公开内容页朋友及朋友圈分享
+    status: done
+    iteration: null
+    created: "2026-09-05 21:42:49"
+    parent_requirement: null
+    related_change: add-miniapp-public-page-sharing
+  - id: REQ-0133-miniapp-price-red-display
+    title: 小程序有效价格统一红色展示
+    status: done
+    iteration: null
+    created: "2026-09-05 21:42:49"
+    parent_requirement: null
+    related_change: update-miniapp-price-red-display
+  - id: REQ-0132-workbuddy-custom-connector
+    title: 腾讯 WorkBuddy 自定义连接器支持
+    status: in_sprint
+    iteration: sprint-029
+    created: "2026-09-04 16:43:52"
+    parent_requirement:
+    related_change: add-workbuddy-custom-connector
   - id: REQ-0131-media-object-key-business-id-layout
     title: 统一媒体对象 Key 按业务对象 id 分目录
     status: done
@@ -548,6 +597,7 @@ entries:
     iteration: sprint-009
     created: "2026-07-19 12:04:38"
     parent_requirement: REQ-0047-product-list-common-component-application
+    related_change: update-miniapp-product-card-component
   - id: REQ-0048-miniapp-global-custom-navigation-bar
     title: 小程序全局自定义导航栏
     status: done

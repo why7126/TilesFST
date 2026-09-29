@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useModalReturnFocus } from './use-modal-return-focus';
+import { AuthorizedImage } from '@/features/media/authorized-media';
+import { useEffect, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type { BrandAdminItem } from '@/shared/api/generated';
 
 import { createBrand, updateBrand, uploadBrandLogo } from '../api/brands-api';
 
-type LogoUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+import { MediaUploadStatus, type UploadStage } from '@/features/media/media-upload-status';
+import type { MediaUploadTask } from '@/features/media/media-upload-controller';
+
+type LogoUploadState = UploadStage | 'uploading';
 
 interface BrandFormModalProps {
   open: boolean;
@@ -16,6 +21,7 @@ interface BrandFormModalProps {
 }
 
 export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandFormModalProps) {
+  useModalReturnFocus(open);
   const [name, setName] = useState('');
   const [sortOrder, setSortOrder] = useState('10');
   const [shortName, setShortName] = useState('');
@@ -26,12 +32,19 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
   const [logoUploadState, setLogoUploadState] = useState<LogoUploadState>('idle');
   const [logoUploadProgress, setLogoUploadProgress] = useState(0);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
+  const task = useRef<MediaUploadTask | null>(null);
+  const fileRef = useRef<File | undefined>(undefined);
+  const epoch = useRef(0);
+  const [leavePrompt, setLeavePrompt] = useState(false);
+  const [warning, setWarning] = useState<string | undefined>();
+  const [retryable, setRetryable] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setLeavePrompt(false); setWarning(undefined);
     setLogoUploadState('idle');
     setLogoUploadProgress(0);
     setLogoUploadError(null);
@@ -54,33 +67,70 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
     }
   }, [open, mode, brand]);
 
-  if (!open) return null;
+  useEffect(() => () => {
+    epoch.current++;
+    void task.current?.cancel().catch(() => undefined);
+  }, []);
 
-  const handleLogoChange = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    setLogoUploadError(null);
-    setLogoUploadState('uploading');
-    setLogoUploadProgress(8);
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (task.current) { event.preventDefault(); event.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, []);
+
+  const busy = submitting || ['uploading', 'authorizing', 'transferring', 'verifying', 'processing', 'saving', 'cancelling'].includes(logoUploadState);
+  const cancelUpload = async () => {
+    if (submitting) return false;
+    epoch.current++; setLogoUploadState('cancelling');
     try {
-      const result = await uploadBrandLogo(file, (progress) => {
-        setLogoUploadProgress(progress);
+      await task.current?.cancel(); task.current = null; fileRef.current = undefined;
+      setLogoKey(brand?.logo_object_key ?? null); setLogoUrl(brand?.logo_url ?? null);
+      setLogoUploadState('cancelled'); setLogoUploadError(null); setWarning(undefined);
+      return true;
+    } catch {
+      setLogoUploadState('failed'); setLogoUploadError('取消未成功，请重试取消'); setRetryable(false);
+      return false;
+    }
+  };
+  const close = () => { if (submitting) return; if (task.current || busy) setLeavePrompt(true); else onClose(); };
+  const handleLogoChange = async (file: File | undefined, retry = false) => {
+    if (!file || busy) return;
+    if (!retry && task.current && !await cancelUpload()) return;
+    const token = ++epoch.current;
+    fileRef.current = file;
+    setError(null); setLogoUploadError(null); setWarning(undefined); setRetryable(true);
+    setLogoUploadState('uploading'); setLogoUploadProgress(0);
+    try {
+      const result = await uploadBrandLogo(file, progress => {
+        if (token === epoch.current) {
+          setLogoUploadProgress(progress);
+          if (progress > 0) setLogoUploadState(value => value === 'uploading' ? 'transferring' : value);
+        }
+      }, {
+        brandId: mode === 'edit' ? brand?.id : undefined,
+        task: retry ? task.current ?? undefined : undefined,
+        onTask: value => { task.current = value; },
+        onUpdate: value => {
+          if (token !== epoch.current) return;
+          setLogoUploadState(value.stage); setRetryable(value.retryable ?? false);
+          setLogoUploadError(value.error ?? null); setWarning(value.warning);
+        },
       });
-      setLogoKey(result.object_key);
-      setLogoUrl(result.thumbnail_url ?? result.url);
-      setLogoUploadProgress(100);
-      setLogoUploadState('uploaded');
+      if (token !== epoch.current) return;
+      setLogoKey(result.object_key); setLogoUrl(result.thumbnail_url ?? result.url);
+      setLogoUploadProgress(100); setLogoUploadState('uploaded');
     } catch (err) {
-      const message = getErrorMessage(err, 'Logo 上传失败');
-      setLogoUploadState('failed');
-      setLogoUploadProgress(0);
-      setLogoUploadError(message);
-      setError(message);
+      if (token !== epoch.current) return;
+      setLogoUploadState('failed'); setLogoUploadError(getErrorMessage(err, 'Logo 上传失败'));
     }
   };
 
+  if (!open) return null;
+
   const handleSubmit = async () => {
-    if (logoUploadState === 'uploading') {
+    if (busy || logoUploadState === 'failed') {
       setError('Logo 上传中，请稍后保存');
       return;
     }
@@ -115,6 +165,8 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
         await updateBrand(brand.id, payload);
         onSuccess('品牌已更新');
       }
+      task.current?.markSaved?.();
+      task.current = null; fileRef.current = undefined;
       onClose();
     } catch (err) {
       setError(getErrorMessage(err, '保存失败'));
@@ -123,7 +175,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
     }
   };
 
-  const isLogoUploading = logoUploadState === 'uploading';
+  const isLogoUploading = busy;
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -141,7 +193,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
             </span>
             <p className="modal-desc">维护品牌基础资料、展示排序、Logo 与品牌介绍。</p>
           </div>
-          <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
+          <button type="button" className="modal-close" aria-label="关闭" onClick={close}>
             ×
           </button>
         </div>
@@ -194,7 +246,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
                 <div className="brand-logo-meta">
                   <span className="brand-logo-preview">
                     {logoUrl ? (
-                      <img
+                      <AuthorizedImage file={logoUploadState === 'failed' ? undefined : fileRef.current} reference={logoUploadState !== 'failed' && task.current?.sessionId ? {resource_type: 'upload_session', resource_id: task.current.sessionId, variant: 'display'} : brand && logoKey === brand.logo_object_key ? {resource_type: 'brand_logo', resource_id: String(brand.id), variant: 'display'} : undefined}
                         src={logoUrl}
                         alt=""
                         onError={(event) => {
@@ -213,33 +265,7 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
                   </span>
                   <span>
                     <span className="user-sub">支持 JPG / PNG / WebP，建议 1:1 方形图</span>
-                    {isLogoUploading ? (
-                      <span className="brand-logo-status">
-                        <span
-                          className="brand-logo-progress"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={logoUploadProgress}
-                        >
-                          <span
-                            className="brand-logo-progress-bar"
-                            style={{ width: `${logoUploadProgress}%` }}
-                          />
-                        </span>
-                        <span className="brand-logo-progress-text">
-                          上传中 {logoUploadProgress}%
-                        </span>
-                      </span>
-                    ) : null}
-                    {logoUploadState === 'uploaded' ? (
-                      <span className="brand-logo-upload-success">Logo 已更新</span>
-                    ) : null}
-                    {logoUploadState === 'failed' && logoUploadError ? (
-                      <span className="brand-logo-upload-error" role="alert">
-                        {logoUploadError}
-                      </span>
-                    ) : null}
+
                   </span>
                 </div>
                 <label
@@ -261,6 +287,11 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
                   />
                 </label>
               </div>
+              <MediaUploadStatus mediaKind="image" stage={logoUploadState === 'uploading' ? 'authorizing' : logoUploadState}
+                progress={logoUploadProgress} fileName={fileRef.current?.name} error={logoUploadError}
+                onCancel={() => void cancelUpload()}
+                onRetry={retryable ? () => void handleLogoChange(fileRef.current, true) : undefined} />
+              {warning ? <p className="text-brand-gold">{warning}</p> : null}
             </div>
             <div className="brand-form-item brand-form-full">
               <label htmlFor="brand-desc">品牌介绍</label>
@@ -278,15 +309,21 @@ export function BrandFormModal({ open, mode, brand, onClose, onSuccess }: BrandF
           </div>
           {error ? <p className="form-error">{error}</p> : null}
         </div>
+        {leavePrompt ? <div role="alertdialog" aria-label="离开上传" className="modal-body">
+          <p>离开将取消未保存的 Logo 上传。</p>
+          <button type="button" className="btn" onClick={() => setLeavePrompt(false)}>继续编辑</button>
+          <button type="button" className="btn" disabled={logoUploadState === 'cancelling'}
+            onClick={() => void cancelUpload().then(ok => { if (ok) onClose(); })}>取消上传并离开</button>
+        </div> : null}
         <div className="modal-footer">
-          <button type="button" className="btn" onClick={onClose} disabled={submitting}>
+          <button type="button" className="btn" onClick={close} disabled={submitting}>
             取消
           </button>
           <button
             type="button"
             className="btn primary"
             onClick={() => void handleSubmit()}
-            disabled={submitting || isLogoUploading}
+            disabled={submitting || isLogoUploading || logoUploadState === 'failed'}
           >
             保存品牌
           </button>

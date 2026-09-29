@@ -1,6 +1,8 @@
 ---
 name: "opsx-apply"
 description: "Implement tasks from an OpenSpec change"
+created_at: 2026-09-08 17:17:14
+updated_at: 2026-09-10 10:31:52
 ---
 
 # opsx-apply
@@ -185,14 +187,14 @@ When `admin-filter-dropdown` is active:
 
 ## Implementation Loop
 
-For each pending task:
+MUST 读取并执行 `docs/standards/command-execution-order.md` §5 Apply 持续执行契约。
 
-1. Announce current task.
-2. Make minimal scoped changes.
-3. Add/update tests when behavior changes.
-4. Mark task `- [ ]` → `- [x]` immediately after completion.
-5. Re-run focused checks/tests.
-6. Stop and ask if task is ambiguous, gate is blocked, or implementation reveals design conflict.
+1. 持续选择依赖满足的未完成任务；分组完成与进度汇报不结束当前命令。
+2. 在当前范围内实现并运行聚焦验证；可恢复错误先定位、修复、复测。
+3. 验证通过后才勾选任务，继续下一项；必需验证和同步收尾仍需跟踪。
+4. 真正阻塞按详细契约记录证据与恢复条件，继续独立任务；必要人工确认只暂停相关依赖，用户明确停止则停止全部工作。
+5. 上下文恢复承接已完成任务、证据与既有决策，不重复请求继续授权。
+6. 全部适用任务与必需验证完成后走完成收尾；否则仅在无可执行任务时报告部分完成。
 
 When updating `tasks.md`, preserve Chinese-first wording required by `rules/language.md`; task text MUST NOT be rewritten into English-only descriptions while marking checkboxes.
 
@@ -202,11 +204,21 @@ Before implementation, if the Change touches API, DB, audit logs, usage events, 
 
 Run `python scripts/validate-product-data-observability-gates.py --change <change-id>` when the script exists or when this gate is in scope. Missing declaration, weak N/A reason, or missing validation evidence is a blocker before marking related tasks complete.
 
+## 收尾前执行核对
+
+MUST 执行共享契约§5.6–5.8：收尾前逐项检查剩余任务的授权、依赖、资源和必需验证，仍有可执行任务即继续，不发最终回复等待“继续”。集中已知人工问题并映射受阻项，承接已有答复；进度问询用中间消息回答后继续实际工作。
+
+分别展示实现完成、自动验证通过、人工待验、外部阻塞。连续两次同类失败且无进展时记录失败签名、次数及恢复条件并切换独立任务，新条件可验证后才恢复，保留累计历史。不要删除或放宽验收项。
+
+持续执行治理的验收必须运行实际行为场景；通过 `scripts/validate-apply-behavior.py` 检查脱敏证据，不把关键词检查或理想夹具当实际Agent通过。执行入口为 `scripts/run-apply-behavior.py`，环境受阻仅保留相关任务待验，继续其他工作。
+
 ## Completion Output
 
-Report change id, schema, completed tasks this session, total progress, tests/checks run, remaining tasks, and whether archive is ready.
+按详细契约区分完成与部分完成，报告 Change、schema、实际进度、验证结果、剩余任务及阻塞恢复条件。部分完成时 archive_ready 为 false，不建议归档；全部完成也须核对人工验收门禁。
 
 ## Final Step — Workflow Sync（MUST）
+
+按 `docs/standards/command-execution-order.md` §5.4–5.5 选择状态同步分支。部分完成仅执行无完成事件的事实刷新，不要求 applied；以下完成事件和验收检查仅用于全部适用任务及必需验证完成的路径。
 
 Before Workflow Sync, run:
 
@@ -216,7 +228,7 @@ python scripts/validate-openspec-language.py
 
 - Exit code MUST be `0`；若失败，先修正 active Change 文档中的英文脚手架标题或全英文任务项。
 
-Run:
+完成路径运行：
 
 ```bash
 python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> --sprint auto
@@ -230,7 +242,7 @@ python scripts/sync-workflow-status.py --event opsx.apply --change <change-id> -
 
 ## Final Step — AI Usage Post-command Hook (MUST)
 
-After Workflow Sync exits with code `0`, run:
+完成或部分完成的真实状态同步成功后，运行以下 best-effort 用量 hook；workflow-event 仅用于命令用量归因，不替代完成状态判定：
 
 ```bash
 python scripts/extract-ai-usage.py --post-command-hook --workflow-event opsx.apply --change <change-id> --sprint <resolved-sprint-id> --json

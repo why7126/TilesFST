@@ -132,7 +132,7 @@
 }
 
 .skeleton-card {
-  min-height: 334rpx;
+  min-height: 548rpx;
   border-radius: 8rpx;
   background: rgba(33,30,22,0.74);
   border: 2rpx solid rgba(255,255,255,0.07);

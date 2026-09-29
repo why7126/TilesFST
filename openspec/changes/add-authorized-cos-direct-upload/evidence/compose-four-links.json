@@ -1,0 +1,183 @@
+{
+  "source": "Same isolated Compose/COS synthetic Banner/avatar/certificate records as browser entrance evidence",
+  "records": [
+    {
+      "media_kind": "banner",
+      "api_status": 200,
+      "api_reference_matches_session": true,
+      "variants": [
+        {
+          "variant": "original",
+          "object_fingerprint": "64a3765453b63d92",
+          "storage_exists": true,
+          "size_bytes": 21083,
+          "http_status": 200,
+          "content_type": "image/png",
+          "content_length": "21083",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "thumbnail",
+          "object_fingerprint": "68ef9668a1ee4ef0",
+          "storage_exists": true,
+          "size_bytes": 1004,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "1004",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "display",
+          "object_fingerprint": "4ad2b1d98b678c16",
+          "storage_exists": true,
+          "size_bytes": 5276,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "5276",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ],
+      "render_evidence": "final-modal-matrix.json / compose-entrances-result.json",
+      "render_scope": "Real Web modal image decode; PDF represented as attachment, no PDF viewer claim"
+    },
+    {
+      "media_kind": "avatar",
+      "api_status": 200,
+      "api_reference_matches_session": true,
+      "variants": [
+        {
+          "variant": "original",
+          "object_fingerprint": "d051afda28728744",
+          "storage_exists": true,
+          "size_bytes": 21083,
+          "http_status": 200,
+          "content_type": "image/png",
+          "content_length": "21083",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "thumbnail",
+          "object_fingerprint": "ba6ace7397410e27",
+          "storage_exists": true,
+          "size_bytes": 1004,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "1004",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "display",
+          "object_fingerprint": "da9f572f6f9004d6",
+          "storage_exists": true,
+          "size_bytes": 5276,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "5276",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ],
+      "render_evidence": "final-modal-matrix.json / compose-entrances-result.json",
+      "render_scope": "Real Web modal image decode; PDF represented as attachment, no PDF viewer claim"
+    },
+    {
+      "media_kind": "certificate",
+      "api_status": 200,
+      "api_reference_matches_session": true,
+      "variants": [
+        {
+          "variant": "original",
+          "object_fingerprint": "3b4bf73e8a4b6927",
+          "storage_exists": true,
+          "size_bytes": 21083,
+          "http_status": 200,
+          "content_type": "image/png",
+          "content_length": "21083",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "thumbnail",
+          "object_fingerprint": "be3f6d2b1772cd29",
+          "storage_exists": true,
+          "size_bytes": 1004,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "1004",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "display",
+          "object_fingerprint": "5ba8a6efa08c31e1",
+          "storage_exists": true,
+          "size_bytes": 5276,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "5276",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ],
+      "render_evidence": "final-modal-matrix.json / compose-entrances-result.json",
+      "render_scope": "Real Web modal image decode; PDF represented as attachment, no PDF viewer claim"
+    },
+    {
+      "media_kind": "certificate",
+      "api_status": 200,
+      "api_reference_matches_session": true,
+      "variants": [
+        {
+          "variant": "original",
+          "object_fingerprint": "7369d0eebaa22397",
+          "storage_exists": true,
+          "size_bytes": 47,
+          "http_status": 200,
+          "content_type": "application/pdf",
+          "content_length": "47",
+          "cache_control": null
+        }
+      ],
+      "render_evidence": "final-modal-matrix.json / compose-entrances-result.json",
+      "render_scope": "Real Web modal image decode; PDF represented as attachment, no PDF viewer claim"
+    },
+    {
+      "media_kind": "brand_logo",
+      "api_status": 200,
+      "api_reference_matches_session": true,
+      "variants": [
+        {
+          "variant": "original",
+          "object_fingerprint": "9600e6bcb5024dd5",
+          "storage_exists": true,
+          "size_bytes": 21083,
+          "http_status": 200,
+          "content_type": "image/png",
+          "content_length": "21083",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "thumbnail",
+          "object_fingerprint": "121a172aba40ccf5",
+          "storage_exists": true,
+          "size_bytes": 1004,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "1004",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        },
+        {
+          "variant": "display",
+          "object_fingerprint": "821e7d9f30981740",
+          "storage_exists": true,
+          "size_bytes": 5276,
+          "http_status": 200,
+          "content_type": "image/webp",
+          "content_length": "5276",
+          "cache_control": "public, max-age=604800, stale-while-revalidate=86400"
+        }
+      ],
+      "render_evidence": "final-modal-matrix.json / compose-entrances-result.json",
+      "render_scope": "Real Web modal image decode; PDF represented as attachment, no PDF viewer claim"
+    }
+  ],
+  "miniapp_new_media_render": false,
+  "storefront_new_media_render": false,
+  "productionVerified": false
+}

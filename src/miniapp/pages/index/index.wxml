@@ -56,22 +56,20 @@
     >
       <swiper-item wx:for="{{home.banners}}" wx:key="id">
         <view class="hero-slide" bindtap="openBanner" data-banner="{{item}}">
-          <image
+          <authorized-image resource-type="banner_image" resource-id="{{item.id}}" variant="display"
             wx:if="{{item.display_url}}"
             class="hero-image"
             src="{{item.display_url}}"
-            mode="aspectFill"
-            binderror="onImageError"
+            mode="aspectFit"
             data-key="home.banners[{{index}}].display_url"
-          ></image>
-          <image
+          ></authorized-image>
+          <authorized-image resource-type="banner_image" resource-id="{{item.id}}" variant="display"
             wx:elif="{{item.thumbnail_url}}"
             class="hero-image"
             src="{{item.thumbnail_url}}"
-            mode="aspectFill"
-            binderror="onImageError"
+            mode="aspectFit"
             data-key="home.banners[{{index}}].thumbnail_url"
-          ></image>
+          ></authorized-image>
           <view wx:else class="hero-copy">
             <view class="hero-title">臻选好砖{{'\n'}}美好生活</view>
             <view class="hero-subtitle">{{item.subtitle || item.title || home.store.description || '精选优质瓷砖 · 打造理想空间'}}</view>

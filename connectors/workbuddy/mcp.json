@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "projecttilesfst-workbuddy": {
+      "transport": "stdio",
+      "command": "python",
+      "args": ["-m", "src.mcp.workbuddy.server"],
+      "env": {
+        "TILESFST_API_BASE_URL": "${TILESFST_API_BASE_URL}",
+        "TILESFST_CONNECTOR_TOKEN": "${TILESFST_CONNECTOR_TOKEN}",
+        "TILESFST_CONNECTOR_TIMEOUT_SECONDS": "10",
+        "TILESFST_CONNECTOR_ENABLE_WRITE_TOOLS": "false"
+      }
+    }
+  }
+}

@@ -1,3 +1,10 @@
+import type { ImgHTMLAttributes, VideoHTMLAttributes } from 'react';
+// Authorization/recovery behavior is covered by authorized-media.test.tsx.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+  AuthorizedVideo: ({reference: _reference, ...props}: VideoHTMLAttributes<HTMLVideoElement> & {reference?: unknown}) => <video {...props} />,
+  MediaPreviewButton: () => <button type="button">预览</button>,
+}));
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -325,7 +332,7 @@ describe('TileSkuFormModal', () => {
     await waitFor(() => {
       const player = container.querySelector('video.sku-video-player') as HTMLVideoElement | null;
       expect(player).toBeTruthy();
-      expect(player?.src).toContain('/media/tile-videos/demo.mp4');
+      expect(player?.src).toMatch(/^blob:/);
       expect(screen.getByText('demo.mp4')).toBeInTheDocument();
       expect(screen.getByText('视频已添加')).toBeInTheDocument();
     });

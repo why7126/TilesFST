@@ -1,0 +1,86 @@
+{
+  "source": "Local host HTTP client through Compose Web for API/proxy and COS HTTPS for direct",
+  "cache": "No client response cache; no-cache request header; provider cache not controlled",
+  "sample_bytes": 20671864,
+  "groups": [
+    {
+      "mode": "direct",
+      "concurrency": 1,
+      "samples": [
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 2184,
+          "first_body_ms": 262
+        }
+      ]
+    },
+    {
+      "mode": "proxy",
+      "concurrency": 1,
+      "samples": [
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 2422,
+          "first_body_ms": 2399
+        }
+      ]
+    },
+    {
+      "mode": "direct",
+      "concurrency": 3,
+      "samples": [
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 6163,
+          "first_body_ms": 261
+        },
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 3587,
+          "first_body_ms": 193
+        },
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 5469,
+          "first_body_ms": 241
+        }
+      ]
+    },
+    {
+      "mode": "proxy",
+      "concurrency": 3,
+      "samples": [
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 2752,
+          "first_body_ms": 2726
+        },
+        {
+          "status": 429,
+          "bytes": 75,
+          "elapsed_ms": 270,
+          "first_body_ms": 270
+        },
+        {
+          "status": 200,
+          "bytes": 20671864,
+          "elapsed_ms": 5212,
+          "first_body_ms": 5175
+        }
+      ]
+    }
+  ],
+  "benchmark_complete": false,
+  "repeats_per_group": 1,
+  "proxy_limits_unchanged": true,
+  "executed_at": "2026-09-09 10:01:51",
+  "result": "preflight_failed",
+  "reason": "One of three concurrent proxy reads returned 429 under unchanged protection limits; full repeated matrix not started.",
+  "performance_pass": false
+}

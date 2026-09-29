@@ -595,6 +595,12 @@ def validate_release(
     require(mint_config.exists(), f"Mintlify config missing: {mint_config}", errors)
     scan_public_safety(release_dir, data, errors)
     validate_publish_announcement_stability(release_dir, data, errors, stage=stage)
+    from knowledge_model.hooks import release_check
+    from knowledge_model.core import KnowledgeError
+    try:
+        release_check(release_dir.resolve().parents[1], version)
+    except (KnowledgeError, OSError, ValueError, KeyError) as exc:
+        errors.append("knowledge-model: " + (exc.code if isinstance(exc, KnowledgeError) else "invalid_input_or_io"))
     return errors
 
 

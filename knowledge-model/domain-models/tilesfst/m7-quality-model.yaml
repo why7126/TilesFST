@@ -1,0 +1,6 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: QUALITY
+coverage: out_of_scope
+reason: 未登记有来源的业务SLA；不编造性能数值。
+elements: []

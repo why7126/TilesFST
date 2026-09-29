@@ -1,0 +1,10 @@
+{
+  "source": "Isolated acceptance SQLite session-owned exact keys only",
+  "sessions": 6,
+  "proxy_objects": 0,
+  "exactKeys": 33,
+  "deletedVersions": 31,
+  "abortedMultipartUploads": 0,
+  "remaining": 0,
+  "productionBusinessObjectsTouched": false
+}

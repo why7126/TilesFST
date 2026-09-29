@@ -1,0 +1,130 @@
+{
+  "source": "微信开发者工具模拟器，内存合成页面数据；不是体验版或真机",
+  "viewport_css_px": 430,
+  "screenshot_px": [
+    612,
+    1324
+  ],
+  "detail": [
+    {
+      "selector": ".summary",
+      "width": 402,
+      "height": 125.2734375,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".price",
+      "width": 368,
+      "height": 29.5,
+      "color": "rgb(248, 113, 113)",
+      "fontSize": "21px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "selector": ".price-note",
+      "width": 368,
+      "height": 16.5,
+      "color": "rgb(141, 131, 111)",
+      "fontSize": "12px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "selector": ".panel",
+      "width": 402,
+      "height": 64,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".panel",
+      "width": 402,
+      "height": 245,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".recommend-price(valid)",
+      "width": 124,
+      "height": 16.5,
+      "color": "rgb(248, 113, 113)",
+      "fontSize": "12px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "selector": ".recommend-price(empty)",
+      "width": 124,
+      "height": 16.5,
+      "color": "rgb(175, 165, 142)",
+      "fontSize": "12px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "favorite": [
+    {
+      "selector": ".favorite-card(valid)",
+      "width": 398,
+      "height": 128,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".favorite-price(valid)",
+      "width": 213,
+      "height": 22.5,
+      "color": "rgb(248, 113, 113)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "selector": ".favorite-card(empty)",
+      "width": 398,
+      "height": 128,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".favorite-price(empty)",
+      "width": 213,
+      "height": 22.5,
+      "color": "rgb(175, 165, 142)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "selector": ".favorite-card(unavailable)",
+      "width": 398,
+      "height": 128,
+      "color": "rgb(237, 232, 223)",
+      "fontSize": "16px",
+      "opacity": "0.62",
+      "backgroundColor": "rgb(33, 30, 22)"
+    },
+    {
+      "selector": ".favorite-price(unavailable)",
+      "width": 213,
+      "height": 22.5,
+      "color": "rgb(175, 165, 142)",
+      "fontSize": "16px",
+      "opacity": "1",
+      "backgroundColor": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "amount_contrast_on_surface": 6.02
+}

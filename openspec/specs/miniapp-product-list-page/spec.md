@@ -1,7 +1,12 @@
+---
+created_at: 2026-09-08 08:29:23
+updated_at: 2026-09-08 08:29:23
+---
+
 # miniapp-product-list-page Specification
 
 ## Purpose
-TBD - created by archiving change add-miniapp-product-list-component. Update Purpose after archive.
+规定小程序商品列表的入口、查询、展示、分页和公开分享行为。
 ## Requirements
 ### Requirement: 微信小程序商品列表页入口
 系统 SHALL 提供微信小程序商品列表页，用于承接分类、搜索、品牌和首页推荐等入口的公开 SKU 浏览。分类入口 SHALL 显式支持一级分类聚合查询和二级分类精确查询。商品列表页 SHALL 保留入口上下文用于初始查询、标题、搜索路径和空状态展示，并 SHALL 支持当前分类、品牌、section 或关键词上下文下继续搜索或返回完整搜索页调整关键词。
@@ -54,7 +59,6 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 页面 SHALL NOT 清空已有可浏览内容。
 
 ### Requirement: 商品卡片
-
 商品列表页 SHALL 使用统一商品卡片展示公开 SKU，并 SHALL 为商品主图、名称、品牌/规格、价格、状态标识、图片加载性能和失败降级提供稳定体验。公开 SKU 有真实主图时，列表接口返回给商品卡片的 `cover_image` SHALL 是可通过后端 `/media/{object_key}` 或等价受控链路读取的图片 URL。列表缩略图或等价轻量优化图片 SHALL 是真实轻量资源；系统 SHALL NOT 仅以 `.thumb` 对象存在但内容等同原图的资源作为图片加载性能优化完成标准。从品牌列表页进入的品牌分类商品列表页、首页推荐、搜索结果、收藏列表和普通商品列表 SHALL 继续复用商品卡片缩略图优先策略。
 
 #### Scenario: 商品列表保持缩略图优先
@@ -64,6 +68,31 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 商品卡片 SHALL NOT 因 SKU 详情页改用高清展示图而直接回退原图字段
 - **AND** 非首屏商品卡片图片 SHALL 启用小程序 `lazy-load` 或等价延迟加载策略
 - **AND** 商品详情、图片预览或分享场景 SHALL 保留原图或安全高清 URL。
+
+#### Scenario: grid 商品卡片完整显示整图
+
+- **WHEN** 用户在商品列表页查看 `density="grid"` 商品卡片
+- **THEN** 商品卡片图片 SHALL 使用完整适配展示整张商品图
+- **AND** 商品图片主体 SHALL NOT 因铺满图片框而被上下或左右裁切
+- **AND** 图片 SHALL NOT 被拉伸变形
+- **AND** 图片完整适配产生的留白或背景 SHALL 与卡片视觉一致，不出现破图、透明空洞或突兀高对比空白
+- **AND** 商品卡片 SHALL 继续优先使用列表缩略图或等价轻量优化图片 URL。
+
+#### Scenario: grid 商品卡片图片区域比例稳定
+
+- **WHEN** 团队验收 320、375 和 430px 逻辑宽度下的双列 grid 商品卡片
+- **THEN** 每行 SHALL 稳定展示 2 个商品卡片
+- **AND** grid 商品卡片图片区域 SHALL 具备足以完整展示方形瓷砖主体的稳定比例或等价高度
+- **AND** 骨架屏、加载中、无图占位和加载失败态 SHALL 与最终 grid 图片区域比例一致
+- **AND** 商品名称、品牌、规格和参考价格 SHALL 保持可读，不横向溢出、不互相遮挡。
+
+#### Scenario: grid 商品卡片复用场景一致
+
+- **WHEN** 商品列表页、品牌详情商品 Tab 或首页全部产品区域复用 `density="grid"` 商品卡片
+- **THEN** 三类场景 SHALL 使用一致的 grid 图片完整适配展示契约
+- **AND** 品牌详情商品 Tab 的商品卡片 SHALL 与商品列表页表现一致
+- **AND** 首页全部产品区域的商品卡片 SHALL 与商品列表页表现一致
+- **AND** 首页新品推荐、热销推荐等 `density="compact"` 商品卡片和搜索页 `density="list"` 商品卡片 SHALL NOT 被本契约强制改动。
 
 ### Requirement: 商品列表公开数据接口
 
@@ -140,14 +169,14 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 - **AND** 商品列表页的轻量搜索路径 SHALL NOT 删除或破坏搜索页代码路径。
 
 ### Requirement: 商品列表页微信分享
-商品列表页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前搜索、分类、品牌和榜单上下文。
+商品列表页 SHALL 支持分享给微信朋友和分享到微信朋友圈，并 SHALL 保留当前搜索、分类、品牌、榜单及合法规格、价格区间和排序上下文；不得新增复杂筛选控件。
 
 #### Scenario: 商品列表分享给微信朋友
 - **WHEN** 用户在商品列表页触发微信朋友分享
 - **THEN** 小程序 SHALL 返回微信原生分享对象
 - **AND** 分享标题 SHALL 反映当前搜索、分类、品牌、榜单或全部商品语义
 - **AND** 分享路径 SHALL 指向商品列表页并保留可恢复当前列表的白名单 query 参数
-- **AND** 白名单参数 SHOULD 包含 `categoryId`、`categoryLevel`、`categoryName`、`brandId`、`keyword`、`section` 和 `sourcePage` 中适用字段。
+- **AND** 白名单参数 SHALL 包含 `categoryId`、`categoryLevel`、`categoryName`、`brandId`、`keyword`、`section` 、`spec`、`priceRange`、`sort` 和固定分享来源中适用字段。
 
 #### Scenario: 商品列表分享到朋友圈
 - **WHEN** 用户在商品列表页触发分享到朋友圈
@@ -164,9 +193,14 @@ TBD - created by archiving change add-miniapp-product-list-component. Update Pur
 
 #### Scenario: 商品列表分享埋点非阻断
 - **WHEN** 商品列表页记录分享行为
-- **THEN** 事件 SHOULD 包含页面路径、分享渠道、分类、品牌、关键词、榜单和结果上下文中的可用字段
+- **THEN** 事件 SHALL 包含无query页面路径、分享渠道、公开分类/品牌ID及脱敏条件摘要，SHALL NOT保存关键词原文或完整分享URL
 - **AND** 埋点失败 SHALL NOT 阻断分享
 - **AND** 分享行为 SHALL NOT 影响下拉刷新、加载更多、商品卡片点击或错误重试。
+
+#### Scenario: 完整条件与分页恢复
+- **WHEN** 合法入口已设置规格、价格区间或排序并发起分享
+- **THEN** 接收方SHALL恢复同一合法条件并重新查询第一页
+- **AND** SHALL NOT恢复已加载数组、页码、滚动位置或新增筛选UI。
 
 ### Requirement: 商品列表召回置顶排序
 

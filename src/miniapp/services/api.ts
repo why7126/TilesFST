@@ -15,6 +15,8 @@ type ApiResponse<T> = {
 
 type MiniappRequestOption = WechatMiniprogram.RequestOption & {
   skipPerformanceTracking?: boolean;
+  singleAttempt?: boolean;
+  onRequestTask?: (task: WechatMiniprogram.RequestTask) => void;
   behaviorTraceId?: string;
   behaviorEventId?: string;
 };
@@ -39,7 +41,7 @@ function baseUrls(): string[] {
 }
 
 function mediaUrl(value: unknown, currentBaseUrl: string): unknown {
-  if (typeof value === 'string' && value.indexOf('/media/') === 0) {
+  if (typeof value === 'string' && (value.indexOf('/media/') === 0 || value.indexOf('/api/v1/media/read?') === 0)) {
     return `${currentBaseUrl}${value}`;
   }
   return value;
@@ -95,9 +97,9 @@ function isTelemetryPath(path: string): boolean {
 }
 
 export function request<T>(path: string, options: MiniappRequestOption = {}): Promise<T> {
-  const { skipPerformanceTracking, behaviorTraceId, behaviorEventId, ...requestOptions } = options;
+  const { skipPerformanceTracking, behaviorTraceId, behaviorEventId, singleAttempt, onRequestTask, ...requestOptions } = options;
   const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
-  const urls = baseUrls();
+  const urls = singleAttempt ? baseUrls().slice(0, 1) : baseUrls();
   const clientRequestId = createClientRequestId();
   const behaviorContext = activeBehaviorContext;
   const effectiveBehaviorTraceId = behaviorTraceId || behaviorContext?.behaviorTraceId;
@@ -114,7 +116,7 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
     const url = `${currentBaseUrl}${path}`;
     const startedAt = Date.now();
     return new Promise((resolve, reject) => {
-      wx.request<ApiResponse<T>>({
+      const task = wx.request<ApiResponse<T>>({
         ...requestOptions,
         url,
         header: {
@@ -129,7 +131,7 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
           const body = res.data;
           if (shouldReportPerformance) {
             reportPerformanceMetric({
-              page_key: path,
+              page_key: path === '/api/v1/media/read-authorizations' ? '/media-read' : path,
               metric_name: 'api_duration',
               duration_ms: Date.now() - startedAt,
               device_class: 'miniapp',
@@ -158,7 +160,7 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
         fail: (error) => {
           if (shouldReportPerformance) {
             reportPerformanceMetric({
-              page_key: path,
+              page_key: path === '/api/v1/media/read-authorizations' ? '/media-read' : path,
               metric_name: 'api_failed_duration',
               duration_ms: Date.now() - startedAt,
               device_class: 'miniapp',
@@ -178,6 +180,7 @@ export function request<T>(path: string, options: MiniappRequestOption = {}): Pr
           reject(error);
         },
       });
+      if (onRequestTask) onRequestTask(task);
     });
   }
 

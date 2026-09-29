@@ -306,6 +306,9 @@ class MediaStorageClient(Protocol):
     def build_direct_read_url(self, object_key: str, expires_seconds: int) -> str:
         """Return an expiring object-storage read URL for controlled direct delivery."""
 
+    def build_direct_head_url(self, object_key: str, expires_seconds: int) -> str:
+        """Sign HEAD independently; GET signatures are method-specific."""
+
 
 class S3CompatibleMediaStorageClient:
     def __init__(self) -> None:
@@ -455,6 +458,17 @@ class S3CompatibleMediaStorageClient:
             ) from exc
 
 
+    def build_direct_head_url(self, object_key: str, expires_seconds: int) -> str:
+        validate_object_key(object_key)
+        try:
+            return self._get_client().get_presigned_url(
+                "HEAD", settings.effective_object_storage_bucket(), object_key,
+                expires=timedelta(seconds=expires_seconds),
+            )
+        except Exception as exc:
+            raise AppError(status_code=502, code=STORAGE_UNAVAILABLE, message="对象存储不可用") from exc
+
+
 class TencentCOSMediaStorageClient:
     def __init__(self) -> None:
         self._client = None
@@ -579,6 +593,17 @@ class TencentCOSMediaStorageClient:
                 code=STORAGE_UNAVAILABLE,
                 message="对象存储不可用",
             ) from exc
+
+
+    def build_direct_head_url(self, object_key: str, expires_seconds: int) -> str:
+        validate_object_key(object_key)
+        try:
+            return self._get_client().get_presigned_url(
+                Method="HEAD", Bucket=settings.effective_object_storage_bucket(),
+                Key=object_key, Expired=expires_seconds,
+            )
+        except Exception as exc:
+            raise AppError(status_code=502, code=STORAGE_UNAVAILABLE, message="对象存储不可用") from exc
 
 
 MinioMediaStorageClient = S3CompatibleMediaStorageClient

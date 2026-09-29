@@ -4,7 +4,7 @@ content: 行为事件、API 请求日志、Task Trace、流程节点、保留周
 source: REQ-0126-product-data-collection-observability-standard / add-product-data-collection-observability-standard
 update_method: 数据采集、链路观测、日志审计、Task Trace 或保留周期规范变化时同步更新
 created_at: 2026-08-26 10:58:47
-updated_at: 2026-08-26 19:36:50
+updated_at: '2026-09-09 08:13:55'
 ---
 
 # 通用产品数据采集与链路观测规范
@@ -113,7 +113,7 @@ usage_events
 | `behavior_event_id` | 单条行为事件 ID | 是 | 否 | 客户端 helper / SDK | 单条行为事件唯一标识；被 `request_logs.parent_behavior_event_id` 回指。 | 必须校验长度、字符集和格式。 |
 | `event_name` | 稳定事件名 | 是 | 否 | 客户端事件字典 | 用于跨产品统计、漏斗和审计查询；不得使用临时文案或按钮标题直接拼接。 | 不包含用户输入原文。 |
 | `event_category` | 行为分类 | 是 | 否 | 客户端事件字典 | 建议使用 `page`、`click`、`search`、`filter`、`form`、`upload`、`share`、`favorite`、`auth` 等稳定分类。 | 不含敏感信息。 |
-| `client_type` | 客户端类型 | 是 | 否 | 客户端 / 后端归一化 | 建议枚举为 `web_admin`、`web_catalog`、`wechat_miniapp`、`app`、`backend` 或 `unknown`。 | 不含敏感信息。 |
+| `client_type` | 客户端类型 | 是 | 否 | 客户端 / 后端归一化 | 建议枚举为 `web_admin`、`web_catalog`、`wechat_miniapp`、`workbuddy_connector`、`app`、`backend` 或 `unknown`。 | 不含敏感信息。 |
 | `page_path` | 页面路径 | 否 | 是 | 客户端 | 页面访问、点击、表单等行为的页面来源。 | 查询参数必须脱敏或截断。 |
 | `page_code` | 页面稳定编码 | 否 | 是 | 客户端事件字典 | 跨端页面归一化统计；适用于小程序页面、App 页面或 Web 路由。 | 不含敏感信息。 |
 | `session_id` | 会话或匿名会话标识 | 否 | 是 | 客户端 / 后端会话层 | 用于匿名访问归因、会话级排障和去重。 | 必须是脱敏或不可逆标识。 |
@@ -240,6 +240,8 @@ usage_events
 
 行为事件必须使用稳定事件字典，避免每个产品自行创造不可复用的 `event_name`。事件属性必须脱敏和截断。
 
+媒体读取统一使用 `media_read`，必填属性为 `resource_type`、`variant`、`phase`、`result`。`phase` 区分 authorization、refresh、recovery、degraded、proxy、load、preview、play；授权成功仅表示取得地址，load/recovery 成功须由实际媒体加载或恢复位置事件触发。`result` 沿用 success/failed，`outcome` 补充 started/unavailable 等阶段结果，避免违反日志表约束。只记录这些枚举，不传 URL、head_url、object_key、ticket、signature 或凭据。观测失败不阻断展示，保留周期与现有 usage_events 一致。
+
 ## 7. API 请求日志覆盖
 
 所有业务 API 请求必须记录 `request_logs`。
@@ -252,7 +254,7 @@ usage_events
 | `method` / `path` | 请求方法和路径。 |
 | `status_code` / `result` | HTTP 状态和成功 / 失败结果。 |
 | `duration_ms` | 请求耗时。 |
-| `client_type` | `web_admin`、`web_catalog`、`wechat_miniapp`、`app`、`backend` 或 `unknown`。 |
+| `client_type` | `web_admin`、`web_catalog`、`wechat_miniapp`、`workbuddy_connector`、`app`、`backend` 或 `unknown`。 |
 | `actor` | 可用的操作者上下文。 |
 | `created_at` | 请求时间。 |
 | `metadata` | 已脱敏摘要，不保存完整请求体或响应体。 |

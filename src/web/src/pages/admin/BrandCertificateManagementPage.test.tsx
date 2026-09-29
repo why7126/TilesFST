@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import type { ImgHTMLAttributes, VideoHTMLAttributes } from 'react';
+// Authorization/recovery behavior is covered by authorized-media.test.tsx.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+  AuthorizedVideo: ({reference: _reference, ...props}: VideoHTMLAttributes<HTMLVideoElement> & {reference?: unknown}) => <video {...props} />,
+  MediaPreviewButton: () => <button type="button">预览</button>,
+}));
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -39,7 +46,7 @@ vi.mock('@/features/admin/api/system-settings-api', () => ({
   fetchSettingsGroup: (...args: unknown[]) => fetchSettingsGroupMock(...args),
 }));
 
-import { BrandCertificateManagementPage } from './BrandCertificateManagementPage';
+import { BrandCertificateManagementPage, CertificateFormModal } from './BrandCertificateManagementPage';
 
 const brandPayload = {
   items: [
@@ -296,7 +303,7 @@ describe('BrandCertificateManagementPage', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(uploadBrandCertificateFileMock).toHaveBeenCalledWith(file, expect.any(Function));
+      expect(uploadBrandCertificateFileMock).toHaveBeenCalledWith(file, expect.any(Function), expect.objectContaining({onTask:expect.any(Function), onUpdate:expect.any(Function)}));
     });
     expect(within(dialog).getByText('new.pdf')).toBeInTheDocument();
     expect(within(dialog).getByText('证书文件已就绪')).toBeInTheDocument();
@@ -484,5 +491,73 @@ describe('BrandCertificateManagementPage', () => {
       expect(hideBrandCertificateMock).toHaveBeenCalledWith(7);
     });
     confirmSpy.mockRestore();
+  });
+});
+
+
+describe('Certificate direct upload ownership', () => {
+  beforeEach(() => { uploadBrandCertificateFileMock.mockReset(); createBrandCertificateMock.mockReset(); });
+  const openModal = () => {
+    const onClose = vi.fn();
+    render(<CertificateFormModal open mode="create" certificate={null} brands={brandPayload.items.map(item => ({...item,status:'ENABLED' as const,created_at:'2026-09-08',updated_at:'2026-09-08'}))}
+      initialBrandId="1" maxFileSizeMb={25} onClose={onClose} onSuccess={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('证书名称 *'), {target:{value:'直传证书'}});
+    fireEvent.click(screen.getByLabelText('长期有效'));
+    return onClose;
+  };
+  it('blocks saving during processing and ignores a late result after cancel', async () => {
+    let complete!: (value: unknown) => void;
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    uploadBrandCertificateFileMock.mockImplementation((_file, _progress, options) => {
+      options.onTask({cancel}); options.onUpdate({stage:'processing',progress:100});
+      return new Promise(resolve => {complete=resolve;});
+    });
+    openModal();
+    fireEvent.change(document.querySelectorAll('input[type=file]')[0], {target:{files:[new File(['image'],'page.png',{type:'image/png'})]}});
+    await screen.findByText('正在生成图片展示版本');
+    expect(screen.getByRole('button',{name:'保存证书'})).toBeDisabled();
+    fireEvent.click(screen.getByRole('button',{name:'取消上传'}));
+    await waitFor(() => expect(cancel).toHaveBeenCalledOnce());
+    await act(async () => complete({object_key:'late.png',url:'/late.png',mime_type:'image/png',size:5}));
+    expect(document.querySelector('img[src="/late.png"]')).not.toBeInTheDocument();
+    expect(createBrandCertificateMock).not.toHaveBeenCalled();
+  });
+  it('keeps multiple ready images after save failure and retries only the business write', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    uploadBrandCertificateFileMock.mockImplementation((file, _progress, options) => {
+      options.onTask({cancel});
+      return Promise.resolve({object_key:file.name,url:'/'+file.name,mime_type:'image/png',size:4});
+    });
+    createBrandCertificateMock.mockRejectedValueOnce(new Error('save failed')).mockResolvedValueOnce({id:1});
+    const close = openModal();
+    const input = document.querySelectorAll('input[type=file]')[0];
+    for (const name of ['one.png','two.png']) {
+      fireEvent.change(input,{target:{files:[new File(['data'],name,{type:'image/png'})]}});
+      await waitFor(() => expect(document.querySelector(`img[src="/${name}"]`)).toBeInTheDocument());
+    }
+    fireEvent.click(screen.getByRole('button',{name:'保存证书'}));
+    await screen.findByText('保存证书失败');
+    expect(close).not.toHaveBeenCalled(); expect(cancel).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button',{name:'保存证书'}));
+    await waitFor(() => expect(close).toHaveBeenCalledOnce());
+    expect(uploadBrandCertificateFileMock).toHaveBeenCalledTimes(2);
+    expect(createBrandCertificateMock).toHaveBeenCalledTimes(2);
+    expect(cancel).not.toHaveBeenCalled();
+  });
+  it('cancels each ready image before closing without saving', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined);
+    uploadBrandCertificateFileMock.mockImplementation((file,_progress,options) => {
+      options.onTask({cancel}); return Promise.resolve({object_key:file.name,url:'/'+file.name,mime_type:'image/png',size:4});
+    });
+    const close=openModal();
+    for(const name of ['a.png','b.png']) {
+      fireEvent.change(document.querySelectorAll('input[type=file]')[0],{target:{files:[new File(['data'],name,{type:'image/png'})]}});
+      await waitFor(() => expect(document.querySelector(`img[src="/${name}"]`)).toBeInTheDocument());
+    }
+    fireEvent.click(screen.getByRole('button',{name:'关闭'}));
+    expect(close).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button',{name:'取消上传并离开'}));
+    await waitFor(() => expect(close).toHaveBeenCalledOnce());
+    expect(cancel).toHaveBeenCalledTimes(2);
   });
 });

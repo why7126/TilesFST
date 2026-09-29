@@ -4,7 +4,7 @@ content: 部署组件、环境变量和运行方式
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-30 09:55:00
+updated_at: 2026-09-11 09:12:44
 note: 适用于瓷砖信息管理平台项目模板
 ---
 
@@ -18,6 +18,7 @@ note: 适用于瓷砖信息管理平台项目模板
 - 外部 MySQL 8.0+（生产）
 - MinIO / S3 兼容对象存储
 - Web 静态资源
+- WorkBuddy MCP 连接器（可选；本地 stdio PoC 或 HTTPS 远程服务）
 
 ### Web 静态资源与产品 Logo
 
@@ -30,6 +31,34 @@ SKU 图片上传会在后端生成同目录 `.thumb` 缩略图和 `.display` 详
 ## 环境变量
 
 参考 `.env.example`。
+
+WorkBuddy 连接器相关变量以 `TILESFST_CONNECTOR_*` 和 `TILESFST_API_BASE_URL` 为前缀。第一阶段本地 stdio PoC 配置后端 API 基址和连接器 Bearer Token；第二阶段远程服务必须配置 `TILESFST_CONNECTOR_REMOTE_CREDENTIALS_FILE`、限流、写工具总开关与写范围。旧共享 `TILESFST_CONNECTOR_HTTP_BEARER_TOKEN` 已停用，配置缺失不允许匿名访问。真实凭据由企业密钥系统或部署平台注入。
+
+本地 stdio PoC：
+
+```bash
+python -m src.mcp.workbuddy.server
+```
+
+HTTPS MCP 服务：
+
+```bash
+uvicorn src.mcp.workbuddy.http_server:app --host 0.0.0.0 --port 8010
+```
+
+HTTPS MCP 服务必须置于企业 HTTPS 网关或等价反向代理之后，统一处理 TLS、访问来源限制、Token 轮换、网关审计和异常告警。连接器服务本身不得直接访问数据库或对象存储，只能复用后端鉴权 API。
+
+### WorkBuddy 远程身份与幂等
+
+远程交付采用无状态 Streamable HTTP JSON，部署模板和完整 HTTP 契约见 [WorkBuddy 单实例部署手册](../deploy/prod/workbuddy.md)。包含非 root 镜像、私有 loopback 入口、只读凭据目录、持久化 journal 卷及独立容器 smoke。`/health` 仅为存活检查，真实身份/后端连通性另行验收。
+
+远程映射文件使用 JSON 对象：键为专用连接器 Bearer 凭据的 SHA-256 十六进制摘要，值为 `backend_token`（该用户的后端凭据）与 `scopes`（字符串数组）。连接器凭据与后端凭据必须不同，不将后端凭据下发给 MCP 客户端。文件由运维创建、权限 600，父目录仅服务账号可访问；挂载为只读 secret，不能提交 Git。每次请求重新读取配置并调用 `/api/v1/auth/me` 验证 active 的 admin/employee 身份；撤销映射立即对后续请求生效，更新 backend_token 支持凭据轮换。必须授予 `catalog:read`；写 scope 与服务端 `TILESFST_CONNECTOR_WRITE_SCOPES` 取交集。此方式是受控凭据映射，不是 OAuth，也不会改变后端既有数据范围。
+
+`TILESFST_CONNECTOR_IDEMPOTENCY_DIR` 默认为 `data/workbuddy/idempotency`，仅保存连接器自身的摘要与执行状态，不查询业务数据库。部署必须持久化挂载此目录；多个进程/实例需要共享支持原子 mkdir、rename、fsync 的文件系统。未满足共享条件不得宣称跨实例幂等。账本不存请求体、响应体、Token 或客户数据。重复键同参数返回 duplicate_operation，异参数返回 idempotency_conflict；进程崩溃、超时或未知失败保持 operation_uncertain，先人工核对业务和审计，不自动换键重试。没有自动清理期限，清理须在业务核对和运维保留策略确定后进行。
+
+HTTP 入口提供 JSON-RPC POST 与无正文 202 通知响应，不提供 SSE；浏览器 Origin 请求拒绝。原生远程客户端兼容、TLS 网关、真实上传和跨主机共享存储需要独立部署验收，本地 TestClient 不代替这些证据。服务日志收集 `workbuddy_tool_call` 事件，包含工具名、身份摘要、结果、耗时、client_request_id、operation_ref，不记录参数或完整结果。
+
+WorkBuddy 本地隔离写入验收使用 `python deploy/scripts/verify-workbuddy-local.py`，专属配置为 `deploy/local/compose.workbuddy-acceptance.yml`。运行前提、凭据注入、专属卷保留与证据边界见 [隔离验收手册](../deploy/local/workbuddy-acceptance.md)。该环境没有宿主机端口，不连接现有业务服务，不替代 HTTPS 原生验收。
 
 ## 生产镜像包交付
 
@@ -569,3 +598,22 @@ videos/
 videos/covers/
 videos/transcoded/
 ```
+
+## SKU 图片后端异步派生（REQ-0135）
+
+COS直传默认关闭。`OBJECT_STORAGE_DIRECT_VIDEO_UPLOAD_ENABLED`控制SKU视频，`OBJECT_STORAGE_DIRECT_IMAGE_UPLOAD_ENABLED`控制SKU图片、品牌Logo、Banner、头像、证书的JPEG/PNG/WebP与证书PDF；PDF校验后就绪，不进入Pillow队列，特殊图片格式保持显式代理能力。启用图片前先启动同版本后端镜像的`tilesfst-image-worker`，并确认数据库迁移已完成；只修改开关而没有worker会使图片停在处理中。
+
+本地`deploy/local/compose.yml`和生产`deploy/prod/compose.tencent-cos.yml`提供可选`image-processing` profile，现有up.sh不会自动启用该profile。配置好相同env后，在项目根目录启动生产worker的命令为：
+
+```bash
+TILESFST_DEPLOY_ENV_FILE=mysql-tencent-cos.env docker compose --env-file deploy/prod/mysql-tencent-cos.env -f deploy/prod/compose.tencent-cos.yml --profile image-processing up -d tilesfst-image-worker
+```
+
+本地COS环境将命令中的两个prod目录替换为local、Compose文件改为compose.yml，env采用对应SQLite或MySQL环境文件。worker不发布端口，和API共用数据库及对象存储配置；每套环境只运行一个实例，不使用scale扩容。CPU上限1核、容器内存与swap合计512MiB，单任务串行处理；总任务120秒，缩略图生成18秒、展示图生成90秒独立子进程超时。存储暂时失败按5/15/45秒最多自动重试3次；解码、资源限制、生成超时进入可诊断失败，用户可显式重试派生。原图保持原格式，输出最大480×480与1600×1600的WebP，不放大小图；保留透明度和方向修正。目标体积未达到显示warning。
+
+处理在后端Pillow执行，不调用数据万象、不依赖CI服务角色。worker仍需从COS下载原图并上传派生结果；上传主体绕过业务服务器，但后台处理会消耗服务器CPU、内存和带宽，不能据此认为派生耗时或对象存储请求消失。
+
+回滚先关闭新会话的直传开关并重建API容器，保持当前版本worker运行，等待已创建的图片会话完成或受控取消后再停worker。关闭开关不会改变旧会话传输模式，也不会删除会话表或已绑定媒体；不要在未排空时退回不识别会话的旧API镜像。代码支持会话恢复，本地证明与生产发布确认分别记录。隔离Compose中的关闭新上传、重建API和旧会话完成已验证；这不替代生产部署回滚与小程序验收。
+
+
+清理worker的`--apply --confirm-backup`执行还包括本上传任务类型的观测明细保留：request_logs、task_traces、task_trace_spans为90天，usage_events为180天，每次每表最多500条。默认不带`--apply`仅统计；只匹配task_type=media_direct_upload，不改审计日志或其他任务。观测清理失败只报告计数状态，不影响上传和对象清理。此处不提供全站历史日志清理能力。

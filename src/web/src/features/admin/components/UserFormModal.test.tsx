@@ -1,3 +1,8 @@
+import type { ImgHTMLAttributes } from 'react';
+// Form tests verify stable business values; authorization/blob lifecycle has independent tests.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+}));
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -96,10 +101,10 @@ describe('UserFormModal', () => {
     fireEvent.change(screen.getByLabelText('更换头像'), { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(uploadAvatarMock).toHaveBeenCalledWith(file, expect.any(Function));
+      expect(uploadAvatarMock).toHaveBeenCalledWith(file, expect.any(Function), expect.any(Object));
     });
     expect(await screen.findByText('已上传头像')).toBeInTheDocument();
-    expect(screen.getByText('头像已更新')).toBeInTheDocument();
+    expect(screen.getByText('图片已添加')).toBeInTheDocument();
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/avatars/demo.webp',
     );
@@ -317,4 +322,20 @@ describe('UserFormModal', () => {
       }),
     );
   });
+});
+
+it('locks the avatar session while the user record is being committed', async () => {
+  createUserMock.mockReset(); uploadAvatarMock.mockReset();
+  createUserMock.mockImplementation(() => new Promise(() => {}));
+  uploadAvatarMock.mockResolvedValue({object_key:'images/avatar.png',url:'/avatar.png'});
+  render(<UserFormModal open mode="create" user={null} onClose={vi.fn()} onSuccess={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('用户名'),{target:{value:'locked_avatar'}});
+  const input=document.querySelector('input[type=file]')!;
+  fireEvent.change(input,{target:{files:[new File(['a'],'first.png',{type:'image/png'})]}});
+  await screen.findByText('图片已添加');
+  fireEvent.click(screen.getByRole('button',{name:'创建用户'}));
+  await waitFor(()=>expect(createUserMock).toHaveBeenCalledOnce());
+  expect(input).toBeDisabled();
+  fireEvent.change(input,{target:{files:[new File(['b'],'second.png',{type:'image/png'})]}});
+  expect(uploadAvatarMock).toHaveBeenCalledOnce();
 });

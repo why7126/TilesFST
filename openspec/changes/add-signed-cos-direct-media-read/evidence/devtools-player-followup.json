@@ -1,0 +1,42 @@
+{
+  "executed_at": "2026-09-09 23:57:35",
+  "source": "CUA native WeChat DevTools 2.02.2608060; isolated API 8010 and MinIO synthetic sample",
+  "real_device": false,
+  "sample_duration_seconds": 330,
+  "compilation": "Tools > Compile succeeded; synthetic product displayed",
+  "playback_observed": [
+    "00:43",
+    "01:02"
+  ],
+  "fullscreen": {
+    "button": "⛶",
+    "entered": true,
+    "synthetic_video_frame_visible": true,
+    "layout_quality_verified": false,
+    "exit": "User unable to exit; Escape and Ctrl+Cmd+F could not restore automation; repeated AX timeout"
+  },
+  "replay": {
+    "result": "passed",
+    "source": "CUA native DevTools controls and synthetic video frame",
+    "first_play_progress": [
+      "02:44",
+      "03:47"
+    ],
+    "after_playback": "Play button and 00:00 observed after waiting past remaining duration",
+    "restart": "Clicked Play; Pause button and progress 00:35 observed",
+    "duration": "05:30",
+    "full_screen_reentered": false
+  },
+  "album_next_image": {
+    "result": "second image rendered",
+    "source": "CUA native album screenshot",
+    "counter": "2 / 2",
+    "appearance": "blue background with orange ellipse; distinct from first gold rectangle",
+    "synthetic_fixture_added": "one image in isolated MinIO and smoke SQLite only",
+    "swipe_verified": false,
+    "limitation": "Drag, horizontal scroll and focused Left key did not change counter; direct opening second image does not prove in-album swipe or long-stay navigation"
+  },
+  "user_action_requested": null,
+  "environment_restored": true,
+  "user_restarted_devtools": true
+}

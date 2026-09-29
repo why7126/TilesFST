@@ -1,0 +1,113 @@
+{
+  "source": "codex_app_server_live",
+  "entry": "opsx-apply",
+  "scenario": "B1",
+  "run_id": "00651ffb-ec8c-400c-8525-bff3bd2b0a9f",
+  "runtime_version": "codex-cli 0.153.4",
+  "started_at": "2026-09-10T02:43:43.585781+00:00",
+  "policy_sha256": "a22c498cdc24d92d8bb591f75af38371b2c0116bf64593dee918817f00569386",
+  "tasks": [
+    {
+      "id": "A",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    },
+    {
+      "id": "B",
+      "authorized": true,
+      "deps": [],
+      "blocked": null
+    }
+  ],
+  "events": [
+    {
+      "seq": 0,
+      "at": "2026-09-10T02:43:43.713639+00:00",
+      "kind": "turn_start"
+    },
+    {
+      "seq": 1,
+      "at": "2026-09-10T02:43:50.007637+00:00",
+      "kind": "commentary"
+    },
+    {
+      "seq": 2,
+      "at": "2026-09-10T02:43:50.613945+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 3,
+      "at": "2026-09-10T02:43:53.941348+00:00",
+      "kind": "test",
+      "task": "A",
+      "result": "failed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 4,
+      "at": "2026-09-10T02:43:53.943192+00:00",
+      "kind": "test",
+      "task": "B",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 5,
+      "at": "2026-09-10T02:43:58.958417+00:00",
+      "kind": "edit",
+      "task": "A",
+      "artifact_sha256": "300273daf0bb57c239f83585d71ced54ce6b3b5fb81615abbeeb3f9cf5fae92f"
+    },
+    {
+      "seq": 6,
+      "at": "2026-09-10T02:43:58.960157+00:00",
+      "kind": "test",
+      "task": "A",
+      "result": "passed",
+      "signature": "arithmetic_assertion"
+    },
+    {
+      "seq": 7,
+      "at": "2026-09-10T02:43:58.964766+00:00",
+      "kind": "complete",
+      "task": "A"
+    },
+    {
+      "seq": 8,
+      "at": "2026-09-10T02:43:58.965792+00:00",
+      "kind": "complete",
+      "task": "B"
+    },
+    {
+      "seq": 9,
+      "at": "2026-09-10T02:43:58.966338+00:00",
+      "kind": "inspect"
+    },
+    {
+      "seq": 10,
+      "at": "2026-09-10T02:44:02.571501+00:00",
+      "kind": "final",
+      "summary": {
+        "implemented": [
+          "A",
+          "B"
+        ],
+        "verified": [
+          "A",
+          "B"
+        ],
+        "manual_pending": [],
+        "external_blocked": [],
+        "completion_event": true,
+        "archive_ready": false
+      }
+    }
+  ],
+  "scope": "isolated dynamic-tool arithmetic fixtures; simulated inputs, live Agent decisions",
+  "model": "gpt-6-astra",
+  "validation": {
+    "status": "passed",
+    "errors": []
+  }
+}

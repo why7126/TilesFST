@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.modules.media.upload_binding import save_with_avatar
+
 import re
 
 from app.core.exceptions import (
@@ -64,9 +66,11 @@ class UserAdminService:
         self,
         repo: UserRepository,
         effective_settings: EffectiveSettingsService | None = None,
+        actor_id: str | None = None,
     ) -> None:
         self._repo = repo
         self._effective = effective_settings
+        self._actor_id = actor_id
 
     @staticmethod
     def to_item(user: UserRecord) -> UserAdminItem:
@@ -146,15 +150,18 @@ class UserAdminService:
 
         policy = self._effective.get_password_policy() if self._effective else None
         password = generate_random_password(policy=policy)
-        user = self._repo.create_user(
-            username=username,
-            password=password,
-            display_name=payload.display_name.strip() if payload.display_name else None,
-            role=payload.role,
-            avatar_object_key=payload.avatar_object_key,
-            email=_normalize_email(payload.email),
-            phone=_normalize_phone(payload.phone),
-        )
+        def save(target_id, key):
+            return self._repo.create_user(
+                username=username,
+                password=password,
+                display_name=payload.display_name.strip() if payload.display_name else None,
+                role=payload.role,
+                avatar_object_key=key,
+                user_id=target_id,
+                email=_normalize_email(payload.email),
+                phone=_normalize_phone(payload.phone),
+            )
+        user = save_with_avatar(self._repo, self._actor_id, payload.avatar_object_key, None, save)
         return UserCreateData(user=self.to_item(user), initial_password=password)
 
     def update_user(self, user_id: str, payload: UserUpdateRequest) -> UserAdminItem:
@@ -171,15 +178,17 @@ class UserAdminService:
         if display_name is not None:
             display_name = display_name.strip() or None
 
-        updated = self._repo.update_user(
-            user_id,
-            display_name=display_name if payload.display_name is not None else None,
-            role=payload.role,
-            avatar_object_key=payload.avatar_object_key,
-            update_avatar=payload.avatar_object_key is not None,
-            email=_normalize_email(payload.email) if "email" in payload.model_fields_set else UNSET,
-            phone=_normalize_phone(payload.phone) if "phone" in payload.model_fields_set else UNSET,
-        )
+        def save(target_id, key):
+            return self._repo.update_user(
+                user_id,
+                display_name=display_name if payload.display_name is not None else None,
+                role=payload.role,
+                avatar_object_key=key,
+                update_avatar=payload.avatar_object_key is not None,
+                email=_normalize_email(payload.email) if "email" in payload.model_fields_set else UNSET,
+                phone=_normalize_phone(payload.phone) if "phone" in payload.model_fields_set else UNSET,
+            )
+        updated = save_with_avatar(self._repo, self._actor_id, payload.avatar_object_key, user_id, save)
         assert updated is not None
         return self.to_item(updated)
 

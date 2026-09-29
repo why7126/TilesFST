@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ProjectTilesFST WorkBuddy connector">
+  <rect width="128" height="128" rx="20" fill="#111827"/>
+  <path d="M24 26h36v36H24z" fill="#C9A45C"/>
+  <path d="M68 26h36v36H68z" fill="#E5E7EB"/>
+  <path d="M24 70h36v36H24z" fill="#E5E7EB"/>
+  <path d="M68 70h36v36H68z" fill="#C9A45C"/>
+  <path d="M43 45h42M43 83h42" stroke="#111827" stroke-width="7" stroke-linecap="round"/>
+</svg>

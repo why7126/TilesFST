@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from sqlalchemy import text
+from app.modules.media.upload_sessions import ensure_upload_sessions
 from sqlalchemy.engine import Connection
 
 logger = logging.getLogger(__name__)
@@ -61,6 +62,7 @@ def _ensure_brands_table(connection: Connection) -> None:
 
 
 def apply_migrations(connection: Connection) -> None:
+    ensure_upload_sessions(connection)
     users_sql = _users_table_sql(connection)
     if not users_sql:
         return

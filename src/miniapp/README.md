@@ -4,7 +4,7 @@ content: 说明本目录职责、边界和AI新增文件规则
 source: AI自动生成，人工确认
 update_method: 目录职责变化时更新
 created_at: 2026-07-16 13:40:44
-updated_at: 2026-08-28 10:13:06
+updated_at: '2026-09-09 08:42:24'
 note: AI新增文件前必须确认目录边界
 ---
 
@@ -119,7 +119,7 @@ note: AI新增文件前必须确认目录边界
 ## 本地调试
 
 - 小程序环境配置集中在 `utils/env.*`，通过 `/miniapp-env` 命令族维护，禁止手工只改 `.ts` 或只改 `.js`。
-- `/miniapp-env dev`：所有运行形态使用本地 API，基础地址为 `http://127.0.0.1:8010`，并按 `http://localhost:8010`、`http://localhost:8000` 顺序降级探测。
+- `/miniapp-env dev`：所有运行形态使用本地 API，基础地址为 `http://127.0.0.1:8000`，并使用 `http://localhost:8000` 降级探测。
 - `/miniapp-env prod`：所有运行形态使用生产 API，基础地址固定为 `https://tilesfst.wjoyhappy.site`，不配置本地 fallback。
 - `/miniapp-env auto`：开发版使用本地 API，体验版和正式版使用生产 API；发布后默认恢复到该策略。
 - `/miniapp-env dev` 与 `/miniapp-env auto` 会把 `project.private.config.json` 的 `setting.urlCheck` 设为 `false`，用于本地 HTTP 后端调试；`/miniapp-env prod` 与 `/miniapp-prepare` 会设为 `true`，用于生产域名校验。
@@ -131,3 +131,29 @@ note: AI新增文件前必须确认目录边界
 - `project.config.json` 默认关闭 `urlCheck` 用于本地 HTTP 后端调试；`project.private.config.json` 可在发布验证时打开 `urlCheck`，提交正式版前需在微信公众平台配置生产域名合法域名。
 - 后端代码变更后需重新构建运行镜像，例如 `docker compose up -d --build tilesfst-backend`，否则微信开发者工具可能仍访问到旧接口。
 - 小程序静态与首页聚合回归检查：`uv run pytest tests/test_miniapp_static.py tests/test_miniapp_home.py`。
+
+## 价格展示状态与颜色
+
+`utils/price.ts` 与同步运行脚本 `utils/price.js` 统一返回价格文案和 valid/empty/unavailable 状态；有效金额保留后端格式并使用独立红色，无价和不可查看状态使用中性色。共享商品卡片、详情主价格、推荐及收藏均接入，状态随数据刷新重新计算。价格数值不在端侧重新计算。
+
+`styles/price.generated.wxss` 由 Web 的 `pnpm sync:tokens` 从共享 `miniappPriceTokens` 生成。页面和隔离组件分别导入，`price-theme` 作用域定义价格变量，`price-valid`／`price-placeholder` 选择状态。品牌金、其他端报价和图片布局不受价格token影响。
+
+## 公开页面原生分享
+
+11个公开页面通过`utils/public-sharing.ts`及同步JS接入朋友和朋友圈回调；收藏页不参与。白名单只传公开对象ID或已生效查询，分页、历史、会话及发送者链路不透传。商品列表兼容spec、priceRange、sort深链恢复，不增加筛选控件；品牌/证书列表使用最近成功查询关键词，搜索分享恢复不写最近搜索或触发主动提交事件。
+
+文本keyword/spec最多80字符、priceRange最多40字符，编码query应用保护阈值2048；非法内容安全降级。首张卡片使用产品Logo；页面进入时将包内Logo准备到USER_DATA_PATH并同步复用，文件API不可用时回退包路径。轻量公开图通过getImageInfo后，后续分享复用其已解码的本地路径，避免远程地址验证后过期；没有本地路径则继续使用Logo。使用现有track记录触发和独立接收摘要，不表示发送完成；采集失败不阻断分享。测试入口为`tests/js/miniapp-public-sharing.cjs`，真实双端接收与视觉证明边界见对应Change测试计划。
+
+公开分享埋点依赖后端事件字典注册；新增事件与旧事件兼容属性由`src/backend/tests/test_miniapp_public_share_events.py`使用实际JS载荷验证。后端需先随正常版本部署，再验收新小程序的采集网络结果。
+
+## 授权媒体读取
+
+业务图片统一由 `authorized-image` 根据业务类型、资源ID、媒体ID和规格请求授权。首页/品牌Banner、共享商品/品牌卡片、搜索、收藏、推荐、证书和配置的门店Logo均接入；本地产品Logo仍使用静态资产。证书未指定媒体ID时，thumbnail/display指向当前主图，original指向主附件；图片ID始终检查所属证书。
+
+页面内合并授权，最多4个并发请求、每批50项。自动刷新最多2次，退避1/3秒、请求超时10秒；前后台切换取消旧请求，重新进入重新授权，不向storage保存签名地址。视频刷新保持位置和播放意图；失败耗尽后提供手动重试。
+
+原图相册与附件先授权并下载为临时文件，再交给 `wx.previewImage` / `wx.openDocument`。文件下载同样最多4并发、10秒超时和2次恢复；切换预览、页面隐藏或卸载取消在途任务。临时文件不写业务数据，不使用过期地址作为备用。
+
+`media_read` 事件记录类型、规格、阶段、结果及outcome，不含URL、签名、票据或对象Key。媒体授权接口的RUM维度固定为 `/media-read`，避免把接口名中的authorization误判为凭据。对象存储内容不伪造成后端API文件流。
+
+COS发布验证仍须配置真实 HTTPS request/download 合法域名及所需CORS。开发工具关闭域名检查的本地MinIO测试只能证明开发链路，不替代体验版和真机验收。

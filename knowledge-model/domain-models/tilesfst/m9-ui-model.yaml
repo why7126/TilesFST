@@ -1,0 +1,6 @@
+schema_version: 1.0.0
+version: 0.1.0
+model_type: UI
+coverage: out_of_scope
+reason: 首版无页面生成或模板消费；UI类型保留，实际模板覆盖后单独登记。
+elements: []

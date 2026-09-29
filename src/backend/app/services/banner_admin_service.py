@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.modules.media.upload_binding import VideoUploadBinding
+
 import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
@@ -92,9 +94,11 @@ class BannerAdminService:
         self,
         banner_repo: BannerRepository,
         topic_repo: TopicRepository,
+        actor_id: str | None = None,
     ) -> None:
         self._banners = banner_repo
         self._topics = topic_repo
+        self._image_binding = VideoUploadBinding(banner_repo.db, actor_id)
 
     @staticmethod
     def to_item(banner: BannerRecord) -> BannerAdminItem:
@@ -177,6 +181,14 @@ class BannerAdminService:
             raise BannerJumpTargetInvalidError("图片来源无效")
         if not image_object_key.strip():
             raise BannerJumpTargetInvalidError("Banner 图片不能为空")
+        if "/direct-upload/" in image_object_key and image_source != "custom_upload":
+            # Borrowed direct media must already be referenced by its source business.
+            if image_source in {"sku_main_image", "sku_gallery_image"} and sku_id is not None:
+                self._validate_sku_image(sku_id, image_source, sku_gallery_asset_id, image_object_key)
+            elif image_source == "brand_logo" and brand_id is not None:
+                self._validate_brand_image(brand_id, image_source, sku_gallery_asset_id, image_object_key)
+            else:
+                raise BannerJumpTargetInvalidError("图片引用缺少合法来源")
 
         if jump_type == "SKU_DETAIL":
             if sku_id is None:
@@ -355,6 +367,8 @@ class BannerAdminService:
             )
 
     def create_banner(self, payload: BannerCreateRequest) -> BannerAdminItem:
+        if payload.image_source == "custom_upload" and "/direct-upload/" in payload.image_object_key:
+            return self._save_direct_image(payload)
         self._ensure_write_schema_ready()
         title = self.validate_title(payload.title)
         self.validate_display_client_position(payload.display_client, payload.position)
@@ -398,6 +412,8 @@ class BannerAdminService:
         return self.to_item(banner)
 
     def update_banner(self, banner_id: int, payload: BannerUpdateRequest) -> BannerAdminItem:
+        if payload.image_source == "custom_upload" and "/direct-upload/" in payload.image_object_key:
+            return self._save_direct_image(payload, banner_id)
         self._ensure_write_schema_ready()
         banner = self._banners.get_by_id(banner_id)
         if banner is None:
@@ -447,6 +463,51 @@ class BannerAdminService:
         assert updated is not None
         updated = self._formalize_custom_image_if_needed(updated)
         return self.to_item(updated)
+
+    def _save_direct_image(self, payload, banner_id=None):
+        self._ensure_write_schema_ready()
+        title = self.validate_title(payload.title)
+        self.validate_display_client_position(payload.display_client, payload.position)
+        self.validate_sort_order(payload.sort_order)
+        self.validate_validity(payload.valid_from, payload.valid_to)
+        self.validate_jump_and_image(**{key: getattr(payload, key) for key in (
+            "jump_type", "sku_id", "external_url", "topic_id", "brand_id", "image_source",
+            "image_object_key", "sku_gallery_asset_id")})
+        binding = self._image_binding
+        media = [{"object_key": payload.image_object_key.strip()}]
+        rows = binding.resolve(media, banner_id, media_kind="banner")
+        if banner_id is None and rows[0]["bound_business_id"]:
+            banner_id = int(rows[0]["bound_business_id"])
+            if rows[0]["state"] == "bound":
+                record = self._banners.get_by_id(banner_id)
+                if record is None:
+                    raise BannerNotFoundError()
+                return self.to_item(record)
+        if banner_id is not None and self._banners.get_by_id(banner_id) is None:
+            raise BannerNotFoundError()
+        if self._banners.get_by_unique_key(payload.display_client, payload.position, title, exclude_id=banner_id):
+            raise BannerTitleDuplicatedError()
+        values = payload.model_dump()
+        values.update(title=title, external_url=_normalize_optional(payload.external_url, max_len=500),
+                      remark=_normalize_optional(payload.remark, max_len=500))
+        values.pop("image_object_key")
+        with self._banners.atomic():
+            if banner_id is None:
+                # A draft reservation has no usable media reference until binding commits.
+                banner_id = self._banners.create(**values, image_object_key="").id
+            rows = binding.claim(rows, banner_id)
+        try:
+            rows = binding.copy(rows)
+            with self._banners.atomic():
+                key = binding.finish(rows, media)[0]["object_key"]
+                record = self._banners.update(banner_id, **values, image_object_key=key)
+                if record is None:
+                    raise BannerNotFoundError()
+            binding.record_bound(rows)
+            return self.to_item(record)
+        except Exception:
+            binding.release(rows)
+            raise
 
     def _formalize_custom_image_if_needed(self, banner: BannerRecord) -> BannerRecord:
         if banner.image_source != "custom_upload" or not is_pending_business_media_key(banner.image_object_key):

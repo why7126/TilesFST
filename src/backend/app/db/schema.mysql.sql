@@ -455,3 +455,49 @@ CREATE TABLE IF NOT EXISTS task_trace_spans (
   INDEX idx_task_trace_spans_behavior_trace (behavior_trace_id, created_at),
   INDEX idx_task_trace_spans_type_created (task_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- REQ-0135 durable upload sessions
+
+CREATE TABLE IF NOT EXISTS media_upload_sessions (
+	id VARCHAR(36) NOT NULL,
+	owner_id VARCHAR(64) COLLATE utf8mb4_bin NOT NULL,
+	idempotency_key VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+	request_hash VARCHAR(64) NOT NULL,
+	media_kind VARCHAR(32) NOT NULL,
+	business_id BIGINT,
+	expected_size BIGINT NOT NULL,
+	mime_type VARCHAR(128) NOT NULL,
+	part_size INTEGER NOT NULL,
+	mode VARCHAR(16) NOT NULL,
+	state VARCHAR(20) NOT NULL,
+	version INTEGER NOT NULL DEFAULT '0',
+	temporary_key VARCHAR(512) NOT NULL,
+	stable_key VARCHAR(512) NOT NULL,
+	upload_id VARCHAR(512),
+	source_version_id VARCHAR(256),
+	stable_version_id VARCHAR(256),
+	source_etag VARCHAR(128),
+	actual_size BIGINT,
+	actual_mime_type VARCHAR(128),
+	integrity_hash VARCHAR(128),
+	variants_json TEXT,
+	object_versions_json TEXT,
+	task_trace_id VARCHAR(64),
+	error_code VARCHAR(64),
+	bound_business_id VARCHAR(64),
+	lease_token VARCHAR(36),
+	lease_expires_at VARCHAR(32),
+	expires_at VARCHAR(32) NOT NULL,
+	created_at VARCHAR(32) NOT NULL,
+	updated_at VARCHAR(32) NOT NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT uq_media_upload_owner_idem UNIQUE (owner_id, idempotency_key),
+	CONSTRAINT ck_media_upload_sizes CHECK (expected_size > 0 AND part_size > 0),
+	CONSTRAINT ck_media_upload_version CHECK (version >= 0),
+	CONSTRAINT ck_media_upload_state CHECK (state IN ('created','uploading','verifying','processing','ready','binding','bound','failed','cancelled','expired','cleaning','cleaned')),
+	INDEX ix_media_upload_business (media_kind, business_id),
+	INDEX ix_media_upload_expiry (state, expires_at),
+	INDEX ix_media_upload_task (task_trace_id)
+)ENGINE=InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci
+
+;

@@ -1,6 +1,8 @@
 ---
 name: "sprint-archive"
 description: "批量归档 Sprint 内 OpenSpec Change 并关闭迭代"
+created_at: 2026-06-16 15:03:29
+updated_at: 2026-09-10 23:03:12
 ---
 
 # sprint-archive
@@ -193,3 +195,7 @@ Report archived/skipped/blocked counts, Sprint close status, updated files, vali
 - 已有下一步且仍有额外人工事项时，`待用户决策/处理` 只列命令之外的事项，不得重复 `下一步` 中的命令或动作。
 - REQ 链路使用完整原始 `REQ-*`；BUG 链路使用完整原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 - 不得因为输出了下一步引导而自动执行下一命令；除非用户明确授权。
+
+## Knowledge Model Close Gate
+
+Issue promotion 会按 Sprint 全部 Change 执行知识同步并独立汇报失败。归档前 readiness 允许 active Change 尚未同步，归档后的最终 readiness 阻断 covered Change 的 failed/stale、语义冲突和高风险未决项；不得用 force 绕过。关闭前同时运行 `python scripts/validate-knowledge-model.py check --sprint <sprint-id>`，保留范围外原因与低风险警告。source_revision_pending 需先提交归档来源再单 Change 重试，不回滚 OpenSpec 归档。

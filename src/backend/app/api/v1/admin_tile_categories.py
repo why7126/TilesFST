@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 
 from app.core.deps import get_tile_category_repository, require_admin_user
+from app.core.workbuddy_maintenance_trace import trace_workbuddy_maintenance
 from app.repositories.tile_category_repository import TileCategoryRepository
 from app.schemas.common import ApiResponse
 from app.schemas.tile_category_admin import (
@@ -18,7 +19,7 @@ from app.schemas.tile_category_admin import (
 )
 from app.services.tile_category_admin_service import TileCategoryAdminService
 
-router = APIRouter(dependencies=[Depends(require_admin_user)])
+router = APIRouter(dependencies=[Depends(require_admin_user), Depends(trace_workbuddy_maintenance)])
 
 
 def get_tile_category_admin_service(

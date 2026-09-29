@@ -7,7 +7,6 @@
  */
 
 import type { Config } from 'tailwindcss';
-import plugin from 'tailwindcss/plugin';
 import { colorCssVariables } from './colors';
 import { radiusCssVariables } from './radius';
 import { typographyCssVariables } from './typography';
@@ -77,9 +76,11 @@ const config = {
     },
   },
   plugins: [
-    plugin(({ addUtilities }) => {
-      addUtilities(tailwindSemanticTextUtilities);
-    }),
+    {
+      handler: ({ addUtilities }: { addUtilities: (values: Record<string, Record<string, string>>) => void }) => {
+        addUtilities(tailwindSemanticTextUtilities);
+      },
+    },
   ],
 } satisfies Config;
 

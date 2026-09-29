@@ -28,25 +28,24 @@
         indicator-dots
         indicator-active-color="#C8A055"
       >
-        <swiper-item wx:for="{{product.media}}" wx:key="media_id">
-          <image
+        <swiper-item wx:for="{{product.media}}" wx:key="render_key">
+          <authorized-image resource-type="sku_image" resource-id="{{product.product_id}}" media-id="{{item.media_id}}" variant="display"
             wx:if="{{item.media_type == 'image'}}"
             class="gallery-image"
             src="{{item.display_url || item.thumbnail_url || imageFallback}}"
-            mode="aspectFill"
+            mode="aspectFit"
             lazy-load="{{index > 0}}"
             data-url="{{item.original_url || item.preview_url || item.url || item.display_url}}"
             data-media-index="{{index}}"
             data-type="image"
             bindtap="previewImage"
-            binderror="onMediaError"
-          ></image>
+          ></authorized-image>
           <view wx:else class="video-layer">
-            <video
+            <video wx:if="{{item.url}}"
               id="sku-video-{{item.media_id}}"
               class="gallery-image"
               src="{{item.url}}"
-              poster="{{item.cover_url || product.cover_image || imageFallback}}"
+              poster="{{item.cover_url || product.cover_image || ''}}"
               controls
               show-fullscreen-btn="{{false}}"
               autoplay="{{false}}"
@@ -54,11 +53,15 @@
               data-id="{{item.media_id}}"
               data-url="{{item.url}}"
               data-type="video"
+              bindtimeupdate="onVideoTimeUpdate"
+              bindloadedmetadata="onVideoMetadata"
+              bindpause="onVideoPause"
               bindplay="onVideoPlay"
               bindwaiting="onVideoWaiting"
               bindfullscreenchange="onVideoFullscreenChange"
               binderror="onMediaError"
             ></video>
+            <view wx:else class="gallery-image image-empty">视频加载中…</view>
             <cover-view
               class="video-fullscreen-btn"
               data-id="{{item.media_id}}"
@@ -72,12 +75,12 @@
         </swiper-item>
       </swiper>
       <view class="media-count">{{product.image_count}} 图<text wx:if="{{product.video_count}}"> · {{product.video_count}} 视频</text></view>
-      <view wx:if="{{mediaError}}" class="media-error">{{mediaError}}</view>
+      <view wx:if="{{mediaError}}" class="media-error">{{mediaError}}<button wx:if="{{failedVideoId}}" class="ghost-btn" bindtap="retryVideoMedia">重试视频</button></view>
     </view>
 
     <view class="summary">
       <view class="product-name">{{product.product_name}}</view>
-      <view class="price">{{product.price_display}}</view>
+      <view class="price price-theme {{product.priceView.state === 'valid' ? 'price-valid' : 'price-placeholder'}}">{{product.priceView.text}}</view>
       <view class="price-note">实际价格以门店最终确认为准</view>
     </view>
 
@@ -114,9 +117,9 @@
           data-type="same_series"
           bindtap="openRecommend"
         >
-          <image class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></image>
+          <authorized-image resource-type="sku_image" resource-id="{{item.product_id}}" variant="thumbnail" class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></authorized-image>
           <view class="recommend-name">{{item.product_name}}</view>
-          <view class="recommend-price">{{item.price_display}}</view>
+          <view class="recommend-price price-theme {{item.priceView.state === 'valid' ? 'price-valid' : 'price-placeholder'}}">{{item.priceView.text}}</view>
         </view>
       </scroll-view>
     </view>
@@ -132,9 +135,9 @@
           data-type="same_brand"
           bindtap="openRecommend"
         >
-          <image class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></image>
+          <authorized-image resource-type="sku_image" resource-id="{{item.product_id}}" variant="thumbnail" class="recommend-image" src="{{item.thumbnail_url || item.cover_image || imageFallback}}" mode="aspectFill" lazy-load="{{true}}"></authorized-image>
           <view class="recommend-name">{{item.product_name}}</view>
-          <view class="recommend-price">{{item.price_display}}</view>
+          <view class="recommend-price price-theme {{item.priceView.state === 'valid' ? 'price-valid' : 'price-placeholder'}}">{{item.priceView.text}}</view>
         </view>
       </scroll-view>
     </view>

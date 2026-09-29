@@ -16,14 +16,18 @@ from app.api.v1 import (
     admin_brand_certificates,
     auth,
     miniapp,
+    media_read,
     performance_events,
     profile,
     tiles,
     usage_events,
     uploads,
+    upload_sessions,
 )
 
 api_router = APIRouter()
+api_router.include_router(media_read.router, prefix="/media", tags=["media-read"])
+api_router.include_router(media_read.admin_router, prefix="/admin/media", tags=["admin-media-read"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 api_router.include_router(miniapp.router, prefix="/miniapp", tags=["miniapp"])
@@ -78,3 +82,5 @@ api_router.include_router(
     tags=["admin-tile-specs"],
 )
 api_router.include_router(uploads.router, prefix="/admin/uploads", tags=["uploads"])
+
+api_router.include_router(upload_sessions.router, prefix="/admin/uploads/sessions", tags=["upload-sessions"])

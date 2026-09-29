@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 
 type BrandDetail = {
@@ -113,6 +114,7 @@ Page({
   },
 
   onLoad(query: Record<string, string>) {
+    query = receiveShare('brand-detail', query);
     const brandId = Number(query.brandId || query.brand_id || 0);
     this.setData({
       brandId,
@@ -134,21 +136,11 @@ Page({
   },
 
   onShareAppMessage() {
-    this.trackShare('wechat_friend');
-    return {
-      title: this.data.brand?.brand_name || '品牌主页',
-      path: brandSharePath(this.data.brandId),
-      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.imageFallback,
-    };
+    return sharePage('brand-detail', this, 'wechat_friend');
   },
 
   onShareTimeline() {
-    this.trackShare('wechat_timeline');
-    return {
-      title: this.data.brand?.brand_name || '品牌主页',
-      query: `brandId=${encodeURIComponent(String(this.data.brandId || 0))}&source=share`,
-      imageUrl: this.data.brand?.brand_logo_thumbnail_url || this.data.imageFallback,
-    };
+    return sharePage('brand-detail', this, 'wechat_timeline');
   },
 
   loadBrand() {

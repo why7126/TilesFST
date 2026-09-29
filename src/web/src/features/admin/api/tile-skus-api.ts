@@ -1,3 +1,5 @@
+import { createImageUploadTask, createVideoUploadTask } from '@/features/media/media-upload-api';
+import type { MediaUploadTask, UploadSnapshot } from '@/features/media/media-upload-controller';
 import { api } from '@/features/auth/api/auth-api';
 import type {
   ListTileSkusApiV1AdminTileSkusGetParams,
@@ -55,37 +57,49 @@ export async function deleteTileSku(tileId: number) {
   await api.deleteTileSkuApiV1AdminTileSkusTileIdDelete(tileId);
 }
 
-export async function uploadTileImage(file: File, tileId?: number) {
-  const response = await api.uploadTileImageApiV1AdminUploadsTileImagesPost(
-    { file },
-    tileId ? { tile_id: tileId } : undefined,
-  );
-  return response.data.data!;
+export async function uploadTileImage(file: File, tileId?: number, options?: VideoUploadOptions) {
+  const task = options?.task ?? createImageUploadTask(file, tileId, value => options?.onUpdate?.(value),
+    async (signal, progress) => {
+      const response = await api.uploadTileImageApiV1AdminUploadsTileImagesPost(
+        { file }, tileId ? { tile_id: tileId } : undefined,
+        { signal, onUploadProgress: event => { if (event.total) progress(Math.min(99, Math.floor(event.loaded * 100 / event.total))); } },
+      );
+      return response.data.data!;
+    });
+  task.setListener(value => options?.onUpdate?.(value));
+  options?.onTask?.(task);
+  return task.run();
 }
 
 export type UploadProgressHandler = (progress: number) => void;
+
+export interface VideoUploadOptions {
+  task?: MediaUploadTask;
+  onTask?: (task: MediaUploadTask) => void;
+  onUpdate?: (snapshot: UploadSnapshot) => void;
+}
 
 export async function uploadTileVideo(
   file: File,
   tileId?: number,
   onProgress?: UploadProgressHandler,
+  options?: VideoUploadOptions,
 ) {
-  const response = await api.uploadTileVideoApiV1AdminUploadsTileVideosPost(
-    { file },
-    tileId ? { tile_id: tileId } : undefined,
-    {
-      onUploadProgress: (event) => {
-        if (!onProgress) return;
-        const total = event.total ?? 0;
-        if (total <= 0) {
-          onProgress(50);
-          return;
-        }
-        onProgress(Math.min(99, Math.max(1, Math.round((event.loaded / total) * 100))));
-      },
-    },
-  );
-  return response.data.data!;
+  const task = options?.task ?? createVideoUploadTask(file, tileId, snapshot => {
+    onProgress?.(snapshot.progress);
+    options?.onUpdate?.(snapshot);
+  }, async (signal, progress) => {
+    const response = await api.uploadTileVideoApiV1AdminUploadsTileVideosPost(
+      { file }, tileId ? { tile_id: tileId } : undefined,
+      { signal, onUploadProgress: event => {
+        if (event.total && event.total > 0) progress(Math.min(99, Math.floor(event.loaded * 100 / event.total)));
+      } },
+    );
+    return response.data.data!;
+  });
+  task.setListener(snapshot => { onProgress?.(snapshot.progress); options?.onUpdate?.(snapshot); });
+  options?.onTask?.(task);
+  return task.run();
 }
 
 export function canDeleteTileSku(sku: Pick<TileSkuAdminItem, 'status'>): boolean {

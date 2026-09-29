@@ -1,0 +1,22 @@
+{
+  "source": "Local Vite real BrandFormModal and CSS; synthetic API and object responses, no COS or production",
+  "viewport": {
+    "width": 1440,
+    "height": 620
+  },
+  "layout": {
+    "width": 720,
+    "top": 48,
+    "bottom": 572,
+    "maxHeight": "524px",
+    "overflow": "hidden",
+    "bg": "color(srgb 0.129412 0.117647 0.0862745 / 0.98)"
+  },
+  "footer": {
+    "x": 982.9375,
+    "y": 519.5,
+    "width": 76.0625,
+    "height": 40
+  },
+  "processingSaveBlocked": true
+}

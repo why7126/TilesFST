@@ -4,7 +4,7 @@ content: 每个 BUG 一行的当前状态、阶段、Sprint、Change、下一步
 source: /spec-study apply ProjectMoonBox 治理学习改写
 update_method: BUG capture、生成、补齐、评审、纳入 Sprint、创建 Change、apply、archive 或状态同步后按需更新对应行
 created_at: 2026-08-10 23:28:57
-updated_at: 2026-08-30 11:49:33
+updated_at: 2026-09-10 10:15:02
 ---
 
 # 缺陷当前态看板索引
@@ -13,6 +13,7 @@ updated_at: 2026-08-30 11:49:33
 
 | BUG | 标题 | 状态 | 阶段 | Sprint | Change | 最近更新时间 | 下一步 | 事实源 |
 |---|---|---|---|---|---|---|---|---|
+| BUG-0148-miniapp-product-list-card-image-fit | 小程序商品列表 grid 卡片图片无法完整显示 | done | review | sprint-029 | fix-miniapp-product-grid-image-fit | 2026-09-07 22:58:19 | 暂无可推进下一步 | `issues/bugs/archive/BUG-0148-miniapp-product-list-card-image-fit/trace.md` |
 | BUG-0147-miniapp-certificate-list-images-missing | 小程序证书列表页图片不显示 | done | review | sprint-028 | fix-miniapp-certificate-media-urls | 2026-08-30 11:49:33 | 暂无可推进下一步 | `issues/bugs/archive/BUG-0147-miniapp-certificate-list-images-missing/trace.md` |
 | BUG-0146-batch-media-maintenance-banner-variants | 批量媒体维护命令未覆盖 Banner 自定义上传图 | done | review | sprint-027 | fix-media-maintenance-banner-variants | 2026-08-30 08:36:05 | 暂无可推进下一步 | `issues/bugs/archive/BUG-0146-batch-media-maintenance-banner-variants/trace.md` |
 | BUG-0145-admin-log-detail-field-overlap | 管理端日志详情长字段名和值重叠 | done | archive | sprint-026 | fix-admin-log-detail-field-overlap | 2026-08-27 08:17:13 | 暂无可推进下一步 | `issues/bugs/archive/BUG-0145-admin-log-detail-field-overlap/trace.md` |

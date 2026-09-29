@@ -1,0 +1,84 @@
+sprint_id: sprint-030
+status: planning
+lifecycle_stage: change
+start_date: '2026-09-08 08:39:14'
+end_date: '2026-09-22 08:39:14'
+schedule_note: 两周暂定规划窗口；按 sprint-029 后续排期承接，同组人员不视为并行可用，实际开工时更新窗口。
+capacity:
+  developers: 2
+  testers: 1
+capacity_person_days: 30
+capacity_source: 沿用 sprint-029 的2开发+1测试/30人天既有基线；project.yaml未提供独立容量配置。
+requirements:
+  - REQ-0137-miniapp-banner-image-aspect-fit
+  - REQ-0136-signed-cos-direct-media-read
+  - REQ-0138-knowledge-model-lifecycle-sync
+bugs:
+  - BUG-0149-opsx-apply-premature-stop
+changes:
+  - add-signed-cos-direct-media-read
+  - enforce-apply-continuous-execution
+  - fix-miniapp-banner-image-aspect-fit
+  - fix-apply-continuous-execution-behavior
+  - add-knowledge-model-lifecycle-sync
+estimated_story_points: 30
+estimated_person_days: 30
+capacity_usage: 1
+fix_buffer_person_days: 0
+fix_buffer_ratio: 0
+unallocated_person_days: 0
+reserved_fix_person_days: 0
+capacity_gate:
+  capacity_person_days: 30
+  estimated_person_days: 30
+  capacity_usage: 1
+  result: pass
+  note: 30/30=100%；未超过120%硬上限；剩余修复缓冲0，低于30%建议，新增工作需重估与范围调整；不增加人员或承诺并行排期。
+scope_estimates:
+  - id: REQ-0137-miniapp-banner-image-aspect-fit
+    change: fix-miniapp-banner-image-aspect-fit
+    requirement: REQ-0137-miniapp-banner-image-aspect-fit
+    size: M
+    story_points: 3
+    estimated_person_days: 3
+    rationale: P1：四页面图片适配与品牌文字布局1人天，加载/回退/混排及交互回归1人天，多宽度视觉取证、UI Contract与文档闭环1人天；无API/DB/媒体URL策略变更。
+  - id: REQ-0136-signed-cos-direct-media-read
+    requirement: REQ-0136-signed-cos-direct-media-read
+    size: XL
+    story_points: 8
+    estimated_person_days: 8
+    rationale: P1完整两阶段：授权与对象解析2人天，三端视频图片附件恢复3人天，历史兼容及灰度回退1人天，安全集成Compose与设备证据2人天；保留REQ-0137，合计11/30人天36.67%，预留至少9人天修复缓冲，不重复计入REQ-0135上传实现。
+  - id: enforce-apply-continuous-execution
+    change: enforce-apply-continuous-execution
+    size: S
+    story_points: 1
+    estimated_person_days: 1
+    rationale: 统一两个 apply 入口的持续执行、阻塞分类和部分完成收尾，并验证治理回退
+  - id: BUG-0149-opsx-apply-premature-stop
+    change: fix-apply-continuous-execution-behavior
+    bug: BUG-0149-opsx-apply-premature-stop
+    size: L
+    story_points: 5
+    estimated_person_days: 5
+    rationale: P1：持续执行与收尾规则1人天，验证工具1人天，两入口实际行为场景2人天，证据文档与同步1人天；合计17/30人天56.67%，保留9人天修复缓冲、4人天未分配；仅治理修复，不将关键词检测作为行为验收。
+  - id: REQ-0138-knowledge-model-lifecycle-sync
+    change: add-knowledge-model-lifecycle-sync
+    requirement: REQ-0138-knowledge-model-lifecycle-sync
+    size: XXL
+    story_points: 13
+    estimated_person_days: 13
+    rationale: P1：本体与映射4人天、归档同步和失败恢复4人天、Sprint及发布集成2人天、验证文档3人天；合计30/30人天100%，未超120%硬门禁，但修复缓冲降为0；单真实Change试点，不建设问答或图数据库。
+product_data_collection_observability:
+  status: applicable
+  affected_layers:
+    - web_admin
+    - web_catalog
+    - wechat_miniapp
+    - backend_api
+    - request_logs
+    - usage_events
+    - task_traces
+    - task_trace_spans
+    - object_storage
+  reason: REQ-0136涉及三端读取授权、续签、候选解析与回退；REQ-0137仅渲染仍单独N/A。DB默认复用稳定引用，直接COS流不伪造后端读取日志。
+  validation: REQ-0136 AC-014至016覆盖API/DB/Orval、脱敏、保留周期和链路，尚未实施；REQ-0137 AC-OBS-001/002保留差异核对。

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from app.modules.media.upload_binding import save_with_avatar
+
 import re
 
 from app.core.exceptions import ProfileValidationError
@@ -108,7 +110,7 @@ class ProfileService:
             phone=phone,
             remark=remark,
         )
-        if "avatar_object_key" in fields_set:
+        if "avatar_object_key" in fields_set and not (avatar_object_key and "/direct-upload/" in avatar_object_key):
             self._validate_avatar_object_key(avatar_object_key)
 
         avatar_changed = (
@@ -124,14 +126,16 @@ class ProfileService:
             ]
         )
 
-        updated = self._users.update_profile(
-            user.id,
-            display_name=display_name,
-            email=email,
-            phone=phone,
-            remark=remark,
-            avatar_object_key=avatar_object_key,
-        )
+        def save(target_id, key):
+            return self._users.update_profile(
+                user.id,
+                display_name=display_name,
+                email=email,
+                phone=phone,
+                remark=remark,
+                avatar_object_key=key,
+            )
+        updated = save_with_avatar(self._users, user.id, avatar_object_key, user.id, save)
         if updated is None:
             raise ProfileValidationError("用户不存在")
 

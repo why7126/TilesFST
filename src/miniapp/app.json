@@ -57,5 +57,8 @@
         "selectedIconPath": "assets/tabbar/favorite-active.png"
       }
     ]
+  },
+  "usingComponents": {
+    "authorized-image": "/components/authorized-image/index"
   }
 }

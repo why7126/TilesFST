@@ -1,3 +1,5 @@
+import { AuthorizedImage, MediaPreviewButton } from '@/features/media/authorized-media';
+import type { MediaReadReference } from '@/shared/api/generated';
 import { useRef, useState, type ChangeEvent } from 'react';
 
 import {
@@ -49,11 +51,14 @@ export function getCertificatePreviewTarget(fileUrl?: string | null) {
 }
 
 export function CertificateThumb({
+  reference, previewFile,
   fileUrl,
   fileName,
   fileMimeType,
   className,
 }: {
+  reference?: MediaReadReference;
+  previewFile?: File;
   fileUrl?: string | null;
   fileName?: string | null;
   fileMimeType?: string | null;
@@ -73,7 +78,7 @@ export function CertificateThumb({
       )}
     >
       {canRenderImage ? (
-        <img src={fileUrl!} alt="" onError={() => setFailed(true)} />
+        (reference || previewFile) ? <AuthorizedImage file={previewFile} reference={reference} src={fileUrl!} alt="" /> : <img src={fileUrl!} alt="" onError={() => setFailed(true)} />
       ) : (
         <span>{isPdf ? 'PDF' : 'FILE'}</span>
       )}
@@ -106,7 +111,7 @@ export function CertificateListIdentity({
   certificate,
 }: {
   certificate: CertificateSummaryLike &
-    Pick<BrandCertificateItem, 'file_url' | 'thumbnail_url' | 'file_mime_type' | 'main_image'>;
+    Pick<BrandCertificateItem, 'thumbnail_url' | 'file_mime_type' | 'main_image'> & {id?: number; file_key?: string; file_url?: string | null};
 }) {
   const preview = certificate.main_image ?? {
     file_url: certificate.file_url,
@@ -117,6 +122,7 @@ export function CertificateListIdentity({
   return (
     <div className="certificate-cell">
       <CertificateThumb
+        reference={certificate.id ? {resource_type: 'certificate', resource_id: String(certificate.id), media_id: certificate.main_image?.media_id, variant: 'thumbnail'} : undefined}
         fileUrl={preview.thumbnail_url || preview.file_url}
         fileMimeType={preview.file_mime_type}
       />
@@ -173,6 +179,7 @@ export function CertificatePreviewAction({
 }
 
 export function CertificateFileCard({
+  reference, previewFile,
   file,
   state,
   progress = 0,
@@ -181,7 +188,10 @@ export function CertificateFileCard({
   onSelectFile,
   onRemove,
   maxFileSizeMb = 25,
+  disabled = false,
 }: {
+  reference?: MediaReadReference;
+  previewFile?: File;
   file: CertificateFileLike | null;
   state: CertificateFileCardState;
   progress?: number;
@@ -190,8 +200,10 @@ export function CertificateFileCard({
   onSelectFile: (file: File) => void;
   onRemove: () => void;
   maxFileSizeMb?: number;
+  disabled?: boolean;
 }) {
   const isUploading = state === 'uploading';
+  const isLocked = disabled || isUploading;
   const normalizedProgress = Math.min(100, Math.max(0, Math.round(progress)));
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -207,6 +219,7 @@ export function CertificateFileCard({
     <div className={cn('certificate-upload', state === 'failed' && 'is-failed')}>
       <div className="certificate-file-card">
         <CertificateThumb
+          reference={reference} previewFile={previewFile}
           className="certificate-file-thumb"
           fileUrl={file?.thumbnail_url || file?.file_url}
           fileName={file?.file_name}
@@ -245,17 +258,18 @@ export function CertificateFileCard({
         </span>
       </div>
       <div className="certificate-upload-actions">
+        {file && (reference || previewFile) && <MediaPreviewButton reference={reference} file={previewFile} />}
         {file ? (
-          <button type="button" className="btn" onClick={onRemove}>
+          <button type="button" className="btn" disabled={isLocked} onClick={onRemove}>
             移除
           </button>
         ) : null}
-        <label className={cn('btn', isUploading && 'disabled')} aria-disabled={isUploading}>
+        <label className={cn('btn', isLocked && 'disabled')} aria-disabled={isLocked}>
           {isUploading ? '上传中' : file ? '重新上传' : '选择文件'}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
-            disabled={isUploading}
+            disabled={isLocked}
             hidden
             onChange={handleInputChange}
           />
@@ -266,6 +280,7 @@ export function CertificateFileCard({
 }
 
 export function CertificateImageGrid({
+  mediaReference, previewFile,
   images,
   state,
   progress = 0,
@@ -274,7 +289,10 @@ export function CertificateImageGrid({
   onSetMain,
   onRemove,
   maxImages = 9,
+  disabled = false,
 }: {
+  previewFile?: (image: BrandCertificateImage) => File | undefined;
+  mediaReference?: (image: BrandCertificateImage) => MediaReadReference | undefined;
   images: BrandCertificateImage[];
   state: CertificateFileCardState;
   progress?: number;
@@ -283,10 +301,11 @@ export function CertificateImageGrid({
   onSetMain: (index: number) => void;
   onRemove: (index: number) => void;
   maxImages?: number;
+  disabled?: boolean;
 }) {
   const isUploading = state === 'uploading';
   const normalizedProgress = Math.min(100, Math.max(0, Math.round(progress)));
-  const canAdd = images.length < maxImages && !isUploading;
+  const canAdd = images.length < maxImages && !isUploading && !disabled;
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -307,6 +326,7 @@ export function CertificateImageGrid({
             key={`${image.file_key}-${index}`}
           >
             <CertificateThumb
+              reference={mediaReference?.(image)} previewFile={previewFile?.(image)}
               className="certificate-image-thumb"
               fileUrl={image.thumbnail_url || image.file_url}
               fileName={image.file_name}
@@ -314,13 +334,14 @@ export function CertificateImageGrid({
             />
             {image.is_main ? <span className="sku-main-flag">主图</span> : null}
             {!image.is_main ? (
-              <button type="button" className="sku-set-main" onClick={() => onSetMain(index)}>
+              <button type="button" className="sku-set-main" disabled={isUploading || disabled} onClick={() => onSetMain(index)}>
                 设为主图
               </button>
             ) : null}
             <button
               type="button"
               className="sku-remove-image"
+              disabled={isUploading || disabled}
               aria-label={`移除图片 ${index + 1}`}
               onClick={() => onRemove(index)}
             >

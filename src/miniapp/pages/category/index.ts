@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 
 type SecondaryCategory = {
@@ -38,8 +39,15 @@ function normalizeTree(data: CategoryTreeData): CategoryTreeData {
 }
 
 Page({
+  onShareTimeline() {
+    return sharePage('category', this, 'wechat_timeline');
+  },
+  onShareAppMessage() {
+    return sharePage('category', this, 'wechat_friend');
+  },
   data: {
     categories: [] as PrimaryCategory[],
+    shareCategoryId: 0,
     currentPrimaryId: 0,
     currentPrimaryName: '',
     currentChildren: [] as SecondaryCategory[],
@@ -51,11 +59,13 @@ Page({
     rightScrollTop: 0,
   },
 
-  onLoad() {
+  onLoad(query: Record<string, string>) {
+    query = receiveShare('category', query);
+    this.setData({ shareCategoryId: Number(query.categoryId || 0) });
     const cached = this.readCache();
     const savedState = this.readSavedState();
     if (cached) {
-      this.applyTree(cached, savedState.currentPrimaryId, { fromCache: true });
+      this.applyTree(cached, this.data.shareCategoryId || savedState.currentPrimaryId, { fromCache: true });
     }
     track('category_page_view', {
       page_path: '/pages/category/index',
@@ -70,7 +80,7 @@ Page({
       tabBar.setData({ selected: 1 });
     }
     const savedState = this.readSavedState();
-    if (this.data.categories.length && savedState.currentPrimaryId) {
+    if (!this.data.shareCategoryId && this.data.categories.length && savedState.currentPrimaryId) {
       this.selectPrimaryById(savedState.currentPrimaryId, { trackClick: false });
       this.setData({
         leftScrollTop: savedState.leftScrollTop || 0,
@@ -126,7 +136,7 @@ Page({
     request<CategoryTreeData>('/api/v1/miniapp/categories/tree?depth=2')
       .then((payload) => {
         const tree = normalizeTree(payload);
-        const currentId = this.data.currentPrimaryId;
+        const currentId = this.data.shareCategoryId || this.data.currentPrimaryId;
         this.applyTree(tree, currentId, { fromCache: false });
         wx.setStorage({
           key: CATEGORY_CACHE_KEY,
@@ -173,6 +183,7 @@ Page({
   },
 
   selectPrimary(event: WechatMiniprogram.TouchEvent) {
+    this.setData({ shareCategoryId: 0 });
     const id = Number(event.currentTarget.dataset.id);
     const index = Number(event.currentTarget.dataset.index);
     this.selectPrimaryById(id, { trackClick: true, index });

@@ -1,3 +1,4 @@
+const { pricePresentation } = require('../../utils/price');
 const { request, track } = require('../../services/api');
 
 const FAVORITE_STORAGE_KEY = 'miniapp_favorite_skus_v1';
@@ -28,6 +29,7 @@ function normalizeFavoriteItem(item) {
     brand_name: item.brand_name || '',
     category_name: item.category_name || '',
     price_display: item.price_display || '暂无',
+    priceView: pricePresentation(item.price_display, !item.status || item.status === 'available'),
     status: item.status || 'available',
     favorited_at: Number(item.favorited_at || 0),
   };
@@ -47,7 +49,8 @@ function readFavorites() {
 
 function writeFavorites(items) {
   try {
-    wx.setStorageSync(FAVORITE_STORAGE_KEY, items);
+    // priceView is derived UI state, never persist it into favorite snapshots.
+    wx.setStorageSync(FAVORITE_STORAGE_KEY, items.map(({ priceView, ...snapshot }) => snapshot));
     return true;
   } catch (_error) {
     return false;

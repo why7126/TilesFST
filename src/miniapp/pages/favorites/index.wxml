@@ -54,20 +54,20 @@
       bindtap="openItem"
     >
       <view class="cover {{item.cover_image ? '' : 'fallback'}}">
-        <image
+        <authorized-image resource-type="sku_image" resource-id="{{item.objectId || item.sku_id || item.product_id}}" variant="thumbnail"
           wx:if="{{item.cover_image}}"
           src="{{item.cover_image}}"
           mode="aspectFill"
           data-index="{{index}}"
           binderror="onImageError"
-        ></image>
+        ></authorized-image>
         <view wx:else class="cover-empty">暂无图片</view>
         <view class="type-badge">{{item.status == 'available' ? 'SKU' : '已失效'}}</view>
       </view>
       <view class="favorite-main">
         <view class="favorite-name">{{item.product_name}}</view>
         <view class="favorite-meta">{{item.brand_name || '品牌待确认'}} · {{item.specification || '规格待补充'}}</view>
-        <view class="favorite-price">{{item.status == 'available' ? item.price_display : '暂不可查看'}}</view>
+        <view class="favorite-price price-theme {{item.priceView.state === 'valid' ? 'price-valid' : 'price-placeholder'}}">{{item.priceView.text}}</view>
       </view>
       <button
         class="remove-btn"

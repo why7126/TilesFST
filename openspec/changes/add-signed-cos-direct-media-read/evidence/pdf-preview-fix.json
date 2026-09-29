@@ -1,0 +1,71 @@
+{
+  "executed_at": "2026-09-09 11:22:59",
+  "source": [
+    "Chrome CUA",
+    "Vitest",
+    "Authenticated local API and COS header checks",
+    "Explicit user visual confirmation"
+  ],
+  "lifecycle_regression": {
+    "before": "Shared controller disposed on new-tab visibilitychange; regression failed",
+    "after": "Dedicated token-scoped controller passes hidden-page and identity-change tests"
+  },
+  "pdf_samples": {
+    "available": 4,
+    "unavailable": 1,
+    "unavailable_list_index": 6
+  },
+  "headers": {
+    "content_disposition": "attachment",
+    "allowed_origin": "http://localhost:3000",
+    "development_origin_allowed": false
+  },
+  "validation": {
+    "focused_tests": 20,
+    "typecheck": "passed",
+    "build": "passed",
+    "temporary_diagnostics_removed": true,
+    "final_render": "passed by explicit user visual confirmation"
+  },
+  "style": {
+    "requested_width": 1440,
+    "observed_width": 1470,
+    "dialog": [
+      760,
+      616
+    ],
+    "button": [
+      86,
+      36
+    ],
+    "font_size": "12px",
+    "exact_1440_verified": false,
+    "screenshot": "pdf-preview-button.png"
+  },
+  "limitations": [
+    "No trial, real-device or production acceptance claim",
+    "Proxy concurrency policy unchanged; formal performance matrix remains incomplete"
+  ],
+  "deployment": {
+    "authorization": "explicit user approval",
+    "service": "tilesfst-web",
+    "origin": "http://localhost:3000",
+    "result": "rebuilt and recreated",
+    "bundle": "index-CYGSKfxW.js",
+    "backend_or_storage_config_changed": false
+  },
+  "browser_verification": {
+    "source": "Chrome CUA with real local API and COS",
+    "login": "passed",
+    "certificate_edit": "opened first available PDF certificate",
+    "preview_result": "new blob tab created",
+    "renderer_inspection": "blocked by browser URL security policy; no workaround attempted"
+  },
+  "user_confirmation": {
+    "recorded_at": "2026-09-09 11:25:55",
+    "source": "user message",
+    "statement": "PDF正文正常显示",
+    "scope": "local Web localhost:3000 certificate PDF preview after Web rebuild",
+    "result": "passed"
+  }
+}

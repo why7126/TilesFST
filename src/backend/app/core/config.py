@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     object_storage_path_style: bool | None = Field(default=None, alias="OBJECT_STORAGE_PATH_STYLE")
     object_storage_auto_create_bucket: bool | None = Field(default=None, alias="OBJECT_STORAGE_AUTO_CREATE_BUCKET")
     object_storage_direct_read_enabled: bool = Field(default=False, alias="OBJECT_STORAGE_DIRECT_READ_ENABLED")
+    media_read_proxy_budget_dir: str = Field(default="/app/data/tmp/media-read-budget", alias="MEDIA_READ_PROXY_BUDGET_DIR")
+    media_read_clients: str = Field(default="web_admin,web_catalog,wechat_miniapp", alias="MEDIA_READ_CLIENTS")
+    media_read_kinds: str = Field(default="sku_image,sku_video,brand_logo,banner_image,certificate,avatar,upload_session,store_logo", alias="MEDIA_READ_KINDS")
+    media_read_proxy_fallback_enabled: bool = Field(default=False, alias="MEDIA_READ_PROXY_FALLBACK_ENABLED")
+    object_storage_direct_image_upload_enabled: bool = Field(
+        default=False, alias="OBJECT_STORAGE_DIRECT_IMAGE_UPLOAD_ENABLED")
+    object_storage_direct_video_upload_enabled: bool = Field(
+        default=False, alias="OBJECT_STORAGE_DIRECT_VIDEO_UPLOAD_ENABLED",
+    )
     object_storage_direct_read_expires_seconds: int = Field(
         default=300,
         alias="OBJECT_STORAGE_DIRECT_READ_EXPIRES_SECONDS",

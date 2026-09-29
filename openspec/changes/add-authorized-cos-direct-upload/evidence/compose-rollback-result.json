@@ -1,0 +1,8 @@
+{
+  "source": "Real isolated Compose API recreated with new-upload flags disabled; same COS/SQLite",
+  "new_session": "proxy",
+  "preexisting_renew": 200,
+  "preexisting_put": 200,
+  "preexisting_confirm": "ready",
+  "productionVerified": false
+}

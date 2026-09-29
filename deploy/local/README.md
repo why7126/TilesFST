@@ -3,7 +3,7 @@ purpose: 本地部署矩阵
 content: 六种本地开发部署环境、前置条件和启动方式
 source: REQ-0093 standardize-deployment-environment-matrix
 created_at: 2026-08-03 19:10:00
-updated_at: 2026-08-06 00:00:00
+updated_at: 2026-09-08 17:02:59
 ---
 
 # 本地部署矩阵
@@ -47,3 +47,7 @@ docker compose --profile docs-site up -d --build tilesfst-docs-site
 docker compose config --quiet
 TILESFST_DEPLOY_ENV_FILE=sqlite-minio-managed.env.example docker compose --env-file deploy/local/sqlite-minio-managed.env.example --profile self-hosted-storage -f deploy/local/compose.yml config --quiet
 ```
+
+## 图片异步工作者
+
+可选`image-processing` profile提供`tilesfst-image-worker`，默认不启动。JPEG/PNG/WebP业务图片直传启用前需运行一个同版本worker，限制1CPU、512MiB并顺序处理持久任务；不开通云端图片处理。启动方式、灰度范围及排空回滚步骤以[部署说明](../../docs/02-deployment.md#sku-图片后端异步派生req-0135)为准。

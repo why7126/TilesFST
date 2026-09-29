@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from app.modules.media.upload_binding import VideoUploadBinding
+from app.core.exceptions import AppError
+
 import json
 from datetime import UTC, date, datetime, timedelta
 
@@ -105,6 +108,7 @@ class BrandCertificateAdminService:
     def to_item(cls, record: BrandCertificateRecord) -> BrandCertificateItem:
         images = [
             BrandCertificateImage(
+                media_id=image.media_id,
                 file_url=image.file_url,
                 file_key=image.file_key,
                 thumbnail_url=_thumbnail_url(image.file_key, image.file_mime_type),
@@ -220,10 +224,13 @@ class BrandCertificateAdminService:
         task_type: str | None = None,
     ) -> BrandCertificateItem:
         values, images = self._validate_payload(payload)
-        if self._repo.get_by_brand_and_name(brand_id=payload.brand_id, name=values["name"]):
-            raise BrandCertificateNameDuplicatedError()
-        record = self._repo.create(values, images)
-        record = self._formalize_certificate_media_if_needed(record)
+        if any("/direct-upload/" in item["file_key"] for item in [values, *images]):
+            record = self._save_direct_media(values, images, actor_user_id)
+        else:
+            if self._repo.get_by_brand_and_name(brand_id=payload.brand_id, name=values["name"]):
+                raise BrandCertificateNameDuplicatedError()
+            record = self._repo.create(values, images)
+            record = self._formalize_certificate_media_if_needed(record)
         self._audit(actor_user_id, "brand_certificate_create", record, "新增品牌证书", task_trace_id, task_type)
         return self.to_item(record)
 
@@ -240,18 +247,80 @@ class BrandCertificateAdminService:
         if existing is None:
             raise BrandCertificateNotFoundError()
         values, images = self._validate_payload(payload)
-        duplicated = self._repo.get_by_brand_and_name(
-            brand_id=payload.brand_id,
-            name=values["name"],
-            exclude_id=certificate_id,
-        )
-        if duplicated is not None:
-            raise BrandCertificateNameDuplicatedError()
-        record = self._repo.update(certificate_id, values, images)
-        assert record is not None
-        record = self._formalize_certificate_media_if_needed(record)
+        if any("/direct-upload/" in item["file_key"] for item in [values, *images]):
+            record = self._save_direct_media(values, images, actor_user_id, certificate_id)
+        else:
+            duplicated = self._repo.get_by_brand_and_name(
+                brand_id=payload.brand_id,
+                name=values["name"],
+                exclude_id=certificate_id,
+            )
+            if duplicated is not None:
+                raise BrandCertificateNameDuplicatedError()
+            record = self._repo.update(certificate_id, values, images)
+            assert record is not None
+            record = self._formalize_certificate_media_if_needed(record)
         self._audit(actor_user_id, "brand_certificate_update", record, "编辑品牌证书", task_trace_id, task_type)
         return self.to_item(record)
+
+    def _save_direct_media(self, values, images, actor_id, certificate_id=None):
+        binding = VideoUploadBinding(self._repo.db, actor_id)
+        files = [values, *images]
+        media = [{"object_key": item["file_key"]} for item in files]
+        rows = binding.resolve(media, certificate_id, media_kind="certificate", context_id=values["brand_id"])
+        by_suffix = {row["stable_key"].rsplit("/direct-upload/", 1)[-1]: row for row in rows}
+        for item in files:
+            if "/direct-upload/" not in item["file_key"]:
+                continue
+            row = by_suffix[item["file_key"].rsplit("/direct-upload/", 1)[-1]]
+            if item is not values and row["actual_mime_type"] not in CERTIFICATE_IMAGE_MIME_TYPES:
+                raise BrandCertificateImageReferenceInvalidError("文档不能作为证书图片")
+            item["file_mime_type"], item["file_size_bytes"] = row["actual_mime_type"], row["actual_size"]
+        if certificate_id is None:
+            reserved = {row["bound_business_id"] for row in rows if row["bound_business_id"]}
+            if len(reserved) > 1:
+                raise AppError(status_code=409, code=30081, message="文件属于不同证书，不能合并保存")
+            if reserved:
+                certificate_id = int(next(iter(reserved)))
+            if any(row["state"] == "bound" for row in rows):
+                if not all(row["state"] == "bound" for row in rows):
+                    raise AppError(status_code=409, code=30081, message="请在原证书中编辑文件")
+                record = self._repo.get_by_id(certificate_id)
+                if record is None:
+                    raise BrandCertificateNotFoundError()
+                return record
+        if self._repo.get_by_brand_and_name(brand_id=values["brand_id"], name=values["name"], exclude_id=certificate_id):
+            raise BrandCertificateNameDuplicatedError()
+        with self._repo.atomic():
+            if certificate_id is None:
+                draft = dict(values, file_key="", file_url="", is_visible=0)
+                certificate_id = self._repo.create(draft, []).id
+            rows = binding.claim(rows, certificate_id)
+        try:
+            rows = binding.copy(rows)
+            # Legacy pending uploads can coexist with new sessions; keep their original formalization policy.
+            legacy_targets = {}
+            for item in files:
+                key = item["file_key"]
+                if "/direct-upload/" not in key and is_pending_business_media_key(key):
+                    if key not in legacy_targets:
+                        image = item["file_mime_type"] in CERTIFICATE_IMAGE_MIME_TYPES
+                        legacy_targets[key] = formalize_business_media_object(object_key=key,
+                            resource_type="brand-certificates", business_id=certificate_id,
+                            usage="images" if image else "files", media_kind="image" if image else "file")
+            with self._repo.atomic():
+                finished = binding.finish(rows, media)
+                for item, result in zip(files, finished):
+                    key = legacy_targets.get(item["file_key"], result["object_key"])
+                    item["file_key"], item["file_url"] = key, "/media/" + key
+                record = self._repo.update(certificate_id, values, images)
+                if record is None:
+                    raise BrandCertificateNotFoundError()
+            binding.record_bound(rows)
+            return record
+        except Exception:
+            binding.release(rows)
+            raise
 
     def _formalize_certificate_media_if_needed(
         self,

@@ -1,0 +1,99 @@
+{
+  "executed_at": "2026-09-09 23:22:58",
+  "source": "CUA Chrome local Web and native WeChat DevTools with local COS API",
+  "web": {
+    "viewport": [
+      1470,
+      752
+    ],
+    "brands": {
+      "signed_images_loaded": 13,
+      "dialog_width": 720,
+      "dialog_height": 656,
+      "save_bottom": 691.75,
+      "cancel_focus": "编辑"
+    },
+    "banners": {
+      "signed_images_loaded": 7,
+      "dialog_width": 880,
+      "dialog_height": 691.8359375,
+      "save_bottom": 709.6640625,
+      "cancel_focus": "编辑"
+    },
+    "users": {
+      "signed_images_loaded": 3,
+      "dialog_width": 520,
+      "dialog_height": 704,
+      "save_bottom": 695.75,
+      "class": "modal-card",
+      "double_class": false,
+      "cancel_focus": "编辑"
+    },
+    "horizontal_overflow": false,
+    "exact_1440_recheck": {
+      "viewport": [
+        1440,
+        600
+      ],
+      "brands": {
+        "width": 720,
+        "height": 504,
+        "save_bottom": 539.75
+      },
+      "banners": {
+        "width": 880,
+        "height": 552,
+        "save_bottom": 563.75
+      },
+      "users": {
+        "width": 520,
+        "height": 552,
+        "save_bottom": 543.75
+      },
+      "profile": {
+        "signed_images_loaded": 2,
+        "save_bottom_before_scroll": 698.3984375,
+        "save_top_after_keyboard_scroll": 413.8984375,
+        "save_bottom_after_keyboard_scroll": 453.8984375
+      },
+      "horizontal_overflow": false,
+      "viewport_override_reset": true
+    }
+  },
+  "miniapp": {
+    "tool_version": "2.02.2608060",
+    "api_port": 8000,
+    "url_check_during_test": false,
+    "home_failure_labels_absent_after_local_switch": true,
+    "brand_carousel_and_logos_rendered": true,
+    "certificate_first_four_cards_rendered": true,
+    "certificate_detail_image_rendered": true,
+    "native_album_first_of_four_rendered": true,
+    "album_first_image_visible_after_more_than_300_seconds": true,
+    "album_next_image_verified": false,
+    "next_image_limitation": "CUA drag and Right key did not change observed page counter",
+    "production_endpoint_failure_cause": "unknown; observed before switching local; production unchanged",
+    "environment_restored_byte_for_byte": true,
+    "isolated_video_followup": "not verified; native app screenshot unavailable after project menu interaction; original environment restored"
+  },
+  "tests": {
+    "miniapp_file_and_adapter_tests_passed": 18,
+    "miniapp_video_intent_and_position_tests_passed": 4,
+    "typescript": "passed"
+  },
+  "limitations": [
+    "Development tools only; real-device acceptance skipped by user",
+    "No customer document screenshots persisted",
+    "Actual multi-TTL video and remaining all-entry coverage not claimed complete"
+  ],
+  "unavailable_banner": {
+    "sample_index": 1,
+    "ownership_valid": true,
+    "normalized_reference": true,
+    "original_object_found": false,
+    "storage_error_code": 40404,
+    "root_cause_status": "confirmed",
+    "scope": "current public Banner original object missing; deletion/upload cause unknown",
+    "data_unchanged": true
+  }
+}

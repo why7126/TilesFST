@@ -1,3 +1,4 @@
+import { MediaReadProvider } from '../features/media/authorized-media';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -62,6 +63,7 @@ export function App() {
     <ThemeProvider>
       <BrowserRouter>
         <AuthBootstrap>
+          <MediaReadProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/design-system" element={<DesignSystemPage />} />
@@ -91,6 +93,7 @@ export function App() {
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+                  </MediaReadProvider>
         </AuthBootstrap>
       </BrowserRouter>
     </ThemeProvider>

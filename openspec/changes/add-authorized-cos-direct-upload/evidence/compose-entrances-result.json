@@ -1,0 +1,149 @@
+{
+  "source": "Isolated real Compose Web/API/SQLite and 1CPU 512MiB Pillow worker with real COS; synthetic files only",
+  "results": [
+    {
+      "entry": "banner",
+      "formalized": true,
+      "preview": {
+        "width": 1600,
+        "height": 1200
+      }
+    },
+    {
+      "entry": "avatar",
+      "formalized": true,
+      "preview": {
+        "width": 480,
+        "height": 360
+      }
+    },
+    {
+      "entry": "certificate-image-and-pdf",
+      "formalized": true,
+      "preview": {
+        "width": 480,
+        "height": 360
+      },
+      "fileCount": 2,
+      "pdfType": "application/pdf"
+    }
+  ],
+  "network": [
+    {
+      "entry": "banner",
+      "bytes": 21083,
+      "applicationAuthorization": false,
+      "applicationTrace": false
+    },
+    {
+      "entry": "avatar",
+      "bytes": 21083,
+      "applicationAuthorization": false,
+      "applicationTrace": false
+    },
+    {
+      "entry": "certificate",
+      "bytes": 21083,
+      "applicationAuthorization": false,
+      "applicationTrace": false
+    },
+    {
+      "entry": "certificate-pdf",
+      "bytes": 47,
+      "applicationAuthorization": false,
+      "applicationTrace": false
+    }
+  ],
+  "usageResponses": [
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    }
+  ],
+  "productionVerified": false,
+  "pdfScope": "MIME/header and byte preservation; not a valid-document viewer test",
+  "paidCloudImageProcessing": false
+}

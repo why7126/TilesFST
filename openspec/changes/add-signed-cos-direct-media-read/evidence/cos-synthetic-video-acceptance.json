@@ -1,0 +1,80 @@
+{
+  "executed_at": "2026-09-09 09:51:29",
+  "environment": "User local Compose Web, CUA in-app browser, Tencent COS; synthetic draft only",
+  "sample": {
+    "bytes": 20671864,
+    "duration_seconds": 330,
+    "status": "DRAFT",
+    "name": "REQ136-COS-SYNTHETIC",
+    "created_via_authenticated_api": true,
+    "original_business_assets_unchanged": true
+  },
+  "http": {
+    "source": "Authenticated local API and HTTPS COS HTTP checks with synthetic video",
+    "read_mode": "direct",
+    "size_bytes": 20671864,
+    "checks": [
+      {
+        "label": "head",
+        "status": 200,
+        "received_bytes": 0,
+        "content_length": "20671864",
+        "content_range": null,
+        "allow_origin": null,
+        "elapsed_ms": 258
+      },
+      {
+        "label": "range",
+        "status": 206,
+        "received_bytes": 1024,
+        "content_length": "1024",
+        "content_range": "bytes 0-1023/20671864",
+        "allow_origin": "http://localhost:3000",
+        "elapsed_ms": 109
+      },
+      {
+        "label": "wrong_method_signature",
+        "status": 403,
+        "received_bytes": 0,
+        "content_length": "0",
+        "content_range": null,
+        "allow_origin": null,
+        "elapsed_ms": 38
+      }
+    ]
+  },
+  "pdf": {
+    "source": "Authenticated API and HTTPS COS HTTP check for existing certificate",
+    "mode": "direct",
+    "status": 206,
+    "received_bytes": 1024,
+    "pdf_magic": true,
+    "allow_origin": "http://localhost:3000",
+    "content_type": "application/pdf",
+    "content_rendered": false
+  },
+  "browser": {
+    "initial_ready_state": 4,
+    "signed_cos_source": true,
+    "playing_observed_seconds": 67.759131,
+    "seek_paused_before_expiry": 199.166666,
+    "old_signature_remaining_before_seek_seconds": -17.341,
+    "expired_seek_target_seconds": 260,
+    "recovered_position_seconds": 260,
+    "position_error_seconds": 0,
+    "paused_preserved": true,
+    "recovered_ready_state": 4,
+    "new_signature_remaining_seconds": 290.925,
+    "resumed_playback_seconds": 274.895897,
+    "fullscreen_visually_confirmed": true,
+    "fullscreen_evidence": "cos-synthetic-fullscreen.png",
+    "recovery_timing": "Polling observed non-ready state after about 15 seconds; later fresh signature and readyState=4. No precise recovery latency claim."
+  },
+  "limitations": [
+    "Not a performance benchmark or full repeated matrix",
+    "No real-device or miniapp COS proof",
+    "PDF bytes validated; content renderer not observed",
+    "No new proof for playing-state expiry or multiple TTL cycles",
+    "Sample retained as local draft for remaining acceptance"
+  ]
+}

@@ -4,7 +4,7 @@ content: 主文档（编号）与治理细则（standards）导航
 source: rules/document-governance.md
 update_method: 新增 docs 顶层或 standards 文档时同步更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-26 20:58:03
+updated_at: 2026-09-10 22:51:56
 ---
 
 # 文档索引
@@ -72,12 +72,15 @@ updated_at: 2026-08-26 20:58:03
 | 需求/缺陷当前态看板 | `issues/requirements/CHANGELOG.md`、`issues/bugs/CHANGELOG.md` |
 | 迭代 | `iterations/change/sprint-xxx/`（进行中）、`iterations/archive/sprint-xxx/`（已归档） |
 | 产品版本发布 | `releases/vX.Y.Z/` |
+| 外部连接器交付包 | `connectors/<connector>/` |
 
 禁止恢复 `docs/prd/`、`docs/bugs/`、`docs/iterations/`。
 
 ## AI 命令入口提示
 
 项目级 AI 命令入口统一维护在 `.agents/skills/`，总入口与命令链以仓库根目录 [AGENTS.md](../AGENTS.md) 为准。已评审 REQ/BUG 的推荐顺序为先 `/sprint-propose` 纳入 Sprint，再 `/req-opsx` 或 `/bug-opsx` 创建并回填 Change。
+
+WorkBuddy 等外部平台连接器的交付包维护在仓库根目录 `connectors/<connector>/`，其中可包含 manifest、`mcp.json`、外部 Skill、图标和打包说明；MCP 运行时代码维护在 `src/mcp/<connector>/`。外部连接器 Skill 不属于 `.agents/skills/` 项目内部命令入口。
 
 规范优化入口使用 `/spec-opt`。新增或修改 `.agents/skills` 命令、`rules/` 文档、`docs/` 文档规范或 `scripts/` 治理脚本时，以 `/spec-opt` 和对应 OpenSpec Change 为准；该命令只服务治理资产，不修改业务 `src/` 代码。
 
@@ -92,3 +95,8 @@ updated_at: 2026-08-26 20:58:03
 下一步命令参数保持来源对象一致：REQ 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `REQ-*`；BUG 链路后续 `/opsx-apply`、`/opsx-archive` 使用原始 `BUG-*`；非 REQ/BUG 的直接 Change 才使用真实 Change ID。
 
 命令完成输出必须区分「下一步」与「待用户决策/处理」：技能契约不得给出可被原样输出的尖括号占位模板、通用 BUG 示例或规范语气；已在「下一步」中给出的命令或动作不得重复写入「待用户决策/处理」。
+
+## 产品知识模型
+
+- [知识模型与本体入口](../knowledge-model/README.md)
+- [知识模型生命周期与恢复](standards/knowledge-model-lifecycle.md)

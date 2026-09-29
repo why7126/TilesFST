@@ -4,14 +4,13 @@
   bindtap="openBrand"
 >
   <view class="brand-logo-frame {{imageFailed || !normalized.logoSrc ? 'fallback' : ''}}">
-    <image
+    <authorized-image resource-type="brand_logo" resource-id="{{normalized.brandId}}"
       wx:if="{{normalized.logoSrc && !imageFailed}}"
       class="brand-logo-image"
       src="{{normalized.logoSrc}}"
       mode="aspectFill"
       lazy-load="{{true}}"
-      binderror="onImageError"
-    ></image>
+    ></authorized-image>
     <view wx:else class="brand-logo-empty">{{normalized.fallbackText}}</view>
   </view>
   <view class="brand-copy">

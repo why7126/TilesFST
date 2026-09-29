@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -104,6 +105,28 @@ def _time_status_sql(time_status: str, now_iso: str) -> str:
 class BannerRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+        self._atomic_depth = 0
+
+    @property
+    def db(self):
+        return self._db
+
+    def _commit(self):
+        if not self._atomic_depth:
+            self._db.commit()
+
+    @contextmanager
+    def atomic(self):
+        self._atomic_depth += 1
+        try:
+            yield
+            if self._atomic_depth == 1:
+                self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
+        finally:
+            self._atomic_depth -= 1
 
     def ensure_write_schema_ready(self) -> list[str]:
         """Best-effort MySQL self-heal for legacy banners tables before writes."""
@@ -113,7 +136,7 @@ class BannerRepository:
         if not missing:
             return []
         apply_mysql_compat_migrations(self._db.connection())
-        self._db.commit()
+        self._commit()
         return self._missing_write_columns()
 
     def rollback(self) -> None:
@@ -398,7 +421,7 @@ class BannerRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         banner_id = int(cursor.lastrowid)
         record = self.get_by_id(banner_id)
         assert record is not None
@@ -468,7 +491,7 @@ class BannerRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(banner_id)
 
     def update_status(self, banner_id: int, status: str) -> BannerRecord | None:
@@ -477,12 +500,12 @@ class BannerRepository:
             text("UPDATE banners SET status = :status, updated_at = :updated_at WHERE id = :id"),
             {"id": banner_id, "status": status, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(banner_id)
 
     def delete(self, banner_id: int) -> bool:
         result = self._db.execute(text("DELETE FROM banners WHERE id = :id"), {"id": banner_id})
-        self._db.commit()
+        self._commit()
         return result.rowcount > 0
 
     def get_tile_image(self, image_id: int) -> dict[str, Any] | None:

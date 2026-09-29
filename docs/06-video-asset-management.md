@@ -4,7 +4,7 @@ content: 瓷砖视频上传、存储、封面、转码、预览、前端展示�
 source: AI自动生成初稿，项目团队确认
 update_method: 视频上传、转码、封面、播放、存储策略变化时更新
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-25 11:18:08
+updated_at: '2026-09-08 18:59:05'
 note: 本文档用于指导视频相关需求、开发、测试和验收
 ---
 
@@ -97,3 +97,15 @@ src/backend/app/modules/media/
 src/web/src/features/media/
 tests/integration/media/
 ```
+
+## 授权直传视频控制
+
+`OBJECT_STORAGE_DIRECT_VIDEO_UPLOAD_ENABLED` 默认 false，仅控制新会话的能力选择。开启前需要 COS 版本控制、最小权限/CORS、Web 与 Compose 链路验收。逐请求 PUT 授权不授予浏览器创建/合并/终止分片、列举或写正式对象权限；8 MiB 分片、900 秒授权、24 小时绝对会话保留期。
+
+后端确认固定源版本，校验分片布局、实际大小、MIME/容器签名与可用 CRC64；稳定复制通过 COS CopyObject 完成。容器签名校验不等于完整视频解码，实际播放属于端侧验收。新建 SKU 先预留草稿与绑定关系，复制和引用提交失败可复用原会话及预留 SKU 重试。
+
+过期无引用会话的维护入口为 `python -m app.modules.media.upload_cleanup`，默认只统计候选。备份确认后使用 `--apply --confirm-backup` 执行，追加 `--loop` 每小时运行。清理抢占数据库租约、保留历史引用，只删除会话对应 Key 的精确版本并终止对应未完成分片；重复扫描 cleaned 会话用于补偿晚到的 COS 副作用。该入口尚未配置到生产调度，不能据此认为线上清理已运行。已绑定会话与其正式对象不在清理范围内。
+
+## 业务引用读取实施边界
+
+REQ-0136的视频与封面读取以业务引用申请短期能力，GET/HEAD分别签名，存储策略见 [对象存储策略§8](07-object-storage-strategy.md#8-业务媒体授权读取)。共享恢复控制器已提供有界刷新与取消；播放器换址、播放意图和位置误差仍待页面接入后验证，不将HTTP Range通过视为播放恢复通过。

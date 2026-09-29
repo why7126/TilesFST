@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -35,6 +36,28 @@ class BrandListResult:
 class BrandRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+        self._atomic_depth = 0
+
+    @property
+    def db(self):
+        return self._db
+
+    def _commit(self):
+        if not self._atomic_depth:
+            self._db.commit()
+
+    @contextmanager
+    def atomic(self):
+        self._atomic_depth += 1
+        try:
+            yield
+            if self._atomic_depth == 1:
+                self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
+        finally:
+            self._atomic_depth -= 1
 
     @staticmethod
     def _to_record(row: dict[str, Any]) -> BrandRecord:
@@ -179,7 +202,7 @@ class BrandRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         brand_id = int(cursor.lastrowid)
         record = self.get_by_id(brand_id)
         assert record is not None
@@ -222,7 +245,7 @@ class BrandRepository:
                 "updated_at": now,
             },
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(brand_id)
 
     def update_status(self, brand_id: int, status: str) -> BrandRecord | None:
@@ -231,10 +254,10 @@ class BrandRepository:
             text("UPDATE brands SET status = :status, updated_at = :updated_at WHERE id = :id"),
             {"id": brand_id, "status": status, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         return self.get_by_id(brand_id)
 
     def delete(self, brand_id: int) -> bool:
         result = self._db.execute(text("DELETE FROM brands WHERE id = :id"), {"id": brand_id})
-        self._db.commit()
+        self._commit()
         return result.rowcount > 0

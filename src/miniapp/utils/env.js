@@ -1,8 +1,8 @@
 const MINIAPP_API_CONFIGS = {
   development: {
     environment: 'development',
-    apiBaseUrl: 'http://127.0.0.1:8000',
-    apiFallbackBaseUrls: ['http://localhost:8000'],
+    apiBaseUrl: 'http://127.0.0.1:8010',
+    apiFallbackBaseUrls: ['http://localhost:8010'],
   },
   production: {
     environment: 'production',
@@ -12,7 +12,7 @@ const MINIAPP_API_CONFIGS = {
 };
 
 function resolveMiniappEnvironment() {
-  return 'production';
+  return 'development';
 }
 
 function resolveMiniappApiConfig(environment = resolveMiniappEnvironment()) {

@@ -24,7 +24,7 @@
 }
 
 .skeleton-card {
-  min-height: 334rpx;
+  min-height: 548rpx;
   overflow: hidden;
   border-radius: 18rpx;
   background: rgba(33,30,22,0.74);
@@ -34,7 +34,7 @@
 
 .skeleton-image {
   width: 100%;
-  aspect-ratio: 1 / 0.86;
+  aspect-ratio: 1 / 1.28;
   background: rgba(237,232,223,0.08);
 }
 

@@ -1,0 +1,110 @@
+{
+  "evidence_source": "Local MinIO, isolated SQLite, Compose Web and CUA browser/WeChat DevTools",
+  "executed_at": "2026-09-09 08:42:24",
+  "production_or_real_device": false,
+  "synthetic_video_bytes": 20671864,
+  "storage_methods": {
+    "HEAD": {
+      "status": 200,
+      "body_bytes": 0
+    },
+    "GET_Range": {
+      "status": 206,
+      "body_bytes": 128
+    }
+  },
+  "web": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "dialog_width": 880,
+    "list_thumbnail": [
+      43,
+      43
+    ],
+    "loaded": true,
+    "native_video_duration_seconds": 330,
+    "first_play_observed_seconds": 13.440182,
+    "expired_url_seek": {
+      "target_observed_seconds": 200.947225,
+      "restored_seconds": 200.947225,
+      "position_error_seconds": 0,
+      "paused_after_recovery": true,
+      "ready_state": 4,
+      "new_url_remaining_seconds": 284
+    },
+    "screenshot": "admin-media-1440.png",
+    "playing_recovery": {
+      "initial_seek_seconds": 98.240866,
+      "later_current_time_seconds": 210.431307,
+      "ready_state": 4,
+      "paused": false,
+      "limit": "Proves continued playback; paused recovery supplies exact position comparison"
+    },
+    "certificate": {
+      "thumbnail_loaded": true,
+      "editor_image_loaded": true,
+      "file_preview_authorized": true,
+      "native_pdf_render_verified": false
+    },
+    "low_viewport": {
+      "viewport": [
+        1440,
+        600
+      ],
+      "save_bottom": 547.75,
+      "close_bottom": 87.25,
+      "horizontal_overflow": false,
+      "focus_after_close": "BUTTON 编辑",
+      "screenshot": "certificate-low-viewport.png"
+    }
+  },
+  "skeleton": {
+    "user_confirmed": true,
+    "desktop_viewport": [
+      1440,
+      900
+    ],
+    "thumbnail_dimensions": [
+      64,
+      64
+    ],
+    "preview_dimensions": [
+      680,
+      382.5
+    ],
+    "text_color": "rgba(237,232,223,0.5)",
+    "mobile_viewport": [
+      390,
+      844
+    ],
+    "horizontal_overflow": false,
+    "mobile_preview_dimensions": [
+      334,
+      187.875
+    ]
+  },
+  "miniapp": {
+    "tool_version": "2.02.2608060",
+    "base_library": "3.17.1",
+    "sample_home_image_rendered": true,
+    "sample_detail_play_button_changed_to_pause": true,
+    "real_device_verified": false,
+    "video_observed_elapsed_seconds": 144,
+    "album_rendered": true,
+    "certificate_card_main_image_rendered": true,
+    "pdf_open_document_success_callback": true,
+    "pdf_native_content_render_verified": false,
+    "evidence_method": "CUA native DevTools observation and isolated usage-event callback; no full console screenshots persisted"
+  },
+  "limitations": [
+    "Local MinIO player recovery does not prove COS CORS or WeChat device behavior",
+    "Fixed-sample COS performance comparison remains pending"
+  ],
+  "observability": {
+    "media_metadata_contains_url_signature_or_internal_path": false,
+    "rum_after_route_alias_status": 200,
+    "rum_success_count_observed": 8
+  }
+}

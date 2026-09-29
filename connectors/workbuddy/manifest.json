@@ -1,0 +1,55 @@
+{
+  "id": "projecttilesfst-workbuddy",
+  "name": "ProjectTilesFST WorkBuddy Connector",
+  "version": "0.1.0",
+  "description": "Tencent WorkBuddy custom connector for ProjectTilesFST catalog query and controlled admin operations.",
+  "runtime": {
+    "code": "src/mcp/workbuddy",
+    "local_transport": "stdio",
+    "remote_transport": "http-json-rpc",
+    "remote_health_path": "/health",
+    "remote_mcp_path": "/mcp"
+  },
+  "tools": {
+    "read_only": [
+      "search_tile_skus",
+      "get_tile_sku_detail",
+      "list_tile_brands",
+      "list_tile_categories",
+      "summarize_catalog"
+    ],
+    "dry_run_management": [
+      "preview_create_tile_sku",
+      "preview_update_tile_sku",
+      "preview_publish_tile_sku",
+      "preview_manage_brand",
+      "preview_manage_category",
+      "preview_media_upload"
+    ],
+    "controlled_write": [
+      "create_tile_sku",
+      "update_tile_sku",
+      "set_tile_sku_status",
+      "manage_brand",
+      "manage_category",
+      "upload_tile_media"
+    ]
+  },
+  "required_headers": {
+    "backend": ["Authorization", "x-client-type", "x-client-request-id"],
+    "remote_mcp": ["Authorization"]
+  },
+  "write_scopes": [
+    "tile_sku:write",
+    "tile_sku:publish",
+    "brand:write",
+    "category:write",
+    "media:upload"
+  ],
+  "data_boundaries": {
+    "direct_database_access": false,
+    "direct_object_storage_access": false,
+    "returns_raw_object_keys": false,
+    "returns_credentials": false
+  }
+}

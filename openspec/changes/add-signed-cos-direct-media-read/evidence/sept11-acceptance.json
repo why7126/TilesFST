@@ -1,0 +1,83 @@
+{
+  "executed_at": "2026-09-11 08:46:17",
+  "source": "CUA native WeChat DevTools 2.02.2608060 / library 3.17.1; local COS API; isolated MinIO synthetic fixtures",
+  "real_device": false,
+  "render_observations": {
+    "search": "Brand logos, certificate thumbnails and SKU thumbnails visibly rendered",
+    "favorites": "Added one local test favorite, verified thumbnail, then removed it to restore prior state",
+    "detail": "Display image and second native original image rendered; album swipe did not change counter",
+    "video": "Synthetic video played and paused at 01:23; after poster fix first frame and playback visible",
+    "fullscreen": "Entered fullscreen; after Escape renderer session was recreated and returned to home, not original detail. Exit continuity not passed.",
+    "pdf": "PDF detail and open action observed; body not verified; system Preview UI query timed out",
+    "category_product_list": "Synthetic thumbnail and absent-image placeholder visibly rendered",
+    "new_products": "Product list thumbnail and absent-image placeholder visibly rendered"
+  },
+  "poster_fix": {
+    "root_cause_status": "confirmed",
+    "trigger": "Video without an authorized cover used bundled logo path as native poster",
+    "before": "DevTools error: poster only supports network addresses",
+    "change": "Keep authorized network poster; when absent use empty poster and native first frame",
+    "after": "Fresh compilation, first frame and playback visible, no poster error",
+    "test": "tests/test_miniapp_static.py::test_miniapp_sku_detail_page_covers_media_favorite_share_and_empty_states passed"
+  },
+  "automatic_checks": {
+    "miniapp_media_vitest": {
+      "files": 3,
+      "passed": 22
+    },
+    "focused_pytest": {
+      "passed": 1
+    },
+    "openspec_strict": "passed",
+    "language": "passed",
+    "observability": "passed",
+    "directory": "passed after relocating cache created by pnpm invocation to temporary runtime",
+    "context_budget": "passed"
+  },
+  "retry_state": [
+    {
+      "signature": "native-album/swipe/no-counter-change",
+      "history": "Previous turn drag, horizontal scroll and Left key failed; current restored environment drag also did not change counter",
+      "action": "No more equivalent retries",
+      "recovery": "Usable native gallery input channel or manual observation"
+    },
+    {
+      "signature": "native-video/fullscreen/exit-session-loss",
+      "history": "Previous turn exit hung; current restart allowed entry but exit returned to a new home renderer",
+      "action": "No further fullscreen attempts",
+      "recovery": "Stable fullscreen exit channel or manual reproduction evidence"
+    }
+  ],
+  "environment_restored": false,
+  "archive_ready": false,
+  "long_video_recovery": {
+    "duration_seconds": 990,
+    "cycles": [
+      {
+        "hidden_seconds_minimum": 323,
+        "before_seconds": 19,
+        "after_seconds": 19,
+        "paused": true
+      },
+      {
+        "hidden_seconds_minimum": 319,
+        "before_seconds": 19,
+        "after_seconds": 19,
+        "paused": true,
+        "manual_resume_observed_seconds": 20
+      }
+    ],
+    "subsequent_playback_observed": "02:18",
+    "scope": "Actual native paused-page return after two TTL windows; not natural expiry during continuous playback"
+  },
+  "runtime_injection": {
+    "result": "not_executed",
+    "reason": "Console paste timed out; AX setValue did not submit or produce console result",
+    "attempts": 2,
+    "recovery": "Working debug input channel"
+  },
+  "environment_restore_note": "Source environment was subsequently changed from this run’s port 8010 to 8013. Backup restoration withheld to avoid overwriting later changes; shared DevTools ownership unresolved.",
+  "fullscreen_root_cause_status": "unknown",
+  "ui_interference": "Unexpected REQ-0135 console text and page change observed. Concurrent control or delayed clipboard input not distinguished; UI actions paused.",
+  "performance_evidence": "one-concurrency-performance.json"
+}

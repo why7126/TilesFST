@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import uuid4
@@ -62,6 +63,28 @@ class TileSkuVideoRecord:
 class TileSkuRepository:
     def __init__(self, db: Session) -> None:
         self._db = db
+        self._atomic_depth = 0
+
+    @property
+    def db(self):
+        return self._db
+
+    def _commit(self):
+        if not self._atomic_depth:
+            self._db.commit()
+
+    @contextmanager
+    def atomic(self):
+        self._atomic_depth += 1
+        try:
+            yield
+            if self._atomic_depth == 1:
+                self._db.commit()
+        except Exception:
+            self._db.rollback()
+            raise
+        finally:
+            self._atomic_depth -= 1
 
     @staticmethod
     def _now() -> str:
@@ -374,7 +397,7 @@ class TileSkuRepository:
         self._increment_sku_count(brand_id, category_id)
         if spec_id is not None:
             self._increment_spec_sku_count(spec_id)
-        self._db.commit()
+        self._commit()
         record = self.get_by_id(tile_id)
         assert record is not None
         return record
@@ -447,7 +470,7 @@ class TileSkuRepository:
                 self._decrement_spec_sku_count(old_spec_id)
             if spec_id is not None:
                 self._increment_spec_sku_count(spec_id)
-        self._db.commit()
+        self._commit()
         record = self.get_by_id(tile_id)
         assert record is not None
         return record
@@ -470,7 +493,7 @@ class TileSkuRepository:
                 text("UPDATE tiles SET status = :status, updated_at = :updated_at WHERE id = :id"),
                 {"id": tile_id, "status": status, "updated_at": now},
             )
-        self._db.commit()
+        self._commit()
         record = self.get_by_id(tile_id)
         assert record is not None
         return record
@@ -481,7 +504,7 @@ class TileSkuRepository:
             text("UPDATE tiles SET sku_code = :sku_code, updated_at = :updated_at WHERE id = :id"),
             {"id": tile_id, "sku_code": sku_code, "updated_at": now},
         )
-        self._db.commit()
+        self._commit()
         record = self.get_by_id(tile_id)
         assert record is not None
         return record
@@ -501,7 +524,7 @@ class TileSkuRepository:
         self._decrement_sku_count_category(category_id)
         if spec_id is not None:
             self._decrement_spec_sku_count(spec_id)
-        self._db.commit()
+        self._commit()
 
     def list_images(self, tile_id: int) -> list[TileSkuImageRecord]:
         rows = (
@@ -570,7 +593,7 @@ class TileSkuRepository:
                     "sort_order": img.get("sort_order", idx),
                 },
             )
-        self._db.commit()
+        self._commit()
 
     def replace_videos(
         self,
@@ -602,7 +625,7 @@ class TileSkuRepository:
                     "created_at": now,
                 },
             )
-        self._db.commit()
+        self._commit()
 
     @staticmethod
     def generate_sku_code() -> str:

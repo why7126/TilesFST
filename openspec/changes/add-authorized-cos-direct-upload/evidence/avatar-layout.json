@@ -1,0 +1,22 @@
+{
+  "source": "Local Vite real UserFormModal and CSS; synthetic API and object responses, no COS or production",
+  "viewport": {
+    "width": 1440,
+    "height": 620
+  },
+  "layout": {
+    "width": 520,
+    "top": 24,
+    "bottom": 596,
+    "maxHeight": "572px",
+    "overflow": "hidden",
+    "bg": "color(srgb 0.129412 0.117647 0.0862745 / 0.98)"
+  },
+  "footer": {
+    "x": 862.9375,
+    "y": 523.5,
+    "width": 76.0625,
+    "height": 40
+  },
+  "processingSaveBlocked": true
+}

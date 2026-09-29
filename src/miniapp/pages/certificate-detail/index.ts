@@ -1,3 +1,5 @@
+import { beginPageMedia, endPageMedia, isPageMediaActive, preparePageImages, preparePageFiles, reportPageMedia } from '../../utils/page-media';
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 
 type CertificateMediaItem = {
@@ -52,6 +54,7 @@ type CertificateDetail = {
   };
 };
 
+
 const ACTION_LOCK_MS = 650;
 
 function requestId(): string {
@@ -67,9 +70,6 @@ function buildSharePath(certificateId: number): string {
   return `/pages/certificate-detail/index?certificateId=${encodeURIComponent(String(certificateId || 0))}&source=share`;
 }
 
-function previewUrlForMedia(item: CertificateMediaItem): string {
-  return item.original_url || item.preview_url || item.url || '';
-}
 
 Page({
   lastActionAt: 0,
@@ -87,7 +87,13 @@ Page({
     fields: [] as Array<{ label: string; value: string }>,
   },
 
+  onShow() { beginPageMedia(this); },
+  onHide() { endPageMedia(this); },
+  onUnload() { endPageMedia(this); },
+
   onLoad(query: Record<string, string>) {
+    beginPageMedia(this);
+    query = receiveShare('certificate-detail', query);
     const certificateId = Number(query.certificateId || query.certificate_id || 0);
     this.setData({
       certificateId,
@@ -104,23 +110,11 @@ Page({
   },
 
   onShareAppMessage() {
-    this.trackDetailEvent('certificate_detail_share_click', { shareChannel: 'wechat_friend' });
-    const detail = this.data.detail;
-    return {
-      title: detail?.share?.title || detail?.certificate_name || '菲尚特证书',
-      path: detail?.share?.path || buildSharePath(this.data.certificateId),
-      imageUrl: detail?.share?.image_url || undefined,
-    };
+    return sharePage('certificate-detail', this, 'wechat_friend');
   },
 
   onShareTimeline() {
-    this.trackDetailEvent('certificate_detail_share_click', { shareChannel: 'wechat_timeline' });
-    const detail = this.data.detail;
-    return {
-      title: detail?.share?.title || detail?.certificate_name || '菲尚特证书',
-      query: `certificateId=${encodeURIComponent(String(this.data.certificateId || 0))}&source=share`,
-      imageUrl: detail?.share?.image_url || undefined,
-    };
+    return sharePage('certificate-detail', this, 'wechat_timeline');
   },
 
   loadDetail() {
@@ -200,55 +194,33 @@ Page({
     this.openDocument(media);
   },
 
-  previewImage(media: CertificateMediaItem) {
-    const urls = (this.data.detail?.media || [])
-      .filter((item) => item.media_type === 'image')
-      .map((item) => previewUrlForMedia(item))
-      .filter((url) => !!url);
-    if (!urls.length) {
-      wx.showToast({ title: '图片暂不可预览', icon: 'none' });
-      return;
-    }
-    const current = previewUrlForMedia(media) || urls[0];
-    this.trackDetailEvent('certificate_detail_image_preview', {
-      mediaId: media.media_id,
-      mediaIndex: this.data.mediaIndex,
-    });
-    wx.previewImage({
-      current,
-      urls,
-      fail: () => {
-        this.setData({ mediaError: '图片预览失败，请稍后重试' });
-        wx.showToast({ title: '图片预览失败', icon: 'none' });
-      },
-    });
+  async previewImage(media: CertificateMediaItem) {
+    const detail = this.data.detail;
+    if (!detail) return;
+    const images = detail.media.filter(item => item.media_type === 'image');
+    try {
+      const urls = await preparePageImages(this, images.map(item => ({resource_type:'certificate',resource_id:String(detail.certificate_id),media_id:item.media_id || undefined,variant:'original'})));
+      const index = Math.max(0, images.findIndex(item => item.media_id === media.media_id));
+      if (urls.length && isPageMediaActive(this)) {
+        wx.previewImage({urls,current:urls[index],fail:() => this.setData({mediaError:'图片预览失败，请稍后重试'})});
+        this.trackDetailEvent('certificate_detail_image_preview',{mediaId:media.media_id,mediaIndex:this.data.mediaIndex});
+      }
+    } catch { if (isPageMediaActive(this)) this.setData({mediaError:'图片暂不可预览'}); }
   },
 
-  openDocument(media: CertificateMediaItem) {
-    if (!media.url) {
-      wx.showToast({ title: '证书文件暂不可打开', icon: 'none' });
-      return;
-    }
-    this.trackDetailEvent('certificate_detail_file_open', {
-      mediaId: media.media_id,
-      mediaType: media.media_type,
-      mediaIndex: this.data.mediaIndex,
-    });
-    wx.downloadFile({
-      url: media.url,
-      success: (result) => {
-        if (result.statusCode >= 200 && result.statusCode < 300) {
-          wx.openDocument({
-            filePath: result.tempFilePath,
-            fileType: media.media_type === 'pdf' ? 'pdf' : undefined,
-            fail: () => this.showDocumentOpenFailed(),
-          });
-          return;
-        }
-        this.showDocumentOpenFailed();
-      },
-      fail: () => this.showDocumentOpenFailed(),
-    });
+  async openDocument(media: CertificateMediaItem) {
+    const detail = this.data.detail;
+    if (!detail) return;
+    try {
+      const reference = {resource_type:'certificate' as const,resource_id:String(detail.certificate_id),media_id:media.media_id || undefined,variant:'original' as const};
+      const [filePath] = await preparePageFiles(this,[reference]);
+      if (!isPageMediaActive(this)) return;
+      this.trackDetailEvent('certificate_detail_file_open',{mediaId:media.media_id,mediaType:media.media_type,mediaIndex:this.data.mediaIndex});
+      wx.openDocument({filePath,fileType:media.media_type === 'pdf' ? 'pdf' : undefined,
+        success: () => reportPageMedia(this,reference,'preview','success'),
+        fail: () => { if (isPageMediaActive(this)) this.showDocumentOpenFailed(); },
+      });
+    } catch { if (isPageMediaActive(this)) this.showDocumentOpenFailed(); }
   },
 
   showDocumentOpenFailed() {

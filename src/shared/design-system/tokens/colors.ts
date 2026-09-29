@@ -331,3 +331,10 @@ export function colorsToCssVariables(
     [colorCssVariables.shadcn.ring]: tokens.border.focus,
   };
 }
+
+/** Miniapp price-only tokens; do not override Web brand or error colors. */
+export const miniappPriceTokens = {
+  amount: '#F87171',
+  placeholder: '#AFA58E',
+  label: '#AFA58E',
+} as const;

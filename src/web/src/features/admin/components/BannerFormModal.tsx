@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useModalReturnFocus } from './use-modal-return-focus';
+import { AuthorizedImage } from '@/features/media/authorized-media';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
 import type {
@@ -22,7 +24,9 @@ import {
 } from '../lib/banner-display';
 import { BannerValidityField } from './BannerValidityField';
 
-type ImageUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+import { MediaUploadStatus, type UploadStage } from '@/features/media/media-upload-status';
+import type { MediaUploadTask } from '@/features/media/media-upload-controller';
+type ImageUploadState = UploadStage | 'uploading';
 
 const MINIAPP_DISPLAY_CLIENT = 'MINIAPP_HOME' satisfies BannerCreateRequestDisplayClient;
 const MINIAPP_HOME_POSITION = 'MINIAPP_HOME_CAROUSEL' satisfies BannerCreateRequestPosition;
@@ -94,6 +98,7 @@ function mergeBrandOption(options: BrandOption[], next: BrandOption): BrandOptio
 }
 
 export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: BannerFormModalProps) {
+  useModalReturnFocus(open);
   const [title, setTitle] = useState('');
   const [displayClient, setDisplayClient] = useState(MINIAPP_DISPLAY_CLIENT);
   const [position, setPosition] = useState<BannerCreateRequestPosition>(MINIAPP_HOME_POSITION);
@@ -111,11 +116,30 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
   const [imageSource, setImageSource] = useState('custom_upload');
   const [skuGalleryAssetId, setSkuGalleryAssetId] = useState<number | null>(null);
   const [imageUploadState, setImageUploadState] = useState<ImageUploadState>('idle');
+  const task = useRef<MediaUploadTask | null>(null);
+  const uploadKey = useRef<string | null>(null);
+  const fileRef = useRef<File | undefined>(undefined);
+  const epoch = useRef(0);
+  const [imageProgress, setImageProgress] = useState(0);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | undefined>();
+  const [retryable, setRetryable] = useState(true);
+  const [leavePrompt, setLeavePrompt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const busy = submitting || ['uploading','authorizing','transferring','verifying','processing','saving','cancelling'].includes(imageUploadState);
   const [error, setError] = useState<string | null>(null);
   const [skuOptions, setSkuOptions] = useState<SkuOption[]>([]);
   const [topicOptions, setTopicOptions] = useState<TopicOption[]>([]);
   const [brandOptions, setBrandOptions] = useState<BrandOption[]>([]);
+
+  useEffect(() => () => { epoch.current++; void task.current?.cancel().catch(() => undefined); }, []);
+  useEffect(() => {
+    const listener = (event: BeforeUnloadEvent) => {
+      if (task.current) { event.preventDefault(); event.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', listener);
+    return () => window.removeEventListener('beforeunload', listener);
+  }, []);
 
   const loadSkuOptions = useCallback(async (keyword?: string) => {
     try {
@@ -162,8 +186,10 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
   }, []);
 
   const applySkuMainImage = useCallback(async (id: number) => {
+    const token = epoch.current;
     try {
       const sku = await fetchTileSku(id);
+      if (token !== epoch.current) return false;
       const { objectKey, url } = extractSkuMainImage(sku);
       if (!objectKey || !url) {
         setError('该 SKU 无主图，请自定义上传');
@@ -200,6 +226,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
 
   useEffect(() => {
     if (!open) return;
+    setLeavePrompt(false); setWarning(undefined); setImageError(null); setImageProgress(0);
     setError(null);
     setImageUploadState('idle');
     void loadSkuOptions();
@@ -327,25 +354,55 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     applyBrandLogo(id);
   };
 
-  const handleCustomUpload = async (file: File | undefined) => {
-    if (!file) return;
-    setError(null);
-    setImageUploadState('uploading');
+  const cancelUpload = async () => {
+    if (submitting) return false;
+    epoch.current++; setImageUploadState('cancelling');
     try {
-      const result = await uploadBannerImage(file);
-      setImageKey(result.object_key);
-      setImageUrl(result.url);
-      setImageSource('custom_upload');
-      setSkuGalleryAssetId(null);
-      setImageUploadState('uploaded');
+      await task.current?.cancel(); task.current = null; fileRef.current = undefined; uploadKey.current = null;
+      setImageKey(banner?.image_object_key ?? ''); setImageUrl(banner?.image_url ?? '');
+      setImageSource(banner?.image_source ?? 'custom_upload');
+      setImageUploadState('cancelled'); setImageError(null); setWarning(undefined);
+      return true;
+    } catch {
+      setImageUploadState('failed'); setImageError('取消未成功，请重试取消'); setRetryable(false);
+      return false;
+    }
+  };
+  const close = () => { if (submitting) return; if (task.current || busy) setLeavePrompt(true); else onClose(); };
+  const handleCustomUpload = async (file: File | undefined, retry = false) => {
+    if (!file || busy) return;
+    if (!retry && task.current && !await cancelUpload()) return;
+    const token = ++epoch.current; fileRef.current = file;
+    setError(null); setImageError(null); setWarning(undefined); setRetryable(true);
+    setImageUploadState('uploading'); setImageProgress(0);
+    try {
+      const result = await uploadBannerImage(file, progress => {
+        if (token === epoch.current) {
+          setImageProgress(progress);
+          if (progress > 0) setImageUploadState(value => value === 'uploading' ? 'transferring' : value);
+        }
+      }, {
+        bannerId: mode === 'edit' ? banner?.id : undefined,
+        task: retry ? task.current ?? undefined : undefined,
+        onTask: value => { task.current = value; },
+        onUpdate: value => {
+          if (token !== epoch.current) return;
+          setImageUploadState(value.stage); setRetryable(value.retryable ?? false);
+          setImageError(value.error ?? null); setWarning(value.warning);
+        },
+      });
+      if (token !== epoch.current) return;
+      uploadKey.current = result.object_key;
+      setImageKey(result.object_key); setImageUrl(result.display_url ?? result.url);
+      setImageSource('custom_upload'); setSkuGalleryAssetId(null); setImageUploadState('uploaded');
     } catch (err) {
-      setImageUploadState('failed');
-      setError(getErrorMessage(err, '图片上传失败'));
+      if (token !== epoch.current) return;
+      setImageUploadState('failed'); setImageError(getErrorMessage(err, '图片上传失败'));
     }
   };
 
   const handleSubmit = async () => {
-    if (imageUploadState === 'uploading') {
+    if (busy || imageUploadState === 'failed') {
       setError('图片上传中，请稍后保存');
       return;
     }
@@ -389,6 +446,10 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
     } satisfies BannerCreateRequest;
 
     try {
+      if (task.current && (imageSource !== 'custom_upload' || uploadKey.current !== imageKey)) {
+        await task.current.cancel(); task.current = null; uploadKey.current = null;
+        setImageUploadState('idle');
+      }
       if (mode === 'create') {
         await createBanner(payload);
         onSuccess('Banner 已创建');
@@ -396,6 +457,8 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
         await updateBanner(banner.id, payload);
         onSuccess('Banner 已更新');
       }
+      task.current?.markSaved?.();
+      task.current = null; fileRef.current = undefined; uploadKey.current = null;
       onClose();
     } catch (err) {
       setError(normalizeBannerSaveError(getErrorMessage(err, '保存失败')));
@@ -426,7 +489,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
       ? `编辑 Banner · ${JUMP_TYPE_OPTIONS.find((o) => o.value === jumpType)?.label ?? ''}`
       : jumpTypeModalTitle(jumpType);
   const positions = POSITIONS_BY_CLIENT[displayClient] ?? POSITIONS_BY_CLIENT.MINIAPP_HOME;
-  const isImageUploading = imageUploadState === 'uploading';
+  const isImageUploading = busy;
   const uploadButtonLabel = isImageUploading ? '上传中' : imageUrl ? '更换' : '选择';
 
   return (
@@ -442,7 +505,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
           <span id="banner-form-title" className="modal-title">
             {modalTitle}
           </span>
-          <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
+          <button type="button" className="modal-close" aria-label="关闭" onClick={close}>
             ×
           </button>
         </div>
@@ -468,6 +531,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                 展示位置<span className="banner-form-required">*</span>
               </span>
               <select
+                disabled={busy}
                 aria-label="展示位置"
                 className="select"
                 value={position}
@@ -487,7 +551,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
               </span>
               <div className="banner-upload-box">
                 <div className="banner-upload-preview">
-                  {imageUrl ? <img src={imageUrl} alt="" /> : null}
+                  {imageUrl ? <AuthorizedImage file={imageSource === 'custom_upload' && uploadKey.current === imageKey ? fileRef.current : undefined} reference={imageSource === 'custom_upload' && uploadKey.current === imageKey && task.current?.sessionId ? {resource_type: 'upload_session', resource_id: task.current.sessionId, variant: 'display'} : (imageSource === 'sku_main_image' || imageSource === 'sku_gallery_image') && skuId ? {resource_type: 'sku_image', resource_id: String(skuId), media_id: skuGalleryAssetId ?? undefined, variant: 'display'} : imageSource === 'brand_logo' && brandId ? {resource_type: 'brand_logo', resource_id: String(brandId), variant: 'display'} : banner ? {resource_type: 'banner_image', resource_id: String(banner.id), variant: 'display'} : undefined} src={imageUrl} alt="" /> : null}
                 </div>
                 <div>
                   <div className="banner-upload-desc">
@@ -502,7 +566,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                       <button
                         type="button"
                         className="btn subtle"
-                        disabled={!skuId}
+                        disabled={!skuId || busy}
                         onClick={() => skuId && void applySkuMainImage(skuId)}
                       >
                         使用 SKU 主图
@@ -512,7 +576,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                       <button
                         type="button"
                         className="btn subtle"
-                        disabled={!brandId}
+                        disabled={!brandId || busy}
                         onClick={() => brandId && applyBrandLogo(brandId)}
                       >
                         使用品牌 Logo
@@ -539,6 +603,11 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   </div>
                 </div>
               </div>
+              <MediaUploadStatus mediaKind="image" stage={imageUploadState === 'uploading' ? 'authorizing' : imageUploadState}
+                progress={imageProgress} fileName={fileRef.current?.name} error={imageError}
+                onCancel={() => void cancelUpload()}
+                onRetry={retryable ? () => void handleCustomUpload(fileRef.current, true) : undefined} />
+              {warning ? <p className="text-brand-gold">{warning}</p> : null}
             </div>
 
             <label className="banner-form-row">
@@ -560,6 +629,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   关联 SKU<span className="banner-form-required">*</span>
                 </span>
                 <SearchableSelect
+                  disabled={busy}
                   value={skuId != null ? String(skuId) : null}
                   options={skuSelectOptions}
                   onChange={(value) => void handleSkuSelect(value)}
@@ -576,6 +646,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   关联品牌<span className="banner-form-required">*</span>
                 </span>
                 <SearchableSelect
+                  disabled={busy}
                   value={brandId != null ? String(brandId) : null}
                   options={brandSelectOptions}
                   onChange={handleBrandSelect}
@@ -606,6 +677,7 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
                   关联专题<span className="banner-form-required">*</span>
                 </span>
                 <SearchableSelect
+                  disabled={busy}
                   value={topicId != null ? String(topicId) : null}
                   options={topicSelectOptions}
                   onChange={(value) =>
@@ -658,14 +730,20 @@ export function BannerFormModal({ open, mode, banner, onClose, onSuccess }: Bann
             </label>
           </div>
         </div>
+        {leavePrompt ? <div role="alertdialog" aria-label="离开上传" className="modal-body">
+          <p>离开将取消未保存的图片上传。</p>
+          <button type="button" className="btn" onClick={() => setLeavePrompt(false)}>继续编辑</button>
+          <button type="button" className="btn" disabled={imageUploadState === 'cancelling'}
+            onClick={() => void cancelUpload().then(ok => { if (ok) onClose(); })}>取消上传并离开</button>
+        </div> : null}
         <div className="modal-footer">
-          <button type="button" className="btn" onClick={onClose}>
+          <button type="button" className="btn" onClick={close}>
             取消
           </button>
           <button
             type="button"
             className="btn primary"
-            disabled={submitting || isImageUploading}
+            disabled={submitting || isImageUploading || imageUploadState === 'failed'}
             onClick={() => void handleSubmit()}
           >
             {submitting ? '保存中…' : '保存 Banner'}

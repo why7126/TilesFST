@@ -1,3 +1,4 @@
+import { sharePage, receiveShare } from '../../utils/public-sharing';
 import { request, track } from '../../services/api';
 import { navigateToSearch } from '../../utils/search-navigation';
 
@@ -80,7 +81,8 @@ Page({
     shareAddGuideStyle: 'top: 112px; right: 52px;',
   },
 
-  onLoad() {
+  onLoad(query: Record<string, string>) {
+    query = receiveShare('index', query);
     this.setCurrentTab();
     this.setData({ pageAlive: true });
     this.prepareShareAddGuide();
@@ -101,19 +103,11 @@ Page({
   },
 
   onShareAppMessage() {
-    this.trackHomeShare('wechat_friend');
-    return {
-      title: this.data.home?.store.name || '菲尚特瓷砖馆',
-      path: HOME_SHARE_PATH,
-    };
+    return sharePage('index', this, 'wechat_friend');
   },
 
   onShareTimeline() {
-    this.trackHomeShare('wechat_timeline');
-    return {
-      title: this.data.home?.store.name || '菲尚特瓷砖馆',
-      query: 'source=share',
-    };
+    return sharePage('index', this, 'wechat_timeline');
   },
 
   trackHomeShare(shareChannel: 'wechat_friend' | 'wechat_timeline') {

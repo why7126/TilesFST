@@ -1,0 +1,10 @@
+{
+  "source": "Authenticated API and HTTPS COS HTTP check for existing certificate",
+  "mode": "direct",
+  "status": 200,
+  "received_bytes": 1980844,
+  "pdf_magic": true,
+  "allow_origin": "http://localhost:3000",
+  "content_type": "application/pdf",
+  "content_rendered": false
+}

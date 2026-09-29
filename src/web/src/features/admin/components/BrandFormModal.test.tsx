@@ -1,3 +1,8 @@
+import type { ImgHTMLAttributes } from 'react';
+// Form tests verify stable business values; authorization/blob lifecycle has independent tests.
+vi.mock('@/features/media/authorized-media', () => ({
+  AuthorizedImage: ({reference: _reference, file: _file, ...props}: ImgHTMLAttributes<HTMLImageElement> & {reference?: unknown; file?: File}) => <img {...props} />,
+}));
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -63,13 +68,13 @@ describe('BrandFormModal', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(uploadBrandLogoMock).toHaveBeenCalledWith(file, expect.any(Function));
+      expect(uploadBrandLogoMock).toHaveBeenCalledWith(file, expect.any(Function), expect.any(Object));
     });
     expect(screen.queryByText('已上传 Logo')).not.toBeInTheDocument();
     expect(screen.queryByText('品牌Logo')).not.toBeInTheDocument();
     expect(screen.queryByText('品牌 Logo')).not.toBeInTheDocument();
     expect(screen.getByText('更换 Logo')).toBeInTheDocument();
-    expect(screen.getByText('Logo 已更新')).toBeInTheDocument();
+    expect(screen.getByText('图片已添加')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/品牌名称/), { target: { value: '岩板品牌' } });
     fireEvent.click(screen.getByRole('button', { name: '保存品牌' }));
@@ -134,7 +139,7 @@ describe('BrandFormModal', () => {
     fireEvent.change(screen.getByLabelText('更换 Logo'), { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(uploadBrandLogoMock).toHaveBeenCalledWith(file, expect.any(Function));
+      expect(uploadBrandLogoMock).toHaveBeenCalledWith(file, expect.any(Function), expect.any(Object));
     });
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/brands/logos/new.webp',
@@ -184,7 +189,7 @@ describe('BrandFormModal', () => {
       resolveUpload?.();
     });
 
-    expect(await screen.findByText('Logo 已更新')).toBeInTheDocument();
+    expect(await screen.findByText('图片已添加')).toBeInTheDocument();
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       'https://cdn.example.test/progress.webp',
     );
@@ -236,9 +241,36 @@ describe('BrandFormModal', () => {
     await waitFor(() => {
       expect(uploadBrandLogoMock).toHaveBeenCalledTimes(2);
     });
-    expect(await screen.findByText('Logo 已更新')).toBeInTheDocument();
+    expect(await screen.findByText('图片已添加')).toBeInTheDocument();
     expect(container.querySelector('.brand-logo-preview img')?.getAttribute('src')).toBe(
       '/media/original/default/brands/logos/retry.webp',
     );
   });
+});
+
+it('blocks saving during processing and cancels before leaving, fencing a late result', async () => {
+  createBrandMock.mockReset(); uploadBrandLogoMock.mockReset();
+  const cancel = vi.fn().mockResolvedValue(undefined);
+  let finish: ((value: unknown) => void) | undefined;
+  uploadBrandLogoMock.mockImplementation((_file, _progress, options) => {
+    options.onTask({ cancel });
+    options.onUpdate({ stage: 'processing', progress: 100 });
+    return new Promise(resolve => { finish = resolve; });
+  });
+  const onClose = vi.fn();
+  render(<BrandFormModal open mode="create" brand={null} onClose={onClose} onSuccess={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('选择 Logo'), {
+    target: { files: [new File(['logo'], 'logo.png', { type: 'image/png' })] },
+  });
+  expect(await screen.findByText('正在生成图片展示版本')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '保存品牌' })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+  expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  expect(cancel).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: '取消上传并离开' }));
+  await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  expect(cancel).toHaveBeenCalledOnce();
+  await act(async () => finish?.({ object_key: 'late', url: '/media/late' }));
+  expect(screen.queryByText('图片已添加')).not.toBeInTheDocument();
+  expect(createBrandMock).not.toHaveBeenCalled();
 });

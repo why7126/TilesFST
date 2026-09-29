@@ -21,7 +21,7 @@ function baseUrls() {
 }
 
 function mediaUrl(value, currentBaseUrl) {
-  if (typeof value === 'string' && value.indexOf('/media/') === 0) {
+  if (typeof value === 'string' && (value.indexOf('/media/') === 0 || value.indexOf('/api/v1/media/read?') === 0)) {
     return `${currentBaseUrl}${value}`;
   }
   return value;
@@ -85,7 +85,11 @@ function request(path, options = {}) {
   delete requestOptions.behaviorTraceId;
   delete requestOptions.behaviorEventId;
   const shouldReportPerformance = !skipPerformanceTracking && !isTelemetryPath(path);
-  const urls = baseUrls();
+  const singleAttempt = options.singleAttempt;
+  const onRequestTask = options.onRequestTask;
+  delete requestOptions.singleAttempt;
+  delete requestOptions.onRequestTask;
+  const urls = singleAttempt ? baseUrls().slice(0, 1) : baseUrls();
   const clientRequestId = createClientRequestId();
   const behaviorContext = activeBehaviorContext;
   const effectiveBehaviorTraceId = behaviorTraceId || (behaviorContext && behaviorContext.behaviorTraceId);
@@ -97,7 +101,7 @@ function request(path, options = {}) {
     const url = `${currentBaseUrl}${path}`;
     const startedAt = Date.now();
     return new Promise((resolve, reject) => {
-      wx.request({
+      const task = wx.request({
         ...requestOptions,
         url,
         header: {
@@ -112,7 +116,7 @@ function request(path, options = {}) {
           const body = res.data;
           if (shouldReportPerformance) {
             reportPerformanceMetric({
-              page_key: path,
+              page_key: path === '/api/v1/media/read-authorizations' ? '/media-read' : path,
               metric_name: 'api_duration',
               duration_ms: Date.now() - startedAt,
               device_class: 'miniapp',
@@ -139,7 +143,7 @@ function request(path, options = {}) {
         fail: (error) => {
           if (shouldReportPerformance) {
             reportPerformanceMetric({
-              page_key: path,
+              page_key: path === '/api/v1/media/read-authorizations' ? '/media-read' : path,
               metric_name: 'api_failed_duration',
               duration_ms: Date.now() - startedAt,
               device_class: 'miniapp',
@@ -160,6 +164,7 @@ function request(path, options = {}) {
           reject(error);
         },
       });
+      if (onRequestTask) onRequestTask(task);
     });
   }
 

@@ -4,11 +4,13 @@ content: API 索引、认证接口、错误码与 Orval 维护规则
 source: Sprint 001 实现 / OpenSpec auth & api-governance
 update_method: API 新增或变更时同步更新；变更后运行 Orval
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-30 11:05:11
+updated_at: '2026-09-11 09:12:44'
 note: 错误码运行时值见 `src/backend/app/core/exceptions.py`；登记表见 `docs/standards/error-codes.md`
 ---
 
 # API 接口索引
+
+WorkBuddy 独立 MCP 传输入口为 `POST /mcp` 与 `GET /health`，不属于后端 `/api/v1` 或 Web Orval 客户端。版本、请求头、HTTP 错误及 JSON-RPC 行为见 [远程 MCP 部署契约](../deploy/prod/workbuddy.md#网关与协议)。JSON-RPC 错误采用 -32700/-32600/-32601/-32602/-32603 的固定脱敏摘要；合法工具执行失败仍通过 MCP `isError` 和文本内容返回。
 
 ## 1. 通用约定
 
@@ -116,6 +118,14 @@ Authorization: Bearer <access_token>
 | 媒体 | `/api/v1/media` | — | 规划中的统一媒体 API | 未实现 |
 
 \* `uploads` 路由通过后端鉴权接口写入 `MINIO_BUCKET`，不允许前端直连未授权 MinIO。
+
+WorkBuddy 自定义连接器不新增业务 HTTP API；MCP 工具复用上述管理端 SKU、品牌、类目和上传接口，并在后端请求日志中携带 `x-client-type=workbuddy_connector` 与 `x-client-request-id`。本地 stdio PoC 默认只暴露查询与 dry-run 工具；HTTPS MCP 服务启用管理写操作时仍必须经现有 Bearer 鉴权、连接器写范围、显式确认和幂等键。
+
+远程独立进程的 `POST /mcp` 使用专用连接器 Bearer，经服务端映射后调用 `GET /api/v1/auth/me` 验证真实身份；不使用共享后端身份。缺失/无效连接器凭据为 401，角色或 scope 不足为 403，缺少远程映射配置或身份服务不可用为 503，限流为 429。请求为 JSON-RPC 对象，响应为标准文本内容块或 JSON-RPC 错误；接受通知返回空正文 202。工具错误新增 `invalid_arguments`、`invalid_payload`、`duplicate_operation`、`idempotency_conflict`、`operation_uncertain`，成功结果可含 client_request_id、operation_ref。`GET /health` 只返回服务状态与认证配置是否存在，不暴露后端地址或凭据。业务 `/api/v1` 契约未变，独立 MCP OpenAPI 由其应用提供，不属于 Web Orval 输入，无需重新生成 Web 客户端。部署与幂等保证边界见 `docs/02-deployment.md`。
+
+WorkBuddy 工具 `set_tile_sku_status` 使用 `PUBLISHED` / `DISABLED`；`DRAFT` 为兼容下架别名，实际返回 `DISABLED`。上传参数须使用无路径文件名、与 MIME 一致的扩展名和非空合法 Base64，连接器前置拒绝返回 `invalid_media`，不会调用后端或写入幂等账本。后端继续执行鉴权、大小、类型和业务规则。
+
+WorkBuddy 来源的品牌/类目 POST、PUT 请求额外通过 TaskTraceService 写入节点并关联 request_logs；沿用已有鉴权身份，不信任来源头作为权限依据，不记录原始 payload。观测故障降级，不影响业务结果；非连接器调用不新增该任务。9 个相关 OpenAPI 路径结构比较无差异，无需重生成 Orval，也无 SQLite/MySQL 迁移。
 
 ## 3.1 认证与当前用户
 
@@ -294,6 +304,8 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | GET | `/api/v1/admin/logs/{log_id}` | Bearer（admin） |
 | POST | `/api/v1/usage-events` | 可选 Bearer（admin/employee 匿名均可上报） |
 
+`POST /api/v1/usage-events` 的公开页面分享事件字典新增 `share_page_open`、`brand_list_share_click`、`certificate_list_share_click`、`store_info_share_click`、`category_share_click`、`search_share_click`、`find_share_click`，必填属性为 `page_path`、`share_channel`、`client_type`，拒绝关键词原文、完整URL、query和历史属性。旧分享事件及必填属性保持兼容；新小程序的 `share_path` 只含页面路径，`requestId` 为接收端本地标识。合法上报返回 `200 / code=0 / UsageEventData`；未知事件、缺必填或禁止属性仍为 `400 / code=40001`。请求响应Schema、OpenAPI、Orval和数据库结构无变化。
+
 `GET /api/v1/admin/logs` 查询参数：
 
 | 参数 | 说明 |
@@ -302,7 +314,7 @@ OpenSpec：`openspec/changes/add-product-usage-logging/`
 | `log_type` | `request` / `usage_event` / `audit` |
 | `keyword` | 匹配摘要、路径、request_id、client_request_id、behavior_trace_id、事件名、操作人 |
 | `actor_user_id` | 操作人 ID |
-| `client_type` | 客户端类型，当前统一为 `web_admin`、`web_catalog`、`wechat_miniapp`，未知请求头记录为 `unknown` |
+| `client_type` | 客户端类型，当前统一为 `web_admin`、`web_catalog`、`wechat_miniapp`、`workbuddy_connector`，未知请求头记录为 `unknown` |
 | `status_code` | HTTP 状态码 100–599 |
 | `result` | `success` / `failed` |
 | `resource_id` | 资源 ID，匹配 metadata |
@@ -927,3 +939,49 @@ API 变更时 MUST：
 | [standards/file-upload.md](standards/file-upload.md) | 上传与 MinIO |
 
 总索引：[docs/README.md](README.md)
+
+## 11. 业务媒体读取授权（REQ-0136）
+
+- `POST /api/v1/media/read-authorizations`：公开读取；复用商品、品牌、Banner、证书的当前可见性，公开接口不因为携带管理 Token 而扩大范围。
+- `POST /api/v1/admin/media/read-authorizations`：管理角色读取；员工头像限定本人，系统管理员可读取用户管理范围内头像。
+- 请求 `items` 长度 1～50；每项包含 `resource_type`、字符串 `resource_id`、可选正整数 `media_id`、`variant`（thumbnail/display/original）。拒绝额外字段及自由 Key/URL。
+- 白名单为 `sku_image`、`sku_video`、`brand_logo`、`banner_image`、`certificate`、`avatar`、`upload_session`、`store_logo`；SKU 的媒体 ID 必须属于指定商品，单字段资源不接受媒体 ID，证书附件不生成图片规格。证书未传媒体ID时，thumbnail/display读取当前主图，original读取主附件；`store_logo`仅接受resource_id=`store`，绑定公开配置`miniapp.logo_url`，不能指定其他配置项。
+- 成功信封 `data.server_time`、`data.items[]`；每项返回输入 `reference`、`status`，以及 `descriptor` 或安全 `error`。直读描述包括 `media_ref`、实际 `variant`、`url`、独立 HEAD 签名 `head_url`、`expires_at`、`read_mode`、`degraded`、MIME 与大小。签名 TTL 为 300 秒，响应 `Cache-Control: no-store`。
+- 合法批次 HTTP 200，逐项区分 ready/unavailable/failed；不可见与不存在统一 40404，存储故障逐项 50001。请求非法 HTTP 422/40001；管理未登录 HTTP 401/40102，角色拒绝 HTTP 403/40302。代理限额 HTTP 429/42903，见错误码登记表。
+- 已登记 HTTPS 外部引用仅按原图语义透传，不探测外域、不伪造到期；配置存储域名可转换为自有 Key 后重新签名。只在单次请求内缓存元信息，每项重新校验权限，不新增数据库表或迁移。
+- 授权请求纳入 request log；批量授权与元信息探测写入 `media_read_authorization` Task Trace 的 `authorize_and_probe` 节点，仅含条目、ready、外部引用、代理和降级计数与耗时，不记录地址、签名或内部 Key。文件本体从对象存储获取，不伪造后端文件请求。
+
+- `upload_session` 只允许当前上传者读取未过期的 ready 会话；bound 后改用当前业务引用，证书仍校验管理权限。派生规格只使用会话已记录的输出。
+- 请求可含 `mode=auto|proxy`。auto 受总开关、`MEDIA_READ_CLIENTS` 和 `MEDIA_READ_KINDS` 控制；显式 proxy 需开启 `MEDIA_READ_PROXY_FALLBACK_ENABLED`。读取权限不依赖客户端请求头。
+- `GET/HEAD /api/v1/media/read?ticket=...` 使用各自方法的300秒媒体专用票据；每次重新校验当前业务可见性、上传者及对象引用。票据不能用于登录，响应 no-store。Range 最多4MiB，非Range响应最多64MiB；同宿主机共享预算目录的工作进程/副本合计最多2路与固定60秒窗口128MiB，超限42903。
+
+旧 `GET/HEAD /media/{object_key}` 先反查固定业务表并执行当前公开可见性检查；私有头像、未绑定上传及未登记对象统一拒绝。历史变体只在同一已授权原图的有限候选间解析，缺失才继续；读取受相同代理流量预算约束。管理预览通过业务授权或所有者 ready 会话访问，不能依赖旧路径绕过权限。新代码不等于线上已部署。
+
+管理证书响应 `images[].media_id` / `main_image.media_id` 为只读媒体行标识，用于逐图授权；不增加数据库字段，输入值不作为媒体归属依据。
+
+## 12. 授权媒体上传会话（REQ-0135）
+
+管理端控制资源 `/api/v1/admin/uploads/sessions` 复用 JWT 与 admin/employee 权限；每次操作校验会话所有者和业务存在性。当前直传能力覆盖 SKU 视频，及 JPEG/PNG/WebP SKU 图片、品牌 Logo、Banner、头像、证书图片和 PDF 文档，分别由视频和图片/附件开关控制；关闭对应能力时明确返回 `mode=proxy`，继续使用原接口；能力关闭不阻断旧会话完成。所有控制响应（包括错误）使用 `Cache-Control: no-store`。
+
+| 方法与相对路径 | 请求与响应 |
+|---|---|
+| POST 空路径 | `media_kind/business_id/expected_size/mime_type/client_idempotency_key`；返回 `mode/reason/session`，请求不含对象 Key |
+| GET `/{session_id}` | 返回状态、绝对过期时间、分片参数、可重试标记、错误码和任务 ID；仅 ready/bound 返回可信 media |
+| POST `/{session_id}/renew` | 单 PUT 返回短期授权；分片会话返回状态，按分片单独授权；不延长绝对 TTL |
+| POST `/{session_id}/parts/{part_number}/authorize` | 返回限 Key、uploadId、partNumber、Content-Length 的 PUT URL、长度和过期时间 |
+| POST `/{session_id}/confirm` | 后端核对 COS 分片、精确版本、大小、MIME 与容器签名，COS 内复制后视频进入 ready、图片进入 processing；处理中与重复确认返回已有状态 |
+| POST `/{session_id}/retry-processing` | 仅会话所有者可重试失败的图片派生（30084）；复用固定版本原图，重新入队，不重传原图；processing/ready/bound 幂等返回 |
+| POST `/{session_id}/cancel` | 先持久化取消终态，再终止分片；失败可重试；绑定中和已绑定不允许取消 |
+
+统一 `code/message/data` 不变；请求校验错误 422/40001。运行时未登录 401/40102、无权限 403/40302；新增会话错误见错误码登记。派生失败返回状态 failed/error_code=30084，响应 media 增加可选 thumbnail_url、display_url、original_url 和 processing_warning。目标体积未达到时仅 warning，必要派生未就绪时不返回 media。视频内容检查目前是容器签名检查，不表示完整解码、可播放性或安全扫描已通过。
+
+SKU 保存使用现有 `videos[].object_key` 和 `images[].object_key`，未就绪、其他用户、其他业务或临时 Key 被拒绝；可信文件大小取会话实际值。新建时先原子预留 SKU 与会话绑定关系，再在数据库写事务外完成 COS 正式化，最后同一事务提交媒体引用和 bound 状态。正式化或引用保存失败保留可重试会话及预留草稿，重试复用 SKU；图片保存同时正式化固定版本原图、480缩略图和1600展示图；处理中的图片禁止绑定，已绑定会话返回正式派生地址。合法代理和历史媒体引用保留原契约。
+
+品牌Logo保存沿用现有字段logo_object_key与admin/employee管理权限。直传引用必须由当前用户确认就绪，其他管理者仅可保留已经关联该品牌的引用。新建品牌在复制前原子预留停用记录（无Logo）与会话绑定关系；复制/引用写入失败保持可重试，重复创建请求复用预留ID；成功后原子提交Logo引用和bound并启用品牌。编辑保持原状态。派生目录与原图统一在brand-logos下正式化；代理/历史Logo继续原链路。
+
+
+Banner自定义上传沿用image_object_key，借用SKU/品牌图片仍验证原业务归属，不能伪装借图绕过会话校验。创建失败保留无媒体的DRAFT并复用ID。头像业务保存使用avatar_object_key：系统管理员可给创建/编辑用户绑定自己上传的头像，个人资料保存仅绑定当前用户；已关联头像可保留。头像会话的business_id必须为空，实际用户UUID在保存时确定；用户写入与bound原子提交，密码不写入会话。创建用户响应丢失后仍沿用用户名冲突行为，不额外返回历史初始密码。
+
+证书会话media_kind=certificate，仅admin可申请；可选business_id表示所属品牌，原始文件始终先放pending，再绑定到证书ID。证书图片与PDF均受effective.max_file_size_mb限制，固定支持JPEG/PNG/WebP/PDF。PDF核对MIME和%PDF-前缀后就绪，不执行图片派生，也不宣称完整解析或安全扫描。证书保存沿用file与images[]；服务端覆盖客户端声明的大小和MIME，图片列表不能引用PDF。文件与全部图片的引用、bound同事务提交；失败保留隐藏预留证书和ready会话，重试复用ID。其他证书、其他用户或不匹配品牌引用被拒绝；404/30080用于不可访问，409/30081用于状态或绑定冲突。
+
+直传行为仍使用media_upload事件字典，保留media_type/business_type/file_size/result必填属性；新增action、stage、source和duration_scope描述开始/重试/取消/保存及阶段。客户端耗时为浏览器阶段墙钟时间，binding含复制及业务提交，binding_copy是其子阶段，不能相加当作独立耗时。事件与后端阶段关联同一task_trace_id，不上报文件名、Key或授权URL。保留周期及清理入口见部署说明。

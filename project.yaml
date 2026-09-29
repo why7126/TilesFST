@@ -88,6 +88,8 @@ governance:
   bug_source: issues/bugs
   change_source: openspec/changes
   iteration_source: iterations
+  knowledge_model_source: knowledge-model
+  knowledge_model_registry: knowledge-model/registry.yaml
   forbidden_dirs:
     - docs/product
     - docs/prd

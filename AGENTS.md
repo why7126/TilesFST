@@ -4,7 +4,7 @@ content: AI开发流程入口、规则加载路由、OpenSpec红线、目录与�
 source: AI自动生成初稿，项目团队确认
 update_method: 项目初始化后由人工确认；后续由AI辅助更新并经人工Review
 created_at: 2026-06-13 00:00:00
-updated_at: 2026-08-31 10:23:00
+updated_at: 2026-09-10 22:51:56
 note: 适用于瓷砖信息管理平台；AI执行任务前必须优先阅读本文档
 ---
 
@@ -58,7 +58,7 @@ rules/agent-context-budget.md
 
 ## 3. Codex Skills 入口
 
-当前项目只维护 `.agents/skills/` 作为 AI 工具入口。
+当前项目只维护 `.agents/skills/` 作为项目内部 AI 工作流命令入口。
 
 | 路径 | 说明 |
 |---|---|
@@ -67,6 +67,8 @@ rules/agent-context-budget.md
 | `.agents/skills/openspec-*` | OpenSpec 基础操作技能 |
 
 不维护 `.cursor/`、`.codex/`、`.claude/`、`.opencode/`、`.kiro/`。如需恢复其他工具入口，必须先通过 OpenSpec Change 更新本文件、`rules/directory-structure.md` 与目录校验脚本。
+
+WorkBuddy 等外部平台连接器的 Skill 不属于项目内部 Codex 工作流命令：连接器交付包放入 `connectors/<connector>/`，MCP 运行时代码放入 `src/mcp/<connector>/`。不得把 WorkBuddy 外部 Skill 放入 `.agents/skills/`，也不得用连接器交付需求恢复其他 AI 工具入口目录。
 
 ## 4. 开发流程总览
 
@@ -99,6 +101,8 @@ rules/agent-context-budget.md
 | 规范优化 | `/spec-opt`（新增或修改项目治理规范、技能命令、文档索引与治理脚本；仅治理资产，不改业务 `src/`）、`/spec-study`（学习其他项目 Harness 工程，用户确认后应用治理资产；默认不改业务 `src/`） |
 
 旧命令已废弃：`/requirement-to-change`、`/requirement-to-opsx`、`/bug-to-change`、`/create-iteration`。
+
+`/opsx-apply` 与 `openspec-apply-change` 按 `docs/standards/command-execution-order.md` §5 持续推进当前 Change，范围内可恢复错误自主修复，局部阻塞仍推进独立任务；部分完成不得发送完成事件，必要人工确认与归档发布边界保留。
 
 ## 5.1 命令完成输出契约
 
@@ -169,8 +173,11 @@ rules/agent-context-budget.md
 | OpenSpec 变更 | `openspec/changes/<change-id>/` |
 | OpenSpec 已归档变更 | `openspec/archive/YYYY-MM-DD-<change-id>/`（禁止 `openspec/changes/archive/`） |
 | 正式规格 | `openspec/specs/<capability>/spec.md` |
+| 产品知识模型 | `knowledge-model/`：本体、领域模型、映射及版本知识快照；generated 仅工具写入，运行回执位于被忽略的 `data/knowledge-model/` |
 | 复盘 / 事故知识 | `docs/knowledge-base/` |
 | 规范工程日志 | `docs/spec-logs/CHANGELOG.md`、`docs/spec-logs/YYYYMMDDhhmmss-study-xxx.md`、`docs/spec-logs/YYYYMMDDhhmmss-governance-xxx.md`；`CHANGELOG.md` 记录规范、脚本、技能和命令变更历史摘要，单次日志保留详细事实；不得包含用户隐私数据、真实客户数据、密钥、访问令牌、未脱敏日志或学习对象源码 |
+| MCP 连接器运行时代码 | `src/mcp/<connector>/`（server、tools、schema adapter、auth/audit adapter、runtime entrypoint） |
+| 外部连接器交付包 | `connectors/<connector>/`（WorkBuddy manifest、`mcp.json`、外部 Skill、图标和打包说明） |
 | 发布对象 | `releases/vX.Y.Z/` |
 | Mintlify 文档站源目录 | `mintlify/`（公开站点配置、多版本投影、共享截图资产；不得替代 release 快照事实源） |
 | 镜像发布证据 | `releases/vX.Y.Z/image-build-plan.json`、`releases/vX.Y.Z/image-manifest.json` |
@@ -234,3 +241,5 @@ Web 端采用“工业石材 · 暗色旗舰风”。UI 任务必须：
 □ 是否完成必要校验：目录结构、OpenSpec、Agent 上下文预算、测试、Docker（按需）
 □ 命令输出是否包含去重后的下一步与待用户决策/处理
 ```
+
+Apply收尾前逐项核对授权、依赖、资源及验证；有可执行工作继续，问题集中映射受阻项，进度问询不结束执行。四类进度、同类失败两次无进展的切换与恢复、真实行为验收遵循 `docs/standards/command-execution-order.md` §5.6–5.8。

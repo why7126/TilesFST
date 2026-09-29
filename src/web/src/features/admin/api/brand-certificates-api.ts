@@ -1,3 +1,5 @@
+import { createImageUploadTask } from '@/features/media/media-upload-api';
+import type { ImageTaskOptions } from '@/features/media/use-image-upload';
 import { api } from '@/features/auth/api/auth-api';
 import type {
   BrandCertificateCreateRequest,
@@ -50,24 +52,21 @@ export async function deleteBrandCertificate(certificateId: number) {
 }
 
 export async function uploadBrandCertificateFile(
-  file: File,
-  onProgress?: UploadProgressHandler,
+  file: File, onProgress?: UploadProgressHandler, options?: ImageTaskOptions,
 ): Promise<UploadResult> {
-  const response = await api.uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost(
-    { file },
-    {
-      onUploadProgress: (event) => {
-        if (!onProgress) return;
-        const total = event.total ?? 0;
-        if (total <= 0) {
-          onProgress(50);
-          return;
-        }
-        onProgress(Math.min(99, Math.max(1, Math.round((event.loaded / total) * 100))));
-      },
-    },
-  );
-  return response.data.data!;
+  const update = (value: import('@/features/media/media-upload-controller').UploadSnapshot) => {
+    onProgress?.(value.progress); options?.onUpdate?.(value);
+  };
+  const task = options?.task ?? createImageUploadTask(file, undefined, update, async (signal, progress) => {
+    const response = await api.uploadBrandCertificateApiV1AdminUploadsBrandCertificatesPost(
+      {file}, undefined, {signal, onUploadProgress: event => {
+        if (event.total && event.total > 0) progress(Math.min(100, event.loaded / event.total * 100));
+      }},
+    );
+    return response.data.data!;
+  }, 'certificate');
+  task.setListener(update); options?.onTask?.(task);
+  return task.run();
 }
 
 export type { BrandCertificateCreateRequest, BrandCertificateItem, BrandCertificateUpdateRequest };

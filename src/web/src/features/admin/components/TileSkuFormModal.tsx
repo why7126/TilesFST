@@ -1,4 +1,8 @@
+import { useModalReturnFocus } from './use-modal-return-focus';
+import { AuthorizedImage, AuthorizedVideo } from '@/features/media/authorized-media';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { MediaUploadStatus, type UploadStage } from '@/features/media/media-upload-status';
+import { MediaUploadFailure, type MediaUploadTask } from '@/features/media/media-upload-controller';
 import { CircleHelp } from 'lucide-react';
 
 import { getErrorMessage } from '@/features/auth/api/auth-api';
@@ -47,6 +51,8 @@ function buildCategoryOptions(tree: TileCategoryTreeNode[]): CategoryOption[] {
 }
 
 export interface ImageDraft {
+  previewFile?: File;
+  media_id?: number;
   object_key: string;
   url: string;
   thumbnail_url?: string | null;
@@ -100,6 +106,7 @@ export function removeImageDraft(drafts: ImageDraft[], index: number): ImageDraf
 }
 
 interface VideoDraft {
+  media_id?: number;
   object_key: string;
   url: string;
   file_name: string;
@@ -108,8 +115,7 @@ interface VideoDraft {
   sort_order: number;
 }
 
-type VideoUploadState = 'idle' | 'transferring' | 'saving' | 'uploaded' | 'failed';
-type ImageUploadState = 'idle' | 'uploading' | 'uploaded' | 'failed';
+type VideoUploadState = UploadStage;
 
 function resolveVideoUrl(video: Pick<VideoDraft, 'object_key' | 'url'>): string {
   return video.url || `/media/${video.object_key}`;
@@ -150,6 +156,7 @@ interface TileSkuFormModalProps {
 }
 
 export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSkuFormModalProps) {
+  useModalReturnFocus(open);
   const [name, setName] = useState('');
   const [brandId, setBrandId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -171,7 +178,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recallPinSortOrderError, setRecallPinSortOrderError] = useState<string | null>(null);
-  const [imageUploadState, setImageUploadState] = useState<ImageUploadState>('idle');
+  const [imageUploadState, setImageUploadState] = useState<UploadStage | 'uploading'>('idle');
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [videoUploadState, setVideoUploadState] = useState<VideoUploadState>('idle');
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
@@ -179,6 +186,46 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const videoListRef = useRef<HTMLDivElement>(null);
+  const imageTask = useRef<MediaUploadTask | null>(null);
+  const imageFile = useRef<File | undefined>(undefined);
+  const imageEpoch = useRef(0);
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
+  const [imageRetryable, setImageRetryable] = useState(true);
+  const [imageWarning, setImageWarning] = useState<string | undefined>();
+  const videoTask = useRef<MediaUploadTask | null>(null);
+  const unboundMediaTasks = useRef(new Map<string, MediaUploadTask>());
+  const videoFile = useRef<File | undefined>(undefined);
+  const uploadEpoch = useRef(0);
+  const localVideoUrls = useRef(new Set<string>());
+  const [videoRetryable, setVideoRetryable] = useState(true);
+  const [leaveUploadPrompt, setLeaveUploadPrompt] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    return () => {
+      uploadEpoch.current++; imageEpoch.current++;
+      const tasks = new Set(unboundMediaTasks.current.values());
+      if (videoTask.current) tasks.add(videoTask.current);
+      if (imageTask.current) tasks.add(imageTask.current);
+      for (const task of tasks) void task.cancel().catch(() => {});
+      unboundMediaTasks.current.clear();
+      videoTask.current = null; imageTask.current = null;
+      for (const url of localVideoUrls.current) URL.revokeObjectURL(url);
+      localVideoUrls.current.clear();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      if (unboundMediaTasks.current.size || ['authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling', 'failed'].includes(videoUploadState) || ['uploading', 'authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling', 'failed'].includes(imageUploadState)) {
+        event.preventDefault(); event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [open, videoUploadState, imageUploadState]);
+
 
   useEffect(() => {
     if (!open) return;
@@ -206,9 +253,14 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     setRecallPinSortOrderError(null);
     setImageUploadState('idle');
     setImageUploadError(null);
+    setImageUploadProgress(0);
+    setImageWarning(undefined);
+    setImageRetryable(true);
     setVideoUploadState('idle');
     setVideoUploadProgress(0);
     setVideoUploadError(null);
+    setLeaveUploadPrompt(false);
+    setVideoRetryable(true);
     if (mode === 'edit' && sku) {
       setName(sku.name);
       setBrandId(String(sku.brand_id));
@@ -226,6 +278,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       setRemark(sku.remark ?? '');
       setImages(
         normalizeImages((sku.images ?? []).map((img, idx) => ({
+          media_id: img.id,
           object_key: img.object_key,
           url: img.url,
           thumbnail_url: img.thumbnail_url,
@@ -237,6 +290,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       );
       setVideos(
         (sku.videos ?? []).map((vid, idx) => ({
+          media_id: vid.id,
           object_key: vid.object_key,
           url: vid.url,
           file_name: vid.file_name,
@@ -374,11 +428,11 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
   };
 
   const handleSave = async (saveMode: 'draft' | 'create') => {
-    if (imageUploadState === 'uploading') {
+    if (['uploading', 'authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling', 'failed'].includes(imageUploadState)) {
       setError('图片上传中，请稍后保存');
       return;
     }
-    if (videoUploadState === 'transferring' || videoUploadState === 'saving') {
+    if (['authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling', 'failed'].includes(videoUploadState)) {
       setError('视频上传中，请稍后保存');
       return;
     }
@@ -407,6 +461,9 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
         await updateTileSku(sku.id, buildPayload());
         successMessage = 'SKU 已更新';
       }
+      for (const task of unboundMediaTasks.current.values()) task.markSaved?.();
+      unboundMediaTasks.current.clear();
+      videoTask.current = null; imageTask.current = null;
       onSuccess(successMessage);
       onClose();
     } catch (err) {
@@ -416,16 +473,31 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
     }
   };
 
-  const handleImageUpload = async (file: File | undefined) => {
-    if (!file) return;
+  const handleImageUpload = async (file: File | undefined, retry = false) => {
+    if (!file || submitting || isVideoUploading || isImageUploading) return;
+    const epoch = ++imageEpoch.current;
+    imageFile.current = file;
+    setImageRetryable(true); setImageUploadProgress(0); setImageWarning(undefined);
     setImageUploadState('uploading');
     setImageUploadError(null);
     try {
-      const result = await uploadTileImage(file, sku?.id);
+      const result = await uploadTileImage(file, sku?.id, {
+        task: retry ? imageTask.current ?? undefined : undefined,
+        onTask: task => { imageTask.current = task; },
+        onUpdate: value => {
+          if (imageEpoch.current !== epoch) return;
+          setImageUploadState(value.stage); setImageUploadProgress(value.progress); setImageWarning(value.warning);
+          if (value.error) setImageUploadError(value.error);
+          if (value.retryable !== undefined) setImageRetryable(value.retryable);
+        },
+      });
+      if (imageEpoch.current !== epoch) return;
+      if (imageTask.current) unboundMediaTasks.current.set(result.object_key, imageTask.current);
       setImages((prev) =>
         normalizeImages([
           ...prev,
           {
+            previewFile: file,
             object_key: result.object_key,
             url: result.url,
             thumbnail_url: result.thumbnail_url,
@@ -438,78 +510,153 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
       );
       setImageUploadState('uploaded');
     } catch (err) {
+      if (imageEpoch.current !== epoch) return;
+      if (err instanceof MediaUploadFailure) setImageRetryable(err.retryable);
       const message = getErrorMessage(err, '图片上传失败');
       setImageUploadState('failed');
       setImageUploadError(message);
     }
   };
 
-  const handleVideoUpload = async (file: File | undefined) => {
-    if (!file) return;
+  const handleVideoUpload = async (file: File | undefined, retry = false) => {
+    if (!file || submitting || isImageUploading || ['authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling'].includes(videoUploadState)) return;
+    const epoch = ++uploadEpoch.current;
+    videoFile.current = file;
     setVideoUploadError(null);
-    setVideoUploadState('transferring');
-    setVideoUploadProgress(8);
+    setVideoUploadState('authorizing');
+    if (!retry) setVideoUploadProgress(0);
     try {
-      const result = await uploadTileVideo(file, sku?.id, (progress) => {
-        const normalizedProgress = Math.min(99, Math.max(1, progress));
-        setVideoUploadProgress(normalizedProgress);
-        if (normalizedProgress >= 99) {
-          setVideoUploadState('saving');
-        } else {
-          setVideoUploadState('transferring');
-        }
-      });
-      setVideos((prev) => [
-        ...prev,
-        {
-          object_key: result.object_key,
-          url: result.url,
-          file_name: file.name,
-          file_size_bytes: file.size,
-          sort_order: prev.length,
+      const result = await uploadTileVideo(file, sku?.id, progress => {
+        if (epoch !== uploadEpoch.current) return;
+        const normalized = Math.min(99, Math.max(0, progress));
+        setVideoUploadProgress(normalized);
+        setVideoUploadState(normalized >= 99 ? 'saving' : 'transferring');
+      }, {
+        task: retry ? videoTask.current ?? undefined : undefined,
+        onTask: task => { videoTask.current = task; },
+        onUpdate: snapshot => {
+          if (epoch !== uploadEpoch.current) return;
+          setVideoUploadState(snapshot.stage);
+          setVideoUploadProgress(snapshot.progress);
+          setVideoUploadError(snapshot.error ?? null);
+          setVideoRetryable(snapshot.retryable ?? true);
         },
-      ]);
+      });
+      if (epoch !== uploadEpoch.current) return;
+      let previewUrl = result.url;
+      if (typeof URL.createObjectURL === 'function') {
+        previewUrl = URL.createObjectURL(file);
+        localVideoUrls.current.add(previewUrl);
+      }
+      if (videoTask.current) unboundMediaTasks.current.set(result.object_key, videoTask.current);
+      setVideos(prev => [...prev, {
+        object_key: result.object_key, url: previewUrl, file_name: file.name,
+        file_size_bytes: result.size ?? file.size, sort_order: prev.length,
+      }]);
       setVideoUploadProgress(100);
       setVideoUploadState('uploaded');
       requestAnimationFrame(() => {
-        const lastVideoCard = videoListRef.current?.lastElementChild;
-        if (typeof lastVideoCard?.scrollIntoView !== 'function') return;
-        lastVideoCard.scrollIntoView({
-          block: 'nearest',
-          behavior: 'smooth',
-        });
+        const card = videoListRef.current?.lastElementChild;
+        if (typeof card?.scrollIntoView === 'function') card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       });
     } catch (err) {
-      const message = getErrorMessage(err, '视频上传失败');
+      if (epoch !== uploadEpoch.current) return;
       setVideoUploadState('failed');
-      setVideoUploadProgress(0);
-      setVideoUploadError(message);
+      setVideoUploadError(err instanceof MediaUploadFailure ? err.message : getErrorMessage(err, '视频上传失败'));
+      setVideoRetryable(err instanceof MediaUploadFailure ? err.retryable : true);
     }
   };
 
-  const isVideoUploading = videoUploadState === 'transferring' || videoUploadState === 'saving';
-  const isImageUploading = imageUploadState === 'uploading';
-  const videoUploadStatusText =
-    videoUploadState === 'saving'
-      ? '正在保存视频，请稍候'
-      : `上传中 ${videoUploadProgress}%`;
+  const isVideoUploading = ['authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling'].includes(videoUploadState);
+  const hasUnfinishedVideo = isVideoUploading || videoUploadState === 'failed';
+  const isImageUploading = ['uploading', 'authorizing', 'transferring', 'saving', 'verifying', 'processing', 'cancelling'].includes(imageUploadState);
+  const hasUnfinishedImage = isImageUploading || imageUploadState === 'failed';
+
+  const cancelCurrentVideo = async () => {
+    uploadEpoch.current++;
+    setVideoUploadState('cancelling');
+    try {
+      await videoTask.current?.cancel();
+      setVideoUploadState('cancelled');
+      setVideoUploadError(null);
+      setVideoRetryable(false);
+    } catch {
+      setVideoUploadState('failed');
+      setVideoUploadError('取消未成功，请重试取消');
+      setVideoRetryable(false);
+    }
+  };
+
+  const requestClose = () => {
+    if (submitting || (isImageUploading && !imageTask.current)) return;
+    if (hasUnfinishedVideo || hasUnfinishedImage || unboundMediaTasks.current.size) setLeaveUploadPrompt(true);
+    else onClose();
+  };
+
+  const discardUploadsAndClose = async () => {
+    uploadEpoch.current++; imageEpoch.current++;
+    setVideoUploadState('cancelling');
+    try {
+      const tasks = new Set(unboundMediaTasks.current.values());
+      if (videoTask.current) tasks.add(videoTask.current);
+      if (imageTask.current) tasks.add(imageTask.current);
+      await Promise.all([...tasks].map(task => task.cancel()));
+      unboundMediaTasks.current.clear(); videoTask.current = null; imageTask.current = null;
+      onClose();
+    } catch {
+      setVideoUploadState('failed');
+      setVideoUploadError('取消未成功，请重试后离开');
+    }
+  };
+
+  const removeVideo = async (video: VideoDraft) => {
+    if (submitting) return;
+    try {
+      await unboundMediaTasks.current.get(video.object_key)?.cancel();
+      unboundMediaTasks.current.delete(video.object_key);
+      setVideos(prev => prev.filter(item => item.object_key !== video.object_key));
+      if (localVideoUrls.current.delete(video.url)) URL.revokeObjectURL(video.url);
+    } catch {
+      setVideoUploadError('移除未成功，请重试');
+      setVideoUploadState('failed');
+    }
+  };
 
   const setMainImage = (index: number) => {
+    if (submitting) return;
     setImages((prev) => normalizeImages(prev.map((img, i) => ({ ...img, is_main: i === index }))));
   };
 
-  const removeImage = (index: number) => {
-    setImages((prev) => removeImageDraft(prev, index));
+  const removeImage = async (index: number) => {
+    if (submitting) return;
+    const image = images[index];
+    try {
+      const task = unboundMediaTasks.current.get(image.object_key);
+      if (task) await task.cancel();
+      unboundMediaTasks.current.delete(image.object_key);
+      setImages(prev => normalizeImages(prev.filter(item => item.object_key !== image.object_key)));
+    } catch { setImageUploadError('移除未成功，请重试'); setImageUploadState('failed'); }
+  };
+
+  const cancelCurrentImage = async () => {
+    if (submitting) return;
+    imageEpoch.current++; setImageUploadState('cancelling');
+    try {
+      await imageTask.current?.cancel();
+      setImageUploadState('cancelled'); setImageUploadError(null);
+    } catch { setImageUploadState('failed'); setImageUploadError('取消未成功，请重试取消'); }
+    setImageRetryable(false);
   };
 
   return (
-    <div className="modal-backdrop" role="presentation">
+    <div className="modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) requestClose(); }}>
       <div
         className="sku-modal-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="tile-sku-modal-title"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); requestClose(); } }}
       >
         <div className="modal-head">
           <div>
@@ -527,13 +674,20 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               维护 SKU 基础资料、参考价格、图片与视频素材；弹窗内不提供状态选择。
             </p>
           </div>
-          <button type="button" className="modal-close" aria-label="关闭" onClick={onClose}>
+          <button type="button" className="modal-close" aria-label="关闭" onClick={requestClose}>
             ×
           </button>
         </div>
 
         <div className="modal-body">
           {error ? <p className="admin-notice">{error}</p> : null}
+          {leaveUploadPrompt ? (
+            <div className="media-upload-status" role="alert" data-testid="upload-leave-prompt">
+              <p>文件尚未保存至商品。离开会取消本次未保存的上传。</p>
+              <button type="button" className="media-upload-status__action" onClick={() => setLeaveUploadPrompt(false)}>继续编辑</button>
+              <button type="button" className="media-upload-status__action" disabled={videoUploadState === 'cancelling'} onClick={() => void discardUploadsAndClose()}>取消上传并离开</button>
+            </div>
+          ) : null}
           <div className="sku-form-grid">
             <div className="brand-form-item">
               <label>
@@ -695,12 +849,13 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <div className="sku-upload-grid">
                 {images.map((img, index) => (
                   <div key={img.object_key} className="sku-image-tile">
-                    <img src={img.display_url || img.thumbnail_url || img.url} alt="" />
+                    <AuthorizedImage file={img.previewFile} reference={img.media_id && sku ? {resource_type: 'sku_image', resource_id: String(sku.id), media_id: img.media_id, variant: 'display'} : unboundMediaTasks.current.get(img.object_key)?.sessionId ? {resource_type: 'upload_session', resource_id: unboundMediaTasks.current.get(img.object_key)!.sessionId!, variant: 'display'} : undefined} src={img.display_url || img.thumbnail_url || img.url} alt="" />
                     {img.is_main ? <span className="sku-main-flag">主图</span> : null}
                     {!img.is_main ? (
                       <button
                         type="button"
                         className="sku-set-main"
+                        disabled={submitting}
                         onClick={() => setMainImage(index)}
                       >
                         设为主图
@@ -709,6 +864,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                     <button
                       type="button"
                       className="sku-remove-image"
+                      disabled={submitting}
                       aria-label={`移除图片 ${index + 1}`}
                       onClick={() => removeImage(index)}
                     >
@@ -719,34 +875,28 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                 <button
                   type="button"
                   className={`sku-add-tile${isImageUploading ? ' disabled' : ''}`}
-                  aria-disabled={isImageUploading}
-                  disabled={isImageUploading}
+                  aria-disabled={isImageUploading || isVideoUploading}
+                  disabled={isImageUploading || isVideoUploading}
                   onClick={() => imageInputRef.current?.click()}
                 >
                   <span style={{ fontSize: 20 }}>＋</span>
                   {isImageUploading ? '上传中' : '继续添加图片'}
                 </button>
               </div>
-              {isImageUploading ? (
-                <span className="sku-video-upload-status sku-image-upload-status">
-                  图片上传中，请稍候
-                </span>
-              ) : null}
-              {imageUploadState === 'uploaded' ? (
-                <span className="sku-video-upload-success">图片已添加</span>
-              ) : null}
-              {imageUploadState === 'failed' && imageUploadError ? (
-                <span className="sku-video-upload-error" role="alert">
-                  {imageUploadError}
-                </span>
-              ) : null}
+              {imageUploadState === 'uploading' ? <span className="sku-image-upload-status">图片上传中，请稍候</span> : (
+                <MediaUploadStatus mediaKind="image" stage={imageUploadState} progress={imageUploadProgress}
+                  fileName={imageUploadState === 'uploaded' ? undefined : imageFile.current?.name} error={imageUploadError}
+                  onCancel={imageUploadState === 'idle' ? undefined : () => void cancelCurrentImage()}
+                  onRetry={imageRetryable ? () => void handleImageUpload(imageFile.current, true) : undefined} />
+              )}
+              {imageWarning ? <p role="status" className="text-brand-gold">{imageWarning}</p> : null}
               <p className="sku-help">{imageUploadHint}</p>
               <input
                 ref={imageInputRef}
                 type="file"
                 accept={imageAccept}
                 hidden
-                disabled={isImageUploading}
+                disabled={isImageUploading || isVideoUploading}
                 onChange={(e) => {
                   const input = e.currentTarget;
                   void handleImageUpload(input.files?.[0]).finally(() => {
@@ -762,7 +912,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                 {videos.map((vid) => (
                   <div key={vid.object_key} className="sku-video-card">
                     <div className="sku-video-player-wrap">
-                      <video
+                      <AuthorizedVideo reference={vid.media_id && sku ? {resource_type: 'sku_video', resource_id: String(sku.id), media_id: vid.media_id, variant: 'original'} : unboundMediaTasks.current.get(vid.object_key)?.sessionId ? {resource_type: 'upload_session', resource_id: unboundMediaTasks.current.get(vid.object_key)!.sessionId!, variant: 'original'} : undefined}
                         className="sku-video-player"
                         src={resolveVideoUrl(vid)}
                         controls
@@ -773,9 +923,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                       <button
                         type="button"
                         className="sku-video-remove"
-                        onClick={() =>
-                          setVideos((prev) => prev.filter((v) => v.object_key !== vid.object_key))
-                        }
+                        disabled={submitting}
+                        onClick={() => void removeVideo(vid)}
                       >
                         移除
                       </button>
@@ -794,46 +943,25 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
                 <button
                   type="button"
                   className={`sku-add-tile${isVideoUploading ? ' disabled' : ''}`}
-                  aria-disabled={isVideoUploading}
-                  disabled={isVideoUploading}
+                  aria-disabled={isVideoUploading || isImageUploading}
+                  disabled={isVideoUploading || isImageUploading}
                   onClick={() => videoInputRef.current?.click()}
                 >
                   <span style={{ fontSize: 20 }}>＋</span>
                   {videoUploadState === 'saving' ? '保存中' : isVideoUploading ? '上传中' : '继续添加视频'}
                 </button>
               </div>
-              {isVideoUploading ? (
-                <div className="sku-video-upload-status">
-                  <span
-                    className="sku-video-progress"
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={videoUploadProgress}
-                  >
-                    <span
-                      className="sku-video-progress-bar"
-                      style={{ width: `${videoUploadProgress}%` }}
-                    />
-                  </span>
-                  <span className="sku-video-progress-text">{videoUploadStatusText}</span>
-                </div>
-              ) : null}
-              {videoUploadState === 'uploaded' ? (
-                <span className="sku-video-upload-success">视频已添加</span>
-              ) : null}
-              {videoUploadState === 'failed' && videoUploadError ? (
-                <span className="sku-video-upload-error" role="alert">
-                  {videoUploadError}
-                </span>
-              ) : null}
+              <MediaUploadStatus stage={videoUploadState} progress={videoUploadProgress}
+                fileName={videoUploadState === 'uploaded' ? undefined : videoFile.current?.name} error={videoUploadError}
+                onCancel={videoTask.current ? () => void cancelCurrentVideo() : undefined}
+                onRetry={videoRetryable ? () => void handleVideoUpload(videoFile.current, true) : undefined} />
               <p className="sku-help">{videoUploadHint}</p>
               <input
                 ref={videoInputRef}
                 type="file"
                 accept={videoAccept}
                 hidden
-                disabled={isVideoUploading}
+                disabled={isVideoUploading || isImageUploading}
                 onChange={(e) => {
                   const input = e.currentTarget;
                   void handleVideoUpload(input.files?.[0]).finally(() => {
@@ -849,8 +977,8 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
           <button
             type="button"
             className="btn"
-            onClick={onClose}
-            disabled={submitting || isImageUploading || isVideoUploading}
+            onClick={requestClose}
+            disabled={submitting || (isImageUploading && !imageTask.current)}
           >
             取消
           </button>
@@ -859,7 +987,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <button
                 type="button"
                 className="btn"
-                disabled={submitting || isImageUploading || isVideoUploading}
+                disabled={submitting || hasUnfinishedImage || hasUnfinishedVideo}
                 onClick={() => void handleSave('draft')}
               >
                 保存草稿
@@ -867,7 +995,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
               <button
                 type="button"
                 className="btn primary"
-                disabled={submitting || isImageUploading || isVideoUploading}
+                disabled={submitting || hasUnfinishedImage || hasUnfinishedVideo}
                 onClick={() => void handleSave('create')}
               >
                 创建 SKU
@@ -877,7 +1005,7 @@ export function TileSkuFormModal({ open, mode, sku, onClose, onSuccess }: TileSk
             <button
               type="button"
               className="btn primary"
-              disabled={submitting || isImageUploading || isVideoUploading}
+              disabled={submitting || hasUnfinishedImage || hasUnfinishedVideo}
               onClick={() => void handleSave('create')}
             >
               保存

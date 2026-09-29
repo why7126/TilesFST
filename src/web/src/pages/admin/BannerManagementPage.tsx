@@ -291,7 +291,7 @@ export function BannerManagementPage() {
                       <td className="admin-sticky-action-cell">
                         <div className="banner-cell">
                           <span className="banner-thumb">
-                            <FallbackListImage
+                            <FallbackListImage reference={{ resource_type: 'banner_image', resource_id: String(banner.id), variant: 'thumbnail' }}
                               thumbnailUrl={banner.image_thumbnail_url}
                               originalUrl={banner.image_url}
                             />
